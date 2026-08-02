@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Forge.Domain.Authoring;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Combat;
@@ -10,6 +11,34 @@ using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 
 namespace Forge.ModuleFormat.Serialization;
+
+internal sealed class EditorCameraProfileIdJsonConverter : JsonConverter<EditorCameraProfileId>
+{
+    public override EditorCameraProfileId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        EditorCameraProfileId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, EditorCameraProfileId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("An editor camera profile ID cannot be null.")
+            : throw new JsonException("An editor camera profile ID must be a string.");
+}
+
+internal sealed class EditorCameraBookmarkIdJsonConverter : JsonConverter<EditorCameraBookmarkId>
+{
+    public override EditorCameraBookmarkId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        EditorCameraBookmarkId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, EditorCameraBookmarkId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("An editor camera bookmark ID cannot be null.")
+            : throw new JsonException("An editor camera bookmark ID must be a string.");
+}
 
 internal sealed class AreaIdJsonConverter : JsonConverter<AreaId>
 {

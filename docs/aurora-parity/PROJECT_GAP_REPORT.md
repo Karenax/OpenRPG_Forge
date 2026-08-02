@@ -90,5 +90,5 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 ## Première tâche
 
-`tasks/G7-09-STANDARD-CUSTOM-PALETTES.md` est terminée. La suite est G7-10 : navigation caméra
-d’auteur avec orbite, panoramique, zoom, focus, vues cardinales et vitesse réglable.
+`tasks/G7-10-EDITOR-CAMERA-NAVIGATION.md` est terminée. La suite est G7-11 : événements Core
+`ProjectLoaded`, `WorldStarted`, `AreaEntered` et `AreaExited`, ordonnés et observables.

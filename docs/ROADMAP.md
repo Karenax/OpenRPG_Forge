@@ -60,9 +60,11 @@ G7-08 ajoute les métadonnées de publication localisées, les variables typées
 Aurora, leur persistance 0.8 et le blackboard runtime validé.
 G7-09 sépare les palettes Standard et Custom, verrouille les packs installés et rend provenance,
 licence, origine IA, favoris et contenus temporaires filtrables dans l’écran Blueprints Aurora.
+G7-10 livre la caméra auteur orbit/pan/zoom, le focus, les vues orthographiques, la vitesse et les
+bookmarks persistés hors du document de module.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-10 — navigation caméra d’auteur**.
+La prochaine tranche est **G7-11 — événements de cycle de vie Core**.
 
 ## Phase 6 — 3D assistée
 

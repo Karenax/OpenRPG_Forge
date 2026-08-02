@@ -11,6 +11,7 @@ using Forge.Application.Quests;
 using Forge.Application.Spatial;
 using Forge.Application.Time;
 using Forge.Domain.Areas;
+using Forge.Domain.Authoring;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
@@ -1775,6 +1776,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _history = new ProjectCommandHistory(new ProjectState(
             _projectSession.Project,
             new ProjectRevision(0)));
+        var cameraProfile = EditorCameraProfileStore.LoadOrCreate(
+            _projectSession.RootDirectory,
+            _projectSession.Project.Id);
+        _projectPreview?.SetCameraProfile(cameraProfile.Profile, PersistEditorCameraProfile);
         _activeAreaContext.Reset(_projectSession.Project);
         RebuildPreview();
         RefreshEditorControls();
@@ -1787,6 +1792,20 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _exportButton.Disabled = false;
         GD.Print($"OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILT entities={_projectPreview?.EntityCount ?? 0}");
         GD.Print($"OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities={entityCount}");
+    }
+
+    private void PersistEditorCameraProfile(EditorCameraProfile profile)
+    {
+        if (_projectSession is null)
+        {
+            return;
+        }
+
+        var result = EditorCameraProfileStore.Save(_projectSession.RootDirectory, profile);
+        if (!result.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_CAMERA_PROFILE_SAVE_FAILED {result.Diagnostics[0].Code}");
+        }
     }
 
     private EntityId? PlaceSelectedBlueprint()
@@ -2573,6 +2592,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunPaletteProvenanceSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunEditorCameraNavigationSmokeTest())
         {
             return;
         }
@@ -3479,6 +3503,115 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable " +
             $"generated=provenance favorites=filtered temporary=isolated format={ProjectSession.CurrentProjectFormatVersion} " +
             "history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunEditorCameraNavigationSmokeTest()
+    {
+        if (_history is null || _projectPreview is null || _projectSession is null ||
+            _projectPreview.CameraProfile is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G710_CAMERA_FAILED missing_preview");
+            return false;
+        }
+
+        var projectRevision = _history.State.Revision;
+        var originalProfile = _projectPreview.CameraProfile;
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "editor-camera-smoke",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(smokeRoot);
+        try
+        {
+            EditorCameraProfile? persisted = null;
+            _projectPreview.SetCameraProfile(
+                EditorCameraProfile.CreateDefault(originalProfile.Id),
+                profile =>
+                {
+                    persisted = profile;
+                    EditorCameraProfileStore.Save(smokeRoot, profile);
+                });
+            var start = _projectPreview.CameraProfile.Pose;
+            if (!_projectPreview.NavigateCameraForSmokeTest(EditorCameraOperation.Orbit, 36, -18) ||
+                !_projectPreview.NavigateCameraForSmokeTest(EditorCameraOperation.Pan, 24, -12) ||
+                !_projectPreview.NavigateCameraForSmokeTest(EditorCameraOperation.Zoom, 2))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G710_CAMERA_FAILED navigation");
+                return false;
+            }
+
+            var navigated = _projectPreview.CameraProfile.Pose;
+            var selected = GetActiveArea().Entities.First();
+            var bookmarkId = EditorCameraBookmarkId.From(Guid.Parse("f9000000-0000-4000-8000-000000000001"));
+            if (navigated == start ||
+                !_projectPreview.NavigateCameraForSmokeTest(
+                    EditorCameraOperation.Focus,
+                    target: selected.Transform.Position,
+                    radius: 2) ||
+                !_projectPreview.NavigateCameraForSmokeTest(
+                    EditorCameraOperation.SetView,
+                    view: EditorCameraView.Top) ||
+                !_projectPreview.NavigateCameraForSmokeTest(
+                    EditorCameraOperation.SetSpeed,
+                    x: 2.5f) ||
+                !_projectPreview.NavigateCameraForSmokeTest(
+                    EditorCameraOperation.SaveBookmark,
+                    bookmarkId: bookmarkId,
+                    bookmarkName: "Vue de validation"))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G710_CAMERA_FAILED focus_view_bookmark");
+                return false;
+            }
+
+            var bookmarkedPose = _projectPreview.CameraProfile.Pose;
+            if (_projectPreview.CameraProfile.Pose.Projection != EditorCameraProjection.Orthographic ||
+                _projectPreview.CameraProfile.NavigationSpeed != 2.5f ||
+                _projectPreview.CameraProfile.Bookmarks.Count != 1 ||
+                !_projectPreview.NavigateCameraForSmokeTest(
+                    EditorCameraOperation.SetView,
+                    view: EditorCameraView.Perspective) ||
+                !_projectPreview.NavigateCameraForSmokeTest(EditorCameraOperation.Orbit, 20, 5) ||
+                !_projectPreview.NavigateCameraForSmokeTest(
+                    EditorCameraOperation.RecallBookmark,
+                    bookmarkId: bookmarkId) ||
+                _projectPreview.CameraProfile.Pose != bookmarkedPose)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G710_CAMERA_FAILED bookmark_recall");
+                return false;
+            }
+
+            if (!_projectPreview.UndoCameraForSmokeTest() ||
+                _projectPreview.CameraProfile.Pose == bookmarkedPose ||
+                !_projectPreview.RedoCameraForSmokeTest() ||
+                _projectPreview.CameraProfile.Pose != bookmarkedPose)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G710_CAMERA_FAILED history");
+                return false;
+            }
+
+            var restored = EditorCameraProfileStore.LoadOrCreate(smokeRoot, _history.State.Project.Id);
+            if (persisted is null || restored.UsedDefault || restored.Diagnostics.Count != 0 ||
+                restored.Profile.Pose != bookmarkedPose || restored.Profile.Bookmarks.Count != 1 ||
+                _history.State.Revision != projectRevision)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G710_CAMERA_FAILED persistence_or_project_revision");
+                return false;
+            }
+        }
+        finally
+        {
+            _projectPreview.SetCameraProfile(originalProfile, PersistEditorCameraProfile);
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G710_CAMERA_PASS orbit=mouse pan=mouse zoom=adaptive focus=selection " +
+            "views=orthographic pilot=wasd bookmarks=persisted history=dedicated project=unchanged");
         return true;
     }
 

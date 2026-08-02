@@ -39,7 +39,7 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 85,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -48,7 +48,7 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 85,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -57,7 +57,7 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 43,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -66,7 +66,7 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 43,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -102,7 +102,7 @@
     },
     {
       "evidence": {
-        "line": 42,
+        "line": 71,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -111,7 +111,7 @@
     },
     {
       "evidence": {
-        "line": 42,
+        "line": 71,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -120,7 +120,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 141,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -129,7 +129,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 141,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -138,7 +138,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 113,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -147,7 +147,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 113,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -156,7 +156,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 127,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -165,7 +165,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 127,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -174,7 +174,61 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 29,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorCameraBookmarkIdJsonConverter",
+      "target": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorCameraBookmarkIdJsonConverter",
+      "target": "model:Forge.Domain.Authoring.EditorCameraBookmarkId"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorCameraProfileIdJsonConverter",
+      "target": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorCameraProfileIdJsonConverter",
+      "target": "model:Forge.Domain.Authoring.EditorCameraProfileId"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorCameraProfileJsonSerializer",
+      "target": "file:src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorCameraProfileJsonSerializer",
+      "target": "model:Forge.ModuleFormat.Serialization.EditorCameraProfileDocument"
+    },
+    {
+      "evidence": {
+        "line": 99,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -183,7 +237,7 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 99,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -192,7 +246,7 @@
     },
     {
       "evidence": {
-        "line": 140,
+        "line": 169,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -201,7 +255,7 @@
     },
     {
       "evidence": {
-        "line": 140,
+        "line": 169,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -210,7 +264,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 57,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -219,7 +273,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 57,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -228,7 +282,7 @@
     },
     {
       "evidence": {
-        "line": 126,
+        "line": 155,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -237,7 +291,7 @@
     },
     {
       "evidence": {
-        "line": 126,
+        "line": 155,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -291,7 +345,7 @@
     },
     {
       "evidence": {
-        "line": 154,
+        "line": 183,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -300,7 +354,7 @@
     },
     {
       "evidence": {
-        "line": 154,
+        "line": 183,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -309,7 +363,7 @@
     },
     {
       "evidence": {
-        "line": 170,
+        "line": 199,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -318,7 +372,7 @@
     },
     {
       "evidence": {
-        "line": 170,
+        "line": 199,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -345,7 +399,7 @@
     },
     {
       "evidence": {
-        "line": 186,
+        "line": 215,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -354,7 +408,7 @@
     },
     {
       "evidence": {
-        "line": 186,
+        "line": 215,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -363,7 +417,7 @@
     },
     {
       "evidence": {
-        "line": 200,
+        "line": 229,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -372,7 +426,7 @@
     },
     {
       "evidence": {
-        "line": 200,
+        "line": 229,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -381,7 +435,7 @@
     },
     {
       "evidence": {
-        "line": 214,
+        "line": 243,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -390,7 +444,7 @@
     },
     {
       "evidence": {
-        "line": 214,
+        "line": 243,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -534,7 +588,16 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorCameraView.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.Domain.Authoring.EditorCameraView",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraView.cs"
+    },
+    {
+      "evidence": {
+        "line": 31,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1371,7 +1434,7 @@
     },
     {
       "evidence": {
-        "line": 114,
+        "line": 118,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1380,7 +1443,7 @@
     },
     {
       "evidence": {
-        "line": 169,
+        "line": 173,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1389,7 +1452,7 @@
     },
     {
       "evidence": {
-        "line": 48,
+        "line": 50,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1425,7 +1488,7 @@
     },
     {
       "evidence": {
-        "line": 390,
+        "line": 392,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1434,7 +1497,7 @@
     },
     {
       "evidence": {
-        "line": 396,
+        "line": 398,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1443,7 +1506,7 @@
     },
     {
       "evidence": {
-        "line": 402,
+        "line": 404,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2042,7 +2105,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
@@ -2051,7 +2114,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -2060,7 +2123,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -2069,7 +2132,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -2078,7 +2141,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -2087,7 +2150,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -2096,7 +2159,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -2105,16 +2168,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Validation"
-    },
-    {
-      "evidence": {
-        "line": 23,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -2123,11 +2177,29 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
         "line": 24,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
+    },
+    {
+      "evidence": {
+        "line": 25,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -2186,7 +2258,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Application.Projects"
+      "target": "namespace:Forge.Application.Commands"
     },
     {
       "evidence": {
@@ -2195,7 +2267,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Application.Spatial"
+      "target": "namespace:Forge.Application.Creator"
     },
     {
       "evidence": {
@@ -2204,7 +2276,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Areas"
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
@@ -2213,7 +2285,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Application.Spatial"
     },
     {
       "evidence": {
@@ -2222,16 +2294,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Entities"
-    },
-    {
-      "evidence": {
-        "line": 7,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Application.Time"
     },
     {
       "evidence": {
@@ -2240,11 +2303,56 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
         "line": 9,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 13,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "imports",
@@ -2289,7 +2397,7 @@
     },
     {
       "evidence": {
-        "line": 64,
+        "line": 66,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2298,7 +2406,7 @@
     },
     {
       "evidence": {
-        "line": 80,
+        "line": 82,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2307,7 +2415,7 @@
     },
     {
       "evidence": {
-        "line": 124,
+        "line": 131,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -2321,7 +2429,7 @@
       },
       "kind": "references",
       "source": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",
-      "target": "file:docs/aurora-parity/tasks/G7-09-STANDARD-CUSTOM-PALETTES.md"
+      "target": "file:docs/aurora-parity/tasks/G7-10-EDITOR-CAMERA-NAVIGATION.md"
     },
     {
       "evidence": {
@@ -3060,6 +3168,96 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Creator/CreatorSearchIndex.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/EditorCameraCommandHistory.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/EditorCameraCommandHistory.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/EditorCameraCommandResult.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/EditorCameraState.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/EditorCameraState.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/NavigateEditorCameraCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/NavigateEditorCameraCommand.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/NavigateEditorCameraCommand.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/NavigateEditorCameraHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/NavigateEditorCameraHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/NavigateEditorCameraHandler.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/NavigateEditorCameraHandler.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -4171,6 +4369,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorCameraPose.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Authoring/EditorCameraPose.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorCameraProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Authoring/EditorCameraProfile.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Blueprints/BlueprintDefinition.cs"
       },
       "kind": "imports",
@@ -4638,12 +4854,12 @@
     },
     {
       "evidence": {
-        "line": 3,
-        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
       },
       "kind": "imports",
-      "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Areas"
+      "source": "file:src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs",
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
@@ -4652,7 +4868,16 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
@@ -4661,7 +4886,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Combat"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -4670,7 +4895,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Combat"
     },
     {
       "evidence": {
@@ -4679,7 +4904,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -4688,7 +4913,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -4697,11 +4922,20 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
         "line": 10,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 11,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "imports",
@@ -4878,6 +5112,33 @@
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
       "evidence": {
@@ -5219,6 +5480,60 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
     },
     {
@@ -5935,6 +6250,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
       },
       "kind": "imports",
@@ -6624,6 +6957,42 @@
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/TestProjectFactory.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
       "evidence": {
@@ -8625,6 +8994,96 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "target": "file:src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 262,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 257,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 263,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "target": "model:Forge.Application.Creator.EditorCameraCommandResult"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "target": "model:Forge.Application.Creator.EditorCameraState"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "target": "model:Forge.Application.Creator.NavigateEditorCameraCommand"
+    },
+    {
+      "evidence": {
+        "line": 209,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "target": "model:Forge.Domain.Authoring.EditorCameraBookmarkId"
+    },
+    {
+      "evidence": {
+        "line": 125,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
         "line": 14,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
@@ -10290,6 +10749,96 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.EditorCameraCommandResult",
+      "target": "file:src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.EditorCameraCommandResult",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.EditorCameraCommandResult",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.EditorCameraCommandResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.EditorCameraCommandResult",
+      "target": "model:Forge.Application.Creator.EditorCameraState"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creator/EditorCameraState.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.EditorCameraState",
+      "target": "file:src/Forge.Application/Creator/EditorCameraState.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.NavigateEditorCameraCommand",
+      "target": "file:src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.NavigateEditorCameraCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.NavigateEditorCameraCommand",
+      "target": "model:Forge.Domain.Authoring.EditorCameraBookmarkId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.NavigateEditorCameraCommand",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.Application/Creator/SafeRenameCommand.cs"
       },
@@ -10827,6 +11376,24 @@
       "kind": "defined_in",
       "source": "model:Forge.Domain.Areas.PortalId",
       "target": "file:src/Forge.Domain/Areas/PortalId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorCameraBookmarkId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Authoring.EditorCameraBookmarkId",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraBookmarkId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorCameraProfileId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Authoring.EditorCameraProfileId",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraProfileId.cs"
     },
     {
       "evidence": {
@@ -11748,6 +12315,15 @@
     },
     {
       "evidence": {
+        "line": 34,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Serialization.EditorCameraProfileDocument",
+      "target": "file:src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
         "line": 35,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectDocument.cs"
       },
@@ -11772,6 +12348,24 @@
       "kind": "defined_in",
       "source": "model:Forge.ModuleFormat.Serialization.WorkspaceProjectDocument",
       "target": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+    },
+    {
+      "evidence": {
+        "line": 110,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Workspaces.EditorCameraProfileLoadResult",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 113,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Workspaces.EditorCameraProfileLoadResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic"
     },
     {
       "evidence": {
@@ -12351,6 +12945,69 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/EditorCameraCommandHistory.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/EditorCameraCommandHistory.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/EditorCameraOperation.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/EditorCameraOperation.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/EditorCameraRevision.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/EditorCameraRevision.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/EditorCameraState.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/EditorCameraState.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Creator/SafeRenameCommand.cs"
       },
@@ -12666,6 +13323,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Creator",
+      "target": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
       },
@@ -12852,6 +13518,69 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Areas",
       "target": "file:src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorCameraBookmark.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraBookmark.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorCameraBookmarkId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraBookmarkId.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Authoring/EditorCameraPose.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraPose.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Authoring/EditorCameraProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorCameraProfileId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraProfileId.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorCameraProjection.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraProjection.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorCameraView.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraView.cs"
     },
     {
       "evidence": {
@@ -13467,6 +14196,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Authoring",
+      "target": "file:tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
       },
@@ -13944,7 +14682,16 @@
     },
     {
       "evidence": {
-        "line": 11,
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Serialization",
+      "target": "file:src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -14088,12 +14835,30 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Workspaces",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Tests.Workspaces",
       "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Workspaces",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
     },
     {
       "evidence": {
@@ -14304,7 +15069,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -14340,7 +15105,7 @@
     },
     {
       "evidence": {
-        "line": 11,
+        "line": 15,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "defined_in",
@@ -16020,6 +16785,141 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
       "target": "type:Forge.Application.Creator.CreatorSelectionContext"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "component:Forge.Domain.Authoring.EditorCameraView"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "handler:Forge.Application.Creator.NavigateEditorCameraHandler"
+    },
+    {
+      "evidence": {
+        "line": 128,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 113,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "model:Forge.Application.Creator.EditorCameraCommandResult"
+    },
+    {
+      "evidence": {
+        "line": 114,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "model:Forge.Application.Creator.EditorCameraState"
+    },
+    {
+      "evidence": {
+        "line": 121,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "model:Forge.Application.Creator.NavigateEditorCameraCommand"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "model:Forge.Domain.Authoring.EditorCameraBookmarkId"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "model:Forge.Domain.Authoring.EditorCameraProfileId"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 74,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "type:Forge.Application.Creator.EditorCameraCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "type:Forge.Application.Creator.EditorCameraOperation"
+    },
+    {
+      "evidence": {
+        "line": 122,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "type:Forge.Application.Creator.EditorCameraRevision"
+    },
+    {
+      "evidence": {
+        "line": 136,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "type:Forge.Domain.Authoring.EditorCameraProfile"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "target": "type:Forge.Domain.Authoring.EditorCameraProjection"
     },
     {
       "evidence": {
@@ -17823,6 +18723,78 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
+      "target": "file:tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
+      "target": "model:Forge.Domain.Authoring.EditorCameraBookmarkId"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
+      "target": "model:Forge.Domain.Authoring.EditorCameraProfileId"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorCameraBookmark"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorCameraPose"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorCameraProfile"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorCameraProjection"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
       },
@@ -19110,7 +20082,7 @@
     },
     {
       "evidence": {
-        "line": 163,
+        "line": 166,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -19119,7 +20091,7 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 59,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -19128,7 +20100,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 24,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -19137,7 +20109,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 22,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -19146,7 +20118,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 23,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -20190,6 +21162,87 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
+      "target": "model:Forge.Domain.Authoring.EditorCameraBookmarkId"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
+      "target": "type:Forge.Domain.Authoring.EditorCameraBookmark"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
+      "target": "type:Forge.Domain.Authoring.EditorCameraPose"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
+      "target": "type:Forge.Domain.Authoring.EditorCameraProfile"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
+      "target": "type:Forge.Domain.Authoring.EditorCameraProjection"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.EditorCameraProfileStore"
+    },
+    {
+      "evidence": {
         "line": 125,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
@@ -20433,6 +21486,15 @@
     },
     {
       "evidence": {
+        "line": 265,
+        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.CameraCommandException",
+      "target": "file:src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Creator/CreatorDiagnosticSeverity.cs"
       },
@@ -20523,6 +21585,33 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creator/EditorCameraCommandHistory.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.EditorCameraCommandHistory",
+      "target": "file:src/Forge.Application/Creator/EditorCameraCommandHistory.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/EditorCameraOperation.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.EditorCameraOperation",
+      "target": "file:src/Forge.Application/Creator/EditorCameraOperation.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/EditorCameraRevision.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.EditorCameraRevision",
+      "target": "file:src/Forge.Application/Creator/EditorCameraRevision.cs"
+    },
+    {
+      "evidence": {
         "line": 18,
         "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
       },
@@ -20610,6 +21699,42 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Areas.PortalLink",
       "target": "file:src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorCameraBookmark.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorCameraBookmark",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraBookmark.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Authoring/EditorCameraPose.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorCameraPose",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraPose.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Authoring/EditorCameraProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorCameraProfile",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorCameraProjection.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorCameraProjection",
+      "target": "file:src/Forge.Domain/Authoring/EditorCameraProjection.cs"
     },
     {
       "evidence": {
@@ -21243,6 +22368,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Workspaces.EditorCameraProfileStore",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.ModuleFormat/Workspaces/ProjectSession.cs"
       },
@@ -21396,7 +22530,7 @@
     },
     {
       "evidence": {
-        "line": 3753,
+        "line": 3886,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -21414,7 +22548,7 @@
     },
     {
       "evidence": {
-        "line": 15,
+        "line": 19,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "defined_in",
@@ -21423,7 +22557,7 @@
     },
     {
       "evidence": {
-        "line": 3758,
+        "line": 3891,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -21432,7 +22566,7 @@
     },
     {
       "evidence": {
-        "line": 3763,
+        "line": 3896,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -21792,8 +22926,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:7e2254ccdbaff41aae94a27f1a661d25b83a0e2bbc3b7c633805e2186523ecaf",
-    "source_file_count": 573
+    "source_digest": "sha256:12b3af44b2b6477ac064e33452facc493c9a659f5de84c889d4b8ff00b14daaa",
+    "source_file_count": 593
   },
   "nodes": [
     {
@@ -21809,7 +22943,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AbilityIdJsonConverter",
       "kind": "adapter",
-      "line": 56,
+      "line": 85,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21819,7 +22953,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AreaIdJsonConverter",
       "kind": "adapter",
-      "line": 14,
+      "line": 43,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21839,7 +22973,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.BlueprintIdJsonConverter",
       "kind": "adapter",
-      "line": 42,
+      "line": 71,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21849,7 +22983,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueChoiceIdJsonConverter",
       "kind": "adapter",
-      "line": 112,
+      "line": 141,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21859,7 +22993,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueIdJsonConverter",
       "kind": "adapter",
-      "line": 84,
+      "line": 113,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21869,7 +23003,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueNodeIdJsonConverter",
       "kind": "adapter",
-      "line": 98,
+      "line": 127,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21877,9 +23011,39 @@
       "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
     },
     {
+      "id": "adapter:Forge.ModuleFormat.Serialization.EditorCameraBookmarkIdJsonConverter",
+      "kind": "adapter",
+      "line": 29,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "EditorCameraBookmarkIdJsonConverter",
+      "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.EditorCameraProfileIdJsonConverter",
+      "kind": "adapter",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "EditorCameraProfileIdJsonConverter",
+      "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.EditorCameraProfileJsonSerializer",
+      "kind": "adapter",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "EditorCameraProfileJsonSerializer",
+      "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+    },
+    {
       "id": "adapter:Forge.ModuleFormat.Serialization.EntityIdJsonConverter",
       "kind": "adapter",
-      "line": 70,
+      "line": 99,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21889,7 +23053,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ModuleIdJsonConverter",
       "kind": "adapter",
-      "line": 140,
+      "line": 169,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21899,7 +23063,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.PortalIdJsonConverter",
       "kind": "adapter",
-      "line": 28,
+      "line": 57,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21909,7 +23073,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ProjectIdJsonConverter",
       "kind": "adapter",
-      "line": 126,
+      "line": 155,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21929,7 +23093,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ProjectMetadataIdJsonConverter",
       "kind": "adapter",
-      "line": 154,
+      "line": 183,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21939,7 +23103,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ProjectVariableIdJsonConverter",
       "kind": "adapter",
-      "line": 170,
+      "line": 199,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21959,7 +23123,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestIdJsonConverter",
       "kind": "adapter",
-      "line": 186,
+      "line": 215,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21969,7 +23133,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestStateIdJsonConverter",
       "kind": "adapter",
-      "line": 200,
+      "line": 229,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -21979,7 +23143,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestTransitionIdJsonConverter",
       "kind": "adapter",
-      "line": 214,
+      "line": 243,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -22057,9 +23221,19 @@
       "path": "src/Forge.Application/Creator/SafeRenamePreview.cs"
     },
     {
+      "id": "component:Forge.Domain.Authoring.EditorCameraView",
+      "kind": "component",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorCameraView",
+      "path": "src/Forge.Domain/Authoring/EditorCameraView.cs"
+    },
+    {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 30,
+      "line": 31,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -23887,6 +25061,16 @@
       "path": "docs/aurora-parity/tasks/G7-09-STANDARD-CUSTOM-PALETTES.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-10-EDITOR-CAMERA-NAVIGATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-10-EDITOR-CAMERA-NAVIGATION.md",
+      "path": "docs/aurora-parity/tasks/G7-10-EDITOR-CAMERA-NAVIGATION.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -24357,6 +25541,76 @@
       "path": "src/Forge.Application/Creator/CreatorSelectionKind.cs"
     },
     {
+      "id": "file:src/Forge.Application/Creator/EditorCameraCommandHistory.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraCommandHistory.cs",
+      "path": "src/Forge.Application/Creator/EditorCameraCommandHistory.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/EditorCameraCommandResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraCommandResult.cs",
+      "path": "src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/EditorCameraOperation.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraOperation.cs",
+      "path": "src/Forge.Application/Creator/EditorCameraOperation.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/EditorCameraRevision.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraRevision.cs",
+      "path": "src/Forge.Application/Creator/EditorCameraRevision.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/EditorCameraState.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraState.cs",
+      "path": "src/Forge.Application/Creator/EditorCameraState.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/NavigateEditorCameraCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NavigateEditorCameraCommand.cs",
+      "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/NavigateEditorCameraHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NavigateEditorCameraHandler.cs",
+      "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Creator/SafeRenameCommand.cs",
       "kind": "file",
       "line": 1,
@@ -24745,6 +25999,76 @@
       },
       "name": "PortalLink.cs",
       "path": "src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorCameraBookmark.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraBookmark.cs",
+      "path": "src/Forge.Domain/Authoring/EditorCameraBookmark.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorCameraBookmarkId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraBookmarkId.cs",
+      "path": "src/Forge.Domain/Authoring/EditorCameraBookmarkId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorCameraPose.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraPose.cs",
+      "path": "src/Forge.Domain/Authoring/EditorCameraPose.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorCameraProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraProfile.cs",
+      "path": "src/Forge.Domain/Authoring/EditorCameraProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorCameraProfileId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraProfileId.cs",
+      "path": "src/Forge.Domain/Authoring/EditorCameraProfileId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorCameraProjection.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraProjection.cs",
+      "path": "src/Forge.Domain/Authoring/EditorCameraProjection.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorCameraView.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraView.cs",
+      "path": "src/Forge.Domain/Authoring/EditorCameraView.cs"
     },
     {
       "id": "file:src/Forge.Domain/Blueprints/BlueprintDefinition.cs",
@@ -25827,6 +27151,16 @@
       "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraProfileJsonSerializer.cs",
+      "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
       "kind": "file",
       "line": 1,
@@ -25895,6 +27229,16 @@
       },
       "name": "WorkspaceProjectJsonSerializer.cs",
       "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraProfileStore.cs",
+      "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
     },
     {
       "id": "file:src/Forge.ModuleFormat/Workspaces/ProjectSession.cs",
@@ -26127,6 +27471,16 @@
       "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraNavigationTests.cs",
+      "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
       "kind": "file",
       "line": 1,
@@ -26285,6 +27639,16 @@
       },
       "name": "AreaDefinitionTests.cs",
       "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraProfileTests.cs",
+      "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs",
@@ -26625,6 +27989,16 @@
       },
       "name": "TestProjectFactory.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Serialization/TestProjectFactory.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCameraProfileStoreTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs",
@@ -28577,6 +29951,16 @@
       "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
+      "kind": "handler",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "NavigateEditorCameraHandler",
+      "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Creator.SafeRenameHandler",
       "kind": "handler",
       "line": 14,
@@ -28917,6 +30301,36 @@
       "path": "src/Forge.Application/Creator/CreatorSelectionKind.cs"
     },
     {
+      "id": "model:Forge.Application.Creator.EditorCameraCommandResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EditorCameraCommandResult",
+      "path": "src/Forge.Application/Creator/EditorCameraCommandResult.cs"
+    },
+    {
+      "id": "model:Forge.Application.Creator.EditorCameraState",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EditorCameraState",
+      "path": "src/Forge.Application/Creator/EditorCameraState.cs"
+    },
+    {
+      "id": "model:Forge.Application.Creator.NavigateEditorCameraCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "NavigateEditorCameraCommand",
+      "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
+    },
+    {
       "id": "model:Forge.Application.Creator.SafeRenameCommand",
       "kind": "model",
       "line": 6,
@@ -29095,6 +30509,26 @@
       },
       "name": "PortalId",
       "path": "src/Forge.Domain/Areas/PortalId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Authoring.EditorCameraBookmarkId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorCameraBookmarkId",
+      "path": "src/Forge.Domain/Authoring/EditorCameraBookmarkId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Authoring.EditorCameraProfileId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorCameraProfileId",
+      "path": "src/Forge.Domain/Authoring/EditorCameraProfileId.cs"
     },
     {
       "id": "model:Forge.Domain.Blueprints.BlueprintDefinition",
@@ -29627,6 +31061,16 @@
       "path": "src/Forge.ModuleFormat/Serialization/AreaDocument.cs"
     },
     {
+      "id": "model:Forge.ModuleFormat.Serialization.EditorCameraProfileDocument",
+      "kind": "model",
+      "line": 34,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "EditorCameraProfileDocument",
+      "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+    },
+    {
       "id": "model:Forge.ModuleFormat.Serialization.LegacyProjectDocument",
       "kind": "model",
       "line": 35,
@@ -29655,6 +31099,16 @@
       },
       "name": "WorkspaceProjectDocument",
       "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Workspaces.EditorCameraProfileLoadResult",
+      "kind": "model",
+      "line": 110,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "EditorCameraProfileLoadResult",
+      "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
     },
     {
       "id": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic",
@@ -29903,6 +31357,11 @@
       "name": "Forge.Domain.Areas"
     },
     {
+      "id": "namespace:Forge.Domain.Authoring",
+      "kind": "namespace",
+      "name": "Forge.Domain.Authoring"
+    },
+    {
       "id": "namespace:Forge.Domain.Blueprints",
       "kind": "namespace",
       "name": "Forge.Domain.Blueprints"
@@ -29946,6 +31405,11 @@
       "id": "namespace:Forge.Domain.Tests.Areas",
       "kind": "namespace",
       "name": "Forge.Domain.Tests.Areas"
+    },
+    {
+      "id": "namespace:Forge.Domain.Tests.Authoring",
+      "kind": "namespace",
+      "name": "Forge.Domain.Tests.Authoring"
     },
     {
       "id": "namespace:Forge.Domain.Tests.Blueprints",
@@ -30335,6 +31799,16 @@
       "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
+      "kind": "test",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Creator"
+      },
+      "name": "EditorCameraNavigationTests",
+      "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Creator.SearchTestContext",
       "kind": "test",
       "line": 294,
@@ -30493,6 +31967,16 @@
       },
       "name": "AreaDefinitionTests",
       "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
+    },
+    {
+      "id": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Authoring"
+      },
+      "name": "EditorCameraProfileTests",
+      "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
     },
     {
       "id": "test:Forge.Domain.Tests.Blueprints.BlueprintProvenanceTests",
@@ -30795,6 +32279,16 @@
       "path": "tests/Forge.ModuleFormat.Tests/Serialization/TestProjectFactory.cs"
     },
     {
+      "id": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Workspaces"
+      },
+      "name": "EditorCameraProfileStoreTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+    },
+    {
       "id": "test:Forge.ModuleFormat.Tests.Workspaces.ProjectSessionTests",
       "kind": "test",
       "line": 9,
@@ -30972,6 +32466,16 @@
       "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
     },
     {
+      "id": "type:Forge.Application.Creator.CameraCommandException",
+      "kind": "type",
+      "line": 265,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "CameraCommandException",
+      "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+    },
+    {
       "id": "type:Forge.Application.Creator.CreatorDiagnosticSeverity",
       "kind": "type",
       "line": 3,
@@ -31072,6 +32576,36 @@
       "path": "src/Forge.Application/Creator/CreatorSelectionContext.cs"
     },
     {
+      "id": "type:Forge.Application.Creator.EditorCameraCommandHistory",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EditorCameraCommandHistory",
+      "path": "src/Forge.Application/Creator/EditorCameraCommandHistory.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.EditorCameraOperation",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EditorCameraOperation",
+      "path": "src/Forge.Application/Creator/EditorCameraOperation.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.EditorCameraRevision",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EditorCameraRevision",
+      "path": "src/Forge.Application/Creator/EditorCameraRevision.cs"
+    },
+    {
       "id": "type:Forge.Application.Creator.EntityClipboardPayload",
       "kind": "type",
       "line": 18,
@@ -31170,6 +32704,46 @@
       },
       "name": "PortalLink",
       "path": "src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorCameraBookmark",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorCameraBookmark",
+      "path": "src/Forge.Domain/Authoring/EditorCameraBookmark.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorCameraPose",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorCameraPose",
+      "path": "src/Forge.Domain/Authoring/EditorCameraPose.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorCameraProfile",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorCameraProfile",
+      "path": "src/Forge.Domain/Authoring/EditorCameraProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorCameraProjection",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorCameraProjection",
+      "path": "src/Forge.Domain/Authoring/EditorCameraProjection.cs"
     },
     {
       "id": "type:Forge.Domain.Blueprints.BlueprintPaletteOrigin",
@@ -31842,6 +33416,16 @@
       "path": "src/Forge.ModuleFormat/Workspaces/ProjectSession.cs"
     },
     {
+      "id": "type:Forge.ModuleFormat.Workspaces.EditorCameraProfileStore",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "EditorCameraProfileStore",
+      "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
       "id": "type:Forge.ModuleFormat.Workspaces.ProjectSession",
       "kind": "type",
       "line": 8,
@@ -32014,7 +33598,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 3753,
+      "line": 3886,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -32034,7 +33618,7 @@
     {
       "id": "type:Forge.Toolset.Editor.ProjectPreview3D",
       "kind": "type",
-      "line": 15,
+      "line": 19,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -32044,7 +33628,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 3758,
+      "line": 3891,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -32054,7 +33638,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 3763,
+      "line": 3896,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

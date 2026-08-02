@@ -56,7 +56,7 @@ retour des logs. L’espace Dialogues fournit maintenant liste de nœuds, choix 
 actions, textes localisables et aperçu dans la même identité sombre et braise. Le runtime offre une
 sauvegarde/reprise F5/F9 et l'Assistant peut préparer, appliquer et annuler un plan de dialogue par
 MCP. Le MVP est fermé ; les espaces Quêtes, Scripts, Assets, Validation et l’enrichissement de la
-manipulation directe au-delà de G7-09 restent dans le gate **Creator Core G7**, et non dans une
+manipulation directe au-delà de G7-10 restent dans le gate **Creator Core G7**, et non dans une
 prétendue parité Aurora déjà atteinte.
 
 G7-02 installe la coque commune : neuf workspaces stables, une colonne d’exploration du projet, le
@@ -115,6 +115,13 @@ Standard, Custom, généré, favoris et temporaire. Une étoile repère les favo
 détails de conformité — source, auteur, SPDX, hash, origine IA et transformations — restent groupés
 dans une seule carte. L’action secondaire violette prévisualise et applique la provenance ; l’action
 braise demeure réservée à l’enregistrement du blueprint éditable.
+
+G7-10 installe une barre caméra flottante dans l’angle supérieur du viewport, alignée avec la
+palette de placement sans masquer le centre de travail. Le mode courant, la vitesse et le nombre de
+repères restent lisibles en permanence. Les actions courtes — cadrer, 3/4, dessus, face, gauche,
+vitesse — sont accompagnées d’une aide directe aux gestes souris et au pilote WASD. L’orthographique
+est signalée explicitement ; les bookmarks restent une préférence auteur et ne salissent ni
+l’historique ni le package du module.
 
 ## Contexte graphique 3D
 

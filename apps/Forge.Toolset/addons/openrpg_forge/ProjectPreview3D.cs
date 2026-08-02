@@ -1,6 +1,10 @@
 #if TOOLS
+using Forge.Application.Commands;
+using Forge.Application.Creator;
 using Forge.Application.Projects;
 using Forge.Application.Spatial;
+using Forge.Application.Time;
+using Forge.Domain.Authoring;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
@@ -19,6 +23,7 @@ public partial class ProjectPreview3D : SubViewportContainer
     private readonly BlueprintDragPalette _dragPalette;
     private readonly Dictionary<EntityId, Node3D> _entityNodes = [];
     private readonly PlacementValidator _placementValidator = new();
+    private readonly NavigateEditorCameraHandler _cameraHandler = new(new SystemClock());
     private Camera3D? _camera;
     private Node3D? _areaRoot;
     private Node3D? _gizmo;
@@ -34,6 +39,13 @@ public partial class ProjectPreview3D : SubViewportContainer
     private EntityId? _draggedEntityId;
     private TransformValue? _dragCandidate;
     private bool _dragCandidateValid;
+    private EditorCameraCommandHistory? _cameraHistory;
+    private Action<EditorCameraProfile>? _persistCameraProfile;
+    private bool _orbitingCamera;
+    private bool _panningCamera;
+    private Label? _cameraModeLabel;
+    private Label? _cameraSpeedLabel;
+    private Label? _bookmarkSummary;
 
     public int EntityCount { get; private set; }
 
@@ -42,6 +54,8 @@ public partial class ProjectPreview3D : SubViewportContainer
     public bool GhostVisible => _ghost?.Visible == true;
 
     public bool LastPlacementWasValid { get; private set; }
+
+    public EditorCameraProfile? CameraProfile => _cameraHistory?.State.Profile;
 
     public ProjectPreview3D()
     {
@@ -97,6 +111,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         paletteColumn.AddChild(_dragPalette);
         paletteMargin.AddChild(paletteColumn);
 
+        CreateCameraToolbar();
         CreateGizmoAndGhost();
     }
 
@@ -116,6 +131,17 @@ public partial class ProjectPreview3D : SubViewportContainer
         _transformEntity = transformEntity ?? throw new ArgumentNullException(nameof(transformEntity));
         _placeBlueprint = placeBlueprint ?? throw new ArgumentNullException(nameof(placeBlueprint));
         _showPlacementFeedback = showPlacementFeedback ?? throw new ArgumentNullException(nameof(showPlacementFeedback));
+    }
+
+    public void SetCameraProfile(
+        EditorCameraProfile profile,
+        Action<EditorCameraProfile> persistCameraProfile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        ArgumentNullException.ThrowIfNull(persistCameraProfile);
+        _cameraHistory = new EditorCameraCommandHistory(profile);
+        _persistCameraProfile = persistCameraProfile;
+        ApplyCameraPose();
     }
 
     public void Rebuild(ProjectDefinition project)
@@ -193,8 +219,106 @@ public partial class ProjectPreview3D : SubViewportContainer
     public EntityId? DropBlueprintForSmokeTest(BlueprintId blueprintId, Vector3Value position) =>
         DropBlueprint(blueprintId, position);
 
+    public bool NavigateCameraForSmokeTest(
+        EditorCameraOperation operation,
+        float x = 0,
+        float y = 0,
+        Vector3Value? target = null,
+        float radius = 1,
+        EditorCameraView view = EditorCameraView.Perspective,
+        EditorCameraBookmarkId? bookmarkId = null,
+        string? bookmarkName = null) =>
+        ApplyCameraCommand(
+            operation,
+            x,
+            y,
+            target,
+            radius,
+            view,
+            bookmarkId,
+            bookmarkName,
+            persist: true);
+
+    public bool UndoCameraForSmokeTest()
+    {
+        if (_cameraHistory?.Undo() != true)
+        {
+            return false;
+        }
+
+        ApplyCameraPose();
+        PersistCameraProfile();
+        return true;
+    }
+
+    public bool RedoCameraForSmokeTest()
+    {
+        if (_cameraHistory?.Redo() != true)
+        {
+            return false;
+        }
+
+        ApplyCameraPose();
+        PersistCameraProfile();
+        return true;
+    }
+
     public override void _GuiInput(InputEvent @event)
     {
+        if (@event is InputEventMouseButton cameraButton)
+        {
+            if (cameraButton.ButtonIndex == MouseButton.Right)
+            {
+                _orbitingCamera = cameraButton.Pressed;
+                if (!cameraButton.Pressed)
+                {
+                    PersistCameraProfile();
+                }
+                AcceptEvent();
+                return;
+            }
+
+            if (cameraButton.ButtonIndex == MouseButton.Middle)
+            {
+                _panningCamera = cameraButton.Pressed;
+                if (!cameraButton.Pressed)
+                {
+                    PersistCameraProfile();
+                }
+                AcceptEvent();
+                return;
+            }
+
+            if (cameraButton.Pressed && cameraButton.ButtonIndex is MouseButton.WheelUp or MouseButton.WheelDown)
+            {
+                ApplyCameraCommand(
+                    EditorCameraOperation.Zoom,
+                    cameraButton.ButtonIndex == MouseButton.WheelUp ? 1 : -1);
+                AcceptEvent();
+                return;
+            }
+        }
+
+        if (@event is InputEventMouseMotion cameraMotion && (_orbitingCamera || _panningCamera))
+        {
+            ApplyCameraCommand(
+                _orbitingCamera ? EditorCameraOperation.Orbit : EditorCameraOperation.Pan,
+                cameraMotion.Relative.X,
+                cameraMotion.Relative.Y,
+                persist: false);
+            AcceptEvent();
+            return;
+        }
+
+        if (@event is InputEventKey key && key.Pressed && !key.Echo)
+        {
+            if (HandleCameraKey(key.Keycode))
+            {
+                AcceptEvent();
+                return;
+            }
+        }
+
         if (@event is InputEventMouseButton button && button.ButtonIndex == MouseButton.Left)
         {
             if (button.Pressed && TryProjectToGround(button.Position, out var ground))
@@ -542,6 +666,265 @@ public partial class ProjectPreview3D : SubViewportContainer
             BlueprintKind.Trigger => new Color("55efc4"),
             _ => new Color("514858"),
         };
+    }
+
+    private void CreateCameraToolbar()
+    {
+        var panel = new PanelContainer
+        {
+            Position = new Vector2(246, 14),
+            CustomMinimumSize = new Vector2(458, 112),
+            MouseFilter = MouseFilterEnum.Stop,
+        };
+        panel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.09f, 0.07f, 0.13f, 0.94f),
+            BorderColor = new Color("47365e"),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 10,
+            CornerRadiusTopRight = 10,
+            CornerRadiusBottomLeft = 10,
+            CornerRadiusBottomRight = 10,
+        });
+        AddChild(panel);
+
+        var margin = new MarginContainer();
+        margin.AddThemeConstantOverride("margin_left", 10);
+        margin.AddThemeConstantOverride("margin_top", 8);
+        margin.AddThemeConstantOverride("margin_right", 10);
+        margin.AddThemeConstantOverride("margin_bottom", 8);
+        panel.AddChild(margin);
+        var column = new VBoxContainer();
+        column.AddThemeConstantOverride("separation", 6);
+        margin.AddChild(column);
+
+        var heading = new HBoxContainer();
+        heading.AddThemeConstantOverride("separation", 8);
+        column.AddChild(heading);
+        _cameraModeLabel = new Label
+        {
+            Text = "CAMÉRA · PERSPECTIVE",
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+        _cameraModeLabel.AddThemeColorOverride("font_color", new Color("ffb07c"));
+        heading.AddChild(_cameraModeLabel);
+        _cameraSpeedLabel = new Label { Text = "Vitesse 1×" };
+        _cameraSpeedLabel.AddThemeColorOverride("font_color", new Color("b9aac8"));
+        heading.AddChild(_cameraSpeedLabel);
+
+        var views = new HBoxContainer();
+        views.AddThemeConstantOverride("separation", 5);
+        column.AddChild(views);
+        AddCameraButton(views, "Cadrer", () => FocusCameraSelection());
+        AddCameraButton(views, "3/4", () => SetCameraView(EditorCameraView.Perspective));
+        AddCameraButton(views, "Dessus", () => SetCameraView(EditorCameraView.Top));
+        AddCameraButton(views, "Face", () => SetCameraView(EditorCameraView.Front));
+        AddCameraButton(views, "Gauche", () => SetCameraView(EditorCameraView.Left));
+        AddCameraButton(views, "−", () => ChangeCameraSpeed(-0.25f));
+        AddCameraButton(views, "+", () => ChangeCameraSpeed(0.25f));
+
+        var helpRow = new HBoxContainer();
+        helpRow.AddThemeConstantOverride("separation", 8);
+        column.AddChild(helpRow);
+        var help = new Label
+        {
+            Text = "Clic droit orbite · milieu déplace · molette zoome · WASD pilote",
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+        help.AddThemeColorOverride("font_color", new Color("9587a5"));
+        helpRow.AddChild(help);
+        _bookmarkSummary = new Label { Text = "Aucun repère" };
+        _bookmarkSummary.AddThemeColorOverride("font_color", new Color("b9aac8"));
+        helpRow.AddChild(_bookmarkSummary);
+        AddCameraButton(helpRow, "+ Repère", SaveCameraBookmark);
+        AddCameraButton(helpRow, "Rappeler", RecallLatestCameraBookmark);
+    }
+
+    private static void AddCameraButton(Container parent, string text, Action action)
+    {
+        var button = new Button
+        {
+            Text = text,
+            CustomMinimumSize = new Vector2(0, 30),
+            FocusMode = FocusModeEnum.None,
+        };
+        button.Pressed += action;
+        parent.AddChild(button);
+    }
+
+    private bool HandleCameraKey(Key key)
+    {
+        const float keyboardStep = 24;
+        return key switch
+        {
+            Key.F => FocusCameraSelection(),
+            Key.W => ApplyCameraCommand(EditorCameraOperation.Pan, y: keyboardStep),
+            Key.S => ApplyCameraCommand(EditorCameraOperation.Pan, y: -keyboardStep),
+            Key.A => ApplyCameraCommand(EditorCameraOperation.Pan, x: keyboardStep),
+            Key.D => ApplyCameraCommand(EditorCameraOperation.Pan, x: -keyboardStep),
+            Key.Q => ApplyCameraCommand(EditorCameraOperation.Zoom, x: -1),
+            Key.E => ApplyCameraCommand(EditorCameraOperation.Zoom, x: 1),
+            _ => false,
+        };
+    }
+
+    private bool FocusCameraSelection()
+    {
+        if (_selectedEntityId is not null && _entityNodes.TryGetValue(_selectedEntityId, out var selected))
+        {
+            var scale = selected.Scale;
+            var radius = Math.Max(1, Math.Max(scale.X, Math.Max(scale.Y, scale.Z)));
+            return ApplyCameraCommand(
+                EditorCameraOperation.Focus,
+                target: ToValue(selected.Position),
+                radius: radius);
+        }
+
+        if (_entityNodes.Count == 0)
+        {
+            return ApplyCameraCommand(EditorCameraOperation.Focus, target: Vector3Value.Zero, radius: 5);
+        }
+
+        var center = new Vector3Value(
+            _entityNodes.Values.Average(node => node.Position.X),
+            _entityNodes.Values.Average(node => node.Position.Y),
+            _entityNodes.Values.Average(node => node.Position.Z));
+        var radiusFromCenter = _entityNodes.Values.Max(node => node.Position.DistanceTo(EngineValueConverter.ToEngine(center)));
+        return ApplyCameraCommand(
+            EditorCameraOperation.Focus,
+            target: center,
+            radius: Math.Max(2, radiusFromCenter));
+    }
+
+    private void SetCameraView(EditorCameraView view) =>
+        ApplyCameraCommand(EditorCameraOperation.SetView, view: view);
+
+    private void ChangeCameraSpeed(float delta)
+    {
+        if (_cameraHistory is null)
+        {
+            return;
+        }
+
+        ApplyCameraCommand(
+            EditorCameraOperation.SetSpeed,
+            x: Math.Clamp(_cameraHistory.State.Profile.NavigationSpeed + delta, 0.1f, 20f));
+    }
+
+    private void SaveCameraBookmark()
+    {
+        if (_cameraHistory is null)
+        {
+            return;
+        }
+
+        var index = _cameraHistory.State.Profile.Bookmarks.Count + 1;
+        ApplyCameraCommand(
+            EditorCameraOperation.SaveBookmark,
+            bookmarkId: EditorCameraBookmarkId.From(Guid.NewGuid()),
+            bookmarkName: $"Repère {index}");
+    }
+
+    private void RecallLatestCameraBookmark()
+    {
+        var bookmark = _cameraHistory?.State.Profile.Bookmarks.LastOrDefault();
+        if (bookmark is not null)
+        {
+            ApplyCameraCommand(EditorCameraOperation.RecallBookmark, bookmarkId: bookmark.Id);
+        }
+    }
+
+    private bool ApplyCameraCommand(
+        EditorCameraOperation operation,
+        float x = 0,
+        float y = 0,
+        Vector3Value? target = null,
+        float radius = 1,
+        EditorCameraView view = EditorCameraView.Perspective,
+        EditorCameraBookmarkId? bookmarkId = null,
+        string? bookmarkName = null,
+        bool persist = true)
+    {
+        if (_cameraHistory is null)
+        {
+            return false;
+        }
+
+        var command = new NavigateEditorCameraCommand(
+            CommandId.From(Guid.NewGuid()),
+            _cameraHistory.State.Revision,
+            operation,
+            x,
+            y,
+            target,
+            radius,
+            view,
+            bookmarkId,
+            bookmarkName,
+            DryRun: false);
+        var preview = _cameraHandler.Handle(_cameraHistory.State, command with { DryRun = true });
+        var applied = preview.Succeeded
+            ? _cameraHandler.Handle(_cameraHistory.State, command)
+            : preview;
+        if (!applied.Succeeded)
+        {
+            _showPlacementFeedback?.Invoke(
+                $"{applied.Diagnostics[0].Code} · {applied.Diagnostics[0].Message}",
+                false);
+            return false;
+        }
+
+        _cameraHistory.Record(applied);
+        ApplyCameraPose();
+        if (persist)
+        {
+            PersistCameraProfile();
+        }
+
+        return true;
+    }
+
+    private void ApplyCameraPose()
+    {
+        if (_camera is null || _cameraHistory is null)
+        {
+            return;
+        }
+
+        var profile = _cameraHistory.State.Profile;
+        var pose = profile.Pose;
+        var yaw = pose.YawDegrees * (MathF.PI / 180f);
+        var pitch = pose.PitchDegrees * (MathF.PI / 180f);
+        var horizontal = pose.Distance * MathF.Cos(pitch);
+        var offset = new Vector3(
+            horizontal * MathF.Sin(yaw),
+            pose.Distance * MathF.Sin(pitch),
+            horizontal * MathF.Cos(yaw));
+        var pivot = EngineValueConverter.ToEngine(pose.Pivot);
+        _camera.Projection = pose.Projection == EditorCameraProjection.Perspective
+            ? Camera3D.ProjectionType.Perspective
+            : Camera3D.ProjectionType.Orthogonal;
+        _camera.Fov = pose.FieldOfView;
+        _camera.Size = pose.OrthographicSize;
+        _camera.LookAtFromPosition(pivot + offset, pivot, Vector3.Up);
+        _cameraModeLabel!.Text = pose.Projection == EditorCameraProjection.Perspective
+            ? "CAMÉRA · PERSPECTIVE"
+            : "CAMÉRA · ORTHOGRAPHIQUE";
+        _cameraSpeedLabel!.Text = $"Vitesse {profile.NavigationSpeed:0.##}×";
+        _bookmarkSummary!.Text = profile.Bookmarks.Count == 0
+            ? "Aucun repère"
+            : $"{profile.Bookmarks.Count} repère(s)";
+    }
+
+    private void PersistCameraProfile()
+    {
+        if (_cameraHistory is not null)
+        {
+            _persistCameraProfile?.Invoke(_cameraHistory.State.Profile);
+        }
     }
 
     private void CreateGizmoAndGhost()

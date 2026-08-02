@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-09 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-10 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -39,6 +39,8 @@ validé.
 G7-09 sépare les palettes Standard et Custom : packs installés en lecture seule, contenu projet,
 généré, favori et temporaire partagent un catalogue canonique, des filtres Aurora et une provenance
 versionnée avec auteur, SPDX, hash, modifications et origine IA.
+G7-10 remplace la caméra de prévisualisation figée par une caméra auteur orbit/pan/zoom, focus,
+projections orthographiques, pilote WASD, vitesse et bookmarks persistés hors du module.
 
 ## État prouvé
 
@@ -49,7 +51,7 @@ versionnée avec auteur, SPDX, hash, modifications et origine IA.
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 187 tests .NET et 23 tests Python réussis ;
+- 198 tests .NET et 23 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -107,6 +109,8 @@ versionnée avec auteur, SPDX, hash, modifications et origine IA.
   éditeur à aperçu obligatoire, format workspace 0.8, package versionné et blackboard runtime ;
 - palettes G7-09 : catalogue unique filtrable par pack installé, projet, généré, favori et temporaire,
   packs verrouillés, provenance versionnée visible, recherche, dry-run, historique et round-trip ;
+- caméra G7-10 : profil auteur UUID/schéma v1, orbite, panoramique, zoom adaptatif, focus, vues
+  cardinales, vitesse, pilote clavier, bookmarks, persistance atomique et historique séparé ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -175,6 +179,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-10 — navigation caméra d’auteur** pour `ORF-SHELL-007` : orbite, panoramique, zoom,
-focus sur la sélection, vues cardinales et vitesse réglable dans le viewport Creator, avec état
-testable indépendant du moteur et sans modifier le document du module.
+Ouvrir **G7-11 — événements de cycle de vie Core** pour `ORF-PROJ-006` et `ORF-AREA-022` : publier
+`ProjectLoaded`, `WorldStarted`, `AreaEntered` et `AreaExited` dans un ordre déterministe, avec
+contexte, autorité, diagnostics et tests runtime sans dépendance au RPG Kit.

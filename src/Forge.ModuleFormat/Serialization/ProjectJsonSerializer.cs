@@ -96,6 +96,8 @@ public static class ProjectJsonSerializer
         options.Converters.Add(new DialogueChoiceIdJsonConverter());
         options.Converters.Add(new DialogueIdJsonConverter());
         options.Converters.Add(new DialogueNodeIdJsonConverter());
+        options.Converters.Add(new EditorCameraBookmarkIdJsonConverter());
+        options.Converters.Add(new EditorCameraProfileIdJsonConverter());
         options.Converters.Add(new EntityIdJsonConverter());
         options.Converters.Add(new ModuleIdJsonConverter());
         options.Converters.Add(new ProjectMetadataIdJsonConverter());

@@ -46,7 +46,7 @@ La prochaine étape n'est plus un lot MVP : **G0 est fermé** avec un snapshot i
 76 P0 Core et un tracker projet généré. **G7-01** prouve un second module générique, **G7-02** la
 coque Creator, **G7-03** le catalogue Blueprints, **G7-04** la manipulation directe, **G7-05** les
 zones indépendantes, **G7-06** le clipboard sémantique, **G7-07** la recherche globale avec
-refactoring sûr, **G7-08** la configuration du module et **G7-09** les palettes avec provenance ; la file active commence à **G7-10**. La fermeture de `TASKS_MVP.md` ne signifie pas
+refactoring sûr, **G7-08** la configuration du module, **G7-09** les palettes avec provenance et **G7-10** la caméra auteur ; la file active commence à **G7-11**. La fermeture de `TASKS_MVP.md` ne signifie pas
 une parité Aurora complète.
 
 ## 3. Jalons produit
@@ -209,9 +209,9 @@ créateur peut modifier, exporter et jouer la Crypte sans IA et sans outil propr
 
 ### G7 — Creator Core complet P0/P1
 
-**État.** En cours. G7-01 à G7-09 sont franchis avec le second module générique, la coque Creator,
+**État.** En cours. G7-01 à G7-10 sont franchis avec le second module générique, la coque Creator,
 le catalogue Blueprints, la manipulation directe, les zones indépendantes, le clipboard
-sémantique, la recherche globale et le refactoring sûr, la configuration du module puis les palettes ; G7-10 est
+sémantique, la recherche globale et le refactoring sûr, la configuration du module, les palettes puis la caméra auteur ; G7-11 est
 la prochaine tâche.
 
 **Domaines.** `SHELL`, `PROJECT`, `AREA`, `PALETTE`, parties Core de `PLACEABLE`, `DOOR`, `TRIGGER`,
@@ -428,7 +428,8 @@ La file active est maintenant :
 | 8 | G7-07 | ORF-SHELL-015, 016, 017 | Terminé partiellement : recherche globale, références et renommage sûr transactionnel. |
 | 9 | G7-08 | ORF-PROJ-002, 019 | Terminé partiellement : métadonnées localisées du module et blackboard global typé. |
 | 10 | G7-09 | ORF-SHELL-005, ORF-PAL-006, 016 | Terminé partiellement : palettes Standard/Custom, filtres, lecture seule et provenance. |
-| 11 | G7-10 | ORF-SHELL-007 | Navigation caméra d’auteur, focus, vues cardinales et vitesse réglable. |
+| 11 | G7-10 | ORF-SHELL-007 | Terminé partiellement : navigation caméra, focus, vues, vitesse, pilote et bookmarks. |
+| 12 | G7-11 | ORF-PROJ-006, ORF-AREA-022 | Événements de cycle de vie Core ordonnés et observables. |
 
 Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md`,
 `docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md` et
@@ -438,7 +439,8 @@ Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODUL
 `docs/aurora-parity/tasks/G7-06-SEMANTIC-CLIPBOARD.md`,
 `docs/aurora-parity/tasks/G7-07-GLOBAL-SEARCH-SAFE-RENAME.md` et
 `docs/aurora-parity/tasks/G7-08-MODULE-METADATA-VARIABLES.md` et
-`docs/aurora-parity/tasks/G7-09-STANDARD-CUSTOM-PALETTES.md`.
+`docs/aurora-parity/tasks/G7-09-STANDARD-CUSTOM-PALETTES.md` et
+`docs/aurora-parity/tasks/G7-10-EDITOR-CAMERA-NAVIGATION.md`.
 
 ## 7. Graphe de dépendances
 

@@ -383,8 +383,10 @@ Le détail et les preuves des 717 capacités restent suivis dans
   blackboard global typé, persistance et édition dans le Creator.
 - [x] **G7-09 — palettes Standard et Custom** : packs installés, contenu projet, généré, favoris et
   temporaire avec provenance et filtres cohérents.
-- [ ] **G7-10 — navigation caméra d’auteur** : orbite, panoramique, zoom, focus, vues cardinales et
+- [x] **G7-10 — navigation caméra d’auteur** : orbite, panoramique, zoom, focus, vues cardinales et
   vitesse réglable sans mutation du projet canonique.
+- [ ] **G7-11 — événements de cycle de vie Core** : ProjectLoaded, WorldStarted, AreaEntered et
+  AreaExited ordonnés, typés et observables sans dépendance au RPG Kit.
 
 Les règles graphiques et d’interaction de G7-03 à G7-09 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).

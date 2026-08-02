@@ -15,6 +15,8 @@ public sealed class ModulePackageTests : IDisposable
     public void ExportValidateAndLoad_RoundTripsAtomicallyThroughCache()
     {
         var workspace = CreateWorkspace();
+        Directory.CreateDirectory(Path.Combine(workspace, ".forge"));
+        File.WriteAllText(Path.Combine(workspace, ".forge", "editor-camera.json"), "author preference");
         var package = Path.Combine(_temporaryRoot, "crypt-of-ashes.orpmod");
 
         var export = ModulePackager.Export(workspace, package);
@@ -30,6 +32,7 @@ public sealed class ModulePackageTests : IDisposable
         Assert.Equal(firstLoad.CachePath, secondLoad.CachePath);
         Assert.True(File.Exists(Path.Combine(firstLoad.CachePath, "content", "project.json")));
         Assert.True(File.Exists(Path.Combine(firstLoad.CachePath, "content", "scripts", "boss.forge")));
+        Assert.False(File.Exists(Path.Combine(firstLoad.CachePath, "content", ".forge", "editor-camera.json")));
         Assert.Equal(new FileInfo(package).Length, export.ArchiveBytes);
         Assert.Empty(Directory.EnumerateFiles(_temporaryRoot, "*.tmp", SearchOption.AllDirectories));
     }
