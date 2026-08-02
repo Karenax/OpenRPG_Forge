@@ -4053,7 +4053,7 @@
     },
     {
       "evidence": {
-        "line": 1380,
+        "line": 1384,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4062,7 +4062,7 @@
     },
     {
       "evidence": {
-        "line": 356,
+        "line": 360,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4071,7 +4071,7 @@
     },
     {
       "evidence": {
-        "line": 743,
+        "line": 747,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4080,7 +4080,7 @@
     },
     {
       "evidence": {
-        "line": 941,
+        "line": 945,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4089,7 +4089,7 @@
     },
     {
       "evidence": {
-        "line": 483,
+        "line": 487,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4098,7 +4098,7 @@
     },
     {
       "evidence": {
-        "line": 958,
+        "line": 962,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4107,7 +4107,7 @@
     },
     {
       "evidence": {
-        "line": 998,
+        "line": 1002,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4116,7 +4116,7 @@
     },
     {
       "evidence": {
-        "line": 903,
+        "line": 907,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4125,7 +4125,7 @@
     },
     {
       "evidence": {
-        "line": 780,
+        "line": 784,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4134,7 +4134,7 @@
     },
     {
       "evidence": {
-        "line": 1144,
+        "line": 1148,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4143,7 +4143,7 @@
     },
     {
       "evidence": {
-        "line": 1161,
+        "line": 1165,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4152,7 +4152,7 @@
     },
     {
       "evidence": {
-        "line": 1062,
+        "line": 1066,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4161,7 +4161,7 @@
     },
     {
       "evidence": {
-        "line": 1098,
+        "line": 1102,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4170,7 +4170,7 @@
     },
     {
       "evidence": {
-        "line": 1197,
+        "line": 1201,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4179,7 +4179,7 @@
     },
     {
       "evidence": {
-        "line": 434,
+        "line": 438,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4188,7 +4188,7 @@
     },
     {
       "evidence": {
-        "line": 1395,
+        "line": 1399,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4206,7 +4206,7 @@
     },
     {
       "evidence": {
-        "line": 1154,
+        "line": 1158,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4215,7 +4215,7 @@
     },
     {
       "evidence": {
-        "line": 1094,
+        "line": 1098,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4224,7 +4224,7 @@
     },
     {
       "evidence": {
-        "line": 331,
+        "line": 335,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4233,7 +4233,7 @@
     },
     {
       "evidence": {
-        "line": 1327,
+        "line": 1331,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4242,7 +4242,7 @@
     },
     {
       "evidence": {
-        "line": 1185,
+        "line": 1189,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4251,7 +4251,7 @@
     },
     {
       "evidence": {
-        "line": 1038,
+        "line": 1042,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4260,7 +4260,7 @@
     },
     {
       "evidence": {
-        "line": 1226,
+        "line": 1230,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4278,7 +4278,7 @@
     },
     {
       "evidence": {
-        "line": 374,
+        "line": 378,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4287,7 +4287,7 @@
     },
     {
       "evidence": {
-        "line": 327,
+        "line": 331,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4296,7 +4296,7 @@
     },
     {
       "evidence": {
-        "line": 1215,
+        "line": 1219,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4305,7 +4305,7 @@
     },
     {
       "evidence": {
-        "line": 892,
+        "line": 896,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4314,7 +4314,7 @@
     },
     {
       "evidence": {
-        "line": 1414,
+        "line": 1418,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4323,7 +4323,7 @@
     },
     {
       "evidence": {
-        "line": 388,
+        "line": 392,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4332,7 +4332,7 @@
     },
     {
       "evidence": {
-        "line": 1090,
+        "line": 1094,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4341,7 +4341,7 @@
     },
     {
       "evidence": {
-        "line": 771,
+        "line": 775,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4359,7 +4359,7 @@
     },
     {
       "evidence": {
-        "line": 733,
+        "line": 737,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4368,7 +4368,7 @@
     },
     {
       "evidence": {
-        "line": 1373,
+        "line": 1377,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4377,7 +4377,7 @@
     },
     {
       "evidence": {
-        "line": 1356,
+        "line": 1360,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4386,7 +4386,7 @@
     },
     {
       "evidence": {
-        "line": 707,
+        "line": 711,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4395,7 +4395,7 @@
     },
     {
       "evidence": {
-        "line": 928,
+        "line": 932,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4404,7 +4404,7 @@
     },
     {
       "evidence": {
-        "line": 1138,
+        "line": 1142,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4413,7 +4413,7 @@
     },
     {
       "evidence": {
-        "line": 881,
+        "line": 885,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4422,7 +4422,7 @@
     },
     {
       "evidence": {
-        "line": 1049,
+        "line": 1053,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4431,7 +4431,7 @@
     },
     {
       "evidence": {
-        "line": 1242,
+        "line": 1246,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -4440,7 +4440,7 @@
     },
     {
       "evidence": {
-        "line": 1084,
+        "line": 1088,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -13377,7 +13377,7 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:f2d1015d11be165c36bd4ebb73fddbba64aaf94e93f394ca5cdc233049ee7111",
+    "source_digest": "sha256:621fbc87b08a98ee580007247c90102e8a54770dd58212cde2d88fb845788170",
     "source_file_count": 343
   },
   "nodes": [
@@ -17004,7 +17004,7 @@
     {
       "id": "function:scripts.architecture_graph.add_common_arguments",
       "kind": "function",
-      "line": 1380,
+      "line": 1384,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17014,7 +17014,7 @@
     {
       "id": "function:scripts.architecture_graph.add_file_nodes",
       "kind": "function",
-      "line": 356,
+      "line": 360,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17024,7 +17024,7 @@
     {
       "id": "function:scripts.architecture_graph.add_route_node",
       "kind": "function",
-      "line": 743,
+      "line": 747,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17034,7 +17034,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_cpp_includes",
       "kind": "function",
-      "line": 941,
+      "line": 945,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17044,7 +17044,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_csharp",
       "kind": "function",
-      "line": 483,
+      "line": 487,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17054,7 +17054,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_dotnet_projects",
       "kind": "function",
-      "line": 958,
+      "line": 962,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17064,7 +17064,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_godot_references",
       "kind": "function",
-      "line": 998,
+      "line": 1002,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17074,7 +17074,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_markdown",
       "kind": "function",
-      "line": 903,
+      "line": 907,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17084,7 +17084,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_python",
       "kind": "function",
-      "line": 780,
+      "line": 784,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17094,7 +17094,7 @@
     {
       "id": "function:scripts.architecture_graph.artifact_exclusions",
       "kind": "function",
-      "line": 1144,
+      "line": 1148,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17104,7 +17104,7 @@
     {
       "id": "function:scripts.architecture_graph.atomic_write_many",
       "kind": "function",
-      "line": 1161,
+      "line": 1165,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17114,7 +17114,7 @@
     {
       "id": "function:scripts.architecture_graph.build_graph",
       "kind": "function",
-      "line": 1062,
+      "line": 1066,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17124,7 +17124,7 @@
     {
       "id": "function:scripts.architecture_graph.build_overview",
       "kind": "function",
-      "line": 1098,
+      "line": 1102,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17134,7 +17134,7 @@
     {
       "id": "function:scripts.architecture_graph.check",
       "kind": "function",
-      "line": 1197,
+      "line": 1201,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17144,7 +17144,7 @@
     {
       "id": "function:scripts.architecture_graph.classify_type",
       "kind": "function",
-      "line": 434,
+      "line": 438,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17154,7 +17154,7 @@
     {
       "id": "function:scripts.architecture_graph.create_parser",
       "kind": "function",
-      "line": 1395,
+      "line": 1399,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17174,7 +17174,7 @@
     {
       "id": "function:scripts.architecture_graph.display_path",
       "kind": "function",
-      "line": 1154,
+      "line": 1158,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17184,7 +17184,7 @@
     {
       "id": "function:scripts.architecture_graph.escape_mermaid_label",
       "kind": "function",
-      "line": 1094,
+      "line": 1098,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17194,7 +17194,7 @@
     {
       "id": "function:scripts.architecture_graph.file_kind",
       "kind": "function",
-      "line": 331,
+      "line": 335,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17204,7 +17204,7 @@
     {
       "id": "function:scripts.architecture_graph.format_query",
       "kind": "function",
-      "line": 1327,
+      "line": 1331,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17214,7 +17214,7 @@
     {
       "id": "function:scripts.architecture_graph.generate",
       "kind": "function",
-      "line": 1185,
+      "line": 1189,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17224,7 +17224,7 @@
     {
       "id": "function:scripts.architecture_graph.godot_project_prefix",
       "kind": "function",
-      "line": 1038,
+      "line": 1042,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17234,7 +17234,7 @@
     {
       "id": "function:scripts.architecture_graph.graph_stats",
       "kind": "function",
-      "line": 1226,
+      "line": 1230,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17254,7 +17254,7 @@
     {
       "id": "function:scripts.architecture_graph.language_for_suffix",
       "kind": "function",
-      "line": 374,
+      "line": 378,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17264,7 +17264,7 @@
     {
       "id": "function:scripts.architecture_graph.line_number",
       "kind": "function",
-      "line": 327,
+      "line": 331,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17274,7 +17274,7 @@
     {
       "id": "function:scripts.architecture_graph.load_graph",
       "kind": "function",
-      "line": 1215,
+      "line": 1219,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17284,7 +17284,7 @@
     {
       "id": "function:scripts.architecture_graph.longest_internal_module",
       "kind": "function",
-      "line": 892,
+      "line": 896,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17294,7 +17294,7 @@
     {
       "id": "function:scripts.architecture_graph.main",
       "kind": "function",
-      "line": 1414,
+      "line": 1418,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17304,7 +17304,7 @@
     {
       "id": "function:scripts.architecture_graph.mask_c_like_comments",
       "kind": "function",
-      "line": 388,
+      "line": 392,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17314,7 +17314,7 @@
     {
       "id": "function:scripts.architecture_graph.mermaid_id",
       "kind": "function",
-      "line": 1090,
+      "line": 1094,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17324,7 +17324,7 @@
     {
       "id": "function:scripts.architecture_graph.module_name_for_path",
       "kind": "function",
-      "line": 771,
+      "line": 775,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17344,7 +17344,7 @@
     {
       "id": "function:scripts.architecture_graph.normalize_route",
       "kind": "function",
-      "line": 733,
+      "line": 737,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17354,7 +17354,7 @@
     {
       "id": "function:scripts.architecture_graph.positive_int",
       "kind": "function",
-      "line": 1373,
+      "line": 1377,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17364,7 +17364,7 @@
     {
       "id": "function:scripts.architecture_graph.query_mermaid",
       "kind": "function",
-      "line": 1356,
+      "line": 1360,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17374,7 +17374,7 @@
     {
       "id": "function:scripts.architecture_graph.relationship_for_types",
       "kind": "function",
-      "line": 707,
+      "line": 711,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17384,7 +17384,7 @@
     {
       "id": "function:scripts.architecture_graph.resolve_markdown_target",
       "kind": "function",
-      "line": 928,
+      "line": 932,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17394,7 +17394,7 @@
     {
       "id": "function:scripts.architecture_graph.resolve_output_paths",
       "kind": "function",
-      "line": 1138,
+      "line": 1142,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17404,7 +17404,7 @@
     {
       "id": "function:scripts.architecture_graph.resolve_python_import",
       "kind": "function",
-      "line": 881,
+      "line": 885,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17414,7 +17414,7 @@
     {
       "id": "function:scripts.architecture_graph.resolve_source_reference",
       "kind": "function",
-      "line": 1049,
+      "line": 1053,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17424,7 +17424,7 @@
     {
       "id": "function:scripts.architecture_graph.select_subgraph",
       "kind": "function",
-      "line": 1242,
+      "line": 1246,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -17434,7 +17434,7 @@
     {
       "id": "function:scripts.architecture_graph.serialize_graph",
       "kind": "function",
-      "line": 1084,
+      "line": 1088,
       "metadata": {
         "module": "scripts.architecture_graph"
       },

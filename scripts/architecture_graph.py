@@ -319,7 +319,11 @@ def source_digest(sources: Iterable[SourceFile]) -> str:
     for source in sources:
         digest.update(source.path.encode("utf-8"))
         digest.update(b"\0")
-        digest.update(source.raw)
+        # Git may materialize the same text with LF or CRLF depending on the
+        # checkout platform. The graph describes source semantics, so line
+        # endings must not make an otherwise identical graph stale.
+        normalized_raw = source.raw.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        digest.update(normalized_raw)
         digest.update(b"\0")
     return f"sha256:{digest.hexdigest()}"
 

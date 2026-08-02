@@ -298,6 +298,21 @@ public sealed class AreaApiClient
             )
             self.assertEqual(first, second)
 
+    def test_graph_is_independent_of_checkout_line_endings(self) -> None:
+        source = self.root / "src/service.py"
+        source.parent.mkdir(parents=True)
+        source.write_bytes(b"def run():\n    return True\n")
+        lf_graph = architecture_graph.serialize_graph(
+            architecture_graph.build_graph(self.root)
+        )
+
+        source.write_bytes(b"def run():\r\n    return True\r\n")
+        crlf_graph = architecture_graph.serialize_graph(
+            architecture_graph.build_graph(self.root)
+        )
+
+        self.assertEqual(lf_graph, crlf_graph)
+
     def test_load_rejects_an_unknown_schema_version(self) -> None:
         graph_path = self.root / architecture_graph.DEFAULT_GRAPH_PATH
         graph_path.parent.mkdir(parents=True)
