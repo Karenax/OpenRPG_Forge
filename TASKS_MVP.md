@@ -358,3 +358,108 @@ distante attend le premier push ; la chaîne équivalente est verte localement.
 - [x] rapport performance.
 - [x] licences assets.
 - [x] guide créateur minimal.
+
+## Gate post-MVP — Creator Core G7
+
+Le détail et les preuves des 717 capacités restent suivis dans
+[`docs/AURORA_CAPABILITY_DELIVERY_PLAN.md`](docs/AURORA_CAPABILITY_DELIVERY_PLAN.md) et
+`tracking/project/AURORA_PARITY_COVERAGE.csv`.
+
+- [x] **G7-01 — second module générique** : création, export et démarrage headless sans contenu
+  spécifique à la Crypte.
+- [x] **G7-02 — coque Creator** : neuf workspaces, explorateur, sélection partagée et diagnostics
+  navigables.
+- [x] **G7-03 — catalogue Blueprints** : recherche, édition transactionnelle, dérivation depuis une
+  instance et index des références.
+- [x] **G7-04 — manipulation directe du Monde** : palette glissable, projection/snap, validation,
+  fantôme vert/rouge, sélection, gizmo X/Z et undo/redo du document canonique.
+- [ ] **G7-05 — zones indépendantes et transitions** : documents de zone, contexte actif,
+  transitions et validation.
+
+Les règles graphiques et d’interaction de G7-03/G7-04 sont consignées dans
+[`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
+
+## Backlog post-MVP — Asset Vault et Forgotten Forest
+
+Ce chantier n’est pas inclus dans la fermeture du MVP Crypte des Cendres. Sa spécification de
+référence est
+[`docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md).
+Chaque phase doit être transformée en une ou plusieurs tâches bornées avant implémentation, sans
+détourner une priorité P0/P1 Aurora déjà engagée.
+
+### AV0 — Audit et intégration
+
+- [x] Auditer le dépôt et produire `docs/audits/ASSET_AND_MAP_EXISTING_STATE.md`.
+- [x] Identifier les composants de catalogue, import, terrain, navigation, gameplay et sauvegarde à
+  réutiliser ou étendre.
+- [x] Formaliser les critères d’acceptation, risques et dépendances des phases suivantes.
+
+### AV1 — Politique, métadonnées et stockage
+
+- [x] Formaliser la politique de licence du noyau CC0 et des packs optionnels.
+- [ ] Versionner le schéma de métadonnées et les manifestes de packs.
+- [ ] Implémenter le catalogue local, le stockage adressé par hash et les contrôles de licence.
+- [ ] Couvrir filtres, hashes, extraction sûre, déduplication et crédits par des tests.
+
+### AV2 — Acquisition et normalisation
+
+- [x] Intégrer les trois premières sources autorisées : Poly Haven, ambientCG et packs Kenney CC0.
+- [ ] Étendre acquisition, reprise et cache actuels avec mise à jour et désinstallation locale.
+- [ ] Construire la normalisation GLB/Blender, les collisions, LOD, miniatures et audits qualité.
+- [ ] Documenter les sources acceptées, refusées et celles exigeant une action manuelle.
+
+### AV3 — Interface Asset Vault
+
+- [x] Prototyper dans `forge_forest_map` la recherche du catalogue, la sélection d’un asset installé,
+  sa copie dans `res://` et la conservation de `provenance.json`.
+- [x] Ajouter une interface de peinture viewport pour forêt, clairière, fleurs, rochers et zones
+  interdites avec Undo/Redo Godot.
+- [ ] Ajouter recherche, filtres, catégories, styles, variantes, provenance et prévisualisations.
+- [ ] Ajouter installation à la demande, glisser-déposer et intégration au placement existant.
+- [ ] Préparer les brosses de dispersion et recettes de biome sans dupliquer les systèmes de scène.
+- [ ] Faire passer toute mutation IA/MCP par les commandes transactionnelles et la validation de
+  licence.
+
+### AV4 — Terrain générique et carte Forgotten Forest
+
+#### AV4A — Fondation de terrain générique multi-biome
+
+- [ ] Formaliser dans un ADR le contrat de terrain partagé : plan horizontal X/Z, altitude Y,
+  séparation stricte entre terrain, couches de biome, gameplay et entités placées.
+- [ ] Ajouter au domaine C# versionné une définition de terrain associée à la zone : dimensions,
+  découpage, résolution, seed et références contrôlées vers heightmaps, masques de matériaux et
+  masque de trous.
+- [ ] Étendre le format `.orpmod`, les migrations et les tests de round-trip afin que le terrain soit
+  inspectable et indépendant de toute scène ou ressource Godot.
+- [ ] Concevoir les commandes transactionnelles de sculpture et peinture : lever/abaisser, aplanir,
+  lisser, peindre les matériaux et ouvrir/fermer un trou, avec prévisualisation et Undo/Redo.
+- [ ] Évaluer Terrain3D face à un adapter interne, vérifier licence et compatibilité, puis épingler la
+  solution retenue sans faire de ses nœuds la source de vérité.
+- [ ] Reconstruire dans Godot la géométrie, les collisions et les requêtes d'altitude/pente depuis le
+  document canonique, avec validation headless et génération déterministe.
+- [ ] Partager les requêtes de surface avec placement, eau, chemins, navigation et biomes ; traiter
+  une grotte, un tunnel ou un surplomb comme un trou de terrain accompagné d'une géométrie 3D
+  séparée.
+- [ ] Définir des recettes de biome réutilisables qui échantillonnent altitude, pente, matériau,
+  humidité, eau, chemins et exclusions sans posséder ni dupliquer le terrain.
+- [ ] Migrer le prototype `forge_forest_map` en première couche de biome posée sur ce terrain et
+  supprimer son hypothèse de sol plan sans créer une seconde source de vérité.
+- [ ] Mesurer mémoire, temps de reconstruction, sculpture, collisions, navigation, LOD et culling sur
+  une zone extérieure représentative avant d'étendre la taille des cartes.
+
+#### AV4B — Carte Forgotten Forest
+
+- [x] Livrer une scène de création 128 × 128 m reconstructible, avec scatter cellulaire, masque RGBA
+  versionné, kit de départ attribué et smoke test headless.
+- [ ] Concevoir une carte extérieure cohérente à partir d’une sélection d’assets homogène.
+- [ ] Intégrer la fondation de terrain AV4A, végétation, bâtiments, eau, éclairage, navigation et
+  landmarks.
+- [ ] Réutiliser les briques existantes de dialogue, quête, combat, transition et sauvegarde.
+- [ ] Ajouter profils graphiques, validation automatisée, playtest et rapports de performance.
+- [ ] Vérifier export du module, dépendances, crédits et ouverture depuis un clone propre.
+
+### AV5 — Livraison et extension
+
+- [ ] Livrer la documentation, le journal d’implémentation et les procédures d’ajout de sources/packs.
+- [ ] Mesurer catalogue, téléchargements, contenu utilisé, taille, licences et performances réelles.
+- [ ] N’élargir massivement le catalogue qu’après validation de la cohérence visuelle et du pipeline.

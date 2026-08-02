@@ -1,0 +1,142 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://addons/forge_forest_map/ForgeForestMap.gd" id="1_map"]
+[ext_resource type="Script" path="res://addons/forge_forest_map/core/ForgeBiomeScatter.gd" id="2_scatter"]
+[ext_resource type="Script" path="res://addons/forge_forest_map/core/ForgeBiomeScatterEntry.gd" id="3_entry"]
+[ext_resource type="PackedScene" path="res://addons/forge_forest_map/default_assets/pine-tree-3/scene.gltf" id="4_pine_a"]
+[ext_resource type="PackedScene" path="res://addons/forge_forest_map/default_assets/pine-tree-4/scene.gltf" id="5_pine_b"]
+[ext_resource type="PackedScene" path="res://addons/forge_forest_map/default_assets/flower-1/flower-1.tscn" id="6_flower"]
+[ext_resource type="Script" path="res://addons/forge_forest_map/scenes/ForestMapSmoke.gd" id="7_smoke"]
+
+[sub_resource type="StandardMaterial3D" id="GroundMaterial"]
+albedo_color = Color(0.19, 0.28, 0.12, 1)
+roughness = 0.96
+
+[sub_resource type="PlaneMesh" id="GroundMesh"]
+material = SubResource("GroundMaterial")
+size = Vector2(128, 128)
+subdivide_width = 16
+subdivide_depth = 16
+
+[sub_resource type="BoxShape3D" id="GroundShape"]
+size = Vector3(128, 0.5, 128)
+
+[sub_resource type="StandardMaterial3D" id="RockMaterial"]
+albedo_color = Color(0.31, 0.34, 0.34, 1)
+roughness = 0.9
+
+[sub_resource type="SphereMesh" id="RockMesh"]
+material = SubResource("RockMaterial")
+radius = 0.85
+height = 1.25
+radial_segments = 12
+rings = 6
+
+[sub_resource type="Resource" id="ForestEntryA"]
+script = ExtResource("3_entry")
+mesh_scene = ExtResource("4_pine_a")
+probability = 0.65
+scale_min = Vector3(0.22, 0.25, 0.22)
+scale_max = Vector3(0.38, 0.44, 0.38)
+
+[sub_resource type="Resource" id="ForestEntryB"]
+script = ExtResource("3_entry")
+mesh_scene = ExtResource("5_pine_b")
+probability = 0.35
+scale_min = Vector3(0.38, 0.42, 0.38)
+scale_max = Vector3(0.62, 0.72, 0.62)
+
+[sub_resource type="Resource" id="FlowerEntry"]
+script = ExtResource("3_entry")
+mesh_scene = ExtResource("6_flower")
+probability = 1.0
+scale_min = Vector3(0.55, 0.55, 0.55)
+scale_max = Vector3(1.1, 1.1, 1.1)
+
+[sub_resource type="Resource" id="RockEntry"]
+script = ExtResource("3_entry")
+mesh = SubResource("RockMesh")
+probability = 1.0
+scale_min = Vector3(0.55, 0.35, 0.55)
+scale_max = Vector3(1.8, 1.25, 1.8)
+
+[sub_resource type="Environment" id="ForestEnvironment"]
+background_mode = 1
+background_color = Color(0.36, 0.55, 0.68, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.54, 0.62, 0.48, 1)
+ambient_light_energy = 0.65
+tonemap_mode = 2
+
+[node name="ForgeForestMap" type="Node3D"]
+script = ExtResource("1_map")
+map_id = "forgotten-forest-demo"
+display_name = "Forgotten Forest — démonstration"
+mask_path = "res://forest_maps/forgotten-forest-demo-mask.png"
+definition_path = "res://forest_maps/forgotten-forest-demo.json"
+
+[node name="Ground" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("GroundMesh")
+
+[node name="Collision" type="CollisionShape3D" parent="Ground"]
+position = Vector3(0, -0.25, 0)
+shape = SubResource("GroundShape")
+
+[node name="Forest" type="Node3D" parent="."]
+script = ExtResource("2_scatter")
+entries = Array[ExtResource("3_entry")]([SubResource("ForestEntryA"), SubResource("ForestEntryB")])
+seed = 7
+area_size = Vector2(128, 128)
+average_spacing = 8.2
+max_instances = 360
+generate_chunk_colliders = false
+density_lod_enabled = true
+density_lod_start_distance = 40.0
+density_lod_end_distance = 95.0
+density_lod_min_fraction = 0.18
+mask_enabled = true
+
+[node name="Flowers" type="Node3D" parent="."]
+script = ExtResource("2_scatter")
+entries = Array[ExtResource("3_entry")]([SubResource("FlowerEntry")])
+seed = 108
+area_size = Vector2(128, 128)
+average_spacing = 2.2
+max_instances = 2600
+shadow_casting = 0
+generate_chunk_colliders = false
+mask_enabled = true
+mask_channel = 1
+
+[node name="Rocks" type="Node3D" parent="."]
+script = ExtResource("2_scatter")
+entries = Array[ExtResource("3_entry")]([SubResource("RockEntry")])
+seed = 209
+area_size = Vector2(128, 128)
+average_spacing = 6.5
+max_instances = 500
+generate_chunk_colliders = false
+mask_enabled = true
+mask_channel = 2
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-52, -28, 0)
+light_color = Color(1, 0.91, 0.75, 1)
+light_energy = 0.75
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("ForestEnvironment")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(70, 58, 70)
+rotation_degrees = Vector3(-32, 45, 0)
+current = true
+far = 300.0
+
+[node name="Smoke" type="Node" parent="."]
+script = ExtResource("7_smoke")

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "pack_id": "kenney_3d_all",
+  "name": "Kenney Free CC0 3D Packs Snapshot",
+  "version": "2026.08.02",
+  "delivery": "external-vault",
+  "license_policy": "cc0-only",
+  "catalog": "../catalogs/kenney_3d_packs.json",
+  "sources": [
+    "../sources/kenney.json"
+  ],
+  "pack_count": 50,
+  "model_file_count": 13717,
+  "vault_environment_variable": "OPENRPG_ASSET_VAULT",
+  "status": "downloaded-originals-awaiting-format-deduplication-and-visual-normalization"
+}

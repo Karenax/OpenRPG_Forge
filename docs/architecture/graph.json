@@ -606,7 +606,7 @@
     },
     {
       "evidence": {
-        "line": 1259,
+        "line": 586,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -615,7 +615,7 @@
     },
     {
       "evidence": {
-        "line": 1324,
+        "line": 1342,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -624,7 +624,16 @@
     },
     {
       "evidence": {
-        "line": 1608,
+        "line": 1407,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:AGENTS.md"
+    },
+    {
+      "evidence": {
+        "line": 1703,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -633,7 +642,7 @@
     },
     {
       "evidence": {
-        "line": 1324,
+        "line": 1407,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -642,7 +651,7 @@
     },
     {
       "evidence": {
-        "line": 1364,
+        "line": 1452,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -651,16 +660,7 @@
     },
     {
       "evidence": {
-        "line": 1324,
-        "path": "MEGACONTEXT.md"
-      },
-      "kind": "references",
-      "source": "file:MEGACONTEXT.md",
-      "target": "file:PROMPTS_CODEX_HERMES.md"
-    },
-    {
-      "evidence": {
-        "line": 1564,
+        "line": 1656,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -678,7 +678,7 @@
     },
     {
       "evidence": {
-        "line": 1324,
+        "line": 631,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -687,7 +687,7 @@
     },
     {
       "evidence": {
-        "line": 1365,
+        "line": 1407,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -696,7 +696,25 @@
     },
     {
       "evidence": {
-        "line": 1417,
+        "line": 1453,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:STATUS.md"
+    },
+    {
+      "evidence": {
+        "line": 1505,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:STATUS.md"
+    },
+    {
+      "evidence": {
+        "line": 1597,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -714,7 +732,7 @@
     },
     {
       "evidence": {
-        "line": 1324,
+        "line": 1312,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -723,7 +741,7 @@
     },
     {
       "evidence": {
-        "line": 1366,
+        "line": 1407,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -732,12 +750,111 @@
     },
     {
       "evidence": {
-        "line": 1417,
+        "line": 1454,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
       "source": "file:MEGACONTEXT.md",
       "target": "file:TASKS_MVP.md"
+    },
+    {
+      "evidence": {
+        "line": 1505,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:TASKS_MVP.md"
+    },
+    {
+      "evidence": {
+        "line": 1672,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:TASKS_MVP.md"
+    },
+    {
+      "evidence": {
+        "line": 585,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:docs/ASSET_CONVENTIONS.md"
+    },
+    {
+      "evidence": {
+        "line": 585,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:docs/ASSET_LICENSES.md"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:docs/UX_AURORA_2026.md"
+    },
+    {
+      "evidence": {
+        "line": 630,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:docs/UX_AURORA_2026.md"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+    },
+    {
+      "evidence": {
+        "line": 569,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+    },
+    {
+      "evidence": {
+        "line": 1313,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+    },
+    {
+      "evidence": {
+        "line": 629,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md"
+    },
+    {
+      "evidence": {
+        "line": 630,
+        "path": "MEGACONTEXT.md"
+      },
+      "kind": "references",
+      "source": "file:MEGACONTEXT.md",
+      "target": "file:docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md"
     },
     {
       "evidence": {
@@ -750,7 +867,7 @@
     },
     {
       "evidence": {
-        "line": 1594,
+        "line": 1689,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -858,7 +975,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 30,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -867,7 +984,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 49,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -876,7 +993,7 @@
     },
     {
       "evidence": {
-        "line": 48,
+        "line": 64,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -894,7 +1011,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 30,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -903,7 +1020,7 @@
     },
     {
       "evidence": {
-        "line": 47,
+        "line": 63,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -912,7 +1029,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -921,7 +1038,7 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 67,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -939,7 +1056,34 @@
     },
     {
       "evidence": {
-        "line": 49,
+        "line": 26,
+        "path": "README_FIRST.md"
+      },
+      "kind": "references",
+      "source": "file:README_FIRST.md",
+      "target": "file:STATUS.md"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "README_FIRST.md"
+      },
+      "kind": "references",
+      "source": "file:README_FIRST.md",
+      "target": "file:STATUS.md"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "README_FIRST.md"
+      },
+      "kind": "references",
+      "source": "file:README_FIRST.md",
+      "target": "file:STATUS.md"
+    },
+    {
+      "evidence": {
+        "line": 99,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -957,7 +1101,7 @@
     },
     {
       "evidence": {
-        "line": 50,
+        "line": 66,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -966,7 +1110,7 @@
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 69,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -975,7 +1119,25 @@
     },
     {
       "evidence": {
-        "line": 52,
+        "line": 74,
+        "path": "README_FIRST.md"
+      },
+      "kind": "references",
+      "source": "file:README_FIRST.md",
+      "target": "file:docs/AURORA_CAPABILITY_DELIVERY_PLAN.md"
+    },
+    {
+      "evidence": {
+        "line": 100,
+        "path": "README_FIRST.md"
+      },
+      "kind": "references",
+      "source": "file:README_FIRST.md",
+      "target": "file:docs/AURORA_CAPABILITY_DELIVERY_PLAN.md"
+    },
+    {
+      "evidence": {
+        "line": 68,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -984,7 +1146,7 @@
     },
     {
       "evidence": {
-        "line": 54,
+        "line": 70,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -993,7 +1155,7 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 72,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -1002,7 +1164,7 @@
     },
     {
       "evidence": {
-        "line": 55,
+        "line": 71,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -1011,12 +1173,48 @@
     },
     {
       "evidence": {
-        "line": 57,
+        "line": 73,
         "path": "README_FIRST.md"
       },
       "kind": "references",
       "source": "file:README_FIRST.md",
       "target": "file:docs/ROADMAP.md"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "README_FIRST.md"
+      },
+      "kind": "references",
+      "source": "file:README_FIRST.md",
+      "target": "file:docs/UX_AURORA_2026.md"
+    },
+    {
+      "evidence": {
+        "line": 75,
+        "path": "README_FIRST.md"
+      },
+      "kind": "references",
+      "source": "file:README_FIRST.md",
+      "target": "file:docs/UX_AURORA_2026.md"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "README_FIRST.md"
+      },
+      "kind": "references",
+      "source": "file:README_FIRST.md",
+      "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "README_FIRST.md"
+      },
+      "kind": "references",
+      "source": "file:README_FIRST.md",
+      "target": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md"
     },
     {
       "evidence": {
@@ -1026,6 +1224,15 @@
       "kind": "references",
       "source": "file:STATUS.md",
       "target": "file:docs/ENVIRONMENT.md"
+    },
+    {
+      "evidence": {
+        "line": 133,
+        "path": "STATUS.md"
+      },
+      "kind": "references",
+      "source": "file:STATUS.md",
+      "target": "file:docs/UX_AURORA_2026.md"
     },
     {
       "evidence": {
@@ -1047,12 +1254,48 @@
     },
     {
       "evidence": {
+        "line": 365,
+        "path": "TASKS_MVP.md"
+      },
+      "kind": "references",
+      "source": "file:TASKS_MVP.md",
+      "target": "file:docs/AURORA_CAPABILITY_DELIVERY_PLAN.md"
+    },
+    {
+      "evidence": {
         "line": 14,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
       "source": "file:TASKS_MVP.md",
       "target": "file:docs/ENVIRONMENT.md"
+    },
+    {
+      "evidence": {
+        "line": 380,
+        "path": "TASKS_MVP.md"
+      },
+      "kind": "references",
+      "source": "file:TASKS_MVP.md",
+      "target": "file:docs/UX_AURORA_2026.md"
+    },
+    {
+      "evidence": {
+        "line": 386,
+        "path": "TASKS_MVP.md"
+      },
+      "kind": "references",
+      "source": "file:TASKS_MVP.md",
+      "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+    },
+    {
+      "evidence": {
+        "line": 392,
+        "path": "TASKS_MVP.md"
+      },
+      "kind": "references",
+      "source": "file:TASKS_MVP.md",
+      "target": "file:docs/audits/ASSET_AND_MAP_EXISTING_STATE.md"
     },
     {
       "evidence": {
@@ -1269,6 +1512,141 @@
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/project.godot",
       "target": "file:apps/Forge.Runtime/Main.tscn"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMap.gd"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeFog.gd"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeScatter.gd"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeScatterEntry.gd"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/README.md"
+      },
+      "kind": "references",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/README.md",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/THIRD_PARTY_NOTICES.md"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/flower-1.tscn"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/flower-1.tscn",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/green.tres"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/flower-1.tscn"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/flower-1.tscn",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/white.tres"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/flower-1.tscn"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/flower-1.tscn",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/yellow.tres"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/plugin.cfg"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/plugin.cfg",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMap.gd"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeScatter.gd"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeScatterEntry.gd"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/flower-1.tscn"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/scenes/ForestMapSmoke.gd"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn",
+      "target": "file:apps/Forge.Toolset/forest_maps/forgotten-forest-demo.json"
     },
     {
       "evidence": {
@@ -1601,6 +1979,15 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/project.godot",
+      "target": "file:apps/Forge.Toolset/addons/forge_forest_map/plugin.cfg"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "apps/Forge.Toolset/project.godot"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/project.godot",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/plugin.cfg"
     },
     {
@@ -1611,6 +1998,33 @@
       "kind": "references",
       "source": "file:docs/ROADMAP.md",
       "target": "file:docs/AURORA_CAPABILITY_DELIVERY_PLAN.md"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "docs/ROADMAP.md"
+      },
+      "kind": "references",
+      "source": "file:docs/ROADMAP.md",
+      "target": "file:docs/UX_AURORA_2026.md"
+    },
+    {
+      "evidence": {
+        "line": 72,
+        "path": "docs/ROADMAP.md"
+      },
+      "kind": "references",
+      "source": "file:docs/ROADMAP.md",
+      "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+    },
+    {
+      "evidence": {
+        "line": 87,
+        "path": "docs/UX_AURORA_2026.md"
+      },
+      "kind": "references",
+      "source": "file:docs/UX_AURORA_2026.md",
+      "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
     },
     {
       "evidence": {
@@ -4584,6 +4998,627 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/addons/debug_menu/debug_menu.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/debug_menu/debug_menu.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/debug_menu/debug_menu.gd"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "third_party/godot-forest-demo/addons/debug_menu/plugin.cfg"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/debug_menu/plugin.cfg",
+      "target": "file:third_party/godot-forest-demo/addons/debug_menu/plugin.gd"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "third_party/godot-forest-demo/addons/debug_menu/plugin.gd"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/debug_menu/plugin.gd",
+      "target": "file:third_party/godot-forest-demo/addons/debug_menu/debug_menu.tscn"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "third_party/godot-forest-demo/addons/gnd_biomes/plugin.cfg"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/gnd_biomes/plugin.cfg",
+      "target": "file:third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd",
+      "target": "file:third_party/godot-forest-demo/addons/gnd_biomes/AutoBiomesFog.gd"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd",
+      "target": "file:third_party/godot-forest-demo/addons/gnd_biomes/BiomeScatterEntry.gd"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd",
+      "target": "file:third_party/godot-forest-demo/addons/gnd_biomes/Biomes.gd"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd",
+      "target": "file:third_party/godot-forest-demo/addons/gnd_biomes/MaskPainterPanel.gd"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd",
+      "target": "file:third_party/godot-forest-demo/scenery/TerrainPatch3D.gd"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.gd"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.gd",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/ball.tscn"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/extras/UP_AudioSlicePlayer.gd"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.gd"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_CollectibleItem.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_CollectibleItem.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_CollectibleItem.gd"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/extras/objects/lasergun/UP_Collectible_Gun_Laser.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/lasergun/UP_Collectible_Gun_Laser.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.tscn"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/extras/objects/lasergun/UP_Collectible_Gun_Laser.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/lasergun/UP_Collectible_Gun_Laser.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_CollectibleItem.tscn"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/extras/objects/lasergun/UP_Collectible_Gun_Laser.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/lasergun/UP_Collectible_Gun_Laser.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_Gun.gd"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHealth.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHealth.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHealth.gd"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHunger.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHunger.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHunger.gd"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/plugin.cfg"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/plugin.cfg",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/uniplayer.gd"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Bobbing.gd"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Collect.gd"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_DetectFloorChange.gd"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_HeadRotation.gd"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Interaction.gd"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_ItemHolder.gd"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Walk.gd"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Zoom.gd"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_Health.gd"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_Kill_Y.gd"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_Killable.gd"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.gd"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/tools/UP_RotationHelper.gd"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "third_party/godot-forest-demo/addons/uniplayer/uniplayer.gd"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/addons/uniplayer/uniplayer.gd",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/tools/UP_PlayerStart.gd"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/debug_menu/debug_menu.tscn"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/gnd_biomes/AutoBiomesFog.gd"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/gnd_biomes/BiomeScatterEntry.gd"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/gnd_biomes/Biomes.gd"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/tools/UP_MouseCapture.gd"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/grass/grass.tres"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/levels/test_biomes.gd"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/materials/environment.tres"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/birch_tree_1.tscn"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/flower-1.tscn"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/flower-2.1.tscn"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/flower-2.2.tscn"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/old-well.tscn"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/old_house.tscn"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/pine-tree-1.tscn"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/pine-tree-2.tscn"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/plants/paproc.tscn"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/scenery/SunShaftsCompositorEffect.gd"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/scenery/SunShaftsController.gd"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/scenery/TerrainPatch3D.gd"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "target": "file:third_party/godot-forest-demo/textures/Ground020_1K-JPG/M_ground.tres"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "third_party/godot-forest-demo/materials/environment.tres"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/materials/environment.tres",
+      "target": "file:third_party/godot-forest-demo/materials/sky.tres"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/materials/sky.tres"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/materials/sky.tres",
+      "target": "file:third_party/godot-forest-demo/scenery/materials/M_layered_cloud_sky.tres"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "third_party/godot-forest-demo/objects/flower-1.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/objects/flower-1.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/flower-1/green.tres"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "third_party/godot-forest-demo/objects/flower-1.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/objects/flower-1.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/flower-1/white.tres"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "third_party/godot-forest-demo/objects/flower-1.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/objects/flower-1.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/flower-1/yellow.tres"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "third_party/godot-forest-demo/objects/flower-2.1.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/objects/flower-2.1.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/flower-2/Material.007.tres"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "third_party/godot-forest-demo/objects/flower-2.2.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/objects/flower-2.2.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/flower-2/Material.007-2.tres"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "third_party/godot-forest-demo/objects/plants/paproc.tscn"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/objects/plants/paproc.tscn",
+      "target": "file:third_party/godot-forest-demo/objects/plants/Plant_148_Leaves_Mat.tres"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "third_party/godot-forest-demo/project.godot"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/project.godot",
+      "target": "file:third_party/godot-forest-demo/addons/debug_menu/plugin.cfg"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "third_party/godot-forest-demo/project.godot"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/project.godot",
+      "target": "file:third_party/godot-forest-demo/addons/gnd_biomes/plugin.cfg"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "third_party/godot-forest-demo/project.godot"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/project.godot",
+      "target": "file:third_party/godot-forest-demo/addons/uniplayer/plugin.cfg"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "third_party/godot-forest-demo/scenery/SunShaftsController.gd"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/scenery/SunShaftsController.gd",
+      "target": "file:third_party/godot-forest-demo/scenery/SunShaftsCompositorEffect.gd"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "third_party/godot-forest-demo/scenery/materials/M_layered_cloud_sky.tres"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/scenery/materials/M_layered_cloud_sky.tres",
+      "target": "file:third_party/godot-forest-demo/scenery/materials/cloud_noise_a.tres"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "third_party/godot-forest-demo/scenery/materials/M_layered_cloud_sky.tres"
+      },
+      "kind": "imports",
+      "source": "file:third_party/godot-forest-demo/scenery/materials/M_layered_cloud_sky.tres",
+      "target": "file:third_party/godot-forest-demo/scenery/materials/cloud_noise_b.tres"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "tools/Forge.Cli/Program.cs"
       },
@@ -5004,6 +6039,240 @@
       "kind": "defined_in",
       "source": "function:tests.test_aurora_tracker.read_csv",
       "target": "file:tests/test_aurora_tracker.py"
+    },
+    {
+      "evidence": {
+        "line": 153,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.ambientcg_index",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 62,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.atomic_write_json",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 279,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.default_vault",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 98,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.describe_file",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 220,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.download_ambientcg_asset",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.download_file",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 178,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.download_polyhaven_asset",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.file_digest",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 296,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.main",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 284,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.parse_args",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 138,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.polyhaven_index",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.relativize_vault_paths",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.request_bytes",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.request_json",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 261,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.run_parallel",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 108,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.safe_extract_zip",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 133,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.select_ids",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tools/asset_pipeline/download_kenney_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_kenney_3d.discover_pack_pages",
+      "target": "file:tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 84,
+        "path": "tools/asset_pipeline/download_kenney_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_kenney_3d.download_pack",
+      "target": "file:tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 119,
+        "path": "tools/asset_pipeline/download_kenney_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_kenney_3d.main",
+      "target": "file:tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 62,
+        "path": "tools/asset_pipeline/download_kenney_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_kenney_3d.parse_pack_page",
+      "target": "file:tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tools/asset_pipeline/download_kenney_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_kenney_3d.text_content",
+      "target": "file:tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tools/asset_pipeline/validate_cc0_catalog.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.validate_cc0_catalog.digest",
+      "target": "file:tools/asset_pipeline/validate_cc0_catalog.py"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tools/asset_pipeline/validate_cc0_catalog.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.validate_cc0_catalog.local_gltf_dependencies",
+      "target": "file:tools/asset_pipeline/validate_cc0_catalog.py"
+    },
+    {
+      "evidence": {
+        "line": 93,
+        "path": "tools/asset_pipeline/validate_cc0_catalog.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.validate_cc0_catalog.main",
+      "target": "file:tools/asset_pipeline/validate_cc0_catalog.py"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tools/asset_pipeline/validate_cc0_catalog.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.validate_cc0_catalog.validate",
+      "target": "file:tools/asset_pipeline/validate_cc0_catalog.py"
     },
     {
       "evidence": {
@@ -7753,6 +9022,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/asset_pipeline/test_download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "module:tests.asset_pipeline.test_download_cc0_3d",
+      "target": "file:tests/asset_pipeline/test_download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/test_architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7776,6 +9054,33 @@
       "kind": "defined_in",
       "source": "module:tests.test_mcp_stdio",
       "target": "file:tests/test_mcp_stdio.py"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "module:tools.asset_pipeline.download_cc0_3d",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tools/asset_pipeline/download_kenney_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "module:tools.asset_pipeline.download_kenney_3d",
+      "target": "file:tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tools/asset_pipeline/validate_cc0_catalog.py"
+      },
+      "kind": "defined_in",
+      "source": "module:tools.asset_pipeline.validate_cc0_catalog",
+      "target": "file:tools/asset_pipeline/validate_cc0_catalog.py"
     },
     {
       "evidence": {
@@ -13836,6 +15141,15 @@
     },
     {
       "evidence": {
+        "line": 17,
+        "path": "tests/asset_pipeline/test_download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "test:tests.asset_pipeline.test_download_cc0_3d.DownloadCc0AssetsTests",
+      "target": "file:tests/asset_pipeline/test_download_cc0_3d.py"
+    },
+    {
+      "evidence": {
         "line": 19,
         "path": "tests/test_architecture_graph.py"
       },
@@ -15051,8 +16365,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:77d4530846ee26e3f485091510b3d39b31e5c0bd8039f63b36a789f486f325fe",
-    "source_file_count": 371
+    "source_digest": "sha256:808e27e4126c30662474828d98f86355883e11094c4a3b2596b4e5031dc09557",
+    "source_file_count": 510
   },
   "nodes": [
     {
@@ -16196,6 +17510,166 @@
       "path": "apps/Forge.Toolset/Forge.Toolset.csproj"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMap.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "ForgeForestMap.gd",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMap.gd"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "ForgeForestMapEditorPlugin.gd",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/ForgeForestMapEditorPlugin.gd"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/README.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "README.md",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/README.md"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/THIRD_PARTY_NOTICES.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "THIRD_PARTY_NOTICES.md",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/THIRD_PARTY_NOTICES.md"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeFog.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "ForgeBiomeFog.gd",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeFog.gd"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeScatter.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "ForgeBiomeScatter.gd",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeScatter.gd"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeScatterEntry.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "ForgeBiomeScatterEntry.gd",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/core/ForgeBiomeScatterEntry.gd"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/flower-1.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "flower-1.tscn",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/flower-1.tscn"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/green.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "green.tres",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/green.tres"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/white.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "white.tres",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/white.tres"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/yellow.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "yellow.tres",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/default_assets/flower-1/yellow.tres"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/pine-tree-3/textures/Tree_tex.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Tree_tex.tres",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/default_assets/pine-tree-3/textures/Tree_tex.tres"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/default_assets/pine-tree-4/textures/Tree_Pine.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Tree_Pine.tres",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/default_assets/pine-tree-4/textures/Tree_Pine.tres"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/plugin.cfg",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "plugin.cfg",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/plugin.cfg"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/scenes/ForestMapSmoke.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "ForestMapSmoke.gd",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/ForestMapSmoke.gd"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "forge_forest_map_demo.tscn",
+      "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs",
       "kind": "file",
       "line": 1,
@@ -16286,6 +17760,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/plugin.cfg"
     },
     {
+      "id": "file:apps/Forge.Toolset/forest_maps/forgotten-forest-demo.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "forgotten-forest-demo.json",
+      "path": "apps/Forge.Toolset/forest_maps/forgotten-forest-demo.json"
+    },
+    {
       "id": "file:apps/Forge.Toolset/packages.lock.json",
       "kind": "configuration",
       "line": 1,
@@ -16304,6 +17788,76 @@
       },
       "name": "project.godot",
       "path": "apps/Forge.Toolset/project.godot"
+    },
+    {
+      "id": "file:asset_manifests/catalogs/cc0_3d_all.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "cc0_3d_all.json",
+      "path": "asset_manifests/catalogs/cc0_3d_all.json"
+    },
+    {
+      "id": "file:asset_manifests/catalogs/kenney_3d_packs.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "kenney_3d_packs.json",
+      "path": "asset_manifests/catalogs/kenney_3d_packs.json"
+    },
+    {
+      "id": "file:asset_manifests/packs/cc0_3d_all.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "cc0_3d_all.json",
+      "path": "asset_manifests/packs/cc0_3d_all.json"
+    },
+    {
+      "id": "file:asset_manifests/packs/kenney_3d_all.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "kenney_3d_all.json",
+      "path": "asset_manifests/packs/kenney_3d_all.json"
+    },
+    {
+      "id": "file:asset_manifests/sources/ambientcg.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "ambientcg.json",
+      "path": "asset_manifests/sources/ambientcg.json"
+    },
+    {
+      "id": "file:asset_manifests/sources/kenney.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "kenney.json",
+      "path": "asset_manifests/sources/kenney.json"
+    },
+    {
+      "id": "file:asset_manifests/sources/polyhaven.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "polyhaven.json",
+      "path": "asset_manifests/sources/polyhaven.json"
     },
     {
       "id": "file:docs/ADR/0001-godot-dotnet.md",
@@ -16586,6 +18140,86 @@
       "path": "docs/architecture/README.md"
     },
     {
+      "id": "file:docs/assets/ASSET_ACQUISITION_REPORT.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "ASSET_ACQUISITION_REPORT.md",
+      "path": "docs/assets/ASSET_ACQUISITION_REPORT.md"
+    },
+    {
+      "id": "file:docs/assets/ASSET_LICENSE_POLICY.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "ASSET_LICENSE_POLICY.md",
+      "path": "docs/assets/ASSET_LICENSE_POLICY.md"
+    },
+    {
+      "id": "file:docs/assets/ASSET_PIPELINE_USAGE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "ASSET_PIPELINE_USAGE.md",
+      "path": "docs/assets/ASSET_PIPELINE_USAGE.md"
+    },
+    {
+      "id": "file:docs/assets/GODOT_FOREST_DEMO_INTEGRATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "GODOT_FOREST_DEMO_INTEGRATION.md",
+      "path": "docs/assets/GODOT_FOREST_DEMO_INTEGRATION.md"
+    },
+    {
+      "id": "file:docs/assets/MANUAL_DOWNLOADS_REQUIRED.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "MANUAL_DOWNLOADS_REQUIRED.md",
+      "path": "docs/assets/MANUAL_DOWNLOADS_REQUIRED.md"
+    },
+    {
+      "id": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md",
+      "path": "docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+    },
+    {
+      "id": "file:docs/assets/THIRD_PARTY_ASSET_CREDITS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "THIRD_PARTY_ASSET_CREDITS.md",
+      "path": "docs/assets/THIRD_PARTY_ASSET_CREDITS.md"
+    },
+    {
+      "id": "file:docs/audits/ASSET_AND_MAP_EXISTING_STATE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "ASSET_AND_MAP_EXISTING_STATE.md",
+      "path": "docs/audits/ASSET_AND_MAP_EXISTING_STATE.md"
+    },
+    {
       "id": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",
       "kind": "document",
       "line": 1,
@@ -16644,6 +18278,16 @@
       },
       "name": "G7-04-DIRECT-WORLD-MANIPULATION.md",
       "path": "docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md"
+    },
+    {
+      "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
+      "path": "docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md"
     },
     {
       "id": "file:global.json",
@@ -18896,6 +20540,16 @@
       "path": "tests/Forge.Scripting.Tests/packages.lock.json"
     },
     {
+      "id": "file:tests/asset_pipeline/test_download_cc0_3d.py",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "python"
+      },
+      "name": "test_download_cc0_3d.py",
+      "path": "tests/asset_pipeline/test_download_cc0_3d.py"
+    },
+    {
       "id": "file:tests/test_architecture_graph.py",
       "kind": "file",
       "line": 1,
@@ -18926,6 +20580,1026 @@
       "path": "tests/test_mcp_stdio.py"
     },
     {
+      "id": "file:third_party/godot-forest-demo.SNAPSHOT.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "godot-forest-demo.SNAPSHOT.md",
+      "path": "third_party/godot-forest-demo.SNAPSHOT.md"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/README.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "README.md",
+      "path": "third_party/godot-forest-demo/README.md"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/debug_menu/LICENSE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "LICENSE.md",
+      "path": "third_party/godot-forest-demo/addons/debug_menu/LICENSE.md"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/debug_menu/debug_menu.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "debug_menu.gd",
+      "path": "third_party/godot-forest-demo/addons/debug_menu/debug_menu.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/debug_menu/debug_menu.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "debug_menu.tscn",
+      "path": "third_party/godot-forest-demo/addons/debug_menu/debug_menu.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/debug_menu/plugin.cfg",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "plugin.cfg",
+      "path": "third_party/godot-forest-demo/addons/debug_menu/plugin.cfg"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/debug_menu/plugin.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "plugin.gd",
+      "path": "third_party/godot-forest-demo/addons/debug_menu/plugin.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/gnd_biomes/AutoBiomesFog.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "AutoBiomesFog.gd",
+      "path": "third_party/godot-forest-demo/addons/gnd_biomes/AutoBiomesFog.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/gnd_biomes/BiomeScatterEntry.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "BiomeScatterEntry.gd",
+      "path": "third_party/godot-forest-demo/addons/gnd_biomes/BiomeScatterEntry.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/gnd_biomes/Biomes.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "Biomes.gd",
+      "path": "third_party/godot-forest-demo/addons/gnd_biomes/Biomes.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/gnd_biomes/MaskPainterPanel.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "MaskPainterPanel.gd",
+      "path": "third_party/godot-forest-demo/addons/gnd_biomes/MaskPainterPanel.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/gnd_biomes/plugin.cfg",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "plugin.cfg",
+      "path": "third_party/godot-forest-demo/addons/gnd_biomes/plugin.cfg"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "plugin.gd",
+      "path": "third_party/godot-forest-demo/addons/gnd_biomes/plugin.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/UP_BaseAbility.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_BaseAbility.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/UP_BaseAbility.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/UP_PlayerBase.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_PlayerBase.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/UP_PlayerBase.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/UP_Tool.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Tool.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/UP_Tool.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/UP_VisualAbility.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_VisualAbility.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/UP_VisualAbility.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Bobbing.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Bobbing.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Bobbing.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Collect.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Collect.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Collect.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_DetectFloorChange.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_DetectFloorChange.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_DetectFloorChange.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Drunkable.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Drunkable.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Drunkable.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_HeadRotation.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_HeadRotation.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_HeadRotation.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Hunger.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Hunger.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Hunger.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Interaction.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Interaction.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Interaction.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_ItemHolder.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_ItemHolder.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_ItemHolder.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Poison.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Poison.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Poison.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Walk.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Walk.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Walk.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Zoom.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Zoom.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/abilities/UP_Zoom.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_DisplayInEditorOnly.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_DisplayInEditorOnly.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_DisplayInEditorOnly.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_Health.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Health.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_Health.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_HealthRegeneration.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_HealthRegeneration.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_HealthRegeneration.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_Kill_Y.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Kill_Y.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_Kill_Y.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_Killable.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Killable.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/behaviours/UP_Killable.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/extras/UP_AudioSlicePlayer.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_AudioSlicePlayer.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/extras/UP_AudioSlicePlayer.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Weapon_Lasergun.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "UP_Weapon_Lasergun.tscn",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/UP_Weapon_Lasergun.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/ball.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "ball.tscn",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/extras/actors/lasergun/ball.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_CollectibleItem.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_CollectibleItem.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_CollectibleItem.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_CollectibleItem.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "UP_CollectibleItem.tscn",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_CollectibleItem.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_Gun.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_Gun.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/extras/objects/UP_Gun.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/lasergun/UP_Collectible_Gun_Laser.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "UP_Collectible_Gun_Laser.tscn",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/extras/objects/lasergun/UP_Collectible_Gun_Laser.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/extras/objects/lasergun/apocalyptic_hand-gun/textures/Material_47.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Material_47.tres",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/extras/objects/lasergun/apocalyptic_hand-gun/textures/Material_47.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHealth.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_HudHealth.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHealth.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHealth.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "UP_HudHealth.tscn",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHealth.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHunger.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_HudHunger.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHunger.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHunger.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "UP_HudHunger.tscn",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/hud/UP_HudHunger.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/plugin.cfg",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "plugin.cfg",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/plugin.cfg"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_HUD.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_FPSController_HUD.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_HUD.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_FPSController_Prefab.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "UP_FPSController_Prefab.tscn",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/prefabs/UP_FPSController_Prefab.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/tools/UP_MouseCapture.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_MouseCapture.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/tools/UP_MouseCapture.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/tools/UP_PlayerStart.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_PlayerStart.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/tools/UP_PlayerStart.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/tools/UP_RotationHelper.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "UP_RotationHelper.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/tools/UP_RotationHelper.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/addons/uniplayer/uniplayer.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "uniplayer.gd",
+      "path": "third_party/godot-forest-demo/addons/uniplayer/uniplayer.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/default_bus_layout.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "default_bus_layout.tres",
+      "path": "third_party/godot-forest-demo/default_bus_layout.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/grass/grass.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "grass.tres",
+      "path": "third_party/godot-forest-demo/grass/grass.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/levels/test_biomes.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "test_biomes.gd",
+      "path": "third_party/godot-forest-demo/levels/test_biomes.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/levels/test_biomes.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "test_biomes.tscn",
+      "path": "third_party/godot-forest-demo/levels/test_biomes.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/materials/Foliage_Master_Shader.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Foliage_Master_Shader.tres",
+      "path": "third_party/godot-forest-demo/materials/Foliage_Master_Shader.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/materials/environment.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "environment.tres",
+      "path": "third_party/godot-forest-demo/materials/environment.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/materials/sky.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "sky.tres",
+      "path": "third_party/godot-forest-demo/materials/sky.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/birch-tree-1/textures/Leaves.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Leaves.tres",
+      "path": "third_party/godot-forest-demo/objects/birch-tree-1/textures/Leaves.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/birch-tree-1/textures/Material.002.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Material.002.tres",
+      "path": "third_party/godot-forest-demo/objects/birch-tree-1/textures/Material.002.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/birch_tree_1.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "birch_tree_1.tscn",
+      "path": "third_party/godot-forest-demo/objects/birch_tree_1.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/flower-1.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "flower-1.tscn",
+      "path": "third_party/godot-forest-demo/objects/flower-1.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/flower-1/green.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "green.tres",
+      "path": "third_party/godot-forest-demo/objects/flower-1/green.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/flower-1/white.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "white.tres",
+      "path": "third_party/godot-forest-demo/objects/flower-1/white.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/flower-1/yellow.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "yellow.tres",
+      "path": "third_party/godot-forest-demo/objects/flower-1/yellow.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/flower-2.1.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "flower-2.1.tscn",
+      "path": "third_party/godot-forest-demo/objects/flower-2.1.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/flower-2.2.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "flower-2.2.tscn",
+      "path": "third_party/godot-forest-demo/objects/flower-2.2.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/flower-2.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "flower-2.tscn",
+      "path": "third_party/godot-forest-demo/objects/flower-2.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/flower-2/Material.007-2.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Material.007-2.tres",
+      "path": "third_party/godot-forest-demo/objects/flower-2/Material.007-2.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/flower-2/Material.007.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Material.007.tres",
+      "path": "third_party/godot-forest-demo/objects/flower-2/Material.007.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/old-house/materials/Corpus.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Corpus.tres",
+      "path": "third_party/godot-forest-demo/objects/old-house/materials/Corpus.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/old-house/materials/Input.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Input.tres",
+      "path": "third_party/godot-forest-demo/objects/old-house/materials/Input.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/old-house/materials/Other.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Other.tres",
+      "path": "third_party/godot-forest-demo/objects/old-house/materials/Other.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/old-well.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "old-well.tscn",
+      "path": "third_party/godot-forest-demo/objects/old-well.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/old-well/textures/ConcreteNMetal.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "ConcreteNMetal.tres",
+      "path": "third_party/godot-forest-demo/objects/old-well/textures/ConcreteNMetal.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/old-well/textures/Wood1.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Wood1.tres",
+      "path": "third_party/godot-forest-demo/objects/old-well/textures/Wood1.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/old-well/textures/Wood2.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Wood2.tres",
+      "path": "third_party/godot-forest-demo/objects/old-well/textures/Wood2.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/old-well/textures/Wood3.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Wood3.tres",
+      "path": "third_party/godot-forest-demo/objects/old-well/textures/Wood3.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/old-well/textures/Wood4.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Wood4.tres",
+      "path": "third_party/godot-forest-demo/objects/old-well/textures/Wood4.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/old_house.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "old_house.tscn",
+      "path": "third_party/godot-forest-demo/objects/old_house.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/pine-tree-1.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "pine-tree-1.tscn",
+      "path": "third_party/godot-forest-demo/objects/pine-tree-1.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/pine-tree-1/textures/Tree_0Mat.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Tree_0Mat.tres",
+      "path": "third_party/godot-forest-demo/objects/pine-tree-1/textures/Tree_0Mat.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/pine-tree-1/textures/Tree_1Mat.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Tree_1Mat.tres",
+      "path": "third_party/godot-forest-demo/objects/pine-tree-1/textures/Tree_1Mat.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/pine-tree-2.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "pine-tree-2.tscn",
+      "path": "third_party/godot-forest-demo/objects/pine-tree-2.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/pine-tree-2/textures/Pine_s_1_Material.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Pine_s_1_Material.tres",
+      "path": "third_party/godot-forest-demo/objects/pine-tree-2/textures/Pine_s_1_Material.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/pine-tree-3.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "pine-tree-3.tscn",
+      "path": "third_party/godot-forest-demo/objects/pine-tree-3.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/pine-tree-3/textures/Tree_tex.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Tree_tex.tres",
+      "path": "third_party/godot-forest-demo/objects/pine-tree-3/textures/Tree_tex.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/pine-tree-4.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "pine-tree-4.tscn",
+      "path": "third_party/godot-forest-demo/objects/pine-tree-4.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/pine-tree-4/textures/Tree_Pine.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Tree_Pine.tres",
+      "path": "third_party/godot-forest-demo/objects/pine-tree-4/textures/Tree_Pine.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/plants/Plant_148_Leaves_Mat.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "Plant_148_Leaves_Mat.tres",
+      "path": "third_party/godot-forest-demo/objects/plants/Plant_148_Leaves_Mat.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/objects/plants/paproc.tscn",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "paproc.tscn",
+      "path": "third_party/godot-forest-demo/objects/plants/paproc.tscn"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/project.godot",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "project.godot",
+      "path": "third_party/godot-forest-demo/project.godot"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/scenery/SunShaftsCompositorEffect.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "SunShaftsCompositorEffect.gd",
+      "path": "third_party/godot-forest-demo/scenery/SunShaftsCompositorEffect.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/scenery/SunShaftsController.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "SunShaftsController.gd",
+      "path": "third_party/godot-forest-demo/scenery/SunShaftsController.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/scenery/TerrainPatch3D.gd",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "gdscript"
+      },
+      "name": "TerrainPatch3D.gd",
+      "path": "third_party/godot-forest-demo/scenery/TerrainPatch3D.gd"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/scenery/materials/M_layered_cloud_sky.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "M_layered_cloud_sky.tres",
+      "path": "third_party/godot-forest-demo/scenery/materials/M_layered_cloud_sky.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/scenery/materials/cloud_noise_a.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "cloud_noise_a.tres",
+      "path": "third_party/godot-forest-demo/scenery/materials/cloud_noise_a.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/scenery/materials/cloud_noise_b.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "cloud_noise_b.tres",
+      "path": "third_party/godot-forest-demo/scenery/materials/cloud_noise_b.tres"
+    },
+    {
+      "id": "file:third_party/godot-forest-demo/textures/Ground020_1K-JPG/M_ground.tres",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "M_ground.tres",
+      "path": "third_party/godot-forest-demo/textures/Ground020_1K-JPG/M_ground.tres"
+    },
+    {
       "id": "file:tools/Forge.Cli/Forge.Cli.csproj",
       "kind": "configuration",
       "line": 1,
@@ -18954,6 +21628,36 @@
       },
       "name": "packages.lock.json",
       "path": "tools/Forge.Cli/packages.lock.json"
+    },
+    {
+      "id": "file:tools/asset_pipeline/download_cc0_3d.py",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "python"
+      },
+      "name": "download_cc0_3d.py",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "file:tools/asset_pipeline/download_kenney_3d.py",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "python"
+      },
+      "name": "download_kenney_3d.py",
+      "path": "tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "id": "file:tools/asset_pipeline/validate_cc0_catalog.py",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "python"
+      },
+      "name": "validate_cc0_catalog.py",
+      "path": "tools/asset_pipeline/validate_cc0_catalog.py"
     },
     {
       "id": "function:scripts.architecture_graph.add_common_arguments",
@@ -19414,6 +22118,266 @@
       },
       "name": "read_csv",
       "path": "tests/test_aurora_tracker.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.ambientcg_index",
+      "kind": "function",
+      "line": 153,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "ambientcg_index",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.atomic_write_json",
+      "kind": "function",
+      "line": 62,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "atomic_write_json",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.default_vault",
+      "kind": "function",
+      "line": 279,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "default_vault",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.describe_file",
+      "kind": "function",
+      "line": 98,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "describe_file",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.download_ambientcg_asset",
+      "kind": "function",
+      "line": 220,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "download_ambientcg_asset",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.download_file",
+      "kind": "function",
+      "line": 82,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "download_file",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.download_polyhaven_asset",
+      "kind": "function",
+      "line": 178,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "download_polyhaven_asset",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.file_digest",
+      "kind": "function",
+      "line": 54,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "file_digest",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.main",
+      "kind": "function",
+      "line": 296,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "main",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.parse_args",
+      "kind": "function",
+      "line": 284,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "parse_args",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.polyhaven_index",
+      "kind": "function",
+      "line": 138,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "polyhaven_index",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.relativize_vault_paths",
+      "kind": "function",
+      "line": 71,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "relativize_vault_paths",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.request_bytes",
+      "kind": "function",
+      "line": 36,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "request_bytes",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.request_json",
+      "kind": "function",
+      "line": 50,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "request_json",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.run_parallel",
+      "kind": "function",
+      "line": 261,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "run_parallel",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.safe_extract_zip",
+      "kind": "function",
+      "line": 108,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "safe_extract_zip",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.select_ids",
+      "kind": "function",
+      "line": 133,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "select_ids",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_kenney_3d.discover_pack_pages",
+      "kind": "function",
+      "line": 39,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_kenney_3d"
+      },
+      "name": "discover_pack_pages",
+      "path": "tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_kenney_3d.download_pack",
+      "kind": "function",
+      "line": 84,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_kenney_3d"
+      },
+      "name": "download_pack",
+      "path": "tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_kenney_3d.main",
+      "kind": "function",
+      "line": 119,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_kenney_3d"
+      },
+      "name": "main",
+      "path": "tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_kenney_3d.parse_pack_page",
+      "kind": "function",
+      "line": 62,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_kenney_3d"
+      },
+      "name": "parse_pack_page",
+      "path": "tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_kenney_3d.text_content",
+      "kind": "function",
+      "line": 35,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_kenney_3d"
+      },
+      "name": "text_content",
+      "path": "tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.validate_cc0_catalog.digest",
+      "kind": "function",
+      "line": 16,
+      "metadata": {
+        "module": "tools.asset_pipeline.validate_cc0_catalog"
+      },
+      "name": "digest",
+      "path": "tools/asset_pipeline/validate_cc0_catalog.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.validate_cc0_catalog.local_gltf_dependencies",
+      "kind": "function",
+      "line": 24,
+      "metadata": {
+        "module": "tools.asset_pipeline.validate_cc0_catalog"
+      },
+      "name": "local_gltf_dependencies",
+      "path": "tools/asset_pipeline/validate_cc0_catalog.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.validate_cc0_catalog.main",
+      "kind": "function",
+      "line": 93,
+      "metadata": {
+        "module": "tools.asset_pipeline.validate_cc0_catalog"
+      },
+      "name": "main",
+      "path": "tools/asset_pipeline/validate_cc0_catalog.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.validate_cc0_catalog.validate",
+      "kind": "function",
+      "line": 42,
+      "metadata": {
+        "module": "tools.asset_pipeline.validate_cc0_catalog"
+      },
+      "name": "validate",
+      "path": "tools/asset_pipeline/validate_cc0_catalog.py"
     },
     {
       "id": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
@@ -20373,6 +23337,13 @@
       "path": "scripts/architecture_graph.py"
     },
     {
+      "id": "module:tests.asset_pipeline.test_download_cc0_3d",
+      "kind": "module",
+      "line": 1,
+      "name": "tests.asset_pipeline.test_download_cc0_3d",
+      "path": "tests/asset_pipeline/test_download_cc0_3d.py"
+    },
+    {
       "id": "module:tests.test_architecture_graph",
       "kind": "module",
       "line": 1,
@@ -20392,6 +23363,27 @@
       "line": 1,
       "name": "tests.test_mcp_stdio",
       "path": "tests/test_mcp_stdio.py"
+    },
+    {
+      "id": "module:tools.asset_pipeline.download_cc0_3d",
+      "kind": "module",
+      "line": 1,
+      "name": "tools.asset_pipeline.download_cc0_3d",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "module:tools.asset_pipeline.download_kenney_3d",
+      "kind": "module",
+      "line": 1,
+      "name": "tools.asset_pipeline.download_kenney_3d",
+      "path": "tools/asset_pipeline/download_kenney_3d.py"
+    },
+    {
+      "id": "module:tools.asset_pipeline.validate_cc0_catalog",
+      "kind": "module",
+      "line": 1,
+      "name": "tools.asset_pipeline.validate_cc0_catalog",
+      "path": "tools/asset_pipeline/validate_cc0_catalog.py"
     },
     {
       "id": "namespace:Forge.Application.Blueprints",
@@ -21289,6 +24281,16 @@
       },
       "name": "NativeForgeScriptRuntimeTests",
       "path": "tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs"
+    },
+    {
+      "id": "test:tests.asset_pipeline.test_download_cc0_3d.DownloadCc0AssetsTests",
+      "kind": "test",
+      "line": 17,
+      "metadata": {
+        "module": "tests.asset_pipeline.test_download_cc0_3d"
+      },
+      "name": "DownloadCc0AssetsTests",
+      "path": "tests/asset_pipeline/test_download_cc0_3d.py"
     },
     {
       "id": "test:tests.test_architecture_graph.ArchitectureGraphTests",

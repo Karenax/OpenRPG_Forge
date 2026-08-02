@@ -23,10 +23,26 @@ L’objectif n’est pas de copier Neverwinter Nights, Aurora, D&D, leurs règle
    - `STATUS.md`
    - `TASKS_MVP.md`
    - les ADR de `docs/ADR/`
-5. Coller le **Prompt 1 — Initialisation contrôlée** de `PROMPTS_CODEX_HERMES.md`.
+5. Dans le dépôt existant, suivre le gate et la prochaine tâche de `STATUS.md` ; le **Prompt 1 —
+   Initialisation contrôlée** de `PROMPTS_CODEX_HERMES.md` ne sert qu’à recréer un dépôt vide.
 6. Ne pas demander à Codex de construire tout le produit en une seule session.
 
 Codex lit automatiquement `AGENTS.md` lorsqu’il travaille dans le dépôt. Le grand contexte reste dans `MEGACONTEXT.md` afin de ne pas gonfler les instructions persistantes.
+
+## État courant du prototype
+
+Le paquet de démarrage a maintenant produit un MVP solo fonctionnel et le chantier **Creator Core G7**
+est engagé. Les incréments les plus récents sont :
+
+- **G7-03 — catalogue Blueprints** : recherche, création et édition transactionnelles, dérivation
+  depuis une instance et index des références ;
+- **G7-04 — manipulation directe du Monde** : glisser-déposer depuis la palette, validation avant
+  placement, fantôme vert/rouge, sélection dans le viewport et translation X/Z par gizmo avec
+  historique partagé.
+
+La source de vérité de l’avancement est `STATUS.md`. La direction d’interface et le contexte
+graphique sont dans `docs/UX_AURORA_2026.md`. Le chantier Asset Vault/Forgotten Forest, sa cible
+visuelle et l’état du prototype extérieur sont documentés dans `docs/assets/` et `docs/progress/`.
 
 ## Utilisation avec Hermes Agent
 
@@ -55,11 +71,16 @@ Codex est recommandé comme implémenteur principal des tâches difficiles, nota
 - `docs/MODULE_FORMAT.md` : format de module.
 - `docs/MCP_AI_ARCHITECTURE.md` : intégration IA et MCP.
 - `docs/ROADMAP.md` : phases du produit.
+- `docs/AURORA_CAPABILITY_DELIVERY_PLAN.md` : gates et ordre de livraison post-MVP.
+- `docs/UX_AURORA_2026.md` : promesse créateur, identité visuelle et interactions validées.
+- `docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md` : contexte graphique, Asset Vault et carte Forgotten Forest.
+- `docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md` : état prouvé du pipeline et du prototype extérieur.
 - `docs/ADR/` : décisions architecturales verrouillées.
 
-## Principe de lancement
+## Tranche verticale de lancement — atteinte
 
-La première réussite attendue n’est pas « un moteur complet ». C’est une tranche verticale appelée **Crypte des Cendres** :
+La première réussite attendue n’était pas « un moteur complet », mais une tranche verticale appelée
+**Crypte des Cendres**. Elle est maintenant validée ; cette liste reste le rappel de son périmètre :
 
 - une petite zone modulaire ;
 - un joueur, un PNJ, une porte, un déclencheur, un ennemi et un boss ;
@@ -75,4 +96,5 @@ La première réussite attendue n’est pas « un moteur complet ». C’est une
 - une modification IA appliquée par transaction avec prévisualisation et annulation ;
 - un test automatisé sans interface.
 
-Tout développement qui ne rapproche pas directement cette tranche verticale doit être justifié avant d’être entrepris.
+La suite est pilotée par les gates post-MVP de `STATUS.md` et
+`docs/AURORA_CAPABILITY_DELIVERY_PLAN.md`, sans annoncer une parité complète avant ses preuves.

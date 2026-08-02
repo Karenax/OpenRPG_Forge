@@ -1,0 +1,29 @@
+{
+  "area_size": {
+    "x": 128.0,
+    "y": 128.0
+  },
+  "asset_slots": {
+    "flowers": "res://addons/forge_forest_map/default_assets/flower-1/flower-1.tscn",
+    "forest": "res://addons/forge_forest_map/default_assets/pine-tree-3/scene.gltf",
+    "rocks": "res://addons/forge_forest_map/scenes/forge_forest_map_demo.tscn::RockMesh"
+  },
+  "display_name": "Forgotten Forest — démonstration",
+  "format_version": 1,
+  "generator": {
+    "implementation": "forge_forest_map",
+    "upstream": "GamesNotDeveloped/godot-forest-demo@git:623212ffeb4efbf4c95323a4a6a57e726be4f6e9"
+  },
+  "map_id": "forgotten-forest-demo",
+  "mask": {
+    "channels": {
+      "alpha": "forbidden-zone",
+      "blue": "rocks-density",
+      "clearing": "erase-red-green-blue",
+      "green": "flowers-density",
+      "red": "forest-density"
+    },
+    "path": "res://forest_maps/forgotten-forest-demo-mask.png"
+  },
+  "seed": 7
+}

@@ -1,17 +1,17 @@
 %% Fichier généré par scripts/architecture_graph.py. Ne pas modifier.
 flowchart LR
   k_7fe7fcbbf658["adapter (17)"]
-  k_0652e436f42d["configuration (51)"]
+  k_0652e436f42d["configuration (123)"]
   k_8501a34f34de["decision (14)"]
-  k_4f8278c89ad1["document (91)"]
-  k_971c419dd609["file (215)"]
-  k_c218e39efa2e["function (46)"]
+  k_4f8278c89ad1["document (105)"]
+  k_971c419dd609["file (268)"]
+  k_c218e39efa2e["function (72)"]
   k_31a81ec93db3["handler (10)"]
   k_1d06a0d76f00["model (84)"]
-  k_fbd34a2b6e6a["module (4)"]
+  k_fbd34a2b6e6a["module (8)"]
   k_1963ebc61173["namespace (63)"]
   k_98f54143ab4e["project (16)"]
-  k_a94a8fe5ccb1["test (48)"]
+  k_a94a8fe5ccb1["test (49)"]
   k_d0a3e7f81a98["type (95)"]
   k_03a182f7f63b["validator (7)"]
   k_971c419dd609 -->|"imports (385)"| k_1963ebc61173
@@ -19,24 +19,26 @@ flowchart LR
   k_1963ebc61173 -->|"defined_in (208)"| k_971c419dd609
   k_31a81ec93db3 -->|"uses_model (109)"| k_1d06a0d76f00
   k_a94a8fe5ccb1 -->|"tests (104)"| k_d0a3e7f81a98
+  k_4f8278c89ad1 -->|"references (103)"| k_4f8278c89ad1
   k_1d06a0d76f00 -->|"relationship (100)"| k_1d06a0d76f00
   k_d0a3e7f81a98 -->|"defined_in (95)"| k_971c419dd609
   k_1d06a0d76f00 -->|"defined_in (84)"| k_971c419dd609
-  k_4f8278c89ad1 -->|"references (72)"| k_4f8278c89ad1
-  k_a94a8fe5ccb1 -->|"defined_in (48)"| k_971c419dd609
-  k_c218e39efa2e -->|"defined_in (46)"| k_971c419dd609
+  k_c218e39efa2e -->|"defined_in (72)"| k_971c419dd609
+  k_a94a8fe5ccb1 -->|"defined_in (49)"| k_971c419dd609
+  k_0652e436f42d -->|"imports (38)"| k_971c419dd609
+  k_0652e436f42d -->|"imports (37)"| k_0652e436f42d
   k_98f54143ab4e -->|"imports (26)"| k_98f54143ab4e
   k_03a182f7f63b -->|"validates (26)"| k_1d06a0d76f00
   k_7fe7fcbbf658 -->|"serializes (23)"| k_1d06a0d76f00
   k_7fe7fcbbf658 -->|"defined_in (17)"| k_971c419dd609
   k_98f54143ab4e -->|"defined_in (16)"| k_0652e436f42d
   k_a94a8fe5ccb1 -->|"tests (15)"| k_31a81ec93db3
+  k_971c419dd609 -->|"imports (11)"| k_971c419dd609
   k_a94a8fe5ccb1 -->|"tests (11)"| k_03a182f7f63b
   k_31a81ec93db3 -->|"defined_in (10)"| k_971c419dd609
+  k_fbd34a2b6e6a -->|"defined_in (8)"| k_971c419dd609
   k_03a182f7f63b -->|"defined_in (7)"| k_971c419dd609
   k_4f8278c89ad1 -->|"references (6)"| k_0652e436f42d
   k_a94a8fe5ccb1 -->|"tests (6)"| k_7fe7fcbbf658
-  k_fbd34a2b6e6a -->|"defined_in (4)"| k_971c419dd609
-  k_0652e436f42d -->|"imports (2)"| k_0652e436f42d
-  k_0652e436f42d -->|"imports (2)"| k_971c419dd609
+  k_971c419dd609 -->|"imports (2)"| k_0652e436f42d
   k_7fe7fcbbf658 -->|"uses_service (1)"| k_03a182f7f63b

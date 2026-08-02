@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "pack_id": "cc0_3d_all",
+  "name": "OpenRPG Forge Complete CC0 3D Vault Snapshot",
+  "version": "2026.08.02",
+  "delivery": "external-vault",
+  "license_policy": "cc0-only",
+  "catalogs": [
+    "../catalogs/cc0_3d_all.json",
+    "../catalogs/kenney_3d_packs.json"
+  ],
+  "sources": [
+    "../sources/polyhaven.json",
+    "../sources/ambientcg.json",
+    "../sources/kenney.json"
+  ],
+  "source_asset_count": 555,
+  "source_pack_count": 50,
+  "model_file_count": 14272,
+  "estimated_unique_model_name_count": 5236,
+  "download_profile": {
+    "polyhaven": "gltf-1k with fbx-1k fallback",
+    "ambientcg": "LQ-1K-JPG",
+    "kenney": "official free 3D pack ZIPs"
+  },
+  "vault_environment_variable": "OPENRPG_ASSET_VAULT",
+  "status": "downloaded-originals-awaiting-visual-normalization"
+}

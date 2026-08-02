@@ -1,6 +1,6 @@
 # OpenRPG Forge — contexte autonome pour Codex/Hermes
 
-Version de référence : 1 août 2026.
+Version de référence : 2 août 2026.
 
 Ce fichier peut être transmis seul à un agent. Dans un dépôt réel, utiliser de préférence le paquet structuré et conserver `AGENTS.md` à la racine.
 
@@ -16,7 +16,7 @@ Ce fichier peut être transmis seul à un agent. Dans un dépôt réel, utiliser
 
 Tu rejoins un projet de moteur et de toolset de RPG 3D provisoirement nommé **OpenRPG Forge**.
 
-Lis ce document comme la source autonome de contexte produit et architecture. Lis ensuite `AGENTS.md`, `STATUS.md`, `TASKS_MVP.md` et les ADR. Ne tente pas de construire tout le produit en une seule opération. Transforme chaque étape en tâche bornée, avec critères d’acceptation, compilation, tests et mise à jour du statut.
+Lis ce document comme la source autonome de contexte produit et architecture. Lis ensuite `AGENTS.md`, `STATUS.md`, `TASKS_MVP.md` et les ADR. La direction produit et graphique courante est tenue dans `docs/UX_AURORA_2026.md`. Le chantier post-MVP **Asset Vault et carte Forgotten Forest** est spécifié dans `docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md` et doit être découpé en tâches bornées avant exécution. Ne tente pas de construire tout le produit en une seule opération. Transforme chaque étape en tâche bornée, avec critères d’acceptation, compilation, tests et mise à jour du statut.
 
 Le mot « Aurora 2026 » décrit l’intention fonctionnelle. Il ne doit pas devenir le nom public du produit. Ne copie pas les actifs, marques, règles, scripts, données ou interfaces propriétaires de Neverwinter Nights, Aurora ou D&D.
 
@@ -561,6 +561,75 @@ Le projet doit créer très tôt une scène benchmark représentative. Les budge
 - monde ouvert continu ;
 - destruction globale ;
 - ray tracing obligatoire.
+
+### 9.4 Chantier Asset Vault et carte de référence
+
+Le backlog post-MVP comprend un **Asset Vault** libre, traçable et extensible, ainsi qu’une carte
+extérieure de référence nommée **Forgotten Forest**. La spécification complète est conservée dans
+`docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`.
+
+Ce chantier doit fournir progressivement :
+
+- un catalogue local recherchable, des packs installables à la demande et une provenance juridique
+  vérifiable ;
+- une chaîne d’acquisition, validation, normalisation GLB, optimisation, prévisualisation,
+  déduplication et génération de crédits ;
+- une interface Assets intégrée au toolset, compatible avec le placement, le glisser-déposer et les
+  futures brosses de dispersion ;
+- une carte extérieure cohérente servant de démonstration, benchmark, exemple créateur et test du
+  pipeline ;
+- des commandes applicatives et, plus tard, MCP qui ne contournent ni le bus transactionnel ni les
+  contrôles de licence.
+
+Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
+soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de
+`AGENTS.md`. En cas de conflit, ces sources de vérité du dépôt priment sur la spécification importée.
+L’implémentation commence par l’audit demandé dans la spécification, réutilise les systèmes existants
+et privilégie une petite sélection visuellement cohérente avant l’élargissement du catalogue.
+
+La capture `docs/assets/screenshots/forge-forest-map-demo.png` prouve le scatter cellulaire et le
+masque de peinture du prototype 128 × 128 m. Elle constitue un état fonctionnel intermédiaire, pas
+la référence artistique finale : relief, matériaux normalisés, composition, navigation, eau,
+éclairage et profils graphiques restent à construire et à valider.
+
+Le relief extérieur doit reposer sur une **fondation de terrain générique et indépendante des
+biomes**. Une zone possède d'abord son terrain ; forêt, prairie, désert, marais, neige ou autre biome
+sont ensuite des couches et recettes réutilisables posées sur ce terrain. Dans les conventions
+Godot/Forge, X/Z forment le plan horizontal et Y porte l'altitude. L'interface peut parler de
+« hauteur » sans exposer cette convention au créateur.
+
+La source de vérité du terrain appartient au domaine C# versionné : dimensions, découpage,
+résolution, seed, données d'altitude, matériaux, masques de surface et trous. Godot reconstruit la
+géométrie, les collisions, la navigation et les instances de biome par un adapter ; les nœuds
+Terrain3D, meshes et MultiMesh générés restent jetables. Les biomes échantillonnent notamment
+altitude, pente, matériau, eau, chemins et zones d'exclusion sans posséder ni dupliquer le terrain.
+
+Un champ d'altitude couvre montagnes, collines, vallées et dépressions. Les grottes, tunnels,
+surplombs et autres volumes impossibles à représenter avec une seule hauteur par coordonnée X/Z
+emploient un trou de terrain et une géométrie 3D séparée. Sculpture, peinture et découpe doivent
+passer par des commandes transactionnelles, annulables, validables et testables hors de Godot.
+
+### 9.5 État actuel de l’expérience Creator
+
+Le MVP solo est fermé et le gate **Creator Core G7** est ouvert. Les incréments G7-03 et G7-04 sont
+implémentés et testés :
+
+- le workspace **Blueprints** recherche par nom, slug ou type, crée et édite une définition par
+  commandes transactionnelles, dérive un blueprint depuis une instance sans perdre ses overrides
+  et recalcule les usages dans les entités et dialogues ;
+- le workspace **Monde** accepte le glisser-déposer d’un blueprint sur le sol, projette et snappe le
+  placement, refuse limites et cellules occupées avant mutation puis partage sélection et historique
+  avec les autres surfaces ;
+- le contexte graphique de l’interaction emploie un fantôme vert pour un placement valide, rouge
+  avec diagnostic pour un refus, puis un gizmo Forge rouge/bleu pour la translation X/Z ;
+- l’identité d’interface reste sombre, calme et lisible, avec accent braise et sans marque visible du
+  moteur sous-jacent dans les surfaces contrôlées par Forge ; les champs numériques restent une
+  alternative précise à la manipulation directe.
+
+Les contrats, critères et preuves sont détaillés dans `docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md`,
+`docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md`, `docs/UX_AURORA_2026.md` et
+`STATUS.md`. La prochaine tranche Creator est G7-05, consacrée aux zones indépendantes et à leurs
+transitions.
 
 ---
 
@@ -1229,6 +1298,20 @@ Le bootstrap peut réduire cette structure. Ne pas créer dix projets vides sans
 - provider abstrait ;
 - génération brouillon.
 
+### Phase 6A — Asset Vault et Forgotten Forest
+
+- audit de l’existant et plan d’intégration ;
+- politique de licence et schéma de métadonnées ;
+- catalogue local, stockage adressé par contenu et packs à la demande ;
+- adaptateurs de sources, téléchargements contrôlés et normalisation ;
+- interface Assets, placement et dispersion ;
+- fondation de terrain générique, sculptable et indépendante des biomes ;
+- carte Forgotten Forest jouable, profilée et exportable ;
+- tests, crédits, documentation et reproduction depuis un clone propre.
+
+La liste opérationnelle et les critères détaillés sont dans `TASKS_MVP.md` et
+`docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`.
+
 ### Phase 7 — Multijoueur
 
 - headless autoritaire ;
@@ -1319,9 +1402,14 @@ Le résumé doit contenir :
 
 ---
 
-## 23. Première mission à donner à Codex
+## 23. Mission courante à donner à Codex
 
-> Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md` et les ADR. N’implémente pas le jeu complet. Réalise uniquement le lot de bootstrap défini dans le Prompt 1 de `PROMPTS_CODEX_HERMES.md`. Vérifie les versions installées, propose les écarts minimaux, crée une solution compilable, un domaine pur avec un test, un projet Godot .NET ouvrable et un plugin éditeur affichant un écran Forge vide. Exécute les tests et documente les commandes exactes. Ne commence ni AngelScript, ni MCP, ni Blender.
+> Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
+> applicables. Le bootstrap, le MVP, G7-03 et G7-04 sont déjà validés : ne les recommence pas.
+> Réalise uniquement **G7-05 — zones indépendantes et transitions**, avec documents de zone,
+> contexte actif, transitions et validation. Conserve le modèle de domaine comme source de vérité,
+> passe les mutations par les commandes, teste chaque couche touchée, régénère le graphe et mets le
+> statut à jour uniquement avec les preuves obtenues.
 
 ---
 
@@ -1505,6 +1593,10 @@ Ne pas démarrer avant validation explicite :
 
 # ÉTAT INITIAL
 
+> **Archive historique du paquet de démarrage.** La section ci-dessous décrit l’état du 1er août
+> 2026 avant initialisation ; elle ne doit pas servir de gate courant. Utiliser `STATUS.md`, la
+> section 9.5 de ce document et le plan Aurora pour l’état réel.
+
 # État du projet — OpenRPG Forge
 
 Mise à jour initiale : 1 août 2026.
@@ -1575,6 +1667,9 @@ Ne pas commencer AngelScript, MCP ou Blender avant que les fondations C# et le p
 ---
 
 # BACKLOG MVP
+
+> **Archive historique du backlog initial.** Le MVP est désormais fermé. Les cases ci-dessous
+> conservent le plan d’origine ; l’avancement prouvé et le backlog actif sont dans `TASKS_MVP.md`.
 
 # Backlog MVP — Crypte des Cendres
 

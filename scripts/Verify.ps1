@@ -152,6 +152,14 @@ try {
 
     Write-Output 'toolset sample restored.'
 
+    $forestMapLog = Join-Path $artifactRoot 'forest-map.log'
+    Invoke-ForgeEngineMarkerTest `
+        -Name 'forest-map' `
+        -ProjectPath $toolsetPath `
+        -Arguments @('--headless', '--path', $toolsetPath, '--log-file', $forestMapLog, 'res://addons/forge_forest_map/scenes/forge_forest_map_demo.tscn', '--', '--forest-map-smoke-test') `
+        -Markers @('OPENRPG_FORGE_FOREST_MAP_SMOKE_PASS') `
+        -StopAfterMarkers $false
+
     $moduleArtifact = Join-Path $artifactRoot 'crypt-of-ashes.orpmod'
     $moduleWorkspace = Join-Path $repositoryRoot 'apps\Forge.Runtime\content\crypt-of-ashes'
     $cliProject = Join-Path $repositoryRoot 'tools\Forge.Cli\Forge.Cli.csproj'

@@ -89,8 +89,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 - le gizmo Monde couvre la translation sur le plan X/Z mais pas encore rotation, échelle, pivot,
   axes contraints, coordonnées locales/globales, alignements ou multi-sélection ;
-- la coque expose les neuf workspaces et relie Monde et Dialogues ; les workflows complets
-  Blueprints, Quêtes, Scripts, Assets, Validation et Assistant relèvent encore du Creator Core G7 ;
+- la coque expose les neuf workspaces et relie Monde, Blueprints et Dialogues ; le premier catalogue
+  Blueprints est opérationnel, tandis que ses workflows avancés et les éditeurs complets Quêtes,
+  Scripts, Assets, Validation et Assistant relèvent encore du Creator Core G7 ;
 - les visuels finaux du MVP sont des primitives procédurales originales ; ils ne constituent pas
   encore une direction artistique de production avec modèles, animations, audio et VFX finis ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
@@ -102,6 +103,13 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   la clé, la porte et le boss ; le démarrage Core générique est séparé mais l'extraction complète
   attend les incréments RPG Kit ;
 - Blender Worker et le serveur autoritaire ne sont pas commencés ;
+- le premier Asset Vault externe contient 555 assets CC0 Poly Haven/ambientCG et 50 packs 3D Kenney,
+  soit environ 5 236 modèles logiques estimés ; leur normalisation visuelle, l’interface Assets et la
+  sélection Forgotten Forest restent à livrer ;
+- le prototype `forge_forest_map` charge une scène 128 × 128 m, génère la forêt par chunks
+  `MultiMesh`, peint forêt/clairière/fleurs/rochers/zones interdites dans un masque RGBA versionné et
+  remplace les modèles depuis une ressource Godot ou le catalogue installé ; le relief, la navigation
+  et la composition Forgotten Forest finale restent à livrer ;
 - le workflow CI est défini, mais son exécution distante attend le premier push.
 
 ## Décisions verrouillées
@@ -121,7 +129,8 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 - nom commercial définitif ;
 - licence du code propre (`Apache-2.0` ou `MIT OR Apache-2.0` proposés) ;
-- charte graphique ;
+- charte graphique finale ; la direction UX sombre/braise et le contexte 3D provisoire sont déjà
+  documentés dans `docs/UX_AURORA_2026.md` ;
 - validation de la vue 3/4 rotative comme vue prioritaire du MVP ;
 - règles RPG initiales originales et minimales ;
 - cible matérielle définitive après mesures interactives GPU ;

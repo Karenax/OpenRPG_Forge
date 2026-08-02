@@ -46,9 +46,33 @@ versionnée, modification IA annulable, rapport de performance, licences et guid
 livrés. `TASKS_MVP.md` est fermé ; la suite reprend les gates Aurora sans confondre le MVP avec la
 parité des 717 capacités.
 
+## Gate Creator Core G7 — en cours
+
+G7-01 a prouvé la création d’un second module générique et G7-02 a livré la coque Creator commune.
+G7-03 rend le catalogue Blueprints recherchable et transactionnel, avec dérivation depuis une
+instance et références inversées. G7-04 ajoute le glisser-déposer dans le Monde, la validation avant
+mutation, le fantôme vert/rouge, la sélection directe et le gizmo Forge X/Z avec undo/redo.
+
+La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
+La prochaine tranche est **G7-05 — zones indépendantes et transitions**.
+
 ## Phase 6 — 3D assistée
 
 Blender Worker, validation, LOD/collision, providers abstraits et génération de brouillons.
+
+## Phase 6A — Asset Vault et Forgotten Forest
+
+Après l’audit de l’existant, construire progressivement une bibliothèque d’assets libre et
+traçable : politique CC0 pour le noyau artistique, catalogue local, packs installables à la demande,
+acquisition contrôlée, normalisation GLB, optimisation, miniatures, déduplication, crédits et
+interface intégrée au toolset. Utiliser ce pipeline pour livrer **Forgotten Forest**, carte extérieure
+jouable servant de démonstration publique, benchmark, exemple créateur et test de non-régression.
+
+La mission complète et ses critères sont dans
+[`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;
+le découpage opérationnel initial est suivi dans `TASKS_MVP.md`. Ce chantier ne remplace pas les
+priorités P0/P1 Aurora en cours et doit respecter les ADR, le bus transactionnel et les règles de
+licence du dépôt.
 
 ## Phase 7 — Multijoueur
 

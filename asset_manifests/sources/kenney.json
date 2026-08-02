@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "source_id": "kenney",
+  "name": "Kenney",
+  "catalog_url": "https://kenney.nl/assets/category:3D",
+  "asset_page_template": "https://kenney.nl/assets/{pack_id}",
+  "license": "CC0-1.0",
+  "license_verification": "Each downloaded pack page must state Creative Commons CC0",
+  "license_verified_at": "2026-08-02",
+  "redistribution_allowed": true,
+  "attribution_required_for_assets": false
+}

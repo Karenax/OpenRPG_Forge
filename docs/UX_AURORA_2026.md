@@ -55,9 +55,9 @@ T3.2 ajoute la sélection du point de départ, le snapshot temporaire, le lancem
 retour des logs. L’espace Dialogues fournit maintenant liste de nœuds, choix branchés, conditions,
 actions, textes localisables et aperçu dans la même identité sombre et braise. Le runtime offre une
 sauvegarde/reprise F5/F9 et l'Assistant peut préparer, appliquer et annuler un plan de dialogue par
-MCP. Le MVP est fermé ; l’espace Quêtes visuel, Scripts, Assets, Validation et la
-manipulation directe du viewport forment désormais le gate **Creator Core G7**, et non une prétendue
-parité Aurora déjà atteinte.
+MCP. Le MVP est fermé ; les espaces Quêtes, Scripts, Assets, Validation et l’enrichissement de la
+manipulation directe au-delà de G7-04 restent dans le gate **Creator Core G7**, et non dans une
+prétendue parité Aurora déjà atteinte.
 
 G7-02 installe la coque commune : neuf workspaces stables, une colonne d’exploration du projet, le
 workspace Monde au centre et un panneau contextuel pour sélection, diagnostics et logs de playtest.
@@ -78,3 +78,18 @@ la cause du refus dans les diagnostics. Un clic sur une représentation affiche 
 et bleu ; le glisser déplace l’instance sur X/Z et ne crée une commande qu’au relâchement valide.
 Les champs numériques et boutons existants restent disponibles comme alternative précise et
 accessible.
+
+## Contexte graphique 3D
+
+La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
+échelle métrique, matériaux PBR normalisés, silhouettes lisibles, éclairage maîtrisé, LOD,
+collisions, navigation et profils de qualité. Elle est détaillée dans
+[`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md).
+
+L’état visible actuel reste double : la Crypte utilise des primitives procédurales originales pour
+prouver les workflows, tandis que le prototype Forgotten Forest prouve le scatter par chunks et la
+peinture d’un masque RGBA sur 128 × 128 m. Sa capture
+[`forge-forest-map-demo.png`](assets/screenshots/forge-forest-map-demo.png) est une preuve
+fonctionnelle intermédiaire, pas une validation artistique finale. La curation des assets, les
+matériaux normalisés, le relief, la composition, l’eau, l’éclairage, la navigation et le profilage
+restent nécessaires avant d’en faire la référence graphique d’OpenRPG Forge.

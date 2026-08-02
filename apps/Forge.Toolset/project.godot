@@ -22,9 +22,24 @@ project/assembly_name="Forge.Toolset"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/openrpg_forge/plugin.cfg")
+enabled=PackedStringArray("res://addons/openrpg_forge/plugin.cfg", "res://addons/forge_forest_map/plugin.cfg")
 
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+
+[shader_globals]
+
+gnd_wind_direction={
+"type": "vec2",
+"value": Vector2(0.8, 0.3)
+}
+gnd_wind_speed={
+"type": "float",
+"value": 1.0
+}
+gnd_wind_strength={
+"type": "float",
+"value": 1.25
+}
