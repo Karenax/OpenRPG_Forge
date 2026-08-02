@@ -32,6 +32,7 @@ public static class ModuleManifestJson
         options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
         options.Converters.Add(new AreaIdJsonConverter());
         options.Converters.Add(new ModuleIdJsonConverter());
+        options.Converters.Add(new ThirdPartyDependencyIdJsonConverter());
         return options;
     }
 }

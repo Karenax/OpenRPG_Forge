@@ -90,5 +90,5 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 ## Première tâche
 
-`tasks/G7-12-INCREMENTAL-BUILD-CACHE.md` est terminée. La suite est G7-13 : profils de cible
-canoniques et conformité des dépendances/licences avant une distribution Client ou Shipping.
+`tasks/G7-13-TARGET-PROFILES-DISTRIBUTION-COMPLIANCE.md` est terminée. La suite est G7-14 : graphe
+de navigation par zone, validation géométrique et reachability spawn-vers-objectif.

@@ -18,6 +18,8 @@ public sealed record ModuleDefinition
 
     public IReadOnlyList<ProjectVariableDefinition> Variables { get; }
 
+    public ModuleDistributionConfiguration Distribution { get; }
+
     public ModuleDefinition(
         ModuleId id,
         string slug,
@@ -25,7 +27,8 @@ public sealed record ModuleDefinition
         string description,
         AreaId entryAreaId,
         ProjectMetadata? metadata = null,
-        IReadOnlyList<ProjectVariableDefinition>? variables = null)
+        IReadOnlyList<ProjectVariableDefinition>? variables = null,
+        ModuleDistributionConfiguration? distribution = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -52,5 +55,6 @@ public sealed record ModuleDefinition
         EntryAreaId = entryAreaId;
         Metadata = metadata ?? ProjectMetadata.CreateDefault(id, displayName, description);
         Variables = materializedVariables.OrderBy(variable => variable.Key, StringComparer.Ordinal).ToArray();
+        Distribution = distribution ?? ModuleDistributionConfiguration.CreateDefault(id);
     }
 }

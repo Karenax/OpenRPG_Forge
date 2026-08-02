@@ -1,5 +1,6 @@
 #if TOOLS
 using System.Collections.Concurrent;
+using System.IO.Compression;
 using Forge.Application.Areas;
 using Forge.Application.Blueprints;
 using Forge.Application.Commands;
@@ -52,6 +53,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly ConfigureBlueprintPaletteHandler _configureBlueprintPaletteHandler = new(new SystemClock());
     private readonly SafeRenameHandler _safeRenameHandler = new(new SystemClock());
     private readonly SetModuleConfigurationHandler _setModuleConfigurationHandler = new(new SystemClock());
+    private readonly SetModuleDistributionHandler _setModuleDistributionHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -129,6 +131,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
     private BuildPipelineWindow? _buildPipeline;
+    private DistributionProfilesWindow? _distributionProfiles;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -137,6 +140,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private bool _playtestRunning;
     private bool _showEntityPropertiesDialogWhenReady;
     private bool _showDialogueEditorWhenReady;
+    private ModuleTargetKind _distributionTarget = ModuleTargetKind.Editor;
     private int _selectedDraftOverrideIndex = -1;
     private double _editorReadyElapsed;
     private double _titleRefreshElapsed;
@@ -209,6 +213,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _projectSession,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_buildPipeline);
+        _distributionProfiles = new DistributionProfilesWindow();
+        _distributionProfiles.Initialize(
+            () => _history?.State,
+            ApplyModuleDistribution,
+            target => _distributionTarget = target,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_distributionProfiles);
         _projectPreview = new ProjectPreview3D();
         _projectPreview.Initialize(
             () => _history?.State,
@@ -325,6 +336,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _moduleConfiguration = null;
         _areaWorkspace = null;
         _buildPipeline = null;
+        _distributionProfiles = null;
         _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
@@ -817,6 +829,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (string.Equals(workspace, "Validation", StringComparison.Ordinal))
+        {
+            _distributionProfiles?.Open();
+            return;
+        }
+
         if (string.Equals(workspace, "Monde", StringComparison.Ordinal))
         {
             _statusLabel!.Text = "✓ Workspace Monde actif";
@@ -977,10 +995,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 return;
             }
 
-            var exported = ModulePackager.Export(_projectSession.RootDirectory, destinationPath);
+            var exported = ModulePackager.Export(
+                _projectSession.RootDirectory,
+                destinationPath,
+                target: _distributionTarget);
             _statusLabel.Text = "✓ Module exporté et validé";
             _detailsLabel.Text =
-                $"{exported.Manifest.Slug} · {exported.FileCount} fichiers · {exported.ArchiveBytes / 1024d:0.0} Kio · " +
+                $"{exported.Manifest.Slug} · cible {exported.Manifest.Target} · " +
+                $"{exported.FileCount} fichiers · {exported.ArchiveBytes / 1024d:0.0} Kio · " +
                 $"{exported.BuildPlan.RebuiltResources.Count} recalculé(s) · " +
                 $"{exported.BuildPlan.ReusedResources.Count} réutilisé(s)";
             GD.Print(
@@ -988,7 +1010,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 $"files={exported.FileCount} bytes={exported.ArchiveBytes} " +
                 $"rebuilt={exported.BuildPlan.RebuiltResources.Count} " +
                 $"reused={exported.BuildPlan.ReusedResources.Count} " +
-                $"dependencies={exported.Manifest.Dependencies.Count}");
+                $"dependencies={exported.Manifest.Dependencies.Count} " +
+                $"target={exported.Manifest.Target.ToString().ToLowerInvariant()} notices=generated");
         }
         catch (Exception exception) when (
             exception is ArgumentException or DirectoryNotFoundException or FileNotFoundException or
@@ -1391,6 +1414,31 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _setModuleConfigurationHandler.Handle(_history.State, command),
             $"Configuration du module enregistrée · {metadata.Localizations.Count} langue(s) · " +
             $"{variables.Count} variable(s).",
+            GetSelectedEntity()?.Id);
+    }
+
+    private bool ApplyModuleDistribution(ModuleDistributionConfiguration distribution)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new SetModuleDistributionCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            distribution,
+            DryRun: false);
+        var dryRun = _setModuleDistributionHandler.Handle(_history.State, command with { DryRun = true });
+        if (!dryRun.Succeeded)
+        {
+            return ApplyCommand(dryRun, string.Empty, selectedEntityId: null);
+        }
+
+        return ApplyCommand(
+            _setModuleDistributionHandler.Handle(_history.State, command),
+            $"Distribution enregistrée · {distribution.TargetProfiles.Count} cibles · " +
+            $"{distribution.Dependencies.Count} dépendance(s).",
             GetSelectedEntity()?.Id);
     }
 
@@ -2231,6 +2279,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areaWorkspace?.Refresh();
         _globalSearch?.Refresh();
         _moduleConfiguration?.Refresh();
+        _distributionProfiles?.Refresh();
         PublishSelectedEntity();
     }
 
@@ -2622,6 +2671,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunBuildPipelineSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunDistributionProfilesSmokeTest())
         {
             return;
         }
@@ -3580,6 +3634,109 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             "OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler " +
             "dependencies=automatic incremental=reused persistence=restored");
+        return true;
+    }
+
+    private bool RunDistributionProfilesSmokeTest()
+    {
+        if (_distributionProfiles is null || _history is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_FAILED missing_window");
+            return false;
+        }
+
+        var original = _history.State.Project.Module.Distribution;
+        var profiles = original.TargetProfiles.Select(profile => new ModuleTargetProfile(
+            profile.Id,
+            profile.Target,
+            profile.Enabled,
+            profile.IncludeEditorData,
+            profile.IncludeDebugSymbols,
+            profile.OptimizeContent,
+            profile.RequireApprovedLicenses,
+            profile.Target == ModuleTargetKind.Editor ? "editor-smoke" : profile.OutputName,
+            profile.SecretsProfile,
+            "workspace-smoke-test")).ToArray();
+        var approval = new ThirdPartyDependencyApproval(
+            ThirdPartyDependencyId.From(Guid.Parse("d7130000-0000-4000-8000-000000000001")),
+            "Forge Smoke Library",
+            "1.2.0",
+            "MIT",
+            "OpenRPG Forge",
+            "Vérifier le registre gouverné dans le prototype.",
+            "trimestrielle",
+            "Remplacer par le composant interne équivalent.",
+            "https://example.invalid/forge-smoke-library",
+            [ModuleTargetKind.Editor],
+            "workspace-smoke-test");
+        var configuration = new ModuleDistributionConfiguration(
+            original.Id,
+            profiles,
+            [approval],
+            "workspace-smoke-test");
+        if (!_distributionProfiles.ConfigureForSmokeTest(configuration, ModuleTargetKind.Shipping) ||
+            _distributionProfiles.ProfileCount != 5 ||
+            _distributionProfiles.ComplianceDiagnosticCount == 0 ||
+            !_distributionProfiles.ApplyForSmokeTest() ||
+            _history.State.Project.Module.Distribution.Dependencies.Count != 1)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_FAILED configuration");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "distribution-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var workspace = Path.Combine(smokeRoot, "workspace");
+            var artifact = Path.Combine(smokeRoot, "editor.orpmod");
+            var created = ProjectSession.Create(workspace, _history.State.Project);
+            if (!created.Succeeded || created.Session is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_FAILED workspace");
+                return false;
+            }
+
+            var reopened = ProjectSession.Open(workspace);
+            var exported = ModulePackager.Export(workspace, artifact, target: ModuleTargetKind.Editor);
+            using var archive = ZipFile.OpenRead(artifact);
+            if (!reopened.Succeeded || reopened.Session is null ||
+                reopened.Session.Project.Module.Distribution.TargetProfiles.Count != 5 ||
+                reopened.Session.Project.Module.Distribution.Dependencies.Single().Id != approval.Id ||
+                exported.Manifest.Target != ModuleTargetKind.Editor ||
+                exported.Manifest.ThirdPartyDependencies.Single().Id != approval.Id ||
+                archive.GetEntry(DistributionNoticeBuilder.PackagePath) is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        _distributionTarget = ModuleTargetKind.Editor;
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            _history.State.Project.Module.Distribution != original)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_FAILED history");
+            return false;
+        }
+
+        RefreshEditorControls();
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked " +
+            "licenses=diagnostic registry=versioned notices=generated history=restored persistence=roundtrip");
         return true;
     }
 

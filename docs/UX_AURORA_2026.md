@@ -134,6 +134,15 @@ distingue immédiatement `REBUILD`, `CACHE` et `EXTERNE`, montre le type, le che
 la licence, tandis qu'une carte séparée explique les packs ajoutés automatiquement. L'auteur peut
 actualiser l'analyse sans écrire la source ni déclencher un export.
 
+G7-13 rend le workspace Validation opérationnel avec une surface Aurora en trois colonnes. La carte
+de gauche présente une cible à la fois et regroupe ses options sans exposer de secret. La carte
+centrale traite le registre tiers comme un outil auteur — nom, version, SPDX, responsable,
+justification, cadence et retrait — plutôt que comme un fichier juridique à éditer. La carte de
+droite donne l’aperçu de conformité localisé : vert lorsque le NOTICE est prêt, ambre/rouge avec
+code et chemin lorsque l’export serait bloqué. L’action braise enregistre atomiquement la
+configuration et choisit la cible du prochain export ; elle reste verrouillée jusqu’à la
+prévisualisation.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

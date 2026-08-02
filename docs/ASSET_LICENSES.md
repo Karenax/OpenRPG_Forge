@@ -31,3 +31,9 @@ accordé.
 Tout asset importé devra déclarer source, auteur, licence, URL ou preuve d'achat, modifications et
 compatibilité de redistribution avant export public. Un asset sans provenance vérifiable reste un
 brouillon local et ne doit pas entrer dans une release.
+
+Depuis G7-13, cette règle est exécutable pour les métadonnées actuellement canoniques. Les profils
+Client, DedicatedServer et Shipping refusent avant écriture un module, un blueprint ou une
+dépendance requise dont la licence SPDX ou la provenance est inconnue. L’export inscrit les
+dépendances approuvées dans le manifest et génère `THIRD-PARTY-NOTICES.txt`, revérifié au chargement.
+Les futurs documents d’assets importés devront rejoindre le même validateur dès leur introduction.

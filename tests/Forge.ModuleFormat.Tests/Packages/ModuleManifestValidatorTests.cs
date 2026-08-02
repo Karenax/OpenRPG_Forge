@@ -17,6 +17,9 @@ public sealed class ModuleManifestValidatorTests
         Assert.Equal(manifest.EntryAreaId, restored.EntryAreaId);
         Assert.Equal(manifest.Slug, restored.Slug);
         Assert.Equal(manifest.Dependencies, restored.Dependencies);
+        Assert.Equal(ModuleTargetKind.Editor, restored.Target);
+        Assert.Empty(restored.ThirdPartyDependencies);
+        Assert.Equal(DistributionNoticeBuilder.PackagePath, restored.LicenseNoticePath);
         Assert.Equal(manifest.ContentSha256, restored.ContentSha256);
     }
 
@@ -50,5 +53,8 @@ public sealed class ModuleManifestValidatorTests
         "1.0.0",
         AreaId.From(Guid.Parse("93b6f81b-49eb-4e3d-a156-08ad78529525")),
         ["core-rules@1.0.0"],
+        ModuleTargetKind.Editor,
+        [],
+        DistributionNoticeBuilder.PackagePath,
         new string('a', 64));
 }

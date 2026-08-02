@@ -1,4 +1,6 @@
 using System.Text.RegularExpressions;
+using Forge.Domain.Modules;
+using Forge.Domain.Validation;
 
 namespace Forge.ModuleFormat.Packages;
 
@@ -9,6 +11,9 @@ public static partial class ModuleManifestValidator
     public const string InvalidSlugCode = "module.manifest.slug_invalid";
     public const string InvalidHashCode = "module.manifest.hash_invalid";
     public const string DuplicateDependencyCode = "module.manifest.dependency_duplicate";
+    public const string InvalidTargetCode = "module.manifest.target_invalid";
+    public const string InvalidNoticePathCode = "module.manifest.notice_path_invalid";
+    public const string InvalidThirdPartyDependencyCode = "module.manifest.third_party_dependency_invalid";
 
     public static IReadOnlyList<ModulePackageDiagnostic> Validate(ModuleManifest manifest)
     {
@@ -63,6 +68,52 @@ public static partial class ModuleManifestValidator
                 DuplicateDependencyCode,
                 "Module dependencies must be unique.",
                 "manifest.json/dependencies"));
+        }
+
+        if (!Enum.IsDefined(manifest.Target))
+        {
+            diagnostics.Add(new ModulePackageDiagnostic(
+                InvalidTargetCode,
+                $"Module target '{manifest.Target}' is invalid.",
+                "manifest.json/target"));
+        }
+
+        if (!string.Equals(
+                manifest.LicenseNoticePath,
+                DistributionNoticeBuilder.PackagePath,
+                StringComparison.Ordinal))
+        {
+            diagnostics.Add(new ModulePackageDiagnostic(
+                InvalidNoticePathCode,
+                $"License notice path must be '{DistributionNoticeBuilder.PackagePath}'.",
+                "manifest.json/licenseNoticePath"));
+        }
+
+        if (manifest.ThirdPartyDependencies.Select(item => item.Id).Distinct().Count() !=
+                manifest.ThirdPartyDependencies.Count ||
+            manifest.ThirdPartyDependencies.Select(item => item.Name)
+                .Distinct(StringComparer.OrdinalIgnoreCase).Count() != manifest.ThirdPartyDependencies.Count)
+        {
+            diagnostics.Add(new ModulePackageDiagnostic(
+                DuplicateDependencyCode,
+                "Third-party dependency IDs and names must be unique.",
+                "manifest.json/thirdPartyDependencies"));
+        }
+
+        for (var index = 0; index < manifest.ThirdPartyDependencies.Count; index++)
+        {
+            var dependency = manifest.ThirdPartyDependencies[index];
+            if (string.IsNullOrWhiteSpace(dependency.Name) ||
+                !SemanticVersionRegex().IsMatch(dependency.Version ?? string.Empty) ||
+                string.IsNullOrWhiteSpace(dependency.Owner) ||
+                string.IsNullOrWhiteSpace(dependency.SourceReference) ||
+                string.IsNullOrWhiteSpace(dependency.LicenseSpdx))
+            {
+                diagnostics.Add(new ModulePackageDiagnostic(
+                    InvalidThirdPartyDependencyCode,
+                    $"Third-party dependency '{dependency.Name}' has incomplete approval metadata.",
+                    $"manifest.json/thirdPartyDependencies/{index}"));
+            }
         }
 
         return diagnostics;

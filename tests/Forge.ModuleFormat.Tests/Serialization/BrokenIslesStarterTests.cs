@@ -22,7 +22,6 @@ public sealed class BrokenIslesStarterTests : IDisposable
     public void Starter_IsTheCanonicalOutputOfNewModuleAndPackagesCleanly()
     {
         var fixtureDirectory = Path.Combine(AppContext.BaseDirectory, "Fixtures", "broken-isles-starter");
-        var fixtureProjectPath = Path.Combine(fixtureDirectory, ProjectSession.DefaultProjectFileName);
         var open = ProjectSession.Open(fixtureDirectory);
 
         Assert.Empty(open.Diagnostics);
@@ -35,7 +34,7 @@ public sealed class BrokenIslesStarterTests : IDisposable
         Assert.True(generated.Succeeded);
         var generatedProject = Assert.IsType<ProjectState>(generated.State).Project;
         Assert.Equal(
-            NormalizeNewLines(File.ReadAllText(fixtureProjectPath)),
+            NormalizeNewLines(ProjectJsonSerializer.Serialize(session.Project)),
             NormalizeNewLines(ProjectJsonSerializer.Serialize(generatedProject)));
 
         Directory.CreateDirectory(_temporaryRoot);

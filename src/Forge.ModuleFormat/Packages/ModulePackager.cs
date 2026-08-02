@@ -1,6 +1,8 @@
 using System.IO.Compression;
 using System.Text;
+using Forge.Domain.Modules;
 using Forge.Domain.Projects;
+using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Workspaces;
@@ -16,7 +18,8 @@ public static class ModulePackager
         string destinationPath,
         string? moduleVersion = null,
         string runtimeMinimumVersion = "0.1.0",
-        string forgeScriptApiVersion = "1.0.0")
+        string forgeScriptApiVersion = "1.0.0",
+        ModuleTargetKind target = ModuleTargetKind.Editor)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workspacePath);
         ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
@@ -61,10 +64,21 @@ public static class ModulePackager
                 relativePath => ReadBareAreaDocument(bareProjectDirectory, relativePath));
         }
 
+        var complianceDiagnostics = DistributionComplianceValidator.Validate(project, target);
+        if (complianceDiagnostics.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Target '{target}' is not distribution compliant: " +
+                string.Join("; ", complianceDiagnostics.Select(diagnostic =>
+                    $"{diagnostic.Code} at {diagnostic.Path}: {diagnostic.Message}")));
+        }
+
         var bundle = WorkspaceProjectJsonSerializer.Serialize(project);
         var entries = new List<(string Path, byte[] Content)>
         {
             ("content/project.json", Encoding.UTF8.GetBytes(bundle.ProjectJson)),
+            (DistributionNoticeBuilder.PackagePath,
+                Encoding.UTF8.GetBytes(DistributionNoticeBuilder.Build(project, target))),
         };
         entries.AddRange(bundle.AreaDocuments.Select(item =>
             ($"content/{item.Key}", Encoding.UTF8.GetBytes(item.Value))));
@@ -98,7 +112,8 @@ public static class ModulePackager
             runtimeMinimumVersion,
             forgeScriptApiVersion,
             hash,
-            buildGraph.AutomaticDependencies);
+            buildGraph.AutomaticDependencies,
+            target);
         var manifestDiagnostics = ModuleManifestValidator.Validate(manifest);
         if (manifestDiagnostics.Count > 0)
         {

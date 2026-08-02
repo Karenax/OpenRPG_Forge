@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text.Json;
+using Forge.Domain.Validation;
 using Forge.ModuleFormat.Serialization;
 
 namespace Forge.ModuleFormat.Packages;
@@ -19,6 +20,10 @@ public static class ModulePackageValidator
     public const string MissingProjectCode = "module.archive.project_missing";
     public const string InvalidProjectCode = "module.archive.project_invalid";
     public const string ManifestProjectMismatchCode = "module.archive.manifest_project_mismatch";
+    public const string MissingNoticeCode = "module.archive.notice_missing";
+    public const string NoticeMismatchCode = "module.archive.notice_mismatch";
+    public const string DistributionComplianceCode = "module.archive.distribution_noncompliant";
+    public const string DependencyApprovalMismatchCode = "module.archive.dependency_approval_mismatch";
 
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -132,6 +137,15 @@ public static class ModulePackageValidator
 
             manifest = ModuleManifestJson.Deserialize(ReadText(manifestEntry));
             diagnostics.AddRange(ModuleManifestValidator.Validate(manifest));
+            var noticeEntry = files.SingleOrDefault(entry =>
+                string.Equals(entry.FullName, manifest.LicenseNoticePath, StringComparison.Ordinal));
+            if (noticeEntry is null)
+            {
+                diagnostics.Add(new ModulePackageDiagnostic(
+                    MissingNoticeCode,
+                    $"Archive does not contain '{manifest.LicenseNoticePath}'.",
+                    manifest.LicenseNoticePath));
+            }
             var actualHash = ModuleContentHash.Compute(files);
             if (!string.Equals(actualHash, manifest.ContentSha256, StringComparison.Ordinal))
             {
@@ -174,6 +188,45 @@ public static class ModulePackageValidator
                         diagnostics.Add(new ModulePackageDiagnostic(
                             ManifestProjectMismatchCode,
                             "Manifest identity or entry area does not match content/project.json."));
+                    }
+
+                    foreach (var diagnostic in DistributionComplianceValidator.Validate(project, manifest.Target))
+                    {
+                        diagnostics.Add(new ModulePackageDiagnostic(
+                            DistributionComplianceCode,
+                            $"{diagnostic.Code}: {diagnostic.Message}",
+                            diagnostic.Path));
+                    }
+
+                    var expectedApprovals = project.Module.Distribution.Dependencies
+                        .Where(item => item.RequiredForTargets.Contains(manifest.Target))
+                        .Select(item => new ModuleManifestDependency(
+                            item.Id,
+                            item.Name,
+                            item.Version,
+                            item.LicenseSpdx,
+                            item.Owner,
+                            item.SourceReference))
+                        .OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
+                        .ToArray();
+                    if (!expectedApprovals.SequenceEqual(manifest.ThirdPartyDependencies))
+                    {
+                        diagnostics.Add(new ModulePackageDiagnostic(
+                            DependencyApprovalMismatchCode,
+                            "Manifest third-party approvals do not match the canonical project registry.",
+                            "manifest.json/thirdPartyDependencies"));
+                    }
+
+                    if (noticeEntry is not null)
+                    {
+                        var expectedNotice = DistributionNoticeBuilder.Build(project, manifest.Target);
+                        if (!string.Equals(ReadText(noticeEntry), expectedNotice, StringComparison.Ordinal))
+                        {
+                            diagnostics.Add(new ModulePackageDiagnostic(
+                                NoticeMismatchCode,
+                                "Distribution notice does not match canonical license and provenance metadata.",
+                                manifest.LicenseNoticePath));
+                        }
                     }
                 }
                 catch (Exception exception) when (

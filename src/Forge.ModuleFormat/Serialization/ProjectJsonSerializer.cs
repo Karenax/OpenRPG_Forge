@@ -7,7 +7,8 @@ namespace Forge.ModuleFormat.Serialization;
 
 public static class ProjectJsonSerializer
 {
-    public const string CurrentFormatVersion = "0.6.3";
+    public const string CurrentFormatVersion = "0.6.4";
+    public const string PreDistributionFormatVersion = "0.6.3";
     public const string PaletteProvenanceFormatVersion = "0.6.2";
     public const string SafeRenameFormatVersion = "0.6.1";
     public const string AreaMetadataFormatVersion = "0.6.0";
@@ -42,6 +43,7 @@ public static class ProjectJsonSerializer
         var formatVersion = formatVersionElement.GetString();
         ProjectDefinition project;
         if (string.Equals(formatVersion, CurrentFormatVersion, StringComparison.Ordinal) ||
+            string.Equals(formatVersion, PreDistributionFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PaletteProvenanceFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, SafeRenameFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, AreaMetadataFormatVersion, StringComparison.Ordinal) ||
@@ -100,12 +102,15 @@ public static class ProjectJsonSerializer
         options.Converters.Add(new EditorCameraProfileIdJsonConverter());
         options.Converters.Add(new EntityIdJsonConverter());
         options.Converters.Add(new ModuleIdJsonConverter());
+        options.Converters.Add(new ModuleDistributionConfigurationIdJsonConverter());
+        options.Converters.Add(new ModuleTargetProfileIdJsonConverter());
         options.Converters.Add(new ProjectMetadataIdJsonConverter());
         options.Converters.Add(new ProjectVariableIdJsonConverter());
         options.Converters.Add(new ProjectIdJsonConverter());
         options.Converters.Add(new QuestIdJsonConverter());
         options.Converters.Add(new QuestStateIdJsonConverter());
         options.Converters.Add(new QuestTransitionIdJsonConverter());
+        options.Converters.Add(new ThirdPartyDependencyIdJsonConverter());
         options.Converters.Add(new Vector3ValueJsonConverter());
         options.Converters.Add(new QuaternionValueJsonConverter());
         options.Converters.Add(new TransformValueJsonConverter());

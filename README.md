@@ -59,7 +59,7 @@ diagnostics, reconstruit un aperçu 3D et le sauvegarde atomiquement. Une palett
 déplacer, tourner et supprimer des entités sur la grille, avec annuler/rétablir ; la Crypte des
 Cendres est ouverte par défaut.
 
-Le bouton **Nouveau module** crée un workspace `0.6.0` dans un dossier dédié avec son identité, une
+Le bouton **Nouveau module** crée un workspace `0.9.0` dans un dossier dédié avec son identité, une
 première zone, un sol provisoire et un point de départ immédiatement éditables. Un dossier existant
 non vide est toujours refusé.
 
@@ -73,10 +73,13 @@ supprime le snapshot. La direction de l’interface complète est décrite dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
 
 L’espace **Dialogues** édite les nœuds, les choix, leurs conditions typées, leurs actions et leurs
-textes localisables, avec aperçu immédiat. Dialogues et quêtes sont stockés dans le projet `0.6.0`,
+textes localisables, avec aperçu immédiat. Dialogues et quêtes sont stockés dans le projet `0.6.4`,
 mutés par commandes transactionnelles et consommés directement par le runtime de la Crypte.
 
-Le bouton **Exporter .orpmod** sauvegarde, construit puis valide l'archive partageable. Le host MCP
+L’espace **Validation** configure Editor, Client, DedicatedServer, Test et Shipping, gère le registre
+des dépendances et prévisualise les licences ou provenances qui bloqueraient une distribution. Le
+bouton **Exporter .orpmod** sauvegarde, construit le profil choisi, génère le NOTICE puis valide
+l'archive partageable. Le host MCP
 officiel fournit résumé, révision, diagnostics, plans de dialogue prévisualisables/réversibles,
 compilation ForgeScript et agent de test sans exposer de shell. Le parcours complet est détaillé dans
 le [guide créateur](docs/CREATOR_GUIDE.md).

@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Forge.Domain.Modules;
+using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Workspaces;
@@ -14,7 +16,7 @@ static int Run(IReadOnlyList<string> arguments)
             return RunPackage(arguments.Skip(1).ToArray());
         }
 
-        Console.Error.WriteLine("Usage: forge package <export|validate|load|analyze> ...");
+        Console.Error.WriteLine("Usage: forge package <export|validate|load|analyze|compliance> ...");
         return 2;
     }
     catch (Exception exception)
@@ -26,13 +28,17 @@ static int Run(IReadOnlyList<string> arguments)
 
 static int RunPackage(IReadOnlyList<string> arguments)
 {
-    if (arguments.Count == 3 && arguments[0] == "export")
+    if ((arguments.Count == 3 || arguments.Count == 5) && arguments[0] == "export")
     {
-        var result = ModulePackager.Export(arguments[1], arguments[2]);
+        var target = arguments.Count == 5 && arguments[3] == "--target"
+            ? ParseTarget(arguments[4])
+            : ModuleTargetKind.Editor;
+        var result = ModulePackager.Export(arguments[1], arguments[2], target: target);
         Console.WriteLine(
             $"OPENRPG_FORGE_MODULE_EXPORT_PASS slug={result.Manifest.Slug} files={result.FileCount} " +
             $"hash={result.Manifest.ContentSha256} rebuilt={result.BuildPlan.RebuiltResources.Count} " +
-            $"reused={result.BuildPlan.ReusedResources.Count} dependencies={result.Manifest.Dependencies.Count}");
+            $"reused={result.BuildPlan.ReusedResources.Count} dependencies={result.Manifest.Dependencies.Count} " +
+            $"target={result.Manifest.Target.ToString().ToLowerInvariant()} notices=generated");
         return 0;
     }
 
@@ -97,6 +103,23 @@ static int RunPackage(IReadOnlyList<string> arguments)
                 dependencies = node.Dependencies.Select(dependency => dependency.ToString()),
             }),
             automaticDependencies = build.AutomaticDependencies,
+            targetProfiles = session.Project.Module.Distribution.TargetProfiles.Select(profile => new
+            {
+                target = profile.Target.ToString(),
+                profile.Enabled,
+                profile.RequireApprovedLicenses,
+                profile.OutputName,
+                profile.SecretsProfile,
+            }),
+            approvedDependencies = session.Project.Module.Distribution.Dependencies.Select(dependency => new
+            {
+                id = dependency.Id.ToString(),
+                dependency.Name,
+                dependency.Version,
+                dependency.LicenseSpdx,
+                dependency.Owner,
+                targets = dependency.RequiredForTargets.Select(target => target.ToString()),
+            }),
             changed = plan.ChangedPaths,
             removed = plan.RemovedPaths,
             rebuilt = plan.RebuiltResources.Select(node => node.Path),
@@ -109,8 +132,51 @@ static int RunPackage(IReadOnlyList<string> arguments)
         return 0;
     }
 
+    if (arguments.Count == 3 && arguments[0] == "compliance")
+    {
+        var opened = ProjectSession.Open(arguments[1]);
+        if (!opened.Succeeded || opened.Session is null)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                valid = false,
+                diagnostics = opened.Diagnostics,
+            }));
+            return 1;
+        }
+
+        var target = ParseTarget(arguments[2]);
+        var diagnostics = DistributionComplianceValidator.Validate(opened.Session.Project, target);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = diagnostics.Count == 0,
+            target = target.ToString(),
+            diagnostics,
+        }));
+        if (diagnostics.Count == 0)
+        {
+            Console.WriteLine(
+                $"OPENRPG_FORGE_DISTRIBUTION_COMPLIANCE_PASS target={target.ToString().ToLowerInvariant()}");
+        }
+
+        return diagnostics.Count == 0 ? 0 : 1;
+    }
+
     Console.Error.WriteLine(
-        "Usage: forge package export <workspace> <destination.orpmod> | " +
-        "validate <module.orpmod> | load <module.orpmod> <cache> | analyze <workspace>");
+        "Usage: forge package export <workspace> <destination.orpmod> [--target <profile>] | " +
+        "validate <module.orpmod> | load <module.orpmod> <cache> | analyze <workspace> | " +
+        "compliance <workspace> <profile>");
     return 2;
+}
+
+static ModuleTargetKind ParseTarget(string value)
+{
+    ArgumentException.ThrowIfNullOrWhiteSpace(value);
+    var normalized = value.Replace("-", string.Empty, StringComparison.Ordinal)
+        .Replace("_", string.Empty, StringComparison.Ordinal);
+    return Enum.TryParse<ModuleTargetKind>(normalized, ignoreCase: true, out var parsed) && Enum.IsDefined(parsed)
+        ? parsed
+        : throw new ArgumentException(
+            $"Unknown target '{value}'. Expected Editor, Client, DedicatedServer, Test or Shipping.",
+            nameof(value));
 }

@@ -39,6 +39,12 @@ hashes, licences, packs externes et impact du prochain export. `REBUILD` désign
 recalculé, `CACHE` ce qui peut être réutilisé. L'analyse est en lecture seule et ne modifie jamais le
 module.
 
+Le workspace **Validation** ouvre **Validation & distribution**. Les cinq profils Editor, Client,
+Serveur dédié, Test et Publication y sont persistés avec leurs réglages. Le même écran gère le
+registre des dépendances (version, licence, responsable, justification, cadence et retrait), affiche
+les diagnostics bloquants et choisit la cible du prochain export. Le champ « profil de secrets » est
+une référence : aucune clé ou valeur secrète ne doit être saisie dans le projet.
+
 ## 4. Tester et sauvegarder
 
 Choisir un point de départ puis **▶ Jouer depuis ici**. Le snapshot de playtest est temporaire et la
@@ -53,13 +59,19 @@ confirmer. Équivalent en ligne de commande :
 
 ```powershell
 dotnet run --project tools/Forge.Cli -- package export <workspace> <module.orpmod>
+dotnet run --project tools/Forge.Cli -- package export <workspace> <module.orpmod> --target shipping
 dotnet run --project tools/Forge.Cli -- package validate <module.orpmod>
 dotnet run --project tools/Forge.Cli -- package analyze <workspace>
+dotnet run --project tools/Forge.Cli -- package compliance <workspace> shipping
 ```
 
 Le runtime accepte ensuite `--module-package <chemin-absolu.orpmod>`. Les chemins traversants,
 extensions natives, ratios de compression suspects, doublons de données et hashes incohérents sont
 refusés avant extraction.
+
+Editor et Test restent utilisables pendant la création avec des métadonnées incomplètes. Client,
+Serveur dédié et Publication refusent en revanche toute licence ou provenance inconnue avant de
+créer l’archive. Chaque package contient un `THIRD-PARTY-NOTICES.txt` généré et revérifié.
 
 ## 6. Demander une modification IA
 

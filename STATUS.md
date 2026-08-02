@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-12 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-13 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -47,6 +47,9 @@ observables avec autorité, cause, acteur, transition, provenance et bindings Fo
 G7-12 ajoute un cache de bytecode ForgeScript vérifié, un graphe de dépendances versionné, le calcul
 transitif de l'impact d'un changement et les dépendances de packs automatiques. L'espace Scripts
 affiche désormais les ressources à recalculer ou réutiliser avant l'export.
+G7-13 ajoute cinq profils canoniques Editor, Client, DedicatedServer, Test et Shipping, un registre
+versionné des dépendances tierces, l’écran Aurora Validation & distribution, un NOTICE généré et le
+blocage des cibles distribuables lorsque licence ou provenance reste inconnue.
 
 ## État prouvé
 
@@ -57,15 +60,15 @@ affiche désormais les ressources à recalculer ou réutiliser avant l'export.
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 215 tests .NET et 24 tests Python réussis ;
+- 225 tests .NET et 24 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
   icônes des fenêtres Forge personnalisées puis contrôlées par le smoke test et une capture ciblée ;
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
 - assistant Nouveau module validé : agrégat module, zone d’entrée, sol, spawn et workspace atomique
-  indexé au format `0.8.1`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
-  `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
+  indexé au format `0.9.0`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
+  `0.6.4`, `0.6.3`, `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
   édition visuelle, sérialisation, commande transactionnelle, dry-run, audit, undo/redo et smoke ;
 - Play from here validé : spawn sélectionné, snapshot de l’état courant, lancement runtime, retour
@@ -83,6 +86,8 @@ affiche désormais les ressources à recalculer ou réutiliser avant l'export.
   Gardien validés ;
 - format `.orpmod` : manifeste, hash, export atomique, validation hostile, extraction sûre, cache
   isolé et chargement runtime ;
+- distribution G7-13 : manifest 1.1 avec cible, cinq profils à UUID/schéma/provenance, références de
+  secrets sans valeurs, registre tiers, conformité CLI, NOTICE généré et refus Shipping des inconnues ;
 - sauvegarde `.orpsave` 1.0.0 : delta de progression atomique lié au module/hash, checkpoint créé
   dans un processus puis repris et terminé dans un second ;
 - host MCP officiel 1.4.1 sur stdio : résumé/révision/diagnostics, plan/diff/apply/inverse/audit de
@@ -123,6 +128,9 @@ affiche désormais les ressources à recalculer ou réutiliser avant l'export.
 - build G7-12 : cache ForgeScript par hashes source/API/compilateur, contrôle d'intégrité, graphe de
   ressources UUID/schéma v1, impact transitif, état jetable, dépendances de packs automatiques,
   analyse CLI JSON et écran Aurora Scripts & Build ;
+- distribution G7-13 : profils Editor/Client/DedicatedServer/Test/Shipping persistés, registre de
+  dépendances avec version/licence/propriétaire/justification/cadence/retrait, commande dry-run,
+  historique, écran Aurora Validation, export ciblé, NOTICE et gate de licence ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -142,10 +150,10 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 - les transitions de zone sont éditables, persistées et validées et leur contrat d'événements est
   prêt ; le runtime ne reconstruit toutefois pas encore la scène de destination, et orientation,
   hooks, streaming et génération automatique du lien inverse restent à faire ;
-- la coque expose les neuf workspaces et relie Monde, Blueprints et Dialogues ; le premier catalogue
-  Blueprints est opérationnel, tandis que ses workflows avancés et les éditeurs complets Quêtes,
-  Assets, Validation et Assistant relèvent encore du Creator Core G7 ; Scripts possède maintenant
-  l'analyse de build et de cache mais pas encore l'éditeur de code complet ;
+- la coque expose les neuf workspaces et relie Monde, Blueprints, Dialogues, Scripts et Validation ;
+  le premier catalogue Blueprints et la conformité de distribution sont opérationnels, tandis que
+  les éditeurs complets Quêtes, Assets et Assistant relèvent encore du Creator Core G7 ; Scripts
+  possède l'analyse de build et de cache mais pas encore l'éditeur de code complet ;
 - les visuels finaux du MVP sont des primitives procédurales originales ; ils ne constituent pas
   encore une direction artistique de production avec modèles, animations, audio et VFX finis ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
@@ -193,6 +201,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-13 — profils de cible et conformité de distribution** pour `ORF-PROJ-024`,
-`ORF-BUILD-022` et `ORF-QA-007` : définir Editor, Client, DedicatedServer, Test et Shipping, puis
-bloquer les distributions dont les licences ou dépendances ne sont pas justifiées.
+Ouvrir **G7-14 — navigation et validation spatiale** pour `ORF-AREA-031`, `ORF-QA-004` et
+`ORF-QA-005` : définir le graphe navigable par zone, tester la portée spawn-vers-objectif et signaler
+les géométries, portes ou liens hors-mesh invalides dans le workspace Validation.

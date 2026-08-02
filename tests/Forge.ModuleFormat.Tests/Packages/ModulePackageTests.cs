@@ -1,6 +1,12 @@
 using System.IO.Compression;
 using System.Text;
+using Forge.Domain.Blueprints;
+using Forge.Domain.Modules;
+using Forge.Domain.Projects;
+using Forge.Domain.Validation;
 using Forge.ModuleFormat.Packages;
+using Forge.ModuleFormat.Tests.Serialization;
+using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.ModuleFormat.Tests.Packages;
 
@@ -112,6 +118,39 @@ public sealed class ModulePackageTests : IDisposable
         Assert.Contains(validation.Diagnostics, diagnostic => diagnostic.Code == ModulePackageValidator.InvalidProjectCode);
     }
 
+    [Fact]
+    public void ShippingExport_BlocksUnknownLicensesBeforeWritingAnArchive()
+    {
+        var package = Path.Combine(_temporaryRoot, "blocked-shipping.orpmod");
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            ModulePackager.Export(CreateWorkspace(), package, target: ModuleTargetKind.Shipping));
+
+        Assert.Contains(DistributionComplianceValidator.ModuleLicenseUnknownCode, exception.Message, StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
+    [Fact]
+    public void ShippingExport_EmitsCanonicalNoticeAndApprovedDependencyManifest()
+    {
+        var workspace = CreateShippingWorkspace();
+        var package = Path.Combine(_temporaryRoot, "approved-shipping.orpmod");
+
+        var export = ModulePackager.Export(workspace, package, target: ModuleTargetKind.Shipping);
+        var validation = ModulePackageValidator.Validate(package);
+        using var archive = ZipFile.OpenRead(package);
+        var noticeEntry = archive.GetEntry(DistributionNoticeBuilder.PackagePath);
+        using var reader = new StreamReader(Assert.IsType<ZipArchiveEntry>(noticeEntry).Open());
+        var notice = reader.ReadToEnd();
+
+        Assert.True(validation.IsValid, JoinDiagnostics(validation));
+        Assert.Equal(ModuleTargetKind.Shipping, export.Manifest.Target);
+        Assert.Equal("Approved library", Assert.Single(export.Manifest.ThirdPartyDependencies).Name);
+        Assert.Contains("Approved library 1.4.0 | MIT", notice, StringComparison.Ordinal);
+        Assert.Contains("Update cadence: quarterly", notice, StringComparison.Ordinal);
+        Assert.Contains("Removal plan:", notice, StringComparison.Ordinal);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_temporaryRoot))
@@ -143,6 +182,75 @@ public sealed class ModulePackageTests : IDisposable
             Path.Combine(workspace, "scripts", "boss.forge"),
             "void main() { say(\"Braise\"); }",
             new UTF8Encoding(false));
+        return workspace;
+    }
+
+    private string CreateShippingWorkspace()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var metadata = source.Module.Metadata;
+        var approvedMetadata = new ProjectMetadata(
+            metadata.Id,
+            metadata.DefaultLocale,
+            metadata.Localizations,
+            metadata.Author,
+            metadata.Version,
+            "MIT",
+            metadata.ImagePath,
+            metadata.Tags,
+            metadata.Classification,
+            "test-approved");
+        var blueprints = source.Blueprints.Select(blueprint => new BlueprintDefinition(
+            blueprint.Id,
+            blueprint.Slug,
+            blueprint.DisplayName,
+            blueprint.Kind,
+            blueprint.Combat,
+            blueprint.PaletteOrigin,
+            blueprint.IsFavorite,
+            new BlueprintProvenance(
+                BlueprintProvenance.CurrentSchemaVersion,
+                $"project://blueprints/{blueprint.Id}/{blueprint.Slug}",
+                "Forge team",
+                "CC0-1.0",
+                new string('a', 64)))).ToArray();
+        var defaults = source.Module.Distribution;
+        var distribution = new ModuleDistributionConfiguration(
+            defaults.Id,
+            defaults.TargetProfiles,
+            [new ThirdPartyDependencyApproval(
+                ThirdPartyDependencyId.From(Guid.Parse("d7130000-0000-4000-8000-000000000011")),
+                "Approved library",
+                "1.4.0",
+                "MIT",
+                "Forge team",
+                "Required deterministic codec.",
+                "quarterly",
+                "Replace with the internal codec.",
+                "https://example.invalid/approved-library",
+                [ModuleTargetKind.Shipping],
+                "test")],
+            "test");
+        var module = new ModuleDefinition(
+            source.Module.Id,
+            source.Module.Slug,
+            source.Module.DisplayName,
+            source.Module.Description,
+            source.Module.EntryAreaId,
+            approvedMetadata,
+            source.Module.Variables,
+            distribution);
+        var project = new ProjectDefinition(
+            source.Id,
+            source.Title,
+            module,
+            blueprints,
+            source.Areas,
+            source.Dialogues,
+            source.Quests);
+        var workspace = Path.Combine(_temporaryRoot, $"shipping-{Guid.NewGuid():N}");
+        var created = ProjectSession.Create(workspace, project);
+        Assert.True(created.Succeeded, string.Join("; ", created.Diagnostics.Select(item => item.Message)));
         return workspace;
     }
 

@@ -6,6 +6,7 @@ Un module communautaire est une archive ZIP contrôlée, inspectable et versionn
 
 ```text
 manifest.json
+THIRD-PARTY-NOTICES.txt
 content/
   project.json
   scripts/*.forge
@@ -24,9 +25,11 @@ licenses/
   THIRD_PARTY_NOTICES.md
 ```
 
-Le manifest porte au minimum les versions de format/module/runtime/API, l’identifiant et le slug du module, la zone d’entrée, les dépendances et le hash de contenu.
+Le manifest porte au minimum les versions de format/module/runtime/API, l’identifiant et le slug du
+module, la zone d’entrée, la cible, les dépendances automatiques, le registre tiers approuvé, le
+chemin du NOTICE et le hash de contenu.
 
-Le schéma courant du manifest est `1.0.0`. Le hash SHA-256 couvre, dans un ordre ordinal stable, le
+Le schéma courant du manifest est `1.1.0`. Le hash SHA-256 couvre, dans un ordre ordinal stable, le
 chemin UTF-8 puis les octets de chaque entrée hors manifest. L’exporteur écrit une archive
 déterministe dans un fichier temporaire voisin, la valide, puis la remplace atomiquement.
 
@@ -39,6 +42,26 @@ Les tests du lot 7 couvrent au minimum round-trip, path traversal, ratio de comp
 Le chargeur extrait uniquement après validation dans un cache isolé par UUID de module et hash de
 contenu. Le runtime accepte `--module-package <chemin-absolu.orpmod>` et rejoue le même scénario
 headless depuis le package validé.
+
+## Profils et conformité de distribution
+
+Le module conserve exactement cinq profils canoniques : `Editor`, `Client`, `DedicatedServer`,
+`Test` et `Shipping`. Ils portent leurs options de données d’édition, debug, optimisation, licences,
+nom de sortie et une référence de profil de secrets. Cette référence ne contient aucune valeur
+secrète ; les caches `.forge`, profils locaux et secrets sont exclus de l’archive.
+
+Chaque dépendance tierce déclarée conserve UUID, version, licence SPDX, propriétaire, justification,
+cadence, plan de retrait, source, cibles et provenance. Client, serveur dédié et Shipping sont
+bloqués avant écriture si le module, un blueprint ou une dépendance requise possède une licence ou
+une provenance inconnue. L’export génère ensuite `THIRD-PARTY-NOTICES.txt`; le validateur recalcule
+ce NOTICE depuis le projet canonique et refuse toute divergence.
+
+Le CLI expose :
+
+```powershell
+forge package export <workspace> <module.orpmod> --target shipping
+forge package compliance <workspace> shipping
+```
 
 ## Graphe et cache de build
 

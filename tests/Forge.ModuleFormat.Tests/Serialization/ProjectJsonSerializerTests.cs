@@ -34,6 +34,7 @@ public sealed class ProjectJsonSerializerTests
         Assert.Equal(EntityPropertyOverrides.CurrentSchemaVersion, entity.Overrides.SchemaVersion);
         Assert.Equal(3, entity.Overrides.Properties.Count);
         Assert.Equal("80", entity.Overrides.Properties.Single(property => property.Key == "hitPoints").Value);
+        Assert.Equal(5, restored.Module.Distribution.TargetProfiles.Count);
     }
 
     [Fact]
@@ -103,6 +104,81 @@ public sealed class ProjectJsonSerializerTests
         Assert.Contains(
             $"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
             ProjectJsonSerializer.Serialize(migrated));
+    }
+
+    [Fact]
+    public void SerializeAndDeserialize_RoundTripsTargetProfilesAndDependencyApprovals()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var defaults = source.Module.Distribution;
+        var approval = new ThirdPartyDependencyApproval(
+            ThirdPartyDependencyId.From(Guid.Parse("d7130000-0000-4000-8000-000000000010")),
+            "Distribution library",
+            "3.1.0",
+            "MIT",
+            "Forge team",
+            "Required for deterministic distribution tests.",
+            "quarterly",
+            "Replace with a first-party implementation.",
+            "https://example.invalid/distribution-library",
+            [ModuleTargetKind.Client, ModuleTargetKind.Shipping],
+            "test");
+        var distribution = new ModuleDistributionConfiguration(
+            defaults.Id,
+            defaults.TargetProfiles,
+            [approval],
+            "test");
+        var module = new ModuleDefinition(
+            source.Module.Id,
+            source.Module.Slug,
+            source.Module.DisplayName,
+            source.Module.Description,
+            source.Module.EntryAreaId,
+            source.Module.Metadata,
+            source.Module.Variables,
+            distribution);
+        var project = new ProjectDefinition(
+            source.Id,
+            source.Title,
+            module,
+            source.Blueprints,
+            source.Areas,
+            source.Dialogues,
+            source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        Assert.Equal(5, restored.Module.Distribution.TargetProfiles.Count);
+        var restoredApproval = Assert.Single(restored.Module.Distribution.Dependencies);
+        Assert.Equal(approval.Id, restoredApproval.Id);
+        Assert.Equal(approval.Name, restoredApproval.Name);
+        Assert.Equal(approval.Version, restoredApproval.Version);
+        Assert.Equal(approval.LicenseSpdx, restoredApproval.LicenseSpdx);
+        Assert.Equal(approval.RequiredForTargets, restoredApproval.RequiredForTargets);
+        Assert.Contains("\"secretsProfile\"", serialized, StringComparison.Ordinal);
+        Assert.DoesNotContain("secretValue", serialized, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Deserialize_MigratesPreDistributionFormatWithStableDefaultProfiles()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreDistributionFormatVersion;
+        document["project"]!["module"]!.AsObject().Remove("distribution");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Equal(5, first.Module.Distribution.TargetProfiles.Count);
+        Assert.Equal(first.Module.Distribution.Id, second.Module.Distribution.Id);
+        Assert.Equal(
+            first.Module.Distribution.TargetProfiles.Select(profile => profile.Id),
+            second.Module.Distribution.TargetProfiles.Select(profile => profile.Id));
+        Assert.Contains(
+            $"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(first));
     }
 
     [Fact]

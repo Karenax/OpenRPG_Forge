@@ -180,6 +180,61 @@ internal sealed class ModuleIdJsonConverter : JsonConverter<ModuleId>
             : throw new JsonException("A module ID must be a string.");
 }
 
+internal sealed class ModuleDistributionConfigurationIdJsonConverter :
+    JsonConverter<ModuleDistributionConfigurationId>
+{
+    public override ModuleDistributionConfigurationId Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options) => ModuleDistributionConfigurationId.Parse(ReadString(ref reader));
+
+    public override void Write(
+        Utf8JsonWriter writer,
+        ModuleDistributionConfigurationId value,
+        JsonSerializerOptions options) => writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("A module distribution configuration ID cannot be null.")
+            : throw new JsonException("A module distribution configuration ID must be a string.");
+}
+
+internal sealed class ModuleTargetProfileIdJsonConverter : JsonConverter<ModuleTargetProfileId>
+{
+    public override ModuleTargetProfileId Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options) => ModuleTargetProfileId.Parse(ReadString(ref reader));
+
+    public override void Write(
+        Utf8JsonWriter writer,
+        ModuleTargetProfileId value,
+        JsonSerializerOptions options) => writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("A module target profile ID cannot be null.")
+            : throw new JsonException("A module target profile ID must be a string.");
+}
+
+internal sealed class ThirdPartyDependencyIdJsonConverter : JsonConverter<ThirdPartyDependencyId>
+{
+    public override ThirdPartyDependencyId Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options) => ThirdPartyDependencyId.Parse(ReadString(ref reader));
+
+    public override void Write(
+        Utf8JsonWriter writer,
+        ThirdPartyDependencyId value,
+        JsonSerializerOptions options) => writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("A third-party dependency ID cannot be null.")
+            : throw new JsonException("A third-party dependency ID must be a string.");
+}
+
 internal sealed class ProjectMetadataIdJsonConverter : JsonConverter<ProjectMetadataId>
 {
     public override ProjectMetadataId Read(

@@ -47,8 +47,9 @@ La prochaine étape n'est plus un lot MVP : **G0 est fermé** avec un snapshot i
 coque Creator, **G7-03** le catalogue Blueprints, **G7-04** la manipulation directe, **G7-05** les
 zones indépendantes, **G7-06** le clipboard sémantique, **G7-07** la recherche globale avec
 refactoring sûr, **G7-08** la configuration du module, **G7-09** les palettes avec provenance,
-**G7-10** la caméra auteur, **G7-11** les événements Core et **G7-12** le build incrémental ; la file
-active commence à **G7-13**. La fermeture de `TASKS_MVP.md` ne signifie pas
+**G7-10** la caméra auteur, **G7-11** les événements Core, **G7-12** le build incrémental et
+**G7-13** la conformité de distribution ; la file active commence à **G7-14**. La fermeture de
+`TASKS_MVP.md` ne signifie pas
 une parité Aurora complète.
 
 ## 3. Jalons produit
@@ -211,10 +212,11 @@ créateur peut modifier, exporter et jouer la Crypte sans IA et sans outil propr
 
 ### G7 — Creator Core complet P0/P1
 
-**État.** En cours. G7-01 à G7-12 sont franchis avec le second module générique, la coque Creator,
+**État.** En cours. G7-01 à G7-13 sont franchis avec le second module générique, la coque Creator,
 le catalogue Blueprints, la manipulation directe, les zones indépendantes, le clipboard
 sémantique, la recherche globale et le refactoring sûr, la configuration du module, les palettes,
-la caméra auteur, les événements Core puis le build incrémental ; G7-13 est la prochaine tâche.
+la caméra auteur, les événements Core, le build incrémental puis la conformité de distribution ;
+G7-14 est la prochaine tâche.
 
 **Domaines.** `SHELL`, `PROJECT`, `AREA`, `PALETTE`, parties Core de `PLACEABLE`, `DOOR`, `TRIGGER`,
 `WAYPOINT`, `AUDIO`, `GAMEPLAY`, `CONTENT`, `BUILD`, `QA` et `EE` indispensable.
@@ -433,7 +435,8 @@ La file active est maintenant :
 | 11 | G7-10 | ORF-SHELL-007 | Terminé partiellement : navigation caméra, focus, vues, vitesse, pilote et bookmarks. |
 | 12 | G7-11 | ORF-PROJ-006, ORF-AREA-022 | Terminé partiellement : événements Core ordonnés, versionnés, observables et branchés au runtime. |
 | 13 | G7-12 | ORF-PROJ-021, ORF-PAL-015, ORF-BUILD-005 | Terminé partiellement : cache ForgeScript vérifié, dépendances automatiques et rebuild incrémental inspectable. |
-| 14 | G7-13 | ORF-PROJ-024, ORF-BUILD-022, ORF-QA-007 | Profils Editor/Client/Server/Test/Shipping et gate de conformité de distribution. |
+| 14 | G7-13 | ORF-PROJ-024, ORF-BUILD-022, ORF-QA-007 | Terminé partiellement : cinq profils canoniques, registre tiers, NOTICE et gate de conformité. |
+| 15 | G7-14 | ORF-AREA-031, ORF-QA-004, ORF-QA-005 | Navigation par zone, validation géométrique et reachability depuis les spawns. |
 
 Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md`,
 `docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md` et
@@ -446,7 +449,8 @@ Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODUL
 `docs/aurora-parity/tasks/G7-09-STANDARD-CUSTOM-PALETTES.md` et
 `docs/aurora-parity/tasks/G7-10-EDITOR-CAMERA-NAVIGATION.md` et
 `docs/aurora-parity/tasks/G7-11-CORE-LIFECYCLE-EVENTS.md` et
-`docs/aurora-parity/tasks/G7-12-INCREMENTAL-BUILD-CACHE.md`.
+`docs/aurora-parity/tasks/G7-12-INCREMENTAL-BUILD-CACHE.md` et
+`docs/aurora-parity/tasks/G7-13-TARGET-PROFILES-DISTRIBUTION-COMPLIANCE.md`.
 
 ## 7. Graphe de dépendances
 

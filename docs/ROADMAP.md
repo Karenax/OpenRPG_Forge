@@ -66,9 +66,12 @@ G7-11 livre les événements Core de chargement projet, entrée de zone, démarr
 avec ordre déterministe, contexte versionné, autorité, diagnostics et observation runtime.
 G7-12 livre le cache ForgeScript vérifié, le graphe de dépendances transitif, le plan de rebuild
 incrémental et son écran d'analyse dans le workspace Scripts.
+G7-13 livre les cinq profils de cible canoniques, le registre de dépendances gouverné, l’écran
+Validation & distribution, le manifest ciblé, le NOTICE généré et le blocage des licences ou
+provenances inconnues sur les builds distribuables.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-13 — profils de cible et conformité de distribution**.
+La prochaine tranche est **G7-14 — navigation et validation spatiale**.
 
 ## Phase 6 — 3D assistée
 

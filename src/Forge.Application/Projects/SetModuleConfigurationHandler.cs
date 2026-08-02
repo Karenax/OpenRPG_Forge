@@ -49,7 +49,8 @@ public sealed class SetModuleConfigurationHandler
             module.Description,
             module.EntryAreaId,
             command.Metadata,
-            command.Variables);
+            command.Variables,
+            module.Distribution);
         var updatedProject = new ProjectDefinition(
             state.Project.Id,
             state.Project.Title,
