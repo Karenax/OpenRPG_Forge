@@ -1,5 +1,5 @@
 {
-  "formatVersion": "0.6.0",
+  "formatVersion": "0.6.1",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -31,6 +31,12 @@
         "id": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
         "slug": "archipel-oublie",
         "displayName": "Archipel oubli\u00E9",
+        "schemaVersion": 1,
+        "kind": "interior",
+        "dimensions": {
+          "width": 20,
+          "depth": 20
+        },
         "entities": [
           {
             "id": "50542d7e-d54f-409b-8156-06cca92b2ea6",
@@ -91,7 +97,8 @@
               "properties": []
             }
           }
-        ]
+        ],
+        "portals": []
       }
     ],
     "dialogues": [],

@@ -16,10 +16,13 @@ public sealed class ProjectSession
     public const string ProjectPathUnsafeCode = "workspace.project_path_unsafe";
     public const string ProjectMissingCode = "workspace.project_missing";
     public const string ProjectInvalidCode = "workspace.project_invalid";
+    public const string AreaPathUnsafeCode = "workspace.area_path_unsafe";
+    public const string AreaMissingCode = "workspace.area_missing";
     public const string SaveFailedCode = "workspace.save_failed";
     public const string DirectoryNotEmptyCode = "workspace.directory_not_empty";
     public const string CreateFailedCode = "workspace.create_failed";
     public const string DefaultProjectFileName = "project.json";
+    public const string CurrentProjectFormatVersion = WorkspaceProjectJsonSerializer.CurrentFormatVersion;
 
     private static readonly JsonSerializerOptions ManifestOptions = new()
     {
@@ -129,13 +132,21 @@ public sealed class ProjectSession
 
         try
         {
-            var project = ProjectJsonSerializer.Deserialize(File.ReadAllText(projectFilePath));
+            var projectDirectory = Path.GetDirectoryName(projectFilePath)
+                ?? throw new IOException("The project index does not have a parent directory.");
+            var project = WorkspaceProjectJsonSerializer.Deserialize(
+                File.ReadAllText(projectFilePath),
+                relativePath => ReadAreaDocument(projectDirectory, relativePath));
             var session = new ProjectSession(
                 rootDirectory,
                 manifestPath,
                 projectFilePath,
                 project);
             return new ProjectSessionOpenResult(session, []);
+        }
+        catch (AreaDocumentReadException exception)
+        {
+            return Failure(exception.Code, exception.Message, exception.Path);
         }
         catch (Exception exception) when (
             exception is IOException or UnauthorizedAccessException or JsonException or
@@ -152,10 +163,10 @@ public sealed class ProjectSession
         ArgumentException.ThrowIfNullOrWhiteSpace(workspaceDirectory);
         ArgumentNullException.ThrowIfNull(project);
 
-        string serializedProject;
+        WorkspaceProjectBundle bundle;
         try
         {
-            serializedProject = ProjectJsonSerializer.Serialize(project);
+            bundle = WorkspaceProjectJsonSerializer.Serialize(project);
         }
         catch (Exception exception) when (
             exception is JsonException or NotSupportedException or ProjectValidationException)
@@ -186,7 +197,7 @@ public sealed class ProjectSession
         try
         {
             Directory.CreateDirectory(rootDirectory);
-            WriteAllTextAtomically(projectFilePath, serializedProject);
+            WriteWorkspaceBundle(projectFilePath, bundle);
             var manifest = new ProjectWorkspaceManifest(
                 CurrentManifestVersion,
                 DefaultProjectFileName);
@@ -199,6 +210,13 @@ public sealed class ProjectSession
         {
             DeleteCreatedFile(manifestPath);
             DeleteCreatedFile(projectFilePath);
+            foreach (var relativePath in bundle.AreaDocuments.Keys)
+            {
+                if (TryResolveProjectPath(rootDirectory, relativePath, out var areaPath))
+                {
+                    DeleteCreatedFile(areaPath);
+                }
+            }
             return Failure(CreateFailedCode, exception.Message, rootDirectory);
         }
     }
@@ -207,10 +225,10 @@ public sealed class ProjectSession
     {
         ArgumentNullException.ThrowIfNull(project);
 
-        string serialized;
+        WorkspaceProjectBundle bundle;
         try
         {
-            serialized = ProjectJsonSerializer.Serialize(project);
+            bundle = WorkspaceProjectJsonSerializer.Serialize(project);
         }
         catch (Exception exception) when (
             exception is JsonException or NotSupportedException or ProjectValidationException)
@@ -220,7 +238,7 @@ public sealed class ProjectSession
 
         try
         {
-            WriteAllTextAtomically(ProjectFilePath, serialized);
+            WriteWorkspaceBundle(ProjectFilePath, bundle);
             Project = project;
             return new ProjectSessionSaveResult(true, []);
         }
@@ -260,6 +278,53 @@ public sealed class ProjectSession
         {
             return false;
         }
+    }
+
+    private static string ReadAreaDocument(string projectDirectory, string relativePath)
+    {
+        if (!WorkspaceProjectJsonSerializer.IsSafeAreaDocumentPath(relativePath) ||
+            !TryResolveProjectPath(projectDirectory, relativePath, out var areaPath))
+        {
+            throw new AreaDocumentReadException(
+                AreaPathUnsafeCode,
+                $"Area document path '{relativePath}' is unsafe.",
+                relativePath);
+        }
+
+        if (!File.Exists(areaPath))
+        {
+            throw new AreaDocumentReadException(
+                AreaMissingCode,
+                $"Area document '{relativePath}' does not exist.",
+                areaPath);
+        }
+
+        try
+        {
+            return File.ReadAllText(areaPath);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw new AreaDocumentReadException(ProjectInvalidCode, exception.Message, areaPath);
+        }
+    }
+
+    private static void WriteWorkspaceBundle(string projectFilePath, WorkspaceProjectBundle bundle)
+    {
+        var projectDirectory = Path.GetDirectoryName(projectFilePath)
+            ?? throw new IOException("The project index does not have a parent directory.");
+        foreach (var areaDocument in bundle.AreaDocuments)
+        {
+            if (!TryResolveProjectPath(projectDirectory, areaDocument.Key, out var areaPath))
+            {
+                throw new IOException($"Area document path '{areaDocument.Key}' is unsafe.");
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(areaPath)!);
+            WriteAllTextAtomically(areaPath, areaDocument.Value);
+        }
+
+        WriteAllTextAtomically(projectFilePath, bundle.ProjectJson);
     }
 
     private static void WriteAllTextAtomically(string targetPath, string content)
@@ -314,4 +379,18 @@ public sealed class ProjectSession
 
     private static ProjectSessionSaveResult SaveFailure(string code, string message, string? path) =>
         new(false, [new ProjectSessionDiagnostic(code, message, path)]);
+
+    private sealed class AreaDocumentReadException : Exception
+    {
+        internal string Code { get; }
+
+        internal string Path { get; }
+
+        internal AreaDocumentReadException(string code, string message, string path)
+            : base(message)
+        {
+            Code = code;
+            Path = path;
+        }
+    }
 }

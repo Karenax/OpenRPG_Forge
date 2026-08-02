@@ -1,6 +1,8 @@
 using System.IO.Compression;
 using System.Text;
+using Forge.Domain.Projects;
 using Forge.ModuleFormat.Serialization;
+using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.ModuleFormat.Packages;
 
@@ -29,21 +31,49 @@ public static class ModulePackager
             throw new ArgumentException("Module destination must use the .orpmod extension.", nameof(destinationPath));
         }
 
-        var projectPath = Path.Combine(workspaceRoot, "project.json");
-        if (!File.Exists(projectPath))
+        ProjectDefinition project;
+        string projectPath;
+        if (File.Exists(Path.Combine(workspaceRoot, ProjectSession.ManifestFileName)))
         {
-            throw new FileNotFoundException("Module workspace does not contain project.json.", projectPath);
+            var opened = ProjectSession.Open(workspaceRoot);
+            if (!opened.Succeeded || opened.Session is null)
+            {
+                throw new InvalidDataException(
+                    $"Module workspace is invalid: {string.Join("; ", opened.Diagnostics.Select(item => item.Message))}");
+            }
+
+            project = opened.Session.Project;
+            projectPath = opened.Session.ProjectFilePath;
+        }
+        else
+        {
+            projectPath = Path.Combine(workspaceRoot, ProjectSession.DefaultProjectFileName);
+            if (!File.Exists(projectPath))
+            {
+                throw new FileNotFoundException("Module workspace does not contain project.json.", projectPath);
+            }
+
+            var bareProjectDirectory = Path.GetDirectoryName(projectPath)
+                ?? throw new InvalidDataException("The workspace project document has no parent directory.");
+            project = WorkspaceProjectJsonSerializer.Deserialize(
+                File.ReadAllText(projectPath),
+                relativePath => ReadBareAreaDocument(bareProjectDirectory, relativePath));
         }
 
-        var project = ProjectJsonSerializer.Deserialize(File.ReadAllText(projectPath));
+        var bundle = WorkspaceProjectJsonSerializer.Serialize(project);
         var entries = new List<(string Path, byte[] Content)>
         {
-            ("content/project.json", Encoding.UTF8.GetBytes(ProjectJsonSerializer.Serialize(project))),
+            ("content/project.json", Encoding.UTF8.GetBytes(bundle.ProjectJson)),
         };
+        entries.AddRange(bundle.AreaDocuments.Select(item =>
+            ($"content/{item.Key}", Encoding.UTF8.GetBytes(item.Value))));
+        var projectDirectory = Path.GetDirectoryName(projectPath)
+            ?? throw new InvalidDataException("The workspace project index has no parent directory.");
         foreach (var file in Directory.EnumerateFiles(workspaceRoot, "*", SearchOption.AllDirectories)
                      .Select(Path.GetFullPath)
                      .Where(file => !string.Equals(file, projectPath, StringComparison.OrdinalIgnoreCase))
                      .Where(file => !string.Equals(file, destination, StringComparison.OrdinalIgnoreCase))
+                     .Where(file => !IsWorkspaceAreaDocument(projectDirectory, file))
                      .Where(file => !IsIgnoredWorkspaceFile(workspaceRoot, file))
                      .OrderBy(file => file, StringComparer.OrdinalIgnoreCase))
         {
@@ -118,6 +148,33 @@ public static class ModulePackager
             .Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
         return segments.Any(segment => segment is ".godot" or "bin" or "obj" or "artifacts" or "tmp" or "native") ||
                string.Equals(Path.GetFileName(file), "forge.project.json", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsWorkspaceAreaDocument(string projectDirectory, string file)
+    {
+        var relative = Path.GetRelativePath(projectDirectory, file).Replace('\\', '/');
+        return relative.StartsWith("areas/", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(Path.GetExtension(relative), ".json", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ReadBareAreaDocument(string projectDirectory, string relativePath)
+    {
+        if (!WorkspaceProjectJsonSerializer.IsSafeAreaDocumentPath(relativePath))
+        {
+            throw new InvalidDataException($"Area document path '{relativePath}' is unsafe.");
+        }
+
+        var path = Path.GetFullPath(Path.Combine(
+            projectDirectory,
+            relativePath.Replace('/', Path.DirectorySeparatorChar)));
+        var containedRoot = Path.GetFullPath(projectDirectory).TrimEnd(Path.DirectorySeparatorChar) +
+            Path.DirectorySeparatorChar;
+        if (!path.StartsWith(containedRoot, StringComparison.OrdinalIgnoreCase) || !File.Exists(path))
+        {
+            throw new FileNotFoundException($"Area document '{relativePath}' is missing.", path);
+        }
+
+        return File.ReadAllText(path);
     }
 
     private static void WriteEntry(ZipArchive archive, string path, byte[] content)

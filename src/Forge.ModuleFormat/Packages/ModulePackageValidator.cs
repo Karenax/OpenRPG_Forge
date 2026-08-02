@@ -153,7 +153,20 @@ public static class ModulePackageValidator
             {
                 try
                 {
-                    project = ProjectJsonSerializer.Deserialize(ReadText(projectEntry));
+                    project = WorkspaceProjectJsonSerializer.Deserialize(
+                        ReadText(projectEntry),
+                        relativePath =>
+                        {
+                            var archivePath = $"content/{relativePath}";
+                            var areaEntry = files.SingleOrDefault(entry =>
+                                string.Equals(entry.FullName, archivePath, StringComparison.Ordinal));
+                            if (areaEntry is null)
+                            {
+                                throw new JsonException($"Area document '{archivePath}' is missing from the archive.");
+                            }
+
+                            return ReadText(areaEntry);
+                        });
                     if (project.Module.Id != manifest.ModuleId ||
                         !string.Equals(project.Module.Slug, manifest.Slug, StringComparison.Ordinal) ||
                         project.Module.EntryAreaId != manifest.EntryAreaId)
@@ -164,7 +177,7 @@ public static class ModulePackageValidator
                     }
                 }
                 catch (Exception exception) when (
-                    exception is JsonException or ArgumentException or ProjectValidationException)
+                    exception is JsonException or ArgumentException or NotSupportedException or ProjectValidationException)
                 {
                     diagnostics.Add(new ModulePackageDiagnostic(
                         InvalidProjectCode,

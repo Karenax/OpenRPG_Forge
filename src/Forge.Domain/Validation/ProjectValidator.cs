@@ -1,3 +1,4 @@
+using Forge.Domain.Areas;
 using Forge.Domain.Projects;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Quests;
@@ -9,6 +10,10 @@ public static class ProjectValidator
     public const string MissingBlueprintCode = "project.reference.blueprint_missing";
     public const string MissingEntryAreaCode = "project.reference.entry_area_missing";
     public const string MissingDialogueSpeakerBlueprintCode = "project.reference.dialogue_speaker_blueprint_missing";
+    public const string DuplicatePortalCode = "area.portal.id_duplicate";
+    public const string MissingPortalSourceCode = "area.portal.source_missing";
+    public const string MissingPortalDestinationAreaCode = "area.portal.destination_area_missing";
+    public const string MissingPortalDestinationEntityCode = "area.portal.destination_entity_missing";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -17,6 +22,7 @@ public static class ProjectValidator
         var diagnostics = new List<DomainDiagnostic>();
         var blueprintIds = project.Blueprints.Select(blueprint => blueprint.Id).ToHashSet();
         var areaIds = project.Areas.Select(area => area.Id).ToHashSet();
+        var portalIds = new HashSet<PortalId>();
 
         if (!areaIds.Contains(project.Module.EntryAreaId))
         {
@@ -37,6 +43,44 @@ public static class ProjectValidator
                         MissingBlueprintCode,
                         $"Entity '{entity.Id}' references missing blueprint '{entity.BlueprintId}'.",
                         $"areas/{area.Id}/entities/{index}/blueprintId"));
+                }
+            }
+
+            for (var index = 0; index < area.Portals.Count; index++)
+            {
+                var portal = area.Portals[index];
+                var path = $"areas/{area.Id}/portals/{index}";
+                if (!portalIds.Add(portal.Id))
+                {
+                    diagnostics.Add(new DomainDiagnostic(
+                        DuplicatePortalCode,
+                        $"Portal '{portal.Id}' is declared more than once in the project.",
+                        $"{path}/id"));
+                }
+
+                if (!area.Entities.Any(entity => entity.Id == portal.SourceEntityId))
+                {
+                    diagnostics.Add(new DomainDiagnostic(
+                        MissingPortalSourceCode,
+                        $"Portal '{portal.Id}' references missing source entity '{portal.SourceEntityId}'.",
+                        $"{path}/sourceEntityId"));
+                }
+
+                var destinationArea = project.Areas.FirstOrDefault(candidate =>
+                    candidate.Id == portal.DestinationAreaId);
+                if (destinationArea is null)
+                {
+                    diagnostics.Add(new DomainDiagnostic(
+                        MissingPortalDestinationAreaCode,
+                        $"Portal '{portal.Id}' references missing destination area '{portal.DestinationAreaId}'.",
+                        $"{path}/destinationAreaId"));
+                }
+                else if (!destinationArea.Entities.Any(entity => entity.Id == portal.DestinationEntityId))
+                {
+                    diagnostics.Add(new DomainDiagnostic(
+                        MissingPortalDestinationEntityCode,
+                        $"Portal '{portal.Id}' references missing destination entity '{portal.DestinationEntityId}'.",
+                        $"{path}/destinationEntityId"));
                 }
             }
         }

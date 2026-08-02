@@ -117,8 +117,54 @@ public sealed class ProjectSessionTests : IDisposable
         Assert.Equal(targetDirectory, session.RootDirectory);
         Assert.True(File.Exists(Path.Combine(targetDirectory, ProjectSession.ManifestFileName)));
         Assert.True(File.Exists(Path.Combine(targetDirectory, ProjectSession.DefaultProjectFileName)));
-        Assert.Equal(ProjectJsonSerializer.CurrentFormatVersion, ReadProjectFormatVersion(session.ProjectFilePath));
+        Assert.Equal(ProjectSession.CurrentProjectFormatVersion, ReadProjectFormatVersion(session.ProjectFilePath));
+        var areaPath = Assert.Single(Directory.EnumerateFiles(
+            Path.Combine(targetDirectory, "areas"),
+            "*.json",
+            SearchOption.TopDirectoryOnly));
+        Assert.Equal(AreaJsonSerializer.CurrentFormatVersion, ReadProjectFormatVersion(areaPath));
         Assert.Empty(Directory.EnumerateFiles(targetDirectory, "*.tmp", SearchOption.AllDirectories));
+    }
+
+    [Fact]
+    public void Save_MigratesLegacyAggregateToIndependentAreaDocuments()
+    {
+        WriteWorkspace(TestProjectFactory.CreateValid());
+        var session = Assert.IsType<ProjectSession>(ProjectSession.Open(_temporaryRoot).Session);
+
+        var result = session.Save(session.Project);
+        var projectJson = File.ReadAllText(session.ProjectFilePath);
+        using var projectDocument = JsonDocument.Parse(projectJson);
+        var areaReference = Assert.Single(projectDocument.RootElement
+            .GetProperty("project")
+            .GetProperty("areas")
+            .EnumerateArray());
+        var relativeAreaPath = areaReference.GetProperty("documentPath").GetString()!;
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(ProjectSession.CurrentProjectFormatVersion, ReadProjectFormatVersion(session.ProjectFilePath));
+        Assert.True(File.Exists(Path.Combine(
+            Path.GetDirectoryName(session.ProjectFilePath)!,
+            relativeAreaPath.Replace('/', Path.DirectorySeparatorChar))));
+        Assert.True(ProjectSession.Open(_temporaryRoot).Succeeded);
+    }
+
+    [Fact]
+    public void Open_ReturnsLocalizedDiagnosticWhenAreaDocumentIsMissing()
+    {
+        var created = ProjectSession.Create(
+            Path.Combine(_temporaryRoot, "missing-area"),
+            TestProjectFactory.CreateValid());
+        var session = Assert.IsType<ProjectSession>(created.Session);
+        var areaPath = Assert.Single(Directory.EnumerateFiles(
+            Path.Combine(session.RootDirectory, "areas"),
+            "*.json"));
+        File.Delete(areaPath);
+
+        var reopened = ProjectSession.Open(session.RootDirectory);
+
+        Assert.False(reopened.Succeeded);
+        Assert.Equal(ProjectSession.AreaMissingCode, Assert.Single(reopened.Diagnostics).Code);
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Serialization;
+using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.ModuleFormat.Tests.Playtesting;
 
@@ -97,7 +98,8 @@ public sealed class PlaytestSnapshotStoreTests : IDisposable
 
     private static Forge.Domain.Projects.ProjectDefinition LoadSampleProject()
     {
-        var fixturePath = Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes.project.json");
-        return ProjectJsonSerializer.Deserialize(File.ReadAllText(fixturePath));
+        var fixtureDirectory = Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes");
+        return ProjectSession.Open(fixtureDirectory).Session?.Project
+            ?? throw new InvalidOperationException("The crypt-of-ashes fixture did not open.");
     }
 }

@@ -79,11 +79,7 @@ public sealed class PlaceEntityHandler
         }
 
         var entity = new EntityInstance(command.EntityId, command.BlueprintId, command.Transform);
-        var updatedArea = new AreaDefinition(
-            area.Id,
-            area.Slug,
-            area.DisplayName,
-            [.. area.Entities, entity]);
+        var updatedArea = area.WithEntities([.. area.Entities, entity]);
         var updatedProject = new ProjectDefinition(
             state.Project.Id,
             state.Project.Title,

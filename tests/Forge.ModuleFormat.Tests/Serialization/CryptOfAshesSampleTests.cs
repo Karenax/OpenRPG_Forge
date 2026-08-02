@@ -1,7 +1,7 @@
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Quests;
-using Forge.ModuleFormat.Serialization;
+using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.ModuleFormat.Tests.Serialization;
 
@@ -10,8 +10,10 @@ public sealed class CryptOfAshesSampleTests
     [Fact]
     public void SampleProject_IsValidAndContainsPrototypeActors()
     {
-        var fixturePath = Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes.project.json");
-        var project = ProjectJsonSerializer.Deserialize(File.ReadAllText(fixturePath));
+        var fixtureDirectory = Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes");
+        var opened = ProjectSession.Open(fixtureDirectory);
+        Assert.Empty(opened.Diagnostics);
+        var project = Assert.IsType<ProjectSession>(opened.Session).Project;
 
         Assert.Equal("Crypte des Cendres — Tranche verticale", project.Title);
         Assert.Equal("crypt-of-ashes", project.Module.Slug);

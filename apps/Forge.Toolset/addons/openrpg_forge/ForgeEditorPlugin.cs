@@ -1,5 +1,6 @@
 #if TOOLS
 using System.Collections.Concurrent;
+using Forge.Application.Areas;
 using Forge.Application.Blueprints;
 using Forge.Application.Commands;
 using Forge.Application.Creator;
@@ -9,12 +10,14 @@ using Forge.Application.Projects;
 using Forge.Application.Quests;
 using Forge.Application.Spatial;
 using Forge.Application.Time;
+using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.Spatial;
+using Forge.Domain.Validation;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Workspaces;
@@ -30,6 +33,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private const float QuarterTurnComponent = 0.70710677f;
 
     private readonly PlaceEntityHandler _placeHandler = new(new SystemClock());
+    private readonly CreateAreaHandler _createAreaHandler = new(new SystemClock());
+    private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
     private readonly RemoveEntityHandler _removeHandler = new(new SystemClock());
     private readonly SetEntityOverridesHandler _setOverridesHandler = new(new SystemClock());
@@ -40,6 +45,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly CreateBlueprintFromEntityHandler _createBlueprintFromEntityHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
+    private readonly ActiveAreaContext _activeAreaContext = new();
     private readonly List<BlueprintId> _paletteBlueprintIds = [];
     private readonly List<EntityId> _entityIds = [];
     private readonly List<EntityId> _spawnEntityIds = [];
@@ -57,6 +63,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _openButton;
     private Button? _newModuleButton;
     private Button? _dialoguesButton;
+    private Button? _areasButton;
     private Button? _reloadButton;
     private Button? _saveButton;
     private Button? _exportButton;
@@ -102,6 +109,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _entityPropertiesCancelButton;
     private DialogueEditorWindow? _dialogueEditor;
     private BlueprintCatalogWindow? _blueprintCatalog;
+    private AreaWorkspaceWindow? _areaWorkspace;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -152,9 +160,19 @@ public partial class ForgeEditorPlugin : EditorPlugin
             selection => { _selectionContext.Replace(selection); },
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_blueprintCatalog);
+        _areaWorkspace = new AreaWorkspaceWindow();
+        _areaWorkspace.Initialize(
+            () => _history?.State,
+            () => _activeAreaContext.Current,
+            ActivateArea,
+            CreateArea,
+            UpsertPortal,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_areaWorkspace);
         _projectPreview = new ProjectPreview3D();
         _projectPreview.Initialize(
             () => _history?.State,
+            () => _activeAreaContext.Current,
             () => GridStep,
             SelectEntityFromViewport,
             TransformEntityFromViewport,
@@ -211,6 +229,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _openButton = null;
         _newModuleButton = null;
         _dialoguesButton = null;
+        _areasButton = null;
         _reloadButton = null;
         _saveButton = null;
         _exportButton = null;
@@ -256,6 +275,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _entityPropertiesCancelButton = null;
         _dialogueEditor = null;
         _blueprintCatalog = null;
+        _areaWorkspace = null;
         _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
@@ -321,6 +341,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _openButton = GetControl<Button>("Margin/Content/Actions/OpenButton");
         _newModuleButton = GetControl<Button>("Margin/Content/Actions/NewModuleButton");
         _dialoguesButton = GetControl<Button>("Margin/Content/Actions/DialoguesButton");
+        _areasButton = GetControl<Button>("Margin/Content/Actions/AreasButton");
         _reloadButton = GetControl<Button>("Margin/Content/Actions/ValidateButton");
         _saveButton = GetControl<Button>("Margin/Content/Actions/SaveButton");
         _exportButton = GetControl<Button>("Margin/Content/Actions/ExportButton");
@@ -630,6 +651,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _openButton!.Pressed += ShowProjectPicker;
         _newModuleButton!.Pressed += ShowNewModuleDialog;
         _dialoguesButton!.Pressed += OpenDialogueEditor;
+        _areasButton!.Pressed += OpenAreaWorkspace;
         _reloadButton!.Pressed += ReloadProject;
         _saveButton!.Pressed += SaveProject;
         _exportButton!.Pressed += ShowExportDialog;
@@ -658,6 +680,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _entityPropertiesCancelButton!.Pressed += HideEntityPropertiesDialog;
         _entityPropertiesDialog!.CloseRequested += HideEntityPropertiesDialog;
         _selectionContext.Changed += HandleSharedSelectionChanged;
+        _activeAreaContext.Changed += HandleActiveAreaChanged;
         _creatorShell!.ExplorerSelectionRequested += HandleExplorerSelection;
         _creatorShell.DiagnosticSelectionRequested += HandleDiagnosticSelection;
         _creatorShell.WorkspaceRequested += HandleWorkspaceRequest;
@@ -669,6 +692,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_openButton is not null) _openButton.Pressed -= ShowProjectPicker;
         if (_newModuleButton is not null) _newModuleButton.Pressed -= ShowNewModuleDialog;
         if (_dialoguesButton is not null) _dialoguesButton.Pressed -= OpenDialogueEditor;
+        if (_areasButton is not null) _areasButton.Pressed -= OpenAreaWorkspace;
         if (_reloadButton is not null) _reloadButton.Pressed -= ReloadProject;
         if (_saveButton is not null) _saveButton.Pressed -= SaveProject;
         if (_exportButton is not null) _exportButton.Pressed -= ShowExportDialog;
@@ -697,6 +721,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_entityPropertiesCancelButton is not null) _entityPropertiesCancelButton.Pressed -= HideEntityPropertiesDialog;
         if (_entityPropertiesDialog is not null) _entityPropertiesDialog.CloseRequested -= HideEntityPropertiesDialog;
         _selectionContext.Changed -= HandleSharedSelectionChanged;
+        _activeAreaContext.Changed -= HandleActiveAreaChanged;
         if (_creatorShell is not null)
         {
             _creatorShell.ExplorerSelectionRequested -= HandleExplorerSelection;
@@ -735,7 +760,26 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private void HandleExplorerSelection(CreatorExplorerNode node)
     {
         var selection = node.ToSelection();
-        if (selection is null || !_selectionContext.Replace(selection))
+        if (selection is null)
+        {
+            return;
+        }
+
+        if (_history is not null && selection.Kind == CreatorSelectionKind.Area)
+        {
+            ActivateArea(AreaId.Parse(selection.Id));
+        }
+        else if (_history is not null && selection.Kind == CreatorSelectionKind.Entity)
+        {
+            var owner = _history.State.Project.Areas.FirstOrDefault(area =>
+                area.Entities.Any(entity => entity.Id.ToString() == selection.Id));
+            if (owner is not null)
+            {
+                ActivateArea(owner.Id);
+            }
+        }
+
+        if (!_selectionContext.Replace(selection))
         {
             return;
         }
@@ -785,6 +829,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _entityPicker.Selected = entityIndex;
             RefreshOverrideSummary();
         }
+    }
+
+    private void HandleActiveAreaChanged()
+    {
+        if (_history is null)
+        {
+            return;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls();
+        _areaWorkspace?.Refresh();
     }
 
     private void ShowProjectPicker()
@@ -862,6 +918,84 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private void OpenDialogueEditor() => _dialogueEditor?.Open();
 
     private void OpenBlueprintCatalog() => _blueprintCatalog?.Open();
+
+    private void OpenAreaWorkspace() => _areaWorkspace?.Open();
+
+    private bool ActivateArea(AreaId areaId)
+    {
+        if (_history is null || !_activeAreaContext.Activate(_history.State.Project, areaId))
+        {
+            return _activeAreaContext.Current == areaId;
+        }
+
+        var area = _history.State.Project.Areas.Single(candidate => candidate.Id == areaId);
+        _statusLabel!.Text = $"✓ Zone active · {area.DisplayName}";
+        _detailsLabel!.Text =
+            $"{area.Dimensions.Width} × {area.Dimensions.Depth} · {area.Entities.Count} entité(s) · " +
+            $"{area.Portals.Count} transition(s)";
+        return true;
+    }
+
+    private AreaId? CreateArea(
+        string displayName,
+        AreaKind kind,
+        AreaDimensions dimensions,
+        AreaTemplateKind template)
+    {
+        if (_history is null)
+        {
+            return null;
+        }
+
+        var areaId = AreaId.From(Guid.NewGuid());
+        var spawnBlueprintId = template == AreaTemplateKind.Playable
+            ? _history.State.Project.Blueprints.FirstOrDefault(blueprint =>
+                blueprint.Kind == BlueprintKind.PlayerSpawn)?.Id
+            : null;
+        var spawnEntityId = template == AreaTemplateKind.Playable
+            ? EntityId.From(Guid.NewGuid())
+            : null;
+        var command = new CreateAreaCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            areaId,
+            displayName,
+            kind,
+            dimensions,
+            template,
+            spawnBlueprintId,
+            spawnEntityId,
+            DryRun: false);
+        if (!ApplyCommand(
+                _createAreaHandler.Handle(_history.State, command),
+                $"Zone « {displayName} » créée.",
+                selectedEntityId: null))
+        {
+            return null;
+        }
+
+        ActivateArea(areaId);
+        return areaId;
+    }
+
+    private bool UpsertPortal(AreaId sourceAreaId, PortalLink portal)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new UpsertPortalLinkCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            sourceAreaId,
+            portal,
+            DryRun: false);
+        return ApplyCommand(
+            _upsertPortalHandler.Handle(_history.State, command),
+            $"Transition « {portal.DisplayName} » enregistrée.",
+            portal.SourceEntityId);
+    }
 
     private bool UpsertBlueprint(
         BlueprintId blueprintId,
@@ -1097,7 +1231,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
-        var entities = _history.State.Project.Areas.First().Entities;
+        var entities = GetActiveArea().Entities;
         var exampleIndex = entities.ToList().FindIndex(entity => entity.Overrides.Properties.Count > 0);
         _entityPicker.Selected = exampleIndex >= 0 ? exampleIndex : 0;
         EntitySelectionChanged(_entityPicker.Selected);
@@ -1232,7 +1366,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return false;
         }
 
-        var area = _history.State.Project.Areas.First();
+        var area = GetActiveArea();
         var command = new SetEntityOverridesCommand(
             CommandId.From(Guid.NewGuid()),
             _history.State.Revision,
@@ -1312,6 +1446,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             _projectSession = null;
             _history = null;
+            _activeAreaContext.Clear();
             _selectionContext.SetLocked(false);
             _selectionContext.Clear();
             _projectPreview?.Clear();
@@ -1332,6 +1467,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _history = new ProjectCommandHistory(new ProjectState(
             _projectSession.Project,
             new ProjectRevision(0)));
+        _activeAreaContext.Reset(_projectSession.Project);
         RebuildPreview();
         RefreshEditorControls();
         var project = _history.State.Project;
@@ -1355,7 +1491,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return null;
         }
 
-        var area = _history.State.Project.Areas.First();
+        var area = GetActiveArea();
         var entityId = EntityId.From(Guid.NewGuid());
         var transform = new TransformValue(
             new Vector3Value(SnapToGrid(_positionX.Value), 0, SnapToGrid(_positionZ.Value)),
@@ -1380,7 +1516,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return null;
         }
 
-        var area = _history.State.Project.Areas.First();
+        var area = GetActiveArea();
         var entityId = EntityId.From(Guid.NewGuid());
         var command = new PlaceEntityCommand(
             CommandId.From(Guid.NewGuid()),
@@ -1484,7 +1620,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
-        var area = _history.State.Project.Areas.First();
+        var area = GetActiveArea();
         var position = selected.Transform.Position;
         var transform = new TransformValue(
             new Vector3Value(
@@ -1514,7 +1650,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
-        var area = _history.State.Project.Areas.First();
+        var area = GetActiveArea();
         var quarterTurn = new QuaternionValue(0, QuarterTurnComponent, 0, QuarterTurnComponent);
         var transform = new TransformValue(
             selected.Transform.Position,
@@ -1541,7 +1677,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
-        var area = _history.State.Project.Areas.First();
+        var area = GetActiveArea();
         var command = new RemoveEntityCommand(
             CommandId.From(Guid.NewGuid()),
             _history.State.Revision,
@@ -1568,6 +1704,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        _activeAreaContext.EnsureValid(_history.State.Project);
         RebuildPreview();
         RefreshEditorControls(selectedEntityId);
         ShowEditStatus("Modification annulée.");
@@ -1587,6 +1724,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        _activeAreaContext.EnsureValid(_history.State.Project);
         RebuildPreview();
         RefreshEditorControls(selectedEntityId);
         ShowEditStatus("Modification rétablie.");
@@ -1620,6 +1758,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         _history.Record(result);
+        _activeAreaContext.EnsureValid(_history.State.Project);
         RebuildPreview();
         RefreshEditorControls(selectedEntityId);
         ShowEditStatus(successMessage);
@@ -1658,7 +1797,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_blueprintPalette is null || _entityPicker is null || _spawnPicker is null ||
             _placeButton is null || _revisionLabel is null ||
             _undoButton is null || _redoButton is null || _playButton is null ||
-            _overridesButton is null || _overridesSummary is null || _dialoguesButton is null)
+            _overridesButton is null || _overridesSummary is null || _dialoguesButton is null ||
+            _areasButton is null)
         {
             return;
         }
@@ -1687,7 +1827,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         var blueprintNames = project.Blueprints.ToDictionary(blueprint => blueprint.Id, blueprint => blueprint.DisplayName);
-        foreach (var entity in project.Areas.First().Entities)
+        var activeArea = GetActiveArea();
+        foreach (var entity in activeArea.Entities)
         {
             _entityIds.Add(entity.Id);
             var overrideBadge = entity.Overrides.Properties.Count > 0
@@ -1737,6 +1878,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         RefreshOverrideSummary();
         RefreshCreatorShell();
         _blueprintCatalog?.Refresh();
+        _areaWorkspace?.Refresh();
         PublishSelectedEntity();
     }
 
@@ -1762,6 +1904,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _spawnPicker!.Disabled = !enabled || _spawnEntityIds.Count == 0;
         _playButton!.Disabled = !enabled || _spawnEntityIds.Count == 0 || _playtestRunning;
         _dialoguesButton!.Disabled = !enabled;
+        _areasButton!.Disabled = !enabled;
         _exportButton!.Disabled = !enabled;
     }
 
@@ -1836,7 +1979,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         var entityId = _entityIds[_entityPicker.Selected];
-        return _history.State.Project.Areas.First().Entities.Single(entity => entity.Id == entityId);
+        return GetActiveArea().Entities.Single(entity => entity.Id == entityId);
+    }
+
+    private AreaDefinition GetActiveArea()
+    {
+        if (_history is null)
+        {
+            throw new InvalidOperationException("No Forge project is open.");
+        }
+
+        return _history.State.Project.Areas.FirstOrDefault(area => area.Id == _activeAreaContext.Current) ??
+            _history.State.Project.Areas.First();
     }
 
     private EntityId? GetSelectedSpawnId()
@@ -2076,6 +2230,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunDirectManipulationSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAreaWorkflowSmokeTest())
         {
             return;
         }
@@ -2408,6 +2567,113 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return null;
     }
 
+    private bool RunAreaWorkflowSmokeTest()
+    {
+        if (_history is null || _areaWorkspace is null || _projectPreview is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G705_AREA_FAILED missing_workspace");
+            return false;
+        }
+
+        var originalArea = GetActiveArea();
+        var originalAreaCount = _history.State.Project.Areas.Count;
+        var createdAreaId = CreateArea(
+            "Cour des transitions G705",
+            AreaKind.Exterior,
+            new AreaDimensions(48, 36),
+            AreaTemplateKind.Playable);
+        if (createdAreaId is null ||
+            _history.State.Project.Areas.Count != originalAreaCount + 1 ||
+            _activeAreaContext.Current != createdAreaId ||
+            !_areaWorkspace.SelectAreaForSmokeTest(createdAreaId) ||
+            _projectPreview.EntityCount != 1)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G705_AREA_FAILED create_activate");
+            return false;
+        }
+
+        var createdArea = _history.State.Project.Areas.Single(area => area.Id == createdAreaId);
+        var sourceAnchor = createdArea.Entities.Single();
+        var destinationAnchor = originalArea.Entities.First();
+        var portal = new PortalLink(
+            PortalId.From(Guid.Parse("f5000000-0000-4000-8000-000000000001")),
+            "Retour vers la zone initiale",
+            sourceAnchor.Id,
+            originalArea.Id,
+            destinationAnchor.Id,
+            true,
+            true);
+        if (!UpsertPortal(createdArea.Id, portal) ||
+            ProjectValidator.Validate(_history.State.Project)
+                .Any(diagnostic => diagnostic.Code.StartsWith("area.portal.", StringComparison.Ordinal)))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G705_AREA_FAILED transition");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "area-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var creation = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var areaDirectory = Path.Combine(smokeRoot, "areas");
+            var areaDocuments = Directory.Exists(areaDirectory)
+                ? Directory.GetFiles(areaDirectory, "*.json", SearchOption.TopDirectoryOnly)
+                : [];
+            var reopened = ProjectSession.Open(smokeRoot);
+            if (!creation.Succeeded || !reopened.Succeeded || reopened.Session is null ||
+                areaDocuments.Length != originalAreaCount + 1 ||
+                reopened.Session.Project.Areas.Single(area => area.Id == createdAreaId).Portals.Count != 1 ||
+                !File.ReadAllText(Path.Combine(smokeRoot, ProjectSession.DefaultProjectFileName))
+                    .Contains($"\"formatVersion\": \"{ProjectSession.CurrentProjectFormatVersion}\"", StringComparison.Ordinal))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G705_AREA_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        Undo();
+        Undo();
+        if (_history.State.Project.Areas.Count != originalAreaCount ||
+            _activeAreaContext.Current != originalArea.Id)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G705_AREA_FAILED undo");
+            return false;
+        }
+
+        Redo();
+        Redo();
+        if (_history.State.Project.Areas.Single(area => area.Id == createdAreaId).Portals.Count != 1)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G705_AREA_FAILED redo");
+            return false;
+        }
+
+        Undo();
+        Undo();
+        ActivateArea(originalArea.Id);
+        if (_history.State.Project.Areas.Count != originalAreaCount)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G705_AREA_FAILED cleanup");
+            return false;
+        }
+
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas={originalAreaCount + 1} " +
+            $"documents={originalAreaCount + 1} transition=valid active=switched history=restored");
+        return true;
+    }
+
     private bool RunNewModuleSmokeTest()
     {
         var smokeRoot = Path.Combine(
@@ -2432,9 +2698,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
             var opened = ProjectSession.Open(outcome.WorkspaceDirectory);
             var project = opened.Session?.Project;
+            var areaDocumentCount = Directory.GetFiles(
+                Path.Combine(outcome.WorkspaceDirectory, "areas"),
+                "*.json",
+                SearchOption.TopDirectoryOnly).Length;
             if (!opened.Succeeded || project is null ||
                 project.Module.Slug != "module-smoke" ||
                 project.Areas.Count != 1 ||
+                areaDocumentCount != 1 ||
                 project.Areas.Single().Entities.Count != 2 ||
                 !project.Blueprints.Any(blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn))
             {
@@ -2442,7 +2713,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 return false;
             }
 
-            GD.Print("OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=0.6.0 areas=1 entities=2");
+            GD.Print("OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=0.7.0 areas=1 documents=1 entities=2");
             return true;
         }
         catch (Exception exception) when (

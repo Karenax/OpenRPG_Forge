@@ -118,10 +118,7 @@ public sealed class CreateBlueprintFromEntityHandler
             entity.Transform,
             entity.Tags,
             entity.Overrides);
-        var updatedArea = new AreaDefinition(
-            area.Id,
-            area.Slug,
-            area.DisplayName,
+        var updatedArea = area.WithEntities(
             area.Entities.Select(candidate => candidate.Id == retargeted.Id ? retargeted : candidate).ToArray());
         var updatedProject = new ProjectDefinition(
             state.Project.Id,

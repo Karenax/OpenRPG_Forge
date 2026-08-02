@@ -56,7 +56,7 @@ retour des logs. L’espace Dialogues fournit maintenant liste de nœuds, choix 
 actions, textes localisables et aperçu dans la même identité sombre et braise. Le runtime offre une
 sauvegarde/reprise F5/F9 et l'Assistant peut préparer, appliquer et annuler un plan de dialogue par
 MCP. Le MVP est fermé ; les espaces Quêtes, Scripts, Assets, Validation et l’enrichissement de la
-manipulation directe au-delà de G7-04 restent dans le gate **Creator Core G7**, et non dans une
+manipulation directe au-delà de G7-05 restent dans le gate **Creator Core G7**, et non dans une
 prétendue parité Aurora déjà atteinte.
 
 G7-02 installe la coque commune : neuf workspaces stables, une colonne d’exploration du projet, le
@@ -78,6 +78,14 @@ la cause du refus dans les diagnostics. Un clic sur une représentation affiche 
 et bleu ; le glisser déplace l’instance sur X/Z et ne crée une commande qu’au relâchement valide.
 Les champs numériques et boutons existants restent disponibles comme alternative précise et
 accessible.
+
+G7-05 ajoute une surface dédiée « Zones & transitions » sans fragmenter le workspace Monde. Trois
+cartes alignées présentent le monde du module, l’assistant de création et les liaisons entre points
+d’ancrage. L’accent braise reste réservé à la création ; l’activation emploie un repère `◆` et met à
+jour immédiatement l’aperçu, la palette d’entités et l’inspecteur partagé. Les dimensions et le
+gabarit sont lisibles avant mutation, tandis qu’un bandeau inférieur expose les diagnostics de
+références. Cette surface manipule des documents de zone indépendants mais conserve le même bus de
+commandes et le même historique que le reste du Creator.
 
 ## Contexte graphique 3D
 

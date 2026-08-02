@@ -25,6 +25,20 @@ internal sealed class AreaIdJsonConverter : JsonConverter<AreaId>
             : throw new JsonException("An area ID must be a string.");
 }
 
+internal sealed class PortalIdJsonConverter : JsonConverter<PortalId>
+{
+    public override PortalId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        PortalId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, PortalId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("A portal ID cannot be null.")
+            : throw new JsonException("A portal ID must be a string.");
+}
+
 internal sealed class BlueprintIdJsonConverter : JsonConverter<BlueprintId>
 {
     public override BlueprintId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>

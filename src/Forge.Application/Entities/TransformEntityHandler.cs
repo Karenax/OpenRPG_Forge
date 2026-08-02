@@ -75,10 +75,7 @@ public sealed class TransformEntityHandler
             command.Transform,
             entity.Tags,
             entity.Overrides);
-        var updatedArea = new AreaDefinition(
-            area.Id,
-            area.Slug,
-            area.DisplayName,
+        var updatedArea = area.WithEntities(
             area.Entities.Select(candidate => candidate.Id == entity.Id ? updatedEntity : candidate).ToArray());
         var updatedProject = ReplaceArea(state.Project, updatedArea);
         var newRevision = state.Revision.Next();

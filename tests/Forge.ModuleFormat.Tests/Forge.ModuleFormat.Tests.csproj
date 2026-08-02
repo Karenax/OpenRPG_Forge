@@ -29,8 +29,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\apps\Forge.Runtime\content\crypt-of-ashes\forge.project.json"
+          Link="Fixtures\crypt-of-ashes\forge.project.json"
+          CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\apps\Forge.Runtime\content\crypt-of-ashes\project.json"
-          Link="Fixtures\crypt-of-ashes.project.json"
+          Link="Fixtures\crypt-of-ashes\project.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\apps\Forge.Runtime\content\crypt-of-ashes\areas\*.json"
+          Link="Fixtures\crypt-of-ashes\areas\%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\apps\Forge.Runtime\content\broken-isles-starter\forge.project.json"
           Link="Fixtures\broken-isles-starter\forge.project.json"

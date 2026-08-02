@@ -127,10 +127,15 @@ public sealed class ModulePackageTests : IDisposable
     private string CreateWorkspace()
     {
         var workspace = Path.Combine(_temporaryRoot, $"workspace-{Guid.NewGuid():N}");
+        var fixture = Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes");
         Directory.CreateDirectory(Path.Combine(workspace, "scripts"));
-        File.Copy(
-            Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes.project.json"),
-            Path.Combine(workspace, "project.json"));
+        Directory.CreateDirectory(Path.Combine(workspace, "areas"));
+        File.Copy(Path.Combine(fixture, "forge.project.json"), Path.Combine(workspace, "forge.project.json"));
+        File.Copy(Path.Combine(fixture, "project.json"), Path.Combine(workspace, "project.json"));
+        foreach (var areaDocument in Directory.EnumerateFiles(Path.Combine(fixture, "areas"), "*.json"))
+        {
+            File.Copy(areaDocument, Path.Combine(workspace, "areas", Path.GetFileName(areaDocument)));
+        }
         File.WriteAllText(
             Path.Combine(workspace, "scripts", "boss.forge"),
             "void main() { say(\"Braise\"); }",

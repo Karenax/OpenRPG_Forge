@@ -39,7 +39,7 @@
     },
     {
       "evidence": {
-        "line": 42,
+        "line": 56,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -48,7 +48,7 @@
     },
     {
       "evidence": {
-        "line": 42,
+        "line": 56,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -75,7 +75,34 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.AreaJsonSerializer",
+      "target": "file:src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.AreaJsonSerializer",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.AreaJsonSerializer",
+      "target": "model:Forge.ModuleFormat.Serialization.AreaDocument"
+    },
+    {
+      "evidence": {
+        "line": 42,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -84,7 +111,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 42,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -93,7 +120,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 112,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -102,7 +129,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 112,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -111,7 +138,7 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 84,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -120,7 +147,7 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 84,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -129,7 +156,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 98,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -138,7 +165,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 98,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -147,7 +174,7 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 70,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -156,7 +183,7 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 70,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -165,7 +192,7 @@
     },
     {
       "evidence": {
-        "line": 126,
+        "line": 140,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -174,7 +201,7 @@
     },
     {
       "evidence": {
-        "line": 126,
+        "line": 140,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -183,7 +210,25 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 28,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.PortalIdJsonConverter",
+      "target": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.PortalIdJsonConverter",
+      "target": "model:Forge.Domain.Areas.PortalId"
+    },
+    {
+      "evidence": {
+        "line": 126,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -192,7 +237,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 126,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -210,7 +255,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -219,7 +264,7 @@
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 55,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -228,7 +273,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 26,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -237,7 +282,7 @@
     },
     {
       "evidence": {
-        "line": 69,
+        "line": 71,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -264,7 +309,7 @@
     },
     {
       "evidence": {
-        "line": 140,
+        "line": 154,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -273,7 +318,7 @@
     },
     {
       "evidence": {
-        "line": 140,
+        "line": 154,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -282,7 +327,7 @@
     },
     {
       "evidence": {
-        "line": 154,
+        "line": 168,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -291,7 +336,7 @@
     },
     {
       "evidence": {
-        "line": 154,
+        "line": 168,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -300,7 +345,7 @@
     },
     {
       "evidence": {
-        "line": 168,
+        "line": 182,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -309,7 +354,7 @@
     },
     {
       "evidence": {
-        "line": 168,
+        "line": 182,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -372,6 +417,51 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.WorkspaceProjectJsonSerializer",
+      "target": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 78,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.WorkspaceProjectJsonSerializer",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.WorkspaceProjectJsonSerializer",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.WorkspaceProjectJsonSerializer",
+      "target": "model:Forge.ModuleFormat.Serialization.WorkspaceProjectDocument"
+    },
+    {
+      "evidence": {
+        "line": 125,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+      },
+      "kind": "uses_service",
+      "source": "adapter:Forge.ModuleFormat.Serialization.WorkspaceProjectJsonSerializer",
+      "target": "validator:Forge.Domain.Validation.ProjectValidator"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Mcp/Bridge/ForgeEditorBridgeClient.cs"
       },
@@ -381,7 +471,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 29,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1218,7 +1308,7 @@
     },
     {
       "evidence": {
-        "line": 86,
+        "line": 92,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1227,7 +1317,7 @@
     },
     {
       "evidence": {
-        "line": 133,
+        "line": 141,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1236,7 +1326,7 @@
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 37,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1272,7 +1362,7 @@
     },
     {
       "evidence": {
-        "line": 380,
+        "line": 382,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1281,7 +1371,7 @@
     },
     {
       "evidence": {
-        "line": 386,
+        "line": 388,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1290,7 +1380,7 @@
     },
     {
       "evidence": {
-        "line": 392,
+        "line": 394,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1651,6 +1741,51 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs",
+      "target": "namespace:Forge.Application.Areas"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
       },
       "kind": "imports",
@@ -1736,7 +1871,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Blueprints"
+      "target": "namespace:Forge.Application.Areas"
     },
     {
       "evidence": {
@@ -1745,7 +1880,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Commands"
+      "target": "namespace:Forge.Application.Blueprints"
     },
     {
       "evidence": {
@@ -1754,7 +1889,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Creator"
+      "target": "namespace:Forge.Application.Commands"
     },
     {
       "evidence": {
@@ -1763,7 +1898,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Dialogues"
+      "target": "namespace:Forge.Application.Creator"
     },
     {
       "evidence": {
@@ -1772,7 +1907,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Entities"
+      "target": "namespace:Forge.Application.Dialogues"
     },
     {
       "evidence": {
@@ -1781,7 +1916,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Projects"
+      "target": "namespace:Forge.Application.Entities"
     },
     {
       "evidence": {
@@ -1790,7 +1925,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Quests"
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
@@ -1799,7 +1934,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Spatial"
+      "target": "namespace:Forge.Application.Quests"
     },
     {
       "evidence": {
@@ -1808,7 +1943,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Time"
+      "target": "namespace:Forge.Application.Spatial"
     },
     {
       "evidence": {
@@ -1817,7 +1952,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Application.Time"
     },
     {
       "evidence": {
@@ -1826,7 +1961,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -1835,7 +1970,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -1844,7 +1979,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -1853,7 +1988,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -1862,16 +1997,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
-    },
-    {
-      "evidence": {
-        "line": 19,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -1880,11 +2006,47 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.Domain.Quests"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
         "line": 20,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
+    },
+    {
+      "evidence": {
+        "line": 23,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -1925,7 +2087,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -1934,7 +2096,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -1943,7 +2105,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -1952,11 +2114,20 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
         "line": 8,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "imports",
@@ -2019,7 +2190,7 @@
     },
     {
       "evidence": {
-        "line": 87,
+        "line": 95,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -2043,6 +2214,204 @@
       "kind": "references",
       "source": "file:docs/aurora-parity/README.md",
       "target": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaCommand.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaCommand.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaHandler.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaHandler.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaHandler.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/CreateAreaHandler.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/UpsertPortalLinkCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/UpsertPortalLinkCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/UpsertPortalLinkCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -2285,6 +2654,24 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Commands/ProjectCommandHistory.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/ActiveAreaContext.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ActiveAreaContext.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/ActiveAreaContext.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ActiveAreaContext.cs",
       "target": "namespace:Forge.Domain.Projects"
     },
     {
@@ -3082,6 +3469,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Areas/PortalLink.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Areas/PortalLink.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Blueprints/BlueprintDefinition.cs"
       },
       "kind": "imports",
@@ -3189,7 +3585,16 @@
     },
     {
       "evidence": {
-        "line": 2,
+        "line": 1,
+        "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/ProjectValidator.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "imports",
@@ -3198,7 +3603,7 @@
     },
     {
       "evidence": {
-        "line": 1,
+        "line": 2,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "imports",
@@ -3207,7 +3612,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 4,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "imports",
@@ -3446,7 +3851,25 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Packages/ModulePackager.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Packages/ModulePackager.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Packages/ModulePackager.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Packages/ModulePackager.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Packages/ModulePackager.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
       "evidence": {
@@ -3492,6 +3915,24 @@
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Playtesting/PlaytestSnapshotStore.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.ModuleFormat/Serialization/AreaDocument.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/AreaDocument.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs",
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -3657,6 +4098,87 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs",
+      "target": "namespace:Forge.Domain.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs",
+      "target": "namespace:Forge.Domain.Quests"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.ModuleFormat/Workspaces/ProjectSession.cs"
       },
@@ -3672,6 +4194,87 @@
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Workspaces/ProjectSession.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -3735,6 +4338,33 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs",
       "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -4692,12 +5322,66 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "tests/Forge.ModuleFormat.Tests/Saves/RuntimeSaveStoreTests.cs"
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Saves/RuntimeSaveStoreTests.cs",
       "target": "namespace:Forge.ModuleFormat.Saves"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
       "evidence": {
@@ -4832,7 +5516,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs",
-      "target": "namespace:Forge.ModuleFormat.Serialization"
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
       "evidence": {
@@ -6276,6 +6960,240 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "file:src/Forge.Application/Areas/CreateAreaHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Application.Areas.AreaTemplateKind"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Application.Areas.CreateAreaCommand"
+    },
+    {
+      "evidence": {
+        "line": 141,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 138,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 142,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 106,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 90,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 97,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 85,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 83,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 84,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
+      "target": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
+      "target": "model:Forge.Application.Areas.UpsertPortalLinkCommand"
+    },
+    {
+      "evidence": {
+        "line": 114,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 115,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
@@ -6294,7 +7212,7 @@
     },
     {
       "evidence": {
-        "line": 161,
+        "line": 158,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6303,7 +7221,7 @@
     },
     {
       "evidence": {
-        "line": 156,
+        "line": 153,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6312,7 +7230,7 @@
     },
     {
       "evidence": {
-        "line": 162,
+        "line": 159,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6345,15 +7263,6 @@
       "kind": "uses_model",
       "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
       "target": "model:Forge.Application.Projects.ProjectState"
-    },
-    {
-      "evidence": {
-        "line": 121,
-        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
-      },
-      "kind": "uses_model",
-      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
-      "target": "model:Forge.Domain.Areas.AreaDefinition"
     },
     {
       "evidence": {
@@ -6402,7 +7311,7 @@
     },
     {
       "evidence": {
-        "line": 126,
+        "line": 123,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6600,7 +7509,7 @@
     },
     {
       "evidence": {
-        "line": 124,
+        "line": 120,
         "path": "src/Forge.Application/Entities/PlaceEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6609,7 +7518,7 @@
     },
     {
       "evidence": {
-        "line": 119,
+        "line": 115,
         "path": "src/Forge.Application/Entities/PlaceEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6618,7 +7527,7 @@
     },
     {
       "evidence": {
-        "line": 125,
+        "line": 121,
         "path": "src/Forge.Application/Entities/PlaceEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6663,15 +7572,6 @@
     },
     {
       "evidence": {
-        "line": 82,
-        "path": "src/Forge.Application/Entities/PlaceEntityHandler.cs"
-      },
-      "kind": "uses_model",
-      "source": "handler:Forge.Application.Entities.PlaceEntityHandler",
-      "target": "model:Forge.Domain.Areas.AreaDefinition"
-    },
-    {
-      "evidence": {
         "line": 40,
         "path": "src/Forge.Application/Entities/PlaceEntityHandler.cs"
       },
@@ -6708,7 +7608,7 @@
     },
     {
       "evidence": {
-        "line": 87,
+        "line": 83,
         "path": "src/Forge.Application/Entities/PlaceEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6726,7 +7626,7 @@
     },
     {
       "evidence": {
-        "line": 116,
+        "line": 113,
         "path": "src/Forge.Application/Entities/RemoveEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6735,7 +7635,7 @@
     },
     {
       "evidence": {
-        "line": 111,
+        "line": 108,
         "path": "src/Forge.Application/Entities/RemoveEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6744,7 +7644,7 @@
     },
     {
       "evidence": {
-        "line": 117,
+        "line": 114,
         "path": "src/Forge.Application/Entities/RemoveEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6789,7 +7689,7 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 88,
         "path": "src/Forge.Application/Entities/RemoveEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6816,7 +7716,7 @@
     },
     {
       "evidence": {
-        "line": 91,
+        "line": 88,
         "path": "src/Forge.Application/Entities/RemoveEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6834,7 +7734,7 @@
     },
     {
       "evidence": {
-        "line": 130,
+        "line": 127,
         "path": "src/Forge.Application/Entities/SetEntityOverridesHandler.cs"
       },
       "kind": "uses_model",
@@ -6843,7 +7743,7 @@
     },
     {
       "evidence": {
-        "line": 125,
+        "line": 122,
         "path": "src/Forge.Application/Entities/SetEntityOverridesHandler.cs"
       },
       "kind": "uses_model",
@@ -6852,7 +7752,7 @@
     },
     {
       "evidence": {
-        "line": 131,
+        "line": 128,
         "path": "src/Forge.Application/Entities/SetEntityOverridesHandler.cs"
       },
       "kind": "uses_model",
@@ -6897,7 +7797,7 @@
     },
     {
       "evidence": {
-        "line": 85,
+        "line": 102,
         "path": "src/Forge.Application/Entities/SetEntityOverridesHandler.cs"
       },
       "kind": "uses_model",
@@ -6942,7 +7842,7 @@
     },
     {
       "evidence": {
-        "line": 105,
+        "line": 102,
         "path": "src/Forge.Application/Entities/SetEntityOverridesHandler.cs"
       },
       "kind": "uses_model",
@@ -6960,7 +7860,7 @@
     },
     {
       "evidence": {
-        "line": 123,
+        "line": 120,
         "path": "src/Forge.Application/Entities/TransformEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6969,7 +7869,7 @@
     },
     {
       "evidence": {
-        "line": 118,
+        "line": 115,
         "path": "src/Forge.Application/Entities/TransformEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -6978,7 +7878,7 @@
     },
     {
       "evidence": {
-        "line": 124,
+        "line": 121,
         "path": "src/Forge.Application/Entities/TransformEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -7023,7 +7923,7 @@
     },
     {
       "evidence": {
-        "line": 78,
+        "line": 95,
         "path": "src/Forge.Application/Entities/TransformEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -7068,7 +7968,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 95,
         "path": "src/Forge.Application/Entities/TransformEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -7353,6 +8253,105 @@
       "kind": "defined_in",
       "source": "interface:Forge.Scripting.IForgeScriptRuntime",
       "target": "file:src/Forge.Scripting/IForgeScriptRuntime.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/AreaTemplateKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.AreaTemplateKind",
+      "target": "file:src/Forge.Application/Areas/AreaTemplateKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.CreateAreaCommand",
+      "target": "file:src/Forge.Application/Areas/CreateAreaCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.CreateAreaCommand",
+      "target": "model:Forge.Application.Areas.AreaTemplateKind"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.CreateAreaCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.CreateAreaCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.CreateAreaCommand",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.CreateAreaCommand",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.CreateAreaCommand",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.UpsertPortalLinkCommand",
+      "target": "file:src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.UpsertPortalLinkCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.UpsertPortalLinkCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
     },
     {
       "evidence": {
@@ -8004,7 +9003,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 9,
         "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
       },
       "kind": "relationship",
@@ -8013,7 +9012,16 @@
     },
     {
       "evidence": {
-        "line": 13,
+        "line": 17,
+        "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Areas.AreaDefinition",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 21,
         "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
       },
       "kind": "relationship",
@@ -8028,6 +9036,24 @@
       "kind": "defined_in",
       "source": "model:Forge.Domain.Areas.AreaId",
       "target": "file:src/Forge.Domain/Areas/AreaId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/AreaKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.AreaKind",
+      "target": "file:src/Forge.Domain/Areas/AreaKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/PortalId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.PortalId",
+      "target": "file:src/Forge.Domain/Areas/PortalId.cs"
     },
     {
       "evidence": {
@@ -8868,6 +9894,24 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Serialization/AreaDocument.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Serialization.AreaDocument",
+      "target": "file:src/Forge.ModuleFormat/Serialization/AreaDocument.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Serialization/AreaDocument.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Serialization.AreaDocument",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
         "line": 35,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectDocument.cs"
       },
@@ -8883,6 +9927,15 @@
       "kind": "defined_in",
       "source": "model:Forge.ModuleFormat.Serialization.ProjectDocument",
       "target": "file:src/Forge.ModuleFormat/Serialization/ProjectDocument.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Serialization.WorkspaceProjectDocument",
+      "target": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
     },
     {
       "evidence": {
@@ -9084,6 +10137,51 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/AreaTemplateKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/AreaTemplateKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/CreateAreaCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/CreateAreaHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Application/Blueprints/BlueprintReference.cs"
       },
@@ -9207,6 +10305,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Commands",
       "target": "file:src/Forge.Application/Commands/ProjectPatch.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/ActiveAreaContext.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/ActiveAreaContext.cs"
     },
     {
       "evidence": {
@@ -9480,6 +10587,15 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Areas",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
       },
@@ -9495,6 +10611,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Commands",
       "target": "file:tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Creator",
+      "target": "file:tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
     },
     {
       "evidence": {
@@ -9634,11 +10759,47 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Areas/AreaDimensions.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/AreaDimensions.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Areas/AreaId.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Areas",
       "target": "file:src/Forge.Domain/Areas/AreaId.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/AreaKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/AreaKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/PortalId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/PortalId.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Areas/PortalLink.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/PortalLink.cs"
     },
     {
       "evidence": {
@@ -10263,7 +11424,7 @@
     },
     {
       "evidence": {
-        "line": 4,
+        "line": 5,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "defined_in",
@@ -10542,7 +11703,7 @@
     },
     {
       "evidence": {
-        "line": 4,
+        "line": 6,
         "path": "src/Forge.ModuleFormat/Packages/ModulePackager.cs"
       },
       "kind": "defined_in",
@@ -10605,6 +11766,24 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Serialization/AreaDocument.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Serialization",
+      "target": "file:src/Forge.ModuleFormat/Serialization/AreaDocument.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Serialization",
+      "target": "file:src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
@@ -10650,6 +11829,24 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Serialization",
+      "target": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Serialization",
+      "target": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModuleManifestValidatorTests.cs"
       },
@@ -10668,7 +11865,7 @@
     },
     {
       "evidence": {
-        "line": 5,
+        "line": 6,
         "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
       },
       "kind": "defined_in",
@@ -10683,6 +11880,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Tests.Saves",
       "target": "file:tests/Forge.ModuleFormat.Tests/Saves/RuntimeSaveStoreTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Serialization",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
     },
     {
       "evidence": {
@@ -10893,6 +12099,15 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
       },
@@ -10929,7 +12144,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 25,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -10947,7 +12162,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 11,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "defined_in",
@@ -11550,6 +12765,231 @@
     },
     {
       "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "handler:Forge.Application.Areas.CreateAreaHandler"
+    },
+    {
+      "evidence": {
+        "line": 95,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "handler:Forge.Application.Areas.UpsertPortalLinkHandler"
+    },
+    {
+      "evidence": {
+        "line": 151,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Application.Areas.AreaTemplateKind"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Application.Areas.CreateAreaCommand"
+    },
+    {
+      "evidence": {
+        "line": 89,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Application.Areas.UpsertPortalLinkCommand"
+    },
+    {
+      "evidence": {
+        "line": 90,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 126,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 134,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Areas.PortalId"
+    },
+    {
+      "evidence": {
+        "line": 128,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 132,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 133,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 135,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 136,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 133,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 140,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 81,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "type:Forge.Domain.Areas.PortalLink"
+    },
+    {
+      "evidence": {
+        "line": 122,
+        "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "target": "validator:Forge.Domain.Validation.ProjectValidator"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
       },
@@ -11700,6 +13140,60 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Commands.ProjectCommandHistoryTests",
       "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Creator.ActiveAreaContextTests",
+      "target": "file:tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ActiveAreaContextTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ActiveAreaContextTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ActiveAreaContextTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ActiveAreaContextTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ActiveAreaContextTests",
+      "target": "type:Forge.Application.Creator.ActiveAreaContext"
     },
     {
       "evidence": {
@@ -13044,6 +14538,24 @@
     },
     {
       "evidence": {
+        "line": 45,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaDefinitionTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaDefinitionTests",
+      "target": "model:Forge.Domain.Areas.PortalId"
+    },
+    {
+      "evidence": {
         "line": 14,
         "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
       },
@@ -13077,6 +14589,24 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Areas.AreaDefinitionTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaDefinitionTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaDefinitionTests",
+      "target": "type:Forge.Domain.Areas.PortalLink"
     },
     {
       "evidence": {
@@ -13764,12 +15294,39 @@
     },
     {
       "evidence": {
+        "line": 112,
+        "path": "tests/Forge.Domain.Tests/Validation/ProjectValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ProjectValidatorTests",
+      "target": "model:Forge.Domain.Areas.PortalId"
+    },
+    {
+      "evidence": {
+        "line": 101,
+        "path": "tests/Forge.Domain.Tests/Validation/ProjectValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ProjectValidatorTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
         "line": 17,
         "path": "tests/Forge.Domain.Tests/Validation/ProjectValidatorTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Validation.ProjectValidatorTests",
       "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 105,
+        "path": "tests/Forge.Domain.Tests/Validation/ProjectValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ProjectValidatorTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
     },
     {
       "evidence": {
@@ -13860,6 +15417,15 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Validation.ProjectValidatorTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 111,
+        "path": "tests/Forge.Domain.Tests/Validation/ProjectValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ProjectValidatorTests",
+      "target": "type:Forge.Domain.Areas.PortalLink"
     },
     {
       "evidence": {
@@ -14169,7 +15735,7 @@
     },
     {
       "evidence": {
-        "line": 158,
+        "line": 163,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -14214,7 +15780,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 34,
         "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
       },
       "kind": "tests",
@@ -14223,7 +15789,7 @@
     },
     {
       "evidence": {
-        "line": 8,
+        "line": 9,
         "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
       },
       "kind": "defined_in",
@@ -14232,7 +15798,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 26,
         "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
       },
       "kind": "tests",
@@ -14241,7 +15807,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
       },
       "kind": "tests",
@@ -14250,7 +15816,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 85,
         "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
       },
       "kind": "tests",
@@ -14259,7 +15825,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 99,
         "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
       },
       "kind": "tests",
@@ -14268,7 +15834,7 @@
     },
     {
       "evidence": {
-        "line": 81,
+        "line": 82,
         "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
       },
       "kind": "tests",
@@ -14277,12 +15843,21 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Playtesting.PlaytestSnapshotStoreTests",
       "target": "type:Forge.ModuleFormat.Playtesting.PlaytestSnapshotStore"
+    },
+    {
+      "evidence": {
+        "line": 102,
+        "path": "tests/Forge.ModuleFormat.Tests/Playtesting/PlaytestSnapshotStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Playtesting.PlaytestSnapshotStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.ProjectSession"
     },
     {
       "evidence": {
@@ -14364,6 +15939,114 @@
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Saves.RuntimeSaveStoreTests",
       "target": "validator:Forge.ModuleFormat.Saves.RuntimeSaveValidator"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "adapter:Forge.ModuleFormat.Serialization.AreaJsonSerializer"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Areas.PortalId"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "type:Forge.Domain.Areas.PortalLink"
     },
     {
       "evidence": {
@@ -14511,15 +16194,6 @@
     },
     {
       "evidence": {
-        "line": 14,
-        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.ModuleFormat.Tests.Serialization.CryptOfAshesSampleTests",
-      "target": "adapter:Forge.ModuleFormat.Serialization.ProjectJsonSerializer"
-    },
-    {
-      "evidence": {
         "line": 8,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs"
       },
@@ -14529,7 +16203,7 @@
     },
     {
       "evidence": {
-        "line": 27,
+        "line": 29,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs"
       },
       "kind": "tests",
@@ -14538,7 +16212,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 24,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs"
       },
       "kind": "tests",
@@ -14547,7 +16221,7 @@
     },
     {
       "evidence": {
-        "line": 40,
+        "line": 42,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs"
       },
       "kind": "tests",
@@ -14556,12 +16230,21 @@
     },
     {
       "evidence": {
-        "line": 47,
+        "line": 49,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Serialization.CryptOfAshesSampleTests",
       "target": "model:Forge.Domain.Quests.QuestActionKind"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CryptOfAshesSampleTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.ProjectSession"
     },
     {
       "evidence": {
@@ -15051,7 +16734,16 @@
     },
     {
       "evidence": {
-        "line": 120,
+        "line": 125,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.ProjectSessionTests",
+      "target": "adapter:Forge.ModuleFormat.Serialization.AreaJsonSerializer"
+    },
+    {
+      "evidence": {
+        "line": 200,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
       "kind": "tests",
@@ -15087,7 +16779,7 @@
     },
     {
       "evidence": {
-        "line": 159,
+        "line": 205,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
       "kind": "tests",
@@ -15213,6 +16905,15 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Creator/ActiveAreaContext.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.ActiveAreaContext",
+      "target": "file:src/Forge.Application/Creator/ActiveAreaContext.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Creator/CreatorDiagnosticSeverity.cs"
       },
@@ -15309,6 +17010,24 @@
       "kind": "defined_in",
       "source": "type:Forge.Application.Time.SystemClock",
       "target": "file:src/Forge.Application/Time/SystemClock.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/AreaDimensions.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaDimensions",
+      "target": "file:src/Forge.Domain/Areas/AreaDimensions.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Areas/PortalLink.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.PortalLink",
+      "target": "file:src/Forge.Domain/Areas/PortalLink.cs"
     },
     {
       "evidence": {
@@ -15762,7 +17481,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 9,
         "path": "src/Forge.ModuleFormat/Packages/ModulePackager.cs"
       },
       "kind": "defined_in",
@@ -15825,6 +17544,15 @@
     },
     {
       "evidence": {
+        "line": 21,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Serialization.AreaDocumentReference",
+      "target": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+    },
+    {
+      "evidence": {
         "line": 37,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectDocument.cs"
       },
@@ -15849,6 +17577,33 @@
       "kind": "defined_in",
       "source": "type:Forge.ModuleFormat.Serialization.ProjectValidationException",
       "target": "file:src/Forge.ModuleFormat/Serialization/ProjectValidationException.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Serialization.WorkspaceProjectBundle",
+      "target": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Serialization.WorkspaceProjectData",
+      "target": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+    },
+    {
+      "evidence": {
+        "line": 383,
+        "path": "src/Forge.ModuleFormat/Workspaces/ProjectSession.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Workspaces.AreaDocumentReadException",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ProjectSession.cs"
     },
     {
       "evidence": {
@@ -15942,6 +17697,15 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.AreaWorkspaceWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
       },
@@ -15978,7 +17742,7 @@
     },
     {
       "evidence": {
-        "line": 2652,
+        "line": 2923,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -15996,7 +17760,7 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 15,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "defined_in",
@@ -16005,7 +17769,7 @@
     },
     {
       "evidence": {
-        "line": 2657,
+        "line": 2928,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -16014,7 +17778,7 @@
     },
     {
       "evidence": {
-        "line": 2662,
+        "line": 2933,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -16068,7 +17832,7 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 12,
         "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
       },
       "kind": "validates",
@@ -16077,7 +17841,7 @@
     },
     {
       "evidence": {
-        "line": 27,
+        "line": 24,
         "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
       },
       "kind": "validates",
@@ -16086,7 +17850,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 30,
         "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
       },
       "kind": "validates",
@@ -16095,7 +17859,7 @@
     },
     {
       "evidence": {
-        "line": 15,
+        "line": 13,
         "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
       },
       "kind": "validates",
@@ -16104,7 +17868,7 @@
     },
     {
       "evidence": {
-        "line": 40,
+        "line": 39,
         "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
       },
       "kind": "validates",
@@ -16185,7 +17949,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "defined_in",
@@ -16194,7 +17958,16 @@
     },
     {
       "evidence": {
-        "line": 34,
+        "line": 25,
+        "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.ProjectValidator",
+      "target": "model:Forge.Domain.Areas.PortalId"
+    },
+    {
+      "evidence": {
+        "line": 40,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -16203,7 +17976,7 @@
     },
     {
       "evidence": {
-        "line": 13,
+        "line": 18,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -16212,7 +17985,7 @@
     },
     {
       "evidence": {
-        "line": 13,
+        "line": 18,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -16248,7 +18021,7 @@
     },
     {
       "evidence": {
-        "line": 157,
+        "line": 170,
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidator.cs"
       },
       "kind": "validates",
@@ -16365,8 +18138,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:808e27e4126c30662474828d98f86355883e11094c4a3b2596b4e5031dc09557",
-    "source_file_count": 510
+    "source_digest": "sha256:12e5881359120692aca63f522d9145aa59e9e54c0565ada27d6fd4c332ec7cb3",
+    "source_file_count": 531
   },
   "nodes": [
     {
@@ -16382,7 +18155,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AbilityIdJsonConverter",
       "kind": "adapter",
-      "line": 42,
+      "line": 56,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16400,9 +18173,19 @@
       "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
     },
     {
+      "id": "adapter:Forge.ModuleFormat.Serialization.AreaJsonSerializer",
+      "kind": "adapter",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "AreaJsonSerializer",
+      "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
+    },
+    {
       "id": "adapter:Forge.ModuleFormat.Serialization.BlueprintIdJsonConverter",
       "kind": "adapter",
-      "line": 28,
+      "line": 42,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16412,7 +18195,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueChoiceIdJsonConverter",
       "kind": "adapter",
-      "line": 98,
+      "line": 112,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16422,7 +18205,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueIdJsonConverter",
       "kind": "adapter",
-      "line": 70,
+      "line": 84,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16432,7 +18215,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueNodeIdJsonConverter",
       "kind": "adapter",
-      "line": 84,
+      "line": 98,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16442,7 +18225,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.EntityIdJsonConverter",
       "kind": "adapter",
-      "line": 56,
+      "line": 70,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16452,7 +18235,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ModuleIdJsonConverter",
       "kind": "adapter",
-      "line": 126,
+      "line": 140,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16460,9 +18243,19 @@
       "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
     },
     {
+      "id": "adapter:Forge.ModuleFormat.Serialization.PortalIdJsonConverter",
+      "kind": "adapter",
+      "line": 28,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "PortalIdJsonConverter",
+      "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
       "id": "adapter:Forge.ModuleFormat.Serialization.ProjectIdJsonConverter",
       "kind": "adapter",
-      "line": 112,
+      "line": 126,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16492,7 +18285,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestIdJsonConverter",
       "kind": "adapter",
-      "line": 140,
+      "line": 154,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16502,7 +18295,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestStateIdJsonConverter",
       "kind": "adapter",
-      "line": 154,
+      "line": 168,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16512,7 +18305,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestTransitionIdJsonConverter",
       "kind": "adapter",
-      "line": 168,
+      "line": 182,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -16540,6 +18333,16 @@
       "path": "src/Forge.ModuleFormat/Serialization/SpatialValueJsonConverters.cs"
     },
     {
+      "id": "adapter:Forge.ModuleFormat.Serialization.WorkspaceProjectJsonSerializer",
+      "kind": "adapter",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "WorkspaceProjectJsonSerializer",
+      "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+    },
+    {
       "id": "client:Forge.Mcp.Bridge.ForgeEditorBridgeClient",
       "kind": "client",
       "line": 7,
@@ -16552,7 +18355,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 26,
+      "line": 29,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -17460,6 +19263,16 @@
       "path": "apps/Forge.Runtime/content/broken-isles-starter/project.json"
     },
     {
+      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-380d2403eaa94095.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-380d2403eaa94095.json",
+      "path": "apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-380d2403eaa94095.json"
+    },
+    {
       "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/forge.project.json",
       "kind": "configuration",
       "line": 1,
@@ -17668,6 +19481,16 @@
       },
       "name": "forge_forest_map_demo.tscn",
       "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaWorkspaceWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
     },
     {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs",
@@ -18000,6 +19823,16 @@
       "path": "docs/ADR/0014-immutable-aurora-research-snapshot.md"
     },
     {
+      "id": "file:docs/ADR/0015-independent-area-documents.md",
+      "kind": "decision",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "0015-independent-area-documents.md",
+      "path": "docs/ADR/0015-independent-area-documents.md"
+    },
+    {
       "id": "file:docs/ARCHITECTURE.md",
       "kind": "document",
       "line": 1,
@@ -18280,6 +20113,16 @@
       "path": "docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-05-INDEPENDENT-AREAS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-05-INDEPENDENT-AREAS.md",
+      "path": "docs/aurora-parity/tasks/G7-05-INDEPENDENT-AREAS.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -18328,6 +20171,56 @@
       },
       "name": "architecture_graph.py",
       "path": "scripts/architecture_graph.py"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/AreaTemplateKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaTemplateKind.cs",
+      "path": "src/Forge.Application/Areas/AreaTemplateKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/CreateAreaCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreateAreaCommand.cs",
+      "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/CreateAreaHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreateAreaHandler.cs",
+      "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/UpsertPortalLinkCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "UpsertPortalLinkCommand.cs",
+      "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "UpsertPortalLinkHandler.cs",
+      "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Blueprints/BlueprintReference.cs",
@@ -18468,6 +20361,16 @@
       },
       "name": "ProjectPatch.cs",
       "path": "src/Forge.Application/Commands/ProjectPatch.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/ActiveAreaContext.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ActiveAreaContext.cs",
+      "path": "src/Forge.Application/Creator/ActiveAreaContext.cs"
     },
     {
       "id": "file:src/Forge.Application/Creator/CreatorDiagnostic.cs",
@@ -18820,6 +20723,16 @@
       "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Areas/AreaDimensions.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaDimensions.cs",
+      "path": "src/Forge.Domain/Areas/AreaDimensions.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Areas/AreaId.cs",
       "kind": "file",
       "line": 1,
@@ -18828,6 +20741,36 @@
       },
       "name": "AreaId.cs",
       "path": "src/Forge.Domain/Areas/AreaId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/AreaKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaKind.cs",
+      "path": "src/Forge.Domain/Areas/AreaKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/PortalId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PortalId.cs",
+      "path": "src/Forge.Domain/Areas/PortalId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/PortalLink.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PortalLink.cs",
+      "path": "src/Forge.Domain/Areas/PortalLink.cs"
     },
     {
       "id": "file:src/Forge.Domain/Blueprints/BlueprintDefinition.cs",
@@ -19790,6 +21733,26 @@
       "path": "src/Forge.ModuleFormat/Saves/RuntimeSaveValidator.cs"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Serialization/AreaDocument.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaDocument.cs",
+      "path": "src/Forge.ModuleFormat/Serialization/AreaDocument.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaJsonSerializer.cs",
+      "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
       "kind": "file",
       "line": 1,
@@ -19838,6 +21801,26 @@
       },
       "name": "SpatialValueJsonConverters.cs",
       "path": "src/Forge.ModuleFormat/Serialization/SpatialValueJsonConverters.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WorkspaceProjectDocument.cs",
+      "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WorkspaceProjectJsonSerializer.cs",
+      "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
     },
     {
       "id": "file:src/Forge.ModuleFormat/Workspaces/ProjectSession.cs",
@@ -20010,6 +21993,16 @@
       "path": "src/Forge.Scripting/packages.lock.json"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaWorkflowTests.cs",
+      "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs",
       "kind": "file",
       "line": 1,
@@ -20028,6 +22021,16 @@
       },
       "name": "ProjectCommandHistoryTests.cs",
       "path": "tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ActiveAreaContextTests.cs",
+      "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs",
@@ -20448,6 +22451,16 @@
       },
       "name": "RuntimeSaveStoreTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Saves/RuntimeSaveStoreTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaJsonSerializerTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Serialization/BrokenIslesStarterTests.cs",
@@ -22380,6 +24393,26 @@
       "path": "tools/asset_pipeline/validate_cc0_catalog.py"
     },
     {
+      "id": "handler:Forge.Application.Areas.CreateAreaHandler",
+      "kind": "handler",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "CreateAreaHandler",
+      "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+    },
+    {
+      "id": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
+      "kind": "handler",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "UpsertPortalLinkHandler",
+      "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
       "kind": "handler",
       "line": 11,
@@ -22488,6 +24521,36 @@
       },
       "name": "IForgeScriptRuntime",
       "path": "src/Forge.Scripting/IForgeScriptRuntime.cs"
+    },
+    {
+      "id": "model:Forge.Application.Areas.AreaTemplateKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaTemplateKind",
+      "path": "src/Forge.Application/Areas/AreaTemplateKind.cs"
+    },
+    {
+      "id": "model:Forge.Application.Areas.CreateAreaCommand",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "CreateAreaCommand",
+      "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Areas.UpsertPortalLinkCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "UpsertPortalLinkCommand",
+      "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
     },
     {
       "id": "model:Forge.Application.Blueprints.BlueprintReferenceKind",
@@ -22738,6 +24801,26 @@
       },
       "name": "AreaId",
       "path": "src/Forge.Domain/Areas/AreaId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Areas.AreaKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaKind",
+      "path": "src/Forge.Domain/Areas/AreaKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Areas.PortalId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "PortalId",
+      "path": "src/Forge.Domain/Areas/PortalId.cs"
     },
     {
       "id": "model:Forge.Domain.Blueprints.BlueprintDefinition",
@@ -23220,6 +25303,16 @@
       "path": "src/Forge.ModuleFormat/Saves/RuntimeSaveDiagnostic.cs"
     },
     {
+      "id": "model:Forge.ModuleFormat.Serialization.AreaDocument",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "AreaDocument",
+      "path": "src/Forge.ModuleFormat/Serialization/AreaDocument.cs"
+    },
+    {
       "id": "model:Forge.ModuleFormat.Serialization.LegacyProjectDocument",
       "kind": "model",
       "line": 35,
@@ -23238,6 +25331,16 @@
       },
       "name": "ProjectDocument",
       "path": "src/Forge.ModuleFormat/Serialization/ProjectDocument.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Serialization.WorkspaceProjectDocument",
+      "kind": "model",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "WorkspaceProjectDocument",
+      "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
     },
     {
       "id": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic",
@@ -23386,6 +25489,11 @@
       "path": "tools/asset_pipeline/validate_cc0_catalog.py"
     },
     {
+      "id": "namespace:Forge.Application.Areas",
+      "kind": "namespace",
+      "name": "Forge.Application.Areas"
+    },
+    {
       "id": "namespace:Forge.Application.Blueprints",
       "kind": "namespace",
       "name": "Forge.Application.Blueprints"
@@ -23424,6 +25532,11 @@
       "id": "namespace:Forge.Application.Spatial",
       "kind": "namespace",
       "name": "Forge.Application.Spatial"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Areas",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Areas"
     },
     {
       "id": "namespace:Forge.Application.Tests.Blueprints",
@@ -23833,6 +25946,16 @@
       "path": "src/Forge.Mcp/Scripts/ForgeScriptAgentService.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
+      "kind": "test",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Areas"
+      },
+      "name": "AreaWorkflowTests",
+      "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
       "kind": "test",
       "line": 8,
@@ -23851,6 +25974,16 @@
       },
       "name": "ProjectCommandHistoryTests",
       "path": "tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Creator.ActiveAreaContextTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Creator"
+      },
+      "name": "ActiveAreaContextTests",
+      "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
@@ -24195,7 +26328,7 @@
     {
       "id": "test:Forge.ModuleFormat.Tests.Playtesting.PlaytestSnapshotStoreTests",
       "kind": "test",
-      "line": 8,
+      "line": 9,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Tests.Playtesting"
       },
@@ -24211,6 +26344,16 @@
       },
       "name": "RuntimeSaveStoreTests",
       "path": "tests/Forge.ModuleFormat.Tests/Saves/RuntimeSaveStoreTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "kind": "test",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Serialization"
+      },
+      "name": "AreaJsonSerializerTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Serialization.BrokenIslesStarterTests",
@@ -24360,6 +26503,16 @@
       "path": "src/Forge.Application/Commands/ProjectCommandHistory.cs"
     },
     {
+      "id": "type:Forge.Application.Creator.ActiveAreaContext",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "ActiveAreaContext",
+      "path": "src/Forge.Application/Creator/ActiveAreaContext.cs"
+    },
+    {
       "id": "type:Forge.Application.Creator.CreatorDiagnosticSeverity",
       "kind": "type",
       "line": 3,
@@ -24468,6 +26621,26 @@
       },
       "name": "SystemClock",
       "path": "src/Forge.Application/Time/SystemClock.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AreaDimensions",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaDimensions",
+      "path": "src/Forge.Domain/Areas/AreaDimensions.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.PortalLink",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "PortalLink",
+      "path": "src/Forge.Domain/Areas/PortalLink.cs"
     },
     {
       "id": "type:Forge.Domain.Combat.AbilityEffect",
@@ -24942,7 +27115,7 @@
     {
       "id": "type:Forge.ModuleFormat.Packages.ModulePackager",
       "kind": "type",
-      "line": 7,
+      "line": 9,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Packages"
       },
@@ -25010,6 +27183,16 @@
       "path": "src/Forge.ModuleFormat/Saves/RuntimeSaveDocument.cs"
     },
     {
+      "id": "type:Forge.ModuleFormat.Serialization.AreaDocumentReference",
+      "kind": "type",
+      "line": 21,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "AreaDocumentReference",
+      "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+    },
+    {
       "id": "type:Forge.ModuleFormat.Serialization.LegacyProjectData",
       "kind": "type",
       "line": 37,
@@ -25038,6 +27221,36 @@
       },
       "name": "ProjectValidationException",
       "path": "src/Forge.ModuleFormat/Serialization/ProjectValidationException.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Serialization.WorkspaceProjectBundle",
+      "kind": "type",
+      "line": 23,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "WorkspaceProjectBundle",
+      "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Serialization.WorkspaceProjectData",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "WorkspaceProjectData",
+      "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectDocument.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Workspaces.AreaDocumentReadException",
+      "kind": "type",
+      "line": 383,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "AreaDocumentReadException",
+      "path": "src/Forge.ModuleFormat/Workspaces/ProjectSession.cs"
     },
     {
       "id": "type:Forge.ModuleFormat.Workspaces.ProjectSession",
@@ -25140,6 +27353,16 @@
       "path": "src/Forge.Scripting/NativeForgeScriptRuntime.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.AreaWorkspaceWindow",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "AreaWorkspaceWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.BlueprintCatalogWindow",
       "kind": "type",
       "line": 10,
@@ -25182,7 +27405,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 2652,
+      "line": 2923,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -25202,7 +27425,7 @@
     {
       "id": "type:Forge.Toolset.Editor.ProjectPreview3D",
       "kind": "type",
-      "line": 14,
+      "line": 15,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -25212,7 +27435,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 2657,
+      "line": 2928,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -25222,7 +27445,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 2662,
+      "line": 2933,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -25302,7 +27525,7 @@
     {
       "id": "validator:Forge.Domain.Validation.ProjectValidator",
       "kind": "validator",
-      "line": 7,
+      "line": 8,
       "metadata": {
         "namespace": "Forge.Domain.Validation"
       },

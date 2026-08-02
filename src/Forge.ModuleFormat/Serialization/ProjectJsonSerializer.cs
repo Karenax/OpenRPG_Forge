@@ -7,7 +7,8 @@ namespace Forge.ModuleFormat.Serialization;
 
 public static class ProjectJsonSerializer
 {
-    public const string CurrentFormatVersion = "0.6.0";
+    public const string CurrentFormatVersion = "0.6.1";
+    public const string AreaMetadataFormatVersion = "0.6.0";
     public const string QuestFormatVersion = "0.5.0";
     public const string DialogueFormatVersion = "0.4.0";
     public const string EntityOverridesFormatVersion = "0.3.0";
@@ -39,6 +40,7 @@ public static class ProjectJsonSerializer
         var formatVersion = formatVersionElement.GetString();
         ProjectDefinition project;
         if (string.Equals(formatVersion, CurrentFormatVersion, StringComparison.Ordinal) ||
+            string.Equals(formatVersion, AreaMetadataFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, QuestFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, DialogueFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, EntityOverridesFormatVersion, StringComparison.Ordinal) ||
@@ -73,7 +75,7 @@ public static class ProjectJsonSerializer
         }
     }
 
-    private static JsonSerializerOptions CreateOptions()
+    internal static JsonSerializerOptions CreateOptions()
     {
         var options = new JsonSerializerOptions
         {
@@ -85,6 +87,7 @@ public static class ProjectJsonSerializer
         options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
         options.Converters.Add(new AbilityIdJsonConverter());
         options.Converters.Add(new AreaIdJsonConverter());
+        options.Converters.Add(new PortalIdJsonConverter());
         options.Converters.Add(new BlueprintIdJsonConverter());
         options.Converters.Add(new DialogueChoiceIdJsonConverter());
         options.Converters.Add(new DialogueIdJsonConverter());

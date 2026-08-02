@@ -373,10 +373,12 @@ Le détail et les preuves des 717 capacités restent suivis dans
   instance et index des références.
 - [x] **G7-04 — manipulation directe du Monde** : palette glissable, projection/snap, validation,
   fantôme vert/rouge, sélection, gizmo X/Z et undo/redo du document canonique.
-- [ ] **G7-05 — zones indépendantes et transitions** : documents de zone, contexte actif,
+- [x] **G7-05 — zones indépendantes et transitions** : documents de zone, contexte actif,
   transitions et validation.
+- [ ] **G7-06 — duplication et clipboard sémantique** : nouveaux UUID, remapping des références,
+  aperçu puis application transactionnelle pour entités et zones.
 
-Les règles graphiques et d’interaction de G7-03/G7-04 sont consignées dans
+Les règles graphiques et d’interaction de G7-03 à G7-05 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest

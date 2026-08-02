@@ -1,6 +1,7 @@
 #if TOOLS
 using Forge.Application.Projects;
 using Forge.Application.Spatial;
+using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
 using Forge.Domain.Projects;
@@ -23,6 +24,7 @@ public partial class ProjectPreview3D : SubViewportContainer
     private Node3D? _gizmo;
     private MeshInstance3D? _ghost;
     private Func<ProjectState?>? _getState;
+    private Func<AreaId?>? _getActiveAreaId;
     private Func<float>? _getGridSize;
     private Action<EntityId>? _selectEntity;
     private Func<EntityId, TransformValue, bool>? _transformEntity;
@@ -100,6 +102,7 @@ public partial class ProjectPreview3D : SubViewportContainer
 
     public void Initialize(
         Func<ProjectState?> getState,
+        Func<AreaId?> getActiveAreaId,
         Func<float> getGridSize,
         Action<EntityId> selectEntity,
         Func<EntityId, TransformValue, bool> transformEntity,
@@ -107,6 +110,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         Action<string, bool> showPlacementFeedback)
     {
         _getState = getState ?? throw new ArgumentNullException(nameof(getState));
+        _getActiveAreaId = getActiveAreaId ?? throw new ArgumentNullException(nameof(getActiveAreaId));
         _getGridSize = getGridSize ?? throw new ArgumentNullException(nameof(getGridSize));
         _selectEntity = selectEntity ?? throw new ArgumentNullException(nameof(selectEntity));
         _transformEntity = transformEntity ?? throw new ArgumentNullException(nameof(transformEntity));
@@ -119,7 +123,9 @@ public partial class ProjectPreview3D : SubViewportContainer
         ArgumentNullException.ThrowIfNull(project);
         Clear();
 
-        var area = project.Areas.FirstOrDefault()
+        var activeAreaId = _getActiveAreaId?.Invoke();
+        var area = project.Areas.FirstOrDefault(candidate => candidate.Id == activeAreaId) ??
+            project.Areas.FirstOrDefault()
             ?? throw new InvalidOperationException("The project does not contain an area to preview.");
         var blueprints = project.Blueprints.ToDictionary(blueprint => blueprint.Id);
         _dragPalette.SetBlueprints(project.Blueprints);
@@ -339,10 +345,13 @@ public partial class ProjectPreview3D : SubViewportContainer
                 position);
         }
 
+        var activeAreaId = _getActiveAreaId?.Invoke();
+        var area = state.Project.Areas.FirstOrDefault(candidate => candidate.Id == activeAreaId) ??
+            state.Project.Areas.First();
         return _placementValidator.Validate(
             state.Project,
             new PlacementValidationRequest(
-                state.Project.Areas.First().Id,
+                area.Id,
                 blueprintId,
                 position,
                 Math.Max(0.25f, _getGridSize?.Invoke() ?? 1)));

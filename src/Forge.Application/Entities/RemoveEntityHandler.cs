@@ -68,10 +68,7 @@ public sealed class RemoveEntityHandler
                 CreateAudit(command, false));
         }
 
-        var updatedArea = new AreaDefinition(
-            area.Id,
-            area.Slug,
-            area.DisplayName,
+        var updatedArea = area.WithEntities(
             area.Entities.Where(candidate => candidate.Id != entity.Id).ToArray());
         var updatedProject = ReplaceArea(state.Project, updatedArea);
         var newRevision = state.Revision.Next();

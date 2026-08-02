@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-04 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-05 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -26,6 +26,8 @@ Blueprints opérationnel : palette recherchable, édition transactionnelle, dér
 instance et références inversées recalculées depuis le projet.
 G7-04 ajoute la manipulation directe du Monde : palette glissable, validation de cellule avec
 fantôme coloré, sélection dans le viewport et translation X/Z par gizmo avec historique partagé.
+G7-05 sépare les zones en documents versionnés, partage un contexte de zone active entre
+l’explorateur, l’aperçu et les commandes, puis ajoute l’assistant « Zones & transitions ».
 
 ## État prouvé
 
@@ -36,14 +38,15 @@ fantôme coloré, sélection dans le viewport et translation X/Z par gizmo avec 
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 148 tests .NET et 22 tests Python réussis ;
+- 151 tests .NET et 22 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
   icônes des fenêtres Forge personnalisées puis contrôlées par le smoke test et une capture ciblée ;
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
 - assistant Nouveau module validé : agrégat module, zone d’entrée, sol, spawn et workspace atomique
-  au format `0.6.0`, avec migrations testées depuis `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
+  indexé au format `0.7.0`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
+  `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
   édition visuelle, sérialisation, commande transactionnelle, dry-run, audit, undo/redo et smoke ;
 - Play from here validé : spawn sélectionné, snapshot de l’état courant, lancement runtime, retour
@@ -79,6 +82,9 @@ fantôme coloré, sélection dans le viewport et translation X/Z par gizmo avec 
 - manipulation Monde G7-04 : drag-and-drop depuis une palette intégrée, projection sur le sol,
   snap, limites et occupation validés avant commande, fantôme vert/rouge, sélection et translation
   directe avec gizmo X/Z, undo/redo du document canonique ;
+- zones G7-05 : document de zone JSON 1.0 séparé et adressé par hash, index workspace 0.7, migration
+  legacy, contexte actif, environnement/dimensions, création vide ou jouable, `PortalLink` typé,
+  diagnostics localisés et workflow intégré avec undo/redo ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -89,6 +95,8 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 - le gizmo Monde couvre la translation sur le plan X/Z mais pas encore rotation, échelle, pivot,
   axes contraints, coordonnées locales/globales, alignements ou multi-sélection ;
+- les transitions de zone sont éditables, persistées et validées mais pas encore déclenchées par le
+  runtime ; orientation, hooks, streaming et génération automatique du lien inverse restent à faire ;
 - la coque expose les neuf workspaces et relie Monde, Blueprints et Dialogues ; le premier catalogue
   Blueprints est opérationnel, tandis que ses workflows avancés et les éditeurs complets Quêtes,
   Scripts, Assets, Validation et Assistant relèvent encore du Creator Core G7 ;
@@ -139,5 +147,5 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-05 — zones indépendantes et transitions** pour `ORF-AREA-001`, `ORF-AREA-002`,
-`ORF-AREA-030` et `ORF-AREA-037` : documents de zone, contexte actif, transitions et validation.
+Ouvrir **G7-06 — duplication et clipboard sémantique** pour `ORF-SHELL-014` et `ORF-AREA-012` :
+copier ou dupliquer une sélection avec nouveaux UUID, remapping contrôlé, aperçu et undo/redo.

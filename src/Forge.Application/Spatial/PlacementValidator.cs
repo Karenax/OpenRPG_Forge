@@ -9,12 +9,9 @@ public sealed class PlacementValidator
     public const string MissingBlueprintCode = "placement.blueprint_missing";
     public const string OutsideBoundsCode = "placement.outside_bounds";
     public const string OccupiedCode = "placement.cell_occupied";
-    public const float DefaultExtent = 10;
-
     public PlacementValidationResult Validate(
         ProjectDefinition project,
-        PlacementValidationRequest request,
-        float extent = DefaultExtent)
+        PlacementValidationRequest request)
     {
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(request);
@@ -35,15 +32,18 @@ public sealed class PlacementValidator
             return Invalid(MissingBlueprintCode, "Le blueprint glissé n’existe plus dans le projet.", request.Position, corrected);
         }
 
-        if (MathF.Abs(corrected.X) > extent || MathF.Abs(corrected.Z) > extent)
+        var xExtent = area.Dimensions.Width / 2f;
+        var zExtent = area.Dimensions.Depth / 2f;
+        if (MathF.Abs(corrected.X) > xExtent || MathF.Abs(corrected.Z) > zExtent)
         {
             var bounded = new Vector3Value(
-                Math.Clamp(corrected.X, -extent, extent),
+                Math.Clamp(corrected.X, -xExtent, xExtent),
                 corrected.Y,
-                Math.Clamp(corrected.Z, -extent, extent));
+                Math.Clamp(corrected.Z, -zExtent, zExtent));
             return Invalid(
                 OutsideBoundsCode,
-                $"Position hors de la zone éditable ±{extent:0.##}. Correction proposée : X {bounded.X:0.##}, Z {bounded.Z:0.##}.",
+                $"Position hors de la zone {area.Dimensions.Width} × {area.Dimensions.Depth}. " +
+                $"Correction proposée : X {bounded.X:0.##}, Z {bounded.Z:0.##}.",
                 request.Position,
                 bounded);
         }
