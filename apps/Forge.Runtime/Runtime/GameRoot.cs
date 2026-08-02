@@ -1,10 +1,12 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Combat;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
@@ -33,6 +35,7 @@ public partial class GameRoot : Node3D
     private ProjectBlackboard _blackboard = new([], allowUndeclared: true);
     private readonly HashSet<string> _inventory = new(StringComparer.Ordinal);
     private readonly NativeForgeScriptRuntime _forgeScriptRuntime = new();
+    private readonly List<RuntimeLifecycleEvent> _lifecycleEvents = [];
 
     private PlayerController? _player;
     private CombatantState? _playerCombatant;
@@ -69,6 +72,7 @@ public partial class GameRoot : Node3D
     private string _moduleSlug = string.Empty;
     private bool _isCryptPrototype;
     private bool _loadedSave;
+    private RuntimeLifecycleCoordinator? _lifecycle;
 
     public override void _Ready()
     {
@@ -92,6 +96,14 @@ public partial class GameRoot : Node3D
             var requestedSpawnId = ParseOptionalEntityId(
                 GetArgumentValue(userArguments, SpawnIdArgument));
             var project = LoadProject(snapshotPath, modulePackagePath);
+            var lifecycleCause = loadSavePath is null
+                ? RuntimeLifecycleCause.Startup
+                : RuntimeLifecycleCause.SaveResume;
+            _lifecycleEvents.Clear();
+            _lifecycle = new RuntimeLifecycleCoordinator(observers: [HandleLifecycleEvent]);
+            EnsureLifecycle(
+                _lifecycle.LoadProject(project, RuntimeAuthority.SinglePlayer, lifecycleCause),
+                "project_loaded");
             _blackboard = new ProjectBlackboard(project.Module.Variables, allowUndeclared: true);
             _moduleTitle = project.Module.DisplayName;
             _moduleSlug = project.Module.Slug;
@@ -99,6 +111,12 @@ public partial class GameRoot : Node3D
             _message = $"Explorez {_moduleTitle}.";
             ConfigureWorld(_isCryptPrototype);
             var selectedSpawn = BuildProject(project, requestedSpawnId);
+            EnsureLifecycle(
+                _lifecycle.EnterInitialArea(
+                    AreaId.Parse(_currentAreaId!),
+                    selectedSpawn.Id,
+                    lifecycleCause),
+                "area_entered");
             if (loadSavePath is not null)
             {
                 if (!LoadRuntimeSave(loadSavePath))
@@ -109,6 +127,8 @@ public partial class GameRoot : Node3D
 
             CreateHud();
             UpdateHud();
+            EnsureLifecycle(_lifecycle.StartWorld(lifecycleCause), "world_started");
+            AssertLifecycleStartupContract();
             GD.Print(
                 $"OPENRPG_FORGE_RUNTIME_PERF startup_ms={Stopwatch.GetElapsedTime(startupStarted).TotalMilliseconds:0.###} " +
                 $"nodes={CountTreeNodes(this)} entities={_builtEntityCount} collisions={_collisionCount}");
@@ -326,6 +346,51 @@ public partial class GameRoot : Node3D
 
     private static EntityId? ParseOptionalEntityId(string? value) =>
         value is null ? null : EntityId.Parse(value);
+
+    private void HandleLifecycleEvent(RuntimeLifecycleEvent @event)
+    {
+        _lifecycleEvents.Add(@event);
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_LIFECYCLE sequence={@event.Sequence} event={@event.Kind} " +
+            $"binding={@event.Binding} authority={@event.Authority} " +
+            $"previous={@event.PreviousAreaId?.ToString() ?? "none"} " +
+            $"current={@event.CurrentAreaId?.ToString() ?? "none"} " +
+            $"actor={@event.ActorEntityId?.ToString() ?? "none"} " +
+            $"transition={@event.TransitionId?.ToString() ?? "none"} cause={@event.Cause} " +
+            $"schema={@event.SchemaVersion} api={@event.ForgeScriptApiVersion} " +
+            $"provenance={@event.Provenance}");
+    }
+
+    private static void EnsureLifecycle(RuntimeLifecycleDispatchResult result, string stage)
+    {
+        if (result.Succeeded)
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"Runtime lifecycle stage '{stage}' failed: " +
+            string.Join("; ", result.Diagnostics.Select(diagnostic =>
+                $"{diagnostic.Code}:{diagnostic.Message} [{diagnostic.Path}]")));
+    }
+
+    private void AssertLifecycleStartupContract()
+    {
+        var expectedOrder = new[]
+        {
+            RuntimeLifecycleEventKind.ProjectLoaded,
+            RuntimeLifecycleEventKind.AreaEntered,
+            RuntimeLifecycleEventKind.WorldStarted,
+        };
+        if (!_lifecycleEvents.Select(@event => @event.Kind).SequenceEqual(expectedOrder))
+        {
+            throw new InvalidOperationException("Runtime lifecycle startup order is not deterministic.");
+        }
+
+        GD.Print(
+            "OPENRPG_FORGE_RUNTIME_LIFECYCLE_PASS " +
+            "events=3 order=ProjectLoaded>AreaEntered>WorldStarted authority=SinglePlayer");
+    }
 
     private void BuildEntity(EntityInstance entity, BlueprintDefinition blueprint)
     {

@@ -1434,7 +1434,7 @@
     },
     {
       "evidence": {
-        "line": 118,
+        "line": 124,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1443,7 +1443,7 @@
     },
     {
       "evidence": {
-        "line": 173,
+        "line": 180,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1452,7 +1452,7 @@
     },
     {
       "evidence": {
-        "line": 50,
+        "line": 53,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1628,7 +1628,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -1637,7 +1637,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Combat"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -1646,7 +1646,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Combat"
     },
     {
       "evidence": {
@@ -1655,7 +1655,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -1664,7 +1664,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -1673,7 +1673,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Lifecycle"
     },
     {
       "evidence": {
@@ -1682,7 +1682,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -1691,25 +1691,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.EngineAdapter.Spatial"
-    },
-    {
-      "evidence": {
-        "line": 13,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
-    },
-    {
-      "evidence": {
-        "line": 14,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Saves"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -1718,11 +1700,47 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Serialization"
+      "target": "namespace:Forge.Domain.Quests"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.EngineAdapter.Spatial"
     },
     {
       "evidence": {
         "line": 15,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Saves"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 17,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "imports",
@@ -2397,7 +2415,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 68,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2406,7 +2424,7 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 84,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2415,7 +2433,7 @@
     },
     {
       "evidence": {
-        "line": 131,
+        "line": 136,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -2429,7 +2447,7 @@
       },
       "kind": "references",
       "source": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",
-      "target": "file:docs/aurora-parity/tasks/G7-10-EDITOR-CAMERA-NAVIGATION.md"
+      "target": "file:docs/aurora-parity/tasks/G7-11-CORE-LIFECYCLE-EVENTS.md"
     },
     {
       "evidence": {
@@ -4432,6 +4450,87 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "imports",
@@ -6336,6 +6435,60 @@
       "kind": "imports",
       "source": "file:tests/Forge.Domain.Tests/Entities/EntityPropertyOverridesTests.cs",
       "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -11650,6 +11803,123 @@
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleDispatchResult",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleDispatchResult",
+      "target": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleDispatchResult",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent",
+      "target": "model:Forge.Domain.Areas.PortalId"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent",
+      "target": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEventId"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent",
+      "target": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEventKind"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent",
+      "target": "model:Forge.Domain.Modules.ModuleId"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEventId",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEventId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEventKind",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "defined_in",
@@ -12414,7 +12684,7 @@
     },
     {
       "evidence": {
-        "line": 1486,
+        "line": 1551,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -13917,6 +14187,78 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeAuthority.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeAuthority.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCause.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCause.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEventId.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
@@ -14265,6 +14607,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Tests.Entities",
       "target": "file:tests/Forge.Domain.Tests/Entities/EntityPropertyOverridesTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Lifecycle",
+      "target": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
     },
     {
       "evidence": {
@@ -14907,7 +15258,7 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 19,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -19299,6 +19650,186 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 156,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Areas.PortalId"
+    },
+    {
+      "evidence": {
+        "line": 149,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 148,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 149,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 150,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEventKind"
+    },
+    {
+      "evidence": {
+        "line": 135,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 152,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 150,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "type:Forge.Domain.Lifecycle.RuntimeAuthority"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "type:Forge.Domain.Lifecycle.RuntimeLifecycleCause"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "target": "type:Forge.Domain.Lifecycle.RuntimeLifecycleCoordinator"
+    },
+    {
+      "evidence": {
+        "line": 161,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Lifecycle.SequentialEventIds",
+      "target": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 165,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.SequentialEventIds",
+      "target": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEventId"
+    },
+    {
+      "evidence": {
+        "line": 161,
+        "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Lifecycle.SequentialEventIds",
+      "target": "type:Forge.Domain.Lifecycle.IRuntimeLifecycleEventIdSource"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Domain.Tests/Modules/ModuleIdTests.cs"
       },
@@ -21910,6 +22441,51 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.IRuntimeLifecycleEventIdSource",
+      "target": "file:src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.RandomRuntimeLifecycleEventIdSource",
+      "target": "file:src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeAuthority.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.RuntimeAuthority",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeAuthority.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCause.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.RuntimeLifecycleCause",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCause.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.RuntimeLifecycleCoordinator",
+      "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Domain/Modules/ProjectBlackboard.cs"
       },
       "kind": "defined_in",
@@ -22395,7 +22971,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 22,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -22404,7 +22980,7 @@
     },
     {
       "evidence": {
-        "line": 1454,
+        "line": 1519,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -22926,8 +23502,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:12b3af44b2b6477ac064e33452facc493c9a659f5de84c889d4b8ff00b14daaa",
-    "source_file_count": 593
+    "source_digest": "sha256:8a76e56f0051fd28ffc0f0c25017e5293808b0191917cecd54ba7e1b320a9e2c",
+    "source_file_count": 603
   },
   "nodes": [
     {
@@ -25071,6 +25647,16 @@
       "path": "docs/aurora-parity/tasks/G7-10-EDITOR-CAMERA-NAVIGATION.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-11-CORE-LIFECYCLE-EVENTS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-11-CORE-LIFECYCLE-EVENTS.md",
+      "path": "docs/aurora-parity/tasks/G7-11-CORE-LIFECYCLE-EVENTS.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -26451,6 +27037,86 @@
       "path": "src/Forge.Domain/Forge.Domain.csproj"
     },
     {
+      "id": "file:src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "IRuntimeLifecycleEventIdSource.cs",
+      "path": "src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Lifecycle/RuntimeAuthority.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimeAuthority.cs",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeAuthority.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCause.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimeLifecycleCause.cs",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCause.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimeLifecycleCoordinator.cs",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimeLifecycleDispatchResult.cs",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimeLifecycleEvent.cs",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEventId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimeLifecycleEventId.cs",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimeLifecycleEventKind.cs",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Modules/ModuleDefinition.cs",
       "kind": "file",
       "line": 1,
@@ -27729,6 +28395,16 @@
       },
       "name": "Forge.Domain.Tests.csproj",
       "path": "tests/Forge.Domain.Tests/Forge.Domain.Tests.csproj"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimeLifecycleCoordinatorTests.cs",
+      "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Modules/ModuleIdTests.cs",
@@ -30701,6 +31377,46 @@
       "path": "src/Forge.Domain/Entities/EntityPropertyValueKind.cs"
     },
     {
+      "id": "model:Forge.Domain.Lifecycle.RuntimeLifecycleDispatchResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "RuntimeLifecycleDispatchResult",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEvent",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "RuntimeLifecycleEvent",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEvent.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEventId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "RuntimeLifecycleEventId",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEventKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "RuntimeLifecycleEventKind",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs"
+    },
+    {
       "id": "model:Forge.Domain.Modules.ModuleDefinition",
       "kind": "model",
       "line": 5,
@@ -31143,7 +31859,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 1486,
+      "line": 1551,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -31382,6 +32098,11 @@
       "name": "Forge.Domain.Entities"
     },
     {
+      "id": "namespace:Forge.Domain.Lifecycle",
+      "kind": "namespace",
+      "name": "Forge.Domain.Lifecycle"
+    },
+    {
       "id": "namespace:Forge.Domain.Modules",
       "kind": "namespace",
       "name": "Forge.Domain.Modules"
@@ -31430,6 +32151,11 @@
       "id": "namespace:Forge.Domain.Tests.Entities",
       "kind": "namespace",
       "name": "Forge.Domain.Tests.Entities"
+    },
+    {
+      "id": "namespace:Forge.Domain.Tests.Lifecycle",
+      "kind": "namespace",
+      "name": "Forge.Domain.Tests.Lifecycle"
     },
     {
       "id": "namespace:Forge.Domain.Tests.Modules",
@@ -32057,6 +32783,26 @@
       },
       "name": "EntityPropertyOverridesTests",
       "path": "tests/Forge.Domain.Tests/Entities/EntityPropertyOverridesTests.cs"
+    },
+    {
+      "id": "test:Forge.Domain.Tests.Lifecycle.RuntimeLifecycleCoordinatorTests",
+      "kind": "test",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Lifecycle"
+      },
+      "name": "RuntimeLifecycleCoordinatorTests",
+      "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+    },
+    {
+      "id": "test:Forge.Domain.Tests.Lifecycle.SequentialEventIds",
+      "kind": "test",
+      "line": 161,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Lifecycle"
+      },
+      "name": "SequentialEventIds",
+      "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
     },
     {
       "id": "test:Forge.Domain.Tests.Modules.ModuleIdTests",
@@ -32936,6 +33682,56 @@
       "path": "src/Forge.Domain/Entities/EntityPropertyOverrides.cs"
     },
     {
+      "id": "type:Forge.Domain.Lifecycle.IRuntimeLifecycleEventIdSource",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "IRuntimeLifecycleEventIdSource",
+      "path": "src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Lifecycle.RandomRuntimeLifecycleEventIdSource",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "RandomRuntimeLifecycleEventIdSource",
+      "path": "src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Lifecycle.RuntimeAuthority",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "RuntimeAuthority",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeAuthority.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Lifecycle.RuntimeLifecycleCause",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "RuntimeLifecycleCause",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCause.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Lifecycle.RuntimeLifecycleCoordinator",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "RuntimeLifecycleCoordinator",
+      "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+    },
+    {
       "id": "type:Forge.Domain.Modules.ProjectBlackboard",
       "kind": "type",
       "line": 3,
@@ -33448,7 +34244,7 @@
     {
       "id": "type:Forge.Runtime.GameRoot",
       "kind": "type",
-      "line": 20,
+      "line": 22,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -33458,7 +34254,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 1454,
+      "line": 1519,
       "metadata": {
         "namespace": "Forge.Runtime"
       },

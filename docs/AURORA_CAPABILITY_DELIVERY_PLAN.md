@@ -209,10 +209,10 @@ créateur peut modifier, exporter et jouer la Crypte sans IA et sans outil propr
 
 ### G7 — Creator Core complet P0/P1
 
-**État.** En cours. G7-01 à G7-10 sont franchis avec le second module générique, la coque Creator,
+**État.** En cours. G7-01 à G7-11 sont franchis avec le second module générique, la coque Creator,
 le catalogue Blueprints, la manipulation directe, les zones indépendantes, le clipboard
-sémantique, la recherche globale et le refactoring sûr, la configuration du module, les palettes puis la caméra auteur ; G7-11 est
-la prochaine tâche.
+sémantique, la recherche globale et le refactoring sûr, la configuration du module, les palettes,
+la caméra auteur puis les événements Core ; G7-12 est la prochaine tâche.
 
 **Domaines.** `SHELL`, `PROJECT`, `AREA`, `PALETTE`, parties Core de `PLACEABLE`, `DOOR`, `TRIGGER`,
 `WAYPOINT`, `AUDIO`, `GAMEPLAY`, `CONTENT`, `BUILD`, `QA` et `EE` indispensable.
@@ -429,7 +429,8 @@ La file active est maintenant :
 | 9 | G7-08 | ORF-PROJ-002, 019 | Terminé partiellement : métadonnées localisées du module et blackboard global typé. |
 | 10 | G7-09 | ORF-SHELL-005, ORF-PAL-006, 016 | Terminé partiellement : palettes Standard/Custom, filtres, lecture seule et provenance. |
 | 11 | G7-10 | ORF-SHELL-007 | Terminé partiellement : navigation caméra, focus, vues, vitesse, pilote et bookmarks. |
-| 12 | G7-11 | ORF-PROJ-006, ORF-AREA-022 | Événements de cycle de vie Core ordonnés et observables. |
+| 12 | G7-11 | ORF-PROJ-006, ORF-AREA-022 | Terminé partiellement : événements Core ordonnés, versionnés, observables et branchés au runtime. |
+| 13 | G7-12 | ORF-PROJ-021, ORF-PAL-015, ORF-BUILD-005 | Cache ForgeScript indexé et graphe de dépendances pour les rebuilds incrémentaux. |
 
 Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md`,
 `docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md` et
@@ -440,7 +441,8 @@ Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODUL
 `docs/aurora-parity/tasks/G7-07-GLOBAL-SEARCH-SAFE-RENAME.md` et
 `docs/aurora-parity/tasks/G7-08-MODULE-METADATA-VARIABLES.md` et
 `docs/aurora-parity/tasks/G7-09-STANDARD-CUSTOM-PALETTES.md` et
-`docs/aurora-parity/tasks/G7-10-EDITOR-CAMERA-NAVIGATION.md`.
+`docs/aurora-parity/tasks/G7-10-EDITOR-CAMERA-NAVIGATION.md` et
+`docs/aurora-parity/tasks/G7-11-CORE-LIFECYCLE-EVENTS.md`.
 
 ## 7. Graphe de dépendances
 

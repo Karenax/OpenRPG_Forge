@@ -62,9 +62,11 @@ G7-09 sépare les palettes Standard et Custom, verrouille les packs installés e
 licence, origine IA, favoris et contenus temporaires filtrables dans l’écran Blueprints Aurora.
 G7-10 livre la caméra auteur orbit/pan/zoom, le focus, les vues orthographiques, la vitesse et les
 bookmarks persistés hors du document de module.
+G7-11 livre les événements Core de chargement projet, entrée de zone, démarrage monde et transition,
+avec ordre déterministe, contexte versionné, autorité, diagnostics et observation runtime.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-11 — événements de cycle de vie Core**.
+La prochaine tranche est **G7-12 — cache ForgeScript et dépendances incrémentales**.
 
 ## Phase 6 — 3D assistée
 

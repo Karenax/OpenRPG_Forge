@@ -123,6 +123,11 @@ vitesse — sont accompagnées d’une aide directe aux gestes souris et au pilo
 est signalée explicitement ; les bookmarks restent une préférence auteur et ne salissent ni
 l’historique ni le package du module.
 
+G7-11 garde les événements de cycle de vie hors de l'espace visuel principal : leur séquence,
+binding, autorité, cause et contexte apparaissent dans le journal de playtest structuré. Une erreur
+de cycle de vie conserve un code et un chemin de document exploitables par la navigation des
+diagnostics, sans interrompre l'auteur avec une boîte de dialogue opaque.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

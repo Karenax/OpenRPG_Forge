@@ -184,7 +184,7 @@ try {
         -Name 'generic-starter' `
         -ProjectPath $runtimePath `
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $starterLog, '--', '--module-package', $starterArtifact, '--generic-smoke-test') `
-        -Markers @('OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=les-iles-brisees', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=2 collisions=1', 'OPENRPG_FORGE_RUNTIME_GENERIC_SMOKE_PASS slug=les-iles-brisees entities=2 collisions=1 combat=false interaction=empty') `
+        -Markers @('OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=les-iles-brisees', 'OPENRPG_FORGE_RUNTIME_LIFECYCLE_PASS events=3 order=ProjectLoaded>AreaEntered>WorldStarted authority=SinglePlayer', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=2 collisions=1', 'OPENRPG_FORGE_RUNTIME_GENERIC_SMOKE_PASS slug=les-iles-brisees entities=2 collisions=1 combat=false interaction=empty') `
         -StopAfterMarkers $false
 
     $mcpHostProject = Join-Path $repositoryRoot 'apps\Forge.McpHost\Forge.McpHost.csproj'
