@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-06 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-07 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -30,6 +30,9 @@ G7-05 sépare les zones en documents versionnés, partage un contexte de zone ac
 l’explorateur, l’aperçu et les commandes, puis ajoute l’assistant « Zones & transitions ».
 G7-06 ajoute un clipboard sémantique, le collage et la duplication d’entités avec UUID neufs, ainsi
 que la copie complète ou gabarit d’une zone avec remapping contrôlé de ses transitions.
+G7-07 ajoute un index de recherche global dérivé, les références inversées Core et un renommage
+transactionnel prévisualisé qui conserve les UUID du projet, module, zones, blueprints, dialogues et
+quêtes.
 
 ## État prouvé
 
@@ -40,7 +43,7 @@ que la copie complète ou gabarit d’une zone avec remapping contrôlé de ses 
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 163 tests .NET et 23 tests Python réussis ;
+- 172 tests .NET et 23 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -90,6 +93,9 @@ que la copie complète ou gabarit d’une zone avec remapping contrôlé de ses 
 - clipboard G7-06 : payload sémantique versionné, collage et duplication d’entités avec nouveaux
   UUID, validation spatiale, aperçu et historique ; copie complète ou gabarit d’une zone, remapping
   des ancres et transitions internes, politique explicite pour les références externes et round-trip ;
+- recherche G7-07 : index plein texte accent-insensible avec filtres de type et de tag, chemins et
+  provenance, usages inversés des références Core, ciblage dans la sélection partagée et renommage
+  sûr prévisualisé avec dry-run, validation, UUID stable, undo/redo et round-trip ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -102,6 +108,8 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   axes contraints, coordonnées locales/globales, alignements ou multi-sélection ;
 - le clipboard n’expose pas encore couper ni la copie multi-sélection depuis le viewport, et la
   duplication de zone ne porte pas les futurs documents terrain, navigation, éclairage ou audio ;
+- la recherche globale couvre les documents Core canoniques existants et les diagnostics ; scripts,
+  assets, graphes auteur, terrains, navigation et audio y entreront avec leurs schémas versionnés ;
 - les transitions de zone sont éditables, persistées et validées mais pas encore déclenchées par le
   runtime ; orientation, hooks, streaming et génération automatique du lien inverse restent à faire ;
 - la coque expose les neuf workspaces et relie Monde, Blueprints et Dialogues ; le premier catalogue
@@ -154,6 +162,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-07 — recherche globale et refactoring sûr** pour `ORF-SHELL-015`, `ORF-SHELL-016` et
-`ORF-SHELL-017` : rechercher les objets du projet, afficher leurs références, prévisualiser un
-renommage sémantique puis l’appliquer avec diagnostics et undo/redo.
+Ouvrir **G7-08 — métadonnées et variables du module** pour `ORF-PROJ-002` et `ORF-PROJ-019` :
+modéliser les informations de publication localisées et un blackboard global typé, les persister,
+les rendre éditables dans le Creator puis les prouver dans un second module générique.

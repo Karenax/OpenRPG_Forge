@@ -54,9 +54,11 @@ instance et références inversées. G7-04 ajoute le glisser-déposer dans le Mo
 mutation, le fantôme vert/rouge, la sélection directe et le gizmo Forge X/Z avec undo/redo. G7-05
 sépare les zones et leurs transitions. G7-06 ajoute le clipboard sémantique, la duplication avec
 nouveaux UUID et la copie complète ou gabarit d’une zone.
+G7-07 livre la recherche globale structurée, les références inversées et le renommage sûr avec UUID
+stables, prévisualisation et historique partagé.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-07 — recherche globale, références et renommage sûr**.
+La prochaine tranche est **G7-08 — métadonnées localisées et variables typées du module**.
 
 ## Phase 6 — 3D assistée
 

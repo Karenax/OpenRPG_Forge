@@ -45,6 +45,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetQuestHandler _setQuestHandler = new(new SystemClock());
     private readonly UpsertBlueprintHandler _upsertBlueprintHandler = new(new SystemClock());
     private readonly CreateBlueprintFromEntityHandler _createBlueprintFromEntityHandler = new(new SystemClock());
+    private readonly SafeRenameHandler _safeRenameHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -67,6 +68,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _newModuleButton;
     private Button? _dialoguesButton;
     private Button? _areasButton;
+    private Button? _searchButton;
     private Button? _reloadButton;
     private Button? _saveButton;
     private Button? _exportButton;
@@ -116,6 +118,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _entityPropertiesCancelButton;
     private DialogueEditorWindow? _dialogueEditor;
     private BlueprintCatalogWindow? _blueprintCatalog;
+    private GlobalSearchWindow? _globalSearch;
     private AreaWorkspaceWindow? _areaWorkspace;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
@@ -167,6 +170,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             selection => { _selectionContext.Replace(selection); },
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_blueprintCatalog);
+        _globalSearch = new GlobalSearchWindow();
+        _globalSearch.Initialize(
+            () => _history?.State,
+            GetSearchDiagnostics,
+            ApplySafeRename,
+            PublishSearchSelection,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_globalSearch);
         _areaWorkspace = new AreaWorkspaceWindow();
         _areaWorkspace.Initialize(
             () => _history?.State,
@@ -238,6 +249,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _newModuleButton = null;
         _dialoguesButton = null;
         _areasButton = null;
+        _searchButton = null;
         _reloadButton = null;
         _saveButton = null;
         _exportButton = null;
@@ -287,6 +299,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _entityPropertiesCancelButton = null;
         _dialogueEditor = null;
         _blueprintCatalog = null;
+        _globalSearch = null;
         _areaWorkspace = null;
         _creatorShell = null;
         _projectSession = null;
@@ -354,6 +367,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _newModuleButton = GetControl<Button>("Margin/Content/Actions/NewModuleButton");
         _dialoguesButton = GetControl<Button>("Margin/Content/Actions/DialoguesButton");
         _areasButton = GetControl<Button>("Margin/Content/Actions/AreasButton");
+        _searchButton = GetControl<Button>("Margin/Content/Actions/SearchButton");
         _reloadButton = GetControl<Button>("Margin/Content/Actions/ValidateButton");
         _saveButton = GetControl<Button>("Margin/Content/Actions/SaveButton");
         _exportButton = GetControl<Button>("Margin/Content/Actions/ExportButton");
@@ -668,6 +682,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _newModuleButton!.Pressed += ShowNewModuleDialog;
         _dialoguesButton!.Pressed += OpenDialogueEditor;
         _areasButton!.Pressed += OpenAreaWorkspace;
+        _searchButton!.Pressed += OpenGlobalSearch;
         _reloadButton!.Pressed += ReloadProject;
         _saveButton!.Pressed += SaveProject;
         _exportButton!.Pressed += ShowExportDialog;
@@ -712,6 +727,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_newModuleButton is not null) _newModuleButton.Pressed -= ShowNewModuleDialog;
         if (_dialoguesButton is not null) _dialoguesButton.Pressed -= OpenDialogueEditor;
         if (_areasButton is not null) _areasButton.Pressed -= OpenAreaWorkspace;
+        if (_searchButton is not null) _searchButton.Pressed -= OpenGlobalSearch;
         if (_reloadButton is not null) _reloadButton.Pressed -= ReloadProject;
         if (_saveButton is not null) _saveButton.Pressed -= SaveProject;
         if (_exportButton is not null) _exportButton.Pressed -= ShowExportDialog;
@@ -787,6 +803,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        PublishSearchSelection(selection);
+    }
+
+    private void PublishSearchSelection(CreatorSelection selection)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+
         if (_history is not null && selection.Kind == CreatorSelectionKind.Area)
         {
             ActivateArea(AreaId.Parse(selection.Id));
@@ -816,6 +839,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
             }
         }
     }
+
+    private IReadOnlyList<CreatorDiagnostic> GetSearchDiagnostics() => _history is null
+        ? []
+        : CreatorDiagnostics.FromProject(
+            _history.State.Project,
+            $"revision:{_history.State.Revision}");
 
     private void HandleDiagnosticSelection(CreatorDiagnostic diagnostic)
     {
@@ -942,6 +971,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private void OpenBlueprintCatalog() => _blueprintCatalog?.Open();
 
     private void OpenAreaWorkspace() => _areaWorkspace?.Open();
+
+    private void OpenGlobalSearch() => _globalSearch?.Open();
 
     private bool ActivateArea(AreaId areaId)
     {
@@ -1210,6 +1241,50 @@ public partial class ForgeEditorPlugin : EditorPlugin
             blueprint.Id.ToString(),
             blueprint.DisplayName,
             $"blueprints/{blueprint.Id}"));
+    }
+
+    private bool ApplySafeRename(SafeRenamePreview preview)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new SafeRenameCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            preview.TargetKind,
+            preview.TargetId,
+            preview.NewDisplayName,
+            preview.NewSlug,
+            DryRun: false);
+        var dryRun = _safeRenameHandler.Handle(_history.State, command with { DryRun = true });
+        if (!dryRun.Succeeded)
+        {
+            return ApplyCommand(dryRun, string.Empty, selectedEntityId: null);
+        }
+
+        var selectedEntityId = GetSelectedEntity()?.Id;
+        if (!ApplyCommand(
+                _safeRenameHandler.Handle(_history.State, command),
+                $"{preview.TargetKind} « {preview.NewDisplayName} » renommé sans modifier son UUID.",
+                selectedEntityId))
+        {
+            return false;
+        }
+
+        if (_selectionContext.Current.Count == 1 &&
+            _selectionContext.Current[0].Id == preview.TargetId)
+        {
+            var selection = _selectionContext.Current[0];
+            _selectionContext.Replace(new CreatorSelection(
+                selection.Kind,
+                selection.Id,
+                preview.NewDisplayName,
+                selection.DocumentPath));
+        }
+
+        return true;
     }
 
     private bool ApplyDialogue(DialogueDefinition dialogue)
@@ -1936,7 +2011,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _placeButton is null || _revisionLabel is null ||
             _undoButton is null || _redoButton is null || _playButton is null ||
             _overridesButton is null || _overridesSummary is null || _dialoguesButton is null ||
-            _areasButton is null || _copyButton is null || _pasteButton is null ||
+            _areasButton is null || _searchButton is null || _copyButton is null || _pasteButton is null ||
             _duplicateButton is null || _clipboardSummary is null)
         {
             return;
@@ -2018,6 +2093,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         RefreshCreatorShell();
         _blueprintCatalog?.Refresh();
         _areaWorkspace?.Refresh();
+        _globalSearch?.Refresh();
         PublishSelectedEntity();
     }
 
@@ -2047,6 +2123,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _playButton!.Disabled = !enabled || _spawnEntityIds.Count == 0 || _playtestRunning;
         _dialoguesButton!.Disabled = !enabled;
         _areasButton!.Disabled = !enabled;
+        _searchButton!.Disabled = !enabled;
         _exportButton!.Disabled = !enabled;
     }
 
@@ -2382,6 +2459,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunSemanticClipboardSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunGlobalSearchAndRenameSmokeTest())
         {
             return;
         }
@@ -2934,6 +3016,88 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             "OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone " +
             "uuids=remapped preview=available history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunGlobalSearchAndRenameSmokeTest()
+    {
+        if (_history is null || _globalSearch is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G707_SEARCH_FAILED missing_search");
+            return false;
+        }
+
+        var project = _history.State.Project;
+        var referenceIndex = CreatorReferenceIndex.Build(project);
+        var blueprint = project.Blueprints
+            .OrderByDescending(candidate => referenceIndex
+                .Find(CreatorContentKind.Blueprint, candidate.Id.ToString()).Count)
+            .ThenBy(candidate => candidate.DisplayName, StringComparer.Ordinal)
+            .First();
+        var initialName = blueprint.DisplayName;
+        var initialSlug = blueprint.Slug;
+        var referenceCount = referenceIndex
+            .Find(CreatorContentKind.Blueprint, blueprint.Id.ToString()).Count;
+        if (_globalSearch.SearchForSmokeTest(string.Empty, CreatorContentKind.Blueprint) != project.Blueprints.Count ||
+            !_globalSearch.SelectDocumentForSmokeTest(CreatorContentKind.Blueprint, blueprint.Id.ToString()) ||
+            _globalSearch.VisibleReferenceCount != referenceCount ||
+            !_globalSearch.PreviewRenameForSmokeTest($"{initialName} G707", $"{initialSlug}-g707") ||
+            !_globalSearch.ApplyRenameForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G707_SEARCH_FAILED ui_workflow");
+            return false;
+        }
+
+        var renamed = _history.State.Project.Blueprints.Single(candidate => candidate.Id == blueprint.Id);
+        if (renamed.DisplayName != $"{initialName} G707" || renamed.Slug != $"{initialSlug}-g707" ||
+            CreatorReferenceIndex.Build(_history.State.Project)
+                .Find(CreatorContentKind.Blueprint, blueprint.Id.ToString()).Count != referenceCount)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G707_SEARCH_FAILED stable_identity");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "search-rename-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var creation = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var persisted = reopened.Session?.Project.Blueprints
+                .SingleOrDefault(candidate => candidate.Id == blueprint.Id);
+            if (!creation.Succeeded || !reopened.Succeeded || persisted is null ||
+                persisted.DisplayName != renamed.DisplayName || persisted.Slug != renamed.Slug)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G707_SEARCH_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        var restored = _history.State.Project.Blueprints.Single(candidate => candidate.Id == blueprint.Id);
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            restored.DisplayName != initialName || restored.Slug != initialSlug)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G707_SEARCH_FAILED history");
+            return false;
+        }
+
+        RefreshEditorControls();
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_G707_SEARCH_PASS search=global references={referenceCount} " +
+            "rename=stable-uuid history=restored persistence=roundtrip");
         return true;
     }
 
