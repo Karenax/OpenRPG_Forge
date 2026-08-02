@@ -58,9 +58,11 @@ G7-07 livre la recherche globale structurée, les références inversées et le 
 stables, prévisualisation et historique partagé.
 G7-08 ajoute les métadonnées de publication localisées, les variables typées et scopées, leur écran
 Aurora, leur persistance 0.8 et le blackboard runtime validé.
+G7-09 sépare les palettes Standard et Custom, verrouille les packs installés et rend provenance,
+licence, origine IA, favoris et contenus temporaires filtrables dans l’écran Blueprints Aurora.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-09 — palettes Standard et Custom avec provenance**.
+La prochaine tranche est **G7-10 — navigation caméra d’auteur**.
 
 ## Phase 6 — 3D assistée
 

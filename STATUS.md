@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-08 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-09 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -36,6 +36,9 @@ quêtes.
 G7-08 rend configurables les métadonnées de publication localisées et les variables globales typées,
 les persiste dans le format 0.8, les indexe dans la recherche et branche le runtime sur un blackboard
 validé.
+G7-09 sépare les palettes Standard et Custom : packs installés en lecture seule, contenu projet,
+généré, favori et temporaire partagent un catalogue canonique, des filtres Aurora et une provenance
+versionnée avec auteur, SPDX, hash, modifications et origine IA.
 
 ## État prouvé
 
@@ -46,14 +49,14 @@ validé.
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 181 tests .NET et 23 tests Python réussis ;
+- 187 tests .NET et 23 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
   icônes des fenêtres Forge personnalisées puis contrôlées par le smoke test et une capture ciblée ;
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
 - assistant Nouveau module validé : agrégat module, zone d’entrée, sol, spawn et workspace atomique
-  indexé au format `0.8.0`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
+  indexé au format `0.8.1`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
   `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
   édition visuelle, sérialisation, commande transactionnelle, dry-run, audit, undo/redo et smoke ;
@@ -102,6 +105,8 @@ validé.
 - configuration G7-08 : publication localisée avec auteur, version, licence, image, tags,
   classification et crédits ; variables à UUID, type, valeur par défaut, scope et provenance ;
   éditeur à aperçu obligatoire, format workspace 0.8, package versionné et blackboard runtime ;
+- palettes G7-09 : catalogue unique filtrable par pack installé, projet, généré, favori et temporaire,
+  packs verrouillés, provenance versionnée visible, recherche, dry-run, historique et round-trip ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -127,8 +132,8 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   encore une direction artistique de production avec modèles, animations, audio et VFX finis ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
   l'éditeur et les permissions interactives restent à faire avant un usage multi-processus général ;
-- le catalogue de blueprints ne gère pas encore versions, paramètres exposés, provenance/licence,
-  miniatures, namespaces de packages, tags ou profils de combat ; les éditeurs complets de quêtes
+- le catalogue de blueprints ne gère pas encore versions, paramètres exposés, miniatures,
+  namespaces et registre réel de packages, tags ou profils de compatibilité ; les éditeurs complets de quêtes
   et autres agrégats restent à livrer pour des modules entièrement originaux ;
 - la branche RPG du runtime de démonstration contient encore des comportements spécifiques à Elyra,
   la clé, la porte et le boss ; le démarrage Core générique est séparé mais l'extraction complète
@@ -170,6 +175,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-09 — palettes Standard et Custom** pour `ORF-SHELL-005` : distinguer clairement packs
-installés, contenu du projet, contenu généré, favoris et temporaire, avec provenance et filtres dans
-le Creator sans dupliquer le catalogue canonique.
+Ouvrir **G7-10 — navigation caméra d’auteur** pour `ORF-SHELL-007` : orbite, panoramique, zoom,
+focus sur la sélection, vues cardinales et vitesse réglable dans le viewport Creator, avec état
+testable indépendant du moteur et sans modifier le document du module.

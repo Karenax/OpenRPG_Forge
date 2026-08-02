@@ -11,15 +11,19 @@ public partial class BlueprintCatalogWindow : Window
 {
     private readonly List<BlueprintId> _visibleBlueprintIds = [];
     private readonly BlueprintKind[] _kinds = Enum.GetValues<BlueprintKind>();
+    private readonly BlueprintPaletteView[] _paletteViews = Enum.GetValues<BlueprintPaletteView>();
+    private readonly BlueprintPaletteOrigin[] _paletteOrigins = Enum.GetValues<BlueprintPaletteOrigin>();
 
     private Func<ProjectState?>? _getState;
     private Func<BlueprintId, string, string, BlueprintKind, bool>? _upsertBlueprint;
     private Func<BlueprintId, string, string, bool>? _createFromSelection;
+    private Func<BlueprintId, BlueprintPaletteOrigin, bool, BlueprintProvenance, bool>? _configurePalette;
     private Action<CreatorSelection>? _publishSelection;
     private Action<Window>? _brandWindow;
     private BlueprintId? _draftBlueprintId;
 
     private LineEdit? _search;
+    private OptionButton? _paletteView;
     private ItemList? _blueprintList;
     private Label? _catalogSummary;
     private LineEdit? _displayName;
@@ -31,32 +35,47 @@ public partial class BlueprintCatalogWindow : Window
     private Label? _referenceSummary;
     private Label? _status;
     private Button? _createFromSelectionButton;
+    private Button? _saveDefinitionButton;
+    private OptionButton? _paletteOrigin;
+    private CheckButton? _favorite;
+    private LineEdit? _provenanceSource;
+    private LineEdit? _provenanceAuthor;
+    private LineEdit? _provenanceLicense;
+    private LineEdit? _provenanceHash;
+    private CheckButton? _aiGenerated;
+    private TextEdit? _modifications;
+    private Label? _readOnlyBadge;
 
     public int VisibleBlueprintCount => _visibleBlueprintIds.Count;
 
     public int ReferenceCount => _referenceList?.ItemCount ?? 0;
 
+    public bool SelectedIsReadOnly => _saveDefinitionButton?.Disabled ?? false;
+
     public void Initialize(
         Func<ProjectState?> getState,
         Func<BlueprintId, string, string, BlueprintKind, bool> upsertBlueprint,
         Func<BlueprintId, string, string, bool> createFromSelection,
+        Func<BlueprintId, BlueprintPaletteOrigin, bool, BlueprintProvenance, bool> configurePalette,
         Action<CreatorSelection> publishSelection,
         Action<Window> brandWindow)
     {
         ArgumentNullException.ThrowIfNull(getState);
         ArgumentNullException.ThrowIfNull(upsertBlueprint);
         ArgumentNullException.ThrowIfNull(createFromSelection);
+        ArgumentNullException.ThrowIfNull(configurePalette);
         ArgumentNullException.ThrowIfNull(publishSelection);
         ArgumentNullException.ThrowIfNull(brandWindow);
         _getState = getState;
         _upsertBlueprint = upsertBlueprint;
         _createFromSelection = createFromSelection;
+        _configurePalette = configurePalette;
         _publishSelection = publishSelection;
         _brandWindow = brandWindow;
 
         Title = "Blueprints · OpenRPG Forge";
-        MinSize = new Vector2I(1040, 700);
-        Size = new Vector2I(1040, 700);
+        MinSize = new Vector2I(1360, 760);
+        Size = new Vector2I(1360, 760);
         Transient = true;
         Exclusive = false;
         Unresizable = true;
@@ -69,7 +88,7 @@ public partial class BlueprintCatalogWindow : Window
     {
         Refresh();
         Exclusive = true;
-        PopupCentered(new Vector2I(1040, 700));
+        PopupCentered(new Vector2I(1360, 760));
         _brandWindow?.Invoke(this);
     }
 
@@ -83,17 +102,26 @@ public partial class BlueprintCatalogWindow : Window
 
         var keepId = preferredBlueprintId ?? _draftBlueprintId;
         var query = _search?.Text.Trim() ?? string.Empty;
+        var view = _paletteView is null
+            ? BlueprintPaletteView.All
+            : _paletteViews[Math.Clamp(_paletteView.Selected, 0, _paletteViews.Length - 1)];
         _visibleBlueprintIds.Clear();
         _blueprintList.Clear();
-        foreach (var blueprint in state.Project.Blueprints
-                     .Where(blueprint => Matches(blueprint, query))
-                     .OrderBy(blueprint => blueprint.DisplayName, StringComparer.Ordinal))
+        var catalog = BlueprintPaletteCatalog.Build(state.Project);
+        foreach (var item in catalog.Filter(view, query))
         {
-            _visibleBlueprintIds.Add(blueprint.Id);
-            _blueprintList.AddItem($"{blueprint.DisplayName}\n{FormatKind(blueprint.Kind)} · {blueprint.Slug}");
+            _visibleBlueprintIds.Add(item.BlueprintId);
+            var favorite = item.IsFavorite ? "★ " : string.Empty;
+            var readOnly = item.IsReadOnly ? " · lecture seule" : string.Empty;
+            _blueprintList.AddItem(
+                $"{favorite}{item.DisplayName}\n{FormatOrigin(item.Origin)} · {FormatKind(item.Kind)}{readOnly}");
+            _blueprintList.SetItemTooltip(
+                _blueprintList.ItemCount - 1,
+                $"{item.Provenance.Source}\n{item.Provenance.Author} · {item.Provenance.LicenseSpdx}");
         }
 
-        _catalogSummary!.Text = $"{_visibleBlueprintIds.Count} affiché(s) · {state.Project.Blueprints.Count} au total";
+        _catalogSummary!.Text =
+            $"{_visibleBlueprintIds.Count} affiché(s) · {catalog.Items.Count} au total · {FormatView(view)}";
         var selectedIndex = keepId is null ? -1 : _visibleBlueprintIds.FindIndex(id => id == keepId);
         if (selectedIndex >= 0)
         {
@@ -122,6 +150,41 @@ public partial class BlueprintCatalogWindow : Window
 
         SelectBlueprint(index);
         return true;
+    }
+
+    public bool SelectViewForSmokeTest(BlueprintPaletteView view)
+    {
+        var index = Array.IndexOf(_paletteViews, view);
+        if (_paletteView is null || index < 0)
+        {
+            return false;
+        }
+
+        _paletteView.Selected = index;
+        Refresh();
+        return true;
+    }
+
+    public bool ConfigurePaletteForSmokeTest(
+        BlueprintId blueprintId,
+        BlueprintPaletteOrigin origin,
+        bool isFavorite,
+        BlueprintProvenance provenance)
+    {
+        if (!SelectBlueprintForSmokeTest(blueprintId))
+        {
+            return false;
+        }
+
+        _paletteOrigin!.Selected = Array.IndexOf(_paletteOrigins, origin);
+        _favorite!.ButtonPressed = isFavorite;
+        _provenanceSource!.Text = provenance.Source;
+        _provenanceAuthor!.Text = provenance.Author;
+        _provenanceLicense!.Text = provenance.LicenseSpdx;
+        _provenanceHash!.Text = provenance.ContentHash;
+        _aiGenerated!.ButtonPressed = provenance.IsAiGenerated;
+        _modifications!.Text = string.Join('\n', provenance.Modifications);
+        return SavePaletteMetadata();
     }
 
     private void BuildUi()
@@ -155,7 +218,7 @@ public partial class BlueprintCatalogWindow : Window
         titleColumn.AddChild(title);
         titleColumn.AddChild(new Label
         {
-            Text = "Créez des définitions réutilisables, dérivez une instance et inspectez tous ses usages.",
+            Text = "Palettes Standard et Custom · origine, droits et provenance restent visibles à chaque étape.",
         });
         var newButton = new Button { Text = "+ Nouveau blueprint", CustomMinimumSize = new Vector2(190, 40) };
         newButton.AddThemeStyleboxOverride("normal", Card("38264f", "8060aa", 1, 8));
@@ -166,9 +229,15 @@ public partial class BlueprintCatalogWindow : Window
         body.AddThemeConstantOverride("separation", 14);
         root.AddChild(body);
 
-        var catalogCard = AddCard(body, new Vector2(310, 0));
-        catalogCard.AddChild(new Label { Text = "PALETTE DU PROJET" });
-        _search = new LineEdit { PlaceholderText = "Rechercher par nom, slug ou type…" };
+        var catalogCard = AddCard(body, new Vector2(290, 0));
+        catalogCard.AddChild(new Label { Text = "CATALOGUE" });
+        _paletteView = new OptionButton { CustomMinimumSize = new Vector2(0, 38) };
+        foreach (var view in _paletteViews)
+        {
+            _paletteView.AddItem(FormatView(view));
+        }
+        catalogCard.AddChild(_paletteView);
+        _search = new LineEdit { PlaceholderText = "Nom, type, licence, auteur…" };
         catalogCard.AddChild(_search);
         _catalogSummary = new Label();
         _catalogSummary.AddThemeColorOverride("font_color", new Color("a899b9"));
@@ -180,7 +249,7 @@ public partial class BlueprintCatalogWindow : Window
         };
         catalogCard.AddChild(_blueprintList);
 
-        var editorCard = AddCard(body, new Vector2(350, 0), expand: true);
+        var editorCard = AddCard(body, new Vector2(300, 0));
         editorCard.AddChild(new Label { Text = "DÉFINITION" });
         _identity = new Label { Text = "Nouvelle définition" };
         _identity.AddThemeColorOverride("font_color", new Color("ffb07c"));
@@ -213,13 +282,68 @@ public partial class BlueprintCatalogWindow : Window
             CustomMinimumSize = new Vector2(0, 42),
         };
         editorCard.AddChild(_createFromSelectionButton);
-        var saveButton = new Button { Text = "Enregistrer la définition", CustomMinimumSize = new Vector2(0, 42) };
-        saveButton.AddThemeColorOverride("font_color", Colors.White);
-        saveButton.AddThemeStyleboxOverride("normal", Card("d84f32", "ff8b63", 1, 8));
-        saveButton.Pressed += Save;
-        editorCard.AddChild(saveButton);
+        _saveDefinitionButton = new Button
+        {
+            Text = "Enregistrer la définition",
+            CustomMinimumSize = new Vector2(0, 42),
+        };
+        _saveDefinitionButton.AddThemeColorOverride("font_color", Colors.White);
+        _saveDefinitionButton.AddThemeStyleboxOverride("normal", Card("d84f32", "ff8b63", 1, 8));
+        _saveDefinitionButton.Pressed += Save;
+        editorCard.AddChild(_saveDefinitionButton);
 
-        var referenceCard = AddCard(body, new Vector2(290, 0));
+        var provenanceCard = AddCard(body, new Vector2(330, 0));
+        provenanceCard.AddChild(new Label { Text = "ORIGINE & PROVENANCE" });
+        _readOnlyBadge = new Label { Text = "CUSTOM · éditable" };
+        _readOnlyBadge.AddThemeColorOverride("font_color", new Color("9ee6b3"));
+        provenanceCard.AddChild(_readOnlyBadge);
+        _paletteOrigin = new OptionButton { CustomMinimumSize = new Vector2(0, 36) };
+        foreach (var origin in _paletteOrigins)
+        {
+            _paletteOrigin.AddItem(FormatOrigin(origin));
+        }
+        provenanceCard.AddChild(_paletteOrigin);
+        _favorite = new CheckButton { Text = "★ Ajouter aux favoris" };
+        provenanceCard.AddChild(_favorite);
+        provenanceCard.AddChild(new Label { Text = "Source canonique" });
+        _provenanceSource = new LineEdit { PlaceholderText = "project://… ou pack://…" };
+        provenanceCard.AddChild(_provenanceSource);
+        var authorLicense = new HBoxContainer();
+        authorLicense.AddThemeConstantOverride("separation", 8);
+        provenanceCard.AddChild(authorLicense);
+        _provenanceAuthor = new LineEdit
+        {
+            PlaceholderText = "Auteur",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        authorLicense.AddChild(_provenanceAuthor);
+        _provenanceLicense = new LineEdit
+        {
+            PlaceholderText = "Licence SPDX",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        authorLicense.AddChild(_provenanceLicense);
+        provenanceCard.AddChild(new Label { Text = "Hash de contenu SHA-256" });
+        _provenanceHash = new LineEdit { PlaceholderText = "64 caractères hexadécimaux ou unverified" };
+        provenanceCard.AddChild(_provenanceHash);
+        _aiGenerated = new CheckButton { Text = "Origine IA déclarée" };
+        provenanceCard.AddChild(_aiGenerated);
+        _modifications = new TextEdit
+        {
+            PlaceholderText = "Modifications, une par ligne",
+            CustomMinimumSize = new Vector2(0, 66),
+        };
+        provenanceCard.AddChild(_modifications);
+        var saveProvenanceButton = new Button
+        {
+            Text = "Prévisualiser et appliquer",
+            CustomMinimumSize = new Vector2(0, 42),
+        };
+        saveProvenanceButton.AddThemeStyleboxOverride("normal", Card("38264f", "8060aa", 1, 8));
+        saveProvenanceButton.Pressed += () => SavePaletteMetadata();
+        provenanceCard.AddChild(saveProvenanceButton);
+
+        var referenceCard = AddCard(body, new Vector2(270, 0), expand: true);
         referenceCard.AddChild(new Label { Text = "RÉFÉRENCES INVERSÉES" });
         _referenceSummary = new Label { Text = "Aucun usage" };
         _referenceSummary.AddThemeColorOverride("font_color", new Color("ffb07c"));
@@ -279,6 +403,7 @@ public partial class BlueprintCatalogWindow : Window
     {
         CloseRequested += Hide;
         _search!.TextChanged += _ => Refresh();
+        _paletteView!.ItemSelected += _ => Refresh();
         _blueprintList!.ItemSelected += SelectBlueprint;
         _createFromSelectionButton!.Pressed += CreateFromSelection;
     }
@@ -302,6 +427,15 @@ public partial class BlueprintCatalogWindow : Window
         _displayName!.Text = blueprint.DisplayName;
         _slug!.Text = blueprint.Slug;
         _kind!.Selected = Array.IndexOf(_kinds, blueprint.Kind);
+        _paletteOrigin!.Selected = Array.IndexOf(_paletteOrigins, blueprint.PaletteOrigin);
+        _favorite!.ButtonPressed = blueprint.IsFavorite;
+        _provenanceSource!.Text = blueprint.Provenance.Source;
+        _provenanceAuthor!.Text = blueprint.Provenance.Author;
+        _provenanceLicense!.Text = blueprint.Provenance.LicenseSpdx;
+        _provenanceHash!.Text = blueprint.Provenance.ContentHash;
+        _aiGenerated!.ButtonPressed = blueprint.Provenance.IsAiGenerated;
+        _modifications!.Text = string.Join('\n', blueprint.Provenance.Modifications);
+        SetReadOnlyState(blueprint.IsReadOnly());
         RefreshReferences(state, blueprint);
         _publishSelection?.Invoke(new CreatorSelection(
             CreatorSelectionKind.Blueprint,
@@ -333,6 +467,15 @@ public partial class BlueprintCatalogWindow : Window
         _displayName!.Text = "Nouveau blueprint";
         _slug!.Text = $"nouveau-blueprint-{(_getState?.Invoke()?.Project.Blueprints.Count ?? 0) + 1}";
         _kind!.Selected = 0;
+        _paletteOrigin!.Selected = Array.IndexOf(_paletteOrigins, BlueprintPaletteOrigin.ProjectContent);
+        _favorite!.ButtonPressed = false;
+        _provenanceSource!.Text = $"project://blueprints/{_draftBlueprintId}/{_slug.Text}";
+        _provenanceAuthor!.Text = "Project author";
+        _provenanceLicense!.Text = "UNLICENSED";
+        _provenanceHash!.Text = "unverified";
+        _aiGenerated!.ButtonPressed = false;
+        _modifications!.Text = string.Empty;
+        SetReadOnlyState(false);
         _referenceList!.Clear();
         _referenceSummary!.Text = "Aucun usage";
         SetStatus("Définition prête. Ajustez son nom, son slug et son type.", false);
@@ -344,6 +487,12 @@ public partial class BlueprintCatalogWindow : Window
         _identity!.Text = "Aucun blueprint visible";
         _displayName!.Text = string.Empty;
         _slug!.Text = string.Empty;
+        _provenanceSource!.Text = string.Empty;
+        _provenanceAuthor!.Text = string.Empty;
+        _provenanceLicense!.Text = string.Empty;
+        _provenanceHash!.Text = string.Empty;
+        _modifications!.Text = string.Empty;
+        SetReadOnlyState(false);
         _referenceList!.Clear();
         _referenceSummary!.Text = "Aucun usage";
     }
@@ -388,6 +537,76 @@ public partial class BlueprintCatalogWindow : Window
         }
     }
 
+    private bool SavePaletteMetadata()
+    {
+        if (_draftBlueprintId is null)
+        {
+            SetStatus("Sélectionnez d’abord un blueprint enregistré.", true);
+            return false;
+        }
+
+        var source = _provenanceSource!.Text.Trim();
+        var author = _provenanceAuthor!.Text.Trim();
+        var license = _provenanceLicense!.Text.Trim();
+        var hash = _provenanceHash!.Text.Trim();
+        if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(author) ||
+            string.IsNullOrWhiteSpace(license) || string.IsNullOrWhiteSpace(hash))
+        {
+            SetStatus("Source, auteur, licence SPDX et hash sont obligatoires.", true);
+            return false;
+        }
+
+        var modifications = _modifications!.Text
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        BlueprintProvenance provenance;
+        try
+        {
+            provenance = new BlueprintProvenance(
+                BlueprintProvenance.CurrentSchemaVersion,
+                source,
+                author,
+                license,
+                hash,
+                _aiGenerated!.ButtonPressed,
+                modifications);
+        }
+        catch (ArgumentException exception)
+        {
+            SetStatus(exception.Message, true);
+            return false;
+        }
+
+        var origin = _paletteOrigins[Math.Clamp(_paletteOrigin!.Selected, 0, _paletteOrigins.Length - 1)];
+        if (_configurePalette?.Invoke(_draftBlueprintId, origin, _favorite!.ButtonPressed, provenance) != true)
+        {
+            SetStatus("La provenance a été refusée. Consultez le diagnostic canonique.", true);
+            return false;
+        }
+
+        Refresh(_draftBlueprintId);
+        SetStatus("Aperçu validé puis origine et provenance appliquées par commande transactionnelle.", false);
+        return true;
+    }
+
+    private void SetReadOnlyState(bool readOnly)
+    {
+        _displayName!.Editable = !readOnly;
+        _slug!.Editable = !readOnly;
+        _kind!.Disabled = readOnly;
+        _saveDefinitionButton!.Disabled = readOnly;
+        _paletteOrigin!.Disabled = readOnly;
+        _provenanceSource!.Editable = !readOnly;
+        _provenanceAuthor!.Editable = !readOnly;
+        _provenanceLicense!.Editable = !readOnly;
+        _provenanceHash!.Editable = !readOnly;
+        _aiGenerated!.Disabled = readOnly;
+        _modifications!.Editable = !readOnly;
+        _readOnlyBadge!.Text = readOnly ? "STANDARD · lecture seule" : "CUSTOM · éditable";
+        _readOnlyBadge.AddThemeColorOverride(
+            "font_color",
+            new Color(readOnly ? "ffb07c" : "9ee6b3"));
+    }
+
     private bool ValidateDraft(out string displayName, out string slug, out BlueprintKind kind)
     {
         displayName = _displayName!.Text.Trim();
@@ -414,12 +633,6 @@ public partial class BlueprintCatalogWindow : Window
         _status.AddThemeColorOverride("font_color", new Color(error ? "ff8c8c" : "9ee6b3"));
     }
 
-    private static bool Matches(BlueprintDefinition blueprint, string query) =>
-        string.IsNullOrWhiteSpace(query) ||
-        blueprint.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-        blueprint.Slug.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-        FormatKind(blueprint.Kind).Contains(query, StringComparison.OrdinalIgnoreCase);
-
     private static string FormatKind(BlueprintKind kind) => kind switch
     {
         BlueprintKind.Placeable => "Décor plaçable",
@@ -429,6 +642,26 @@ public partial class BlueprintCatalogWindow : Window
         BlueprintKind.Trigger => "Déclencheur",
         BlueprintKind.Item => "Objet",
         _ => kind.ToString(),
+    };
+
+    private static string FormatOrigin(BlueprintPaletteOrigin origin) => origin switch
+    {
+        BlueprintPaletteOrigin.InstalledPack => "Pack installé",
+        BlueprintPaletteOrigin.ProjectContent => "Contenu projet",
+        BlueprintPaletteOrigin.Generated => "Contenu généré",
+        BlueprintPaletteOrigin.Temporary => "Contenu temporaire",
+        _ => origin.ToString(),
+    };
+
+    private static string FormatView(BlueprintPaletteView view) => view switch
+    {
+        BlueprintPaletteView.All => "Toutes les palettes",
+        BlueprintPaletteView.InstalledPacks => "Standard · packs installés",
+        BlueprintPaletteView.ProjectContent => "Custom · projet",
+        BlueprintPaletteView.Generated => "Généré",
+        BlueprintPaletteView.Favorites => "★ Favoris",
+        BlueprintPaletteView.Temporary => "Temporaire",
+        _ => view.ToString(),
     };
 
     private static string FormatReferenceKind(BlueprintReferenceKind kind) => kind switch

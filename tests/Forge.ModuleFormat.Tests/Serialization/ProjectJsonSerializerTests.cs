@@ -106,6 +106,29 @@ public sealed class ProjectJsonSerializerTests
     }
 
     [Fact]
+    public void Deserialize_MigratesPaletteProvenanceFormatWithProjectDefaults()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PaletteProvenanceFormatVersion;
+        foreach (var blueprint in document["project"]!["blueprints"]!.AsArray())
+        {
+            blueprint!.AsObject().Remove("paletteOrigin");
+            blueprint.AsObject().Remove("isFavorite");
+            blueprint.AsObject().Remove("provenance");
+        }
+
+        var migrated = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var restored = Assert.Single(migrated.Blueprints);
+
+        Assert.Equal(BlueprintPaletteOrigin.ProjectContent, restored.PaletteOrigin);
+        Assert.False(restored.IsFavorite);
+        Assert.StartsWith("project://", restored.Provenance.Source, StringComparison.Ordinal);
+        Assert.Contains(
+            $"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(migrated));
+    }
+
+    [Fact]
     public void Deserialize_RejectsUnsupportedFormatVersion()
     {
         var serialized = ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid());

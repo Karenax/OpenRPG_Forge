@@ -90,5 +90,5 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 ## Première tâche
 
-`tasks/G7-08-MODULE-METADATA-VARIABLES.md` est terminée. La suite est G7-09 : palettes Standard et
-Custom distinguant packs installés, contenu projet, généré, favori et temporaire avec provenance.
+`tasks/G7-09-STANDARD-CUSTOM-PALETTES.md` est terminée. La suite est G7-10 : navigation caméra
+d’auteur avec orbite, panoramique, zoom, focus, vues cardinales et vitesse réglable.

@@ -11,6 +11,7 @@ public sealed class UpsertBlueprintHandler
     public const string RevisionConflictCode = "command.revision_conflict";
     public const string InvalidSlugCode = "blueprint.slug_invalid";
     public const string DuplicateSlugCode = "blueprint.slug_duplicate";
+    public const string ReadOnlyCode = "blueprint.palette.read_only";
 
     private const string CommandName = "upsert_blueprint";
     private readonly IClock _clock;
@@ -49,6 +50,15 @@ public sealed class UpsertBlueprintHandler
         }
 
         var existing = state.Project.Blueprints.FirstOrDefault(blueprint => blueprint.Id == command.BlueprintId);
+        if (existing?.IsReadOnly() == true)
+        {
+            return Failure(
+                state,
+                command,
+                ReadOnlyCode,
+                $"Installed blueprint '{existing.Slug}' is read-only and cannot be edited in place.");
+        }
+
         var operation = existing is null ? "add" : "replace";
         var path = $"blueprints/{command.BlueprintId}";
         var patch = new ProjectPatch(operation, path, $"{(existing is null ? "Create" : "Update")} blueprint '{slug}'.");
@@ -74,7 +84,10 @@ public sealed class UpsertBlueprintHandler
             slug,
             command.DisplayName,
             command.Kind,
-            existing?.Combat);
+            existing?.Combat,
+            existing?.PaletteOrigin ?? BlueprintPaletteOrigin.ProjectContent,
+            existing?.IsFavorite ?? false,
+            existing?.Provenance);
         var blueprints = existing is null
             ? [.. state.Project.Blueprints, updated]
             : state.Project.Blueprints.Select(blueprint => blueprint.Id == updated.Id ? updated : blueprint).ToArray();

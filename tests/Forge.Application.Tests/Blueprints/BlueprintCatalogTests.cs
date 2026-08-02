@@ -107,6 +107,105 @@ public sealed class BlueprintCatalogTests
         Assert.Empty(BlueprintReferenceIndex.Build(context.State.Project).Find(NewBlueprintId));
     }
 
+    [Fact]
+    public void PaletteCatalogSeparatesOriginsFavoritesAndProvenanceSearch()
+    {
+        var context = new EntityMutationTestContext();
+        var handler = new ConfigureBlueprintPaletteHandler(new FixedClock(EntityMutationTestContext.Timestamp));
+        var provenance = GeneratedProvenance();
+        var command = new ConfigureBlueprintPaletteCommand(
+            CommandId.From(Guid.Parse("a3000000-0000-4000-8000-000000000001")),
+            context.State.Revision,
+            context.BlueprintId,
+            BlueprintPaletteOrigin.Generated,
+            true,
+            provenance,
+            DryRun: false);
+
+        var result = handler.Handle(context.State, command);
+        var catalog = BlueprintPaletteCatalog.Build(result.State.Project);
+
+        Assert.True(result.Succeeded);
+        Assert.Single(catalog.Filter(BlueprintPaletteView.Generated));
+        Assert.Single(catalog.Filter(BlueprintPaletteView.Favorites));
+        Assert.Empty(catalog.Filter(BlueprintPaletteView.ProjectContent));
+        var searched = Assert.Single(catalog.Filter(BlueprintPaletteView.All, "CC0"));
+        Assert.Equal("generator://creator/smoke", searched.Provenance.Source);
+        Assert.False(searched.IsReadOnly);
+    }
+
+    [Fact]
+    public void PaletteConfigurationSupportsDryRunUndoAndRedo()
+    {
+        var context = new EntityMutationTestContext();
+        var handler = new ConfigureBlueprintPaletteHandler(new FixedClock(EntityMutationTestContext.Timestamp));
+        var command = new ConfigureBlueprintPaletteCommand(
+            CommandId.From(Guid.Parse("a3000000-0000-4000-8000-000000000002")),
+            context.State.Revision,
+            context.BlueprintId,
+            BlueprintPaletteOrigin.Temporary,
+            false,
+            GeneratedProvenance(),
+            DryRun: false);
+
+        var preview = handler.Handle(context.State, command with { DryRun = true });
+        var history = new ProjectCommandHistory(context.State);
+        history.Record(handler.Handle(history.State, command));
+
+        Assert.True(preview.Succeeded);
+        Assert.Same(context.State, preview.State);
+        Assert.Equal("replace", preview.Patch!.Operation);
+        Assert.Equal(BlueprintPaletteOrigin.Temporary, history.State.Project.Blueprints.Single().PaletteOrigin);
+        Assert.True(history.Undo().Succeeded);
+        Assert.Equal(BlueprintPaletteOrigin.ProjectContent, history.State.Project.Blueprints.Single().PaletteOrigin);
+        Assert.True(history.Redo().Succeeded);
+        Assert.Equal(BlueprintPaletteOrigin.Temporary, history.State.Project.Blueprints.Single().PaletteOrigin);
+    }
+
+    [Fact]
+    public void InstalledPackRequiresTrustedProvenanceAndBecomesReadOnly()
+    {
+        var context = new EntityMutationTestContext();
+        var paletteHandler = new ConfigureBlueprintPaletteHandler(new FixedClock(EntityMutationTestContext.Timestamp));
+        var invalid = new ConfigureBlueprintPaletteCommand(
+            CommandId.From(Guid.Parse("a3000000-0000-4000-8000-000000000003")),
+            context.State.Revision,
+            context.BlueprintId,
+            BlueprintPaletteOrigin.InstalledPack,
+            false,
+            GeneratedProvenance(),
+            DryRun: false);
+        var trusted = invalid with
+        {
+            Provenance = new BlueprintProvenance(
+                BlueprintProvenance.CurrentSchemaVersion,
+                "pack://forge-core/1.0.0/ash-pillar",
+                "OpenRPG Forge",
+                "CC0-1.0",
+                new string('a', 64)),
+        };
+
+        var rejected = paletteHandler.Handle(context.State, invalid);
+        var configured = paletteHandler.Handle(context.State, trusted);
+        var rename = new UpsertBlueprintCommand(
+            CommandId.From(Guid.Parse("a3000000-0000-4000-8000-000000000004")),
+            configured.State.Revision,
+            context.BlueprintId,
+            "renamed-installed",
+            "Renamed installed",
+            BlueprintKind.Placeable,
+            DryRun: false);
+        var edit = new UpsertBlueprintHandler(new FixedClock(EntityMutationTestContext.Timestamp))
+            .Handle(configured.State, rename);
+
+        Assert.Equal(
+            ConfigureBlueprintPaletteHandler.InstalledSourceCode,
+            Assert.Single(rejected.Diagnostics).Code);
+        Assert.True(configured.Succeeded);
+        Assert.True(configured.State.Project.Blueprints.Single().IsReadOnly());
+        Assert.Equal(UpsertBlueprintHandler.ReadOnlyCode, Assert.Single(edit.Diagnostics).Code);
+    }
+
     private static UpsertBlueprintCommand CreateUpsert(EntityMutationTestContext context, bool dryRun = false) =>
         new(
             CommandId.From(Guid.Parse("a1000000-0000-4000-8000-000000000001")),
@@ -127,4 +226,14 @@ public sealed class BlueprintCatalogTests
             "broken-pillar",
             "Pilier brisé",
             DryRun: false);
+
+    private static BlueprintProvenance GeneratedProvenance() =>
+        new(
+            BlueprintProvenance.CurrentSchemaVersion,
+            "generator://creator/smoke",
+            "OpenRPG Forge",
+            "CC0-1.0",
+            new string('b', 64),
+            isAiGenerated: true,
+            ["Generated from the author prompt"]);
 }

@@ -178,7 +178,15 @@ public sealed class SafeRenameHandler
             : project.Areas;
         var blueprints = kind == CreatorContentKind.Blueprint
             ? project.Blueprints.Select(blueprint => blueprint.Id.ToString() == targetId
-                ? new BlueprintDefinition(blueprint.Id, slug!, displayName, blueprint.Kind, blueprint.Combat)
+                ? new BlueprintDefinition(
+                    blueprint.Id,
+                    slug!,
+                    displayName,
+                    blueprint.Kind,
+                    blueprint.Combat,
+                    blueprint.PaletteOrigin,
+                    blueprint.IsFavorite,
+                    blueprint.Provenance)
                 : blueprint).ToArray()
             : project.Blueprints;
         var dialogues = kind == CreatorContentKind.Dialogue

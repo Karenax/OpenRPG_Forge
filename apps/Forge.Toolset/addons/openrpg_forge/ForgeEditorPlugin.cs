@@ -46,6 +46,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetQuestHandler _setQuestHandler = new(new SystemClock());
     private readonly UpsertBlueprintHandler _upsertBlueprintHandler = new(new SystemClock());
     private readonly CreateBlueprintFromEntityHandler _createBlueprintFromEntityHandler = new(new SystemClock());
+    private readonly ConfigureBlueprintPaletteHandler _configureBlueprintPaletteHandler = new(new SystemClock());
     private readonly SafeRenameHandler _safeRenameHandler = new(new SystemClock());
     private readonly SetModuleConfigurationHandler _setModuleConfigurationHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
@@ -171,6 +172,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _history?.State,
             UpsertBlueprint,
             CreateBlueprintFromSelectedEntity,
+            ConfigureBlueprintPalette,
             selection => { _selectionContext.Replace(selection); },
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_blueprintCatalog);
@@ -1210,6 +1212,45 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool ConfigureBlueprintPalette(
+        BlueprintId blueprintId,
+        BlueprintPaletteOrigin origin,
+        bool isFavorite,
+        BlueprintProvenance provenance)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new ConfigureBlueprintPaletteCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            blueprintId,
+            origin,
+            isFavorite,
+            provenance,
+            DryRun: false);
+        var preview = _configureBlueprintPaletteHandler.Handle(_history.State, command with { DryRun = true });
+        if (!preview.Succeeded)
+        {
+            ApplyCommand(preview, string.Empty, GetSelectedEntity()?.Id);
+            return false;
+        }
+
+        if (!ApplyCommand(
+                _configureBlueprintPaletteHandler.Handle(_history.State, command),
+                $"Palette « {FormatPaletteOrigin(origin)} » et provenance enregistrées.",
+                GetSelectedEntity()?.Id))
+        {
+            return false;
+        }
+
+        PublishBlueprintSelection(blueprintId);
+        _blueprintCatalog?.Refresh(blueprintId);
+        return true;
+    }
+
     private bool CreateBlueprintFromSelectedEntity(
         BlueprintId blueprintId,
         string slug,
@@ -1680,6 +1721,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _ => kind.ToString(),
     };
 
+    private static string FormatPaletteOrigin(BlueprintPaletteOrigin origin) => origin switch
+    {
+        BlueprintPaletteOrigin.InstalledPack => "Standard",
+        BlueprintPaletteOrigin.ProjectContent => "Projet",
+        BlueprintPaletteOrigin.Generated => "Généré",
+        BlueprintPaletteOrigin.Temporary => "Temporaire",
+        _ => origin.ToString(),
+    };
+
     private void OpenSelectedProject(string workspaceDirectory) =>
         OpenProjectDirectory(workspaceDirectory);
 
@@ -2083,7 +2133,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         foreach (var blueprint in project.Blueprints.OrderBy(blueprint => blueprint.DisplayName, StringComparer.Ordinal))
         {
             _paletteBlueprintIds.Add(blueprint.Id);
-            _blueprintPalette.AddItem(blueprint.DisplayName);
+            var favorite = blueprint.IsFavorite ? "★ " : string.Empty;
+            _blueprintPalette.AddItem($"{favorite}{blueprint.DisplayName} · {FormatPaletteOrigin(blueprint.PaletteOrigin)}");
         }
 
         var blueprintNames = project.Blueprints.ToDictionary(blueprint => blueprint.Id, blueprint => blueprint.DisplayName);
@@ -2517,6 +2568,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunModuleConfigurationSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunPaletteProvenanceSmokeTest())
         {
             return;
         }
@@ -3262,6 +3318,167 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             $"OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed scopes=save " +
             $"format={ProjectSession.CurrentProjectFormatVersion} history=restored package=versioned");
+        return true;
+    }
+
+    private bool RunPaletteProvenanceSmokeTest()
+    {
+        if (_history is null || _blueprintCatalog is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED missing_catalog");
+            return false;
+        }
+
+        var blueprint = _history.State.Project.Blueprints.First();
+        var originalOrigin = blueprint.PaletteOrigin;
+        var originalFavorite = blueprint.IsFavorite;
+        var originalProvenance = blueprint.Provenance;
+        var installedProvenance = new BlueprintProvenance(
+            BlueprintProvenance.CurrentSchemaVersion,
+            $"pack://forge-core/1.0.0/{blueprint.Slug}",
+            "OpenRPG Forge",
+            "CC0-1.0",
+            new string('a', 64),
+            false,
+            ["Validated installed pack content"]);
+        if (!_blueprintCatalog.ConfigurePaletteForSmokeTest(
+                blueprint.Id,
+                BlueprintPaletteOrigin.InstalledPack,
+                false,
+                installedProvenance))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED installed_ui");
+            return false;
+        }
+
+        var installedCatalog = BlueprintPaletteCatalog.Build(_history.State.Project);
+        var editInstalled = _upsertBlueprintHandler.Handle(
+            _history.State,
+            new UpsertBlueprintCommand(
+                CommandId.From(Guid.NewGuid()),
+                _history.State.Revision,
+                blueprint.Id,
+                blueprint.Slug,
+                $"{blueprint.DisplayName} modifié",
+                blueprint.Kind,
+                DryRun: false));
+        if (installedCatalog.Filter(BlueprintPaletteView.InstalledPacks).Count != 1 ||
+            !_blueprintCatalog.SelectedIsReadOnly ||
+            editInstalled.Diagnostics.Count != 1 ||
+            editInstalled.Diagnostics[0].Code != UpsertBlueprintHandler.ReadOnlyCode)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED installed_readonly");
+            return false;
+        }
+
+        if (!_history.Undo().Succeeded)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED installed_undo");
+            return false;
+        }
+        RefreshEditorControls();
+
+        var temporaryProvenance = new BlueprintProvenance(
+            BlueprintProvenance.CurrentSchemaVersion,
+            $"temporary://creator/{blueprint.Id}",
+            "Creator session",
+            "UNLICENSED",
+            "unverified",
+            false,
+            ["Ephemeral authoring draft"]);
+        if (!_blueprintCatalog.ConfigurePaletteForSmokeTest(
+                blueprint.Id,
+                BlueprintPaletteOrigin.Temporary,
+                false,
+                temporaryProvenance) ||
+            BlueprintPaletteCatalog.Build(_history.State.Project)
+                .Filter(BlueprintPaletteView.Temporary).Count != 1 ||
+            !_history.Undo().Succeeded)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED temporary_scope");
+            return false;
+        }
+        RefreshEditorControls();
+
+        var generatedProvenance = new BlueprintProvenance(
+            BlueprintProvenance.CurrentSchemaVersion,
+            $"generator://creator/{blueprint.Slug}",
+            "Forge Generator",
+            "CC0-1.0",
+            new string('b', 64),
+            true,
+            ["Generated for G7-09", "Reviewed by module author"]);
+        if (!_blueprintCatalog.ConfigurePaletteForSmokeTest(
+                blueprint.Id,
+                BlueprintPaletteOrigin.Generated,
+                true,
+                generatedProvenance) ||
+            !_blueprintCatalog.SelectViewForSmokeTest(BlueprintPaletteView.Generated) ||
+            _blueprintCatalog.VisibleBlueprintCount != 1 ||
+            !_blueprintCatalog.SelectViewForSmokeTest(BlueprintPaletteView.Favorites) ||
+            _blueprintCatalog.VisibleBlueprintCount != 1)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED generated_favorite_views");
+            return false;
+        }
+
+        var search = CreatorSearchIndex.Build(_history.State.Project).Search(
+            new CreatorSearchQuery("Forge Generator", CreatorContentKind.Blueprint));
+        if (search.Count != 1 || search[0].Document.Id != blueprint.Id.ToString() ||
+            !search[0].Document.Tags.Contains("favorite", StringComparer.OrdinalIgnoreCase))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED provenance_search");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "palette-provenance-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var workspace = Path.Combine(smokeRoot, "workspace");
+            var creation = ProjectSession.Create(workspace, _history.State.Project);
+            var reopened = ProjectSession.Open(workspace);
+            var restoredBlueprint = reopened.Session?.Project.Blueprints
+                .Single(candidate => candidate.Id == blueprint.Id);
+            if (!creation.Succeeded || !reopened.Succeeded || restoredBlueprint is null ||
+                restoredBlueprint.PaletteOrigin != BlueprintPaletteOrigin.Generated ||
+                !restoredBlueprint.IsFavorite ||
+                !restoredBlueprint.Provenance.IsAiGenerated ||
+                restoredBlueprint.Provenance.LicenseSpdx != "CC0-1.0")
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        var restored = _history.State.Project.Blueprints.Single(candidate => candidate.Id == blueprint.Id);
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            restored.PaletteOrigin != originalOrigin || restored.IsFavorite != originalFavorite ||
+            restored.Provenance != originalProvenance)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED history");
+            return false;
+        }
+
+        _blueprintCatalog.SelectViewForSmokeTest(BlueprintPaletteView.All);
+        RefreshEditorControls();
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable " +
+            $"generated=provenance favorites=filtered temporary=isolated format={ProjectSession.CurrentProjectFormatVersion} " +
+            "history=restored persistence=roundtrip");
         return true;
     }
 

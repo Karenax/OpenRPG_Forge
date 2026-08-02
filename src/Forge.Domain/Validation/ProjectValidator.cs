@@ -2,6 +2,7 @@ using Forge.Domain.Areas;
 using Forge.Domain.Projects;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Quests;
+using Forge.Domain.Blueprints;
 
 namespace Forge.Domain.Validation;
 
@@ -14,6 +15,8 @@ public static class ProjectValidator
     public const string MissingPortalSourceCode = "area.portal.source_missing";
     public const string MissingPortalDestinationAreaCode = "area.portal.destination_area_missing";
     public const string MissingPortalDestinationEntityCode = "area.portal.destination_entity_missing";
+    public const string UnsupportedBlueprintProvenanceSchemaCode = "blueprint.provenance.schema_unsupported";
+    public const string InvalidInstalledBlueprintProvenanceCode = "blueprint.provenance.installed_invalid";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -23,6 +26,30 @@ public static class ProjectValidator
         var blueprintIds = project.Blueprints.Select(blueprint => blueprint.Id).ToHashSet();
         var areaIds = project.Areas.Select(area => area.Id).ToHashSet();
         var portalIds = new HashSet<PortalId>();
+
+        foreach (var blueprint in project.Blueprints)
+        {
+            var path = $"blueprints/{blueprint.Id}/provenance";
+            if (blueprint.Provenance.SchemaVersion != BlueprintProvenance.CurrentSchemaVersion)
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    UnsupportedBlueprintProvenanceSchemaCode,
+                    $"Blueprint '{blueprint.Id}' uses unsupported provenance schema {blueprint.Provenance.SchemaVersion}.",
+                    $"{path}/schemaVersion"));
+            }
+
+            if (blueprint.PaletteOrigin == BlueprintPaletteOrigin.InstalledPack &&
+                (!blueprint.Provenance.Source.StartsWith("pack://", StringComparison.Ordinal) ||
+                 string.Equals(blueprint.Provenance.LicenseSpdx, "UNLICENSED", StringComparison.OrdinalIgnoreCase) ||
+                 blueprint.Provenance.ContentHash.Length != 64 ||
+                 blueprint.Provenance.ContentHash.Any(character => !Uri.IsHexDigit(character))))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    InvalidInstalledBlueprintProvenanceCode,
+                    $"Installed blueprint '{blueprint.Id}' requires a pack:// source, SPDX license and SHA-256 hash.",
+                    path));
+            }
+        }
 
         if (!areaIds.Contains(project.Module.EntryAreaId))
         {

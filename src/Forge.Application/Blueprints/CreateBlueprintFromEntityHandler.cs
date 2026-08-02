@@ -111,7 +111,17 @@ public sealed class CreateBlueprintFromEntityHandler
             slug,
             command.DisplayName,
             source.Kind,
-            source.Combat);
+            source.Combat,
+            BlueprintPaletteOrigin.ProjectContent,
+            false,
+            new BlueprintProvenance(
+                BlueprintProvenance.CurrentSchemaVersion,
+                $"project://derived/{source.Id}",
+                source.Provenance.Author,
+                source.Provenance.LicenseSpdx,
+                source.Provenance.ContentHash,
+                source.Provenance.IsAiGenerated,
+                [.. source.Provenance.Modifications, $"Derived from blueprint {source.Id}"]));
         var retargeted = new EntityInstance(
             entity.Id,
             derived.Id,

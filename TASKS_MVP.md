@@ -381,10 +381,12 @@ Le détail et les preuves des 717 capacités restent suivis dans
   transactionnel avec aperçu, diagnostics et undo/redo.
 - [x] **G7-08 — métadonnées et variables du module** : informations de publication localisées,
   blackboard global typé, persistance et édition dans le Creator.
-- [ ] **G7-09 — palettes Standard et Custom** : packs installés, contenu projet, généré, favoris et
+- [x] **G7-09 — palettes Standard et Custom** : packs installés, contenu projet, généré, favoris et
   temporaire avec provenance et filtres cohérents.
+- [ ] **G7-10 — navigation caméra d’auteur** : orbite, panoramique, zoom, focus, vues cardinales et
+  vitesse réglable sans mutation du projet canonique.
 
-Les règles graphiques et d’interaction de G7-03 à G7-08 sont consignées dans
+Les règles graphiques et d’interaction de G7-03 à G7-09 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest

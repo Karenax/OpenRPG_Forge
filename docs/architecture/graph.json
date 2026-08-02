@@ -255,7 +255,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 22,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -264,7 +264,7 @@
     },
     {
       "evidence": {
-        "line": 57,
+        "line": 59,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -273,7 +273,7 @@
     },
     {
       "evidence": {
-        "line": 27,
+        "line": 28,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -282,7 +282,7 @@
     },
     {
       "evidence": {
-        "line": 73,
+        "line": 75,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -462,7 +462,7 @@
     },
     {
       "evidence": {
-        "line": 80,
+        "line": 82,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -471,7 +471,7 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 18,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -480,7 +480,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 34,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -489,7 +489,7 @@
     },
     {
       "evidence": {
-        "line": 127,
+        "line": 129,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -513,6 +513,15 @@
       "kind": "defined_in",
       "source": "component:Forge.Application.Areas.AreaDuplicationPreview",
       "target": "file:src/Forge.Application/Areas/AreaDuplicationPreview.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/BlueprintPaletteView.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.Application.Blueprints.BlueprintPaletteView",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintPaletteView.cs"
     },
     {
       "evidence": {
@@ -1362,7 +1371,7 @@
     },
     {
       "evidence": {
-        "line": 109,
+        "line": 114,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1371,7 +1380,7 @@
     },
     {
       "evidence": {
-        "line": 164,
+        "line": 169,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1380,7 +1389,7 @@
     },
     {
       "evidence": {
-        "line": 45,
+        "line": 48,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1416,7 +1425,7 @@
     },
     {
       "evidence": {
-        "line": 388,
+        "line": 390,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1425,7 +1434,7 @@
     },
     {
       "evidence": {
-        "line": 394,
+        "line": 396,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1434,7 +1443,7 @@
     },
     {
       "evidence": {
-        "line": 400,
+        "line": 402,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2280,7 +2289,7 @@
     },
     {
       "evidence": {
-        "line": 62,
+        "line": 64,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2289,7 +2298,7 @@
     },
     {
       "evidence": {
-        "line": 78,
+        "line": 80,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2298,7 +2307,7 @@
     },
     {
       "evidence": {
-        "line": 116,
+        "line": 124,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -2312,7 +2321,7 @@
       },
       "kind": "references",
       "source": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",
-      "target": "file:docs/aurora-parity/tasks/G7-08-MODULE-METADATA-VARIABLES.md"
+      "target": "file:docs/aurora-parity/tasks/G7-09-STANDARD-CUSTOM-PALETTES.md"
     },
     {
       "evidence": {
@@ -2632,6 +2641,33 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/BlueprintPaletteItem.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/BlueprintPaletteItem.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Blueprints/BlueprintReference.cs"
       },
       "kind": "imports",
@@ -2663,6 +2699,78 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs",
       "target": "namespace:Forge.Domain.Projects"
     },
     {
@@ -4176,6 +4284,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/Validation/ProjectValidator.cs",
       "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/ProjectValidator.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -5814,6 +5931,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -8175,6 +8301,105 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "model:Forge.Application.Blueprints.ConfigureBlueprintPaletteCommand"
+    },
+    {
+      "evidence": {
+        "line": 171,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 166,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 172,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 61,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 146,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
@@ -8193,7 +8418,7 @@
     },
     {
       "evidence": {
-        "line": 158,
+        "line": 168,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -8202,7 +8427,7 @@
     },
     {
       "evidence": {
-        "line": 153,
+        "line": 163,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -8211,7 +8436,7 @@
     },
     {
       "evidence": {
-        "line": 159,
+        "line": 169,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -8283,7 +8508,7 @@
     },
     {
       "evidence": {
-        "line": 115,
+        "line": 125,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -8292,7 +8517,7 @@
     },
     {
       "evidence": {
-        "line": 123,
+        "line": 133,
         "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
       },
       "kind": "uses_model",
@@ -8310,7 +8535,7 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 25,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -8319,7 +8544,7 @@
     },
     {
       "evidence": {
-        "line": 121,
+        "line": 134,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -8328,7 +8553,7 @@
     },
     {
       "evidence": {
-        "line": 116,
+        "line": 129,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -8337,7 +8562,7 @@
     },
     {
       "evidence": {
-        "line": 122,
+        "line": 135,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -8346,7 +8571,7 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 25,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -8355,7 +8580,7 @@
     },
     {
       "evidence": {
-        "line": 54,
+        "line": 64,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -8364,7 +8589,7 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 25,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -8373,7 +8598,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 82,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -8382,7 +8607,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 47,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -8391,7 +8616,7 @@
     },
     {
       "evidence": {
-        "line": 94,
+        "line": 107,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -8409,7 +8634,7 @@
     },
     {
       "evidence": {
-        "line": 212,
+        "line": 220,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -8418,7 +8643,7 @@
     },
     {
       "evidence": {
-        "line": 209,
+        "line": 217,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -8427,7 +8652,7 @@
     },
     {
       "evidence": {
-        "line": 213,
+        "line": 221,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -8499,7 +8724,7 @@
     },
     {
       "evidence": {
-        "line": 186,
+        "line": 194,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -8526,7 +8751,7 @@
     },
     {
       "evidence": {
-        "line": 191,
+        "line": 199,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -9729,6 +9954,33 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Blueprints.BlueprintReferenceKind",
       "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Blueprints.ConfigureBlueprintPaletteCommand",
+      "target": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.ConfigureBlueprintPaletteCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.ConfigureBlueprintPaletteCommand",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
     },
     {
       "evidence": {
@@ -11802,6 +12054,33 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/BlueprintPaletteItem.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintPaletteItem.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/BlueprintPaletteView.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintPaletteView.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Application/Blueprints/BlueprintReference.cs"
       },
@@ -11826,6 +12105,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Blueprints",
       "target": "file:src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
     },
     {
       "evidence": {
@@ -12586,6 +12883,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Blueprints/BlueprintPaletteOrigin.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Blueprints",
+      "target": "file:src/Forge.Domain/Blueprints/BlueprintPaletteOrigin.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Blueprints/BlueprintProvenance.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Blueprints",
+      "target": "file:src/Forge.Domain/Blueprints/BlueprintProvenance.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Combat/AbilityDefinition.cs"
       },
       "kind": "defined_in",
@@ -13153,6 +13468,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Blueprints",
+      "target": "file:tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "tests/Forge.Domain.Tests/Combat/CombatResolverTests.cs"
       },
       "kind": "defined_in",
@@ -13260,7 +13584,7 @@
     },
     {
       "evidence": {
-        "line": 5,
+        "line": 6,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "defined_in",
@@ -14844,12 +15168,30 @@
     },
     {
       "evidence": {
+        "line": 129,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "component:Forge.Application.Blueprints.BlueprintPaletteView"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
       },
       "kind": "defined_in",
       "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
       "target": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 114,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler"
     },
     {
       "evidence": {
@@ -14880,7 +15222,16 @@
     },
     {
       "evidence": {
-        "line": 120,
+        "line": 116,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "model:Forge.Application.Blueprints.ConfigureBlueprintPaletteCommand"
+    },
+    {
+      "evidence": {
+        "line": 219,
         "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
       },
       "kind": "tests",
@@ -14889,7 +15240,7 @@
     },
     {
       "evidence": {
-        "line": 110,
+        "line": 190,
         "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
       },
       "kind": "tests",
@@ -14898,7 +15249,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 117,
         "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
       },
       "kind": "tests",
@@ -14952,6 +15303,15 @@
     },
     {
       "evidence": {
+        "line": 126,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "type:Forge.Application.Blueprints.BlueprintPaletteCatalog"
+    },
+    {
+      "evidence": {
         "line": 101,
         "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
       },
@@ -14967,6 +15327,24 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
       "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 120,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "type:Forge.Domain.Blueprints.BlueprintPaletteOrigin"
+    },
+    {
+      "evidence": {
+        "line": 180,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "type:Forge.Domain.Blueprints.BlueprintProvenance"
     },
     {
       "evidence": {
@@ -17446,6 +17824,60 @@
     {
       "evidence": {
         "line": 5,
+        "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Blueprints.BlueprintProvenanceTests",
+      "target": "file:tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Blueprints.BlueprintProvenanceTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Blueprints.BlueprintProvenanceTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Blueprints.BlueprintProvenanceTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Blueprints.BlueprintProvenanceTests",
+      "target": "type:Forge.Domain.Blueprints.BlueprintPaletteOrigin"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Blueprints.BlueprintProvenanceTests",
+      "target": "type:Forge.Domain.Blueprints.BlueprintProvenance"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "tests/Forge.Domain.Tests/Combat/CombatResolverTests.cs"
       },
       "kind": "defined_in",
@@ -19227,7 +19659,7 @@
     },
     {
       "evidence": {
-        "line": 218,
+        "line": 241,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -19236,7 +19668,7 @@
     },
     {
       "evidence": {
-        "line": 219,
+        "line": 242,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -19245,7 +19677,7 @@
     },
     {
       "evidence": {
-        "line": 224,
+        "line": 247,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -19254,7 +19686,7 @@
     },
     {
       "evidence": {
-        "line": 223,
+        "line": 246,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -19263,7 +19695,7 @@
     },
     {
       "evidence": {
-        "line": 222,
+        "line": 245,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -19326,7 +19758,7 @@
     },
     {
       "evidence": {
-        "line": 227,
+        "line": 250,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -19335,12 +19767,21 @@
     },
     {
       "evidence": {
-        "line": 225,
+        "line": 248,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 123,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "type:Forge.Domain.Blueprints.BlueprintPaletteOrigin"
     },
     {
       "evidence": {
@@ -19389,7 +19830,7 @@
     },
     {
       "evidence": {
-        "line": 232,
+        "line": 255,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -19929,6 +20370,24 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Blueprints.BlueprintPaletteCatalog",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/BlueprintPaletteItem.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Blueprints.BlueprintPaletteItem",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintPaletteItem.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Application/Blueprints/BlueprintReference.cs"
       },
@@ -20151,6 +20610,24 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Areas.PortalLink",
       "target": "file:src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Blueprints/BlueprintPaletteOrigin.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Blueprints.BlueprintPaletteOrigin",
+      "target": "file:src/Forge.Domain/Blueprints/BlueprintPaletteOrigin.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Blueprints/BlueprintProvenance.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Blueprints.BlueprintProvenance",
+      "target": "file:src/Forge.Domain/Blueprints/BlueprintProvenance.cs"
     },
     {
       "evidence": {
@@ -20919,7 +21396,7 @@
     },
     {
       "evidence": {
-        "line": 3536,
+        "line": 3753,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -20946,7 +21423,7 @@
     },
     {
       "evidence": {
-        "line": 3541,
+        "line": 3758,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -20955,7 +21432,7 @@
     },
     {
       "evidence": {
-        "line": 3546,
+        "line": 3763,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -21126,7 +21603,7 @@
     },
     {
       "evidence": {
-        "line": 8,
+        "line": 9,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "defined_in",
@@ -21135,7 +21612,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 28,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -21144,7 +21621,7 @@
     },
     {
       "evidence": {
-        "line": 40,
+        "line": 67,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -21153,7 +21630,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 21,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -21162,7 +21639,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 21,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -21315,8 +21792,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:d225c341fc05f70cfdc65b6a9fd413cbfeab8fe3b47db1663e49f0b58cde6b46",
-    "source_file_count": 564
+    "source_digest": "sha256:7e2254ccdbaff41aae94a27f1a661d25b83a0e2bbc3b7c633805e2186523ecaf",
+    "source_file_count": 573
   },
   "nodes": [
     {
@@ -21558,6 +22035,16 @@
       },
       "name": "AreaDuplicationPreview",
       "path": "src/Forge.Application/Areas/AreaDuplicationPreview.cs"
+    },
+    {
+      "id": "component:Forge.Application.Blueprints.BlueprintPaletteView",
+      "kind": "component",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "BlueprintPaletteView",
+      "path": "src/Forge.Application/Blueprints/BlueprintPaletteView.cs"
     },
     {
       "id": "component:Forge.Application.Creator.SafeRenamePreview",
@@ -23390,6 +23877,16 @@
       "path": "docs/aurora-parity/tasks/G7-08-MODULE-METADATA-VARIABLES.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-09-STANDARD-CUSTOM-PALETTES.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-09-STANDARD-CUSTOM-PALETTES.md",
+      "path": "docs/aurora-parity/tasks/G7-09-STANDARD-CUSTOM-PALETTES.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -23530,6 +24027,36 @@
       "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
     },
     {
+      "id": "file:src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintPaletteCatalog.cs",
+      "path": "src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/BlueprintPaletteItem.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintPaletteItem.cs",
+      "path": "src/Forge.Application/Blueprints/BlueprintPaletteItem.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/BlueprintPaletteView.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintPaletteView.cs",
+      "path": "src/Forge.Application/Blueprints/BlueprintPaletteView.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Blueprints/BlueprintReference.cs",
       "kind": "file",
       "line": 1,
@@ -23558,6 +24085,26 @@
       },
       "name": "BlueprintReferenceKind.cs",
       "path": "src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ConfigureBlueprintPaletteCommand.cs",
+      "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ConfigureBlueprintPaletteHandler.cs",
+      "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs",
@@ -24228,6 +24775,26 @@
       },
       "name": "BlueprintKind.cs",
       "path": "src/Forge.Domain/Blueprints/BlueprintKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Blueprints/BlueprintPaletteOrigin.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintPaletteOrigin.cs",
+      "path": "src/Forge.Domain/Blueprints/BlueprintPaletteOrigin.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Blueprints/BlueprintProvenance.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintProvenance.cs",
+      "path": "src/Forge.Domain/Blueprints/BlueprintProvenance.cs"
     },
     {
       "id": "file:src/Forge.Domain/Combat/AbilityDefinition.cs",
@@ -25718,6 +26285,16 @@
       },
       "name": "AreaDefinitionTests.cs",
       "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintProvenanceTests.cs",
+      "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Combat/CombatResolverTests.cs",
@@ -27970,6 +28547,16 @@
       "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
+      "kind": "handler",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "ConfigureBlueprintPaletteHandler",
+      "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
       "kind": "handler",
       "line": 11,
@@ -28158,6 +28745,16 @@
       },
       "name": "BlueprintReferenceKind",
       "path": "src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
+    },
+    {
+      "id": "model:Forge.Application.Blueprints.ConfigureBlueprintPaletteCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "ConfigureBlueprintPaletteCommand",
+      "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteCommand.cs"
     },
     {
       "id": "model:Forge.Application.Blueprints.CreateBlueprintFromEntityCommand",
@@ -29351,6 +29948,11 @@
       "name": "Forge.Domain.Tests.Areas"
     },
     {
+      "id": "namespace:Forge.Domain.Tests.Blueprints",
+      "kind": "namespace",
+      "name": "Forge.Domain.Tests.Blueprints"
+    },
+    {
       "id": "namespace:Forge.Domain.Tests.Combat",
       "kind": "namespace",
       "name": "Forge.Domain.Tests.Combat"
@@ -29893,6 +30495,16 @@
       "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Blueprints.BlueprintProvenanceTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Blueprints"
+      },
+      "name": "BlueprintProvenanceTests",
+      "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Combat.CombatResolverTests",
       "kind": "test",
       "line": 5,
@@ -30290,6 +30902,26 @@
       "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
     },
     {
+      "id": "type:Forge.Application.Blueprints.BlueprintPaletteCatalog",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "BlueprintPaletteCatalog",
+      "path": "src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs"
+    },
+    {
+      "id": "type:Forge.Application.Blueprints.BlueprintPaletteItem",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "BlueprintPaletteItem",
+      "path": "src/Forge.Application/Blueprints/BlueprintPaletteItem.cs"
+    },
+    {
       "id": "type:Forge.Application.Blueprints.BlueprintReference",
       "kind": "type",
       "line": 5,
@@ -30538,6 +31170,26 @@
       },
       "name": "PortalLink",
       "path": "src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Blueprints.BlueprintPaletteOrigin",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Blueprints"
+      },
+      "name": "BlueprintPaletteOrigin",
+      "path": "src/Forge.Domain/Blueprints/BlueprintPaletteOrigin.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Blueprints.BlueprintProvenance",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Blueprints"
+      },
+      "name": "BlueprintProvenance",
+      "path": "src/Forge.Domain/Blueprints/BlueprintProvenance.cs"
     },
     {
       "id": "type:Forge.Domain.Combat.AbilityEffect",
@@ -31362,7 +32014,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 3536,
+      "line": 3753,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -31392,7 +32044,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 3541,
+      "line": 3758,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -31402,7 +32054,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 3546,
+      "line": 3763,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -31482,7 +32134,7 @@
     {
       "id": "validator:Forge.Domain.Validation.ProjectValidator",
       "kind": "validator",
-      "line": 8,
+      "line": 9,
       "metadata": {
         "namespace": "Forge.Domain.Validation"
       },

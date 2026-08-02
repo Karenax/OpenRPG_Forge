@@ -1,5 +1,5 @@
 {
-  "formatVersion": "0.6.2",
+  "formatVersion": "0.6.3",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -38,14 +38,36 @@
         "slug": "les-iles-brisees-floor",
         "displayName": "Sol provisoire",
         "kind": "placeable",
-        "combat": null
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/ba1e3949-af2a-409a-af27-8c6698694111/les-iles-brisees-floor",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
       },
       {
         "id": "46d891e5-a116-48df-8b2e-0fdebf16bc52",
         "slug": "player-spawn",
         "displayName": "Point de d\u00E9part",
         "kind": "playerSpawn",
-        "combat": null
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/46d891e5-a116-48df-8b2e-0fdebf16bc52/player-spawn",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
       }
     ],
     "areas": [

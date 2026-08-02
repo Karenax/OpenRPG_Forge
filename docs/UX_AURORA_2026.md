@@ -56,7 +56,7 @@ retour des logs. L’espace Dialogues fournit maintenant liste de nœuds, choix 
 actions, textes localisables et aperçu dans la même identité sombre et braise. Le runtime offre une
 sauvegarde/reprise F5/F9 et l'Assistant peut préparer, appliquer et annuler un plan de dialogue par
 MCP. Le MVP est fermé ; les espaces Quêtes, Scripts, Assets, Validation et l’enrichissement de la
-manipulation directe au-delà de G7-08 restent dans le gate **Creator Core G7**, et non dans une
+manipulation directe au-delà de G7-09 restent dans le gate **Creator Core G7**, et non dans une
 prétendue parité Aurora déjà atteinte.
 
 G7-02 installe la coque commune : neuf workspaces stables, une colonne d’exploration du projet, le
@@ -107,6 +107,14 @@ langage reste produit — auteur, version, licence, crédits, scope — et les U
 accessibles dans les résumés sans envahir le formulaire. Les listes localisées et typées disposent
 d’un état vide explicite. L’action braise reste verrouillée jusqu’à une prévisualisation valide qui
 annonce le nombre de langues, de variables et la version prête à exporter.
+
+G7-09 agrandit l’espace Blueprints en quatre cartes équilibrées : catalogue, définition, origine et
+provenance, références inversées. Le filtre de tête sépare explicitement toutes les palettes,
+Standard, Custom, généré, favoris et temporaire. Une étoile repère les favoris ; un badge vert
+`CUSTOM · éditable` ou ambre `STANDARD · lecture seule` annonce les droits avant toute action. Les
+détails de conformité — source, auteur, SPDX, hash, origine IA et transformations — restent groupés
+dans une seule carte. L’action secondaire violette prévisualise et applique la provenance ; l’action
+braise demeure réservée à l’enregistrement du blueprint éditable.
 
 ## Contexte graphique 3D
 

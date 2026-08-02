@@ -75,14 +75,27 @@ public sealed class CreatorSearchIndex
         var blueprintNames = project.Blueprints.ToDictionary(blueprint => blueprint.Id, blueprint => blueprint.DisplayName);
         foreach (var blueprint in project.Blueprints)
         {
-            documents.Add(Document(
+            documents.Add(new CreatorSearchDocument(
                 CreatorContentKind.Blueprint,
                 blueprint.Id.ToString(),
                 blueprint.DisplayName,
                 $"blueprints/{blueprint.Id}",
-                $"{blueprint.Slug} {blueprint.Kind} {blueprint.Id}",
-                ["blueprint", blueprint.Kind.ToString()],
-                CreatorSelectionKind.Blueprint));
+                $"{blueprint.Slug} {blueprint.Kind} {blueprint.Id} {blueprint.PaletteOrigin} " +
+                $"{blueprint.Provenance.Source} {blueprint.Provenance.Author} " +
+                $"{blueprint.Provenance.LicenseSpdx} {blueprint.Provenance.ContentHash} " +
+                string.Join(' ', blueprint.Provenance.Modifications),
+                [
+                    "blueprint",
+                    blueprint.Kind.ToString(),
+                    blueprint.PaletteOrigin.ToString(),
+                    .. (blueprint.IsFavorite ? new[] { "favorite" } : Array.Empty<string>()),
+                ],
+                $"{blueprint.Provenance.Source} Â· {blueprint.Provenance.Author} Â· {blueprint.Provenance.LicenseSpdx}",
+                new CreatorSelection(
+                    CreatorSelectionKind.Blueprint,
+                    blueprint.Id.ToString(),
+                    blueprint.DisplayName,
+                    $"blueprints/{blueprint.Id}")));
         }
 
         foreach (var area in project.Areas)

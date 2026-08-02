@@ -1,5 +1,5 @@
 {
-  "formatVersion": "0.8.0",
+  "formatVersion": "0.8.1",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -79,21 +79,54 @@
         "slug": "crypt-floor",
         "displayName": "Sol de la crypte",
         "kind": "placeable",
-        "combat": null
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10000000-0000-4000-8000-000000000001/crypt-floor",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
       },
       {
         "id": "10000000-0000-4000-8000-000000000002",
         "slug": "crypt-wall",
         "displayName": "Mur de la crypte",
         "kind": "placeable",
-        "combat": null
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10000000-0000-4000-8000-000000000002/crypt-wall",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
       },
       {
         "id": "10000000-0000-4000-8000-000000000003",
         "slug": "ash-door",
         "displayName": "Porte des Cendres",
         "kind": "door",
-        "combat": null
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10000000-0000-4000-8000-000000000003/ash-door",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
       },
       {
         "id": "10000000-0000-4000-8000-000000000004",
@@ -111,6 +144,17 @@
           },
           "abilities": [],
           "loot": []
+        },
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10000000-0000-4000-8000-000000000004/elyra-npc",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
         }
       },
       {
@@ -153,6 +197,17 @@
               "chance": 1
             }
           ]
+        },
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10000000-0000-4000-8000-000000000005/ash-sentinel",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
         }
       },
       {
@@ -195,6 +250,17 @@
               "chance": 1
             }
           ]
+        },
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10000000-0000-4000-8000-000000000006/ash-warden-boss",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
         }
       },
       {
@@ -231,6 +297,17 @@
             }
           ],
           "loot": []
+        },
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10000000-0000-4000-8000-000000000007/player-spawn",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
         }
       },
       {
@@ -238,21 +315,54 @@
         "slug": "ash-key",
         "displayName": "Cl\u00E9 de braise",
         "kind": "item",
-        "combat": null
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10000000-0000-4000-8000-000000000008/ash-key",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
       },
       {
         "id": "10000000-0000-4000-8000-000000000009",
         "slug": "crypt-exit",
         "displayName": "Sortie de la crypte",
         "kind": "trigger",
-        "combat": null
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10000000-0000-4000-8000-000000000009/crypt-exit",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
       },
       {
         "id": "10000000-0000-4000-8000-000000000010",
         "slug": "crypt-pillar",
         "displayName": "Pilier des braises",
         "kind": "placeable",
-        "combat": null
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/10000000-0000-4000-8000-000000000010/crypt-pillar",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
       }
     ],
     "areas": [
