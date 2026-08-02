@@ -381,7 +381,7 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 25,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1020,7 +1020,7 @@
     },
     {
       "evidence": {
-        "line": 76,
+        "line": 81,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1029,7 +1029,7 @@
     },
     {
       "evidence": {
-        "line": 31,
+        "line": 33,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1273,6 +1273,42 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs",
+      "target": "namespace:Forge.Application.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
       "kind": "imports",
@@ -1313,7 +1349,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Commands"
+      "target": "namespace:Forge.Application.Blueprints"
     },
     {
       "evidence": {
@@ -1322,7 +1358,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Creator"
+      "target": "namespace:Forge.Application.Commands"
     },
     {
       "evidence": {
@@ -1331,7 +1367,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Dialogues"
+      "target": "namespace:Forge.Application.Creator"
     },
     {
       "evidence": {
@@ -1340,7 +1376,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Entities"
+      "target": "namespace:Forge.Application.Dialogues"
     },
     {
       "evidence": {
@@ -1349,7 +1385,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Projects"
+      "target": "namespace:Forge.Application.Entities"
     },
     {
       "evidence": {
@@ -1358,7 +1394,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Quests"
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
@@ -1367,7 +1403,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Time"
+      "target": "namespace:Forge.Application.Quests"
     },
     {
       "evidence": {
@@ -1376,7 +1412,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Application.Time"
     },
     {
       "evidence": {
@@ -1385,7 +1421,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -1394,7 +1430,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -1403,7 +1439,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -1412,7 +1448,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -1421,16 +1457,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
-    },
-    {
-      "evidence": {
-        "line": 17,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -1439,11 +1466,29 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
         "line": 18,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
+    },
+    {
+      "evidence": {
+        "line": 19,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -1524,12 +1569,12 @@
     },
     {
       "evidence": {
-        "line": 89,
+        "line": 90,
         "path": "docs/aurora-parity/PROJECT_GAP_REPORT.md"
       },
       "kind": "references",
       "source": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",
-      "target": "file:docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md"
+      "target": "file:docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md"
     },
     {
       "evidence": {
@@ -1539,6 +1584,213 @@
       "kind": "references",
       "source": "file:docs/aurora-parity/README.md",
       "target": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/BlueprintReference.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/BlueprintReference.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -2898,6 +3150,42 @@
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Workspaces/ProjectSession.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs",
+      "target": "namespace:Forge.Application.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -4575,6 +4863,240 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Application.Blueprints.CreateBlueprintFromEntityCommand"
+    },
+    {
+      "evidence": {
+        "line": 161,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 156,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 162,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 88,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 121,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 109,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 115,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 126,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "file:src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "model:Forge.Application.Blueprints.UpsertBlueprintCommand"
+    },
+    {
+      "evidence": {
+        "line": 121,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 116,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 122,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 72,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 94,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.Application/Dialogues/SetDialogueHandler.cs"
       },
@@ -5418,6 +5940,105 @@
       "kind": "defined_in",
       "source": "interface:Forge.Scripting.IForgeScriptRuntime",
       "target": "file:src/Forge.Scripting/IForgeScriptRuntime.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Blueprints.BlueprintReferenceKind",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.BlueprintReferenceKind",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Blueprints.CreateBlueprintFromEntityCommand",
+      "target": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.CreateBlueprintFromEntityCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.CreateBlueprintFromEntityCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.CreateBlueprintFromEntityCommand",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.CreateBlueprintFromEntityCommand",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Blueprints.UpsertBlueprintCommand",
+      "target": "file:src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.UpsertBlueprintCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.UpsertBlueprintCommand",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.UpsertBlueprintCommand",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
     },
     {
       "evidence": {
@@ -6996,6 +7617,69 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/BlueprintReference.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintReference.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Application/Commands/AuditEntry.cs"
       },
@@ -7299,6 +7983,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Quests",
       "target": "file:src/Forge.Application/Quests/SetQuestHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Blueprints",
+      "target": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
     },
     {
       "evidence": {
@@ -8697,6 +9390,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
@@ -8715,7 +9417,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -9333,6 +10035,132 @@
       "kind": "accesses_model",
       "source": "service:Forge.Mcp.Scripts.ForgeScriptAgentService",
       "target": "model:Forge.Scripting.ForgeScriptDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 63,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler"
+    },
+    {
+      "evidence": {
+        "line": 104,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "model:Forge.Application.Blueprints.BlueprintReferenceKind"
+    },
+    {
+      "evidence": {
+        "line": 120,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "model:Forge.Application.Blueprints.CreateBlueprintFromEntityCommand"
+    },
+    {
+      "evidence": {
+        "line": 110,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "model:Forge.Application.Blueprints.UpsertBlueprintCommand"
+    },
+    {
+      "evidence": {
+        "line": 112,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 106,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 86,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 104,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 101,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "type:Forge.Application.Blueprints.BlueprintReferenceIndex"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
     },
     {
       "evidence": {
@@ -12765,6 +13593,24 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/BlueprintReference.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Blueprints.BlueprintReference",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintReference.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Blueprints.BlueprintReferenceIndex",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.Application/Commands/ProjectCommandHistory.cs"
       },
@@ -13494,6 +14340,15 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.BlueprintCatalogWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
@@ -13512,7 +14367,7 @@
     },
     {
       "evidence": {
-        "line": 2230,
+        "line": 2418,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -13539,7 +14394,7 @@
     },
     {
       "evidence": {
-        "line": 2235,
+        "line": 2423,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -13548,7 +14403,7 @@
     },
     {
       "evidence": {
-        "line": 2240,
+        "line": 2428,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -13845,8 +14700,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:8ca0a9d7d15d440eddee4b3cf92dfe64862d20eb370ffe16f08441297d0b00a5",
-    "source_file_count": 355
+    "source_digest": "sha256:651a64f8a70715de9d681064e86488a179f294589a5ae8564240b728c823fb9a",
+    "source_file_count": 365
   },
   "nodes": [
     {
@@ -14032,7 +14887,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 24,
+      "line": 25,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -14990,6 +15845,16 @@
       "path": "apps/Forge.Toolset/Forge.Toolset.csproj"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintCatalogWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs",
       "kind": "file",
       "line": 1,
@@ -15400,6 +16265,16 @@
       "path": "docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-03-BLUEPRINT-CATALOG.md",
+      "path": "docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md"
+    },
+    {
       "id": "file:global.json",
       "kind": "configuration",
       "line": 1,
@@ -15438,6 +16313,76 @@
       },
       "name": "architecture_graph.py",
       "path": "scripts/architecture_graph.py"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/BlueprintReference.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintReference.cs",
+      "path": "src/Forge.Application/Blueprints/BlueprintReference.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintReferenceIndex.cs",
+      "path": "src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/BlueprintReferenceKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintReferenceKind.cs",
+      "path": "src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreateBlueprintFromEntityCommand.cs",
+      "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreateBlueprintFromEntityHandler.cs",
+      "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "UpsertBlueprintCommand.cs",
+      "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "UpsertBlueprintHandler.cs",
+      "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Commands/AuditEntry.cs",
@@ -17020,6 +17965,16 @@
       "path": "src/Forge.Scripting/packages.lock.json"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintCatalogTests.cs",
+      "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs",
       "kind": "file",
       "line": 1,
@@ -18050,6 +19005,26 @@
       "path": "tests/test_aurora_tracker.py"
     },
     {
+      "id": "handler:Forge.Application.Blueprints.CreateBlueprintFromEntityHandler",
+      "kind": "handler",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "CreateBlueprintFromEntityHandler",
+      "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+    },
+    {
+      "id": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
+      "kind": "handler",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "UpsertBlueprintHandler",
+      "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Dialogues.SetDialogueHandler",
       "kind": "handler",
       "line": 10,
@@ -18138,6 +19113,36 @@
       },
       "name": "IForgeScriptRuntime",
       "path": "src/Forge.Scripting/IForgeScriptRuntime.cs"
+    },
+    {
+      "id": "model:Forge.Application.Blueprints.BlueprintReferenceKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "BlueprintReferenceKind",
+      "path": "src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
+    },
+    {
+      "id": "model:Forge.Application.Blueprints.CreateBlueprintFromEntityCommand",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "CreateBlueprintFromEntityCommand",
+      "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Blueprints.UpsertBlueprintCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "UpsertBlueprintCommand",
+      "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
     },
     {
       "id": "model:Forge.Application.Commands.AuditEntry",
@@ -18968,6 +19973,11 @@
       "path": "tests/test_mcp_stdio.py"
     },
     {
+      "id": "namespace:Forge.Application.Blueprints",
+      "kind": "namespace",
+      "name": "Forge.Application.Blueprints"
+    },
+    {
       "id": "namespace:Forge.Application.Commands",
       "kind": "namespace",
       "name": "Forge.Application.Commands"
@@ -18996,6 +20006,11 @@
       "id": "namespace:Forge.Application.Quests",
       "kind": "namespace",
       "name": "Forge.Application.Quests"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Blueprints",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Blueprints"
     },
     {
       "id": "namespace:Forge.Application.Tests.Commands",
@@ -19393,6 +20408,16 @@
       },
       "name": "ForgeScriptAgentService",
       "path": "src/Forge.Mcp/Scripts/ForgeScriptAgentService.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Blueprints"
+      },
+      "name": "BlueprintCatalogTests",
+      "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Commands.ProjectCommandHistoryTests",
@@ -19860,6 +20885,26 @@
       "line": 135,
       "name": "ArgumentMap",
       "path": "apps/Forge.McpHost/Program.cs"
+    },
+    {
+      "id": "type:Forge.Application.Blueprints.BlueprintReference",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "BlueprintReference",
+      "path": "src/Forge.Application/Blueprints/BlueprintReference.cs"
+    },
+    {
+      "id": "type:Forge.Application.Blueprints.BlueprintReferenceIndex",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "BlueprintReferenceIndex",
+      "path": "src/Forge.Application/Blueprints/BlueprintReferenceIndex.cs"
     },
     {
       "id": "type:Forge.Application.Commands.ProjectCommandHistory",
@@ -20642,6 +21687,16 @@
       "path": "src/Forge.Scripting/NativeForgeScriptRuntime.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.BlueprintCatalogWindow",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "BlueprintCatalogWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.DialogueEditorWindow",
       "kind": "type",
       "line": 9,
@@ -20664,7 +21719,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 2230,
+      "line": 2418,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -20694,7 +21749,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 2235,
+      "line": 2423,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -20704,7 +21759,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 2240,
+      "line": 2428,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

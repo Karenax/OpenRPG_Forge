@@ -1,5 +1,6 @@
 #if TOOLS
 using System.Collections.Concurrent;
+using Forge.Application.Blueprints;
 using Forge.Application.Commands;
 using Forge.Application.Creator;
 using Forge.Application.Dialogues;
@@ -34,6 +35,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly NewModuleHandler _newModuleHandler = new(new SystemClock());
     private readonly SetDialogueHandler _setDialogueHandler = new(new SystemClock());
     private readonly SetQuestHandler _setQuestHandler = new(new SystemClock());
+    private readonly UpsertBlueprintHandler _upsertBlueprintHandler = new(new SystemClock());
+    private readonly CreateBlueprintFromEntityHandler _createBlueprintFromEntityHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly List<BlueprintId> _paletteBlueprintIds = [];
@@ -97,6 +100,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _entityPropertiesSaveButton;
     private Button? _entityPropertiesCancelButton;
     private DialogueEditorWindow? _dialogueEditor;
+    private BlueprintCatalogWindow? _blueprintCatalog;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -139,6 +143,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ApplyDialogue,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_dialogueEditor);
+        _blueprintCatalog = new BlueprintCatalogWindow();
+        _blueprintCatalog.Initialize(
+            () => _history?.State,
+            UpsertBlueprint,
+            CreateBlueprintFromSelectedEntity,
+            selection => { _selectionContext.Replace(selection); },
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_blueprintCatalog);
         _projectPreview = new ProjectPreview3D();
         _mainPanel.GetNode<Control>("Margin/Content/PreviewHost").AddChild(_projectPreview);
         _creatorShell = new ForgeCreatorShell(_mainPanel);
@@ -235,6 +247,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _entityPropertiesSaveButton = null;
         _entityPropertiesCancelButton = null;
         _dialogueEditor = null;
+        _blueprintCatalog = null;
         _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
@@ -694,6 +707,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (string.Equals(workspace, "Blueprints", StringComparison.Ordinal))
+        {
+            OpenBlueprintCatalog();
+            return;
+        }
+
         if (string.Equals(workspace, "Monde", StringComparison.Ordinal))
         {
             _statusLabel!.Text = "✓ Workspace Monde actif";
@@ -833,6 +852,90 @@ public partial class ForgeEditorPlugin : EditorPlugin
     }
 
     private void OpenDialogueEditor() => _dialogueEditor?.Open();
+
+    private void OpenBlueprintCatalog() => _blueprintCatalog?.Open();
+
+    private bool UpsertBlueprint(
+        BlueprintId blueprintId,
+        string slug,
+        string displayName,
+        BlueprintKind kind)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new UpsertBlueprintCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            blueprintId,
+            slug,
+            displayName,
+            kind,
+            DryRun: false);
+        if (!ApplyCommand(
+                _upsertBlueprintHandler.Handle(_history.State, command),
+                $"Blueprint « {displayName} » enregistré.",
+                GetSelectedEntity()?.Id))
+        {
+            return false;
+        }
+
+        PublishBlueprintSelection(blueprintId);
+        _blueprintCatalog?.Refresh(blueprintId);
+        return true;
+    }
+
+    private bool CreateBlueprintFromSelectedEntity(
+        BlueprintId blueprintId,
+        string slug,
+        string displayName)
+    {
+        var entity = GetSelectedEntity();
+        if (_history is null || entity is null)
+        {
+            return false;
+        }
+
+        var area = _history.State.Project.Areas.First(candidate =>
+            candidate.Entities.Any(item => item.Id == entity.Id));
+        var command = new CreateBlueprintFromEntityCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            area.Id,
+            entity.Id,
+            blueprintId,
+            slug,
+            displayName,
+            DryRun: false);
+        if (!ApplyCommand(
+                _createBlueprintFromEntityHandler.Handle(_history.State, command),
+                $"Blueprint « {displayName} » dérivé de l’instance.",
+                entity.Id))
+        {
+            return false;
+        }
+
+        PublishBlueprintSelection(blueprintId);
+        _blueprintCatalog?.Refresh(blueprintId);
+        return true;
+    }
+
+    private void PublishBlueprintSelection(BlueprintId blueprintId)
+    {
+        var blueprint = _history?.State.Project.Blueprints.FirstOrDefault(candidate => candidate.Id == blueprintId);
+        if (blueprint is null)
+        {
+            return;
+        }
+
+        _selectionContext.Replace(new CreatorSelection(
+            CreatorSelectionKind.Blueprint,
+            blueprint.Id.ToString(),
+            blueprint.DisplayName,
+            $"blueprints/{blueprint.Id}"));
+    }
 
     private bool ApplyDialogue(DialogueDefinition dialogue)
     {
@@ -1532,6 +1635,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _playButton.Disabled = _playtestRunning || _spawnEntityIds.Count == 0;
         RefreshOverrideSummary();
         RefreshCreatorShell();
+        _blueprintCatalog?.Refresh();
         PublishSelectedEntity();
     }
 
@@ -1864,6 +1968,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunBlueprintCatalogSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNewModuleSmokeTest())
         {
             return;
@@ -1983,6 +2092,85 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         RefreshCreatorShell();
         GD.Print($"OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces={_creatorShell.WorkspaceCount} explorer={_creatorShell.ExplorerNodeCount} selection=shared diagnostics=clickable");
+        return true;
+    }
+
+    private bool RunBlueprintCatalogSmokeTest()
+    {
+        if (_blueprintCatalog is null || _history is null || _entityPicker is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_FAILED missing_catalog");
+            return false;
+        }
+
+        var initialBlueprintCount = _history.State.Project.Blueprints.Count;
+        var entity = _history.State.Project.Areas.First().Entities.First();
+        var entityIndex = _entityIds.FindIndex(id => id == entity.Id);
+        if (entityIndex < 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_FAILED missing_entity");
+            return false;
+        }
+
+        _entityPicker.Selected = entityIndex;
+        PublishSelectedEntity();
+        var originalBlueprintId = entity.BlueprintId;
+        var derivedBlueprintId = BlueprintId.From(Guid.Parse("f1000000-0000-4000-8000-000000000001"));
+        if (!CreateBlueprintFromSelectedEntity(
+                derivedBlueprintId,
+                "smoke-derived-pillar",
+                "Pilier dérivé smoke"))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_FAILED command");
+            return false;
+        }
+
+        var retargeted = _history.State.Project.Areas.First().Entities.Single(candidate => candidate.Id == entity.Id);
+        var references = BlueprintReferenceIndex.Build(_history.State.Project).Find(derivedBlueprintId);
+        if (_history.State.Project.Blueprints.Count != initialBlueprintCount + 1 ||
+            retargeted.BlueprintId != derivedBlueprintId ||
+            retargeted.Overrides != entity.Overrides ||
+            references.Count != 1 ||
+            !_blueprintCatalog.SelectBlueprintForSmokeTest(derivedBlueprintId) ||
+            _blueprintCatalog.VisibleBlueprintCount != initialBlueprintCount + 1 ||
+            _blueprintCatalog.ReferenceCount != 1 ||
+            _selectionContext.Current.Count != 1 ||
+            _selectionContext.Current[0].Kind != CreatorSelectionKind.Blueprint ||
+            _selectionContext.Current[0].Id != derivedBlueprintId.ToString())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_FAILED invalid_state");
+            return false;
+        }
+
+        var undone = _history.Undo();
+        if (!undone.Succeeded ||
+            _history.State.Project.Blueprints.Any(candidate => candidate.Id == derivedBlueprintId) ||
+            _history.State.Project.Areas.First().Entities.Single(candidate => candidate.Id == entity.Id).BlueprintId != originalBlueprintId)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_FAILED undo");
+            return false;
+        }
+
+        var redone = _history.Redo();
+        if (!redone.Succeeded ||
+            _history.State.Project.Areas.First().Entities.Single(candidate => candidate.Id == entity.Id).BlueprintId != derivedBlueprintId)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_FAILED redo");
+            return false;
+        }
+
+        var restored = _history.Undo();
+        if (!restored.Succeeded ||
+            _history.State.Project.Blueprints.Count != initialBlueprintCount ||
+            _history.State.Project.Areas.First().Entities.Single(candidate => candidate.Id == entity.Id).BlueprintId != originalBlueprintId)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_FAILED cleanup");
+            return false;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls(entity.Id);
+        GD.Print($"OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog={initialBlueprintCount} derived=1 references=1 undo=restored");
         return true;
     }
 

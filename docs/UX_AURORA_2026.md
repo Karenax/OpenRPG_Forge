@@ -55,7 +55,7 @@ T3.2 ajoute la sélection du point de départ, le snapshot temporaire, le lancem
 retour des logs. L’espace Dialogues fournit maintenant liste de nœuds, choix branchés, conditions,
 actions, textes localisables et aperçu dans la même identité sombre et braise. Le runtime offre une
 sauvegarde/reprise F5/F9 et l'Assistant peut préparer, appliquer et annuler un plan de dialogue par
-MCP. Le MVP est fermé ; l’espace Quêtes visuel, Blueprints, Scripts, Assets, Validation et la
+MCP. Le MVP est fermé ; l’espace Quêtes visuel, Scripts, Assets, Validation et la
 manipulation directe du viewport forment désormais le gate **Creator Core G7**, et non une prétendue
 parité Aurora déjà atteinte.
 
@@ -63,5 +63,11 @@ G7-02 installe la coque commune : neuf workspaces stables, une colonne d’explo
 workspace Monde au centre et un panneau contextuel pour sélection, diagnostics et logs de playtest.
 L’explorateur classe zones, entités, types de blueprints, dialogues et quêtes. La sélection est un
 contrat moteur-indépendant, partagé avec l’inspecteur et verrouillable ; un diagnostic structuré peut
-cibler l’objet concerné. Les workflows spécialisés autres que Monde et Dialogues restent annoncés
-mais ne sont pas présentés comme terminés.
+cibler l’objet concerné.
+
+G7-03 active le workspace Blueprints dans la même identité sombre et braise. Sa palette recherche
+par nom, slug ou type ; le panneau central édite une définition ou la dérive de l’instance Monde
+courante ; le panneau droit expose les entités et locuteurs qui la référencent. La sélection du
+blueprint reste partagée avec la coque, et toutes les mutations passent par le même historique que
+le Monde. Les workflows Quêtes, Scripts, Assets, Validation et Assistant restent annoncés sans être
+présentés comme terminés.

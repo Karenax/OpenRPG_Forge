@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-02 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-03 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -21,7 +21,9 @@ un gate cible ; les 76 P0 Core sont auditées avec preuves dans le tracker proje
 incrément Creator prouve en plus un second module Core « Les Îles Brisées », créé par la commande de
 nouveau module, exporté en `.orpmod` et démarré en headless sans profil de combat ni contenu propre à
 la Crypte. G7-02 ajoute une coque Creator à trois panneaux, neuf workspaces stables, un explorateur
-hiérarchique, une sélection partagée et des diagnostics cliquables.
+hiérarchique, une sélection partagée et des diagnostics cliquables. G7-03 rend le workspace
+Blueprints opérationnel : palette recherchable, édition transactionnelle, dérivation depuis une
+instance et références inversées recalculées depuis le projet.
 
 ## État prouvé
 
@@ -32,7 +34,7 @@ hiérarchique, une sélection partagée et des diagnostics cliquables.
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 137 tests .NET et 22 tests Python réussis ;
+- 143 tests .NET et 22 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -69,6 +71,9 @@ hiérarchique, une sélection partagée et des diagnostics cliquables.
 - coque Creator G7-02 : workspaces Monde, Blueprints, Dialogues, Quêtes, Scripts, Assets, Validation,
   Playtests et Assistant, explorateur virtuel, inspecteur partagé verrouillable et navigation depuis
   un diagnostic vers sa cible ;
+- catalogue Blueprints G7-03 : recherche par nom, slug ou type, création/édition par commandes avec
+  dry-run et historique, conversion d’une instance en nouvelle définition sans perte des overrides,
+  puis index des usages dans les entités et les locuteurs de dialogues ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -84,8 +89,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   encore une direction artistique de production avec modèles, animations, audio et VFX finis ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
   l'éditeur et les permissions interactives restent à faire avant un usage multi-processus général ;
-- la création visuelle complète de catalogues de blueprints, tags, combats et quêtes reste à livrer
-  pour permettre des modules entièrement originaux sans édition structurée avancée ;
+- le catalogue de blueprints ne gère pas encore versions, paramètres exposés, provenance/licence,
+  miniatures, namespaces de packages, tags ou profils de combat ; les éditeurs complets de quêtes
+  et autres agrégats restent à livrer pour des modules entièrement originaux ;
 - la branche RPG du runtime de démonstration contient encore des comportements spécifiques à Elyra,
   la clé, la porte et le boss ; le démarrage Core générique est séparé mais l'extraction complète
   attend les incréments RPG Kit ;
@@ -118,6 +124,5 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-03 — catalogue Blueprints Forge** pour `ORF-PAL-001`, `ORF-PAL-002`, `ORF-PAL-003`,
-`ORF-PAL-007` et `ORF-BUILD-010` : définitions éditables, catégories, création depuis une instance,
-provenance et références. Les gizmos suivent dans G7-04.
+Ouvrir **G7-04 — manipulation directe du Monde** pour `ORF-SHELL-010`, `ORF-SHELL-011`,
+`ORF-SHELL-013` et `ORF-PAL-012` : placement direct, gizmos, validation et historique cohérent.
