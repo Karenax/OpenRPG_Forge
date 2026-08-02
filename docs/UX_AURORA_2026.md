@@ -151,6 +151,19 @@ sans masquer la scène et les segments violets distinguent immédiatement les li
 diagnostics ambre conservent code et chemin, tandis que l’action braise applique la configuration au
 document seulement après une prévisualisation locale.
 
+G7-15 transforme la colonne Diagnostics de la coque commune en parcours de résolution. La ligne
+reste compacte — sévérité, code et message — tandis que l’infobulle conserve UUID, chemin, sujet,
+propriété et source. La sélection cible immédiatement l’entité ou la zone. Sous la liste, une carte
+**Correctif guidé** n’apparaît active que lorsqu’une action sûre existe : **Prévisualiser** reste
+secondaire et sans mutation, **Appliquer** reçoit l’accent braise. L’auteur garde donc le contexte du
+Monde et peut annuler ou rétablir la correction avec le même historique que ses autres gestes.
+
+G7-16 doit activer l’espace Assets sans rompre cette hiérarchie. Une colonne de facettes compacte
+filtrera texte, type, tags, style, dimensions, polycount, licence, auteur et état d’import ; la grille
+centrale donnera priorité aux miniatures et aux états vide/chargement/erreur ; l’inspecteur droit
+montrera aperçu, package source, hash, provenance, références et compatibilité. Installer ou importer
+restera l’unique action braise et ne sera disponible qu’après validation de licence et de hash.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

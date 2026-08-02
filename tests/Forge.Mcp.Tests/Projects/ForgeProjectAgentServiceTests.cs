@@ -1,5 +1,8 @@
 using System.Text.Json;
+using Forge.Domain.Areas;
 using Forge.Domain.Dialogues;
+using Forge.Domain.Projects;
+using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
@@ -21,6 +24,42 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(summary.EntityCount >= 16);
         Assert.Empty(workspace.Project.GetDiagnostics());
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void DiagnosticsExposeCanonicalIdentitySourceAndQuickFixes()
+    {
+        using var workspace = new TestWorkspace();
+        var source = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var emptyArea = new AreaDefinition(
+            AreaId.From(Guid.Parse("71500000-0000-4000-8000-000000000001")),
+            "diagnostic-area",
+            "Diagnostic area",
+            []);
+        var project = new ProjectDefinition(
+            source.Id,
+            source.Title,
+            source.Module,
+            source.Blueprints,
+            [.. source.Areas, emptyArea],
+            source.Dialogues,
+            source.Quests);
+        var diagnosticWorkspace = Path.Combine(workspace.RootDirectory, "diagnostic-workspace");
+        Assert.True(ProjectSession.Create(diagnosticWorkspace, project).Succeeded);
+        var service = ForgeProjectAgentService.Open(diagnosticWorkspace).Service!;
+
+        var diagnostic = Assert.Single(service.GetDiagnostics(), item =>
+            item.Code == AreaNavigationValidator.MissingSpawnCode &&
+            item.Path!.Contains(emptyArea.Id.ToString(), StringComparison.Ordinal));
+
+        Assert.NotNull(diagnostic.Id);
+        Assert.Equal("Error", diagnostic.Severity);
+        Assert.Equal(emptyArea.Id.ToString(), diagnostic.SubjectUuid);
+        Assert.Equal("AreaNavigationValidator", diagnostic.Source);
+        Assert.NotNull(diagnostic.Property);
+        Assert.Single(diagnostic.QuickFixes!);
+        Assert.Equal("CreatePlayerSpawn", diagnostic.QuickFixes![0].Kind);
+        Assert.Equal("derived-project-diagnostic", diagnostic.Provenance);
     }
 
     [Fact]

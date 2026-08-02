@@ -18,7 +18,7 @@ static int Run(IReadOnlyList<string> arguments)
             return RunPackage(arguments.Skip(1).ToArray());
         }
 
-        Console.Error.WriteLine("Usage: forge package <export|validate|load|analyze|compliance|spatial> ...");
+        Console.Error.WriteLine("Usage: forge package <export|validate|load|analyze|compliance|spatial|diagnose> ...");
         return 2;
     }
     catch (Exception exception)
@@ -207,10 +207,55 @@ static int RunPackage(IReadOnlyList<string> arguments)
         return distinct.Length == 0 ? 0 : 1;
     }
 
+    if (arguments.Count == 2 && arguments[0] == "diagnose")
+    {
+        var opened = ProjectSession.Open(arguments[1]);
+        if (!opened.Succeeded || opened.Session is null)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+            return 1;
+        }
+
+        var diagnostics = ProjectDiagnosticCatalog.Build(opened.Session.Project);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = diagnostics.All(diagnostic => diagnostic.Severity != DiagnosticSeverity.Error),
+            schemaVersion = ActionableDiagnostic.CurrentSchemaVersion,
+            diagnostics = diagnostics.Select(diagnostic => new
+            {
+                id = diagnostic.Id.ToString(),
+                diagnostic.SchemaVersion,
+                severity = diagnostic.Severity.ToString(),
+                diagnostic.Code,
+                diagnostic.Message,
+                diagnostic.DocumentPath,
+                subjectUuid = diagnostic.SubjectUuid?.ToString("D"),
+                diagnostic.Property,
+                diagnostic.Source,
+                diagnostic.Provenance,
+                quickFixes = diagnostic.QuickFixes.Select(fix => new
+                {
+                    id = fix.Id.ToString(),
+                    fix.SchemaVersion,
+                    fix.Label,
+                    fix.Description,
+                    kind = fix.Kind.ToString(),
+                    areaId = fix.AreaId.ToString(),
+                    entityId = fix.EntityId?.ToString(),
+                    fix.Provenance,
+                }),
+            }),
+        }));
+        Console.WriteLine(
+            $"OPENRPG_FORGE_DIAGNOSTICS_PASS count={diagnostics.Count} " +
+            $"actionable={diagnostics.Count(diagnostic => diagnostic.QuickFixes.Count > 0)}");
+        return diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error) ? 1 : 0;
+    }
+
     Console.Error.WriteLine(
         "Usage: forge package export <workspace> <destination.orpmod> [--target <profile>] | " +
         "validate <module.orpmod> | load <module.orpmod> <cache> | analyze <workspace> | " +
-        "compliance <workspace> <profile> | spatial <workspace>");
+        "compliance <workspace> <profile> | spatial <workspace> | diagnose <workspace>");
     return 2;
 }
 

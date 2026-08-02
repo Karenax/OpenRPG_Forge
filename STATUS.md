@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-14 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-15 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -54,6 +54,9 @@ G7-14 ajoute une navigation Core par zone avec quatre tailles/modes d’agents, 
 liens hors-maillage, rebuild partiel, validation géométrique et reachability depuis les spawns. Son
 écran Aurora configure les données et superpose le bake au viewport sans faire de la scène la source
 de vérité.
+G7-15 unifie les diagnostics sous un contrat canonique à UUID, sévérité, chemin, sujet, propriété,
+source et provenance. La coque Aurora cible le document concerné et propose des correctifs guidés
+prévisualisables, transactionnels et annulables ; CLI et MCP exposent le même diagnostic structuré.
 
 ## État prouvé
 
@@ -64,7 +67,7 @@ de vérité.
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 233 tests .NET et 24 tests Python réussis ;
+- 237 tests .NET et 24 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -138,6 +141,9 @@ de vérité.
 - navigation G7-14 : configuration de zone 1.1, profils Petit/Moyen/Grand/Volant, portes selon trois
   états, liens Saut/Porte/Vol, grille et fingerprint déterministes, plan de rebuild partiel, cache
   dérivé versionné, reachability spawn-vers-objet, validation géométrique CLI et overlay 3D ;
+- diagnostics G7-15 : modèle canonique v1, UUID stable, sévérité, chemin, UUID sujet, propriété,
+  source et provenance, navigation partagée, correctifs guidés spatiaux, dry-run, commande, patch,
+  inverse, audit, undo/redo, persistance, CLI et MCP structurés ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -161,6 +167,8 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   le premier catalogue Blueprints et la conformité de distribution sont opérationnels, tandis que
   les éditeurs complets Quêtes, Assets et Assistant relèvent encore du Creator Core G7 ; Scripts
   possède l'analyse de build et de cache mais pas encore l'éditeur de code complet ;
+- les diagnostics sont désormais structurés et navigables, mais les profils de validation, filtres,
+  catégories, bundle d’export et correctifs propres aux futurs imports d’assets restent à livrer ;
 - les visuels finaux du MVP sont des primitives procédurales originales ; ils ne constituent pas
   encore une direction artistique de production avec modèles, animations, audio et VFX finis ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
@@ -208,6 +216,7 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-15 — diagnostics actionnables** pour `ORF-QA-021` : donner à chaque diagnostic un UUID,
-une sévérité, une propriété source et des quick fixes prévisualisables, puis relier la sélection à
-l’explorateur, au viewport et au document canonique.
+Ouvrir **G7-16 — Content Browser et Asset Vault local** pour `ORF-CONT-020`, `ORF-PAL-010` et
+`ORF-PAL-011` : versionner le manifeste d’asset, indexer le catalogue local par hash, licence et
+provenance, puis livrer l’espace Assets Aurora avec recherche à facettes, aperçu et états
+d’import explicites.

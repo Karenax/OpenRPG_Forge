@@ -393,10 +393,12 @@ Le détail et les preuves des 717 capacités restent suivis dans
   NOTICE et export ciblé.
 - [x] **G7-14 — navigation et validation spatiale** : profils d’agents, portes dynamiques, liens
   hors-maillage, rebuild partiel, reachability, diagnostics géométriques et overlay viewport.
-- [ ] **G7-15 — diagnostics actionnables** : UUID, sévérité, propriété source, navigation et quick
+- [x] **G7-15 — diagnostics actionnables** : UUID, sévérité, propriété source, navigation et quick
   fixes transactionnels pour la dernière exigence P0 Core non commencée.
+- [ ] **G7-16 — Content Browser et Asset Vault local** : manifeste versionné, catalogue adressé par
+  hash, recherche à facettes, provenance/licence, aperçu et statut d’import dans l’espace Assets.
 
-Les règles graphiques et d’interaction de G7-03 à G7-09 sont consignées dans
+Les règles graphiques et d’interaction de G7-03 à G7-16 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest

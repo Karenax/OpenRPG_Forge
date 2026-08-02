@@ -88,8 +88,8 @@ public sealed class ForgeProjectAgentService
     {
         lock (_gate)
         {
-            return ProjectValidator.Validate(_history.State.Project)
-                .Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path))
+            return ProjectDiagnosticCatalog.Build(_history.State.Project)
+                .Select(Map)
                 .ToArray();
         }
     }
@@ -353,6 +353,27 @@ public sealed class ForgeProjectAgentService
     }
 
     private static AgentDiagnostic Map(CommandDiagnostic diagnostic) => new(diagnostic.Code, diagnostic.Message);
+
+    private static AgentDiagnostic Map(ActionableDiagnostic diagnostic) => new(
+        diagnostic.Code,
+        diagnostic.Message,
+        diagnostic.DocumentPath,
+        diagnostic.Id.ToString(),
+        diagnostic.SchemaVersion,
+        diagnostic.Severity.ToString(),
+        diagnostic.SubjectUuid?.ToString("D"),
+        diagnostic.Property,
+        diagnostic.Source,
+        diagnostic.QuickFixes.Select(fix => new AgentQuickFix(
+            fix.Id.ToString(),
+            fix.SchemaVersion,
+            fix.Label,
+            fix.Description,
+            fix.Kind.ToString(),
+            fix.AreaId.ToString(),
+            fix.EntityId?.ToString(),
+            fix.Provenance)).ToArray(),
+        diagnostic.Provenance);
 
     private static DialoguePlanResult DialogueFailure(long revision, string code, string message) => new(
         false,

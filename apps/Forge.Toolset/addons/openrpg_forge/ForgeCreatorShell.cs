@@ -1,5 +1,6 @@
 #if TOOLS
 using Forge.Application.Creator;
+using Forge.Domain.Validation;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -27,6 +28,9 @@ internal sealed class ForgeCreatorShell
     private readonly Button _selectionLock;
     private readonly ItemList _diagnosticList;
     private readonly Label _diagnosticSummary;
+    private readonly OptionButton _quickFixPicker;
+    private readonly Button _quickFixPreview;
+    private readonly Button _quickFixApply;
     private readonly Dictionary<string, CreatorExplorerNode> _nodesByKey = new(StringComparer.Ordinal);
     private readonly Dictionary<string, TreeItem> _treeItemsByKey = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Button> _workspaceButtons = new(StringComparer.Ordinal);
@@ -36,6 +40,8 @@ internal sealed class ForgeCreatorShell
     internal event Action<CreatorExplorerNode>? ExplorerSelectionRequested;
 
     internal event Action<CreatorDiagnostic>? DiagnosticSelectionRequested;
+
+    internal event Action<CreatorDiagnostic, DiagnosticQuickFixDefinition, bool>? DiagnosticQuickFixRequested;
 
     internal event Action<string>? WorkspaceRequested;
 
@@ -171,6 +177,45 @@ internal sealed class ForgeCreatorShell
         };
         _diagnosticList.ItemSelected += HandleDiagnosticSelection;
         diagnosticsContent.AddChild(_diagnosticList);
+        diagnosticsContent.AddChild(CreateSectionTitle("CORRECTIF GUIDÉ"));
+        _quickFixPicker = new OptionButton
+        {
+            Disabled = true,
+            TooltipText = "Sélectionnez un diagnostic proposant un correctif.",
+        };
+        diagnosticsContent.AddChild(_quickFixPicker);
+        var quickFixActions = new HBoxContainer();
+        quickFixActions.AddThemeConstantOverride("separation", 6);
+        diagnosticsContent.AddChild(quickFixActions);
+        _quickFixPreview = new Button
+        {
+            Text = "Prévisualiser",
+            Disabled = true,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        _quickFixPreview.Pressed += () => InvokeSelectedQuickFix(dryRun: true);
+        quickFixActions.AddChild(_quickFixPreview);
+        _quickFixApply = new Button
+        {
+            Text = "Appliquer",
+            Disabled = true,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        _quickFixApply.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color("d84f32"),
+            BorderColor = new Color("ff9a73"),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 7,
+            CornerRadiusTopRight = 7,
+            CornerRadiusBottomLeft = 7,
+            CornerRadiusBottomRight = 7,
+        });
+        _quickFixApply.Pressed += () => InvokeSelectedQuickFix(dryRun: false);
+        quickFixActions.AddChild(_quickFixApply);
 
         playtestConsole.Name = "Playtests";
         playtestConsole.CustomMinimumSize = new Vector2(0, 120);
@@ -237,6 +282,7 @@ internal sealed class ForgeCreatorShell
         ArgumentNullException.ThrowIfNull(diagnostics);
         _diagnostics = diagnostics.ToArray();
         _diagnosticList.Clear();
+        ResetQuickFixControls();
         if (_diagnostics.Length == 0)
         {
             _diagnosticSummary.Text = "✓ Projet prêt · aucun diagnostic";
@@ -260,7 +306,13 @@ internal sealed class ForgeCreatorShell
             };
             _diagnosticList.AddItem($"{prefix} {diagnostic.Code}\n{diagnostic.Message}");
             var index = _diagnosticList.ItemCount - 1;
-            _diagnosticList.SetItemTooltip(index, $"{diagnostic.DocumentPath}\nCliquer pour cibler l’élément concerné.");
+            var subject = diagnostic.SubjectUuid?.ToString("D") ?? "document";
+            var fixes = diagnostic.QuickFixes.Count == 0 ? "aucun correctif automatique" :
+                $"{diagnostic.QuickFixes.Count} correctif(s) disponible(s)";
+            _diagnosticList.SetItemTooltip(
+                index,
+                $"UUID · {diagnostic.Id}\nSévérité · {diagnostic.Severity}\nChemin · {diagnostic.DocumentPath}\n" +
+                $"Sujet · {subject}\nPropriété · {diagnostic.Property}\nSource · {diagnostic.Source}\n{fixes}");
         }
     }
 
@@ -284,9 +336,12 @@ internal sealed class ForgeCreatorShell
         }
 
         _diagnosticList.Select(index);
+        RefreshQuickFixControls(index);
         DiagnosticSelectionRequested?.Invoke(_diagnostics[index]);
         return true;
     }
+
+    internal bool InvokeSelectedQuickFixForSmokeTest(bool dryRun) => InvokeSelectedQuickFix(dryRun);
 
     private HBoxContainer CreateWorkspaceBar()
     {
@@ -353,8 +408,58 @@ internal sealed class ForgeCreatorShell
     {
         if (index >= 0 && index < _diagnostics.Length)
         {
+            RefreshQuickFixControls((int)index);
             DiagnosticSelectionRequested?.Invoke(_diagnostics[index]);
         }
+    }
+
+    private void RefreshQuickFixControls(int diagnosticIndex)
+    {
+        ResetQuickFixControls();
+        if (diagnosticIndex < 0 || diagnosticIndex >= _diagnostics.Length)
+        {
+            return;
+        }
+
+        foreach (var fix in _diagnostics[diagnosticIndex].QuickFixes)
+        {
+            _quickFixPicker.AddItem(fix.Label);
+            _quickFixPicker.SetItemTooltip(_quickFixPicker.ItemCount - 1, fix.Description);
+        }
+
+        var available = _quickFixPicker.ItemCount > 0;
+        _quickFixPicker.Disabled = !available;
+        _quickFixPreview.Disabled = !available;
+        _quickFixApply.Disabled = !available;
+        if (available)
+        {
+            _quickFixPicker.Selected = 0;
+        }
+    }
+
+    private void ResetQuickFixControls()
+    {
+        _quickFixPicker.Clear();
+        _quickFixPicker.Disabled = true;
+        _quickFixPreview.Disabled = true;
+        _quickFixApply.Disabled = true;
+    }
+
+    private bool InvokeSelectedQuickFix(bool dryRun)
+    {
+        var diagnosticIndex = _diagnosticList.GetSelectedItems().FirstOrDefault(-1);
+        if (diagnosticIndex < 0 || diagnosticIndex >= _diagnostics.Length ||
+            _quickFixPicker.Selected < 0 ||
+            _quickFixPicker.Selected >= _diagnostics[diagnosticIndex].QuickFixes.Count)
+        {
+            return false;
+        }
+
+        DiagnosticQuickFixRequested?.Invoke(
+            _diagnostics[diagnosticIndex],
+            _diagnostics[diagnosticIndex].QuickFixes[_quickFixPicker.Selected],
+            dryRun);
+        return true;
     }
 
     private void SelectTreeItem(string key)

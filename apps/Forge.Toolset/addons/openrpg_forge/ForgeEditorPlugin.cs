@@ -57,6 +57,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetModuleConfigurationHandler _setModuleConfigurationHandler = new(new SystemClock());
     private readonly SetModuleDistributionHandler _setModuleDistributionHandler = new(new SystemClock());
     private readonly SetAreaNavigationHandler _setAreaNavigationHandler = new(new SystemClock());
+    private readonly ApplyDiagnosticQuickFixHandler _diagnosticQuickFixHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -769,6 +770,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _activeAreaContext.Changed += HandleActiveAreaChanged;
         _creatorShell!.ExplorerSelectionRequested += HandleExplorerSelection;
         _creatorShell.DiagnosticSelectionRequested += HandleDiagnosticSelection;
+        _creatorShell.DiagnosticQuickFixRequested += HandleDiagnosticQuickFix;
         _creatorShell.WorkspaceRequested += HandleWorkspaceRequest;
         _creatorShell.SelectionLockRequested += HandleSelectionLockRequest;
     }
@@ -817,6 +819,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             _creatorShell.ExplorerSelectionRequested -= HandleExplorerSelection;
             _creatorShell.DiagnosticSelectionRequested -= HandleDiagnosticSelection;
+            _creatorShell.DiagnosticQuickFixRequested -= HandleDiagnosticQuickFix;
             _creatorShell.WorkspaceRequested -= HandleWorkspaceRequest;
             _creatorShell.SelectionLockRequested -= HandleSelectionLockRequest;
         }
@@ -921,8 +924,44 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_selectionContext.Replace(selection))
         {
             _statusLabel!.Text = $"Diagnostic ciblé · {diagnostic.Code}";
-            _detailsLabel!.Text = $"{diagnostic.Message}\n{diagnostic.DocumentPath}";
+            _detailsLabel!.Text =
+                $"{diagnostic.Message}\n{diagnostic.DocumentPath}\n" +
+                $"Propriété · {diagnostic.Property}\nSource · {diagnostic.Source}\nUUID · {diagnostic.Id}";
         }
+    }
+
+    private void HandleDiagnosticQuickFix(
+        CreatorDiagnostic diagnostic,
+        DiagnosticQuickFixDefinition quickFix,
+        bool dryRun)
+    {
+        if (_history is null)
+        {
+            return;
+        }
+
+        var command = new ApplyDiagnosticQuickFixCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            diagnostic.DiagnosticId,
+            quickFix.Id,
+            dryRun);
+        var result = _diagnosticQuickFixHandler.Handle(_history.State, command);
+        if (dryRun)
+        {
+            _statusLabel!.Text = result.Succeeded
+                ? $"Aperçu du correctif · {quickFix.Label}"
+                : "✗ Prévisualisation refusée";
+            _detailsLabel!.Text = result.Succeeded
+                ? result.Patch?.Summary ?? quickFix.Description
+                : string.Join("\n", result.Diagnostics.Select(item => $"{item.Code} — {item.Message}"));
+            return;
+        }
+
+        ApplyCommand(
+            result,
+            $"Correctif appliqué · {quickFix.Label}",
+            quickFix.EntityId);
     }
 
     private void HandleSelectionLockRequest(bool locked) => _selectionContext.SetLocked(locked);
@@ -2727,6 +2766,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunActionableDiagnosticsSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNewModuleSmokeTest())
         {
             return;
@@ -3895,6 +3939,121 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_PASS agents=4 geometry=valid " +
             "reachability=spawn-object doors=states offmesh=linked flight=profiled " +
             "incremental=partial overlay=visible history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunActionableDiagnosticsSmokeTest()
+    {
+        if (_creatorShell is null || _history is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_FAILED missing_shell");
+            return false;
+        }
+
+        var originalAreaId = GetActiveArea().Id;
+        var originalAreaCount = _history.State.Project.Areas.Count;
+        var createdAreaId = CreateArea(
+            "Diagnostic guidé G715",
+            AreaKind.Interior,
+            new AreaDimensions(12, 12),
+            AreaTemplateKind.Empty);
+        if (createdAreaId is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_FAILED create_area");
+            return false;
+        }
+
+        var diagnostics = CreatorDiagnostics.FromProject(
+            _history.State.Project,
+            $"revision:{_history.State.Revision}");
+        var diagnosticIndex = diagnostics.ToList().FindIndex(candidate =>
+            candidate.Code == AreaNavigationValidator.MissingSpawnCode &&
+            candidate.DocumentPath.Contains(createdAreaId.ToString()!, StringComparison.Ordinal));
+        if (diagnosticIndex < 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_FAILED missing_diagnostic");
+            return false;
+        }
+
+        var diagnostic = diagnostics[diagnosticIndex];
+        var repeated = CreatorDiagnostics.FromProject(_history.State.Project)
+            .Single(candidate => candidate.Code == diagnostic.Code && candidate.DocumentPath == diagnostic.DocumentPath);
+        if (diagnostic.SchemaVersion != ActionableDiagnostic.CurrentSchemaVersion ||
+            diagnostic.DiagnosticId != repeated.DiagnosticId ||
+            diagnostic.SubjectUuid != createdAreaId.Value ||
+            string.IsNullOrWhiteSpace(diagnostic.Property) ||
+            diagnostic.Source != "AreaNavigationValidator" ||
+            diagnostic.QuickFixes.Count != 1)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_FAILED structured_contract");
+            return false;
+        }
+
+        _creatorShell.SetDiagnostics(diagnostics);
+        var previewRevision = _history.State.Revision;
+        if (!_creatorShell.SelectDiagnosticForSmokeTest(diagnosticIndex) ||
+            !_creatorShell.InvokeSelectedQuickFixForSmokeTest(dryRun: true) ||
+            _history.State.Revision != previewRevision ||
+            !_creatorShell.InvokeSelectedQuickFixForSmokeTest(dryRun: false))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_FAILED ui_command");
+            return false;
+        }
+
+        var fixedArea = _history.State.Project.Areas.Single(candidate => candidate.Id == createdAreaId);
+        if (fixedArea.Entities.Count != 1 ||
+            _history.State.Project.Blueprints.Single(candidate => candidate.Id == fixedArea.Entities[0].BlueprintId).Kind !=
+            BlueprintKind.PlayerSpawn ||
+            CreatorDiagnostics.FromProject(_history.State.Project)
+                .Any(candidate => candidate.DiagnosticId == diagnostic.DiagnosticId))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_FAILED quick_fix");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "actionable-diagnostics-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var created = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var persistedArea = reopened.Session?.Project.Areas.SingleOrDefault(candidate => candidate.Id == createdAreaId);
+            if (!created.Succeeded || !reopened.Succeeded || persistedArea?.Entities.Count != 1)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        var undoFix = _history.Undo();
+        var redoFix = _history.Redo();
+        var cleanupFix = _history.Undo();
+        var cleanupArea = _history.Undo();
+        _activeAreaContext.EnsureValid(_history.State.Project);
+        ActivateArea(originalAreaId);
+        if (!undoFix.Succeeded || !redoFix.Succeeded || !cleanupFix.Succeeded || !cleanupArea.Succeeded ||
+            _history.State.Project.Areas.Count != originalAreaCount ||
+            _history.State.Project.Areas.Any(candidate => candidate.Id == createdAreaId))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_FAILED history");
+            return false;
+        }
+
+        RefreshEditorControls();
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_PASS uuid=stable severity=typed path=document " +
+            "property=visible source=validator quickfix=command preview=dry-run navigation=targeted " +
+            "history=restored persistence=roundtrip");
         return true;
     }
 

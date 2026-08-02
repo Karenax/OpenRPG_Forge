@@ -1,4 +1,5 @@
 using Forge.Domain.Projects;
+using Forge.Domain.Entities;
 using Forge.Domain.Validation;
 
 namespace Forge.Application.Creator;
@@ -10,14 +11,11 @@ public static class CreatorDiagnostics
         string? correlationId = null)
     {
         ArgumentNullException.ThrowIfNull(project);
-        return ProjectValidator.Validate(project)
-            .Select(diagnostic => CreatorDiagnostic.Create(
-                CreatorDiagnosticSeverity.Error,
-                diagnostic.Code,
-                diagnostic.Message,
-                diagnostic.Path,
+        return ProjectDiagnosticCatalog.Build(project)
+            .Select(diagnostic => CreatorDiagnostic.FromActionable(
+                diagnostic,
                 correlationId,
-                ResolveTarget(project, diagnostic.Path)))
+                ResolveTarget(project, diagnostic.DocumentPath)))
             .ToArray();
     }
 
@@ -27,18 +25,40 @@ public static class CreatorDiagnostics
         if (parts.Length >= 4 &&
             parts[0] == "areas" &&
             Guid.TryParse(parts[1], out var areaGuid) &&
-            parts[2] == "entities" &&
-            int.TryParse(parts[3], out var entityIndex))
+            parts[2] == "entities")
         {
             var area = project.Areas.FirstOrDefault(candidate => candidate.Id.Value == areaGuid);
-            if (area is not null && entityIndex >= 0 && entityIndex < area.Entities.Count)
+            EntityInstance? entity = null;
+            if (area is not null && int.TryParse(parts[3], out var entityIndex) &&
+                entityIndex >= 0 && entityIndex < area.Entities.Count)
             {
-                var entity = area.Entities[entityIndex];
+                entity = area.Entities[entityIndex];
+            }
+            else if (area is not null && Guid.TryParse(parts[3], out var entityGuid))
+            {
+                entity = area.Entities.FirstOrDefault(candidate => candidate.Id.Value == entityGuid);
+            }
+
+            if (entity is not null)
+            {
                 return new CreatorSelection(
                     CreatorSelectionKind.Entity,
                     entity.Id.ToString(),
                     $"Entité · {entity.Id.ToString()[..8]}",
-                    $"areas/{area.Id}/entities/{entity.Id}");
+                    $"areas/{area!.Id}/entities/{entity.Id}");
+            }
+        }
+
+        if (parts.Length >= 2 && parts[0] == "areas" && Guid.TryParse(parts[1], out var areaTargetGuid))
+        {
+            var area = project.Areas.FirstOrDefault(candidate => candidate.Id.Value == areaTargetGuid);
+            if (area is not null)
+            {
+                return new CreatorSelection(
+                    CreatorSelectionKind.Area,
+                    area.Id.ToString(),
+                    area.DisplayName,
+                    $"areas/{area.Id}");
             }
         }
 

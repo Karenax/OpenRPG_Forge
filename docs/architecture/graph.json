@@ -1560,7 +1560,7 @@
     },
     {
       "evidence": {
-        "line": 145,
+        "line": 151,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1569,7 +1569,7 @@
     },
     {
       "evidence": {
-        "line": 202,
+        "line": 210,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1578,7 +1578,7 @@
     },
     {
       "evidence": {
-        "line": 63,
+        "line": 66,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1614,7 +1614,7 @@
     },
     {
       "evidence": {
-        "line": 400,
+        "line": 402,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1623,7 +1623,7 @@
     },
     {
       "evidence": {
-        "line": 406,
+        "line": 408,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1632,7 +1632,7 @@
     },
     {
       "evidence": {
-        "line": 412,
+        "line": 414,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2217,6 +2217,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
@@ -2694,7 +2703,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 77,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2703,7 +2712,7 @@
     },
     {
       "evidence": {
-        "line": 91,
+        "line": 93,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2712,7 +2721,7 @@
     },
     {
       "evidence": {
-        "line": 159,
+        "line": 172,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -3505,6 +3514,141 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "target": "namespace:Forge.Domain.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostic.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/CreatorDiagnostic.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/CreatorDiagnostics.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
       },
       "kind": "imports",
@@ -3513,7 +3657,7 @@
     },
     {
       "evidence": {
-        "line": 2,
+        "line": 3,
         "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
       },
       "kind": "imports",
@@ -5205,6 +5349,24 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs"
       },
@@ -5219,6 +5381,51 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs",
+      "target": "namespace:Forge.Domain.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs",
       "target": "namespace:Forge.Domain.Projects"
     },
     {
@@ -6336,6 +6543,96 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -7564,6 +7861,60 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs"
       },
       "kind": "imports",
@@ -7712,7 +8063,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -7721,7 +8072,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -7730,7 +8081,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Projects"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -7739,11 +8090,38 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Scripts"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
         "line": 6,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Projects"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Scripts"
+    },
+    {
+      "evidence": {
+        "line": 9,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
@@ -10569,6 +10947,204 @@
     },
     {
       "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 214,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 211,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 215,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Application.Creator.ApplyDiagnosticQuickFixCommand"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 117,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 110,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 142,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 153,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 121,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 140,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 182,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Navigation.AreaNavigationDefinition"
+    },
+    {
+      "evidence": {
+        "line": 102,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 143,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 130,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 103,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Validation.ActionableDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Validation.DiagnosticId"
+    },
+    {
+      "evidence": {
+        "line": 104,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Validation.DiagnosticQuickFixDefinition"
+    },
+    {
+      "evidence": {
+        "line": 120,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "target": "model:Forge.Domain.Validation.DiagnosticQuickFixKind"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
       },
@@ -12369,6 +12945,42 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.ApplyDiagnosticQuickFixCommand",
+      "target": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.ApplyDiagnosticQuickFixCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.ApplyDiagnosticQuickFixCommand",
+      "target": "model:Forge.Domain.Validation.DiagnosticId"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.ApplyDiagnosticQuickFixCommand",
+      "target": "model:Forge.Domain.Validation.DiagnosticQuickFixId"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Creator/CreatorContentKind.cs"
       },
@@ -12378,12 +12990,39 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 7,
         "path": "src/Forge.Application/Creator/CreatorDiagnostic.cs"
       },
       "kind": "defined_in",
       "source": "model:Forge.Application.Creator.CreatorDiagnostic",
       "target": "file:src/Forge.Application/Creator/CreatorDiagnostic.cs"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostic.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.CreatorDiagnostic",
+      "target": "model:Forge.Domain.Validation.ActionableDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostic.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.CreatorDiagnostic",
+      "target": "model:Forge.Domain.Validation.DiagnosticId"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostic.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.CreatorDiagnostic",
+      "target": "model:Forge.Domain.Validation.DiagnosticQuickFixDefinition"
     },
     {
       "evidence": {
@@ -14026,6 +14665,105 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Domain/Validation/ActionableDiagnostic.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Validation.ActionableDiagnostic",
+      "target": "file:src/Forge.Domain/Validation/ActionableDiagnostic.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Validation/ActionableDiagnostic.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Validation.ActionableDiagnostic",
+      "target": "model:Forge.Domain.Validation.DiagnosticId"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Domain/Validation/ActionableDiagnostic.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Validation.ActionableDiagnostic",
+      "target": "model:Forge.Domain.Validation.DiagnosticQuickFixDefinition"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Validation/DiagnosticId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Validation.DiagnosticId",
+      "target": "file:src/Forge.Domain/Validation/DiagnosticId.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Validation.DiagnosticQuickFixDefinition",
+      "target": "file:src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Validation.DiagnosticQuickFixDefinition",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Validation.DiagnosticQuickFixDefinition",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Validation.DiagnosticQuickFixDefinition",
+      "target": "model:Forge.Domain.Validation.DiagnosticQuickFixId"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Validation.DiagnosticQuickFixDefinition",
+      "target": "model:Forge.Domain.Validation.DiagnosticQuickFixKind"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Validation.DiagnosticQuickFixId",
+      "target": "file:src/Forge.Domain/Validation/DiagnosticQuickFixId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Validation.DiagnosticQuickFixKind",
+      "target": "file:src/Forge.Domain/Validation/DiagnosticQuickFixKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Domain/Validation/DomainDiagnostic.cs"
       },
       "kind": "defined_in",
@@ -14034,7 +14772,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 13,
         "path": "src/Forge.Mcp/AgentDiagnostic.cs"
       },
       "kind": "defined_in",
@@ -14088,7 +14826,7 @@
     },
     {
       "evidence": {
-        "line": 428,
+        "line": 449,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -14097,7 +14835,7 @@
     },
     {
       "evidence": {
-        "line": 430,
+        "line": 451,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "relationship",
@@ -14925,6 +15663,24 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Application/Creator/CreatorContentKind.cs"
       },
@@ -14934,7 +15690,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 4,
         "path": "src/Forge.Application/Creator/CreatorDiagnostic.cs"
       },
       "kind": "defined_in",
@@ -14952,7 +15708,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 4,
         "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
       },
       "kind": "defined_in",
@@ -15426,6 +16182,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Creator",
       "target": "file:tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Creator",
+      "target": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
     },
     {
       "evidence": {
@@ -16788,6 +17553,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Validation",
+      "target": "file:tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs"
       },
@@ -16803,6 +17577,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Tests.Validation",
       "target": "file:tests/Forge.Domain.Tests/Validation/ProjectValidatorTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Validation/ActionableDiagnostic.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Validation",
+      "target": "file:src/Forge.Domain/Validation/ActionableDiagnostic.cs"
     },
     {
       "evidence": {
@@ -16824,6 +17607,51 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Validation/DiagnosticId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Validation",
+      "target": "file:src/Forge.Domain/Validation/DiagnosticId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Validation",
+      "target": "file:src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Validation",
+      "target": "file:src/Forge.Domain/Validation/DiagnosticQuickFixId.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Validation/DiagnosticQuickFixKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Validation",
+      "target": "file:src/Forge.Domain/Validation/DiagnosticQuickFixKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Validation/DiagnosticSeverity.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Validation",
+      "target": "file:src/Forge.Domain/Validation/DiagnosticSeverity.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs"
       },
@@ -16839,6 +17667,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Validation",
       "target": "file:src/Forge.Domain/Validation/DomainDiagnostic.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Validation",
+      "target": "file:src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
     },
     {
       "evidence": {
@@ -16986,7 +17823,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 10,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -17724,7 +18561,7 @@
     },
     {
       "evidence": {
-        "line": 4,
+        "line": 5,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
       },
       "kind": "defined_in",
@@ -18306,6 +19143,15 @@
       "kind": "accesses_model",
       "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "target": "model:Forge.Domain.Entities.EntityPropertyValueKind"
+    },
+    {
+      "evidence": {
+        "line": 357,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Domain.Validation.ActionableDiagnostic"
     },
     {
       "evidence": {
@@ -18972,6 +19818,222 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Creator.ActiveAreaContextTests",
       "target": "type:Forge.Application.Creator.ActiveAreaContext"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Application.Creator.ApplyDiagnosticQuickFixCommand"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 62,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 63,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 61,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 110,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 109,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 114,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 112,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 113,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "model:Forge.Domain.Validation.DiagnosticId"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 118,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "type:Forge.Domain.Validation.ProjectDiagnosticCatalog"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "validator:Forge.Domain.Validation.AreaGeometryValidator"
+    },
+    {
+      "evidence": {
+        "line": 74,
+        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "target": "validator:Forge.Domain.Validation.AreaNavigationValidator"
     },
     {
       "evidence": {
@@ -22998,6 +24060,177 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "file:tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Validation.ActionableDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "model:Forge.Domain.Validation.DiagnosticQuickFixKind"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "type:Forge.Domain.Validation.DiagnosticSeverity"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "type:Forge.Domain.Validation.ProjectDiagnosticCatalog"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "target": "validator:Forge.Domain.Validation.AreaGeometryValidator"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs"
       },
@@ -23439,7 +24672,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 13,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -23448,7 +24681,25 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 34,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 98,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -23457,7 +24708,25 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 39,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "service:Forge.Mcp.Projects.ForgeProjectAgentService"
+    },
+    {
+      "evidence": {
+        "line": 121,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -23466,7 +24735,7 @@
     },
     {
       "evidence": {
-        "line": 118,
+        "line": 157,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -23475,7 +24744,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 68,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -23484,7 +24753,7 @@
     },
     {
       "evidence": {
-        "line": 100,
+        "line": 139,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -23493,7 +24762,7 @@
     },
     {
       "evidence": {
-        "line": 58,
+        "line": 33,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -23502,12 +24771,21 @@
     },
     {
       "evidence": {
-        "line": 89,
+        "line": 128,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
       "target": "validator:Forge.Domain.Dialogues.DialogueValidator"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "validator:Forge.Domain.Validation.AreaNavigationValidator"
     },
     {
       "evidence": {
@@ -25599,7 +26877,7 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 7,
         "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
       },
       "kind": "defined_in",
@@ -26266,6 +27544,33 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Domain/Validation/DiagnosticSeverity.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Validation.DiagnosticSeverity",
+      "target": "file:src/Forge.Domain/Validation/DiagnosticSeverity.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Validation.ProjectDiagnosticCatalog",
+      "target": "file:src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Mcp/AgentDiagnostic.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.AgentQuickFix",
+      "target": "file:src/Forge.Mcp/AgentDiagnostic.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Mcp/Bridge/EditorBridgeContracts.cs"
       },
       "kind": "defined_in",
@@ -26373,7 +27678,7 @@
     },
     {
       "evidence": {
-        "line": 400,
+        "line": 421,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -26895,7 +28200,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
       },
       "kind": "defined_in",
@@ -26931,7 +28236,7 @@
     },
     {
       "evidence": {
-        "line": 4278,
+        "line": 4437,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -26958,7 +28263,7 @@
     },
     {
       "evidence": {
-        "line": 4283,
+        "line": 4442,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -26967,7 +28272,7 @@
     },
     {
       "evidence": {
-        "line": 4288,
+        "line": 4447,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -27534,8 +28839,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:faa1b2bf1145d9467dc59ada5ef9f639ee55491e8ae6decf376e9b46b624d043",
-    "source_file_count": 669
+    "source_digest": "sha256:c5ceb07856a8e04a942f876e0ded50172ca52455eae4c9da09615e7fe06e4342",
+    "source_file_count": 681
   },
   "nodes": [
     {
@@ -29879,6 +31184,16 @@
       "path": "docs/aurora-parity/tasks/G7-14-NAVIGATION-SPATIAL-VALIDATION.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-15-ACTIONABLE-DIAGNOSTICS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-15-ACTIONABLE-DIAGNOSTICS.md",
+      "path": "docs/aurora-parity/tasks/G7-15-ACTIONABLE-DIAGNOSTICS.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -30237,6 +31552,26 @@
       },
       "name": "ActiveAreaContext.cs",
       "path": "src/Forge.Application/Creator/ActiveAreaContext.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ApplyDiagnosticQuickFixCommand.cs",
+      "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ApplyDiagnosticQuickFixHandler.cs",
+      "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Creator/CreatorContentKind.cs",
@@ -31959,6 +33294,16 @@
       "path": "src/Forge.Domain/Spatial/Vector3Value.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Validation/ActionableDiagnostic.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ActionableDiagnostic.cs",
+      "path": "src/Forge.Domain/Validation/ActionableDiagnostic.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Validation/AreaGeometryValidator.cs",
       "kind": "file",
       "line": 1,
@@ -31979,6 +33324,56 @@
       "path": "src/Forge.Domain/Validation/AreaNavigationValidator.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Validation/DiagnosticId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DiagnosticId.cs",
+      "path": "src/Forge.Domain/Validation/DiagnosticId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DiagnosticQuickFixDefinition.cs",
+      "path": "src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Validation/DiagnosticQuickFixId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DiagnosticQuickFixId.cs",
+      "path": "src/Forge.Domain/Validation/DiagnosticQuickFixId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Validation/DiagnosticQuickFixKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DiagnosticQuickFixKind.cs",
+      "path": "src/Forge.Domain/Validation/DiagnosticQuickFixKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Validation/DiagnosticSeverity.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DiagnosticSeverity.cs",
+      "path": "src/Forge.Domain/Validation/DiagnosticSeverity.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Validation/DistributionComplianceValidator.cs",
       "kind": "file",
       "line": 1,
@@ -31997,6 +33392,16 @@
       },
       "name": "DomainDiagnostic.cs",
       "path": "src/Forge.Domain/Validation/DomainDiagnostic.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ProjectDiagnosticCatalog.cs",
+      "path": "src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
     },
     {
       "id": "file:src/Forge.Domain/Validation/ProjectValidator.cs",
@@ -32809,6 +34214,16 @@
       "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ApplyDiagnosticQuickFixHandlerTests.cs",
+      "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Creator/CreatorSearchAndRenameTests.cs",
       "kind": "file",
       "line": 1,
@@ -33167,6 +34582,16 @@
       },
       "name": "TransformValueTests.cs",
       "path": "tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ActionableDiagnosticTests.cs",
+      "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Validation/DistributionComplianceValidatorTests.cs",
@@ -35409,6 +36834,16 @@
       "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
+      "kind": "handler",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "ApplyDiagnosticQuickFixHandler",
+      "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
       "kind": "handler",
       "line": 8,
@@ -35709,6 +37144,16 @@
       "path": "src/Forge.Application/Commands/ProjectPatch.cs"
     },
     {
+      "id": "model:Forge.Application.Creator.ApplyDiagnosticQuickFixCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "ApplyDiagnosticQuickFixCommand",
+      "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixCommand.cs"
+    },
+    {
       "id": "model:Forge.Application.Creator.CreatorContentKind",
       "kind": "model",
       "line": 3,
@@ -35721,7 +37166,7 @@
     {
       "id": "model:Forge.Application.Creator.CreatorDiagnostic",
       "kind": "model",
-      "line": 6,
+      "line": 7,
       "metadata": {
         "namespace": "Forge.Application.Creator"
       },
@@ -36559,6 +38004,56 @@
       "path": "src/Forge.Domain/Spatial/Vector3Value.cs"
     },
     {
+      "id": "model:Forge.Domain.Validation.ActionableDiagnostic",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Validation"
+      },
+      "name": "ActionableDiagnostic",
+      "path": "src/Forge.Domain/Validation/ActionableDiagnostic.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Validation.DiagnosticId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Validation"
+      },
+      "name": "DiagnosticId",
+      "path": "src/Forge.Domain/Validation/DiagnosticId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Validation.DiagnosticQuickFixDefinition",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Validation"
+      },
+      "name": "DiagnosticQuickFixDefinition",
+      "path": "src/Forge.Domain/Validation/DiagnosticQuickFixDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Validation.DiagnosticQuickFixId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Validation"
+      },
+      "name": "DiagnosticQuickFixId",
+      "path": "src/Forge.Domain/Validation/DiagnosticQuickFixId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Validation.DiagnosticQuickFixKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Validation"
+      },
+      "name": "DiagnosticQuickFixKind",
+      "path": "src/Forge.Domain/Validation/DiagnosticQuickFixKind.cs"
+    },
+    {
       "id": "model:Forge.Domain.Validation.DomainDiagnostic",
       "kind": "model",
       "line": 3,
@@ -36571,7 +38066,7 @@
     {
       "id": "model:Forge.Mcp.AgentDiagnostic",
       "kind": "model",
-      "line": 3,
+      "line": 13,
       "metadata": {
         "namespace": "Forge.Mcp"
       },
@@ -36601,7 +38096,7 @@
     {
       "id": "model:Forge.Mcp.Projects.ForgeProjectAgentOpenResult",
       "kind": "model",
-      "line": 428,
+      "line": 449,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -37527,6 +39022,16 @@
       "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
+      "kind": "test",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Creator"
+      },
+      "name": "ApplyDiagnosticQuickFixHandlerTests",
+      "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Creator.ClipboardTestContext",
       "kind": "test",
       "line": 261,
@@ -37917,6 +39422,16 @@
       "path": "tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
+      "kind": "test",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Validation"
+      },
+      "name": "ActionableDiagnosticTests",
+      "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Validation.DistributionComplianceValidatorTests",
       "kind": "test",
       "line": 9,
@@ -37959,7 +39474,7 @@
     {
       "id": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
       "kind": "test",
-      "line": 10,
+      "line": 13,
       "metadata": {
         "namespace": "Forge.Mcp.Tests.Projects"
       },
@@ -38346,7 +39861,7 @@
     {
       "id": "type:Forge.Application.Creator.CreatorDiagnostics",
       "kind": "type",
-      "line": 6,
+      "line": 7,
       "metadata": {
         "namespace": "Forge.Application.Creator"
       },
@@ -39084,6 +40599,36 @@
       "path": "src/Forge.Domain/Quests/QuestTransition.cs"
     },
     {
+      "id": "type:Forge.Domain.Validation.DiagnosticSeverity",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Validation"
+      },
+      "name": "DiagnosticSeverity",
+      "path": "src/Forge.Domain/Validation/DiagnosticSeverity.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Validation.ProjectDiagnosticCatalog",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Domain.Validation"
+      },
+      "name": "ProjectDiagnosticCatalog",
+      "path": "src/Forge.Domain/Validation/ProjectDiagnosticCatalog.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.AgentQuickFix",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Mcp"
+      },
+      "name": "AgentQuickFix",
+      "path": "src/Forge.Mcp/AgentDiagnostic.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Bridge.EditorBridgeDiscovery",
       "kind": "type",
       "line": 3,
@@ -39196,7 +40741,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredDialoguePlan",
       "kind": "type",
-      "line": 400,
+      "line": 421,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -39756,7 +41301,7 @@
     {
       "id": "type:Forge.Toolset.Editor.ForgeCreatorShell",
       "kind": "type",
-      "line": 7,
+      "line": 8,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -39796,7 +41341,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4278,
+      "line": 4437,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -39826,7 +41371,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4283,
+      "line": 4442,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -39836,7 +41381,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4288,
+      "line": 4447,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
