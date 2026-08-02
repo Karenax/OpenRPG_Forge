@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-01 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-02 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -13,14 +13,15 @@ avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du 
 sortie, l'export, la sauvegarde et la reprise.
 
 Le graphe d’architecture transversal est conservé comme outillage local, déterministe et sans
-dépendance externe. Ses 16 tests et son contrôle de fraîcheur font maintenant partie de la
+dépendance externe. Ses 17 tests et son contrôle de fraîcheur font maintenant partie de la
 vérification globale du dépôt, en plus de leur workflow CI dédié.
 
 Le dossier Aurora 2026 est conservé comme snapshot immuable. Les 717 capacités possèdent maintenant
 un gate cible ; les 76 P0 Core sont auditées avec preuves dans le tracker projet. Le premier
 incrément Creator prouve en plus un second module Core « Les Îles Brisées », créé par la commande de
 nouveau module, exporté en `.orpmod` et démarré en headless sans profil de combat ni contenu propre à
-la Crypte.
+la Crypte. G7-02 ajoute une coque Creator à trois panneaux, neuf workspaces stables, un explorateur
+hiérarchique, une sélection partagée et des diagnostics cliquables.
 
 ## État prouvé
 
@@ -31,7 +32,7 @@ la Crypte.
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 134 tests .NET et 22 tests Python réussis ;
+- 137 tests .NET et 22 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -65,6 +66,9 @@ la Crypte.
 - démarrage headless de référence : 165,398 à 225,207 ms sur cinq exécutions, 98 nœuds ;
 - second module générique « Les Îles Brisées » : deux entités, une collision, PlayerSpawn sans
   dépendance au combat RPG, interaction vide propre, export/validation/chargement `.orpmod` ;
+- coque Creator G7-02 : workspaces Monde, Blueprints, Dialogues, Quêtes, Scripts, Assets, Validation,
+  Playtests et Assistant, explorateur virtuel, inspecteur partagé verrouillable et navigation depuis
+  un diagnostic vers sa cible ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -74,9 +78,8 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 ## Limites actuelles
 
 - l’édition T2.3 est fonctionnelle par palette et boutons, mais pas encore par manipulation directe de gizmos dans le viewport ;
-- l’écran Monde possède une direction visuelle Forge, un inspecteur de propriétés, un éditeur
-  Dialogues, playtest et export ; les espaces Blueprints, Quêtes visuel, Scripts, Assets, Validation
-  et Assistant complets relèvent du Creator Core G7 ;
+- la coque expose les neuf workspaces et relie Monde et Dialogues ; les workflows complets
+  Blueprints, Quêtes, Scripts, Assets, Validation et Assistant relèvent encore du Creator Core G7 ;
 - les visuels finaux du MVP sont des primitives procédurales originales ; ils ne constituent pas
   encore une direction artistique de production avec modèles, animations, audio et VFX finis ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
@@ -115,6 +118,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-02 — coque Creator Forge** pour `ORF-SHELL-001`, `ORF-SHELL-002`, `ORF-SHELL-006` et
-`ORF-SHELL-020` : workspaces, explorateur de projet, contexte de sélection et diagnostics partagés.
-Le catalogue Blueprints et les gizmos suivent dans G7-03 et G7-04.
+Ouvrir **G7-03 — catalogue Blueprints Forge** pour `ORF-PAL-001`, `ORF-PAL-002`, `ORF-PAL-003`,
+`ORF-PAL-007` et `ORF-BUILD-010` : définitions éditables, catégories, création depuis une instance,
+provenance et références. Les gizmos suivent dans G7-04.

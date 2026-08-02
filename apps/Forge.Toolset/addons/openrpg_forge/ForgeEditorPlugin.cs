@@ -1,6 +1,7 @@
 #if TOOLS
 using System.Collections.Concurrent;
 using Forge.Application.Commands;
+using Forge.Application.Creator;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Projects;
@@ -34,6 +35,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetDialogueHandler _setDialogueHandler = new(new SystemClock());
     private readonly SetQuestHandler _setQuestHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
+    private readonly CreatorSelectionContext _selectionContext = new();
     private readonly List<BlueprintId> _paletteBlueprintIds = [];
     private readonly List<EntityId> _entityIds = [];
     private readonly List<EntityId> _spawnEntityIds = [];
@@ -95,6 +97,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _entityPropertiesSaveButton;
     private Button? _entityPropertiesCancelButton;
     private DialogueEditorWindow? _dialogueEditor;
+    private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
     private ProjectCommandHistory? _history;
@@ -138,6 +141,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _mainPanel.AddChild(_dialogueEditor);
         _projectPreview = new ProjectPreview3D();
         _mainPanel.GetNode<Control>("Margin/Content/PreviewHost").AddChild(_projectPreview);
+        _creatorShell = new ForgeCreatorShell(_mainPanel);
         ConnectSignals();
 
         EditorInterface.Singleton.GetEditorMainScreen().AddChild(_mainPanel);
@@ -231,6 +235,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _entityPropertiesSaveButton = null;
         _entityPropertiesCancelButton = null;
         _dialogueEditor = null;
+        _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
         _history = null;
@@ -631,6 +636,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _entityPropertiesSaveButton!.Pressed += ApplyDraftOverrides;
         _entityPropertiesCancelButton!.Pressed += HideEntityPropertiesDialog;
         _entityPropertiesDialog!.CloseRequested += HideEntityPropertiesDialog;
+        _selectionContext.Changed += HandleSharedSelectionChanged;
+        _creatorShell!.ExplorerSelectionRequested += HandleExplorerSelection;
+        _creatorShell.DiagnosticSelectionRequested += HandleDiagnosticSelection;
+        _creatorShell.WorkspaceRequested += HandleWorkspaceRequest;
+        _creatorShell.SelectionLockRequested += HandleSelectionLockRequest;
     }
 
     private void DisconnectSignals()
@@ -665,6 +675,89 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_entityPropertiesSaveButton is not null) _entityPropertiesSaveButton.Pressed -= ApplyDraftOverrides;
         if (_entityPropertiesCancelButton is not null) _entityPropertiesCancelButton.Pressed -= HideEntityPropertiesDialog;
         if (_entityPropertiesDialog is not null) _entityPropertiesDialog.CloseRequested -= HideEntityPropertiesDialog;
+        _selectionContext.Changed -= HandleSharedSelectionChanged;
+        if (_creatorShell is not null)
+        {
+            _creatorShell.ExplorerSelectionRequested -= HandleExplorerSelection;
+            _creatorShell.DiagnosticSelectionRequested -= HandleDiagnosticSelection;
+            _creatorShell.WorkspaceRequested -= HandleWorkspaceRequest;
+            _creatorShell.SelectionLockRequested -= HandleSelectionLockRequest;
+        }
+    }
+
+    private void HandleWorkspaceRequest(string workspace)
+    {
+        _creatorShell?.SetWorkspace(workspace);
+        if (string.Equals(workspace, "Dialogues", StringComparison.Ordinal))
+        {
+            OpenDialogueEditor();
+            return;
+        }
+
+        if (string.Equals(workspace, "Monde", StringComparison.Ordinal))
+        {
+            _statusLabel!.Text = "✓ Workspace Monde actif";
+            _detailsLabel!.Text = "Explorateur, sélection, aperçu et diagnostics partagent le projet courant.";
+            return;
+        }
+
+        _statusLabel!.Text = $"Espace {workspace} préparé dans la coque Creator";
+        _detailsLabel!.Text = "Son workflow spécialisé sera livré par un incrément Creator dédié.";
+    }
+
+    private void HandleExplorerSelection(CreatorExplorerNode node)
+    {
+        var selection = node.ToSelection();
+        if (selection is null || !_selectionContext.Replace(selection))
+        {
+            return;
+        }
+
+        if (selection.Kind == CreatorSelectionKind.Entity && _entityPicker is not null)
+        {
+            var entityIndex = _entityIds.FindIndex(id => id.ToString() == selection.Id);
+            if (entityIndex >= 0)
+            {
+                _entityPicker.Selected = entityIndex;
+                RefreshOverrideSummary();
+            }
+        }
+    }
+
+    private void HandleDiagnosticSelection(CreatorDiagnostic diagnostic)
+    {
+        var selection = diagnostic.Target ?? new CreatorSelection(
+            CreatorSelectionKind.Diagnostic,
+            diagnostic.Id,
+            diagnostic.Code,
+            diagnostic.DocumentPath);
+        if (_selectionContext.Replace(selection))
+        {
+            _statusLabel!.Text = $"Diagnostic ciblé · {diagnostic.Code}";
+            _detailsLabel!.Text = $"{diagnostic.Message}\n{diagnostic.DocumentPath}";
+        }
+    }
+
+    private void HandleSelectionLockRequest(bool locked) => _selectionContext.SetLocked(locked);
+
+    private void HandleSharedSelectionChanged()
+    {
+        _creatorShell?.SetSelection(_selectionContext.Current, _selectionContext.IsLocked);
+        var entitySelection = _selectionContext.Current.Count == 1 &&
+            _selectionContext.Current[0].Kind == CreatorSelectionKind.Entity
+                ? _selectionContext.Current[0]
+                : null;
+        if (entitySelection is null || _entityPicker is null)
+        {
+            return;
+        }
+
+        var entityIndex = _entityIds.FindIndex(id => id.ToString() == entitySelection.Id);
+        if (entityIndex >= 0 && _entityPicker.Selected != entityIndex)
+        {
+            _entityPicker.Selected = entityIndex;
+            RefreshOverrideSummary();
+        }
     }
 
     private void ShowProjectPicker()
@@ -935,7 +1028,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
     }
 
-    private void EntitySelectionChanged(long _) => RefreshOverrideSummary();
+    private void EntitySelectionChanged(long _)
+    {
+        RefreshOverrideSummary();
+        PublishSelectedEntity();
+    }
 
     private void SelectDraftOverride(long index)
     {
@@ -1104,6 +1201,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             _projectSession = null;
             _history = null;
+            _selectionContext.SetLocked(false);
+            _selectionContext.Clear();
             _projectPreview?.Clear();
             _statusLabel.Text = "✗ Impossible d’ouvrir ce dossier Forge";
             _detailsLabel.Text = FormatDiagnostics(result.Diagnostics);
@@ -1111,11 +1210,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _saveButton.Disabled = true;
             _exportButton.Disabled = true;
             RefreshEditorControls();
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(MapSessionDiagnostic).ToArray());
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_PROJECT_INVALID {result.Diagnostics.FirstOrDefault()?.Code}");
             return;
         }
 
         _projectSession = result.Session;
+        _selectionContext.SetLocked(false);
+        _selectionContext.Clear();
         _history = new ProjectCommandHistory(new ProjectState(
             _projectSession.Project,
             new ProjectRevision(0)));
@@ -1302,6 +1404,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _detailsLabel!.Text = string.Join(
                 "\n",
                 result.Diagnostics.Select(diagnostic => $"{diagnostic.Code} — {diagnostic.Message}"));
+            var currentTarget = _selectionContext.Current.Count == 1 ? _selectionContext.Current[0] : null;
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(diagnostic => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                diagnostic.Code,
+                diagnostic.Message,
+                $"commands/{result.Audit.CommandId}",
+                result.Audit.CommandId.ToString(),
+                currentTarget)).ToArray());
             return false;
         }
 
@@ -1329,6 +1439,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             _statusLabel.Text = "✗ Échec de la sauvegarde";
             _detailsLabel.Text = FormatDiagnostics(result.Diagnostics);
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(MapSessionDiagnostic).ToArray());
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_PROJECT_SAVE_FAILED {result.Diagnostics.FirstOrDefault()?.Code}");
             return;
         }
@@ -1360,6 +1471,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             SetEditingEnabled(false);
             _revisionLabel.Text = "Révision —";
+            _creatorShell?.SetProject(null);
             return;
         }
 
@@ -1419,6 +1531,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _redoButton.Disabled = !_history.CanRedo;
         _playButton.Disabled = _playtestRunning || _spawnEntityIds.Count == 0;
         RefreshOverrideSummary();
+        RefreshCreatorShell();
+        PublishSelectedEntity();
     }
 
     private void SetEditingEnabled(bool enabled)
@@ -1465,6 +1579,47 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ? "Hérite entièrement du blueprint · schéma v1"
             : $"{count} propriété(s) personnalisée(s) · schéma v{selected.Overrides.SchemaVersion}";
     }
+
+    private void RefreshCreatorShell()
+    {
+        if (_creatorShell is null || _history is null)
+        {
+            return;
+        }
+
+        var project = _history.State.Project;
+        _creatorShell.SetProject(CreatorProjectExplorer.Build(project));
+        _creatorShell.SetDiagnostics(CreatorDiagnostics.FromProject(
+            project,
+            $"revision:{_history.State.Revision}"));
+    }
+
+    private void PublishSelectedEntity()
+    {
+        var entity = GetSelectedEntity();
+        if (_history is null || entity is null)
+        {
+            return;
+        }
+
+        var project = _history.State.Project;
+        var area = project.Areas.First(candidate => candidate.Entities.Any(item => item.Id == entity.Id));
+        var blueprintName = project.Blueprints
+            .FirstOrDefault(blueprint => blueprint.Id == entity.BlueprintId)
+            ?.DisplayName ?? "Blueprint manquant";
+        _selectionContext.Replace(new CreatorSelection(
+            CreatorSelectionKind.Entity,
+            entity.Id.ToString(),
+            blueprintName,
+            $"areas/{area.Id}/entities/{entity.Id}"));
+    }
+
+    private static CreatorDiagnostic MapSessionDiagnostic(ProjectSessionDiagnostic diagnostic) =>
+        CreatorDiagnostic.Create(
+            CreatorDiagnosticSeverity.Error,
+            diagnostic.Code,
+            diagnostic.Message,
+            string.IsNullOrWhiteSpace(diagnostic.Path) ? "workspace" : diagnostic.Path);
 
     private EntityInstance? GetSelectedEntity()
     {
@@ -1704,6 +1859,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         GD.Print("OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=16");
+        if (!RunCreatorShellSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNewModuleSmokeTest())
         {
             return;
@@ -1781,6 +1941,49 @@ public partial class ForgeEditorPlugin : EditorPlugin
         SaveProject();
         GD.Print($"OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities={_projectPreview.EntityCount} revision={_history.State.Revision}");
         StartPlaytest(headless: true, workspaceSmokeTest: true);
+    }
+
+    private bool RunCreatorShellSmokeTest()
+    {
+        if (_creatorShell is null || _history is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G702_SHELL_FAILED missing_shell");
+            return false;
+        }
+
+        var entity = _history.State.Project.Areas.First().Entities.First();
+        if (_creatorShell.WorkspaceCount != 9 ||
+            _creatorShell.ExplorerNodeCount <= _history.State.Project.Areas.Sum(area => area.Entities.Count) ||
+            !_creatorShell.SelectNodeForSmokeTest($"entity:{entity.Id}") ||
+            _selectionContext.Current.Count != 1 ||
+            _selectionContext.Current[0].Kind != CreatorSelectionKind.Entity ||
+            _selectionContext.Current[0].Id != entity.Id.ToString())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G702_SHELL_FAILED explorer_selection");
+            return false;
+        }
+
+        var target = _selectionContext.Current[0];
+        var diagnostic = CreatorDiagnostic.Create(
+            CreatorDiagnosticSeverity.Error,
+            "creator.smoke.clickable",
+            "Diagnostic synthétique du smoke test Creator.",
+            target.DocumentPath,
+            "smoke:g7-02",
+            target);
+        _creatorShell.SetDiagnostics([diagnostic]);
+        if (_creatorShell.DiagnosticCount != 1 ||
+            !_creatorShell.SelectDiagnosticForSmokeTest(0) ||
+            _selectionContext.Current.Count != 1 ||
+            _selectionContext.Current[0].Id != entity.Id.ToString())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G702_SHELL_FAILED diagnostic_navigation");
+            return false;
+        }
+
+        RefreshCreatorShell();
+        GD.Print($"OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces={_creatorShell.WorkspaceCount} explorer={_creatorShell.ExplorerNodeCount} selection=shared diagnostics=clickable");
+        return true;
     }
 
     private bool RunNewModuleSmokeTest()

@@ -381,7 +381,7 @@
     },
     {
       "evidence": {
-        "line": 23,
+        "line": 24,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1020,7 +1020,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 76,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1029,7 +1029,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 31,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1299,6 +1299,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
@@ -1313,7 +1322,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Dialogues"
+      "target": "namespace:Forge.Application.Creator"
     },
     {
       "evidence": {
@@ -1322,7 +1331,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Entities"
+      "target": "namespace:Forge.Application.Dialogues"
     },
     {
       "evidence": {
@@ -1331,7 +1340,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Projects"
+      "target": "namespace:Forge.Application.Entities"
     },
     {
       "evidence": {
@@ -1340,7 +1349,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Quests"
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
@@ -1349,7 +1358,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Time"
+      "target": "namespace:Forge.Application.Quests"
     },
     {
       "evidence": {
@@ -1358,7 +1367,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Application.Time"
     },
     {
       "evidence": {
@@ -1367,7 +1376,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -1376,7 +1385,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -1385,7 +1394,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -1394,7 +1403,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -1403,16 +1412,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
-    },
-    {
-      "evidence": {
-        "line": 16,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -1421,11 +1421,29 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
         "line": 17,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
+    },
+    {
+      "evidence": {
+        "line": 18,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -1506,12 +1524,12 @@
     },
     {
       "evidence": {
-        "line": 88,
+        "line": 89,
         "path": "docs/aurora-parity/PROJECT_GAP_REPORT.md"
       },
       "kind": "references",
       "source": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",
-      "target": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md"
+      "target": "file:docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md"
     },
     {
       "evidence": {
@@ -1556,6 +1574,42 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Commands/ProjectCommandHistory.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/CreatorDiagnostics.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/CreatorDiagnostics.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/CreatorProjectExplorer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/CreatorProjectExplorer.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/CreatorProjectExplorer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/CreatorProjectExplorer.cs",
       "target": "namespace:Forge.Domain.Projects"
     },
     {
@@ -2871,6 +2925,60 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs",
       "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -5457,6 +5565,33 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostic.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.CreatorDiagnostic",
+      "target": "file:src/Forge.Application/Creator/CreatorDiagnostic.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/CreatorExplorerNodeKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.CreatorExplorerNodeKind",
+      "target": "file:src/Forge.Application/Creator/CreatorExplorerNodeKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/CreatorSelectionKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.CreatorSelectionKind",
+      "target": "file:src/Forge.Application/Creator/CreatorSelectionKind.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Dialogues/SetDialogueCommand.cs"
       },
@@ -6924,6 +7059,87 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostic.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/CreatorDiagnostic.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/CreatorDiagnosticSeverity.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/CreatorDiagnosticSeverity.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/CreatorDiagnostics.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/CreatorExplorerNode.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/CreatorExplorerNode.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/CreatorExplorerNodeKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/CreatorExplorerNodeKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/CreatorProjectExplorer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/CreatorProjectExplorer.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/CreatorSelection.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/CreatorSelection.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/CreatorSelectionContext.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/CreatorSelectionContext.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/CreatorSelectionKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/CreatorSelectionKind.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.Application/Dialogues/SetDialogueCommand.cs"
       },
@@ -7092,6 +7308,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Commands",
       "target": "file:tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Creator",
+      "target": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
     },
     {
       "evidence": {
@@ -8481,7 +8706,16 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
+    },
+    {
+      "evidence": {
+        "line": 20,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -9126,6 +9360,177 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Commands.ProjectCommandHistoryTests",
       "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Application.Creator.CreatorExplorerNodeKind"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Application.Creator.CreatorSelectionKind"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 61,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "type:Forge.Application.Creator.CreatorDiagnosticSeverity"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "type:Forge.Application.Creator.CreatorDiagnostics"
+    },
+    {
+      "evidence": {
+        "line": 79,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "type:Forge.Application.Creator.CreatorExplorerNode"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "type:Forge.Application.Creator.CreatorProjectExplorer"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "type:Forge.Application.Creator.CreatorSelection"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "target": "type:Forge.Application.Creator.CreatorSelectionContext"
     },
     {
       "evidence": {
@@ -12370,6 +12775,60 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Application/Creator/CreatorDiagnosticSeverity.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.CreatorDiagnosticSeverity",
+      "target": "file:src/Forge.Application/Creator/CreatorDiagnosticSeverity.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.CreatorDiagnostics",
+      "target": "file:src/Forge.Application/Creator/CreatorDiagnostics.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/CreatorExplorerNode.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.CreatorExplorerNode",
+      "target": "file:src/Forge.Application/Creator/CreatorExplorerNode.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Creator/CreatorProjectExplorer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.CreatorProjectExplorer",
+      "target": "file:src/Forge.Application/Creator/CreatorProjectExplorer.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/CreatorSelection.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.CreatorSelection",
+      "target": "file:src/Forge.Application/Creator/CreatorSelection.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/CreatorSelectionContext.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.CreatorSelectionContext",
+      "target": "file:src/Forge.Application/Creator/CreatorSelectionContext.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Application/Projects/ProjectRevision.cs"
       },
       "kind": "defined_in",
@@ -13044,7 +13503,16 @@
     },
     {
       "evidence": {
-        "line": 2027,
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.ForgeCreatorShell",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
+    },
+    {
+      "evidence": {
+        "line": 2230,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -13071,7 +13539,7 @@
     },
     {
       "evidence": {
-        "line": 2032,
+        "line": 2235,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -13080,7 +13548,7 @@
     },
     {
       "evidence": {
-        "line": 2037,
+        "line": 2240,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -13377,8 +13845,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:621fbc87b08a98ee580007247c90102e8a54770dd58212cde2d88fb845788170",
-    "source_file_count": 343
+    "source_digest": "sha256:8ca0a9d7d15d440eddee4b3cf92dfe64862d20eb370ffe16f08441297d0b00a5",
+    "source_file_count": 355
   },
   "nodes": [
     {
@@ -13564,7 +14032,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 23,
+      "line": 24,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -14532,6 +15000,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeCreatorShell.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
       "kind": "file",
       "line": 1,
@@ -14912,6 +15390,16 @@
       "path": "docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-02-CREATOR-SHELL.md",
+      "path": "docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md"
+    },
+    {
       "id": "file:global.json",
       "kind": "configuration",
       "line": 1,
@@ -15020,6 +15508,96 @@
       },
       "name": "ProjectPatch.cs",
       "path": "src/Forge.Application/Commands/ProjectPatch.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/CreatorDiagnostic.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorDiagnostic.cs",
+      "path": "src/Forge.Application/Creator/CreatorDiagnostic.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/CreatorDiagnosticSeverity.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorDiagnosticSeverity.cs",
+      "path": "src/Forge.Application/Creator/CreatorDiagnosticSeverity.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/CreatorDiagnostics.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorDiagnostics.cs",
+      "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/CreatorExplorerNode.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorExplorerNode.cs",
+      "path": "src/Forge.Application/Creator/CreatorExplorerNode.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/CreatorExplorerNodeKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorExplorerNodeKind.cs",
+      "path": "src/Forge.Application/Creator/CreatorExplorerNodeKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/CreatorProjectExplorer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorProjectExplorer.cs",
+      "path": "src/Forge.Application/Creator/CreatorProjectExplorer.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/CreatorSelection.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorSelection.cs",
+      "path": "src/Forge.Application/Creator/CreatorSelection.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/CreatorSelectionContext.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorSelectionContext.cs",
+      "path": "src/Forge.Application/Creator/CreatorSelectionContext.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/CreatorSelectionKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorSelectionKind.cs",
+      "path": "src/Forge.Application/Creator/CreatorSelectionKind.cs"
     },
     {
       "id": "file:src/Forge.Application/Dialogues/SetDialogueCommand.cs",
@@ -16452,6 +17030,16 @@
       "path": "tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorShellModelTests.cs",
+      "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Dialogues/SetDialogueHandlerTests.cs",
       "kind": "file",
       "line": 1,
@@ -17622,6 +18210,36 @@
       "path": "src/Forge.Application/Commands/ProjectPatch.cs"
     },
     {
+      "id": "model:Forge.Application.Creator.CreatorDiagnostic",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "CreatorDiagnostic",
+      "path": "src/Forge.Application/Creator/CreatorDiagnostic.cs"
+    },
+    {
+      "id": "model:Forge.Application.Creator.CreatorExplorerNodeKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "CreatorExplorerNodeKind",
+      "path": "src/Forge.Application/Creator/CreatorExplorerNodeKind.cs"
+    },
+    {
+      "id": "model:Forge.Application.Creator.CreatorSelectionKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "CreatorSelectionKind",
+      "path": "src/Forge.Application/Creator/CreatorSelectionKind.cs"
+    },
+    {
       "id": "model:Forge.Application.Dialogues.SetDialogueCommand",
       "kind": "model",
       "line": 7,
@@ -18355,6 +18973,11 @@
       "name": "Forge.Application.Commands"
     },
     {
+      "id": "namespace:Forge.Application.Creator",
+      "kind": "namespace",
+      "name": "Forge.Application.Creator"
+    },
+    {
       "id": "namespace:Forge.Application.Dialogues",
       "kind": "namespace",
       "name": "Forge.Application.Dialogues"
@@ -18378,6 +19001,11 @@
       "id": "namespace:Forge.Application.Tests.Commands",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Commands"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Creator",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Creator"
     },
     {
       "id": "namespace:Forge.Application.Tests.Dialogues",
@@ -18775,6 +19403,16 @@
       },
       "name": "ProjectCommandHistoryTests",
       "path": "tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
+      "kind": "test",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Creator"
+      },
+      "name": "CreatorShellModelTests",
+      "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Dialogues.SetDialogueHandlerTests",
@@ -19232,6 +19870,66 @@
       },
       "name": "ProjectCommandHistory",
       "path": "src/Forge.Application/Commands/ProjectCommandHistory.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.CreatorDiagnosticSeverity",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "CreatorDiagnosticSeverity",
+      "path": "src/Forge.Application/Creator/CreatorDiagnosticSeverity.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.CreatorDiagnostics",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "CreatorDiagnostics",
+      "path": "src/Forge.Application/Creator/CreatorDiagnostics.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.CreatorExplorerNode",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "CreatorExplorerNode",
+      "path": "src/Forge.Application/Creator/CreatorExplorerNode.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.CreatorProjectExplorer",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "CreatorProjectExplorer",
+      "path": "src/Forge.Application/Creator/CreatorProjectExplorer.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.CreatorSelection",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "CreatorSelection",
+      "path": "src/Forge.Application/Creator/CreatorSelection.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.CreatorSelectionContext",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "CreatorSelectionContext",
+      "path": "src/Forge.Application/Creator/CreatorSelectionContext.cs"
     },
     {
       "id": "type:Forge.Application.Projects.ProjectRevision",
@@ -19954,9 +20652,19 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.ForgeCreatorShell",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "ForgeCreatorShell",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 2027,
+      "line": 2230,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -19986,7 +20694,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 2032,
+      "line": 2235,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -19996,7 +20704,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 2037,
+      "line": 2240,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

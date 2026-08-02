@@ -58,3 +58,10 @@ sauvegarde/reprise F5/F9 et l'Assistant peut préparer, appliquer et annuler un 
 MCP. Le MVP est fermé ; l’espace Quêtes visuel, Blueprints, Scripts, Assets, Validation et la
 manipulation directe du viewport forment désormais le gate **Creator Core G7**, et non une prétendue
 parité Aurora déjà atteinte.
+
+G7-02 installe la coque commune : neuf workspaces stables, une colonne d’exploration du projet, le
+workspace Monde au centre et un panneau contextuel pour sélection, diagnostics et logs de playtest.
+L’explorateur classe zones, entités, types de blueprints, dialogues et quêtes. La sélection est un
+contrat moteur-indépendant, partagé avec l’inspecteur et verrouillable ; un diagnostic structuré peut
+cibler l’objet concerné. Les workflows spécialisés autres que Monde et Dialogues restent annoncés
+mais ne sont pas présentés comme terminés.

@@ -207,8 +207,8 @@ créateur peut modifier, exporter et jouer la Crypte sans IA et sans outil propr
 
 ### G7 — Creator Core complet P0/P1
 
-**État.** En cours. G7-01 est franchi avec le second module générique « Les Îles Brisées » ; G7-02
-est la prochaine tâche.
+**État.** En cours. G7-01 et G7-02 sont franchis avec le second module générique puis la coque
+Creator partagée ; G7-03 est la prochaine tâche.
 
 **Domaines.** `SHELL`, `PROJECT`, `AREA`, `PALETTE`, parties Core de `PLACEABLE`, `DOOR`, `TRIGGER`,
 `WAYPOINT`, `AUDIO`, `GAMEPLAY`, `CONTENT`, `BUILD`, `QA` et `EE` indispensable.
@@ -416,13 +416,13 @@ La file active est maintenant :
 |---:|---|---|---|
 | 1 | G0-A | 76 P0 Core | Tracker projet, preuves, gap report et matrice des 717 gates. |
 | 2 | G7-01 | ORF-PROJ-001, 003, 004, 005, ORF-QA-010 | Second module générique chargé et testé sans logique Crypte. |
-| 3 | G7-02 | ORF-SHELL-001, 002, 006, 020 | Coque Forge, explorateur, sélection et diagnostics partagés. |
+| 3 | G7-02 | ORF-SHELL-001, 002, 006, 020 | Terminé : coque Forge, explorateur, sélection et diagnostics partagés. |
 | 4 | G7-03 | ORF-PAL-001, 002, 003, 007, ORF-BUILD-010 | Catalogue Blueprints éditable et références. |
 | 5 | G7-04 | ORF-SHELL-010, 011, 013, ORF-PAL-012 | Placement direct, gizmos, validation et historique. |
 | 6 | G7-05 | ORF-AREA-001, 002, 030, 037 | Zones indépendantes, transitions et validation. |
 
-La fiche exécutable du premier incrément de code est
-`docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md`.
+Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md` et
+`docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md`.
 
 ## 7. Graphe de dépendances
 

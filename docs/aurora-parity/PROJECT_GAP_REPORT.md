@@ -14,9 +14,9 @@ L’audit strict des 76 P0 de `SHELL`, `PROJECT`, `AREA`, `PALETTE`, `BUILD` et 
 | Statut d’audit | Nombre |
 |---|---:|
 | `Tested` | 2 |
-| `Implemented` avec note `Partial` | 40 |
+| `Implemented` avec note `Partial` | 42 |
 | `Designed` | 1 |
-| `NotStarted` | 33 |
+| `NotStarted` | 31 |
 
 Les 641 autres lignes restent `Researched` jusqu’à un audit de leur code, de leurs tests et de leurs
 critères d’acceptation.
@@ -28,7 +28,7 @@ critères d’acceptation.
 | Domaine | `Forge.Domain` indépendant du moteur mais contenant aussi dialogue, quête et combat | Core général et RPG Kit versionné |
 | Données auteur | `project.json` canonique unique | documents logiques séparables pour zones, blueprints et ressources |
 | Mutations | commandes, révisions, dry-run, patches, inverse et historique pour les workflows MVP | voie unique pour chaque workspace, CLI et outil MCP |
-| Toolset | écran Forge unique, fenêtres spécialisées et aperçu 3D | workspaces cohérents avec explorateur, sélection, diagnostics et historique partagés |
+| Toolset | coque Creator multi-panneaux, neuf workspaces, explorateur et sélection/diagnostics partagés | workflows spécialisés complets, panneaux détachables et historique universel |
 | Runtime | reconstruction data-driven partielle avec logique Crypte dans `GameRoot` | runtime générique piloté par composants, événements et Kits |
 | Contenu | primitives, scripts et package de démonstration | catalogue, imports contrôlés, provenance, localisation et pipeline GLB/audio |
 | Build | export/validate/load `.orpmod` | build, test, migrate, normalize, diff, references et incrémental |
@@ -48,17 +48,18 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 1. La branche RPG du runtime référence encore Elyra, la clé, le boss et la sortie dans son
    adaptateur même si le démarrage Core générique est maintenant séparé et testé.
-2. L’éditeur ne fournit ni explorateur Forge, ni gizmos directs, ni drag-and-drop, ni workspaces
-   Blueprints, Quêtes, Scripts, Assets et Validation complets.
+2. L’éditeur fournit désormais la coque et l’explorateur Forge, mais pas encore les gizmos directs,
+   le drag-and-drop ni les workspaces Blueprints, Quêtes, Scripts, Assets et Validation complets.
 3. Les zones et blueprints ne sont pas encore des ressources auteur indépendantes et éditables.
-4. Les références inverses, le renommage sûr, le build incrémental et les diagnostics cliquables
-   sont absents.
+4. Les références inverses, le renommage sûr, le build incrémental et l’export des diagnostics sont
+   absents ; la navigation d’un diagnostic structuré vers sa cible est maintenant prouvée.
 5. La licence du code propre et le registre d’approbation des dépendances restent ouverts.
 6. La CI distante n’a jamais été exécutée.
 
 ## Dépendances
 
-- La coque Creator dépend d’un contexte de sélection, d’un historique et de diagnostics partagés.
+- Le catalogue et les prochains workspaces réutilisent désormais le contexte de sélection et les
+  diagnostics partagés de la coque Creator.
 - Les gizmos et le drag-and-drop dépendent de commandes de placement et transformation génériques.
 - Le renommage sûr dépend d’un index de références du contenu, distinct du graphe d’architecture.
 - Le RPG Kit dépend de workflows Core stables mais ne doit pas contaminer le Core avec un ruleset.
@@ -85,5 +86,5 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 ## Première tâche
 
-`tasks/G7-01-GENERIC-SECOND-MODULE.md` est terminée. La suite est la coque Creator G7-02 :
-explorateur, contexte de sélection et diagnostics partagés.
+`tasks/G7-02-CREATOR-SHELL.md` est terminée. La suite est G7-03 : catalogue Blueprints éditable,
+création depuis une instance, provenance et références.

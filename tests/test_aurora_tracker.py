@@ -76,7 +76,7 @@ class AuroraParityTrackerTests(unittest.TestCase):
         }
         self.assertEqual(expected_ids, {row["feature_id"] for row in audit})
         self.assertEqual(
-            Counter({"Implemented": 40, "NotStarted": 33, "Tested": 2, "Designed": 1}),
+            Counter({"Implemented": 42, "NotStarted": 31, "Tested": 2, "Designed": 1}),
             Counter(row["status"] for row in audit),
         )
         for row in audit:
