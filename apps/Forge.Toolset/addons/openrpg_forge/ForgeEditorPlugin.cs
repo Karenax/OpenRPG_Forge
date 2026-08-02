@@ -7,6 +7,7 @@ using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Projects;
 using Forge.Application.Quests;
+using Forge.Application.Spatial;
 using Forge.Application.Time;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
@@ -152,6 +153,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_blueprintCatalog);
         _projectPreview = new ProjectPreview3D();
+        _projectPreview.Initialize(
+            () => _history?.State,
+            () => GridStep,
+            SelectEntityFromViewport,
+            TransformEntityFromViewport,
+            PlaceBlueprintFromViewport,
+            ShowViewportPlacementFeedback);
         _mainPanel.GetNode<Control>("Margin/Content/PreviewHost").AddChild(_projectPreview);
         _creatorShell = new ForgeCreatorShell(_mainPanel);
         ConnectSignals();
@@ -1365,6 +1373,99 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return ApplyCommand(result, "Entité placée sur la grille.", entityId) ? entityId : null;
     }
 
+    private EntityId? PlaceBlueprintFromViewport(BlueprintId blueprintId, Vector3Value position)
+    {
+        if (_history is null)
+        {
+            return null;
+        }
+
+        var area = _history.State.Project.Areas.First();
+        var entityId = EntityId.From(Guid.NewGuid());
+        var command = new PlaceEntityCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            area.Id,
+            entityId,
+            blueprintId,
+            new TransformValue(position, QuaternionValue.Identity, Vector3Value.One),
+            dryRun: false);
+        return ApplyCommand(
+            _placeHandler.Handle(_history.State, command),
+            "Blueprint déposé directement dans le Monde.",
+            entityId)
+                ? entityId
+                : null;
+    }
+
+    private bool TransformEntityFromViewport(EntityId entityId, TransformValue transform)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var area = _history.State.Project.Areas.FirstOrDefault(candidate =>
+            candidate.Entities.Any(entity => entity.Id == entityId));
+        if (area is null)
+        {
+            return false;
+        }
+
+        var command = new TransformEntityCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            area.Id,
+            entityId,
+            transform,
+            DryRun: false);
+        return ApplyCommand(
+            _transformHandler.Handle(_history.State, command),
+            "Entité déplacée avec le gizmo du Monde.",
+            entityId);
+    }
+
+    private void SelectEntityFromViewport(EntityId entityId)
+    {
+        if (_entityPicker is null)
+        {
+            return;
+        }
+
+        var index = _entityIds.FindIndex(id => id == entityId);
+        if (index < 0)
+        {
+            return;
+        }
+
+        _entityPicker.Selected = index;
+        RefreshOverrideSummary();
+        PublishSelectedEntity();
+    }
+
+    private void ShowViewportPlacementFeedback(string message, bool valid)
+    {
+        if (_statusLabel is null || _detailsLabel is null)
+        {
+            return;
+        }
+
+        _statusLabel.Text = valid ? "✓ Placement direct valide" : "✗ Placement direct refusé";
+        _detailsLabel.Text = message;
+        if (!valid)
+        {
+            var target = _selectionContext.Current.Count == 1 ? _selectionContext.Current[0] : null;
+            var code = message.Split('·', 2, StringSplitOptions.TrimEntries)[0];
+            _creatorShell?.SetDiagnostics([CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                code,
+                message,
+                target?.DocumentPath ?? "areas/active/placement",
+                "viewport:placement",
+                target)]);
+        }
+    }
+
     private void PlaceSelectedBlueprintFromUi() => PlaceSelectedBlueprint();
 
     private void MoveSelectedNegativeX() => MoveSelected(-GridStep, 0);
@@ -1716,6 +1817,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             entity.Id.ToString(),
             blueprintName,
             $"areas/{area.Id}/entities/{entity.Id}"));
+        _projectPreview?.ShowSelection(entity.Id);
     }
 
     private static CreatorDiagnostic MapSessionDiagnostic(ProjectSessionDiagnostic diagnostic) =>
@@ -1973,6 +2075,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunDirectManipulationSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNewModuleSmokeTest())
         {
             return;
@@ -2172,6 +2279,133 @@ public partial class ForgeEditorPlugin : EditorPlugin
         RefreshEditorControls(entity.Id);
         GD.Print($"OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog={initialBlueprintCount} derived=1 references=1 undo=restored");
         return true;
+    }
+
+    private bool RunDirectManipulationSmokeTest()
+    {
+        if (_projectPreview is null || _history is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED missing_preview");
+            return false;
+        }
+
+        var project = _history.State.Project;
+        var area = project.Areas.First();
+        var placeable = project.Blueprints.First(blueprint => blueprint.Kind == BlueprintKind.Placeable);
+        var initialEntityCount = area.Entities.Count;
+        var initialRevision = _history.State.Revision;
+        var occupiedPosition = area.Entities.First().Transform.Position;
+        var rejected = _projectPreview.DropBlueprintForSmokeTest(placeable.Id, occupiedPosition);
+        if (rejected is not null || _history.State.Revision != initialRevision ||
+            !_projectPreview.GhostVisible || _projectPreview.LastPlacementWasValid)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED invalid_feedback");
+            return false;
+        }
+
+        var freePosition = FindFreePlacement(placeable.Id);
+        if (freePosition is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED no_free_cell");
+            return false;
+        }
+
+        var placedEntityId = _projectPreview.DropBlueprintForSmokeTest(placeable.Id, freePosition.Value);
+        if (placedEntityId is null || _history.State.Project.Areas.First().Entities.Count != initialEntityCount + 1 ||
+            !_projectPreview.SelectEntityForSmokeTest(placedEntityId) || !_projectPreview.GizmoVisible)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED drag_drop");
+            return false;
+        }
+
+        var movePosition = FindFreePlacement(placeable.Id, placedEntityId, freePosition.Value);
+        if (movePosition is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED no_move_cell");
+            return false;
+        }
+
+        var movePreview = _projectPreview.PreviewEntityMoveForSmokeTest(placedEntityId, movePosition.Value);
+        if (!movePreview.IsValid || !_projectPreview.GhostVisible || !_projectPreview.LastPlacementWasValid ||
+            !_projectPreview.CommitPreviewMoveForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED gizmo_move");
+            return false;
+        }
+
+        var moved = _history.State.Project.Areas.First().Entities.Single(entity => entity.Id == placedEntityId);
+        if (moved.Transform.Position != movePreview.CorrectedPosition)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED transform_state");
+            return false;
+        }
+
+        var undoTransform = _history.Undo();
+        var undoPlacement = _history.Undo();
+        if (!undoTransform.Succeeded || !undoPlacement.Succeeded ||
+            _history.State.Project.Areas.First().Entities.Count != initialEntityCount)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED undo");
+            return false;
+        }
+
+        var redoPlacement = _history.Redo();
+        var redoTransform = _history.Redo();
+        if (!redoPlacement.Succeeded || !redoTransform.Succeeded ||
+            _history.State.Project.Areas.First().Entities.Single(entity => entity.Id == placedEntityId).Transform.Position != movePreview.CorrectedPosition)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED redo");
+            return false;
+        }
+
+        var cleanupTransform = _history.Undo();
+        var cleanupPlacement = _history.Undo();
+        if (!cleanupTransform.Succeeded || !cleanupPlacement.Succeeded ||
+            _history.State.Project.Areas.First().Entities.Count != initialEntityCount)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED cleanup");
+            return false;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls(area.Entities.First().Id);
+        GD.Print("OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored");
+        return true;
+    }
+
+    private Vector3Value? FindFreePlacement(
+        BlueprintId blueprintId,
+        EntityId? ignoredEntityId = null,
+        Vector3Value? excludedPosition = null)
+    {
+        if (_history is null)
+        {
+            return null;
+        }
+
+        var area = _history.State.Project.Areas.First();
+        var validator = new PlacementValidator();
+        for (var x = -9; x <= 9; x++)
+        {
+            for (var z = -9; z <= 9; z++)
+            {
+                var candidate = new Vector3Value(x, 0, z);
+                if (excludedPosition == candidate)
+                {
+                    continue;
+                }
+
+                var result = validator.Validate(
+                    _history.State.Project,
+                    new PlacementValidationRequest(area.Id, blueprintId, candidate, 1, ignoredEntityId));
+                if (result.IsValid)
+                {
+                    return result.CorrectedPosition;
+                }
+            }
+        }
+
+        return null;
     }
 
     private bool RunNewModuleSmokeTest()

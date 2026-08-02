@@ -28,7 +28,7 @@ critères d’acceptation.
 | Domaine | `Forge.Domain` indépendant du moteur mais contenant aussi dialogue, quête et combat | Core général et RPG Kit versionné |
 | Données auteur | `project.json` canonique unique | documents logiques séparables pour zones, blueprints et ressources |
 | Mutations | commandes, révisions, dry-run, patches, inverse et historique pour les workflows MVP | voie unique pour chaque workspace, CLI et outil MCP |
-| Toolset | coque Creator multi-panneaux, explorateur partagé et catalogue Blueprints éditable avec usages | workflows spécialisés complets, panneaux détachables et historique universel |
+| Toolset | coque Creator, catalogue Blueprints et Monde avec drag-and-drop, fantôme et gizmo X/Z | workflows spécialisés complets, gizmos complets, panneaux détachables et historique universel |
 | Runtime | reconstruction data-driven partielle avec logique Crypte dans `GameRoot` | runtime générique piloté par composants, événements et Kits |
 | Contenu | primitives, scripts et package de démonstration | catalogue, imports contrôlés, provenance, localisation et pipeline GLB/audio |
 | Build | export/validate/load `.orpmod` | build, test, migrate, normalize, diff, references et incrémental |
@@ -48,8 +48,8 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 1. La branche RPG du runtime référence encore Elyra, la clé, le boss et la sortie dans son
    adaptateur même si le démarrage Core générique est maintenant séparé et testé.
-2. L’éditeur fournit désormais la coque, l’explorateur et le catalogue Blueprints, mais pas encore
-   les gizmos directs, le drag-and-drop ni les workspaces Quêtes, Scripts, Assets et Validation complets.
+2. L’éditeur fournit désormais coque, catalogue, drag-and-drop et translation directe, mais pas
+   encore rotation/échelle/pivot, multi-sélection ni les workspaces Quêtes, Scripts, Assets et Validation complets.
 3. Les blueprints sont éditables mais restent intégrés à `project.json`, sans version, paramètres,
    provenance ou namespace de package ; les zones ne sont pas encore des ressources indépendantes.
 4. Les usages d’entités et de locuteurs sont indexés ; le renommage sûr, l’index complet, le cache
@@ -61,7 +61,8 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 - Les prochains workspaces réutilisent désormais le catalogue, le contexte de sélection et les
   diagnostics partagés de la coque Creator.
-- Les gizmos et le drag-and-drop dépendent de commandes de placement et transformation génériques.
+- Les extensions du gizmo réutiliseront les commandes de transformation génériques et le validateur
+  de placement de G7-04, sans écrire directement dans la scène moteur.
 - Le renommage sûr étendra l’index moteur-indépendant livré en G7-03 à tous les documents canoniques.
 - Le RPG Kit dépend de workflows Core stables mais ne doit pas contaminer le Core avec un ruleset.
 - MCP et l’assistant intégré ne s’étendent qu’après validation du workflow humain correspondant.
@@ -87,5 +88,5 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 ## Première tâche
 
-`tasks/G7-03-BLUEPRINT-CATALOG.md` est terminée. La suite est G7-04 : placement direct, gizmos,
-validation avant application et historique partagé.
+`tasks/G7-04-DIRECT-WORLD-MANIPULATION.md` est terminée. La suite est G7-05 : zones indépendantes,
+contexte actif, transitions et validation.

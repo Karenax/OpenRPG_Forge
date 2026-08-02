@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-03 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-04 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -24,6 +24,8 @@ la Crypte. G7-02 ajoute une coque Creator à trois panneaux, neuf workspaces sta
 hiérarchique, une sélection partagée et des diagnostics cliquables. G7-03 rend le workspace
 Blueprints opérationnel : palette recherchable, édition transactionnelle, dérivation depuis une
 instance et références inversées recalculées depuis le projet.
+G7-04 ajoute la manipulation directe du Monde : palette glissable, validation de cellule avec
+fantôme coloré, sélection dans le viewport et translation X/Z par gizmo avec historique partagé.
 
 ## État prouvé
 
@@ -34,7 +36,7 @@ instance et références inversées recalculées depuis le projet.
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 143 tests .NET et 22 tests Python réussis ;
+- 148 tests .NET et 22 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -74,6 +76,9 @@ instance et références inversées recalculées depuis le projet.
 - catalogue Blueprints G7-03 : recherche par nom, slug ou type, création/édition par commandes avec
   dry-run et historique, conversion d’une instance en nouvelle définition sans perte des overrides,
   puis index des usages dans les entités et les locuteurs de dialogues ;
+- manipulation Monde G7-04 : drag-and-drop depuis une palette intégrée, projection sur le sol,
+  snap, limites et occupation validés avant commande, fantôme vert/rouge, sélection et translation
+  directe avec gizmo X/Z, undo/redo du document canonique ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -82,7 +87,8 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Limites actuelles
 
-- l’édition T2.3 est fonctionnelle par palette et boutons, mais pas encore par manipulation directe de gizmos dans le viewport ;
+- le gizmo Monde couvre la translation sur le plan X/Z mais pas encore rotation, échelle, pivot,
+  axes contraints, coordonnées locales/globales, alignements ou multi-sélection ;
 - la coque expose les neuf workspaces et relie Monde et Dialogues ; les workflows complets
   Blueprints, Quêtes, Scripts, Assets, Validation et Assistant relèvent encore du Creator Core G7 ;
 - les visuels finaux du MVP sont des primitives procédurales originales ; ils ne constituent pas
@@ -124,5 +130,5 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-04 — manipulation directe du Monde** pour `ORF-SHELL-010`, `ORF-SHELL-011`,
-`ORF-SHELL-013` et `ORF-PAL-012` : placement direct, gizmos, validation et historique cohérent.
+Ouvrir **G7-05 — zones indépendantes et transitions** pour `ORF-AREA-001`, `ORF-AREA-002`,
+`ORF-AREA-030` et `ORF-AREA-037` : documents de zone, contexte actif, transitions et validation.

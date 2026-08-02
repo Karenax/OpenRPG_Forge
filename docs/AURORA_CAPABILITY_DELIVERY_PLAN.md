@@ -44,7 +44,8 @@ Au 2 août 2026 :
 
 La prochaine étape n'est plus un lot MVP : **G0 est fermé** avec un snapshot immuable, un audit des
 76 P0 Core et un tracker projet généré. **G7-01** prouve un second module générique, **G7-02** la
-coque Creator et **G7-03** le catalogue Blueprints ; la file active commence à **G7-04**. La fermeture de `TASKS_MVP.md` ne signifie pas
+coque Creator, **G7-03** le catalogue Blueprints et **G7-04** la manipulation directe ; la file
+active commence à **G7-05**. La fermeture de `TASKS_MVP.md` ne signifie pas
 une parité Aurora complète.
 
 ## 3. Jalons produit
@@ -207,8 +208,8 @@ créateur peut modifier, exporter et jouer la Crypte sans IA et sans outil propr
 
 ### G7 — Creator Core complet P0/P1
 
-**État.** En cours. G7-01 à G7-03 sont franchis avec le second module générique, la coque Creator
-partagée puis le catalogue Blueprints et son index de références ; G7-04 est la prochaine tâche.
+**État.** En cours. G7-01 à G7-04 sont franchis avec le second module générique, la coque Creator,
+le catalogue Blueprints puis le drag-and-drop et le gizmo Monde ; G7-05 est la prochaine tâche.
 
 **Domaines.** `SHELL`, `PROJECT`, `AREA`, `PALETTE`, parties Core de `PLACEABLE`, `DOOR`, `TRIGGER`,
 `WAYPOINT`, `AUDIO`, `GAMEPLAY`, `CONTENT`, `BUILD`, `QA` et `EE` indispensable.
@@ -418,12 +419,13 @@ La file active est maintenant :
 | 2 | G7-01 | ORF-PROJ-001, 003, 004, 005, ORF-QA-010 | Second module générique chargé et testé sans logique Crypte. |
 | 3 | G7-02 | ORF-SHELL-001, 002, 006, 020 | Terminé : coque Forge, explorateur, sélection et diagnostics partagés. |
 | 4 | G7-03 | ORF-PAL-001, 002, 003, 007, ORF-BUILD-010 | Terminé partiellement : catalogue éditable, dérivation d’instance et références inversées. |
-| 5 | G7-04 | ORF-SHELL-010, 011, 013, ORF-PAL-012 | Placement direct, gizmos, validation et historique. |
+| 5 | G7-04 | ORF-SHELL-010, 011, 013, ORF-PAL-012 | Terminé partiellement : placement direct, fantôme validé, gizmo X/Z et historique. |
 | 6 | G7-05 | ORF-AREA-001, 002, 030, 037 | Zones indépendantes, transitions et validation. |
 
 Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md`,
 `docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md` et
-`docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md`.
+`docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md` et
+`docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md`.
 
 ## 7. Graphe de dépendances
 

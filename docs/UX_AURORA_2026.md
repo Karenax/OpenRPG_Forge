@@ -71,3 +71,10 @@ courante ; le panneau droit expose les entités et locuteurs qui la référencen
 blueprint reste partagée avec la coque, et toutes les mutations passent par le même historique que
 le Monde. Les workflows Quêtes, Scripts, Assets, Validation et Assistant restent annoncés sans être
 présentés comme terminés.
+
+G7-04 rapproche la palette de l’action : une liste compacte flotte dans le Monde et chaque
+blueprint peut être glissé sur le sol. Un fantôme vert confirme le snap, un fantôme rouge conserve
+la cause du refus dans les diagnostics. Un clic sur une représentation affiche le gizmo Forge rouge
+et bleu ; le glisser déplace l’instance sur X/Z et ne crée une commande qu’au relâchement valide.
+Les champs numériques et boutons existants restent disponibles comme alternative précise et
+accessible.

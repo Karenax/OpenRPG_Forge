@@ -381,7 +381,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 26,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1020,7 +1020,7 @@
     },
     {
       "evidence": {
-        "line": 81,
+        "line": 86,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1029,7 +1029,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 35,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1309,6 +1309,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
       "kind": "imports",
@@ -1412,7 +1421,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Time"
+      "target": "namespace:Forge.Application.Spatial"
     },
     {
       "evidence": {
@@ -1421,7 +1430,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Application.Time"
     },
     {
       "evidence": {
@@ -1430,7 +1439,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -1439,7 +1448,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -1448,7 +1457,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -1457,7 +1466,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -1466,16 +1475,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
-    },
-    {
-      "evidence": {
-        "line": 18,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -1484,11 +1484,29 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
         "line": 19,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
+    },
+    {
+      "evidence": {
+        "line": 20,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -1511,7 +1529,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
@@ -1520,7 +1538,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Application.Spatial"
     },
     {
       "evidence": {
@@ -1529,11 +1547,38 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
         "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 8,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "imports",
@@ -1569,12 +1614,12 @@
     },
     {
       "evidence": {
-        "line": 90,
+        "line": 91,
         "path": "docs/aurora-parity/PROJECT_GAP_REPORT.md"
       },
       "kind": "references",
       "source": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",
-      "target": "file:docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md"
+      "target": "file:docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md"
     },
     {
       "evidence": {
@@ -2547,6 +2592,69 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Quests/SetQuestHandler.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Spatial/PlacementValidationRequest.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Spatial/PlacementValidationRequest.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Spatial/PlacementValidationRequest.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Spatial/PlacementValidationRequest.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Spatial/PlacementValidationRequest.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Spatial/PlacementValidationRequest.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Spatial/PlacementValidationRequest.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Spatial/PlacementValidationRequest.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Spatial/PlacementValidationResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Spatial/PlacementValidationResult.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Spatial/PlacementValidator.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Spatial/PlacementValidator.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -3753,6 +3861,42 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs",
       "target": "namespace:Forge.Domain.Quests"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs",
+      "target": "namespace:Forge.Application.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -6565,6 +6709,24 @@
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.Application/Spatial/PlacementValidationResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Spatial.PlacementValidationResult",
+      "target": "file:src/Forge.Application/Spatial/PlacementValidationResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Spatial/PlacementValidationResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Spatial.PlacementValidationResult",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
       },
       "kind": "defined_in",
@@ -7987,6 +8149,33 @@
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.Application/Spatial/PlacementValidationRequest.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Spatial",
+      "target": "file:src/Forge.Application/Spatial/PlacementValidationRequest.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Spatial/PlacementValidationResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Spatial",
+      "target": "file:src/Forge.Application/Spatial/PlacementValidationResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Spatial",
+      "target": "file:src/Forge.Application/Spatial/PlacementValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
       },
       "kind": "defined_in",
@@ -8100,6 +8289,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Quests",
       "target": "file:tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Spatial",
+      "target": "file:tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
     },
     {
       "evidence": {
@@ -9399,6 +9597,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
@@ -9417,7 +9624,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 22,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -9435,7 +9642,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 10,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "defined_in",
@@ -11430,6 +11637,78 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Quests.SetQuestHandlerTests",
       "target": "validator:Forge.Domain.Quests.QuestValidator"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
+      "target": "file:tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
+      "target": "model:Forge.Application.Spatial.PlacementValidationResult"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
+      "target": "type:Forge.Application.Spatial.PlacementValidationRequest"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
+      "target": "validator:Forge.Application.Spatial.PlacementValidator"
     },
     {
       "evidence": {
@@ -13692,6 +13971,15 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Spatial/PlacementValidationRequest.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Spatial.PlacementValidationRequest",
+      "target": "file:src/Forge.Application/Spatial/PlacementValidationRequest.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Time/IClock.cs"
       },
@@ -14349,6 +14637,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.BlueprintDragPalette",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
@@ -14367,7 +14664,7 @@
     },
     {
       "evidence": {
-        "line": 2418,
+        "line": 2652,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -14385,7 +14682,7 @@
     },
     {
       "evidence": {
-        "line": 11,
+        "line": 14,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "defined_in",
@@ -14394,7 +14691,7 @@
     },
     {
       "evidence": {
-        "line": 2423,
+        "line": 2657,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -14403,7 +14700,7 @@
     },
     {
       "evidence": {
-        "line": 2428,
+        "line": 2662,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -14445,6 +14742,60 @@
       "kind": "defined_in",
       "source": "type:scripts.architecture_graph.SourceFile",
       "target": "file:scripts/architecture_graph.py"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Application.Spatial.PlacementValidator",
+      "target": "file:src/Forge.Application/Spatial/PlacementValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Application.Spatial.PlacementValidator",
+      "target": "model:Forge.Application.Spatial.PlacementValidationResult"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Application.Spatial.PlacementValidator",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Application.Spatial.PlacementValidator",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Application.Spatial.PlacementValidator",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Application.Spatial.PlacementValidator",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -14700,8 +15051,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:651a64f8a70715de9d681064e86488a179f294589a5ae8564240b728c823fb9a",
-    "source_file_count": 365
+    "source_digest": "sha256:77d4530846ee26e3f485091510b3d39b31e5c0bd8039f63b36a789f486f325fe",
+    "source_file_count": 371
   },
   "nodes": [
     {
@@ -14887,7 +15238,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 25,
+      "line": 26,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -15855,6 +16206,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintDragPalette.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs",
       "kind": "file",
       "line": 1,
@@ -16273,6 +16634,16 @@
       },
       "name": "G7-03-BLUEPRINT-CATALOG.md",
       "path": "docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-04-DIRECT-WORLD-MANIPULATION.md",
+      "path": "docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md"
     },
     {
       "id": "file:global.json",
@@ -16733,6 +17104,36 @@
       },
       "name": "SetQuestHandler.cs",
       "path": "src/Forge.Application/Quests/SetQuestHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Spatial/PlacementValidationRequest.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlacementValidationRequest.cs",
+      "path": "src/Forge.Application/Spatial/PlacementValidationRequest.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Spatial/PlacementValidationResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlacementValidationResult.cs",
+      "path": "src/Forge.Application/Spatial/PlacementValidationResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Spatial/PlacementValidator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlacementValidator.cs",
+      "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
     },
     {
       "id": "file:src/Forge.Application/Time/IClock.cs",
@@ -18105,6 +18506,16 @@
       "path": "tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlacementValidatorTests.cs",
+      "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/packages.lock.json",
       "kind": "configuration",
       "line": 1,
@@ -19335,6 +19746,16 @@
       "path": "src/Forge.Application/Quests/SetQuestCommand.cs"
     },
     {
+      "id": "model:Forge.Application.Spatial.PlacementValidationResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Spatial"
+      },
+      "name": "PlacementValidationResult",
+      "path": "src/Forge.Application/Spatial/PlacementValidationResult.cs"
+    },
+    {
       "id": "model:Forge.Domain.Areas.AreaDefinition",
       "kind": "model",
       "line": 5,
@@ -20008,6 +20429,11 @@
       "name": "Forge.Application.Quests"
     },
     {
+      "id": "namespace:Forge.Application.Spatial",
+      "kind": "namespace",
+      "name": "Forge.Application.Spatial"
+    },
+    {
       "id": "namespace:Forge.Application.Tests.Blueprints",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Blueprints"
@@ -20041,6 +20467,11 @@
       "id": "namespace:Forge.Application.Tests.Quests",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Quests"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Spatial",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Spatial"
     },
     {
       "id": "namespace:Forge.Application.Time",
@@ -20550,6 +20981,16 @@
       "path": "tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Spatial"
+      },
+      "name": "PlacementValidatorTests",
+      "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Areas.AreaDefinitionTests",
       "kind": "test",
       "line": 8,
@@ -20995,6 +21436,16 @@
       },
       "name": "SlugGenerator",
       "path": "src/Forge.Application/Projects/SlugGenerator.cs"
+    },
+    {
+      "id": "type:Forge.Application.Spatial.PlacementValidationRequest",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Spatial"
+      },
+      "name": "PlacementValidationRequest",
+      "path": "src/Forge.Application/Spatial/PlacementValidationRequest.cs"
     },
     {
       "id": "type:Forge.Application.Time.IClock",
@@ -21697,6 +22148,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.BlueprintDragPalette",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "BlueprintDragPalette",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.DialogueEditorWindow",
       "kind": "type",
       "line": 9,
@@ -21719,7 +22180,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 2418,
+      "line": 2652,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -21739,7 +22200,7 @@
     {
       "id": "type:Forge.Toolset.Editor.ProjectPreview3D",
       "kind": "type",
-      "line": 11,
+      "line": 14,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -21749,7 +22210,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 2423,
+      "line": 2657,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -21759,7 +22220,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 2428,
+      "line": 2662,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -21805,6 +22266,16 @@
       },
       "name": "SourceFile",
       "path": "scripts/architecture_graph.py"
+    },
+    {
+      "id": "validator:Forge.Application.Spatial.PlacementValidator",
+      "kind": "validator",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Spatial"
+      },
+      "name": "PlacementValidator",
+      "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
     },
     {
       "id": "validator:Forge.Domain.Dialogues.DialogueValidator",
