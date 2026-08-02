@@ -1,0 +1,14 @@
+<Project Sdk="Godot.NET.Sdk/4.7.1">
+  <PropertyGroup>
+    <RootNamespace>Forge.Runtime</RootNamespace>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Forge.Domain\Forge.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Forge.EngineAdapter\Forge.EngineAdapter.csproj" />
+    <ProjectReference Include="..\..\src\Forge.ModuleFormat\Forge.ModuleFormat.csproj" />
+    <ProjectReference Include="..\..\src\Forge.Scripting\Forge.Scripting.csproj" />
+  </ItemGroup>
+</Project>

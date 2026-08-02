@@ -1,0 +1,40 @@
+﻿capability_family;forge_scope;target_layer
+Actions et files d’ordres;enqueue, cancel, wait, complete, action groups;Core
+Alignement et dispositions;axes configurables et traits;RPG Kit
+Animations;play, blend, montage, animation events;Core
+Zones;query, enter/exit, environment, instance;Core
+Combat;attacks, targets, damage, threat, combat state;RPG Kit
+Caméra;profiles, shots, blends, player camera;Core
+Cutscenes;control locks, sequences, skip, abort;Core
+Persistance et base de données;"domain repositories; raw SQL restricted";Network Kit
+Debug;logs, asserts, traces, profiler markers;Core Tooling
+Effets;create, apply, stack, remove, query;RPG Kit
+Rencontres;activate, wave, exhaust, reset;RPG Kit
+Créatures et entités;typed handles, components, stats, state;Core/RPG
+Compagnons et invocations;recruit, command, ownership, summon;RPG Kit
+Inventaire;query, transfer, equip, containers;RPG Kit
+Objets et propriétés;create, modifiers, charges, abilities;RPG Kit
+Journal et quêtes;states, objectives, history, rewards;RPG Kit
+Éclairage et environnement;profiles, weather, fog, lights;Core
+Variables;typed blackboards, scopes, persistence;Core
+Mathématiques;vectors, quaternions, deterministic RNG;Core
+Module/projet;metadata, lifecycle, global state;Core
+Monnaie et économie;wallets, transactions, stores;RPG Kit
+Mouvement et navigation;tasks, paths, teleport, movement modes;Core
+Musique et audio;cues, music states, snapshots;Core
+Groupe et joueurs;party, permissions, player state;Network/RPG
+Perception;senses, LOS, stimuli, nearest queries;RPG Kit
+Réputation et factions;relationships, membership, crime;RPG Kit
+Sauvegardes et sérialisation;snapshots, state, migrations;Core
+Serveur;safe admin/domain APIs, metrics, events;Network Kit
+Sons;play, stop, fade, spatial control;Core
+Capacités et sorts;targeting, cast, effects, cooldowns;RPG Kit
+Magasins;open sessions, stock, pricing, trade;RPG Kit
+Chaînes et regex;Unicode, formatting, bounded regex;Core
+Compétences et talents;checks, progression, grants;RPG Kit
+Temps et timers;world clock, timers, schedules;Core
+Pièges;detect, disarm, trigger, reset;RPG Kit
+Conversions et sérialisation JSON;typed conversion and schema-safe JSON;Core
+VFX;spawn, attach, stop, parameterize;Core
+UI déclarative;views, events, bindings with permissions;Core
+Ressources;package-safe queries and asset IDs;Core

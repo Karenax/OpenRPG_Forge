@@ -1,0 +1,82 @@
+# Guide créateur minimal — OpenRPG Forge
+
+## 1. Créer ou ouvrir un module
+
+Lancer l'application de création, ouvrir l'écran **Forge**, puis choisir **+ Nouveau module**. Donner
+un titre, une description et le nom de la première zone, sélectionner un dossier parent vide et
+valider. Forge crée un workspace contenant :
+
+```text
+mon-module/
+├─ forge.project.json
+└─ project.json
+```
+
+Un sol provisoire, un blueprint de point de départ et leur instance sont fournis. Un projet existant
+s'ouvre avec **Choisir un dossier Forge**.
+
+## 2. Construire la zone
+
+Choisir un blueprint dans la palette, saisir X/Z et la taille de grille, puis **Placer**. La sélection
+permet de déplacer sur les deux axes, tourner de 90°, supprimer et annuler/rétablir chaque commande.
+Les propriétés locales servent à spécialiser une instance sans dupliquer son blueprint ; les chemins
+ForgeScript sont des chemins relatifs `.forge` tels que `scripts/interaction.forge`.
+
+La version MVP livre un kit Crypte (sol, mur, porte, pilier, personnages et triggers) dans le module
+de démonstration. L'édition visuelle complète des catalogues de blueprints, tags, combats et quêtes
+reste le prochain grand écran auteur après cette tranche verticale.
+
+## 3. Écrire les dialogues et scripts
+
+**Dialogues** ouvre l'éditeur de graphe simple : nœuds localisés, choix, conditions, actions et aperçu.
+Les références manquantes et nœuds inaccessibles bloquent l'application. Un script ForgeScript
+déclare `void main()` et n'accède qu'à l'API allowlistée documentée dans
+`docs/FORGESCRIPT_API.md`. Les erreurs de compilation et de quota restent diagnostiquées sans arrêter
+le runtime.
+
+## 4. Tester et sauvegarder
+
+Choisir un point de départ puis **▶ Jouer depuis ici**. Le snapshot de playtest est temporaire et la
+console Forge récupère les logs au retour. Dans la Crypte : ZQSD/flèches déplacent, E interagit,
+ESPACE attaque, F5 sauvegarde et F9 recharge le checkpoint rapide. Les fichiers `.orpsave` sont
+atomiques, versionnés et liés à l'identité ainsi qu'au hash du module.
+
+## 5. Exporter et valider
+
+Sauvegarder puis cliquer **Exporter .orpmod**. Forge crée l'archive atomiquement et la valide avant de
+confirmer. Équivalent en ligne de commande :
+
+```powershell
+dotnet run --project tools/Forge.Cli -- package export <workspace> <module.orpmod>
+dotnet run --project tools/Forge.Cli -- package validate <module.orpmod>
+```
+
+Le runtime accepte ensuite `--module-package <chemin-absolu.orpmod>`. Les chemins traversants,
+extensions natives, ratios de compression suspects, doublons de données et hashes incohérents sont
+refusés avant extraction.
+
+## 6. Demander une modification IA
+
+Lancer le host MCP :
+
+```powershell
+dotnet run --project apps/Forge.McpHost -- --workspace <workspace>
+```
+
+Le client commence par lire le résumé, la révision et les diagnostics. Pour un dialogue, il soumet un
+plan : validation et dry-run produisent diff, inverse et `planId`; l'application n'est possible que si
+la révision correspond encore. `revert_dialogue_plan` annule le dernier plan appliqué. Aucun outil de
+shell ou d'écriture libre n'est exposé.
+
+## 7. Gate reproductible
+
+Depuis la racine :
+
+```powershell
+.\scripts\Verify.ps1
+.\scripts\Measure-RuntimePerformance.ps1
+```
+
+Le premier contrôle restore, format, build, tests, graphe, branding, éditeur, export, MCP, runtime et
+sauvegarde/reprise. Le second exécute plusieurs démarrages headless et écrit le rapport brut dans
+`artifacts/performance/runtime-performance.json`.

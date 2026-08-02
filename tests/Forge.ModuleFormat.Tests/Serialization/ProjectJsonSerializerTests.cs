@@ -1,0 +1,183 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Forge.Domain.Areas;
+using Forge.Domain.Blueprints;
+using Forge.Domain.Entities;
+using Forge.Domain.Projects;
+using Forge.Domain.Spatial;
+using Forge.ModuleFormat.Serialization;
+
+namespace Forge.ModuleFormat.Tests.Serialization;
+
+public sealed class ProjectJsonSerializerTests
+{
+    [Fact]
+    public void SerializeAndDeserialize_RoundTripsCanonicalDocument()
+    {
+        var serialized = ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid());
+
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+        var reserialized = ProjectJsonSerializer.Serialize(restored);
+
+        Assert.Equal(serialized, reserialized);
+        Assert.Equal("OpenRPG Forge test project", restored.Title);
+        Assert.Single(restored.Blueprints);
+        var combat = Assert.IsType<Forge.Domain.Combat.CombatProfile>(restored.Blueprints.Single().Combat);
+        Assert.Equal(8, combat.Stats.MaximumHealth);
+        Assert.Equal("cue.ember-strike", Assert.Single(combat.Abilities).VisualCue.CueKey);
+        Assert.Equal("warden-ember", Assert.Single(combat.Loot).ItemSlug);
+        var dialogue = Assert.Single(restored.Dialogues);
+        Assert.Equal("dialogue.warden.warning", Assert.Single(dialogue.Nodes).Text.Key);
+        Assert.Equal("quest.warden.active", Assert.Single(restored.Quests).States.First().Journal.LocalizationKey);
+        var entity = Assert.Single(Assert.Single(restored.Areas).Entities);
+        Assert.Equal(EntityPropertyOverrides.CurrentSchemaVersion, entity.Overrides.SchemaVersion);
+        Assert.Equal(3, entity.Overrides.Properties.Count);
+        Assert.Equal("80", entity.Overrides.Properties.Single(property => property.Key == "hitPoints").Value);
+    }
+
+    [Fact]
+    public void Deserialize_RejectsUnsupportedFormatVersion()
+    {
+        var serialized = ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid());
+        var unsupported = serialized.Replace(
+            $"\"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            "\"99.0.0\"",
+            StringComparison.Ordinal);
+
+        Assert.Throws<NotSupportedException>(() => ProjectJsonSerializer.Deserialize(unsupported));
+    }
+
+    [Fact]
+    public void Deserialize_MigratesLegacyProjectToModuleAggregate()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.LegacyFormatVersion;
+        document["project"]!.AsObject().Remove("module");
+        RemoveEntityOverrides(document);
+        RemoveDialogues(document);
+        RemoveQuests(document);
+
+        var migrated = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var current = ProjectJsonSerializer.Serialize(migrated);
+
+        Assert.Equal(migrated.Id.Value, migrated.Module.Id.Value);
+        Assert.Equal(migrated.Areas.Single().Id, migrated.Module.EntryAreaId);
+        Assert.Contains($"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"", current);
+        Assert.Contains("\"module\"", current);
+        Assert.Contains("\"overrides\"", current);
+        Assert.Empty(migrated.Dialogues);
+        Assert.Empty(migrated.Quests);
+    }
+
+    [Fact]
+    public void Deserialize_MigratesModuleAggregateFormatWithEmptyOverrides()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.ModuleAggregateFormatVersion;
+        RemoveEntityOverrides(document);
+        RemoveDialogues(document);
+        RemoveQuests(document);
+
+        var migrated = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var entity = Assert.Single(Assert.Single(migrated.Areas).Entities);
+
+        Assert.Empty(entity.Overrides.Properties);
+        Assert.Empty(migrated.Dialogues);
+        Assert.Empty(migrated.Quests);
+        Assert.Contains(
+            $"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(migrated));
+    }
+
+    [Fact]
+    public void Deserialize_MigratesEntityOverridesFormatWithEmptyDialogues()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.EntityOverridesFormatVersion;
+        RemoveDialogues(document);
+        RemoveQuests(document);
+
+        var migrated = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Empty(migrated.Dialogues);
+        Assert.Equal(
+            3,
+            Assert.Single(Assert.Single(migrated.Areas).Entities).Overrides.Properties.Count);
+    }
+
+    [Fact]
+    public void Deserialize_MigratesDialogueFormatWithEmptyQuests()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.DialogueFormatVersion;
+        RemoveQuests(document);
+
+        var migrated = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Single(migrated.Dialogues);
+        Assert.Empty(migrated.Quests);
+    }
+
+    [Fact]
+    public void Deserialize_MigratesQuestFormatWithEmptyCombatProfiles()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.QuestFormatVersion;
+        foreach (var blueprint in document["project"]!["blueprints"]!.AsArray())
+        {
+            blueprint!.AsObject().Remove("combat");
+        }
+
+        var migrated = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Null(Assert.Single(migrated.Blueprints).Combat);
+        Assert.Contains(
+            $"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(migrated));
+    }
+
+    [Fact]
+    public void Deserialize_RejectsMalformedJson()
+    {
+        Assert.ThrowsAny<JsonException>(() => ProjectJsonSerializer.Deserialize("{not-json}"));
+    }
+
+    [Fact]
+    public void Serialize_RejectsMissingBlueprintReference()
+    {
+        var area = new AreaDefinition(
+            AreaId.From(Guid.Parse("93b6f81b-49eb-4e3d-a156-08ad78529525")),
+            "invalid-area",
+            "Invalid area",
+            [new EntityInstance(
+                EntityId.From(Guid.Parse("4a7753a5-f16d-4e45-9320-d657e64f3d56")),
+                BlueprintId.From(Guid.Parse("373fbd0f-dd40-4054-9d8f-e9f7bb7a36bc")),
+                TransformValue.Identity)]);
+        var project = new ProjectDefinition(
+            ProjectId.From(Guid.Parse("69ddeadc-4cc1-42d0-aed6-9d99244479cf")),
+            "Invalid project",
+            [],
+            [area]);
+
+        var exception = Assert.Throws<ProjectValidationException>(() => ProjectJsonSerializer.Serialize(project));
+
+        Assert.Single(exception.Diagnostics);
+    }
+
+    private static void RemoveEntityOverrides(JsonObject document)
+    {
+        foreach (var area in document["project"]!["areas"]!.AsArray())
+        {
+            foreach (var entity in area!["entities"]!.AsArray())
+            {
+                entity!.AsObject().Remove("overrides");
+            }
+        }
+    }
+
+    private static void RemoveDialogues(JsonObject document) =>
+        document["project"]!.AsObject().Remove("dialogues");
+
+    private static void RemoveQuests(JsonObject document) =>
+        document["project"]!.AsObject().Remove("quests");
+}

@@ -1,0 +1,24 @@
+# Build outputs
+bin/
+obj/
+.godot/
+
+# IDE and local tooling
+.vs/
+.vscode/
+.idea/
+__pycache__/
+*.py[cod]
+*.user
+*.suo
+
+# Local-only files
+.env
+.env.*
+!.env.example
+artifacts/
+tmp/
+
+# OS files
+Thumbs.db
+.DS_Store

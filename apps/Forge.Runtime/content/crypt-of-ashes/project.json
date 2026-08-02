@@ -1,0 +1,921 @@
+{
+  "formatVersion": "0.6.0",
+  "project": {
+    "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
+    "title": "Crypte des Cendres \u2014 Tranche verticale",
+    "module": {
+      "id": "30000000-0000-4000-8000-000000000001",
+      "slug": "crypt-of-ashes",
+      "displayName": "Crypte des Cendres",
+      "description": "Une crypte assi\u00E9g\u00E9e par les braises et son gardien.",
+      "entryAreaId": "93b6f81b-49eb-4e3d-a156-08ad78529525"
+    },
+    "blueprints": [
+      {
+        "id": "10000000-0000-4000-8000-000000000001",
+        "slug": "crypt-floor",
+        "displayName": "Sol de la crypte",
+        "kind": "placeable",
+        "combat": null
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000002",
+        "slug": "crypt-wall",
+        "displayName": "Mur de la crypte",
+        "kind": "placeable",
+        "combat": null
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000003",
+        "slug": "ash-door",
+        "displayName": "Porte des Cendres",
+        "kind": "door",
+        "combat": null
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000004",
+        "slug": "elyra-npc",
+        "displayName": "Elyra, gardienne des braises",
+        "kind": "creature",
+        "combat": {
+          "stats": {
+            "maximumHealth": 8,
+            "maximumResource": 4,
+            "offense": 1,
+            "defense": 1,
+            "faction": "ember-watch",
+            "team": "heroes"
+          },
+          "abilities": [],
+          "loot": []
+        }
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000005",
+        "slug": "ash-sentinel",
+        "displayName": "Sentinelle de cendre",
+        "kind": "creature",
+        "combat": {
+          "stats": {
+            "maximumHealth": 2,
+            "maximumResource": 0,
+            "offense": 1,
+            "defense": 0,
+            "faction": "ash-legion",
+            "team": "hostile"
+          },
+          "abilities": [
+            {
+              "id": "a0000000-0000-4000-8000-000000000002",
+              "slug": "ash-claw",
+              "displayName": "Griffe de cendre",
+              "resourceCost": 0,
+              "cooldownSeconds": 0.5,
+              "targeting": "singleEnemy",
+              "effects": [
+                {
+                  "kind": "damage",
+                  "magnitude": 1
+                }
+              ],
+              "visualCue": {
+                "cueKey": "cue.ash-claw"
+              }
+            }
+          ],
+          "loot": [
+            {
+              "itemSlug": "ash-dust",
+              "quantity": 1,
+              "chance": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000006",
+        "slug": "ash-warden-boss",
+        "displayName": "Gardien des Cendres",
+        "kind": "creature",
+        "combat": {
+          "stats": {
+            "maximumHealth": 5,
+            "maximumResource": 6,
+            "offense": 2,
+            "defense": 1,
+            "faction": "ash-legion",
+            "team": "hostile"
+          },
+          "abilities": [
+            {
+              "id": "a0000000-0000-4000-8000-000000000003",
+              "slug": "warden-strike",
+              "displayName": "Frappe du Gardien",
+              "resourceCost": 0,
+              "cooldownSeconds": 0.5,
+              "targeting": "singleEnemy",
+              "effects": [
+                {
+                  "kind": "damage",
+                  "magnitude": 1
+                }
+              ],
+              "visualCue": {
+                "cueKey": "cue.warden-strike"
+              }
+            }
+          ],
+          "loot": [
+            {
+              "itemSlug": "warden-ember",
+              "quantity": 1,
+              "chance": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000007",
+        "slug": "player-spawn",
+        "displayName": "Point de d\u00E9part",
+        "kind": "playerSpawn",
+        "combat": {
+          "stats": {
+            "maximumHealth": 12,
+            "maximumResource": 5,
+            "offense": 2,
+            "defense": 1,
+            "faction": "ember-watch",
+            "team": "heroes"
+          },
+          "abilities": [
+            {
+              "id": "a0000000-0000-4000-8000-000000000001",
+              "slug": "hero-strike",
+              "displayName": "Frappe",
+              "resourceCost": 0,
+              "cooldownSeconds": 0,
+              "targeting": "singleEnemy",
+              "effects": [
+                {
+                  "kind": "damage",
+                  "magnitude": 1
+                }
+              ],
+              "visualCue": {
+                "cueKey": "cue.hero-strike"
+              }
+            }
+          ],
+          "loot": []
+        }
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000008",
+        "slug": "ash-key",
+        "displayName": "Cl\u00E9 de braise",
+        "kind": "item",
+        "combat": null
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000009",
+        "slug": "crypt-exit",
+        "displayName": "Sortie de la crypte",
+        "kind": "trigger",
+        "combat": null
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000010",
+        "slug": "crypt-pillar",
+        "displayName": "Pilier des braises",
+        "kind": "placeable",
+        "combat": null
+      }
+    ],
+    "areas": [
+      {
+        "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
+        "slug": "crypt-of-ashes",
+        "displayName": "Crypte des Cendres",
+        "entities": [
+          {
+            "id": "20000000-0000-4000-8000-000000000001",
+            "blueprintId": "10000000-0000-4000-8000-000000000001",
+            "transform": {
+              "position": {
+                "x": 0,
+                "y": -0.5,
+                "z": 0
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 18,
+                "y": 1,
+                "z": 26
+              }
+            },
+            "tags": [
+              "floor"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000002",
+            "blueprintId": "10000000-0000-4000-8000-000000000002",
+            "transform": {
+              "position": {
+                "x": -9,
+                "y": 1.5,
+                "z": 0
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 4,
+                "z": 26
+              }
+            },
+            "tags": [
+              "wall"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000003",
+            "blueprintId": "10000000-0000-4000-8000-000000000002",
+            "transform": {
+              "position": {
+                "x": 9,
+                "y": 1.5,
+                "z": 0
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 4,
+                "z": 26
+              }
+            },
+            "tags": [
+              "wall"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000004",
+            "blueprintId": "10000000-0000-4000-8000-000000000002",
+            "transform": {
+              "position": {
+                "x": 0,
+                "y": 1.5,
+                "z": 13
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 18,
+                "y": 4,
+                "z": 1
+              }
+            },
+            "tags": [
+              "wall"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000005",
+            "blueprintId": "10000000-0000-4000-8000-000000000002",
+            "transform": {
+              "position": {
+                "x": 0,
+                "y": 1.5,
+                "z": -13
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 18,
+                "y": 4,
+                "z": 1
+              }
+            },
+            "tags": [
+              "wall"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000006",
+            "blueprintId": "10000000-0000-4000-8000-000000000003",
+            "transform": {
+              "position": {
+                "x": 0,
+                "y": 1.5,
+                "z": -4
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 3.5,
+                "y": 3.5,
+                "z": 0.6
+              }
+            },
+            "tags": [
+              "door",
+              "locked"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000007",
+            "blueprintId": "10000000-0000-4000-8000-000000000004",
+            "transform": {
+              "position": {
+                "x": -5,
+                "y": 1,
+                "z": 5
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            "tags": [
+              "npc"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000008",
+            "blueprintId": "10000000-0000-4000-8000-000000000005",
+            "transform": {
+              "position": {
+                "x": 4,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            "tags": [
+              "enemy",
+              "hostile"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000009",
+            "blueprintId": "10000000-0000-4000-8000-000000000006",
+            "transform": {
+              "position": {
+                "x": 0,
+                "y": 1.4,
+                "z": -9
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1.5,
+                "y": 1.5,
+                "z": 1.5
+              }
+            },
+            "tags": [
+              "boss",
+              "hostile"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": [
+                {
+                  "key": "deathScript",
+                  "kind": "string",
+                  "value": "scripts/ash_warden_death.forge"
+                },
+                {
+                  "key": "displayName",
+                  "kind": "string",
+                  "value": "Gardien des Cendres \u00E9veill\u00E9"
+                },
+                {
+                  "key": "hitPoints",
+                  "kind": "integer",
+                  "value": "180"
+                },
+                {
+                  "key": "hostile",
+                  "kind": "boolean",
+                  "value": "true"
+                },
+                {
+                  "key": "phaseTwoScript",
+                  "kind": "string",
+                  "value": "scripts/ash_warden_phase_two.forge"
+                }
+              ]
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000010",
+            "blueprintId": "10000000-0000-4000-8000-000000000007",
+            "transform": {
+              "position": {
+                "x": 0,
+                "y": 0.8,
+                "z": 9
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            "tags": [
+              "player"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000011",
+            "blueprintId": "10000000-0000-4000-8000-000000000008",
+            "transform": {
+              "position": {
+                "x": 5,
+                "y": 0.7,
+                "z": 6
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 0.7,
+                "y": 0.7,
+                "z": 0.7
+              }
+            },
+            "tags": [
+              "item",
+              "key"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000012",
+            "blueprintId": "10000000-0000-4000-8000-000000000009",
+            "transform": {
+              "position": {
+                "x": 0,
+                "y": 0.1,
+                "z": -11.5
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 3,
+                "y": 0.2,
+                "z": 2
+              }
+            },
+            "tags": [
+              "exit"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000013",
+            "blueprintId": "10000000-0000-4000-8000-000000000010",
+            "transform": {
+              "position": {
+                "x": -5,
+                "y": 1.5,
+                "z": -1
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 0.9,
+                "y": 3,
+                "z": 0.9
+              }
+            },
+            "tags": [
+              "architecture",
+              "pillar",
+              "solid"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000014",
+            "blueprintId": "10000000-0000-4000-8000-000000000010",
+            "transform": {
+              "position": {
+                "x": 5,
+                "y": 1.5,
+                "z": -1
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 0.9,
+                "y": 3,
+                "z": 0.9
+              }
+            },
+            "tags": [
+              "architecture",
+              "pillar",
+              "solid"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000015",
+            "blueprintId": "10000000-0000-4000-8000-000000000010",
+            "transform": {
+              "position": {
+                "x": -5,
+                "y": 1.5,
+                "z": -8
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 0.9,
+                "y": 3,
+                "z": 0.9
+              }
+            },
+            "tags": [
+              "architecture",
+              "pillar",
+              "solid"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000016",
+            "blueprintId": "10000000-0000-4000-8000-000000000010",
+            "transform": {
+              "position": {
+                "x": 5,
+                "y": 1.5,
+                "z": -8
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 0.9,
+                "y": 3,
+                "z": 0.9
+              }
+            },
+            "tags": [
+              "architecture",
+              "pillar",
+              "solid"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          }
+        ]
+      }
+    ],
+    "dialogues": [
+      {
+        "id": "40000000-0000-4000-8000-000000000001",
+        "slug": "elyra-crypt-of-ashes",
+        "displayName": "Elyra et la Crypte des Cendres",
+        "entryNodeId": "41000000-0000-4000-8000-000000000001",
+        "nodes": [
+          {
+            "id": "41000000-0000-4000-8000-000000000001",
+            "speakerBlueprintId": "10000000-0000-4000-8000-000000000004",
+            "text": {
+              "key": "dialogue.elyra.entry",
+              "fallback": "La braise vous a conduit jusqu\u2019ici. Que cherchez-vous ?"
+            },
+            "onEnterActions": [],
+            "choices": [
+              {
+                "id": "42000000-0000-4000-8000-000000000001",
+                "text": {
+                  "key": "dialogue.elyra.choice.victory",
+                  "fallback": "Le Gardien est tomb\u00E9."
+                },
+                "conditions": [
+                  {
+                    "kind": "variableEquals",
+                    "key": "warden.defeated",
+                    "expectedValue": "true"
+                  }
+                ],
+                "actions": [],
+                "targetNodeId": "41000000-0000-4000-8000-000000000004"
+              },
+              {
+                "id": "42000000-0000-4000-8000-000000000002",
+                "text": {
+                  "key": "dialogue.elyra.choice.key",
+                  "fallback": "J\u2019ai trouv\u00E9 la Cl\u00E9 de braise."
+                },
+                "conditions": [
+                  {
+                    "kind": "hasItem",
+                    "key": "ash-key",
+                    "expectedValue": "true"
+                  }
+                ],
+                "actions": [
+                  {
+                    "kind": "setVariable",
+                    "key": "elyra.saw-key",
+                    "value": "true"
+                  }
+                ],
+                "targetNodeId": "41000000-0000-4000-8000-000000000003"
+              },
+              {
+                "id": "42000000-0000-4000-8000-000000000003",
+                "text": {
+                  "key": "dialogue.elyra.choice.accept",
+                  "fallback": "Je lib\u00E9rerai cette crypte."
+                },
+                "conditions": [
+                  {
+                    "kind": "questStateEquals",
+                    "key": "crypt-of-ashes",
+                    "expectedValue": "51000000-0000-4000-8000-000000000001"
+                  }
+                ],
+                "actions": [
+                  {
+                    "kind": "startQuest",
+                    "key": "crypt-of-ashes",
+                    "value": "active"
+                  }
+                ],
+                "targetNodeId": "41000000-0000-4000-8000-000000000002"
+              },
+              {
+                "id": "42000000-0000-4000-8000-000000000004",
+                "text": {
+                  "key": "dialogue.elyra.choice.leave",
+                  "fallback": "Je dois encore me pr\u00E9parer."
+                },
+                "conditions": [],
+                "actions": [],
+                "targetNodeId": null
+              }
+            ]
+          },
+          {
+            "id": "41000000-0000-4000-8000-000000000002",
+            "speakerBlueprintId": "10000000-0000-4000-8000-000000000004",
+            "text": {
+              "key": "dialogue.elyra.quest-started",
+              "fallback": "Retrouvez la Cl\u00E9 de braise, ouvrez la porte et terrassez le Gardien."
+            },
+            "onEnterActions": [],
+            "choices": []
+          },
+          {
+            "id": "41000000-0000-4000-8000-000000000003",
+            "speakerBlueprintId": "10000000-0000-4000-8000-000000000004",
+            "text": {
+              "key": "dialogue.elyra.key-found",
+              "fallback": "La porte reconna\u00EEtra maintenant votre passage."
+            },
+            "onEnterActions": [],
+            "choices": []
+          },
+          {
+            "id": "41000000-0000-4000-8000-000000000004",
+            "speakerBlueprintId": "10000000-0000-4000-8000-000000000004",
+            "text": {
+              "key": "dialogue.elyra.victory",
+              "fallback": "La cendre retombe enfin. La crypte vous doit sa libert\u00E9."
+            },
+            "onEnterActions": [],
+            "choices": []
+          }
+        ]
+      }
+    ],
+    "quests": [
+      {
+        "id": "50000000-0000-4000-8000-000000000001",
+        "slug": "crypt-of-ashes",
+        "displayName": "Lib\u00E9rer la Crypte des Cendres",
+        "initialStateId": "51000000-0000-4000-8000-000000000001",
+        "states": [
+          {
+            "id": "51000000-0000-4000-8000-000000000001",
+            "displayName": "Non commenc\u00E9e",
+            "journal": {
+              "localizationKey": "quest.crypt.initial",
+              "fallback": "Parler \u00E0 Elyra [E]."
+            },
+            "isTerminal": false
+          },
+          {
+            "id": "51000000-0000-4000-8000-000000000002",
+            "displayName": "Cl\u00E9 de braise",
+            "journal": {
+              "localizationKey": "quest.crypt.key",
+              "fallback": "Trouver la Cl\u00E9 de braise puis ouvrir la Porte des Cendres."
+            },
+            "isTerminal": false
+          },
+          {
+            "id": "51000000-0000-4000-8000-000000000003",
+            "displayName": "Gardien des Cendres",
+            "journal": {
+              "localizationKey": "quest.crypt.warden",
+              "fallback": "Vaincre le Gardien des Cendres [ESPACE]."
+            },
+            "isTerminal": false
+          },
+          {
+            "id": "51000000-0000-4000-8000-000000000004",
+            "displayName": "Termin\u00E9e",
+            "journal": {
+              "localizationKey": "quest.crypt.completed",
+              "fallback": "Rejoindre la sortie lumineuse."
+            },
+            "isTerminal": true
+          }
+        ],
+        "transitions": [
+          {
+            "id": "52000000-0000-4000-8000-000000000001",
+            "fromStateId": "51000000-0000-4000-8000-000000000001",
+            "toStateId": "51000000-0000-4000-8000-000000000002",
+            "conditions": [],
+            "actions": [
+              {
+                "kind": "setVariable",
+                "key": "quest.accepted",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "id": "52000000-0000-4000-8000-000000000002",
+            "fromStateId": "51000000-0000-4000-8000-000000000002",
+            "toStateId": "51000000-0000-4000-8000-000000000003",
+            "conditions": [
+              {
+                "kind": "hasItem",
+                "key": "ash-key",
+                "expectedValue": "true"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "unlockEntity",
+                "key": "20000000-0000-4000-8000-000000000006",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "id": "52000000-0000-4000-8000-000000000003",
+            "fromStateId": "51000000-0000-4000-8000-000000000003",
+            "toStateId": "51000000-0000-4000-8000-000000000004",
+            "conditions": [
+              {
+                "kind": "variableEquals",
+                "key": "warden.defeated",
+                "expectedValue": "true"
+              }
+            ],
+            "actions": []
+          }
+        ]
+      }
+    ]
+  }
+}

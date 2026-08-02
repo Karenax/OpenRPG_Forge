@@ -1,0 +1,16 @@
+{
+  "name": "OpenRPG Forge Aurora Feature Dossier",
+  "version": "1.0",
+  "researchDate": "2026-08-02",
+  "featureCount": 717,
+  "domainCount": 26,
+  "sourceCount": 23,
+  "purpose": "Capability-parity research and implementation specifications; no NWN code/assets.",
+  "recommendedRepositoryPath": "docs/aurora-parity/",
+  "entryPoints": [
+    "README_FIRST.md",
+    "AURORA_PARITY_MEGACONTEXT.md",
+    "docs/prompts/CODEX_MASTER_IMPORT_AND_AUDIT.md",
+    "tracking/AURORA_PARITY_COVERAGE.csv"
+  ]
+}

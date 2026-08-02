@@ -1,0 +1,100 @@
+{
+  "formatVersion": "0.6.0",
+  "project": {
+    "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
+    "title": "Les \u00CEles Bris\u00E9es",
+    "module": {
+      "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+      "slug": "les-iles-brisees",
+      "displayName": "Les \u00CEles Bris\u00E9es",
+      "description": "Un archipel \u00E0 reconstruire.",
+      "entryAreaId": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a"
+    },
+    "blueprints": [
+      {
+        "id": "ba1e3949-af2a-409a-af27-8c6698694111",
+        "slug": "les-iles-brisees-floor",
+        "displayName": "Sol provisoire",
+        "kind": "placeable",
+        "combat": null
+      },
+      {
+        "id": "46d891e5-a116-48df-8b2e-0fdebf16bc52",
+        "slug": "player-spawn",
+        "displayName": "Point de d\u00E9part",
+        "kind": "playerSpawn",
+        "combat": null
+      }
+    ],
+    "areas": [
+      {
+        "id": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
+        "slug": "archipel-oublie",
+        "displayName": "Archipel oubli\u00E9",
+        "entities": [
+          {
+            "id": "50542d7e-d54f-409b-8156-06cca92b2ea6",
+            "blueprintId": "ba1e3949-af2a-409a-af27-8c6698694111",
+            "transform": {
+              "position": {
+                "x": 0,
+                "y": -0.5,
+                "z": 0
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 16,
+                "y": 1,
+                "z": 16
+              }
+            },
+            "tags": [
+              "floor",
+              "solid"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          },
+          {
+            "id": "72dd2ac1-381c-4652-a8ff-5d2be82dcb61",
+            "blueprintId": "46d891e5-a116-48df-8b2e-0fdebf16bc52",
+            "transform": {
+              "position": {
+                "x": 0,
+                "y": 0.8,
+                "z": 0
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            "tags": [
+              "player"
+            ],
+            "overrides": {
+              "schemaVersion": 1,
+              "properties": []
+            }
+          }
+        ]
+      }
+    ],
+    "dialogues": [],
+    "quests": []
+  }
+}
