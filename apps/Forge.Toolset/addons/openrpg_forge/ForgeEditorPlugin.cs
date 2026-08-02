@@ -18,11 +18,13 @@ using Forge.Domain.Build;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Modules;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
+using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Workspaces;
@@ -54,6 +56,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SafeRenameHandler _safeRenameHandler = new(new SystemClock());
     private readonly SetModuleConfigurationHandler _setModuleConfigurationHandler = new(new SystemClock());
     private readonly SetModuleDistributionHandler _setModuleDistributionHandler = new(new SystemClock());
+    private readonly SetAreaNavigationHandler _setAreaNavigationHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -132,6 +135,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AreaWorkspaceWindow? _areaWorkspace;
     private BuildPipelineWindow? _buildPipeline;
     private DistributionProfilesWindow? _distributionProfiles;
+    private NavigationConfigurationWindow? _navigationConfiguration;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -206,8 +210,17 @@ public partial class ForgeEditorPlugin : EditorPlugin
             CreateArea,
             UpsertPortal,
             DuplicateArea,
+            OpenNavigationConfiguration,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
+        _navigationConfiguration = new NavigationConfigurationWindow();
+        _navigationConfiguration.Initialize(
+            () => _history?.State,
+            () => _activeAreaContext.Current,
+            ApplyAreaNavigation,
+            surface => _projectPreview?.ShowNavigationOverlay(surface),
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_navigationConfiguration);
         _buildPipeline = new BuildPipelineWindow();
         _buildPipeline.Initialize(
             () => _projectSession,
@@ -337,6 +350,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areaWorkspace = null;
         _buildPipeline = null;
         _distributionProfiles = null;
+        _navigationConfiguration = null;
         _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
@@ -1033,6 +1047,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void OpenAreaWorkspace() => _areaWorkspace?.Open();
 
+    private void OpenNavigationConfiguration() => _navigationConfiguration?.Open();
+
     private void OpenGlobalSearch() => _globalSearch?.Open();
 
     private void OpenModuleConfiguration() => _moduleConfiguration?.Open();
@@ -1439,6 +1455,32 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _setModuleDistributionHandler.Handle(_history.State, command),
             $"Distribution enregistrée · {distribution.TargetProfiles.Count} cibles · " +
             $"{distribution.Dependencies.Count} dépendance(s).",
+            GetSelectedEntity()?.Id);
+    }
+
+    private bool ApplyAreaNavigation(AreaId areaId, AreaNavigationDefinition navigation)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new SetAreaNavigationCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            areaId,
+            navigation,
+            DryRun: false);
+        var dryRun = _setAreaNavigationHandler.Handle(_history.State, command with { DryRun = true });
+        if (!dryRun.Succeeded)
+        {
+            return ApplyCommand(dryRun, string.Empty, selectedEntityId: null);
+        }
+
+        return ApplyCommand(
+            _setAreaNavigationHandler.Handle(_history.State, command),
+            $"Navigation enregistrée · {navigation.AgentProfiles.Count} profil(s) · " +
+            $"{navigation.OffMeshLinks.Count} lien(s) hors-maillage.",
             GetSelectedEntity()?.Id);
     }
 
@@ -2680,6 +2722,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunNavigationAndGeometrySmokeTest())
+        {
+            return;
+        }
+
         if (!RunNewModuleSmokeTest())
         {
             return;
@@ -3737,6 +3784,117 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             "OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked " +
             "licenses=diagnostic registry=versioned notices=generated history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunNavigationAndGeometrySmokeTest()
+    {
+        if (_navigationConfiguration is null || _history is null || _projectPreview is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED missing_window");
+            return false;
+        }
+
+        var area = _history.State.Project.Areas.First();
+        var original = area.Navigation;
+        var link = new OffMeshNavigationLink(
+            OffMeshNavigationLinkId.From(Guid.Parse("d7140000-0000-4000-8000-000000000001")),
+            "Passage de validation",
+            NavigationLinkKind.Jump,
+            new Vector3Value(-5, 0, 5),
+            new Vector3Value(4, 0, 1),
+            true,
+            1.25f,
+            "workspace-smoke-test");
+        var configured = new AreaNavigationDefinition(
+            original.Id,
+            0.5f,
+            original.AgentProfiles,
+            [.. original.OffMeshLinks, link],
+            "workspace-smoke-test");
+        if (!_navigationConfiguration.ConfigureForSmokeTest(area.Id, configured) ||
+            _navigationConfiguration.AgentCount != 4 ||
+            _navigationConfiguration.LinkCount != 1 ||
+            !_navigationConfiguration.PreviewForSmokeTest() ||
+            _navigationConfiguration.DiagnosticCount != 0 ||
+            _projectPreview.NavigationOverlayCellCount == 0 ||
+            !_navigationConfiguration.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED configuration");
+            return false;
+        }
+
+        var appliedArea = _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id);
+        var geometry = AreaGeometryValidator.Validate(_history.State.Project, appliedArea);
+        var agent = appliedArea.Navigation.AgentProfiles.First(profile => profile.Name == "Moyen");
+        var current = NavigationSurfaceBuilder.Build(_history.State.Project, appliedArea, agent);
+        var closed = NavigationSurfaceBuilder.Build(
+            _history.State.Project,
+            appliedArea,
+            agent,
+            NavigationDoorState.AllClosed);
+        var partial = NavigationBakePlanner.Plan(current, closed);
+        var reachability = AreaNavigationValidator.Analyze(
+            _history.State.Project,
+            appliedArea,
+            agent);
+        if (geometry.Count != 0 || reachability.Diagnostics.Count != 0 ||
+            partial.RequiresFullBake || partial.ChangedCells.Count == 0 || partial.ReusedCellCount == 0 ||
+            current.OffMeshEdges.Count == 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED analysis");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "navigation-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var created = ProjectSession.Create(smokeRoot, _history.State.Project);
+            if (!created.Succeeded || created.Session is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED workspace");
+                return false;
+            }
+
+            NavigationBakeStore.Save(smokeRoot, current);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restoredBake = NavigationBakeStore.TryLoad(smokeRoot, appliedArea.Id, agent.Id);
+            if (!reopened.Succeeded || reopened.Session is null ||
+                reopened.Session.Project.Areas.Single().Navigation.OffMeshLinks.Single().Id != link.Id ||
+                restoredBake?.SourceFingerprint != current.SourceFingerprint)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).Navigation != original)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED history");
+            return false;
+        }
+
+        _projectPreview.ShowNavigationOverlay(null);
+        RefreshEditorControls();
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_PASS agents=4 geometry=valid " +
+            "reachability=spawn-object doors=states offmesh=linked flight=profiled " +
+            "incremental=partial overlay=visible history=restored persistence=roundtrip");
         return true;
     }
 

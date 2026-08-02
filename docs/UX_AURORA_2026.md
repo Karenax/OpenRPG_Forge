@@ -143,6 +143,14 @@ code et chemin lorsque l’export serait bloqué. L’action braise enregistre a
 configuration et choisit la cible du prochain export ; elle reste verrouillée jusqu’à la
 prévisualisation.
 
+G7-14 ajoute une seconde surface spécialisée au workspace Validation. La configuration garde trois
+cartes lisibles : profils d’agents à gauche, liens hors-maillage au centre, aperçu et diagnostics à
+droite. Le sélecteur de zone et la granularité du bake restent dans l’en-tête ; les actions Masquer,
+Analyser et Appliquer forment un pied stable. L’overlay turquoise montre les cellules praticables
+sans masquer la scène et les segments violets distinguent immédiatement les liaisons spéciales. Les
+diagnostics ambre conservent code et chemin, tandis que l’action braise applique la configuration au
+document seulement après une prévisualisation locale.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

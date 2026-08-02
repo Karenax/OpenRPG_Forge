@@ -69,9 +69,11 @@ incrémental et son écran d'analyse dans le workspace Scripts.
 G7-13 livre les cinq profils de cible canoniques, le registre de dépendances gouverné, l’écran
 Validation & distribution, le manifest ciblé, le NOTICE généré et le blocage des licences ou
 provenances inconnues sur les builds distribuables.
+G7-14 livre la navigation Core par zone, les profils multi-tailles et vol, les liens hors-maillage,
+le rebuild partiel, la reachability depuis les spawns, les contrôles géométriques et l’overlay Aurora.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-14 — navigation et validation spatiale**.
+La prochaine tranche est **G7-15 — diagnostics actionnables**.
 
 ## Phase 6 — 3D assistée
 

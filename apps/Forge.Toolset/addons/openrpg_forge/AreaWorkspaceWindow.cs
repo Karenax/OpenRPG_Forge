@@ -3,6 +3,7 @@ using Forge.Application.Areas;
 using Forge.Application.Projects;
 using Forge.Domain.Areas;
 using Forge.Domain.Entities;
+using Forge.Domain.Navigation;
 using Forge.Domain.Validation;
 using Godot;
 
@@ -23,6 +24,7 @@ public partial class AreaWorkspaceWindow : Window
     private Func<string, AreaKind, AreaDimensions, AreaTemplateKind, AreaId?>? _createArea;
     private Func<AreaId, PortalLink, bool>? _upsertPortal;
     private Func<AreaId, string, AreaCloneMode, ExternalPortalPolicy, AreaId?>? _duplicateArea;
+    private Action? _openNavigation;
     private Action<Window>? _brandWindow;
 
     private ItemList? _areaList;
@@ -60,6 +62,7 @@ public partial class AreaWorkspaceWindow : Window
         Func<string, AreaKind, AreaDimensions, AreaTemplateKind, AreaId?> createArea,
         Func<AreaId, PortalLink, bool> upsertPortal,
         Func<AreaId, string, AreaCloneMode, ExternalPortalPolicy, AreaId?> duplicateArea,
+        Action openNavigation,
         Action<Window> brandWindow)
     {
         _getState = getState ?? throw new ArgumentNullException(nameof(getState));
@@ -68,6 +71,7 @@ public partial class AreaWorkspaceWindow : Window
         _createArea = createArea ?? throw new ArgumentNullException(nameof(createArea));
         _upsertPortal = upsertPortal ?? throw new ArgumentNullException(nameof(upsertPortal));
         _duplicateArea = duplicateArea ?? throw new ArgumentNullException(nameof(duplicateArea));
+        _openNavigation = openNavigation ?? throw new ArgumentNullException(nameof(openNavigation));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
 
         Title = "Zones · OpenRPG Forge";
@@ -291,6 +295,10 @@ public partial class AreaWorkspaceWindow : Window
         validationHeading.AddChild(new Label { Text = "VALIDATION DES ZONES" });
         _validationSummary = MutedLabel("Validation en attente");
         validationHeading.AddChild(_validationSummary);
+        var navigationButton = new Button { Text = "Navigation & géométrie…", CustomMinimumSize = new Vector2(0, 38) };
+        navigationButton.AddThemeStyleboxOverride("normal", Card("38264f", "8060aa", 1, 8));
+        navigationButton.Pressed += () => _openNavigation?.Invoke();
+        validationHeading.AddChild(navigationButton);
         validationRow.AddChild(validationHeading);
         _validationList = new ItemList { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         validationRow.AddChild(_validationList);
@@ -535,20 +543,43 @@ public partial class AreaWorkspaceWindow : Window
         var diagnostics = ProjectValidator.Validate(state.Project)
             .Where(item => item.Path.StartsWith("areas/", StringComparison.Ordinal) ||
                 item.Code.StartsWith("area.", StringComparison.Ordinal))
-            .ToArray();
-        _validationList!.Clear();
-        if (diagnostics.Length == 0)
+            .ToList();
+        foreach (var area in state.Project.Areas)
         {
-            _validationSummary!.Text = "✓ Connexions et références valides";
+            diagnostics.AddRange(AreaGeometryValidator.Validate(state.Project, area));
+        }
+
+        var activeArea = state.Project.Areas.FirstOrDefault(area => area.Id == _getActiveAreaId?.Invoke());
+        if (activeArea is not null)
+        {
+            try
+            {
+                diagnostics.AddRange(AreaNavigationValidator.AnalyzeAll(state.Project, activeArea)
+                    .SelectMany(analysis => analysis.Diagnostics));
+            }
+            catch (InvalidOperationException exception)
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    "area.navigation.bake_too_dense",
+                    exception.Message,
+                    $"areas/{activeArea.Id}/navigation/cellSize"));
+            }
+        }
+
+        var distinctDiagnostics = diagnostics.Distinct().ToArray();
+        _validationList!.Clear();
+        if (distinctDiagnostics.Length == 0)
+        {
+            _validationSummary!.Text = "✓ Références, géométrie et navigation valides";
             _validationSummary.AddThemeColorOverride("font_color", new Color("83d6ae"));
             _validationList.AddItem("Aucune erreur de zone pour la révision courante.");
             _validationList.SetItemSelectable(0, false);
             return;
         }
 
-        _validationSummary!.Text = $"{diagnostics.Length} problème(s) à corriger";
+        _validationSummary!.Text = $"{distinctDiagnostics.Length} problème(s) à corriger";
         _validationSummary.AddThemeColorOverride("font_color", new Color("ff8c8c"));
-        foreach (var diagnostic in diagnostics)
+        foreach (var diagnostic in distinctDiagnostics)
         {
             _validationList.AddItem($"{diagnostic.Code} · {diagnostic.Message}");
             _validationList.SetItemTooltip(_validationList.ItemCount - 1, diagnostic.Path);

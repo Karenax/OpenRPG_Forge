@@ -5,7 +5,8 @@ namespace Forge.ModuleFormat.Serialization;
 
 public static class AreaJsonSerializer
 {
-    public const string CurrentFormatVersion = "1.0.0";
+    public const string CurrentFormatVersion = "1.1.0";
+    public const string PreNavigationFormatVersion = "1.0.0";
 
     private static readonly JsonSerializerOptions Options = ProjectJsonSerializer.CreateOptions();
 
@@ -20,7 +21,8 @@ public static class AreaJsonSerializer
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
         var document = JsonSerializer.Deserialize<AreaDocument>(json, Options)
             ?? throw new JsonException("The area document is empty.");
-        if (!string.Equals(document.FormatVersion, CurrentFormatVersion, StringComparison.Ordinal))
+        if (!string.Equals(document.FormatVersion, CurrentFormatVersion, StringComparison.Ordinal) &&
+            !string.Equals(document.FormatVersion, PreNavigationFormatVersion, StringComparison.Ordinal))
         {
             throw new NotSupportedException(
                 $"Area format '{document.FormatVersion}' is not supported; expected '{CurrentFormatVersion}'.");

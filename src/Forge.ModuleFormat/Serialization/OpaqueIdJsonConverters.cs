@@ -7,6 +7,7 @@ using Forge.Domain.Combat;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Modules;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 
@@ -309,4 +310,60 @@ internal sealed class QuestTransitionIdJsonConverter : JsonConverter<QuestTransi
         reader.TokenType == JsonTokenType.String
             ? reader.GetString() ?? throw new JsonException("A quest transition ID cannot be null.")
             : throw new JsonException("A quest transition ID must be a string.");
+}
+
+internal sealed class AreaNavigationDefinitionIdJsonConverter : JsonConverter<AreaNavigationDefinitionId>
+{
+    public override AreaNavigationDefinitionId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        AreaNavigationDefinitionId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, AreaNavigationDefinitionId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("An area navigation definition ID cannot be null.")
+            : throw new JsonException("An area navigation definition ID must be a string.");
+}
+
+internal sealed class NavigationAgentProfileIdJsonConverter : JsonConverter<NavigationAgentProfileId>
+{
+    public override NavigationAgentProfileId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        NavigationAgentProfileId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, NavigationAgentProfileId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("A navigation agent profile ID cannot be null.")
+            : throw new JsonException("A navigation agent profile ID must be a string.");
+}
+
+internal sealed class OffMeshNavigationLinkIdJsonConverter : JsonConverter<OffMeshNavigationLinkId>
+{
+    public override OffMeshNavigationLinkId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        OffMeshNavigationLinkId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, OffMeshNavigationLinkId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("An off-mesh navigation link ID cannot be null.")
+            : throw new JsonException("An off-mesh navigation link ID must be a string.");
+}
+
+internal sealed class NavigationSurfaceIdJsonConverter : JsonConverter<NavigationSurfaceId>
+{
+    public override NavigationSurfaceId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        NavigationSurfaceId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, NavigationSurfaceId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("A navigation surface ID cannot be null.")
+            : throw new JsonException("A navigation surface ID must be a string.");
 }

@@ -8,6 +8,7 @@ using Forge.Domain.Authoring;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.EngineAdapter.Spatial;
@@ -28,6 +29,7 @@ public partial class ProjectPreview3D : SubViewportContainer
     private Node3D? _areaRoot;
     private Node3D? _gizmo;
     private MeshInstance3D? _ghost;
+    private Node3D? _navigationOverlay;
     private Func<ProjectState?>? _getState;
     private Func<AreaId?>? _getActiveAreaId;
     private Func<float>? _getGridSize;
@@ -54,6 +56,8 @@ public partial class ProjectPreview3D : SubViewportContainer
     public bool GhostVisible => _ghost?.Visible == true;
 
     public bool LastPlacementWasValid { get; private set; }
+
+    public int NavigationOverlayCellCount { get; private set; }
 
     public EditorCameraProfile? CameraProfile => _cameraHistory?.State.Profile;
 
@@ -176,6 +180,7 @@ public partial class ProjectPreview3D : SubViewportContainer
 
     public void Clear()
     {
+        ClearNavigationOverlay();
         EntityCount = 0;
         _entityNodes.Clear();
         _gizmo?.Hide();
@@ -189,6 +194,69 @@ public partial class ProjectPreview3D : SubViewportContainer
         _world.RemoveChild(_areaRoot);
         _areaRoot.Free();
         _areaRoot = null;
+    }
+
+    public void ShowNavigationOverlay(NavigationSurface? surface)
+    {
+        ClearNavigationOverlay();
+        if (surface is null)
+        {
+            return;
+        }
+
+        var material = new StandardMaterial3D
+        {
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            VertexColorUseAsAlbedo = true,
+            Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+        };
+        var mesh = new ImmediateMesh();
+        mesh.SurfaceBegin(Mesh.PrimitiveType.Lines, material);
+        foreach (var cell in surface.WalkableCells)
+        {
+            var center = surface.CenterOf(cell);
+            var half = surface.CellSize * 0.43f;
+            var color = new Color(0.25f, 0.92f, 0.72f, 0.46f);
+            AddLine(center.X - half, center.Z - half, center.X + half, center.Z - half, color);
+            AddLine(center.X + half, center.Z - half, center.X + half, center.Z + half, color);
+            AddLine(center.X + half, center.Z + half, center.X - half, center.Z + half, color);
+            AddLine(center.X - half, center.Z + half, center.X - half, center.Z - half, color);
+        }
+
+        foreach (var edge in surface.OffMeshEdges)
+        {
+            var from = surface.CenterOf(edge.From);
+            var to = surface.CenterOf(edge.To);
+            AddLine(from.X, from.Z, to.X, to.Z, new Color(0.78f, 0.42f, 1f, 0.95f), 0.12f);
+        }
+
+        mesh.SurfaceEnd();
+        _navigationOverlay = new Node3D { Name = "NavigationOverlay" };
+        _navigationOverlay.AddChild(new MeshInstance3D { Mesh = mesh });
+        _world.AddChild(_navigationOverlay);
+        NavigationOverlayCellCount = surface.WalkableCells.Count;
+
+        void AddLine(float fromX, float fromZ, float toX, float toZ, Color color, float height = 0.06f)
+        {
+            mesh.SurfaceSetColor(color);
+            mesh.SurfaceAddVertex(new Vector3(fromX, height, fromZ));
+            mesh.SurfaceSetColor(color);
+            mesh.SurfaceAddVertex(new Vector3(toX, height, toZ));
+        }
+    }
+
+    private void ClearNavigationOverlay()
+    {
+        NavigationOverlayCellCount = 0;
+        if (_navigationOverlay is null || !GodotObject.IsInstanceValid(_navigationOverlay))
+        {
+            _navigationOverlay = null;
+            return;
+        }
+
+        _world.RemoveChild(_navigationOverlay);
+        _navigationOverlay.Free();
+        _navigationOverlay = null;
     }
 
     public bool SelectEntityForSmokeTest(EntityId entityId)

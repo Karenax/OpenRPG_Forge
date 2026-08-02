@@ -385,8 +385,16 @@ Le détail et les preuves des 717 capacités restent suivis dans
   temporaire avec provenance et filtres cohérents.
 - [x] **G7-10 — navigation caméra d’auteur** : orbite, panoramique, zoom, focus, vues cardinales et
   vitesse réglable sans mutation du projet canonique.
-- [ ] **G7-11 — événements de cycle de vie Core** : ProjectLoaded, WorldStarted, AreaEntered et
+- [x] **G7-11 — événements de cycle de vie Core** : ProjectLoaded, WorldStarted, AreaEntered et
   AreaExited ordonnés, typés et observables sans dépendance au RPG Kit.
+- [x] **G7-12 — build incrémental** : cache ForgeScript, graphe de ressources, impact transitif et
+  analyse Aurora avant export.
+- [x] **G7-13 — profils et distribution** : cinq cibles, registre tiers, validation de licence,
+  NOTICE et export ciblé.
+- [x] **G7-14 — navigation et validation spatiale** : profils d’agents, portes dynamiques, liens
+  hors-maillage, rebuild partiel, reachability, diagnostics géométriques et overlay viewport.
+- [ ] **G7-15 — diagnostics actionnables** : UUID, sévérité, propriété source, navigation et quick
+  fixes transactionnels pour la dernière exigence P0 Core non commencée.
 
 Les règles graphiques et d’interaction de G7-03 à G7-09 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).

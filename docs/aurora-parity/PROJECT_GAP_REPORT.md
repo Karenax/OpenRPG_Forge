@@ -90,5 +90,5 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 ## Première tâche
 
-`tasks/G7-13-TARGET-PROFILES-DISTRIBUTION-COMPLIANCE.md` est terminée. La suite est G7-14 : graphe
-de navigation par zone, validation géométrique et reachability spawn-vers-objectif.
+`tasks/G7-14-NAVIGATION-SPATIAL-VALIDATION.md` est terminée. La suite est G7-15 : diagnostics à
+UUID et sévérité, navigation vers la propriété source et quick fixes transactionnels.

@@ -107,6 +107,23 @@ public sealed class ProjectJsonSerializerTests
     }
 
     [Fact]
+    public void Deserialize_MigratesPreNavigationFormatWithStableAreaProfiles()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreNavigationFormatVersion;
+        document["project"]!["areas"]!.AsArray()[0]!.AsObject().Remove("navigation");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Equal(4, first.Areas[0].Navigation.AgentProfiles.Count);
+        Assert.Equal(first.Areas[0].Navigation.Id, second.Areas[0].Navigation.Id);
+        Assert.Equal(
+            first.Areas[0].Navigation.AgentProfiles.Select(profile => profile.Id),
+            second.Areas[0].Navigation.AgentProfiles.Select(profile => profile.Id));
+    }
+
+    [Fact]
     public void SerializeAndDeserialize_RoundTripsTargetProfilesAndDependencyApprovals()
     {
         var source = TestProjectFactory.CreateValid();

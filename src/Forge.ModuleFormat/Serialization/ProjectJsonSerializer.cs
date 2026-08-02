@@ -7,7 +7,8 @@ namespace Forge.ModuleFormat.Serialization;
 
 public static class ProjectJsonSerializer
 {
-    public const string CurrentFormatVersion = "0.6.4";
+    public const string CurrentFormatVersion = "0.6.5";
+    public const string PreNavigationFormatVersion = "0.6.4";
     public const string PreDistributionFormatVersion = "0.6.3";
     public const string PaletteProvenanceFormatVersion = "0.6.2";
     public const string SafeRenameFormatVersion = "0.6.1";
@@ -43,6 +44,7 @@ public static class ProjectJsonSerializer
         var formatVersion = formatVersionElement.GetString();
         ProjectDefinition project;
         if (string.Equals(formatVersion, CurrentFormatVersion, StringComparison.Ordinal) ||
+            string.Equals(formatVersion, PreNavigationFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PreDistributionFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PaletteProvenanceFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, SafeRenameFormatVersion, StringComparison.Ordinal) ||
@@ -93,6 +95,7 @@ public static class ProjectJsonSerializer
         options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
         options.Converters.Add(new AbilityIdJsonConverter());
         options.Converters.Add(new AreaIdJsonConverter());
+        options.Converters.Add(new AreaNavigationDefinitionIdJsonConverter());
         options.Converters.Add(new PortalIdJsonConverter());
         options.Converters.Add(new BlueprintIdJsonConverter());
         options.Converters.Add(new DialogueChoiceIdJsonConverter());
@@ -104,6 +107,9 @@ public static class ProjectJsonSerializer
         options.Converters.Add(new ModuleIdJsonConverter());
         options.Converters.Add(new ModuleDistributionConfigurationIdJsonConverter());
         options.Converters.Add(new ModuleTargetProfileIdJsonConverter());
+        options.Converters.Add(new NavigationAgentProfileIdJsonConverter());
+        options.Converters.Add(new NavigationSurfaceIdJsonConverter());
+        options.Converters.Add(new OffMeshNavigationLinkIdJsonConverter());
         options.Converters.Add(new ProjectMetadataIdJsonConverter());
         options.Converters.Add(new ProjectVariableIdJsonConverter());
         options.Converters.Add(new ProjectIdJsonConverter());

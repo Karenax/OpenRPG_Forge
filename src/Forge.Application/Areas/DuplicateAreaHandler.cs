@@ -3,6 +3,7 @@ using Forge.Application.Projects;
 using Forge.Application.Time;
 using Forge.Domain.Areas;
 using Forge.Domain.Entities;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
 
@@ -96,7 +97,8 @@ public sealed class DuplicateAreaHandler
             entities,
             source.Kind,
             source.Dimensions,
-            portals);
+            portals,
+            navigation: AreaNavigationDefinition.CloneForArea(source.Navigation, command.DestinationAreaId));
         var updatedProject = new ProjectDefinition(
             state.Project.Id,
             state.Project.Title,

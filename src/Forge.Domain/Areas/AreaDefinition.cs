@@ -1,4 +1,5 @@
 using Forge.Domain.Entities;
+using Forge.Domain.Navigation;
 
 namespace Forge.Domain.Areas;
 
@@ -22,6 +23,8 @@ public sealed record AreaDefinition
 
     public IReadOnlyList<PortalLink> Portals { get; }
 
+    public AreaNavigationDefinition Navigation { get; }
+
     public AreaDefinition(
         AreaId id,
         string slug,
@@ -30,7 +33,8 @@ public sealed record AreaDefinition
         AreaKind kind = AreaKind.Interior,
         AreaDimensions? dimensions = null,
         IReadOnlyList<PortalLink>? portals = null,
-        int schemaVersion = CurrentSchemaVersion)
+        int schemaVersion = CurrentSchemaVersion,
+        AreaNavigationDefinition? navigation = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -63,11 +67,15 @@ public sealed record AreaDefinition
         Dimensions = dimensions ?? AreaDimensions.Default;
         Entities = materializedEntities;
         Portals = materializedPortals;
+        Navigation = navigation ?? AreaNavigationDefinition.CreateDefault(id);
     }
 
     public AreaDefinition WithEntities(IReadOnlyList<EntityInstance> entities) =>
-        new(Id, Slug, DisplayName, entities, Kind, Dimensions, Portals, SchemaVersion);
+        new(Id, Slug, DisplayName, entities, Kind, Dimensions, Portals, SchemaVersion, Navigation);
 
     public AreaDefinition WithPortals(IReadOnlyList<PortalLink> portals) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, portals, SchemaVersion);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, portals, SchemaVersion, Navigation);
+
+    public AreaDefinition WithNavigation(AreaNavigationDefinition navigation) =>
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, navigation);
 }

@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-13 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-14 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -50,6 +50,10 @@ affiche désormais les ressources à recalculer ou réutiliser avant l'export.
 G7-13 ajoute cinq profils canoniques Editor, Client, DedicatedServer, Test et Shipping, un registre
 versionné des dépendances tierces, l’écran Aurora Validation & distribution, un NOTICE généré et le
 blocage des cibles distribuables lorsque licence ou provenance reste inconnue.
+G7-14 ajoute une navigation Core par zone avec quatre tailles/modes d’agents, portes dynamiques,
+liens hors-maillage, rebuild partiel, validation géométrique et reachability depuis les spawns. Son
+écran Aurora configure les données et superpose le bake au viewport sans faire de la scène la source
+de vérité.
 
 ## État prouvé
 
@@ -60,7 +64,7 @@ blocage des cibles distribuables lorsque licence ou provenance reste inconnue.
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 225 tests .NET et 24 tests Python réussis ;
+- 233 tests .NET et 24 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -68,7 +72,7 @@ blocage des cibles distribuables lorsque licence ou provenance reste inconnue.
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
 - assistant Nouveau module validé : agrégat module, zone d’entrée, sol, spawn et workspace atomique
   indexé au format `0.9.0`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
-  `0.6.4`, `0.6.3`, `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
+  `0.6.5`, `0.6.4`, `0.6.3`, `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
   édition visuelle, sérialisation, commande transactionnelle, dry-run, audit, undo/redo et smoke ;
 - Play from here validé : spawn sélectionné, snapshot de l’état courant, lancement runtime, retour
@@ -131,6 +135,9 @@ blocage des cibles distribuables lorsque licence ou provenance reste inconnue.
 - distribution G7-13 : profils Editor/Client/DedicatedServer/Test/Shipping persistés, registre de
   dépendances avec version/licence/propriétaire/justification/cadence/retrait, commande dry-run,
   historique, écran Aurora Validation, export ciblé, NOTICE et gate de licence ;
+- navigation G7-14 : configuration de zone 1.1, profils Petit/Moyen/Grand/Volant, portes selon trois
+  états, liens Saut/Porte/Vol, grille et fingerprint déterministes, plan de rebuild partiel, cache
+  dérivé versionné, reachability spawn-vers-objet, validation géométrique CLI et overlay 3D ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -196,11 +203,11 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 - validation de la vue 3/4 rotative comme vue prioritaire du MVP ;
 - règles RPG initiales originales et minimales ;
 - cible matérielle définitive après mesures interactives GPU ;
-- navigation dynamique et rebake partiel ;
+- consommation runtime autoritaire des bakes de navigation et navigation de foule ;
 - éventuel service de persistance externe après le MVP solo.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-14 — navigation et validation spatiale** pour `ORF-AREA-031`, `ORF-QA-004` et
-`ORF-QA-005` : définir le graphe navigable par zone, tester la portée spawn-vers-objectif et signaler
-les géométries, portes ou liens hors-mesh invalides dans le workspace Validation.
+Ouvrir **G7-15 — diagnostics actionnables** pour `ORF-QA-021` : donner à chaque diagnostic un UUID,
+une sévérité, une propriété source et des quick fixes prévisualisables, puis relier la sélection à
+l’explorateur, au viewport et au document canonique.

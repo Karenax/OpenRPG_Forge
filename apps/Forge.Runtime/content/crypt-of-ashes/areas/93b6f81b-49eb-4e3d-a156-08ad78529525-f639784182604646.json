@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.0.0",
+  "formatVersion": "1.1.0",
   "area": {
     "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
     "slug": "crypt-of-ashes",
@@ -8,7 +8,7 @@
     "kind": "interior",
     "dimensions": {
       "width": 20,
-      "depth": 20
+      "depth": 28
     },
     "entities": [
       {
@@ -514,6 +514,59 @@
         }
       }
     ],
-    "portals": []
+    "portals": [],
+    "navigation": {
+      "id": "627f385c-ed28-51dd-b46e-5a24a418900d",
+      "schemaVersion": 1,
+      "cellSize": 1,
+      "agentProfiles": [
+        {
+          "id": "e469de5f-d1a1-5682-9b20-94d1ebf51cf3",
+          "schemaVersion": 1,
+          "name": "Petit",
+          "radius": 0.3,
+          "height": 1.4,
+          "canOpenDoors": true,
+          "canUseOffMeshLinks": true,
+          "canFly": false,
+          "provenance": "migration-default"
+        },
+        {
+          "id": "70dff235-6e20-5e94-a5b2-2c1731b3e3a9",
+          "schemaVersion": 1,
+          "name": "Volant",
+          "radius": 0.4,
+          "height": 1,
+          "canOpenDoors": false,
+          "canUseOffMeshLinks": true,
+          "canFly": true,
+          "provenance": "migration-default"
+        },
+        {
+          "id": "394d319a-dd83-5cd2-b35a-c13926de43ce",
+          "schemaVersion": 1,
+          "name": "Moyen",
+          "radius": 0.5,
+          "height": 1.8,
+          "canOpenDoors": true,
+          "canUseOffMeshLinks": true,
+          "canFly": false,
+          "provenance": "migration-default"
+        },
+        {
+          "id": "a572da33-4c97-599a-8201-983e4efc820b",
+          "schemaVersion": 1,
+          "name": "Grand",
+          "radius": 0.9,
+          "height": 2.4,
+          "canOpenDoors": false,
+          "canUseOffMeshLinks": true,
+          "canFly": false,
+          "provenance": "migration-default"
+        }
+      ],
+      "offMeshLinks": [],
+      "provenance": "migration-default"
+    }
   }
 }

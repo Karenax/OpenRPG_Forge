@@ -1,7 +1,9 @@
 using System.Text.Json;
 using Forge.Domain.Modules;
+using Forge.Domain.Navigation;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
+using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Workspaces;
 
@@ -16,7 +18,7 @@ static int Run(IReadOnlyList<string> arguments)
             return RunPackage(arguments.Skip(1).ToArray());
         }
 
-        Console.Error.WriteLine("Usage: forge package <export|validate|load|analyze|compliance> ...");
+        Console.Error.WriteLine("Usage: forge package <export|validate|load|analyze|compliance|spatial> ...");
         return 2;
     }
     catch (Exception exception)
@@ -162,10 +164,53 @@ static int RunPackage(IReadOnlyList<string> arguments)
         return diagnostics.Count == 0 ? 0 : 1;
     }
 
+    if (arguments.Count == 2 && arguments[0] == "spatial")
+    {
+        var opened = ProjectSession.Open(arguments[1]);
+        if (!opened.Succeeded || opened.Session is null)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+            return 1;
+        }
+
+        var project = opened.Session.Project;
+        var diagnostics = new List<DomainDiagnostic>();
+        var surfaces = new List<NavigationSurface>();
+        foreach (var area in project.Areas)
+        {
+            diagnostics.AddRange(AreaGeometryValidator.Validate(project, area));
+            foreach (var analysis in AreaNavigationValidator.AnalyzeAll(project, area))
+            {
+                diagnostics.AddRange(analysis.Diagnostics);
+                surfaces.Add(analysis.Surface);
+                NavigationBakeStore.Save(opened.Session.RootDirectory, analysis.Surface);
+            }
+        }
+
+        var distinct = diagnostics.Distinct().ToArray();
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = distinct.Length == 0,
+            areas = project.Areas.Count,
+            profiles = surfaces.Count,
+            cells = surfaces.Sum(surface => surface.WalkableCells.Count),
+            offMeshEdges = surfaces.Sum(surface => surface.OffMeshEdges.Count),
+            diagnostics = distinct,
+        }));
+        if (distinct.Length == 0)
+        {
+            Console.WriteLine(
+                $"OPENRPG_FORGE_SPATIAL_VALIDATION_PASS areas={project.Areas.Count} profiles={surfaces.Count} " +
+                $"cells={surfaces.Sum(surface => surface.WalkableCells.Count)} cache=versioned");
+        }
+
+        return distinct.Length == 0 ? 0 : 1;
+    }
+
     Console.Error.WriteLine(
         "Usage: forge package export <workspace> <destination.orpmod> [--target <profile>] | " +
         "validate <module.orpmod> | load <module.orpmod> <cache> | analyze <workspace> | " +
-        "compliance <workspace> <profile>");
+        "compliance <workspace> <profile> | spatial <workspace>");
     return 2;
 }
 

@@ -174,7 +174,8 @@ public sealed class SafeRenameHandler
                     area.Kind,
                     area.Dimensions,
                     area.Portals,
-                    area.SchemaVersion)
+                    area.SchemaVersion,
+                    area.Navigation)
                 : area).ToArray()
             : project.Areas;
         var blueprints = kind == CreatorContentKind.Blueprint
