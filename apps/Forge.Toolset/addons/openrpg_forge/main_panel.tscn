@@ -275,6 +275,42 @@ layout_mode = 2
 disabled = true
 text = "Supprimer"
 
+[node name="ClipboardRow" type="HBoxContainer" parent="Margin/Content/Editing"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ClipboardLabel" type="Label" parent="Margin/Content/Editing/ClipboardRow"]
+layout_mode = 2
+text = "Clipboard sémantique"
+
+[node name="ClipboardSummary" type="Label" parent="Margin/Content/Editing/ClipboardRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.733, 0.686, 0.855, 1)
+text = "Aucun contenu copié"
+
+[node name="CopyButton" type="Button" parent="Margin/Content/Editing/ClipboardRow"]
+custom_minimum_size = Vector2(105, 38)
+layout_mode = 2
+disabled = true
+text = "Copier"
+
+[node name="PasteButton" type="Button" parent="Margin/Content/Editing/ClipboardRow"]
+custom_minimum_size = Vector2(105, 38)
+layout_mode = 2
+disabled = true
+text = "Coller"
+
+[node name="DuplicateButton" type="Button" parent="Margin/Content/Editing/ClipboardRow"]
+custom_minimum_size = Vector2(120, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_new_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_new_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_new_button_hover")
+disabled = true
+text = "Dupliquer"
+
 [node name="OverridesRow" type="HBoxContainer" parent="Margin/Content/Editing"]
 layout_mode = 2
 theme_override_constants/separation = 8

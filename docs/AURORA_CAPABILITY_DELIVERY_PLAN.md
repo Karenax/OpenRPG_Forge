@@ -44,8 +44,8 @@ Au 2 août 2026 :
 
 La prochaine étape n'est plus un lot MVP : **G0 est fermé** avec un snapshot immuable, un audit des
 76 P0 Core et un tracker projet généré. **G7-01** prouve un second module générique, **G7-02** la
-coque Creator, **G7-03** le catalogue Blueprints, **G7-04** la manipulation directe et **G7-05** les
-zones indépendantes ; la file active commence à **G7-06**. La fermeture de `TASKS_MVP.md` ne signifie pas
+coque Creator, **G7-03** le catalogue Blueprints, **G7-04** la manipulation directe, **G7-05** les
+zones indépendantes et **G7-06** le clipboard sémantique ; la file active commence à **G7-07**. La fermeture de `TASKS_MVP.md` ne signifie pas
 une parité Aurora complète.
 
 ## 3. Jalons produit
@@ -208,9 +208,9 @@ créateur peut modifier, exporter et jouer la Crypte sans IA et sans outil propr
 
 ### G7 — Creator Core complet P0/P1
 
-**État.** En cours. G7-01 à G7-05 sont franchis avec le second module générique, la coque Creator,
-le catalogue Blueprints, la manipulation directe puis les zones indépendantes ; G7-06 est la
-prochaine tâche.
+**État.** En cours. G7-01 à G7-06 sont franchis avec le second module générique, la coque Creator,
+le catalogue Blueprints, la manipulation directe, les zones indépendantes puis le clipboard
+sémantique ; G7-07 est la prochaine tâche.
 
 **Domaines.** `SHELL`, `PROJECT`, `AREA`, `PALETTE`, parties Core de `PLACEABLE`, `DOOR`, `TRIGGER`,
 `WAYPOINT`, `AUDIO`, `GAMEPLAY`, `CONTENT`, `BUILD`, `QA` et `EE` indispensable.
@@ -422,13 +422,15 @@ La file active est maintenant :
 | 4 | G7-03 | ORF-PAL-001, 002, 003, 007, ORF-BUILD-010 | Terminé partiellement : catalogue éditable, dérivation d’instance et références inversées. |
 | 5 | G7-04 | ORF-SHELL-010, 011, 013, ORF-PAL-012 | Terminé partiellement : placement direct, fantôme validé, gizmo X/Z et historique. |
 | 6 | G7-05 | ORF-AREA-001, 002, 030, 037 | Terminé partiellement : documents indépendants, zone active, transitions et validation. |
-| 7 | G7-06 | ORF-SHELL-014, ORF-AREA-012 | Clipboard sémantique, duplication, nouveaux UUID et remapping contrôlé. |
+| 7 | G7-06 | ORF-SHELL-014, ORF-AREA-012 | Terminé partiellement : clipboard sémantique, duplication, nouveaux UUID et remapping contrôlé. |
+| 8 | G7-07 | ORF-SHELL-015, 016, 017 | Recherche globale, références et renommage sûr transactionnel. |
 
 Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md`,
 `docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md` et
 `docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md` et
 `docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md` et
-`docs/aurora-parity/tasks/G7-05-INDEPENDENT-AREAS.md`.
+`docs/aurora-parity/tasks/G7-05-INDEPENDENT-AREAS.md` et
+`docs/aurora-parity/tasks/G7-06-SEMANTIC-CLIPBOARD.md`.
 
 ## 7. Graphe de dépendances
 

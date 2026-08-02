@@ -22,6 +22,7 @@ public partial class AreaWorkspaceWindow : Window
     private Func<AreaId, bool>? _activateArea;
     private Func<string, AreaKind, AreaDimensions, AreaTemplateKind, AreaId?>? _createArea;
     private Func<AreaId, PortalLink, bool>? _upsertPortal;
+    private Func<AreaId, string, AreaCloneMode, ExternalPortalPolicy, AreaId?>? _duplicateArea;
     private Action<Window>? _brandWindow;
 
     private ItemList? _areaList;
@@ -41,6 +42,12 @@ public partial class AreaWorkspaceWindow : Window
     private ItemList? _validationList;
     private Label? _validationSummary;
     private Label? _status;
+    private LineEdit? _cloneName;
+    private OptionButton? _cloneMode;
+    private CheckBox? _preserveExternalPortals;
+    private Button? _applyCloneButton;
+    private AreaId? _selectedAreaId;
+    private AreaId? _cloneSourceAreaId;
 
     public int AreaCount => _visibleAreaIds.Count;
 
@@ -52,6 +59,7 @@ public partial class AreaWorkspaceWindow : Window
         Func<AreaId, bool> activateArea,
         Func<string, AreaKind, AreaDimensions, AreaTemplateKind, AreaId?> createArea,
         Func<AreaId, PortalLink, bool> upsertPortal,
+        Func<AreaId, string, AreaCloneMode, ExternalPortalPolicy, AreaId?> duplicateArea,
         Action<Window> brandWindow)
     {
         _getState = getState ?? throw new ArgumentNullException(nameof(getState));
@@ -59,6 +67,7 @@ public partial class AreaWorkspaceWindow : Window
         _activateArea = activateArea ?? throw new ArgumentNullException(nameof(activateArea));
         _createArea = createArea ?? throw new ArgumentNullException(nameof(createArea));
         _upsertPortal = upsertPortal ?? throw new ArgumentNullException(nameof(upsertPortal));
+        _duplicateArea = duplicateArea ?? throw new ArgumentNullException(nameof(duplicateArea));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
 
         Title = "Zones · OpenRPG Forge";
@@ -110,6 +119,7 @@ public partial class AreaWorkspaceWindow : Window
         if (selectedIndex >= 0)
         {
             _areaList.Select(selectedIndex);
+            _selectedAreaId = _visibleAreaIds[selectedIndex];
         }
 
         RefreshActiveArea(state);
@@ -169,6 +179,34 @@ public partial class AreaWorkspaceWindow : Window
         };
         catalog.AddChild(_areaList);
         catalog.AddChild(MutedLabel("◆ indique la zone affichée et éditée dans le workspace Monde."));
+        catalog.AddChild(new HSeparator());
+        catalog.AddChild(new Label { Text = "COPIE DE ZONE" });
+        _cloneName = new LineEdit { PlaceholderText = "Nom de la copie" };
+        _cloneName.TextChanged += _ => ResetAreaClonePreview();
+        catalog.AddChild(_cloneName);
+        _cloneMode = new OptionButton();
+        _cloneMode.AddItem("Clone complet");
+        _cloneMode.AddItem("Gabarit vide");
+        _cloneMode.ItemSelected += _ => ResetAreaClonePreview();
+        catalog.AddChild(_cloneMode);
+        _preserveExternalPortals = new CheckBox
+        {
+            Text = "Conserver les transitions externes",
+            ButtonPressed = true,
+        };
+        _preserveExternalPortals.Toggled += _ => ResetAreaClonePreview();
+        catalog.AddChild(_preserveExternalPortals);
+        var previewCloneButton = new Button { Text = "Prévisualiser la copie" };
+        previewCloneButton.Pressed += PreviewAreaClone;
+        catalog.AddChild(previewCloneButton);
+        _applyCloneButton = new Button
+        {
+            Text = "Créer la copie",
+            Disabled = true,
+        };
+        _applyCloneButton.AddThemeStyleboxOverride("normal", Card("38264f", "8060aa", 1, 8));
+        _applyCloneButton.Pressed += ApplyAreaClone;
+        catalog.AddChild(_applyCloneButton);
 
         var create = AddCard(body, new Vector2(330, 0));
         create.AddChild(new Label { Text = "NOUVELLE ZONE" });
@@ -278,6 +316,8 @@ public partial class AreaWorkspaceWindow : Window
         }
 
         var areaId = _visibleAreaIds[(int)index];
+        _selectedAreaId = areaId;
+        ResetAreaClonePreview();
         if (_activateArea?.Invoke(areaId) == true)
         {
             var area = state.Project.Areas.Single(candidate => candidate.Id == areaId);
@@ -364,6 +404,76 @@ public partial class AreaWorkspaceWindow : Window
         _portalName.Text = string.Empty;
         SetStatus($"Transition « {displayName} » créée.", false);
         Refresh(sourceAreaId);
+    }
+
+    private void PreviewAreaClone()
+    {
+        var state = _getState?.Invoke();
+        if (state is null || _selectedAreaId is null || _cloneMode is null ||
+            _preserveExternalPortals is null || _cloneName is null || _applyCloneButton is null)
+        {
+            SetStatus("Sélectionnez une zone à copier.", true);
+            return;
+        }
+
+        var source = state.Project.Areas.Single(area => area.Id == _selectedAreaId);
+        var mode = _cloneMode.Selected == 1 ? AreaCloneMode.Template : AreaCloneMode.Full;
+        var externalPolicy = _preserveExternalPortals.ButtonPressed
+            ? ExternalPortalPolicy.Preserve
+            : ExternalPortalPolicy.Drop;
+        var preview = AreaDuplicationPreview.Create(source, mode, externalPolicy);
+        if (string.IsNullOrWhiteSpace(_cloneName.Text))
+        {
+            _cloneName.Text = $"{source.DisplayName} — Copie";
+        }
+
+        _cloneSourceAreaId = source.Id;
+        _applyCloneButton.Disabled = false;
+        SetStatus(
+            $"Aperçu · {preview.EntityCount} entité(s), {preview.InternalPortalCount} transition(s) interne(s), " +
+            $"{preview.ExternalPortalCount} externe(s) · nouveaux UUID à l’application.",
+            false);
+    }
+
+    private void ApplyAreaClone()
+    {
+        if (_cloneSourceAreaId is null || _cloneName is null || _cloneMode is null ||
+            _preserveExternalPortals is null)
+        {
+            SetStatus("Prévisualisez d’abord la copie de zone.", true);
+            return;
+        }
+
+        var name = _cloneName.Text.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            SetStatus("Donnez un nom à la copie de zone.", true);
+            return;
+        }
+
+        var mode = _cloneMode.Selected == 1 ? AreaCloneMode.Template : AreaCloneMode.Full;
+        var externalPolicy = _preserveExternalPortals.ButtonPressed
+            ? ExternalPortalPolicy.Preserve
+            : ExternalPortalPolicy.Drop;
+        var cloneId = _duplicateArea?.Invoke(_cloneSourceAreaId, name, mode, externalPolicy);
+        if (cloneId is null)
+        {
+            SetStatus("La copie a été refusée. Consultez les diagnostics du projet.", true);
+            return;
+        }
+
+        SetStatus($"Zone « {name} » créée depuis l’aperçu.", false);
+        ResetAreaClonePreview();
+        Refresh(cloneId);
+    }
+
+    private void ResetAreaClonePreview()
+    {
+        _cloneSourceAreaId = null;
+        if (_applyCloneButton is not null)
+        {
+            _applyCloneButton.Disabled = true;
+        }
     }
 
     private void RefreshActiveArea(ProjectState state)

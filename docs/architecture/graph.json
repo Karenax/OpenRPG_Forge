@@ -471,6 +471,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/AreaDuplicationPreview.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.Application.Areas.AreaDuplicationPreview",
+      "target": "file:src/Forge.Application/Areas/AreaDuplicationPreview.cs"
+    },
+    {
+      "evidence": {
         "line": 29,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
@@ -1308,7 +1317,7 @@
     },
     {
       "evidence": {
-        "line": 92,
+        "line": 97,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1317,7 +1326,7 @@
     },
     {
       "evidence": {
-        "line": 141,
+        "line": 148,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1326,7 +1335,7 @@
     },
     {
       "evidence": {
-        "line": 37,
+        "line": 39,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1362,7 +1371,7 @@
     },
     {
       "evidence": {
-        "line": 382,
+        "line": 384,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1371,7 +1380,7 @@
     },
     {
       "evidence": {
-        "line": 388,
+        "line": 390,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1380,7 +1389,7 @@
     },
     {
       "evidence": {
-        "line": 394,
+        "line": 396,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2172,7 +2181,7 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 58,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2181,7 +2190,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 74,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2190,7 +2199,7 @@
     },
     {
       "evidence": {
-        "line": 95,
+        "line": 102,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -2199,12 +2208,12 @@
     },
     {
       "evidence": {
-        "line": 91,
+        "line": 93,
         "path": "docs/aurora-parity/PROJECT_GAP_REPORT.md"
       },
       "kind": "references",
       "source": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",
-      "target": "file:docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md"
+      "target": "file:docs/aurora-parity/tasks/G7-06-SEMANTIC-CLIPBOARD.md"
     },
     {
       "evidence": {
@@ -2214,6 +2223,15 @@
       "kind": "references",
       "source": "file:docs/aurora-parity/README.md",
       "target": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/AreaDuplicationPreview.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/AreaDuplicationPreview.cs",
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -2331,6 +2349,105 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Areas/CreateAreaHandler.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaCommand.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -2713,6 +2830,33 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/SemanticClipboard.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/SemanticClipboard.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/SemanticClipboard.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Dialogues/SetDialogueCommand.cs"
       },
       "kind": "imports",
@@ -2790,6 +2934,141 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Dialogues/SetDialogueHandler.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesCommand.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesCommand.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesCommand.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs",
+      "target": "namespace:Forge.Application.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -4418,6 +4697,105 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Entities"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
     },
     {
@@ -6717,7 +7095,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "tests/test_aurora_tracker.py"
       },
       "kind": "defined_in",
@@ -7113,6 +7491,132 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Application.Areas.DuplicateAreaCommand"
+    },
+    {
+      "evidence": {
+        "line": 210,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 207,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 211,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 116,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 92,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 143,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Domain.Areas.PortalId"
+    },
+    {
+      "evidence": {
+        "line": 72,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 142,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 100,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
       },
@@ -7497,6 +8001,132 @@
       "kind": "uses_model",
       "source": "handler:Forge.Application.Dialogues.SetDialogueHandler",
       "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 143,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 140,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 144,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 98,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Application.Entities.PasteEntitiesCommand"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 117,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 79,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 117,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 88,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 73,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -8328,6 +8958,33 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.DuplicateAreaCommand",
+      "target": "file:src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.DuplicateAreaCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.DuplicateAreaCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
       },
@@ -8626,6 +9283,15 @@
     {
       "evidence": {
         "line": 7,
+        "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.SemanticClipboardKind",
+      "target": "file:src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
         "path": "src/Forge.Application/Dialogues/SetDialogueCommand.cs"
       },
       "kind": "defined_in",
@@ -8649,6 +9315,51 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Dialogues.SetDialogueCommand",
       "target": "model:Forge.Domain.Dialogues.DialogueDefinition"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Entities.PasteEntitiesCommand",
+      "target": "file:src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Entities.PasteEntitiesCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Entities.PasteEntitiesCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Entities.PasteEntitiesCommand",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Entities.PasteEntitiesCommand",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -10138,6 +10849,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Areas/AreaCloneMode.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/AreaCloneMode.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/AreaDuplicationPreview.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/AreaDuplicationPreview.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Areas/AreaTemplateKind.cs"
       },
       "kind": "defined_in",
@@ -10161,6 +10890,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Areas",
       "target": "file:src/Forge.Application/Areas/CreateAreaHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs"
     },
     {
       "evidence": {
@@ -10399,6 +11146,15 @@
     {
       "evidence": {
         "line": 4,
+        "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
         "path": "src/Forge.Application/Dialogues/SetDialogueCommand.cs"
       },
       "kind": "defined_in",
@@ -10413,6 +11169,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Dialogues",
       "target": "file:src/Forge.Application/Dialogues/SetDialogueHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Entities",
+      "target": "file:src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Entities",
+      "target": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs"
     },
     {
       "evidence": {
@@ -10629,6 +11403,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Creator",
       "target": "file:tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Creator",
+      "target": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
     },
     {
       "evidence": {
@@ -13197,6 +13980,33 @@
     },
     {
       "evidence": {
+        "line": 261,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Creator.ClipboardTestContext",
+      "target": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 261,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ClipboardTestContext",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 261,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.ClipboardTestContext",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
       },
@@ -13365,6 +14175,330 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
       "target": "type:Forge.Application.Creator.CreatorSelectionContext"
+    },
+    {
+      "evidence": {
+        "line": 189,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "component:Forge.Application.Areas.AreaDuplicationPreview"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 124,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "handler:Forge.Application.Areas.DuplicateAreaHandler"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "handler:Forge.Application.Entities.PasteEntitiesHandler"
+    },
+    {
+      "evidence": {
+        "line": 113,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Application.Areas.DuplicateAreaCommand"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Application.Creator.SemanticClipboardKind"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Application.Entities.PasteEntitiesCommand"
+    },
+    {
+      "evidence": {
+        "line": 258,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 238,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 108,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 243,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 112,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Areas.PortalId"
+    },
+    {
+      "evidence": {
+        "line": 203,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 202,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 203,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 205,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 212,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Entities.EntityPropertyValueKind"
+    },
+    {
+      "evidence": {
+        "line": 253,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 254,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 208,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 208,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 119,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Application.Areas.AreaCloneMode"
+    },
+    {
+      "evidence": {
+        "line": 110,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Application.Areas.EntityIdRemap"
+    },
+    {
+      "evidence": {
+        "line": 120,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Application.Areas.ExternalPortalPolicy"
+    },
+    {
+      "evidence": {
+        "line": 112,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Application.Areas.PortalIdRemap"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Application.Creator.SemanticClipboard"
+    },
+    {
+      "evidence": {
+        "line": 258,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 244,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 222,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Domain.Areas.PortalLink"
+    },
+    {
+      "evidence": {
+        "line": 212,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Domain.Entities.EntityPropertyOverride"
+    },
+    {
+      "evidence": {
+        "line": 210,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "type:Forge.Domain.Entities.EntityPropertyOverrides"
+    },
+    {
+      "evidence": {
+        "line": 100,
+        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "target": "validator:Forge.Application.Spatial.PlacementValidator"
     },
     {
       "evidence": {
@@ -16851,7 +17985,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 26,
         "path": "tests/test_aurora_tracker.py"
       },
       "kind": "defined_in",
@@ -16875,6 +18009,42 @@
       "kind": "defined_in",
       "source": "type:ArgumentMap",
       "target": "file:apps/Forge.McpHost/Program.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/AreaCloneMode.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.AreaCloneMode",
+      "target": "file:src/Forge.Application/Areas/AreaCloneMode.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.EntityIdRemap",
+      "target": "file:src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Areas/AreaCloneMode.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.ExternalPortalPolicy",
+      "target": "file:src/Forge.Application/Areas/AreaCloneMode.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.PortalIdRemap",
+      "target": "file:src/Forge.Application/Areas/DuplicateAreaCommand.cs"
     },
     {
       "evidence": {
@@ -16911,6 +18081,15 @@
       "kind": "defined_in",
       "source": "type:Forge.Application.Creator.ActiveAreaContext",
       "target": "file:src/Forge.Application/Creator/ActiveAreaContext.cs"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.AreaClipboardPayload",
+      "target": "file:src/Forge.Application/Creator/SemanticClipboard.cs"
     },
     {
       "evidence": {
@@ -16965,6 +18144,33 @@
       "kind": "defined_in",
       "source": "type:Forge.Application.Creator.CreatorSelectionContext",
       "target": "file:src/Forge.Application/Creator/CreatorSelectionContext.cs"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.EntityClipboardPayload",
+      "target": "file:src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.SemanticClipboard",
+      "target": "file:src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.SemanticClipboardPayload",
+      "target": "file:src/Forge.Application/Creator/SemanticClipboard.cs"
     },
     {
       "evidence": {
@@ -17742,7 +18948,7 @@
     },
     {
       "evidence": {
-        "line": 2923,
+        "line": 3206,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -17769,7 +18975,7 @@
     },
     {
       "evidence": {
-        "line": 2928,
+        "line": 3211,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -17778,7 +18984,7 @@
     },
     {
       "evidence": {
-        "line": 2933,
+        "line": 3216,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -18138,8 +19344,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:12e5881359120692aca63f522d9145aa59e9e54c0565ada27d6fd4c332ec7cb3",
-    "source_file_count": 531
+    "source_digest": "sha256:a20bef2bfe64148f39807e29bfa04e18ee2e4bd63fe233bdf4f6a5b152167025",
+    "source_file_count": 540
   },
   "nodes": [
     {
@@ -18351,6 +19557,16 @@
       },
       "name": "ForgeEditorBridgeClient",
       "path": "src/Forge.Mcp/Bridge/ForgeEditorBridgeClient.cs"
+    },
+    {
+      "id": "component:Forge.Application.Areas.AreaDuplicationPreview",
+      "kind": "component",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaDuplicationPreview",
+      "path": "src/Forge.Application/Areas/AreaDuplicationPreview.cs"
     },
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
@@ -20123,6 +21339,16 @@
       "path": "docs/aurora-parity/tasks/G7-05-INDEPENDENT-AREAS.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-06-SEMANTIC-CLIPBOARD.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-06-SEMANTIC-CLIPBOARD.md",
+      "path": "docs/aurora-parity/tasks/G7-06-SEMANTIC-CLIPBOARD.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -20173,6 +21399,26 @@
       "path": "scripts/architecture_graph.py"
     },
     {
+      "id": "file:src/Forge.Application/Areas/AreaCloneMode.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaCloneMode.cs",
+      "path": "src/Forge.Application/Areas/AreaCloneMode.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/AreaDuplicationPreview.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaDuplicationPreview.cs",
+      "path": "src/Forge.Application/Areas/AreaDuplicationPreview.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Areas/AreaTemplateKind.cs",
       "kind": "file",
       "line": 1,
@@ -20201,6 +21447,26 @@
       },
       "name": "CreateAreaHandler.cs",
       "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/DuplicateAreaCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DuplicateAreaCommand.cs",
+      "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DuplicateAreaHandler.cs",
+      "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Areas/UpsertPortalLinkCommand.cs",
@@ -20463,6 +21729,16 @@
       "path": "src/Forge.Application/Creator/CreatorSelectionKind.cs"
     },
     {
+      "id": "file:src/Forge.Application/Creator/SemanticClipboard.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SemanticClipboard.cs",
+      "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Dialogues/SetDialogueCommand.cs",
       "kind": "file",
       "line": 1,
@@ -20481,6 +21757,26 @@
       },
       "name": "SetDialogueHandler.cs",
       "path": "src/Forge.Application/Dialogues/SetDialogueHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Entities/PasteEntitiesCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PasteEntitiesCommand.cs",
+      "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Entities/PasteEntitiesHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PasteEntitiesHandler.cs",
+      "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Entities/PlaceEntityCommand.cs",
@@ -22041,6 +23337,16 @@
       },
       "name": "CreatorShellModelTests.cs",
       "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SemanticClipboardWorkflowTests.cs",
+      "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Dialogues/SetDialogueHandlerTests.cs",
@@ -24125,7 +25431,7 @@
     {
       "id": "function:tests.test_aurora_tracker.read_csv",
       "kind": "function",
-      "line": 20,
+      "line": 21,
       "metadata": {
         "module": "tests.test_aurora_tracker"
       },
@@ -24403,6 +25709,16 @@
       "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Areas.DuplicateAreaHandler",
+      "kind": "handler",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "DuplicateAreaHandler",
+      "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
       "kind": "handler",
       "line": 10,
@@ -24441,6 +25757,16 @@
       },
       "name": "SetDialogueHandler",
       "path": "src/Forge.Application/Dialogues/SetDialogueHandler.cs"
+    },
+    {
+      "id": "handler:Forge.Application.Entities.PasteEntitiesHandler",
+      "kind": "handler",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Application.Entities"
+      },
+      "name": "PasteEntitiesHandler",
+      "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
     },
     {
       "id": "handler:Forge.Application.Entities.PlaceEntityHandler",
@@ -24541,6 +25867,16 @@
       },
       "name": "CreateAreaCommand",
       "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Areas.DuplicateAreaCommand",
+      "kind": "model",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "DuplicateAreaCommand",
+      "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
     },
     {
       "id": "model:Forge.Application.Areas.UpsertPortalLinkCommand",
@@ -24683,6 +26019,16 @@
       "path": "src/Forge.Application/Creator/CreatorSelectionKind.cs"
     },
     {
+      "id": "model:Forge.Application.Creator.SemanticClipboardKind",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "SemanticClipboardKind",
+      "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
       "id": "model:Forge.Application.Dialogues.SetDialogueCommand",
       "kind": "model",
       "line": 7,
@@ -24691,6 +26037,16 @@
       },
       "name": "SetDialogueCommand",
       "path": "src/Forge.Application/Dialogues/SetDialogueCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Entities.PasteEntitiesCommand",
+      "kind": "model",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Entities"
+      },
+      "name": "PasteEntitiesCommand",
+      "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
     },
     {
       "id": "model:Forge.Application.Entities.PlaceEntityCommand",
@@ -25986,6 +27342,16 @@
       "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Creator.ClipboardTestContext",
+      "kind": "test",
+      "line": 261,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Creator"
+      },
+      "name": "ClipboardTestContext",
+      "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Creator.CreatorShellModelTests",
       "kind": "test",
       "line": 10,
@@ -25994,6 +27360,16 @@
       },
       "name": "CreatorShellModelTests",
       "path": "tests/Forge.Application.Tests/Creator/CreatorShellModelTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
+      "kind": "test",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Creator"
+      },
+      "name": "SemanticClipboardWorkflowTests",
+      "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Dialogues.SetDialogueHandlerTests",
@@ -26448,7 +27824,7 @@
     {
       "id": "test:tests.test_aurora_tracker.AuroraParityTrackerTests",
       "kind": "test",
-      "line": 25,
+      "line": 26,
       "metadata": {
         "module": "tests.test_aurora_tracker"
       },
@@ -26471,6 +27847,46 @@
       "line": 135,
       "name": "ArgumentMap",
       "path": "apps/Forge.McpHost/Program.cs"
+    },
+    {
+      "id": "type:Forge.Application.Areas.AreaCloneMode",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaCloneMode",
+      "path": "src/Forge.Application/Areas/AreaCloneMode.cs"
+    },
+    {
+      "id": "type:Forge.Application.Areas.EntityIdRemap",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "EntityIdRemap",
+      "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+    },
+    {
+      "id": "type:Forge.Application.Areas.ExternalPortalPolicy",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "ExternalPortalPolicy",
+      "path": "src/Forge.Application/Areas/AreaCloneMode.cs"
+    },
+    {
+      "id": "type:Forge.Application.Areas.PortalIdRemap",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "PortalIdRemap",
+      "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
     },
     {
       "id": "type:Forge.Application.Blueprints.BlueprintReference",
@@ -26511,6 +27927,16 @@
       },
       "name": "ActiveAreaContext",
       "path": "src/Forge.Application/Creator/ActiveAreaContext.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.AreaClipboardPayload",
+      "kind": "type",
+      "line": 45,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "AreaClipboardPayload",
+      "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
     },
     {
       "id": "type:Forge.Application.Creator.CreatorDiagnosticSeverity",
@@ -26571,6 +27997,36 @@
       },
       "name": "CreatorSelectionContext",
       "path": "src/Forge.Application/Creator/CreatorSelectionContext.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.EntityClipboardPayload",
+      "kind": "type",
+      "line": 18,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EntityClipboardPayload",
+      "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.SemanticClipboard",
+      "kind": "type",
+      "line": 56,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "SemanticClipboard",
+      "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.SemanticClipboardPayload",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "SemanticClipboardPayload",
+      "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
     },
     {
       "id": "type:Forge.Application.Projects.ProjectRevision",
@@ -27405,7 +28861,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 2923,
+      "line": 3206,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -27435,7 +28891,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 2928,
+      "line": 3211,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -27445,7 +28901,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 2933,
+      "line": 3216,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

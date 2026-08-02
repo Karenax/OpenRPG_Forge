@@ -14,21 +14,22 @@ L’audit strict des 76 P0 de `SHELL`, `PROJECT`, `AREA`, `PALETTE`, `BUILD` et 
 | Statut d’audit | Nombre |
 |---|---:|
 | `Tested` | 2 |
-| `Implemented` avec note `Partial` | 42 |
+| `Implemented` avec note `Partial` | 52 |
 | `Designed` | 1 |
-| `NotStarted` | 31 |
+| `NotStarted` | 21 |
 
-Les 641 autres lignes restent `Researched` jusqu’à un audit de leur code, de leurs tests et de leurs
-critères d’acceptation.
+Parmi les 641 autres lignes, `ORF-AREA-012` est maintenant auditée `Implemented` partiel dans le
+registre projet générique ; les 640 restantes gardent leur baseline `Researched` jusqu’à un audit de
+leur code, de leurs tests et de leurs critères d’acceptation.
 
 ## Architecture réelle versus cible
 
 | Sujet | État réel | Cible |
 |---|---|---|
 | Domaine | `Forge.Domain` indépendant du moteur mais contenant aussi dialogue, quête et combat | Core général et RPG Kit versionné |
-| Données auteur | `project.json` canonique unique | documents logiques séparables pour zones, blueprints et ressources |
+| Données auteur | index `project.json` et documents de zone adressés par hash ; autres agrégats encore regroupés | documents logiques séparables pour zones, blueprints et ressources |
 | Mutations | commandes, révisions, dry-run, patches, inverse et historique pour les workflows MVP | voie unique pour chaque workspace, CLI et outil MCP |
-| Toolset | coque Creator, catalogue Blueprints et Monde avec drag-and-drop, fantôme et gizmo X/Z | workflows spécialisés complets, gizmos complets, panneaux détachables et historique universel |
+| Toolset | coque Creator, catalogue Blueprints, zones, clipboard sémantique et Monde avec drag-and-drop, fantôme et gizmo X/Z | workflows spécialisés complets, gizmos complets, panneaux détachables et historique universel |
 | Runtime | reconstruction data-driven partielle avec logique Crypte dans `GameRoot` | runtime générique piloté par composants, événements et Kits |
 | Contenu | primitives, scripts et package de démonstration | catalogue, imports contrôlés, provenance, localisation et pipeline GLB/audio |
 | Build | export/validate/load `.orpmod` | build, test, migrate, normalize, diff, references et incrémental |
@@ -51,8 +52,9 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 2. L’éditeur fournit désormais coque, catalogue, drag-and-drop et translation directe, mais pas
    encore rotation/échelle/pivot, multi-sélection ni les workspaces Quêtes, Scripts, Assets et Validation complets.
 3. Les blueprints sont éditables mais restent intégrés à `project.json`, sans version, paramètres,
-   provenance ou namespace de package ; les zones ne sont pas encore des ressources indépendantes.
-4. Les usages d’entités et de locuteurs sont indexés ; le renommage sûr, l’index complet, le cache
+   provenance ou namespace de package ; les documents de terrain, navigation, éclairage et audio de
+   zone restent à définir autour des zones désormais indépendantes.
+4. Les usages d’entités et de locuteurs sont indexés ; le renommage sûr, la recherche globale, l’index complet, le cache
    incrémental, l’accès CLI/MCP et l’export des diagnostics restent absents.
 5. La licence du code propre et le registre d’approbation des dépendances restent ouverts.
 6. La CI distante n’a jamais été exécutée.
@@ -88,5 +90,5 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 ## Première tâche
 
-`tasks/G7-04-DIRECT-WORLD-MANIPULATION.md` est terminée. La suite est G7-05 : zones indépendantes,
-contexte actif, transitions et validation.
+`tasks/G7-06-SEMANTIC-CLIPBOARD.md` est terminée. La suite est G7-07 : recherche globale,
+références et renommage sûr transactionnel.

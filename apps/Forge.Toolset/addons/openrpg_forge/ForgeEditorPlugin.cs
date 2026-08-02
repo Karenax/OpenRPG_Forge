@@ -33,7 +33,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private const float QuarterTurnComponent = 0.70710677f;
 
     private readonly PlaceEntityHandler _placeHandler = new(new SystemClock());
+    private readonly PasteEntitiesHandler _pasteEntitiesHandler = new(new SystemClock());
     private readonly CreateAreaHandler _createAreaHandler = new(new SystemClock());
+    private readonly DuplicateAreaHandler _duplicateAreaHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
     private readonly RemoveEntityHandler _removeHandler = new(new SystemClock());
@@ -46,6 +48,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
+    private readonly SemanticClipboard _semanticClipboard = new();
     private readonly List<BlueprintId> _paletteBlueprintIds = [];
     private readonly List<EntityId> _entityIds = [];
     private readonly List<EntityId> _spawnEntityIds = [];
@@ -75,6 +78,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _rotateButton;
     private Button? _deleteButton;
     private Button? _overridesButton;
+    private Button? _copyButton;
+    private Button? _pasteButton;
+    private Button? _duplicateButton;
     private Button? _undoButton;
     private Button? _redoButton;
     private Button? _playButton;
@@ -82,6 +88,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private OptionButton? _entityPicker;
     private OptionButton? _spawnPicker;
     private Label? _overridesSummary;
+    private Label? _clipboardSummary;
     private Label? _playtestStatus;
     private RichTextLabel? _playtestLog;
     private SpinBox? _positionX;
@@ -167,6 +174,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ActivateArea,
             CreateArea,
             UpsertPortal,
+            DuplicateArea,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
         _projectPreview = new ProjectPreview3D();
@@ -241,6 +249,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _rotateButton = null;
         _deleteButton = null;
         _overridesButton = null;
+        _copyButton = null;
+        _pasteButton = null;
+        _duplicateButton = null;
         _undoButton = null;
         _redoButton = null;
         _playButton = null;
@@ -248,6 +259,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _entityPicker = null;
         _spawnPicker = null;
         _overridesSummary = null;
+        _clipboardSummary = null;
         _playtestStatus = null;
         _playtestLog = null;
         _positionX = null;
@@ -358,7 +370,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _rotateButton = GetControl<Button>("Margin/Content/Editing/EntityRow/RotateButton");
         _deleteButton = GetControl<Button>("Margin/Content/Editing/EntityRow/DeleteButton");
         _overridesButton = GetControl<Button>("Margin/Content/Editing/OverridesRow/OverridesButton");
+        _copyButton = GetControl<Button>("Margin/Content/Editing/ClipboardRow/CopyButton");
+        _pasteButton = GetControl<Button>("Margin/Content/Editing/ClipboardRow/PasteButton");
+        _duplicateButton = GetControl<Button>("Margin/Content/Editing/ClipboardRow/DuplicateButton");
         _overridesSummary = GetControl<Label>("Margin/Content/Editing/OverridesRow/OverridesSummary");
+        _clipboardSummary = GetControl<Label>("Margin/Content/Editing/ClipboardRow/ClipboardSummary");
         _undoButton = GetControl<Button>("Margin/Content/Editing/HistoryRow/UndoButton");
         _redoButton = GetControl<Button>("Margin/Content/Editing/HistoryRow/RedoButton");
         _revisionLabel = GetControl<Label>("Margin/Content/Editing/HistoryRow/Revision");
@@ -663,6 +679,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _rotateButton!.Pressed += RotateSelected;
         _deleteButton!.Pressed += DeleteSelected;
         _overridesButton!.Pressed += ShowEntityPropertiesDialog;
+        _copyButton!.Pressed += CopySelectedEntity;
+        _pasteButton!.Pressed += PasteSemanticClipboard;
+        _duplicateButton!.Pressed += DuplicateSelectedEntity;
         _entityPicker!.ItemSelected += EntitySelectionChanged;
         _undoButton!.Pressed += Undo;
         _redoButton!.Pressed += Redo;
@@ -704,6 +723,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_rotateButton is not null) _rotateButton.Pressed -= RotateSelected;
         if (_deleteButton is not null) _deleteButton.Pressed -= DeleteSelected;
         if (_overridesButton is not null) _overridesButton.Pressed -= ShowEntityPropertiesDialog;
+        if (_copyButton is not null) _copyButton.Pressed -= CopySelectedEntity;
+        if (_pasteButton is not null) _pasteButton.Pressed -= PasteSemanticClipboard;
+        if (_duplicateButton is not null) _duplicateButton.Pressed -= DuplicateSelectedEntity;
         if (_entityPicker is not null) _entityPicker.ItemSelected -= EntitySelectionChanged;
         if (_undoButton is not null) _undoButton.Pressed -= Undo;
         if (_redoButton is not null) _redoButton.Pressed -= Redo;
@@ -995,6 +1017,117 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _upsertPortalHandler.Handle(_history.State, command),
             $"Transition « {portal.DisplayName} » enregistrée.",
             portal.SourceEntityId);
+    }
+
+    private void CopySelectedEntity()
+    {
+        var selected = GetSelectedEntity();
+        if (_history is null || selected is null)
+        {
+            return;
+        }
+
+        var area = GetActiveArea();
+        _semanticClipboard.CopyEntities(_history.State.Project, area.Id, [selected.Id]);
+        _clipboardSummary!.Text =
+            $"Aperçu · 1 entité · blueprint et propriétés partagés · nouvel UUID au collage";
+        _pasteButton!.Disabled = false;
+        _statusLabel!.Text = "✓ Entité copiée dans le clipboard sémantique";
+        _detailsLabel!.Text = "Le collage sera prévalidé dans la zone active avec un décalage de grille.";
+    }
+
+    private void PasteSemanticClipboard()
+    {
+        if (_history is null || _semanticClipboard.Payload is not EntityClipboardPayload payload)
+        {
+            return;
+        }
+
+        var area = GetActiveArea();
+        var mapping = payload.Entities.ToDictionary(
+            entity => entity.Id,
+            _ => EntityId.From(Guid.NewGuid()));
+        var command = new PasteEntitiesCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            area.Id,
+            payload,
+            mapping,
+            new Vector3Value(GridStep, 0, GridStep),
+            DryRun: false);
+        var firstPastedId = mapping[payload.Entities[0].Id];
+        if (ApplyCommand(
+                _pasteEntitiesHandler.Handle(_history.State, command),
+                $"{payload.Entities.Count} entité(s) collée(s) avec de nouveaux UUID.",
+                firstPastedId))
+        {
+            _clipboardSummary!.Text =
+                $"{payload.Entities.Count} entité(s) disponible(s) · dernier collage appliqué";
+        }
+    }
+
+    private void DuplicateSelectedEntity()
+    {
+        CopySelectedEntity();
+        PasteSemanticClipboard();
+    }
+
+    private AreaId? DuplicateArea(
+        AreaId sourceAreaId,
+        string displayName,
+        AreaCloneMode mode,
+        ExternalPortalPolicy externalPortalPolicy)
+    {
+        if (_history is null)
+        {
+            return null;
+        }
+
+        var source = _history.State.Project.Areas.FirstOrDefault(area => area.Id == sourceAreaId);
+        if (source is null)
+        {
+            return null;
+        }
+
+        _semanticClipboard.CopyArea(_history.State.Project, sourceAreaId);
+        var destinationAreaId = AreaId.From(Guid.NewGuid());
+        var entityMap = mode == AreaCloneMode.Full
+            ? source.Entities.Select(entity =>
+                new EntityIdRemap(entity.Id, EntityId.From(Guid.NewGuid()))).ToArray()
+            : [];
+        var portalMap = mode == AreaCloneMode.Full
+            ? source.Portals.Select(portal =>
+                new PortalIdRemap(portal.Id, PortalId.From(Guid.NewGuid()))).ToArray()
+            : [];
+        var command = new DuplicateAreaCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            sourceAreaId,
+            destinationAreaId,
+            displayName,
+            mode,
+            externalPortalPolicy,
+            entityMap,
+            portalMap,
+            DryRun: false);
+        var dryRun = _duplicateAreaHandler.Handle(_history.State, command with { DryRun = true });
+        if (!dryRun.Succeeded)
+        {
+            ApplyCommand(dryRun, string.Empty, selectedEntityId: null);
+            return null;
+        }
+
+        if (!ApplyCommand(
+                _duplicateAreaHandler.Handle(_history.State, command),
+                $"Zone « {displayName} » dupliquée avec remapping des UUID.",
+                selectedEntityId: null))
+        {
+            return null;
+        }
+
+        _clipboardSummary!.Text = $"Zone « {source.DisplayName} » copiée · {entityMap.Length} UUID remappé(s)";
+        ActivateArea(destinationAreaId);
+        return destinationAreaId;
     }
 
     private bool UpsertBlueprint(
@@ -1441,6 +1574,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        _semanticClipboard.Clear();
+        if (_clipboardSummary is not null)
+        {
+            _clipboardSummary.Text = "Aucun contenu copié";
+        }
         var result = ProjectSession.Open(workspaceDirectory);
         if (!result.Succeeded || result.Session is null)
         {
@@ -1798,7 +1936,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _placeButton is null || _revisionLabel is null ||
             _undoButton is null || _redoButton is null || _playButton is null ||
             _overridesButton is null || _overridesSummary is null || _dialoguesButton is null ||
-            _areasButton is null)
+            _areasButton is null || _copyButton is null || _pasteButton is null ||
+            _duplicateButton is null || _clipboardSummary is null)
         {
             return;
         }
@@ -1895,6 +2034,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _rotateButton!.Disabled = !hasEntity;
         _deleteButton!.Disabled = !hasEntity;
         _overridesButton!.Disabled = !hasEntity;
+        _copyButton!.Disabled = !hasEntity;
+        _duplicateButton!.Disabled = !hasEntity;
+        _pasteButton!.Disabled = !enabled || _semanticClipboard.Payload is not EntityClipboardPayload;
         if (!hasEntity)
         {
             _overridesSummary!.Text = "Sélectionnez une entité";
@@ -2235,6 +2377,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAreaWorkflowSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunSemanticClipboardSmokeTest())
         {
             return;
         }
@@ -2672,6 +2819,142 @@ public partial class ForgeEditorPlugin : EditorPlugin
             $"OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas={originalAreaCount + 1} " +
             $"documents={originalAreaCount + 1} transition=valid active=switched history=restored");
         return true;
+    }
+
+    private bool RunSemanticClipboardSmokeTest()
+    {
+        if (_history is null || _entityPicker is null || _projectPreview is null || _areaWorkspace is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED missing_workspace");
+            return false;
+        }
+
+        var sourceArea = GetActiveArea();
+        var candidate = FindEntityWithFreeDuplicateCell(sourceArea);
+        if (candidate is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED no_free_duplicate_cell");
+            return false;
+        }
+
+        var initialIds = sourceArea.Entities.Select(entity => entity.Id).ToHashSet();
+        var initialEntityCount = sourceArea.Entities.Count;
+        var entityIndex = _entityIds.FindIndex(id => id == candidate.Id);
+        if (entityIndex < 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED selection");
+            return false;
+        }
+
+        _entityPicker.Selected = entityIndex;
+        CopySelectedEntity();
+        PasteSemanticClipboard();
+        var afterPaste = GetActiveArea();
+        var pasted = afterPaste.Entities.SingleOrDefault(entity => !initialIds.Contains(entity.Id));
+        if (pasted is null || afterPaste.Entities.Count != initialEntityCount + 1 ||
+            pasted.BlueprintId != candidate.BlueprintId || !pasted.Tags.SequenceEqual(candidate.Tags) ||
+            pasted.Overrides != candidate.Overrides)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED entity_paste");
+            return false;
+        }
+
+        Undo();
+        Redo();
+        if (GetActiveArea().Entities.Count != initialEntityCount + 1)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED entity_redo");
+            return false;
+        }
+        Undo();
+
+        var clonedAreaId = DuplicateArea(
+            sourceArea.Id,
+            "Crypte clone G706",
+            AreaCloneMode.Full,
+            ExternalPortalPolicy.Drop);
+        if (clonedAreaId is null || _activeAreaContext.Current != clonedAreaId ||
+            _areaWorkspace.AreaCount != _history.State.Project.Areas.Count)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED area_clone");
+            return false;
+        }
+
+        var clone = _history.State.Project.Areas.Single(area => area.Id == clonedAreaId);
+        if (clone.Entities.Count != initialEntityCount ||
+            clone.Entities.Select(entity => entity.Id).Intersect(initialIds).Any() ||
+            !clone.Entities.Select(entity => entity.BlueprintId)
+                .SequenceEqual(sourceArea.Entities.Select(entity => entity.BlueprintId)))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED area_remap");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "clipboard-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var creation = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            if (!creation.Succeeded || !reopened.Succeeded || reopened.Session is null ||
+                reopened.Session.Project.Areas.Count != 2 ||
+                reopened.Session.Project.Areas.Single(area => area.Id == clonedAreaId).Entities.Count != initialEntityCount)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        Undo();
+        Redo();
+        if (!_history.State.Project.Areas.Any(area => area.Id == clonedAreaId))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED area_redo");
+            return false;
+        }
+        Undo();
+        ActivateArea(sourceArea.Id);
+        if (_history.State.Project.Areas.Any(area => area.Id == clonedAreaId) ||
+            GetActiveArea().Entities.Count != initialEntityCount)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED cleanup");
+            return false;
+        }
+
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone " +
+            "uuids=remapped preview=available history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private EntityInstance? FindEntityWithFreeDuplicateCell(AreaDefinition area)
+    {
+        if (_history is null)
+        {
+            return null;
+        }
+
+        var validator = new PlacementValidator();
+        return area.Entities.FirstOrDefault(entity => validator.Validate(
+            _history.State.Project,
+            new PlacementValidationRequest(
+                area.Id,
+                entity.BlueprintId,
+                new Vector3Value(
+                    entity.Transform.Position.X + GridStep,
+                    entity.Transform.Position.Y,
+                    entity.Transform.Position.Z + GridStep),
+                0.25f)).IsValid);
     }
 
     private bool RunNewModuleSmokeTest()

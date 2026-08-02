@@ -375,10 +375,12 @@ Le détail et les preuves des 717 capacités restent suivis dans
   fantôme vert/rouge, sélection, gizmo X/Z et undo/redo du document canonique.
 - [x] **G7-05 — zones indépendantes et transitions** : documents de zone, contexte actif,
   transitions et validation.
-- [ ] **G7-06 — duplication et clipboard sémantique** : nouveaux UUID, remapping des références,
+- [x] **G7-06 — duplication et clipboard sémantique** : nouveaux UUID, remapping des références,
   aperçu puis application transactionnelle pour entités et zones.
+- [ ] **G7-07 — recherche et refactoring sûrs** : recherche globale, références inverses et renommage
+  transactionnel avec aperçu, diagnostics et undo/redo.
 
-Les règles graphiques et d’interaction de G7-03 à G7-05 sont consignées dans
+Les règles graphiques et d’interaction de G7-03 à G7-06 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest

@@ -51,10 +51,12 @@ parité des 717 capacités.
 G7-01 a prouvé la création d’un second module générique et G7-02 a livré la coque Creator commune.
 G7-03 rend le catalogue Blueprints recherchable et transactionnel, avec dérivation depuis une
 instance et références inversées. G7-04 ajoute le glisser-déposer dans le Monde, la validation avant
-mutation, le fantôme vert/rouge, la sélection directe et le gizmo Forge X/Z avec undo/redo.
+mutation, le fantôme vert/rouge, la sélection directe et le gizmo Forge X/Z avec undo/redo. G7-05
+sépare les zones et leurs transitions. G7-06 ajoute le clipboard sémantique, la duplication avec
+nouveaux UUID et la copie complète ou gabarit d’une zone.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-05 — zones indépendantes et transitions**.
+La prochaine tranche est **G7-07 — recherche globale, références et renommage sûr**.
 
 ## Phase 6 — 3D assistée
 

@@ -15,6 +15,7 @@ SNAPSHOT = ROOT / "Divers" / "OpenRPG_Forge_Aurora_Feature_Dossier"
 PROJECT_TRACKER = ROOT / "tracking" / "project" / "AURORA_PARITY_COVERAGE.csv"
 GATE_MATRIX = ROOT / "tracking" / "project" / "AURORA_GATE_MATRIX.csv"
 CORE_AUDIT = ROOT / "tracking" / "project" / "AURORA_CORE_P0_AUDIT.csv"
+FEATURE_AUDIT = ROOT / "tracking" / "project" / "AURORA_FEATURE_IMPLEMENTATION_AUDIT.csv"
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -67,6 +68,7 @@ class AuroraParityTrackerTests(unittest.TestCase):
         audit = read_csv(CORE_AUDIT)
         self.assertEqual(76, len(audit))
         self.assertEqual(76, len({row["feature_id"] for row in audit}))
+        self.assertTrue(all(None not in row for row in audit), "Core audit rows must have exactly five fields")
 
         required_domains = {"SHELL", "PROJECT", "AREA", "PALETTE", "BUILD", "QA"}
         expected_ids = {
@@ -76,11 +78,26 @@ class AuroraParityTrackerTests(unittest.TestCase):
         }
         self.assertEqual(expected_ids, {row["feature_id"] for row in audit})
         self.assertEqual(
-            Counter({"Implemented": 51, "NotStarted": 22, "Tested": 2, "Designed": 1}),
+            Counter({"Implemented": 52, "NotStarted": 21, "Tested": 2, "Designed": 1}),
             Counter(row["status"] for row in audit),
         )
         for row in audit:
             if row["status"] == "Implemented":
+                self.assertTrue(row["notes"].startswith("Partial:"), row["feature_id"])
+
+    def test_feature_implementation_audit_is_unique_and_evidenced(self) -> None:
+        catalog = {row["id"]: row for row in read_csv(SNAPSHOT / "feature_catalog.csv")}
+        core_ids = {row["feature_id"] for row in read_csv(CORE_AUDIT)}
+        audit = read_csv(FEATURE_AUDIT)
+        self.assertEqual(len(audit), len({row["feature_id"] for row in audit}))
+        self.assertTrue(all(None not in row for row in audit), "Feature audit rows must have exactly five fields")
+        self.assertFalse(core_ids & {row["feature_id"] for row in audit})
+        for row in audit:
+            self.assertIn(row["feature_id"], catalog)
+            self.assertIn(row["status"], {"NotStarted", "Designed", "Implemented", "Tested"})
+            if row["status"] == "Implemented":
+                self.assertTrue(row["implementation_evidence"], row["feature_id"])
+                self.assertTrue(row["test_evidence"], row["feature_id"])
                 self.assertTrue(row["notes"].startswith("Partial:"), row["feature_id"])
 
     def test_gate_matrix_is_total_and_generated_files_are_fresh(self) -> None:

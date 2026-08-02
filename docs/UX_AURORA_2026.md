@@ -56,7 +56,7 @@ retour des logs. L’espace Dialogues fournit maintenant liste de nœuds, choix 
 actions, textes localisables et aperçu dans la même identité sombre et braise. Le runtime offre une
 sauvegarde/reprise F5/F9 et l'Assistant peut préparer, appliquer et annuler un plan de dialogue par
 MCP. Le MVP est fermé ; les espaces Quêtes, Scripts, Assets, Validation et l’enrichissement de la
-manipulation directe au-delà de G7-05 restent dans le gate **Creator Core G7**, et non dans une
+manipulation directe au-delà de G7-06 restent dans le gate **Creator Core G7**, et non dans une
 prétendue parité Aurora déjà atteinte.
 
 G7-02 installe la coque commune : neuf workspaces stables, une colonne d’exploration du projet, le
@@ -86,6 +86,13 @@ jour immédiatement l’aperçu, la palette d’entités et l’inspecteur parta
 gabarit sont lisibles avant mutation, tandis qu’un bandeau inférieur expose les diagnostics de
 références. Cette surface manipule des documents de zone indépendants mais conserve le même bus de
 commandes et le même historique que le reste du Creator.
+
+G7-06 ajoute un clipboard sémantique visible sans reproduire le presse-papiers brut du système. Un
+résumé compact indique la nature et le nombre d’objets copiés ; « Coller » et « Dupliquer » restent
+des actions secondaires près du contexte Monde. Pour une zone, la copie est volontairement plus
+explicite : nom, mode complet ou gabarit, conservation des transitions externes, puis aperçu des
+entités et liaisons remappées avant activation du bouton principal. Les nouveaux UUID ne sont pas
+du bruit visuel, mais restent disponibles dans le résumé de contrôle et les diagnostics.
 
 ## Contexte graphique 3D
 

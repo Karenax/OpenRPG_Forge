@@ -14,11 +14,12 @@ $snapshotRoot = Join-Path $RepositoryRoot 'Divers\OpenRPG_Forge_Aurora_Feature_D
 $catalogPath = Join-Path $snapshotRoot 'feature_catalog.csv'
 $sourceTrackerPath = Join-Path $snapshotRoot 'tracking\AURORA_PARITY_COVERAGE.csv'
 $auditPath = Join-Path $RepositoryRoot 'tracking\project\AURORA_CORE_P0_AUDIT.csv'
+$featureAuditPath = Join-Path $RepositoryRoot 'tracking\project\AURORA_FEATURE_IMPLEMENTATION_AUDIT.csv'
 $outputRoot = Join-Path $RepositoryRoot 'tracking\project'
 $projectTrackerPath = Join-Path $outputRoot 'AURORA_PARITY_COVERAGE.csv'
 $gateMatrixPath = Join-Path $outputRoot 'AURORA_GATE_MATRIX.csv'
 
-foreach ($requiredPath in @($catalogPath, $sourceTrackerPath, $auditPath)) {
+foreach ($requiredPath in @($catalogPath, $sourceTrackerPath, $auditPath, $featureAuditPath)) {
     if (-not (Test-Path -LiteralPath $requiredPath)) {
         throw "Required Aurora parity input is missing: $requiredPath"
     }
@@ -27,6 +28,7 @@ foreach ($requiredPath in @($catalogPath, $sourceTrackerPath, $auditPath)) {
 $catalog = @(Import-Csv -LiteralPath $catalogPath -Delimiter ';' -Encoding UTF8)
 $sourceTracker = @(Import-Csv -LiteralPath $sourceTrackerPath -Delimiter ';' -Encoding UTF8)
 $audit = @(Import-Csv -LiteralPath $auditPath -Delimiter ';' -Encoding UTF8)
+$featureAudit = @(Import-Csv -LiteralPath $featureAuditPath -Delimiter ';' -Encoding UTF8)
 
 if ($catalog.Count -ne 717 -or $sourceTracker.Count -ne 717) {
     throw "Aurora parity snapshot must contain exactly 717 catalog and tracker rows."
@@ -74,6 +76,31 @@ foreach ($row in $audit) {
     }
 
     $auditById[$row.feature_id] = $row
+}
+
+$featureAuditById = @{}
+foreach ($row in $featureAudit) {
+    if (-not $catalogIds.Contains($row.feature_id)) {
+        throw "Feature implementation audit contains unknown feature ID '$($row.feature_id)'."
+    }
+
+    if ($auditById.ContainsKey($row.feature_id)) {
+        throw "Feature implementation audit duplicates Core audit feature '$($row.feature_id)'."
+    }
+
+    if ($featureAuditById.ContainsKey($row.feature_id)) {
+        throw "Feature implementation audit contains duplicate feature ID '$($row.feature_id)'."
+    }
+
+    if ($row.status -notin @('NotStarted', 'Designed', 'Implemented', 'Tested')) {
+        throw "Feature implementation audit '$($row.feature_id)' has unsupported status '$($row.status)'."
+    }
+
+    if ($row.status -eq 'Tested' -and [string]::IsNullOrWhiteSpace($row.test_evidence)) {
+        throw "Tested feature '$($row.feature_id)' must provide test evidence."
+    }
+
+    $featureAuditById[$row.feature_id] = $row
 }
 
 function Get-TargetGate {
@@ -187,6 +214,9 @@ $trackerRows = foreach ($feature in $catalog) {
     $source = $sourceById[$feature.id]
     $gate = Get-TargetGate -Feature $feature
     $audited = $auditById[$feature.id]
+    if ($null -eq $audited) {
+        $audited = $featureAuditById[$feature.id]
+    }
     $status = if ($null -ne $audited) { $audited.status } else { 'Researched' }
     $implementationEvidence = if ($null -ne $audited) { $audited.implementation_evidence } else { '' }
     $testEvidence = if ($null -ne $audited) { $audited.test_evidence } else { '' }

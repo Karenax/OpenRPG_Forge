@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-05 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-06 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -28,6 +28,8 @@ G7-04 ajoute la manipulation directe du Monde : palette glissable, validation de
 fantôme coloré, sélection dans le viewport et translation X/Z par gizmo avec historique partagé.
 G7-05 sépare les zones en documents versionnés, partage un contexte de zone active entre
 l’explorateur, l’aperçu et les commandes, puis ajoute l’assistant « Zones & transitions ».
+G7-06 ajoute un clipboard sémantique, le collage et la duplication d’entités avec UUID neufs, ainsi
+que la copie complète ou gabarit d’une zone avec remapping contrôlé de ses transitions.
 
 ## État prouvé
 
@@ -38,7 +40,7 @@ l’explorateur, l’aperçu et les commandes, puis ajoute l’assistant « Zone
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 151 tests .NET et 22 tests Python réussis ;
+- 163 tests .NET et 23 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -85,6 +87,9 @@ l’explorateur, l’aperçu et les commandes, puis ajoute l’assistant « Zone
 - zones G7-05 : document de zone JSON 1.0 séparé et adressé par hash, index workspace 0.7, migration
   legacy, contexte actif, environnement/dimensions, création vide ou jouable, `PortalLink` typé,
   diagnostics localisés et workflow intégré avec undo/redo ;
+- clipboard G7-06 : payload sémantique versionné, collage et duplication d’entités avec nouveaux
+  UUID, validation spatiale, aperçu et historique ; copie complète ou gabarit d’une zone, remapping
+  des ancres et transitions internes, politique explicite pour les références externes et round-trip ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -95,6 +100,8 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 - le gizmo Monde couvre la translation sur le plan X/Z mais pas encore rotation, échelle, pivot,
   axes contraints, coordonnées locales/globales, alignements ou multi-sélection ;
+- le clipboard n’expose pas encore couper ni la copie multi-sélection depuis le viewport, et la
+  duplication de zone ne porte pas les futurs documents terrain, navigation, éclairage ou audio ;
 - les transitions de zone sont éditables, persistées et validées mais pas encore déclenchées par le
   runtime ; orientation, hooks, streaming et génération automatique du lien inverse restent à faire ;
 - la coque expose les neuf workspaces et relie Monde, Blueprints et Dialogues ; le premier catalogue
@@ -147,5 +154,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-06 — duplication et clipboard sémantique** pour `ORF-SHELL-014` et `ORF-AREA-012` :
-copier ou dupliquer une sélection avec nouveaux UUID, remapping contrôlé, aperçu et undo/redo.
+Ouvrir **G7-07 — recherche globale et refactoring sûr** pour `ORF-SHELL-015`, `ORF-SHELL-016` et
+`ORF-SHELL-017` : rechercher les objets du projet, afficher leurs références, prévisualiser un
+renommage sémantique puis l’appliquer avec diagnostics et undo/redo.

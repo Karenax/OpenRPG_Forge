@@ -1,0 +1,2 @@
+feature_id;status;implementation_evidence;test_evidence;notes
+ORF-AREA-012;Implemented;src/Forge.Application/Areas/DuplicateAreaHandler.cs|apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs;tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs|OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS;Partial: copie complète ou gabarit avec nouveaux UUID remapping des entités et transitions aperçu et choix des références externes, tandis que duplication de terrain navigation éclairage et autres futurs documents de zone reste à livrer.
