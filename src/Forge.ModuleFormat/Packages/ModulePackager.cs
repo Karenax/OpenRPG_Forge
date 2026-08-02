@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Text;
 using Forge.Domain.Projects;
+using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Workspaces;
 
@@ -87,13 +88,17 @@ public static class ModulePackager
             entries.Add((packagePath, File.ReadAllBytes(file)));
         }
 
+        var buildGraph = WorkspaceBuildGraphBuilder.Build(workspaceRoot, project, projectPath, destination);
+        var previousBuildGraph = WorkspaceBuildStateStore.TryLoad(workspaceRoot);
+        var buildPlan = WorkspaceIncrementalBuildPlanner.Plan(previousBuildGraph, buildGraph.Graph);
         var hash = ModuleContentHash.Compute(entries);
         var manifest = ModuleManifest.Create(
             project,
             moduleVersion ?? project.Module.Metadata.Version,
             runtimeMinimumVersion,
             forgeScriptApiVersion,
-            hash);
+            hash,
+            buildGraph.AutomaticDependencies);
         var manifestDiagnostics = ModuleManifestValidator.Validate(manifest);
         if (manifestDiagnostics.Count > 0)
         {
@@ -135,11 +140,15 @@ public static class ModulePackager
                 $"Exported module failed validation: {string.Join("; ", validation.Diagnostics.Select(d => d.Message))}");
         }
 
+        WorkspaceBuildStateStore.Save(workspaceRoot, buildGraph.Graph);
+
         return new ModulePackageExportResult(
             destination,
             manifest,
             entries.Count + 1,
-            new FileInfo(destination).Length);
+            new FileInfo(destination).Length,
+            buildGraph.Graph,
+            buildPlan);
     }
 
     private static bool IsIgnoredWorkspaceFile(string workspaceRoot, string file)

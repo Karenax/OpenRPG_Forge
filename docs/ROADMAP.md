@@ -64,9 +64,11 @@ G7-10 livre la caméra auteur orbit/pan/zoom, le focus, les vues orthographiques
 bookmarks persistés hors du document de module.
 G7-11 livre les événements Core de chargement projet, entrée de zone, démarrage monde et transition,
 avec ordre déterministe, contexte versionné, autorité, diagnostics et observation runtime.
+G7-12 livre le cache ForgeScript vérifié, le graphe de dépendances transitif, le plan de rebuild
+incrémental et son écran d'analyse dans le workspace Scripts.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-12 — cache ForgeScript et dépendances incrémentales**.
+La prochaine tranche est **G7-13 — profils de cible et conformité de distribution**.
 
 ## Phase 6 — 3D assistée
 

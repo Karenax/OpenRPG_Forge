@@ -14,9 +14,9 @@ L’audit strict des 76 P0 de `SHELL`, `PROJECT`, `AREA`, `PALETTE`, `BUILD` et 
 | Statut d’audit | Nombre |
 |---|---:|
 | `Tested` | 2 |
-| `Implemented` avec note `Partial` | 52 |
+| `Implemented` avec note `Partial` | 66 |
 | `Designed` | 1 |
-| `NotStarted` | 21 |
+| `NotStarted` | 7 |
 
 Parmi les 641 autres lignes, `ORF-AREA-012` est maintenant auditée `Implemented` partiel dans le
 registre projet générique ; les 640 restantes gardent leur baseline `Researched` jusqu’à un audit de
@@ -29,10 +29,10 @@ leur code, de leurs tests et de leurs critères d’acceptation.
 | Domaine | `Forge.Domain` indépendant du moteur mais contenant aussi dialogue, quête et combat | Core général et RPG Kit versionné |
 | Données auteur | index `project.json` et documents de zone adressés par hash ; autres agrégats encore regroupés | documents logiques séparables pour zones, blueprints et ressources |
 | Mutations | commandes, révisions, dry-run, patches, inverse et historique pour les workflows MVP | voie unique pour chaque workspace, CLI et outil MCP |
-| Toolset | coque Creator, catalogue Blueprints, zones, clipboard sémantique et Monde avec drag-and-drop, fantôme et gizmo X/Z | workflows spécialisés complets, gizmos complets, panneaux détachables et historique universel |
+| Toolset | coque Creator, catalogue Blueprints, zones, clipboard sémantique, Monde direct et analyse Scripts/build | workflows spécialisés complets, gizmos complets, panneaux détachables et historique universel |
 | Runtime | reconstruction data-driven partielle avec logique Crypte dans `GameRoot` | runtime générique piloté par composants, événements et Kits |
 | Contenu | primitives, scripts et package de démonstration | catalogue, imports contrôlés, provenance, localisation et pipeline GLB/audio |
-| Build | export/validate/load `.orpmod` | build, test, migrate, normalize, diff, references et incrémental |
+| Build | export/validate/load `.orpmod`, graphe d'impact incrémental, cache ForgeScript et analyse CLI/UI | transformeurs incrémentaux complets, test, migrate, normalize, diff et cache distribué optionnel |
 | Réseau et GM | absents | Network Kit puis Live Director autoritaire et audité |
 
 ## P0 déjà prouvées
@@ -90,5 +90,5 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 ## Première tâche
 
-`tasks/G7-11-CORE-LIFECYCLE-EVENTS.md` est terminée. La suite est G7-12 : cache ForgeScript indexé
-par hashes et graphe de dépendances transitif pour reconstruire seulement les documents affectés.
+`tasks/G7-12-INCREMENTAL-BUILD-CACHE.md` est terminée. La suite est G7-13 : profils de cible
+canoniques et conformité des dépendances/licences avant une distribution Client ou Shipping.

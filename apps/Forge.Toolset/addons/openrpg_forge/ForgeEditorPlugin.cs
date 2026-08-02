@@ -13,6 +13,7 @@ using Forge.Application.Time;
 using Forge.Domain.Areas;
 using Forge.Domain.Authoring;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Build;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Modules;
@@ -20,6 +21,7 @@ using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
+using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Workspaces;
@@ -126,6 +128,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
+    private BuildPipelineWindow? _buildPipeline;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -201,6 +204,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             DuplicateArea,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
+        _buildPipeline = new BuildPipelineWindow();
+        _buildPipeline.Initialize(
+            () => _projectSession,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_buildPipeline);
         _projectPreview = new ProjectPreview3D();
         _projectPreview.Initialize(
             () => _history?.State,
@@ -316,6 +324,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _globalSearch = null;
         _moduleConfiguration = null;
         _areaWorkspace = null;
+        _buildPipeline = null;
         _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
@@ -802,6 +811,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (string.Equals(workspace, "Scripts", StringComparison.Ordinal))
+        {
+            _buildPipeline?.Open();
+            return;
+        }
+
         if (string.Equals(workspace, "Monde", StringComparison.Ordinal))
         {
             _statusLabel!.Text = "✓ Workspace Monde actif";
@@ -965,10 +980,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var exported = ModulePackager.Export(_projectSession.RootDirectory, destinationPath);
             _statusLabel.Text = "✓ Module exporté et validé";
             _detailsLabel.Text =
-                $"{exported.Manifest.Slug} · {exported.FileCount} fichiers · {exported.ArchiveBytes / 1024d:0.0} Kio";
+                $"{exported.Manifest.Slug} · {exported.FileCount} fichiers · {exported.ArchiveBytes / 1024d:0.0} Kio · " +
+                $"{exported.BuildPlan.RebuiltResources.Count} recalculé(s) · " +
+                $"{exported.BuildPlan.ReusedResources.Count} réutilisé(s)";
             GD.Print(
                 $"OPENRPG_FORGE_TOOLSET_MODULE_EXPORTED slug={exported.Manifest.Slug} " +
-                $"files={exported.FileCount} bytes={exported.ArchiveBytes}");
+                $"files={exported.FileCount} bytes={exported.ArchiveBytes} " +
+                $"rebuilt={exported.BuildPlan.RebuiltResources.Count} " +
+                $"reused={exported.BuildPlan.ReusedResources.Count} " +
+                $"dependencies={exported.Manifest.Dependencies.Count}");
         }
         catch (Exception exception) when (
             exception is ArgumentException or DirectoryNotFoundException or FileNotFoundException or
@@ -2601,6 +2621,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunBuildPipelineSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNewModuleSmokeTest())
         {
             return;
@@ -3503,6 +3528,58 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable " +
             $"generated=provenance favorites=filtered temporary=isolated format={ProjectSession.CurrentProjectFormatVersion} " +
             "history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunBuildPipelineSmokeTest()
+    {
+        if (_buildPipeline is null || _history is null || !_buildPipeline.AnalyzeForSmokeTest() ||
+            _buildPipeline.ResourceCount != 5 || _buildPipeline.ScriptCount != 2)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G712_BUILD_FAILED analysis");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "incremental-build-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var workspace = Path.Combine(smokeRoot, "workspace");
+            var artifact = Path.Combine(smokeRoot, "module.orpmod");
+            var created = ProjectSession.Create(workspace, _history.State.Project);
+            if (!created.Succeeded || created.Session is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G712_BUILD_FAILED workspace");
+                return false;
+            }
+
+            var first = ModulePackager.Export(workspace, artifact);
+            var second = ModulePackager.Export(workspace, artifact);
+            var restored = WorkspaceBuildStateStore.TryLoad(workspace);
+            if (first.BuildPlan.RebuiltResources.Count == 0 ||
+                second.BuildPlan.RebuiltResources.Count != 0 ||
+                second.BuildPlan.ReusedResources.Count == 0 ||
+                restored?.SchemaVersion != BuildDependencyGraph.CurrentSchemaVersion ||
+                !File.Exists(Path.Combine(workspace, ".forge", "build-graph.json")))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G712_BUILD_FAILED incremental");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler " +
+            "dependencies=automatic incremental=reused persistence=restored");
         return true;
     }
 

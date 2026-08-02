@@ -143,7 +143,7 @@ try {
         -Name 'toolset' `
         -ProjectPath $toolsetPath `
         -Arguments @('--headless', '--editor', '--path', $toolsetPath, '--log-file', $toolsetLog, '--', '--workspace-smoke-test') `
-        -Markers @('OPENRPG_FORGE_PLUGIN_LOADED', 'OPENRPG_FORGE_WINDOW_TITLE_PASS title=OpenRPG_Forge', 'OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities=16', 'OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9', 'OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog=10 derived=1 references=1 undo=restored', 'OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored', 'OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas=2 documents=2 transition=valid active=switched history=restored', 'OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone uuids=remapped preview=available history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G707_SEARCH_PASS search=global', 'OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed', 'OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable generated=provenance favorites=filtered temporary=isolated format=0.8.1 history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G710_CAMERA_PASS orbit=mouse pan=mouse zoom=adaptive focus=selection views=orthographic pilot=wasd bookmarks=persisted history=dedicated project=unchanged', 'OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=0.8.1 areas=1 documents=1 entities=2', 'OPENRPG_FORGE_TOOLSET_T13_OVERRIDES_PASS schema=1 properties=3', 'OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_PASS nodes=2 choices=3', 'OPENRPG_FORGE_TOOLSET_T43_QUEST_PASS states=3 transitions=2', 'OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_PROJECT_SAVED', 'OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS spawn=20000000-0000-4000-8000-000000000010 snapshot=deleted logs=captured') `
+        -Markers @('OPENRPG_FORGE_PLUGIN_LOADED', 'OPENRPG_FORGE_WINDOW_TITLE_PASS title=OpenRPG_Forge', 'OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities=16', 'OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9', 'OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog=10 derived=1 references=1 undo=restored', 'OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored', 'OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas=2 documents=2 transition=valid active=switched history=restored', 'OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone uuids=remapped preview=available history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G707_SEARCH_PASS search=global', 'OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed', 'OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable generated=provenance favorites=filtered temporary=isolated format=0.8.1 history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G710_CAMERA_PASS orbit=mouse pan=mouse zoom=adaptive focus=selection views=orthographic pilot=wasd bookmarks=persisted history=dedicated project=unchanged', 'OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler dependencies=automatic incremental=reused persistence=restored', 'OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=0.8.1 areas=1 documents=1 entities=2', 'OPENRPG_FORGE_TOOLSET_T13_OVERRIDES_PASS schema=1 properties=3', 'OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_PASS nodes=2 choices=3', 'OPENRPG_FORGE_TOOLSET_T43_QUEST_PASS states=3 transitions=2', 'OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_PROJECT_SAVED', 'OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS spawn=20000000-0000-4000-8000-000000000010 snapshot=deleted logs=captured') `
         -StopAfterMarkers $true
     $prototypeHashAfter = (Get-FileHash -LiteralPath $prototypeDataPath -Algorithm SHA256).Hash
     if ($prototypeHashBefore -ne $prototypeHashAfter) {
@@ -169,6 +169,9 @@ try {
     Invoke-CheckedDotnet @(
         'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
         'package', 'validate', $moduleArtifact)
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'analyze', $moduleWorkspace)
 
     $runtimePath = Join-Path $repositoryRoot 'apps\Forge.Runtime'
     $starterWorkspace = Join-Path $runtimePath 'content\broken-isles-starter'
@@ -203,7 +206,7 @@ try {
         -Name 'save-create' `
         -ProjectPath $runtimePath `
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $saveCreateLog, '--', '--module-package', $moduleArtifact, '--save-file', $runtimeSave, '--save-smoke-create') `
-        -Markers @('OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format=1.0.0', 'OPENRPG_FORGE_RUNTIME_SAVE_PASS') `
+        -Markers @('OPENRPG_FORGE_FORGESCRIPT_CACHE status=', 'OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format=1.0.0', 'OPENRPG_FORGE_RUNTIME_SAVE_PASS') `
         -StopAfterMarkers $false
     $saveResumeLog = Join-Path $artifactRoot 'save-resume.log'
     Invoke-ForgeEngineMarkerTest `

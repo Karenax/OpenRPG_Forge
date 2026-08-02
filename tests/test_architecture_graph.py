@@ -268,6 +268,19 @@ public sealed class AreaApiClient
         self.assertNotIn(".env", paths)
         self.assertNotIn("data.sqlite", paths)
 
+    def test_keeps_semantic_build_namespaces_under_source_projects(self) -> None:
+        self.write(
+            "src/Forge.Domain/Build/BuildDependencyGraph.cs",
+            "namespace Forge.Domain.Build; public sealed class BuildDependencyGraph {}\n",
+        )
+        self.write("build/Generated.cs", "public sealed class GeneratedService {}\n")
+
+        graph = architecture_graph.build_graph(self.root)
+        paths = {node.get("path") for node in graph["nodes"]}
+
+        self.assertIn("src/Forge.Domain/Build/BuildDependencyGraph.cs", paths)
+        self.assertNotIn("build/Generated.cs", paths)
+
     def test_serialization_is_byte_identical_and_stably_sorted(self) -> None:
         graph_one = self.build_vertical_fixture()
         graph_two = architecture_graph.build_graph(self.root)

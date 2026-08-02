@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-11 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-12 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -44,6 +44,9 @@ projections orthographiques, pilote WASD, vitesse et bookmarks persistés hors d
 G7-11 introduit un cycle de vie Core indépendant du moteur : `ProjectLoaded`, `AreaEntered`,
 `WorldStarted` puis les paires `AreaExited`/`AreaEntered` sont typés, versionnés, ordonnés et
 observables avec autorité, cause, acteur, transition, provenance et bindings ForgeScript stables.
+G7-12 ajoute un cache de bytecode ForgeScript vérifié, un graphe de dépendances versionné, le calcul
+transitif de l'impact d'un changement et les dépendances de packs automatiques. L'espace Scripts
+affiche désormais les ressources à recalculer ou réutiliser avant l'export.
 
 ## État prouvé
 
@@ -54,7 +57,7 @@ observables avec autorité, cause, acteur, transition, provenance et bindings Fo
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 203 tests .NET et 23 tests Python réussis ;
+- 215 tests .NET et 24 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -117,6 +120,9 @@ observables avec autorité, cause, acteur, transition, provenance et bindings Fo
 - cycle de vie G7-11 : événements projet, monde et zone à UUID/schéma v1, ordre déterministe,
   autorité, cause, contexte ancien/nouveau, acteur, transition, dry-run, diagnostics et observation
   dans le runtime Core ;
+- build G7-12 : cache ForgeScript par hashes source/API/compilateur, contrôle d'intégrité, graphe de
+  ressources UUID/schéma v1, impact transitif, état jetable, dépendances de packs automatiques,
+  analyse CLI JSON et écran Aurora Scripts & Build ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -138,7 +144,8 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   hooks, streaming et génération automatique du lien inverse restent à faire ;
 - la coque expose les neuf workspaces et relie Monde, Blueprints et Dialogues ; le premier catalogue
   Blueprints est opérationnel, tandis que ses workflows avancés et les éditeurs complets Quêtes,
-  Scripts, Assets, Validation et Assistant relèvent encore du Creator Core G7 ;
+  Assets, Validation et Assistant relèvent encore du Creator Core G7 ; Scripts possède maintenant
+  l'analyse de build et de cache mais pas encore l'éditeur de code complet ;
 - les visuels finaux du MVP sont des primitives procédurales originales ; ils ne constituent pas
   encore une direction artistique de production avec modèles, animations, audio et VFX finis ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
@@ -186,6 +193,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-12 — cache ForgeScript et dépendances incrémentales** pour `ORF-PROJ-021`,
-`ORF-PAL-015` et `ORF-BUILD-005` : indexer les artefacts par hashes de source, API et compilateur,
-calculer les dépendances transitives puis ne reconstruire que les documents affectés.
+Ouvrir **G7-13 — profils de cible et conformité de distribution** pour `ORF-PROJ-024`,
+`ORF-BUILD-022` et `ORF-QA-007` : définir Editor, Client, DedicatedServer, Test et Shipping, puis
+bloquer les distributions dont les licences ou dépendances ne sont pas justifiées.

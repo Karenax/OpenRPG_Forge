@@ -73,6 +73,7 @@ public partial class GameRoot : Node3D
     private bool _isCryptPrototype;
     private bool _loadedSave;
     private RuntimeLifecycleCoordinator? _lifecycle;
+    private ForgeScriptArtifactCache? _forgeScriptCache;
 
     public override void _Ready()
     {
@@ -93,6 +94,9 @@ public partial class GameRoot : Node3D
             var loadSavePath = GetArgumentValue(userArguments, LoadSaveArgument);
             _quickSavePath = saveFilePath ?? loadSavePath ??
                 ProjectSettings.GlobalizePath("user://openrpg-forge/saves/quick.orpsave");
+            _forgeScriptCache = new ForgeScriptArtifactCache(
+                _forgeScriptRuntime,
+                ProjectSettings.GlobalizePath("user://openrpg-forge/cache/forgescript"));
             var requestedSpawnId = ParseOptionalEntityId(
                 GetArgumentValue(userArguments, SpawnIdArgument));
             var project = LoadProject(snapshotPath, modulePackagePath);
@@ -888,7 +892,9 @@ public partial class GameRoot : Node3D
         }
 
         GD.Print($"OPENRPG_FORGE_SCRIPT_COMPILE_START path={relativePath}");
-        var compilation = _forgeScriptRuntime.Compile(source);
+        var cachedCompilation = _forgeScriptCache?.Compile(source)
+            ?? throw new InvalidOperationException("ForgeScript cache is not initialized.");
+        var compilation = cachedCompilation.Compilation;
         if (!compilation.Success || compilation.Artifact is null)
         {
             throw new InvalidOperationException(
@@ -896,6 +902,10 @@ public partial class GameRoot : Node3D
                 string.Join("; ", compilation.Diagnostics.Select(diagnostic => diagnostic.Message)));
         }
 
+        GD.Print(
+            $"OPENRPG_FORGE_FORGESCRIPT_CACHE status={(cachedCompilation.CacheHit ? "hit" : "miss")} " +
+            $"key={cachedCompilation.CacheKey} script={relativePath} " +
+            $"schema={cachedCompilation.Metadata!.SchemaVersion}");
         GD.Print($"OPENRPG_FORGE_SCRIPT_COMPILE_PASS path={relativePath}");
         return compilation.Artifact;
     }

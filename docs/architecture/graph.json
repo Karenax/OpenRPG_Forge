@@ -597,7 +597,7 @@
     },
     {
       "evidence": {
-        "line": 31,
+        "line": 33,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1434,7 +1434,7 @@
     },
     {
       "evidence": {
-        "line": 124,
+        "line": 130,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1443,7 +1443,7 @@
     },
     {
       "evidence": {
-        "line": 180,
+        "line": 187,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1452,7 +1452,7 @@
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 56,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1984,6 +1984,33 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs",
+      "target": "namespace:Forge.Domain.Build"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
       "kind": "imports",
@@ -2141,7 +2168,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Build"
     },
     {
       "evidence": {
@@ -2150,7 +2177,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -2159,7 +2186,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -2168,7 +2195,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -2177,7 +2204,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -2186,11 +2213,20 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
         "line": 22,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 23,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -2204,11 +2240,20 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
       "target": "namespace:Forge.ModuleFormat.Packages"
     },
     {
       "evidence": {
-        "line": 23,
+        "line": 25,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -2217,7 +2262,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 27,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -2415,7 +2460,7 @@
     },
     {
       "evidence": {
-        "line": 68,
+        "line": 70,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2424,7 +2469,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 86,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2433,7 +2478,7 @@
     },
     {
       "evidence": {
-        "line": 136,
+        "line": 142,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -2447,7 +2492,7 @@
       },
       "kind": "references",
       "source": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",
-      "target": "file:docs/aurora-parity/tasks/G7-11-CORE-LIFECYCLE-EVENTS.md"
+      "target": "file:docs/aurora-parity/tasks/G7-12-INCREMENTAL-BUILD-CACHE.md"
     },
     {
       "evidence": {
@@ -4801,6 +4846,87 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs",
+      "target": "namespace:Forge.Domain.Build"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraph.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraph.cs",
+      "target": "namespace:Forge.Domain.Build"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs",
+      "target": "namespace:Forge.Domain.Build"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs",
+      "target": "namespace:Forge.Domain.Build"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs",
+      "target": "namespace:Forge.Domain.Build"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.ModuleFormat/Packages/ModuleLoadResult.cs"
       },
       "kind": "imports",
@@ -4846,6 +4972,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.ModuleFormat/Packages/ModulePackageExportResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Packages/ModulePackageExportResult.cs",
+      "target": "namespace:Forge.Domain.Build"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Packages/ModulePackageExportResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Packages/ModulePackageExportResult.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageValidationResult.cs"
       },
       "kind": "imports",
@@ -4877,11 +5021,20 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Packages/ModulePackager.cs",
-      "target": "namespace:Forge.ModuleFormat.Serialization"
+      "target": "namespace:Forge.ModuleFormat.Build"
     },
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.ModuleFormat/Packages/ModulePackager.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Packages/ModulePackager.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "src/Forge.ModuleFormat/Packages/ModulePackager.cs"
       },
       "kind": "imports",
@@ -6376,6 +6529,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs",
+      "target": "namespace:Forge.Domain.Build"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Combat/CombatResolverTests.cs"
       },
       "kind": "imports",
@@ -6705,6 +6867,87 @@
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Testing/ScenarioTestAgentTests.cs",
       "target": "namespace:Forge.Mcp.Testing"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
+      "target": "namespace:Forge.Domain.Build"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
       "evidence": {
@@ -7811,11 +8054,29 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
       "target": "namespace:Forge.ModuleFormat.Packages"
     },
     {
       "evidence": {
-        "line": 1384,
+        "line": 4,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1404,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7824,7 +8085,7 @@
     },
     {
       "evidence": {
-        "line": 360,
+        "line": 380,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7833,7 +8094,7 @@
     },
     {
       "evidence": {
-        "line": 747,
+        "line": 767,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7842,7 +8103,7 @@
     },
     {
       "evidence": {
-        "line": 945,
+        "line": 965,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7851,7 +8112,7 @@
     },
     {
       "evidence": {
-        "line": 487,
+        "line": 507,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7860,7 +8121,7 @@
     },
     {
       "evidence": {
-        "line": 962,
+        "line": 982,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7869,7 +8130,7 @@
     },
     {
       "evidence": {
-        "line": 1002,
+        "line": 1022,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7878,7 +8139,7 @@
     },
     {
       "evidence": {
-        "line": 907,
+        "line": 927,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7887,7 +8148,7 @@
     },
     {
       "evidence": {
-        "line": 784,
+        "line": 804,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7896,7 +8157,7 @@
     },
     {
       "evidence": {
-        "line": 1148,
+        "line": 1168,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7905,7 +8166,7 @@
     },
     {
       "evidence": {
-        "line": 1165,
+        "line": 1185,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7914,7 +8175,7 @@
     },
     {
       "evidence": {
-        "line": 1066,
+        "line": 1086,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7923,7 +8184,7 @@
     },
     {
       "evidence": {
-        "line": 1102,
+        "line": 1122,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7932,7 +8193,7 @@
     },
     {
       "evidence": {
-        "line": 1201,
+        "line": 1221,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7941,7 +8202,7 @@
     },
     {
       "evidence": {
-        "line": 438,
+        "line": 458,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7950,7 +8211,16 @@
     },
     {
       "evidence": {
-        "line": 1399,
+        "line": 271,
+        "path": "scripts/architecture_graph.py"
+      },
+      "kind": "defined_in",
+      "source": "function:scripts.architecture_graph.contains_excluded_directory",
+      "target": "file:scripts/architecture_graph.py"
+    },
+    {
+      "evidence": {
+        "line": 1419,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7959,7 +8229,7 @@
     },
     {
       "evidence": {
-        "line": 293,
+        "line": 308,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7968,7 +8238,7 @@
     },
     {
       "evidence": {
-        "line": 1158,
+        "line": 1178,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7977,7 +8247,7 @@
     },
     {
       "evidence": {
-        "line": 1098,
+        "line": 1118,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7986,7 +8256,7 @@
     },
     {
       "evidence": {
-        "line": 335,
+        "line": 355,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -7995,7 +8265,7 @@
     },
     {
       "evidence": {
-        "line": 1331,
+        "line": 1351,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8004,7 +8274,7 @@
     },
     {
       "evidence": {
-        "line": 1189,
+        "line": 1209,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8013,7 +8283,7 @@
     },
     {
       "evidence": {
-        "line": 1042,
+        "line": 1062,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8022,7 +8292,7 @@
     },
     {
       "evidence": {
-        "line": 1230,
+        "line": 1250,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8031,7 +8301,7 @@
     },
     {
       "evidence": {
-        "line": 271,
+        "line": 286,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8040,7 +8310,7 @@
     },
     {
       "evidence": {
-        "line": 378,
+        "line": 398,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8049,7 +8319,7 @@
     },
     {
       "evidence": {
-        "line": 331,
+        "line": 351,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8058,7 +8328,7 @@
     },
     {
       "evidence": {
-        "line": 1219,
+        "line": 1239,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8067,7 +8337,7 @@
     },
     {
       "evidence": {
-        "line": 896,
+        "line": 916,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8076,7 +8346,7 @@
     },
     {
       "evidence": {
-        "line": 1418,
+        "line": 1438,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8085,7 +8355,7 @@
     },
     {
       "evidence": {
-        "line": 392,
+        "line": 412,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8094,7 +8364,7 @@
     },
     {
       "evidence": {
-        "line": 1094,
+        "line": 1114,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8103,7 +8373,7 @@
     },
     {
       "evidence": {
-        "line": 775,
+        "line": 795,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8121,7 +8391,7 @@
     },
     {
       "evidence": {
-        "line": 737,
+        "line": 757,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8130,7 +8400,7 @@
     },
     {
       "evidence": {
-        "line": 1377,
+        "line": 1397,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8139,7 +8409,7 @@
     },
     {
       "evidence": {
-        "line": 1360,
+        "line": 1380,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8148,7 +8418,7 @@
     },
     {
       "evidence": {
-        "line": 711,
+        "line": 731,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8157,7 +8427,7 @@
     },
     {
       "evidence": {
-        "line": 932,
+        "line": 952,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8166,7 +8436,7 @@
     },
     {
       "evidence": {
-        "line": 1142,
+        "line": 1162,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8175,7 +8445,7 @@
     },
     {
       "evidence": {
-        "line": 885,
+        "line": 905,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8184,7 +8454,7 @@
     },
     {
       "evidence": {
-        "line": 1053,
+        "line": 1073,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8193,7 +8463,7 @@
     },
     {
       "evidence": {
-        "line": 1246,
+        "line": 1266,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8202,7 +8472,7 @@
     },
     {
       "evidence": {
-        "line": 1088,
+        "line": 1108,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -8211,7 +8481,7 @@
     },
     {
       "evidence": {
-        "line": 317,
+        "line": 337,
         "path": "scripts/architecture_graph.py"
       },
       "kind": "defined_in",
@@ -11595,6 +11865,42 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Build/BuildResourceId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Build.BuildResourceId",
+      "target": "file:src/Forge.Domain/Build/BuildResourceId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Build/BuildResourceKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Build.BuildResourceKind",
+      "target": "file:src/Forge.Domain/Build/BuildResourceKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Build/BuildResourceKind.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Build.BuildResourceKind",
+      "target": "model:Forge.ModuleFormat.Serialization.AreaDocument"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Build/BuildResourceKind.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Build.BuildResourceKind",
+      "target": "model:Forge.ModuleFormat.Serialization.ProjectDocument"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Combat/AbilityDefinition.cs"
       },
@@ -12405,6 +12711,42 @@
     },
     {
       "evidence": {
+        "line": 99,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Build.BuildGraphDocument",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 103,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Build.BuildGraphDocument",
+      "target": "model:Forge.ModuleFormat.Build.BuildNodeDocument"
+    },
+    {
+      "evidence": {
+        "line": 105,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Build.BuildNodeDocument",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 108,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Build.BuildNodeDocument",
+      "target": "model:Forge.Domain.Build.BuildResourceKind"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.ModuleFormat/Packages/ModuleLoadResult.cs"
       },
@@ -12432,7 +12774,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 6,
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageExportResult.cs"
       },
       "kind": "defined_in",
@@ -12684,12 +13026,30 @@
     },
     {
       "evidence": {
-        "line": 1551,
+        "line": 1561,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
       "source": "model:Forge.Runtime.PrototypeQuestState",
       "target": "file:apps/Forge.Runtime/Runtime/GameRoot.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Scripting/ForgeScriptCacheResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Scripting.ForgeScriptCacheResult",
+      "target": "file:src/Forge.Scripting/ForgeScriptCacheResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Scripting/ForgeScriptCacheResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Scripting.ForgeScriptCacheResult",
+      "target": "model:Forge.Scripting.ForgeScriptCompileResult"
     },
     {
       "evidence": {
@@ -13900,6 +14260,42 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Build/BuildDependencyGraph.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Build",
+      "target": "file:src/Forge.Domain/Build/BuildDependencyGraph.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Build/BuildDependencyNode.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Build",
+      "target": "file:src/Forge.Domain/Build/BuildDependencyNode.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Build/BuildResourceId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Build",
+      "target": "file:src/Forge.Domain/Build/BuildResourceId.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Build/BuildResourceKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Build",
+      "target": "file:src/Forge.Domain/Build/BuildResourceKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Combat/AbilityDefinition.cs"
       },
       "kind": "defined_in",
@@ -14557,6 +14953,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Build",
+      "target": "file:tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "tests/Forge.Domain.Tests/Combat/CombatResolverTests.cs"
       },
       "kind": "defined_in",
@@ -14853,6 +15258,51 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Build",
+      "target": "file:src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraph.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Build",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraph.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Build",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Build",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Build",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.ModuleFormat/Packages/ModuleContentHash.cs"
       },
@@ -14907,7 +15357,7 @@
     },
     {
       "evidence": {
-        "line": 1,
+        "line": 3,
         "path": "src/Forge.ModuleFormat/Packages/ModulePackageExportResult.cs"
       },
       "kind": "defined_in",
@@ -14952,7 +15402,7 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 7,
         "path": "src/Forge.ModuleFormat/Packages/ModulePackager.cs"
       },
       "kind": "defined_in",
@@ -15102,6 +15552,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Serialization",
       "target": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Build",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
     },
     {
       "evidence": {
@@ -15294,6 +15753,33 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.Scripting/ForgeScriptArtifactCache.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Scripting",
+      "target": "file:src/Forge.Scripting/ForgeScriptArtifactCache.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Scripting/ForgeScriptCacheMetadata.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Scripting",
+      "target": "file:src/Forge.Scripting/ForgeScriptCacheMetadata.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Scripting/ForgeScriptCacheResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Scripting",
+      "target": "file:src/Forge.Scripting/ForgeScriptCacheResult.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Scripting/ForgeScriptCompileResult.cs"
       },
@@ -15366,6 +15852,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Scripting.Tests",
+      "target": "file:tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs"
       },
@@ -15403,6 +15898,15 @@
     {
       "evidence": {
         "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
       "kind": "defined_in",
@@ -15420,7 +15924,7 @@
     },
     {
       "evidence": {
-        "line": 27,
+        "line": 29,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -19201,6 +19705,69 @@
     {
       "evidence": {
         "line": 5,
+        "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Build.BuildDependencyGraphTests",
+      "target": "file:tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Build.BuildDependencyGraphTests",
+      "target": "model:Forge.Domain.Build.BuildResourceId"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Build.BuildDependencyGraphTests",
+      "target": "model:Forge.Domain.Build.BuildResourceKind"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Build.BuildDependencyGraphTests",
+      "target": "model:Forge.ModuleFormat.Serialization.AreaDocument"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Build.BuildDependencyGraphTests",
+      "target": "model:Forge.ModuleFormat.Serialization.ProjectDocument"
+    },
+    {
+      "evidence": {
+        "line": 60,
+        "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Build.BuildDependencyGraphTests",
+      "target": "type:Forge.Domain.Build.BuildDependencyGraph"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Build.BuildDependencyGraphTests",
+      "target": "type:Forge.Domain.Build.BuildDependencyNode"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "tests/Forge.Domain.Tests/Combat/CombatResolverTests.cs"
       },
       "kind": "defined_in",
@@ -20550,6 +21117,213 @@
     },
     {
       "evidence": {
+        "line": 14,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 161,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 162,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 149,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 148,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 153,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Build.BuildResourceKind"
+    },
+    {
+      "evidence": {
+        "line": 166,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 165,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 146,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 170,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 168,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.ModuleFormat.Serialization.AreaDocument"
+    },
+    {
+      "evidence": {
+        "line": 62,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "model:Forge.ModuleFormat.Serialization.ProjectDocument"
+    },
+    {
+      "evidence": {
+        "line": 154,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "type:Forge.Domain.Blueprints.BlueprintPaletteOrigin"
+    },
+    {
+      "evidence": {
+        "line": 155,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "type:Forge.Domain.Blueprints.BlueprintProvenance"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "type:Forge.Domain.Build.BuildDependencyGraph"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "type:Forge.ModuleFormat.Build.ExternalPackage"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "type:Forge.ModuleFormat.Build.WorkspaceBuildGraphBuilder"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "type:Forge.ModuleFormat.Build.WorkspaceBuildStateStore"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "type:Forge.ModuleFormat.Build.WorkspaceIncrementalBuildPlanner"
+    },
+    {
+      "evidence": {
+        "line": 90,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "type:Forge.ModuleFormat.Packages.ModulePackager"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.ProjectSession"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModuleManifestValidatorTests.cs"
       },
@@ -21828,6 +22602,96 @@
     },
     {
       "evidence": {
+        "line": 67,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Scripting.Tests.CountingRuntime",
+      "target": "file:tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.CountingRuntime",
+      "target": "interface:Forge.Scripting.IForgeScriptRuntime"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.CountingRuntime",
+      "target": "model:Forge.Scripting.ForgeScriptCompileResult"
+    },
+    {
+      "evidence": {
+        "line": 86,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.CountingRuntime",
+      "target": "model:Forge.Scripting.ForgeScriptExecutionResult"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.CountingRuntime",
+      "target": "type:Forge.Scripting.ForgeScriptArtifact"
+    },
+    {
+      "evidence": {
+        "line": 87,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.CountingRuntime",
+      "target": "type:Forge.Scripting.ForgeScriptExecutionStatus"
+    },
+    {
+      "evidence": {
+        "line": 86,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.CountingRuntime",
+      "target": "type:Forge.Scripting.ForgeScriptQuotas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptArtifactCacheTests",
+      "target": "file:tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptArtifactCacheTests",
+      "target": "type:Forge.Scripting.ForgeScriptArtifactCache"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptArtifactCacheTests",
+      "target": "type:Forge.Scripting.ForgeScriptCacheMetadata"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs"
       },
@@ -22284,6 +23148,24 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Blueprints.BlueprintProvenance",
       "target": "file:src/Forge.Domain/Blueprints/BlueprintProvenance.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Build/BuildDependencyGraph.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Build.BuildDependencyGraph",
+      "target": "file:src/Forge.Domain/Build/BuildDependencyGraph.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Build/BuildDependencyNode.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Build.BuildDependencyNode",
+      "target": "file:src/Forge.Domain/Build/BuildDependencyNode.cs"
     },
     {
       "evidence": {
@@ -22773,6 +23655,60 @@
     },
     {
       "evidence": {
+        "line": 185,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Build.ExternalPackage",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Build.IncrementalBuildPlan",
+      "target": "file:src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraph.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Build.WorkspaceBuildGraph",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraph.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Build.WorkspaceBuildGraphBuilder",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Build.WorkspaceBuildStateStore",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Build.WorkspaceIncrementalBuildPlanner",
+      "target": "file:src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.ModuleFormat/Packages/ModuleContentHash.cs"
       },
@@ -22818,7 +23754,7 @@
     },
     {
       "evidence": {
-        "line": 9,
+        "line": 10,
         "path": "src/Forge.ModuleFormat/Packages/ModulePackager.cs"
       },
       "kind": "defined_in",
@@ -22980,7 +23916,7 @@
     },
     {
       "evidence": {
-        "line": 1519,
+        "line": 1529,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -23004,6 +23940,24 @@
       "kind": "defined_in",
       "source": "type:Forge.Scripting.ForgeScriptArtifact",
       "target": "file:src/Forge.Scripting/ForgeScriptArtifact.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Scripting/ForgeScriptArtifactCache.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ForgeScriptArtifactCache",
+      "target": "file:src/Forge.Scripting/ForgeScriptArtifactCache.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Scripting/ForgeScriptCacheMetadata.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ForgeScriptCacheMetadata",
+      "target": "file:src/Forge.Scripting/ForgeScriptCacheMetadata.cs"
     },
     {
       "evidence": {
@@ -23071,6 +24025,15 @@
     {
       "evidence": {
         "line": 9,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.BuildPipelineWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
       "kind": "defined_in",
@@ -23106,7 +24069,7 @@
     },
     {
       "evidence": {
-        "line": 3886,
+        "line": 3963,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -23133,7 +24096,7 @@
     },
     {
       "evidence": {
-        "line": 3891,
+        "line": 3968,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -23142,7 +24105,7 @@
     },
     {
       "evidence": {
-        "line": 3896,
+        "line": 3973,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -23502,8 +24465,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:8a76e56f0051fd28ffc0f0c25017e5293808b0191917cecd54ba7e1b320a9e2c",
-    "source_file_count": 603
+    "source_digest": "sha256:f1e7f1ee939710591a0e20e02d99ccc2be870612fb2fa923848952f1dc4beb9b",
+    "source_file_count": 622
   },
   "nodes": [
     {
@@ -23809,7 +24772,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 31,
+      "line": 33,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -24697,6 +25660,16 @@
       "path": "apps/Forge.Runtime/Runtime/RuntimeHud.cs"
     },
     {
+      "id": "file:apps/Forge.Runtime/content/broken-isles-starter/.forge/build-graph.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "build-graph.json",
+      "path": "apps/Forge.Runtime/content/broken-isles-starter/.forge/build-graph.json"
+    },
+    {
       "id": "file:apps/Forge.Runtime/content/broken-isles-starter/forge.project.json",
       "kind": "configuration",
       "line": 1,
@@ -24715,6 +25688,16 @@
       },
       "name": "project.json",
       "path": "apps/Forge.Runtime/content/broken-isles-starter/project.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/.forge/build-graph.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "build-graph.json",
+      "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/build-graph.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-380d2403eaa94095.json",
@@ -24965,6 +25948,16 @@
       },
       "name": "BlueprintDragPalette.cs",
       "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BuildPipelineWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
     },
     {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs",
@@ -25655,6 +26648,16 @@
       },
       "name": "G7-11-CORE-LIFECYCLE-EVENTS.md",
       "path": "docs/aurora-parity/tasks/G7-11-CORE-LIFECYCLE-EVENTS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G7-12-INCREMENTAL-BUILD-CACHE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-12-INCREMENTAL-BUILD-CACHE.md",
+      "path": "docs/aurora-parity/tasks/G7-12-INCREMENTAL-BUILD-CACHE.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -26707,6 +27710,46 @@
       "path": "src/Forge.Domain/Blueprints/BlueprintProvenance.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Build/BuildDependencyGraph.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BuildDependencyGraph.cs",
+      "path": "src/Forge.Domain/Build/BuildDependencyGraph.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Build/BuildDependencyNode.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BuildDependencyNode.cs",
+      "path": "src/Forge.Domain/Build/BuildDependencyNode.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Build/BuildResourceId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BuildResourceId.cs",
+      "path": "src/Forge.Domain/Build/BuildResourceId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Build/BuildResourceKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BuildResourceKind.cs",
+      "path": "src/Forge.Domain/Build/BuildResourceKind.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Combat/AbilityDefinition.cs",
       "kind": "file",
       "line": 1,
@@ -27607,6 +28650,56 @@
       "path": "src/Forge.Mcp/packages.lock.json"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "IncrementalBuildPlan.cs",
+      "path": "src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraph.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WorkspaceBuildGraph.cs",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraph.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WorkspaceBuildGraphBuilder.cs",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WorkspaceBuildStateStore.cs",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WorkspaceIncrementalBuildPlanner.cs",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Forge.ModuleFormat.csproj",
       "kind": "configuration",
       "line": 1,
@@ -27987,6 +29080,36 @@
       "path": "src/Forge.Scripting/ForgeScriptArtifact.cs"
     },
     {
+      "id": "file:src/Forge.Scripting/ForgeScriptArtifactCache.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeScriptArtifactCache.cs",
+      "path": "src/Forge.Scripting/ForgeScriptArtifactCache.cs"
+    },
+    {
+      "id": "file:src/Forge.Scripting/ForgeScriptCacheMetadata.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeScriptCacheMetadata.cs",
+      "path": "src/Forge.Scripting/ForgeScriptCacheMetadata.cs"
+    },
+    {
+      "id": "file:src/Forge.Scripting/ForgeScriptCacheResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeScriptCacheResult.cs",
+      "path": "src/Forge.Scripting/ForgeScriptCacheResult.cs"
+    },
+    {
       "id": "file:src/Forge.Scripting/ForgeScriptCompileResult.cs",
       "kind": "file",
       "line": 1,
@@ -28327,6 +29450,16 @@
       "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
     },
     {
+      "id": "file:tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BuildDependencyGraphTests.cs",
+      "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Domain.Tests/Combat/CombatResolverTests.cs",
       "kind": "file",
       "line": 1,
@@ -28567,6 +29700,16 @@
       "path": "tests/Forge.Mcp.Tests/packages.lock.json"
     },
     {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WorkspaceBuildGraphTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+    },
+    {
       "id": "file:tests/Forge.ModuleFormat.Tests/Forge.ModuleFormat.Tests.csproj",
       "kind": "configuration",
       "line": 1,
@@ -28705,6 +29848,16 @@
       },
       "name": "Forge.Scripting.Tests.csproj",
       "path": "tests/Forge.Scripting.Tests/Forge.Scripting.Tests.csproj"
+    },
+    {
+      "id": "file:tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeScriptArtifactCacheTests.cs",
+      "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
     },
     {
       "id": "file:tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs",
@@ -29849,7 +31002,7 @@
     {
       "id": "function:scripts.architecture_graph.add_common_arguments",
       "kind": "function",
-      "line": 1384,
+      "line": 1404,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29859,7 +31012,7 @@
     {
       "id": "function:scripts.architecture_graph.add_file_nodes",
       "kind": "function",
-      "line": 360,
+      "line": 380,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29869,7 +31022,7 @@
     {
       "id": "function:scripts.architecture_graph.add_route_node",
       "kind": "function",
-      "line": 747,
+      "line": 767,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29879,7 +31032,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_cpp_includes",
       "kind": "function",
-      "line": 945,
+      "line": 965,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29889,7 +31042,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_csharp",
       "kind": "function",
-      "line": 487,
+      "line": 507,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29899,7 +31052,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_dotnet_projects",
       "kind": "function",
-      "line": 962,
+      "line": 982,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29909,7 +31062,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_godot_references",
       "kind": "function",
-      "line": 1002,
+      "line": 1022,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29919,7 +31072,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_markdown",
       "kind": "function",
-      "line": 907,
+      "line": 927,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29929,7 +31082,7 @@
     {
       "id": "function:scripts.architecture_graph.analyze_python",
       "kind": "function",
-      "line": 784,
+      "line": 804,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29939,7 +31092,7 @@
     {
       "id": "function:scripts.architecture_graph.artifact_exclusions",
       "kind": "function",
-      "line": 1148,
+      "line": 1168,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29949,7 +31102,7 @@
     {
       "id": "function:scripts.architecture_graph.atomic_write_many",
       "kind": "function",
-      "line": 1165,
+      "line": 1185,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29959,7 +31112,7 @@
     {
       "id": "function:scripts.architecture_graph.build_graph",
       "kind": "function",
-      "line": 1066,
+      "line": 1086,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29969,7 +31122,7 @@
     {
       "id": "function:scripts.architecture_graph.build_overview",
       "kind": "function",
-      "line": 1102,
+      "line": 1122,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29979,7 +31132,7 @@
     {
       "id": "function:scripts.architecture_graph.check",
       "kind": "function",
-      "line": 1201,
+      "line": 1221,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29989,7 +31142,7 @@
     {
       "id": "function:scripts.architecture_graph.classify_type",
       "kind": "function",
-      "line": 438,
+      "line": 458,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -29997,9 +31150,19 @@
       "path": "scripts/architecture_graph.py"
     },
     {
+      "id": "function:scripts.architecture_graph.contains_excluded_directory",
+      "kind": "function",
+      "line": 271,
+      "metadata": {
+        "module": "scripts.architecture_graph"
+      },
+      "name": "contains_excluded_directory",
+      "path": "scripts/architecture_graph.py"
+    },
+    {
       "id": "function:scripts.architecture_graph.create_parser",
       "kind": "function",
-      "line": 1399,
+      "line": 1419,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30009,7 +31172,7 @@
     {
       "id": "function:scripts.architecture_graph.discover_sources",
       "kind": "function",
-      "line": 293,
+      "line": 308,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30019,7 +31182,7 @@
     {
       "id": "function:scripts.architecture_graph.display_path",
       "kind": "function",
-      "line": 1158,
+      "line": 1178,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30029,7 +31192,7 @@
     {
       "id": "function:scripts.architecture_graph.escape_mermaid_label",
       "kind": "function",
-      "line": 1098,
+      "line": 1118,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30039,7 +31202,7 @@
     {
       "id": "function:scripts.architecture_graph.file_kind",
       "kind": "function",
-      "line": 335,
+      "line": 355,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30049,7 +31212,7 @@
     {
       "id": "function:scripts.architecture_graph.format_query",
       "kind": "function",
-      "line": 1331,
+      "line": 1351,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30059,7 +31222,7 @@
     {
       "id": "function:scripts.architecture_graph.generate",
       "kind": "function",
-      "line": 1189,
+      "line": 1209,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30069,7 +31232,7 @@
     {
       "id": "function:scripts.architecture_graph.godot_project_prefix",
       "kind": "function",
-      "line": 1042,
+      "line": 1062,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30079,7 +31242,7 @@
     {
       "id": "function:scripts.architecture_graph.graph_stats",
       "kind": "function",
-      "line": 1230,
+      "line": 1250,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30089,7 +31252,7 @@
     {
       "id": "function:scripts.architecture_graph.is_excluded_file",
       "kind": "function",
-      "line": 271,
+      "line": 286,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30099,7 +31262,7 @@
     {
       "id": "function:scripts.architecture_graph.language_for_suffix",
       "kind": "function",
-      "line": 378,
+      "line": 398,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30109,7 +31272,7 @@
     {
       "id": "function:scripts.architecture_graph.line_number",
       "kind": "function",
-      "line": 331,
+      "line": 351,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30119,7 +31282,7 @@
     {
       "id": "function:scripts.architecture_graph.load_graph",
       "kind": "function",
-      "line": 1219,
+      "line": 1239,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30129,7 +31292,7 @@
     {
       "id": "function:scripts.architecture_graph.longest_internal_module",
       "kind": "function",
-      "line": 896,
+      "line": 916,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30139,7 +31302,7 @@
     {
       "id": "function:scripts.architecture_graph.main",
       "kind": "function",
-      "line": 1418,
+      "line": 1438,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30149,7 +31312,7 @@
     {
       "id": "function:scripts.architecture_graph.mask_c_like_comments",
       "kind": "function",
-      "line": 392,
+      "line": 412,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30159,7 +31322,7 @@
     {
       "id": "function:scripts.architecture_graph.mermaid_id",
       "kind": "function",
-      "line": 1094,
+      "line": 1114,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30169,7 +31332,7 @@
     {
       "id": "function:scripts.architecture_graph.module_name_for_path",
       "kind": "function",
-      "line": 775,
+      "line": 795,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30189,7 +31352,7 @@
     {
       "id": "function:scripts.architecture_graph.normalize_route",
       "kind": "function",
-      "line": 737,
+      "line": 757,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30199,7 +31362,7 @@
     {
       "id": "function:scripts.architecture_graph.positive_int",
       "kind": "function",
-      "line": 1377,
+      "line": 1397,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30209,7 +31372,7 @@
     {
       "id": "function:scripts.architecture_graph.query_mermaid",
       "kind": "function",
-      "line": 1360,
+      "line": 1380,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30219,7 +31382,7 @@
     {
       "id": "function:scripts.architecture_graph.relationship_for_types",
       "kind": "function",
-      "line": 711,
+      "line": 731,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30229,7 +31392,7 @@
     {
       "id": "function:scripts.architecture_graph.resolve_markdown_target",
       "kind": "function",
-      "line": 932,
+      "line": 952,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30239,7 +31402,7 @@
     {
       "id": "function:scripts.architecture_graph.resolve_output_paths",
       "kind": "function",
-      "line": 1142,
+      "line": 1162,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30249,7 +31412,7 @@
     {
       "id": "function:scripts.architecture_graph.resolve_python_import",
       "kind": "function",
-      "line": 885,
+      "line": 905,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30259,7 +31422,7 @@
     {
       "id": "function:scripts.architecture_graph.resolve_source_reference",
       "kind": "function",
-      "line": 1053,
+      "line": 1073,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30269,7 +31432,7 @@
     {
       "id": "function:scripts.architecture_graph.select_subgraph",
       "kind": "function",
-      "line": 1246,
+      "line": 1266,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30279,7 +31442,7 @@
     {
       "id": "function:scripts.architecture_graph.serialize_graph",
       "kind": "function",
-      "line": 1088,
+      "line": 1108,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -30289,7 +31452,7 @@
     {
       "id": "function:scripts.architecture_graph.source_digest",
       "kind": "function",
-      "line": 317,
+      "line": 337,
       "metadata": {
         "module": "scripts.architecture_graph"
       },
@@ -31237,6 +32400,26 @@
       "path": "src/Forge.Domain/Blueprints/BlueprintKind.cs"
     },
     {
+      "id": "model:Forge.Domain.Build.BuildResourceId",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Build"
+      },
+      "name": "BuildResourceId",
+      "path": "src/Forge.Domain/Build/BuildResourceId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Build.BuildResourceKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Build"
+      },
+      "name": "BuildResourceKind",
+      "path": "src/Forge.Domain/Build/BuildResourceKind.cs"
+    },
+    {
       "id": "model:Forge.Domain.Combat.AbilityDefinition",
       "kind": "model",
       "line": 3,
@@ -31687,6 +32870,26 @@
       "path": "src/Forge.Mcp/Testing/ScenarioTestAgent.cs"
     },
     {
+      "id": "model:Forge.ModuleFormat.Build.BuildGraphDocument",
+      "kind": "model",
+      "line": 99,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Build"
+      },
+      "name": "BuildGraphDocument",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Build.BuildNodeDocument",
+      "kind": "model",
+      "line": 105,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Build"
+      },
+      "name": "BuildNodeDocument",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+    },
+    {
       "id": "model:Forge.ModuleFormat.Packages.ModuleLoadResult",
       "kind": "model",
       "line": 5,
@@ -31709,7 +32912,7 @@
     {
       "id": "model:Forge.ModuleFormat.Packages.ModulePackageExportResult",
       "kind": "model",
-      "line": 3,
+      "line": 6,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Packages"
       },
@@ -31859,12 +33062,22 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 1551,
+      "line": 1561,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
       "name": "PrototypeQuestState",
       "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+    },
+    {
+      "id": "model:Forge.Scripting.ForgeScriptCacheResult",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ForgeScriptCacheResult",
+      "path": "src/Forge.Scripting/ForgeScriptCacheResult.cs"
     },
     {
       "id": "model:Forge.Scripting.ForgeScriptCompileResult",
@@ -32083,6 +33296,11 @@
       "name": "Forge.Domain.Blueprints"
     },
     {
+      "id": "namespace:Forge.Domain.Build",
+      "kind": "namespace",
+      "name": "Forge.Domain.Build"
+    },
+    {
       "id": "namespace:Forge.Domain.Combat",
       "kind": "namespace",
       "name": "Forge.Domain.Combat"
@@ -32136,6 +33354,11 @@
       "id": "namespace:Forge.Domain.Tests.Blueprints",
       "kind": "namespace",
       "name": "Forge.Domain.Tests.Blueprints"
+    },
+    {
+      "id": "namespace:Forge.Domain.Tests.Build",
+      "kind": "namespace",
+      "name": "Forge.Domain.Tests.Build"
     },
     {
       "id": "namespace:Forge.Domain.Tests.Combat",
@@ -32253,6 +33476,11 @@
       "name": "Forge.McpHost"
     },
     {
+      "id": "namespace:Forge.ModuleFormat.Build",
+      "kind": "namespace",
+      "name": "Forge.ModuleFormat.Build"
+    },
+    {
       "id": "namespace:Forge.ModuleFormat.Packages",
       "kind": "namespace",
       "name": "Forge.ModuleFormat.Packages"
@@ -32271,6 +33499,11 @@
       "id": "namespace:Forge.ModuleFormat.Serialization",
       "kind": "namespace",
       "name": "Forge.ModuleFormat.Serialization"
+    },
+    {
+      "id": "namespace:Forge.ModuleFormat.Tests.Build",
+      "kind": "namespace",
+      "name": "Forge.ModuleFormat.Tests.Build"
     },
     {
       "id": "namespace:Forge.ModuleFormat.Tests.Packages",
@@ -32715,6 +33948,16 @@
       "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Build.BuildDependencyGraphTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Build"
+      },
+      "name": "BuildDependencyGraphTests",
+      "path": "tests/Forge.Domain.Tests/Build/BuildDependencyGraphTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Combat.CombatResolverTests",
       "kind": "test",
       "line": 5,
@@ -32925,6 +34168,16 @@
       "path": "tests/Forge.Mcp.Tests/Testing/ScenarioTestAgentTests.cs"
     },
     {
+      "id": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
+      "kind": "test",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Build"
+      },
+      "name": "WorkspaceBuildGraphTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+    },
+    {
       "id": "test:Forge.ModuleFormat.Tests.Packages.ModuleManifestValidatorTests",
       "kind": "test",
       "line": 7,
@@ -33043,6 +34296,26 @@
       },
       "name": "ProjectSessionTests",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
+    },
+    {
+      "id": "test:Forge.Scripting.Tests.CountingRuntime",
+      "kind": "test",
+      "line": 67,
+      "metadata": {
+        "namespace": "Forge.Scripting.Tests"
+      },
+      "name": "CountingRuntime",
+      "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
+    },
+    {
+      "id": "test:Forge.Scripting.Tests.ForgeScriptArtifactCacheTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Scripting.Tests"
+      },
+      "name": "ForgeScriptArtifactCacheTests",
+      "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
     },
     {
       "id": "test:Forge.Scripting.Tests.NativeForgeScriptRuntimeTests",
@@ -33510,6 +34783,26 @@
       },
       "name": "BlueprintProvenance",
       "path": "src/Forge.Domain/Blueprints/BlueprintProvenance.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Build.BuildDependencyGraph",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Build"
+      },
+      "name": "BuildDependencyGraph",
+      "path": "src/Forge.Domain/Build/BuildDependencyGraph.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Build.BuildDependencyNode",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Build"
+      },
+      "name": "BuildDependencyNode",
+      "path": "src/Forge.Domain/Build/BuildDependencyNode.cs"
     },
     {
       "id": "type:Forge.Domain.Combat.AbilityEffect",
@@ -34022,6 +35315,66 @@
       "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
     },
     {
+      "id": "type:Forge.ModuleFormat.Build.ExternalPackage",
+      "kind": "type",
+      "line": 185,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Build"
+      },
+      "name": "ExternalPackage",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Build.IncrementalBuildPlan",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Build"
+      },
+      "name": "IncrementalBuildPlan",
+      "path": "src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Build.WorkspaceBuildGraph",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Build"
+      },
+      "name": "WorkspaceBuildGraph",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraph.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Build.WorkspaceBuildGraphBuilder",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Build"
+      },
+      "name": "WorkspaceBuildGraphBuilder",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildGraphBuilder.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Build.WorkspaceBuildStateStore",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Build"
+      },
+      "name": "WorkspaceBuildStateStore",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Build.WorkspaceIncrementalBuildPlanner",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Build"
+      },
+      "name": "WorkspaceIncrementalBuildPlanner",
+      "path": "src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs"
+    },
+    {
       "id": "type:Forge.ModuleFormat.Packages.ModuleContentHash",
       "kind": "type",
       "line": 7,
@@ -34074,7 +35427,7 @@
     {
       "id": "type:Forge.ModuleFormat.Packages.ModulePackager",
       "kind": "type",
-      "line": 9,
+      "line": 10,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Packages"
       },
@@ -34254,7 +35607,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 1519,
+      "line": 1529,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -34280,6 +35633,26 @@
       },
       "name": "ForgeScriptArtifact",
       "path": "src/Forge.Scripting/ForgeScriptArtifact.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.ForgeScriptArtifactCache",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ForgeScriptArtifactCache",
+      "path": "src/Forge.Scripting/ForgeScriptArtifactCache.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.ForgeScriptCacheMetadata",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ForgeScriptCacheMetadata",
+      "path": "src/Forge.Scripting/ForgeScriptCacheMetadata.cs"
     },
     {
       "id": "type:Forge.Scripting.ForgeScriptExecutionStatus",
@@ -34352,6 +35725,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintDragPalette.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.BuildPipelineWindow",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "BuildPipelineWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.DialogueEditorWindow",
       "kind": "type",
       "line": 9,
@@ -34394,7 +35777,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 3886,
+      "line": 3963,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -34424,7 +35807,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 3891,
+      "line": 3968,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -34434,7 +35817,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 3896,
+      "line": 3973,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

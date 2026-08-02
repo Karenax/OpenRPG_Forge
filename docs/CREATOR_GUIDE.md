@@ -34,6 +34,11 @@ déclare `void main()` et n'accède qu'à l'API allowlistée documentée dans
 `docs/FORGESCRIPT_API.md`. Les erreurs de compilation et de quota restent diagnostiquées sans arrêter
 le runtime.
 
+Le workspace **Scripts** ouvre l'analyse **Scripts & Build incrémental** : ressources, liens,
+hashes, licences, packs externes et impact du prochain export. `REBUILD` désigne ce qui sera
+recalculé, `CACHE` ce qui peut être réutilisé. L'analyse est en lecture seule et ne modifie jamais le
+module.
+
 ## 4. Tester et sauvegarder
 
 Choisir un point de départ puis **▶ Jouer depuis ici**. Le snapshot de playtest est temporaire et la
@@ -49,6 +54,7 @@ confirmer. Équivalent en ligne de commande :
 ```powershell
 dotnet run --project tools/Forge.Cli -- package export <workspace> <module.orpmod>
 dotnet run --project tools/Forge.Cli -- package validate <module.orpmod>
+dotnet run --project tools/Forge.Cli -- package analyze <workspace>
 ```
 
 Le runtime accepte ensuite `--module-package <chemin-absolu.orpmod>`. Les chemins traversants,

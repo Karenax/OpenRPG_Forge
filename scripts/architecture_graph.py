@@ -268,6 +268,21 @@ def normalize_relative_path(path: Path) -> str:
     return path.as_posix()
 
 
+def contains_excluded_directory(parts: tuple[str, ...]) -> bool:
+    for index, part in enumerate(parts):
+        if part not in EXCLUDED_DIRECTORIES:
+            continue
+        if (
+            part == "build"
+            and index == 2
+            and len(parts) >= 3
+            and parts[0] in {"src", "tests"}
+        ):
+            continue
+        return True
+    return False
+
+
 def is_excluded_file(
     relative_path: str, extra_excluded_paths: frozenset[str] = frozenset()
 ) -> bool:
@@ -276,7 +291,7 @@ def is_excluded_file(
     name = path.name.lower()
     suffix = path.suffix.lower()
 
-    if any(part in EXCLUDED_DIRECTORIES for part in lower_parts[:-1]):
+    if contains_excluded_directory(lower_parts[:-1]):
         return True
     if name == ".env" or name.startswith(".env."):
         return True
@@ -295,12 +310,17 @@ def discover_sources(
 ) -> list[SourceFile]:
     sources: list[SourceFile] = []
     for current_root, directory_names, file_names in os.walk(root):
+        current = Path(current_root)
         directory_names[:] = sorted(
             name
             for name in directory_names
-            if name.lower() not in EXCLUDED_DIRECTORIES
+            if not contains_excluded_directory(
+                tuple(
+                    part.lower()
+                    for part in (current / name).relative_to(root).parts
+                )
+            )
         )
-        current = Path(current_root)
         for file_name in sorted(file_names):
             absolute_path = current / file_name
             relative_path = normalize_relative_path(absolute_path.relative_to(root))

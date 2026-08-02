@@ -39,3 +39,16 @@ Les tests du lot 7 couvrent au minimum round-trip, path traversal, ratio de comp
 Le chargeur extrait uniquement après validation dans un cache isolé par UUID de module et hash de
 contenu. Le runtime accepte `--module-package <chemin-absolu.orpmod>` et rejoue le même scénario
 headless depuis le package validé.
+
+## Graphe et cache de build
+
+L'export dérive un graphe versionné des documents projet/zone, scripts, assets, packs externes et du
+module final. Les UUID sont stables par chemin et chaque nœud porte hash, licence, provenance et
+dépendances résolues. `.forge/build-graph.json` conserve le dernier état de manière atomique ; ce
+cache est jetable, exclu du `.orpmod`, et sert uniquement à calculer les ressources affectées ou
+réutilisables. Les blueprints de packs réellement instanciés ou utilisés comme locuteurs alimentent
+automatiquement la liste minimale `dependencies` du manifest.
+
+Le bytecode ForgeScript suit le même principe dans le cache utilisateur : sa clé combine le hash de
+la source, la version d'API et la version du compilateur, puis le hash du bytecode est revérifié avant
+chargement. Une entrée incompatible ou corrompue est recompilée.

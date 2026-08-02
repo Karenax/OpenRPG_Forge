@@ -55,8 +55,8 @@ T3.2 ajoute la sélection du point de départ, le snapshot temporaire, le lancem
 retour des logs. L’espace Dialogues fournit maintenant liste de nœuds, choix branchés, conditions,
 actions, textes localisables et aperçu dans la même identité sombre et braise. Le runtime offre une
 sauvegarde/reprise F5/F9 et l'Assistant peut préparer, appliquer et annuler un plan de dialogue par
-MCP. Le MVP est fermé ; les espaces Quêtes, Scripts, Assets, Validation et l’enrichissement de la
-manipulation directe au-delà de G7-10 restent dans le gate **Creator Core G7**, et non dans une
+MCP. Le MVP est fermé ; les espaces Quêtes, Assets, Validation, l'éditeur de code Scripts et
+l’enrichissement de la manipulation directe restent dans le gate **Creator Core G7**, et non dans une
 prétendue parité Aurora déjà atteinte.
 
 G7-02 installe la coque commune : neuf workspaces stables, une colonne d’exploration du projet, le
@@ -127,6 +127,12 @@ G7-11 garde les événements de cycle de vie hors de l'espace visuel principal :
 binding, autorité, cause et contexte apparaissent dans le journal de playtest structuré. Une erreur
 de cycle de vie conserve un code et un chemin de document exploitables par la navigation des
 diagnostics, sans interrompre l'auteur avec une boîte de dialogue opaque.
+
+G7-12 transforme l'espace Scripts en première surface spécialisée de build. Trois cartes compactes
+annoncent le graphe, l'impact du prochain export et la règle du cache ForgeScript. La liste centrale
+distingue immédiatement `REBUILD`, `CACHE` et `EXTERNE`, montre le type, le chemin, le hash court et
+la licence, tandis qu'une carte séparée explique les packs ajoutés automatiquement. L'auteur peut
+actualiser l'analyse sans écrire la source ni déclencher un export.
 
 ## Contexte graphique 3D
 
