@@ -56,7 +56,7 @@ retour des logs. L’espace Dialogues fournit maintenant liste de nœuds, choix 
 actions, textes localisables et aperçu dans la même identité sombre et braise. Le runtime offre une
 sauvegarde/reprise F5/F9 et l'Assistant peut préparer, appliquer et annuler un plan de dialogue par
 MCP. Le MVP est fermé ; les espaces Quêtes, Scripts, Assets, Validation et l’enrichissement de la
-manipulation directe au-delà de G7-07 restent dans le gate **Creator Core G7**, et non dans une
+manipulation directe au-delà de G7-08 restent dans le gate **Creator Core G7**, et non dans une
 prétendue parité Aurora déjà atteinte.
 
 G7-02 installe la coque commune : neuf workspaces stables, une colonne d’exploration du projet, le
@@ -100,6 +100,13 @@ identité et usages au centre, renommage sûr à droite. Les chemins, UUID et pr
 lisibles mais secondaires. Le ciblage rejoint l’explorateur et l’inspecteur partagés. L’action
 braise « Appliquer le renommage » demeure verrouillée tant qu’un aperçu valide n’a pas annoncé le
 nombre de références préservées ; modifier le nom ou le slug invalide immédiatement cet accord.
+
+G7-08 installe « Configuration du module » comme écran auteur de premier rang. La surface conserve
+les trois cartes Aurora : publication à gauche, langues au centre, variables typées à droite. Le
+langage reste produit — auteur, version, licence, crédits, scope — et les UUID/provenances demeurent
+accessibles dans les résumés sans envahir le formulaire. Les listes localisées et typées disposent
+d’un état vide explicite. L’action braise reste verrouillée jusqu’à une prévisualisation valide qui
+annonce le nombre de langues, de variables et la version prête à exporter.
 
 ## Contexte graphique 3D
 

@@ -4,6 +4,8 @@ public enum CreatorContentKind
 {
     Project,
     Module,
+    ProjectMetadata,
+    ProjectVariable,
     Area,
     Entity,
     Portal,

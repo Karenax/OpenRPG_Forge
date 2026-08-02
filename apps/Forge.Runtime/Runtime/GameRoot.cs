@@ -5,6 +5,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Combat;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.EngineAdapter.Spatial;
@@ -29,7 +30,7 @@ public partial class GameRoot : Node3D
 
     private readonly Dictionary<Node3D, CombatantState> _hostiles = [];
     private readonly Dictionary<Node3D, string> _hostileNames = [];
-    private readonly Dictionary<string, string> _variables = new(StringComparer.Ordinal);
+    private ProjectBlackboard _blackboard = new([], allowUndeclared: true);
     private readonly HashSet<string> _inventory = new(StringComparer.Ordinal);
     private readonly NativeForgeScriptRuntime _forgeScriptRuntime = new();
 
@@ -91,6 +92,7 @@ public partial class GameRoot : Node3D
             var requestedSpawnId = ParseOptionalEntityId(
                 GetArgumentValue(userArguments, SpawnIdArgument));
             var project = LoadProject(snapshotPath, modulePackagePath);
+            _blackboard = new ProjectBlackboard(project.Module.Variables, allowUndeclared: true);
             _moduleTitle = project.Module.DisplayName;
             _moduleSlug = project.Module.Slug;
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
@@ -880,7 +882,7 @@ public partial class GameRoot : Node3D
                     var variable = scriptEvent.Value.Split('=', 2);
                     if (variable.Length == 2)
                     {
-                        _variables[variable[0]] = variable[1];
+                        SetProjectVariable(variable[0], variable[1]);
                     }
 
                     break;
@@ -990,7 +992,7 @@ public partial class GameRoot : Node3D
             switch (action.Kind)
             {
                 case DialogueActionKind.SetVariable:
-                    _variables[action.Key] = action.Value;
+                    SetProjectVariable(action.Key, action.Value);
                     break;
                 case DialogueActionKind.StartQuest:
                 case DialogueActionKind.AdvanceQuest:
@@ -1031,7 +1033,7 @@ public partial class GameRoot : Node3D
             switch (action.Kind)
             {
                 case QuestActionKind.SetVariable:
-                    _variables[action.Key] = action.Value;
+                    SetProjectVariable(action.Key, action.Value);
                     break;
                 case QuestActionKind.GiveItem:
                     _inventory.Add(action.Key);
@@ -1063,6 +1065,17 @@ public partial class GameRoot : Node3D
         _message = "La Porte des Cendres se déverrouille.";
     }
 
+    private void SetProjectVariable(string key, string value)
+    {
+        if (_blackboard.TrySet(key, value, out var error))
+        {
+            return;
+        }
+
+        _message = $"La variable de projet '{key}' a refusé une valeur incompatible.";
+        GD.PrintErr($"OPENRPG_FORGE_RUNTIME_VARIABLE_REJECTED key={key} error={error}");
+    }
+
     private bool SaveRuntime(string path)
     {
         if (_player is null || _playerCombatant is null || _moduleId is null ||
@@ -1085,7 +1098,7 @@ public partial class GameRoot : Node3D
                 _playerCombatant.Health,
                 _playerCombatant.Resource),
             _inventory.OrderBy(item => item, StringComparer.Ordinal).ToArray(),
-            _variables.OrderBy(item => item.Key, StringComparer.Ordinal)
+            _blackboard.Snapshot().OrderBy(item => item.Key, StringComparer.Ordinal)
                 .Select(item => new RuntimeKeyValue(item.Key, item.Value))
                 .ToArray(),
             _questDefinition?.Id.ToString(),
@@ -1174,10 +1187,14 @@ public partial class GameRoot : Node3D
             _inventory.Add(item);
         }
 
-        _variables.Clear();
-        foreach (var variable in save.Variables)
+        _blackboard = new ProjectBlackboard(_blackboard.Definitions, allowUndeclared: true);
+        var variableDiagnostics = _blackboard.Load(save.Variables.ToDictionary(
+            variable => variable.Key,
+            variable => variable.Value,
+            StringComparer.Ordinal));
+        if (variableDiagnostics.Count > 0)
         {
-            _variables.Add(variable.Key, variable.Value);
+            throw new InvalidOperationException(string.Join("; ", variableDiagnostics));
         }
 
         if (_questDefinition is not null && _questMachine is not null && save.QuestStateId is not null)
@@ -1443,7 +1460,7 @@ public partial class GameRoot : Node3D
         public bool IsSatisfied(DialogueCondition condition) => condition.Kind switch
         {
             DialogueConditionKind.VariableEquals =>
-                _runtime._variables.TryGetValue(condition.Key, out var value) && value == condition.ExpectedValue,
+                _runtime._blackboard.TryGetValue(condition.Key, out var value) && value == condition.ExpectedValue,
             DialogueConditionKind.HasItem => _runtime._inventory.Contains(condition.Key),
             DialogueConditionKind.QuestStateEquals =>
                 string.Equals(
@@ -1460,7 +1477,7 @@ public partial class GameRoot : Node3D
         public bool IsSatisfied(QuestCondition condition) => condition.Kind switch
         {
             QuestConditionKind.VariableEquals =>
-                _runtime._variables.TryGetValue(condition.Key, out var value) && value == condition.ExpectedValue,
+                _runtime._blackboard.TryGetValue(condition.Key, out var value) && value == condition.ExpectedValue,
             QuestConditionKind.HasItem => _runtime._inventory.Contains(condition.Key),
             _ => false,
         };

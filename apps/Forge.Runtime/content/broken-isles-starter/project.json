@@ -1,5 +1,5 @@
 {
-  "formatVersion": "0.6.1",
+  "formatVersion": "0.6.2",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -8,7 +8,29 @@
       "slug": "les-iles-brisees",
       "displayName": "Les \u00CEles Bris\u00E9es",
       "description": "Un archipel \u00E0 reconstruire.",
-      "entryAreaId": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a"
+      "entryAreaId": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
+      "metadata": {
+        "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+        "schemaVersion": 1,
+        "defaultLocale": "fr",
+        "localizations": [
+          {
+            "locale": "fr",
+            "name": "Les \u00CEles Bris\u00E9es",
+            "summary": "Un archipel \u00E0 reconstruire.",
+            "description": "Un archipel \u00E0 reconstruire.",
+            "credits": ""
+          }
+        ],
+        "author": "Non renseign\u00E9",
+        "version": "0.1.0",
+        "license": "UNLICENSED",
+        "imagePath": null,
+        "tags": [],
+        "classification": "Non class\u00E9",
+        "provenance": "migration-default"
+      },
+      "variables": []
     },
     "blueprints": [
       {

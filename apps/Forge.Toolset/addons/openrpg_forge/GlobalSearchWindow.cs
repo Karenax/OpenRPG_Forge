@@ -505,6 +505,8 @@ public partial class GlobalSearchWindow : Window
     {
         CreatorContentKind.Project => "Projet",
         CreatorContentKind.Module => "Module",
+        CreatorContentKind.ProjectMetadata => "Métadonnées",
+        CreatorContentKind.ProjectVariable => "Variable de projet",
         CreatorContentKind.Area => "Zone",
         CreatorContentKind.Entity => "Entité",
         CreatorContentKind.Portal => "Transition",

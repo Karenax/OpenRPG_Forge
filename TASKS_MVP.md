@@ -379,10 +379,12 @@ Le détail et les preuves des 717 capacités restent suivis dans
   aperçu puis application transactionnelle pour entités et zones.
 - [x] **G7-07 — recherche et refactoring sûrs** : recherche globale, références inverses et renommage
   transactionnel avec aperçu, diagnostics et undo/redo.
-- [ ] **G7-08 — métadonnées et variables du module** : informations de publication localisées,
+- [x] **G7-08 — métadonnées et variables du module** : informations de publication localisées,
   blackboard global typé, persistance et édition dans le Creator.
+- [ ] **G7-09 — palettes Standard et Custom** : packs installés, contenu projet, généré, favoris et
+  temporaire avec provenance et filtres cohérents.
 
-Les règles graphiques et d’interaction de G7-03 à G7-07 sont consignées dans
+Les règles graphiques et d’interaction de G7-03 à G7-08 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest

@@ -56,9 +56,11 @@ sépare les zones et leurs transitions. G7-06 ajoute le clipboard sémantique, l
 nouveaux UUID et la copie complète ou gabarit d’une zone.
 G7-07 livre la recherche globale structurée, les références inversées et le renommage sûr avec UUID
 stables, prévisualisation et historique partagé.
+G7-08 ajoute les métadonnées de publication localisées, les variables typées et scopées, leur écran
+Aurora, leur persistance 0.8 et le blackboard runtime validé.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-08 — métadonnées localisées et variables typées du module**.
+La prochaine tranche est **G7-09 — palettes Standard et Custom avec provenance**.
 
 ## Phase 6 — 3D assistée
 

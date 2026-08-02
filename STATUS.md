@@ -4,7 +4,7 @@ Dernière mise à jour : 2 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-07 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-08 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -33,6 +33,9 @@ que la copie complète ou gabarit d’une zone avec remapping contrôlé de ses 
 G7-07 ajoute un index de recherche global dérivé, les références inversées Core et un renommage
 transactionnel prévisualisé qui conserve les UUID du projet, module, zones, blueprints, dialogues et
 quêtes.
+G7-08 rend configurables les métadonnées de publication localisées et les variables globales typées,
+les persiste dans le format 0.8, les indexe dans la recherche et branche le runtime sur un blackboard
+validé.
 
 ## État prouvé
 
@@ -43,14 +46,14 @@ quêtes.
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 172 tests .NET et 23 tests Python réussis ;
+- 181 tests .NET et 23 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
   icônes des fenêtres Forge personnalisées puis contrôlées par le smoke test et une capture ciblée ;
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
 - assistant Nouveau module validé : agrégat module, zone d’entrée, sol, spawn et workspace atomique
-  indexé au format `0.7.0`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
+  indexé au format `0.8.0`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
   `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
   édition visuelle, sérialisation, commande transactionnelle, dry-run, audit, undo/redo et smoke ;
@@ -96,6 +99,9 @@ quêtes.
 - recherche G7-07 : index plein texte accent-insensible avec filtres de type et de tag, chemins et
   provenance, usages inversés des références Core, ciblage dans la sélection partagée et renommage
   sûr prévisualisé avec dry-run, validation, UUID stable, undo/redo et round-trip ;
+- configuration G7-08 : publication localisée avec auteur, version, licence, image, tags,
+  classification et crédits ; variables à UUID, type, valeur par défaut, scope et provenance ;
+  éditeur à aperçu obligatoire, format workspace 0.8, package versionné et blackboard runtime ;
 - guide créateur, licences/provenance et rapport de performance livrés ;
 - rendu 1280 × 720 inspecté et scripts de lancement interactif validés ;
 - Python `3.13.14` disponible pour le graphe d’architecture.
@@ -110,6 +116,8 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   duplication de zone ne porte pas les futurs documents terrain, navigation, éclairage ou audio ;
 - la recherche globale couvre les documents Core canoniques existants et les diagnostics ; scripts,
   assets, graphes auteur, terrains, navigation et audio y entreront avec leurs schémas versionnés ;
+- les scopes joueur, groupe et serveur sont définis mais leur partition runtime attend le Network
+  Kit ; les anciens modules restent autorisés à employer temporairement des clés non déclarées ;
 - les transitions de zone sont éditables, persistées et validées mais pas encore déclenchées par le
   runtime ; orientation, hooks, streaming et génération automatique du lien inverse restent à faire ;
 - la coque expose les neuf workspaces et relie Monde, Blueprints et Dialogues ; le premier catalogue
@@ -162,6 +170,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-08 — métadonnées et variables du module** pour `ORF-PROJ-002` et `ORF-PROJ-019` :
-modéliser les informations de publication localisées et un blackboard global typé, les persister,
-les rendre éditables dans le Creator puis les prouver dans un second module générique.
+Ouvrir **G7-09 — palettes Standard et Custom** pour `ORF-SHELL-005` : distinguer clairement packs
+installés, contenu du projet, contenu généré, favoris et temporaire, avec provenance et filtres dans
+le Creator sans dupliquer le catalogue canonique.

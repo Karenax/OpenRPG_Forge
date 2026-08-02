@@ -159,7 +159,9 @@ public sealed class SafeRenameHandler
                 slug!,
                 displayName,
                 project.Module.Description,
-                project.Module.EntryAreaId)
+                project.Module.EntryAreaId,
+                project.Module.Metadata,
+                project.Module.Variables)
             : project.Module;
         var areas = kind == CreatorContentKind.Area
             ? project.Areas.Select(area => area.Id.ToString() == targetId

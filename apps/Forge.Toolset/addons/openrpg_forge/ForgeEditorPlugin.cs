@@ -14,6 +14,7 @@ using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.Spatial;
@@ -46,6 +47,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly UpsertBlueprintHandler _upsertBlueprintHandler = new(new SystemClock());
     private readonly CreateBlueprintFromEntityHandler _createBlueprintFromEntityHandler = new(new SystemClock());
     private readonly SafeRenameHandler _safeRenameHandler = new(new SystemClock());
+    private readonly SetModuleConfigurationHandler _setModuleConfigurationHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -69,6 +71,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _dialoguesButton;
     private Button? _areasButton;
     private Button? _searchButton;
+    private Button? _moduleSettingsButton;
     private Button? _reloadButton;
     private Button? _saveButton;
     private Button? _exportButton;
@@ -119,6 +122,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private DialogueEditorWindow? _dialogueEditor;
     private BlueprintCatalogWindow? _blueprintCatalog;
     private GlobalSearchWindow? _globalSearch;
+    private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
@@ -178,6 +182,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
             PublishSearchSelection,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_globalSearch);
+        _moduleConfiguration = new ModuleConfigurationWindow();
+        _moduleConfiguration.Initialize(
+            () => _history?.State,
+            ApplyModuleConfiguration,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_moduleConfiguration);
         _areaWorkspace = new AreaWorkspaceWindow();
         _areaWorkspace.Initialize(
             () => _history?.State,
@@ -250,6 +260,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialoguesButton = null;
         _areasButton = null;
         _searchButton = null;
+        _moduleSettingsButton = null;
         _reloadButton = null;
         _saveButton = null;
         _exportButton = null;
@@ -300,6 +311,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialogueEditor = null;
         _blueprintCatalog = null;
         _globalSearch = null;
+        _moduleConfiguration = null;
         _areaWorkspace = null;
         _creatorShell = null;
         _projectSession = null;
@@ -368,6 +380,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialoguesButton = GetControl<Button>("Margin/Content/Actions/DialoguesButton");
         _areasButton = GetControl<Button>("Margin/Content/Actions/AreasButton");
         _searchButton = GetControl<Button>("Margin/Content/Actions/SearchButton");
+        _moduleSettingsButton = GetControl<Button>("Margin/Content/Actions/ModuleSettingsButton");
         _reloadButton = GetControl<Button>("Margin/Content/Actions/ValidateButton");
         _saveButton = GetControl<Button>("Margin/Content/Actions/SaveButton");
         _exportButton = GetControl<Button>("Margin/Content/Actions/ExportButton");
@@ -683,6 +696,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialoguesButton!.Pressed += OpenDialogueEditor;
         _areasButton!.Pressed += OpenAreaWorkspace;
         _searchButton!.Pressed += OpenGlobalSearch;
+        _moduleSettingsButton!.Pressed += OpenModuleConfiguration;
         _reloadButton!.Pressed += ReloadProject;
         _saveButton!.Pressed += SaveProject;
         _exportButton!.Pressed += ShowExportDialog;
@@ -728,6 +742,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_dialoguesButton is not null) _dialoguesButton.Pressed -= OpenDialogueEditor;
         if (_areasButton is not null) _areasButton.Pressed -= OpenAreaWorkspace;
         if (_searchButton is not null) _searchButton.Pressed -= OpenGlobalSearch;
+        if (_moduleSettingsButton is not null) _moduleSettingsButton.Pressed -= OpenModuleConfiguration;
         if (_reloadButton is not null) _reloadButton.Pressed -= ReloadProject;
         if (_saveButton is not null) _saveButton.Pressed -= SaveProject;
         if (_exportButton is not null) _exportButton.Pressed -= ShowExportDialog;
@@ -973,6 +988,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private void OpenAreaWorkspace() => _areaWorkspace?.Open();
 
     private void OpenGlobalSearch() => _globalSearch?.Open();
+
+    private void OpenModuleConfiguration() => _moduleConfiguration?.Open();
 
     private bool ActivateArea(AreaId areaId)
     {
@@ -1285,6 +1302,34 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         return true;
+    }
+
+    private bool ApplyModuleConfiguration(
+        ProjectMetadata metadata,
+        IReadOnlyList<ProjectVariableDefinition> variables)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new SetModuleConfigurationCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            metadata,
+            variables,
+            DryRun: false);
+        var dryRun = _setModuleConfigurationHandler.Handle(_history.State, command with { DryRun = true });
+        if (!dryRun.Succeeded)
+        {
+            return ApplyCommand(dryRun, string.Empty, selectedEntityId: null);
+        }
+
+        return ApplyCommand(
+            _setModuleConfigurationHandler.Handle(_history.State, command),
+            $"Configuration du module enregistrée · {metadata.Localizations.Count} langue(s) · " +
+            $"{variables.Count} variable(s).",
+            GetSelectedEntity()?.Id);
     }
 
     private bool ApplyDialogue(DialogueDefinition dialogue)
@@ -2011,7 +2056,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _placeButton is null || _revisionLabel is null ||
             _undoButton is null || _redoButton is null || _playButton is null ||
             _overridesButton is null || _overridesSummary is null || _dialoguesButton is null ||
-            _areasButton is null || _searchButton is null || _copyButton is null || _pasteButton is null ||
+            _areasButton is null || _searchButton is null || _moduleSettingsButton is null ||
+            _copyButton is null || _pasteButton is null ||
             _duplicateButton is null || _clipboardSummary is null)
         {
             return;
@@ -2094,6 +2140,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _blueprintCatalog?.Refresh();
         _areaWorkspace?.Refresh();
         _globalSearch?.Refresh();
+        _moduleConfiguration?.Refresh();
         PublishSelectedEntity();
     }
 
@@ -2124,6 +2171,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialoguesButton!.Disabled = !enabled;
         _areasButton!.Disabled = !enabled;
         _searchButton!.Disabled = !enabled;
+        _moduleSettingsButton!.Disabled = !enabled;
         _exportButton!.Disabled = !enabled;
     }
 
@@ -2464,6 +2512,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunGlobalSearchAndRenameSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunModuleConfigurationSmokeTest())
         {
             return;
         }
@@ -3101,6 +3154,117 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool RunModuleConfigurationSmokeTest()
+    {
+        if (_history is null || _moduleConfiguration is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G708_MODULE_FAILED missing_configuration");
+            return false;
+        }
+
+        var originalModule = _history.State.Project.Module;
+        var originalMetadata = originalModule.Metadata;
+        var metadata = new ProjectMetadata(
+            originalMetadata.Id,
+            "fr",
+            [
+                new ProjectLocalizedMetadata(
+                    "fr",
+                    originalModule.DisplayName,
+                    "Module de validation Creator G708",
+                    originalModule.Description,
+                    "Équipe OpenRPG Forge"),
+                new ProjectLocalizedMetadata(
+                    "en",
+                    $"{originalModule.DisplayName} EN",
+                    "G708 Creator validation module",
+                    originalModule.Description,
+                    "OpenRPG Forge Team"),
+            ],
+            "Atelier OpenRPG Forge",
+            "0.8.0",
+            "CC0-1.0",
+            "assets/module-cover.png",
+            ["creator", "smoke"],
+            "Tout public",
+            "creator-smoke");
+        var variable = new ProjectVariableDefinition(
+            ProjectVariableId.From(Guid.Parse("f8000000-0000-4000-8000-000000000001")),
+            "smoke.g708.ready",
+            ProjectVariableValueKind.Boolean,
+            ProjectVariableScope.Save,
+            "false",
+            "Prouve le blackboard typé G708.",
+            "creator-smoke");
+        if (!_moduleConfiguration.ConfigureForSmokeTest(metadata, [variable]) ||
+            !_moduleConfiguration.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G708_MODULE_FAILED ui_workflow");
+            return false;
+        }
+
+        var configured = _history.State.Project.Module;
+        var blackboard = new ProjectBlackboard(configured.Variables);
+        var searchResults = CreatorSearchIndex.Build(_history.State.Project).Search(
+            new CreatorSearchQuery("smoke.g708.ready", CreatorContentKind.ProjectVariable));
+        if (configured.Metadata.Localizations.Count != 2 || configured.Metadata.Version != "0.8.0" ||
+            configured.Variables.Count != 1 || searchResults.Count != 1 ||
+            !blackboard.TrySet(variable.Key, "true", out _) ||
+            blackboard.TrySet(variable.Key, "not-a-boolean", out _))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G708_MODULE_FAILED canonical_state");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "module-configuration-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var workspace = Path.Combine(smokeRoot, "workspace");
+            var artifact = Path.Combine(smokeRoot, "configured.orpmod");
+            var creation = ProjectSession.Create(workspace, _history.State.Project);
+            var reopened = ProjectSession.Open(workspace);
+            var exported = ModulePackager.Export(workspace, artifact);
+            if (!creation.Succeeded || !reopened.Succeeded || reopened.Session is null ||
+                reopened.Session.Project.Module.Metadata.Localizations.Count != 2 ||
+                reopened.Session.Project.Module.Variables.Single().Kind != ProjectVariableValueKind.Boolean ||
+                exported.Manifest.ModuleVersion != "0.8.0" ||
+                !File.ReadAllText(reopened.Session.ProjectFilePath)
+                    .Contains($"\"formatVersion\": \"{ProjectSession.CurrentProjectFormatVersion}\"", StringComparison.Ordinal))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G708_MODULE_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            _history.State.Project.Module.Metadata != originalMetadata ||
+            _history.State.Project.Module.Variables.Count != originalModule.Variables.Count)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G708_MODULE_FAILED history");
+            return false;
+        }
+
+        RefreshEditorControls();
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed scopes=save " +
+            $"format={ProjectSession.CurrentProjectFormatVersion} history=restored package=versioned");
+        return true;
+    }
+
     private EntityInstance? FindEntityWithFreeDuplicateCell(AreaDefinition area)
     {
         if (_history is null)
@@ -3160,7 +3324,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 return false;
             }
 
-            GD.Print("OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=0.7.0 areas=1 documents=1 entities=2");
+            GD.Print(
+                $"OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format={ProjectSession.CurrentProjectFormatVersion} " +
+                "areas=1 documents=1 entities=2");
             return true;
         }
         catch (Exception exception) when (

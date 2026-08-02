@@ -14,12 +14,18 @@ public sealed record ModuleDefinition
 
     public AreaId EntryAreaId { get; }
 
+    public ProjectMetadata Metadata { get; }
+
+    public IReadOnlyList<ProjectVariableDefinition> Variables { get; }
+
     public ModuleDefinition(
         ModuleId id,
         string slug,
         string displayName,
         string description,
-        AreaId entryAreaId)
+        AreaId entryAreaId,
+        ProjectMetadata? metadata = null,
+        IReadOnlyList<ProjectVariableDefinition>? variables = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -27,10 +33,24 @@ public sealed record ModuleDefinition
         ArgumentNullException.ThrowIfNull(description);
         ArgumentNullException.ThrowIfNull(entryAreaId);
 
+        var materializedVariables = (variables ?? []).ToArray();
+        if (materializedVariables.Select(variable => variable.Id).Distinct().Count() != materializedVariables.Length)
+        {
+            throw new ArgumentException("A module cannot contain duplicate project variable IDs.", nameof(variables));
+        }
+
+        if (materializedVariables.Select(variable => variable.Key)
+            .Distinct(StringComparer.Ordinal).Count() != materializedVariables.Length)
+        {
+            throw new ArgumentException("A module cannot contain duplicate project variable keys.", nameof(variables));
+        }
+
         Id = id;
         Slug = slug;
         DisplayName = displayName;
         Description = description;
         EntryAreaId = entryAreaId;
+        Metadata = metadata ?? ProjectMetadata.CreateDefault(id, displayName, description);
+        Variables = materializedVariables.OrderBy(variable => variable.Key, StringComparer.Ordinal).ToArray();
     }
 }

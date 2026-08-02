@@ -151,6 +151,38 @@ internal sealed class ModuleIdJsonConverter : JsonConverter<ModuleId>
             : throw new JsonException("A module ID must be a string.");
 }
 
+internal sealed class ProjectMetadataIdJsonConverter : JsonConverter<ProjectMetadataId>
+{
+    public override ProjectMetadataId Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options) => ProjectMetadataId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, ProjectMetadataId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("A project metadata ID cannot be null.")
+            : throw new JsonException("A project metadata ID must be a string.");
+}
+
+internal sealed class ProjectVariableIdJsonConverter : JsonConverter<ProjectVariableId>
+{
+    public override ProjectVariableId Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options) => ProjectVariableId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, ProjectVariableId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("A project variable ID cannot be null.")
+            : throw new JsonException("A project variable ID must be a string.");
+}
+
 internal sealed class QuestIdJsonConverter : JsonConverter<QuestId>
 {
     public override QuestId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>

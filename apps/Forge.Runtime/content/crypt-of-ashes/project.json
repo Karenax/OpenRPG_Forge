@@ -1,5 +1,5 @@
 {
-  "formatVersion": "0.7.0",
+  "formatVersion": "0.8.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -8,7 +8,70 @@
       "slug": "crypt-of-ashes",
       "displayName": "Crypte des Cendres",
       "description": "Une crypte assi\u00E9g\u00E9e par les braises et son gardien.",
-      "entryAreaId": "93b6f81b-49eb-4e3d-a156-08ad78529525"
+      "entryAreaId": "93b6f81b-49eb-4e3d-a156-08ad78529525",
+      "metadata": {
+        "id": "30000000-0000-4000-8000-000000000001",
+        "schemaVersion": 1,
+        "defaultLocale": "fr",
+        "localizations": [
+          {
+            "locale": "en",
+            "name": "Crypt of Ashes",
+            "summary": "A playable vertical slice for OpenRPG Forge.",
+            "description": "Explore the crypt, meet Elyra and defeat the Ash Warden.",
+            "credits": "OpenRPG Forge team"
+          },
+          {
+            "locale": "fr",
+            "name": "Crypte des Cendres",
+            "summary": "Une tranche verticale jouable pour OpenRPG Forge.",
+            "description": "Explorez la crypte, rencontrez Elyra et affrontez le Gardien des Cendres.",
+            "credits": "\u00C9quipe OpenRPG Forge"
+          }
+        ],
+        "author": "OpenRPG Forge",
+        "version": "0.8.0",
+        "license": "UNLICENSED",
+        "imagePath": null,
+        "tags": [
+          "prototype",
+          "rpg"
+        ],
+        "classification": "Prototype tout public",
+        "provenance": "project-canonical"
+      },
+      "variables": [
+        {
+          "id": "31000000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "key": "quest.accepted",
+          "kind": "boolean",
+          "scope": "save",
+          "defaultValue": "false",
+          "description": "Indique que la qu\u00EAte principale a \u00E9t\u00E9 accept\u00E9e.",
+          "provenance": "project-canonical"
+        },
+        {
+          "id": "31000000-0000-4000-8000-000000000002",
+          "schemaVersion": 1,
+          "key": "warden.defeated",
+          "kind": "boolean",
+          "scope": "save",
+          "defaultValue": "false",
+          "description": "Indique que le Gardien des Cendres est vaincu.",
+          "provenance": "project-canonical"
+        },
+        {
+          "id": "31000000-0000-4000-8000-000000000003",
+          "schemaVersion": 1,
+          "key": "warden.phase",
+          "kind": "string",
+          "scope": "session",
+          "defaultValue": "one",
+          "description": "Phase de combat courante du Gardien.",
+          "provenance": "project-canonical"
+        }
+      ]
     },
     "blueprints": [
       {

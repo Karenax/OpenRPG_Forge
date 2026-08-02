@@ -34,8 +34,43 @@ public sealed class CreatorSearchIndex
             project.Module.Id.ToString(),
             project.Module.DisplayName,
             "module",
-            $"{project.Module.Slug} {project.Module.Description} {project.Module.EntryAreaId}",
-            ["module"]));
+            $"{project.Module.Slug} {project.Module.Description} {project.Module.EntryAreaId} " +
+            $"{project.Module.Metadata.Author} {project.Module.Metadata.Version} " +
+            $"{project.Module.Metadata.License} {project.Module.Metadata.Classification}",
+            ["module", .. project.Module.Metadata.Tags]));
+        documents.Add(new CreatorSearchDocument(
+            CreatorContentKind.ProjectMetadata,
+            project.Module.Metadata.Id.ToString(),
+            $"Publication · {project.Module.Metadata.GetDefaultLocalization().Name}",
+            "module/metadata",
+            $"{project.Module.Metadata.Author} {project.Module.Metadata.Version} " +
+            $"{project.Module.Metadata.License} {project.Module.Metadata.Classification} " +
+            $"{project.Module.Metadata.ImagePath} " +
+            string.Join(' ', project.Module.Metadata.Localizations.Select(localization =>
+                $"{localization.Locale} {localization.Name} {localization.Summary} " +
+                $"{localization.Description} {localization.Credits}")),
+            ["metadata", "publication", .. project.Module.Metadata.Tags],
+            selection: new CreatorSelection(
+                CreatorSelectionKind.Project,
+                project.Id.ToString(),
+                project.Title,
+                "project.json")));
+        foreach (var variable in project.Module.Variables)
+        {
+            documents.Add(new CreatorSearchDocument(
+                CreatorContentKind.ProjectVariable,
+                variable.Id.ToString(),
+                variable.Key,
+                $"module/variables/{variable.Id}",
+                $"{variable.Kind} {variable.Scope} {variable.DefaultValue} " +
+                $"{variable.Description} {variable.Provenance}",
+                ["variable", variable.Kind.ToString(), variable.Scope.ToString()],
+                selection: new CreatorSelection(
+                    CreatorSelectionKind.Project,
+                    project.Id.ToString(),
+                    project.Title,
+                    "project.json")));
+        }
 
         var blueprintNames = project.Blueprints.ToDictionary(blueprint => blueprint.Id, blueprint => blueprint.DisplayName);
         foreach (var blueprint in project.Blueprints)

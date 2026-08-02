@@ -90,5 +90,5 @@ portés ligne par ligne dans `tracking/project/AURORA_CORE_P0_AUDIT.csv`.
 
 ## Première tâche
 
-`tasks/G7-07-GLOBAL-SEARCH-SAFE-RENAME.md` est terminée. La suite est G7-08 : métadonnées
-localisées du module et blackboard global typé, persistés et éditables sans dépendance au moteur.
+`tasks/G7-08-MODULE-METADATA-VARIABLES.md` est terminée. La suite est G7-09 : palettes Standard et
+Custom distinguant packs installés, contenu projet, généré, favori et temporaire avec provenance.

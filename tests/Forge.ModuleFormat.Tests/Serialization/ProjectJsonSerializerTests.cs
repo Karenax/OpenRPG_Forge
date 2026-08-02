@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
+using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.ModuleFormat.Serialization;
@@ -33,6 +34,75 @@ public sealed class ProjectJsonSerializerTests
         Assert.Equal(EntityPropertyOverrides.CurrentSchemaVersion, entity.Overrides.SchemaVersion);
         Assert.Equal(3, entity.Overrides.Properties.Count);
         Assert.Equal("80", entity.Overrides.Properties.Single(property => property.Key == "hitPoints").Value);
+    }
+
+    [Fact]
+    public void SerializeAndDeserialize_RoundTripsLocalizedMetadataAndTypedVariables()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var metadata = new ProjectMetadata(
+            ProjectMetadataId.From(Guid.Parse("cd000000-0000-4000-8000-000000000001")),
+            "fr",
+            [
+                new ProjectLocalizedMetadata("fr", "Crypte", "Résumé", "Description", "Crédits"),
+                new ProjectLocalizedMetadata("en", "Crypt", "Summary", "Description", "Credits"),
+            ],
+            "Atelier Forge",
+            "2.0.0",
+            "CC0-1.0",
+            "assets/cover.png",
+            ["aventure"],
+            "Tout public",
+            "test");
+        var variable = new ProjectVariableDefinition(
+            ProjectVariableId.From(Guid.Parse("ce000000-0000-4000-8000-000000000001")),
+            "world.completed",
+            ProjectVariableValueKind.Boolean,
+            ProjectVariableScope.Save,
+            "false",
+            "Progression",
+            "test");
+        var module = new ModuleDefinition(
+            source.Module.Id,
+            source.Module.Slug,
+            source.Module.DisplayName,
+            source.Module.Description,
+            source.Module.EntryAreaId,
+            metadata,
+            [variable]);
+        var project = new ProjectDefinition(
+            source.Id,
+            source.Title,
+            module,
+            source.Blueprints,
+            source.Areas,
+            source.Dialogues,
+            source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        Assert.Equal("2.0.0", restored.Module.Metadata.Version);
+        Assert.Equal(2, restored.Module.Metadata.Localizations.Count);
+        Assert.Equal(ProjectVariableValueKind.Boolean, Assert.Single(restored.Module.Variables).Kind);
+    }
+
+    [Fact]
+    public void Deserialize_MigratesSafeRenameFormatWithDefaultModuleConfiguration()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.SafeRenameFormatVersion;
+        document["project"]!["module"]!.AsObject().Remove("metadata");
+        document["project"]!["module"]!.AsObject().Remove("variables");
+
+        var migrated = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Equal("migration-default", migrated.Module.Metadata.Provenance);
+        Assert.Empty(migrated.Module.Variables);
+        Assert.Contains(
+            $"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(migrated));
     }
 
     [Fact]

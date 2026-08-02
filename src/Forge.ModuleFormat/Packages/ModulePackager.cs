@@ -13,7 +13,7 @@ public static class ModulePackager
     public static ModulePackageExportResult Export(
         string workspacePath,
         string destinationPath,
-        string moduleVersion = "0.1.0",
+        string? moduleVersion = null,
         string runtimeMinimumVersion = "0.1.0",
         string forgeScriptApiVersion = "1.0.0")
     {
@@ -90,7 +90,7 @@ public static class ModulePackager
         var hash = ModuleContentHash.Compute(entries);
         var manifest = ModuleManifest.Create(
             project,
-            moduleVersion,
+            moduleVersion ?? project.Module.Metadata.Version,
             runtimeMinimumVersion,
             forgeScriptApiVersion,
             hash);
