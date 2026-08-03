@@ -2991,7 +2991,7 @@
     },
     {
       "evidence": {
-        "line": 153,
+        "line": 155,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -10971,6 +10971,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.RpgKit.Domain.Tests/Items/ItemInventoryServiceTests.cs",
       "target": "namespace:Forge.RpgKit.Domain.Items"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Placeables"
     },
     {
       "evidence": {
@@ -18975,6 +18984,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Placeables.AttachmentResult",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
       },
@@ -19008,6 +19026,24 @@
       "kind": "defined_in",
       "source": "model:Forge.RpgKit.Domain.Placeables.LockState",
       "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Placeables.LockStateEvent",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Placeables.LockStateEvent",
+      "target": "model:Forge.RpgKit.Domain.Placeables.LockState"
     },
     {
       "evidence": {
@@ -23151,6 +23187,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Placeables",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
       },
@@ -23283,6 +23328,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Items",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Items/ItemInventoryServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Placeables",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
     },
     {
       "evidence": {
@@ -24669,6 +24723,42 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Factions.FactionReputationService",
       "target": "model:Forge.RpgKit.Domain.Factions.ReputationState"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableEventService",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableEventService",
+      "target": "model:Forge.RpgKit.Domain.Placeables.AttachmentResult"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableEventService",
+      "target": "model:Forge.RpgKit.Domain.Placeables.LockState"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableEventService",
+      "target": "model:Forge.RpgKit.Domain.Placeables.LockStateEvent"
     },
     {
       "evidence": {
@@ -34788,6 +34878,87 @@
     },
     {
       "evidence": {
+        "line": 44,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
+      "target": "component:Forge.RpgKit.Domain.Placeables.LockComponent"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Placeables.LockState"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Placeables.PlaceableEventService"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.DamageApplied"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Placeables.AttachmentSocket"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Placeables.ContextualVerb"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Placeables.PlaceableAttachment"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Placeables.PlaceableTransform"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
       },
@@ -38154,6 +38325,51 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.AttachmentSocket",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.ContainerContentDelta",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.ContainerContentsChanged",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.ContextualVerb",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.EntityEventPayload",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
       },
@@ -38205,6 +38421,15 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Placeables.LootSpawner",
       "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.PlaceableAttachment",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
     },
     {
       "evidence": {
@@ -39153,8 +39378,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:abd40ab9f8e034cb0a2ab7dd4a43a6784e09bdaf67d1421de69575b261381ea8",
-    "source_file_count": 848
+    "source_digest": "sha256:bf075845709e07db8acd43167d537a04612fc8e4148a3fce0414a505f8c29f32",
+    "source_file_count": 851
   },
   "nodes": [
     {
@@ -42076,6 +42301,16 @@
       },
       "name": "G8-PLACEABLE-03-SECURITY.md",
       "path": "docs/aurora-parity/tasks/G8-PLACEABLE-03-SECURITY.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-PLACEABLE-04-EVENTS-COMPOSITION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-PLACEABLE-04-EVENTS-COMPOSITION.md",
+      "path": "docs/aurora-parity/tasks/G8-PLACEABLE-04-EVENTS-COMPOSITION.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -45678,6 +45913,16 @@
       "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlaceableEventService.cs",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs",
       "kind": "file",
       "line": 1,
@@ -46946,6 +47191,16 @@
       },
       "name": "ItemInventoryServiceTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemInventoryServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlaceableEventServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs",
@@ -51218,6 +51473,16 @@
       "path": "src/Forge.RpgKit.Domain/Items/ItemGameplayService.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Placeables.AttachmentResult",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "AttachmentResult",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Placeables.CollisionDefinition",
       "kind": "model",
       "line": 6,
@@ -51256,6 +51521,16 @@
       },
       "name": "LockState",
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Placeables.LockStateEvent",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "LockStateEvent",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
     },
     {
       "id": "model:Forge.RpgKit.Domain.Placeables.LootSpawnResult",
@@ -52265,6 +52540,16 @@
       },
       "name": "FactionReputationService",
       "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Domain.Placeables.PlaceableEventService",
+      "kind": "service",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableEventService",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
     },
     {
       "id": "service:Forge.RpgKit.Domain.Placeables.PlaceableInteractionService",
@@ -53345,6 +53630,16 @@
       },
       "name": "ItemInventoryServiceTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemInventoryServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Placeables"
+      },
+      "name": "PlaceableEventServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableFoundationTests",
@@ -56754,6 +57049,56 @@
       "path": "src/Forge.RpgKit.Domain/Items/ItemInventoryService.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Placeables.AttachmentSocket",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "AttachmentSocket",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.ContainerContentDelta",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "ContainerContentDelta",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.ContainerContentsChanged",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "ContainerContentsChanged",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.ContextualVerb",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "ContextualVerb",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.EntityEventPayload",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "EntityEventPayload",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Placeables.InteractionExecuted",
       "kind": "type",
       "line": 11,
@@ -56812,6 +57157,16 @@
       },
       "name": "LootSpawner",
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.PlaceableAttachment",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableAttachment",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Placeables.PlaceableComponents",

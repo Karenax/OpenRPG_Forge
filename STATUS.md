@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 PLACEABLE-04** pour `ORF-PLC-017`, `019`, `020`, `025` et `026` : destruction, inventaire, persistance, physique et événements.
+Exécuter **G8 DOOR-01** pour `ORF-DOOR-001`, `002`, `003`, `008` et `009` : fondation des portes et transitions.

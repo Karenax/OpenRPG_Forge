@@ -136,6 +136,8 @@ G8 PLACEABLE-02 livre conteneurs, états visuels, dégâts, InteractionExecuted 
 La prochaine tranche est **PLACEABLE-03**.
 G8 PLACEABLE-03 livre protection narrative, locks, traps, loot persistant et événements de conteneur.
 La prochaine tranche est **PLACEABLE-04**.
+G8 PLACEABLE-04 livre événements de verrou, contenu et dégâts, sockets composables et verbes
+contextuels. La famille Placeable G8 est complète ; la prochaine tranche est **DOOR-01**.
 
 ## Phase 6 — 3D assistée
 
