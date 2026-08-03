@@ -138,6 +138,8 @@ G8 PLACEABLE-03 livre protection narrative, locks, traps, loot persistant et év
 La prochaine tranche est **PLACEABLE-04**.
 G8 PLACEABLE-04 livre événements de verrou, contenu et dégâts, sockets composables et verbes
 contextuels. La famille Placeable G8 est complète ; la prochaine tranche est **DOOR-01**.
+G8 DOOR-01 livre portes sur socket ou libres, machine d’états, interaction, portails et liens atomiques.
+La prochaine tranche est **DOOR-02**.
 
 ## Phase 6 — 3D assistée
 

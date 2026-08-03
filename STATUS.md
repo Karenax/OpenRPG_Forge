@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 DOOR-01** pour `ORF-DOOR-001`, `002`, `003`, `008` et `009` : fondation des portes et transitions.
+Exécuter **G8 DOOR-02** pour `ORF-DOOR-019`, `021`, `004`, `005` et `006` : validation, inspecteur, verrou, piège et états visuels.
