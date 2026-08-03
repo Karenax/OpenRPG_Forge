@@ -26,6 +26,7 @@ public partial class BlueprintCatalogWindow : Window
     private OptionButton? _paletteView;
     private ItemList? _blueprintList;
     private Label? _catalogSummary;
+    private Label? _librarySummary;
     private LineEdit? _displayName;
     private LineEdit? _slug;
     private OptionButton? _kind;
@@ -122,6 +123,9 @@ public partial class BlueprintCatalogWindow : Window
 
         _catalogSummary!.Text =
             $"{_visibleBlueprintIds.Count} affiché(s) · {catalog.Items.Count} au total · {FormatView(view)}";
+        var library = BlueprintLibraryIndex.Build(state.Project);
+        _librarySummary!.Text =
+            $"{library.CategoryPaths.Count} catégories · {library.Collections.Count} collections · variantes : suffixe --nom";
         var selectedIndex = keepId is null ? -1 : _visibleBlueprintIds.FindIndex(id => id == keepId);
         if (selectedIndex >= 0)
         {
@@ -242,6 +246,9 @@ public partial class BlueprintCatalogWindow : Window
         _catalogSummary = new Label();
         _catalogSummary.AddThemeColorOverride("font_color", new Color("a899b9"));
         catalogCard.AddChild(_catalogSummary);
+        _librarySummary = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        _librarySummary.AddThemeColorOverride("font_color", new Color("79d5ad"));
+        catalogCard.AddChild(_librarySummary);
         _blueprintList = new ItemList
         {
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,

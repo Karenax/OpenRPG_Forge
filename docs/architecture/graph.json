@@ -2883,7 +2883,7 @@
     },
     {
       "evidence": {
-        "line": 90,
+        "line": 92,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2892,7 +2892,7 @@
     },
     {
       "evidence": {
-        "line": 106,
+        "line": 108,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -3357,6 +3357,33 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Assets/AssetImportPlanner.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs",
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -7101,6 +7128,60 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs",
       "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs",
+      "target": "namespace:Forge.Application.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -13908,6 +13989,33 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Blueprints.BlueprintLibraryEntry",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.BlueprintLibraryEntry",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.BlueprintLibraryEntry",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
       },
@@ -16887,6 +16995,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs"
       },
@@ -17649,6 +17766,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Blueprints",
       "target": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Blueprints",
+      "target": "file:tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
     },
     {
       "evidence": {
@@ -21645,6 +21771,87 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
       "target": "type:Forge.Domain.Blueprints.BlueprintProvenance"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintLibraryIndexTests",
+      "target": "file:tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintLibraryIndexTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintLibraryIndexTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintLibraryIndexTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintLibraryIndexTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintLibraryIndexTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintLibraryIndexTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintLibraryIndexTests",
+      "target": "type:Forge.Application.Blueprints.BlueprintLibraryIndex"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.BlueprintLibraryIndexTests",
+      "target": "type:Forge.Domain.Blueprints.BlueprintPaletteOrigin"
     },
     {
       "evidence": {
@@ -29559,6 +29766,15 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Blueprints.BlueprintLibraryIndex",
+      "target": "file:src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs"
       },
@@ -31872,8 +32088,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:eba13216d23ba5a6c799795c3a86b43597c4055386bc720b2492cea86f01d664",
-    "source_file_count": 737
+    "source_digest": "sha256:38fb0ce82c372866eaca650610dc0e0aa9cbd86ac5835fd751e8e64d16c614c7",
+    "source_file_count": 740
   },
   "nodes": [
     {
@@ -34367,6 +34583,16 @@
       "path": "docs/aurora-parity/tasks/G7-21-AUTOSAVE-RECOVERY.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-22-BLUEPRINT-LIBRARY.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-22-BLUEPRINT-LIBRARY.md",
+      "path": "docs/aurora-parity/tasks/G7-22-BLUEPRINT-LIBRARY.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -34555,6 +34781,16 @@
       },
       "name": "AssetImportPlanner.cs",
       "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintLibraryIndex.cs",
+      "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
     },
     {
       "id": "file:src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs",
@@ -37707,6 +37943,16 @@
       "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintLibraryIndexTests.cs",
+      "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs",
       "kind": "file",
       "line": 1,
@@ -40687,6 +40933,16 @@
       "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
     },
     {
+      "id": "model:Forge.Application.Blueprints.BlueprintLibraryEntry",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "BlueprintLibraryEntry",
+      "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
+    },
+    {
       "id": "model:Forge.Application.Blueprints.BlueprintReferenceKind",
       "kind": "model",
       "line": 3,
@@ -42810,6 +43066,16 @@
       "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Blueprints.BlueprintLibraryIndexTests",
+      "kind": "test",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Blueprints"
+      },
+      "name": "BlueprintLibraryIndexTests",
+      "path": "tests/Forge.Application.Tests/Blueprints/BlueprintLibraryIndexTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Commands.ProjectCommandHistoryTests",
       "kind": "test",
       "line": 7,
@@ -43725,6 +43991,16 @@
       },
       "name": "AssetImportPlanner",
       "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+    },
+    {
+      "id": "type:Forge.Application.Blueprints.BlueprintLibraryIndex",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "BlueprintLibraryIndex",
+      "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
     },
     {
       "id": "type:Forge.Application.Blueprints.BlueprintPaletteCatalog",

@@ -86,9 +86,11 @@ G7-20 livre l'espace de travail créateur avec profils persistants, filtres visu
 placement répété atomique, zones ouvertes comparables et aide contextuelle sourcée.
 G7-21 livre l'autosauvegarde isolée, le journal de récupération vérifié et les instructions joueur
 localisées via la configuration transactionnelle du module.
+G7-22 livre l'index de bibliothèque Blueprint : catégories hiérarchiques, familles de variantes,
+collections et impact exact sur les instances.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-22 — bibliothèque et gouvernance des palettes**.
+La prochaine tranche est **G7-23 — import et export de bibliothèques**.
 
 ## Phase 6 — 3D assistée
 
