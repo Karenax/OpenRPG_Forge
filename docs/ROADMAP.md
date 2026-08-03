@@ -82,10 +82,11 @@ G7-18 livre l’échelle uniforme/non uniforme, les contrôles précis et viewpo
 géométrique et la transaction atomique multi-entités.
 G7-19 livre le pathfinding A* déterministe avec coûts, obstacles dynamiques, récupération,
 instrumentation et invalidation partielle.
+G7-20 livre l'espace de travail créateur avec profils persistants, filtres visuels combinés,
+placement répété atomique, zones ouvertes comparables et aide contextuelle sourcée.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-20 — productivité de la coque Creator** pour les cinq exigences Shell
-P1 restantes hors sauvegarde automatique.
+La prochaine tranche est **G7-21 — sauvegarde automatique et récupération**.
 
 ## Phase 6 — 3D assistée
 

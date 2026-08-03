@@ -1416,10 +1416,10 @@ Le résumé doit contenir :
 ## 23. Mission courante à donner à Codex
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
-> applicables. Le bootstrap, le MVP et G7-01 à G7-19 sont déjà validés : ne les recommence pas.
-> Réalise uniquement **G7-20 — productivité de la coque Creator** pour `ORF-SHELL-008`, `009`, `012`,
-> `021` et `023` : ajoute filtres d’affichage, placement répété, onglets de zones, aide contextuelle
-> et profils d’éditeur persistants. Conserve le modèle de
+> applicables. Le bootstrap, le MVP et G7-01 à G7-20 sont déjà validés : ne les recommence pas.
+> Réalise uniquement **G7-21 — sauvegarde automatique et récupération** pour `ORF-SHELL-024` et
+> `ORF-PROJ-022` : ajoute snapshots hors contenu canonique, journal de récupération et restauration
+> explicite. Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.
 

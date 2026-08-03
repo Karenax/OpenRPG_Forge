@@ -142,6 +142,16 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_new_button_hover")
 disabled = true
 text = "Zones"
 
+[node name="WorkspaceButton" type="Button" parent="Margin/Content/Actions"]
+custom_minimum_size = Vector2(155, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_new_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_new_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_new_button_hover")
+disabled = true
+text = "Espace de travail"
+
 [node name="SearchButton" type="Button" parent="Margin/Content/Actions"]
 custom_minimum_size = Vector2(145, 42)
 layout_mode = 2

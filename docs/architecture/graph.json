@@ -2209,6 +2209,60 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
       "kind": "imports",
@@ -2820,7 +2874,7 @@
     },
     {
       "evidence": {
-        "line": 86,
+        "line": 88,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2829,7 +2883,7 @@
     },
     {
       "evidence": {
-        "line": 103,
+        "line": 104,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -3941,6 +3995,15 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Creator/NavigateEditorCameraHandler.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/RepeatedPlacementPlanner.cs",
       "target": "namespace:Forge.Domain.Spatial"
     },
     {
@@ -7361,6 +7424,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
     },
     {
@@ -17130,6 +17211,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Creator/SafeRenameCommand.cs"
       },
@@ -17559,6 +17649,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Creator",
       "target": "file:tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Creator",
+      "target": "file:tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
     },
     {
       "evidence": {
@@ -20163,6 +20262,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
@@ -22482,6 +22590,51 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
       "target": "type:Forge.Domain.Authoring.EditorCameraProjection"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Creator.RepeatedPlacementPlannerTests",
+      "target": "file:tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.RepeatedPlacementPlannerTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.RepeatedPlacementPlannerTests",
+      "target": "type:Forge.Application.Creator.PlacementDistribution"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.RepeatedPlacementPlannerTests",
+      "target": "type:Forge.Application.Creator.RepeatedPlacementPlanner"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.RepeatedPlacementPlannerTests",
+      "target": "type:Forge.Application.Creator.RepeatedPlacementRequest"
     },
     {
       "evidence": {
@@ -29487,6 +29640,33 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.PlacementDistribution",
+      "target": "file:src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.RepeatedPlacementPlanner",
+      "target": "file:src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.RepeatedPlacementRequest",
+      "target": "file:src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+    },
+    {
+      "evidence": {
         "line": 56,
         "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
       },
@@ -30846,6 +31026,15 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.CreatorWorkspaceWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
@@ -30909,7 +31098,7 @@
     },
     {
       "evidence": {
-        "line": 4796,
+        "line": 4862,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -30936,7 +31125,7 @@
     },
     {
       "evidence": {
-        "line": 4801,
+        "line": 4867,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -30945,7 +31134,7 @@
     },
     {
       "evidence": {
-        "line": 4806,
+        "line": 4872,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -31530,8 +31719,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:e082d2e93e2a9e08aa42eba06e4bb3cfff33e0f0b1989383a9e30388a03e7c17",
-    "source_file_count": 729
+    "source_digest": "sha256:3ae3516fb700aef3095e9adf94df4aeacebbc6a3a4737b0cf7811cbe032a07f9",
+    "source_file_count": 733
   },
   "nodes": [
     {
@@ -33175,6 +33364,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatorWorkspaceWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs",
       "kind": "file",
       "line": 1,
@@ -33985,6 +34184,16 @@
       "path": "docs/aurora-parity/tasks/G7-19-ADVANCED-PATHFINDING.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-20-CREATOR-PRODUCTIVITY.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-20-CREATOR-PRODUCTIVITY.md",
+      "path": "docs/aurora-parity/tasks/G7-20-CREATOR-PRODUCTIVITY.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -34593,6 +34802,16 @@
       },
       "name": "NavigateEditorCameraHandler.cs",
       "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/RepeatedPlacementPlanner.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RepeatedPlacementPlanner.cs",
+      "path": "src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
     },
     {
       "id": "file:src/Forge.Application/Creator/SafeRenameCommand.cs",
@@ -37363,6 +37582,16 @@
       },
       "name": "EditorCameraNavigationTests.cs",
       "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RepeatedPlacementPlannerTests.cs",
+      "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
@@ -42458,6 +42687,16 @@
       "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Creator.RepeatedPlacementPlannerTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Creator"
+      },
+      "name": "RepeatedPlacementPlannerTests",
+      "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Creator.SearchTestContext",
       "kind": "test",
       "line": 294,
@@ -43503,6 +43742,36 @@
       },
       "name": "EntityClipboardPayload",
       "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.PlacementDistribution",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "PlacementDistribution",
+      "path": "src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.RepeatedPlacementPlanner",
+      "kind": "type",
+      "line": 20,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "RepeatedPlacementPlanner",
+      "path": "src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.RepeatedPlacementRequest",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "RepeatedPlacementRequest",
+      "path": "src/Forge.Application/Creator/RepeatedPlacementPlanner.cs"
     },
     {
       "id": "type:Forge.Application.Creator.SemanticClipboard",
@@ -44985,6 +45254,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.CreatorWorkspaceWindow",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "CreatorWorkspaceWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.DialogueEditorWindow",
       "kind": "type",
       "line": 9,
@@ -45057,7 +45336,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4796,
+      "line": 4862,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -45087,7 +45366,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4801,
+      "line": 4867,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -45097,7 +45376,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4806,
+      "line": 4872,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

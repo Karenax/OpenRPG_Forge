@@ -227,6 +227,5 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-20 — productivité de la coque Creator** pour `ORF-SHELL-008`, `009`, `012`, `021` et
-`023` : filtres d’affichage, placement répété, onglets de zones, aide contextuelle et profils
-d’éditeur persistants sans créer de voie de mutation parallèle.
+Ouvrir **G7-21 — sauvegarde automatique et récupération** pour `ORF-SHELL-024` et `ORF-PROJ-022` :
+snapshots hors contenu canonique, journal de récupération, restauration explicite et preuves de crash.

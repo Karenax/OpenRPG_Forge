@@ -49,6 +49,7 @@ public partial class ProjectPreview3D : SubViewportContainer
     private Label? _cameraModeLabel;
     private Label? _cameraSpeedLabel;
     private Label? _bookmarkSummary;
+    private EditorDisplayFilter _displayFilter = EditorDisplayFilter.ShowAll;
 
     public int EntityCount { get; private set; }
 
@@ -177,6 +178,49 @@ public partial class ProjectPreview3D : SubViewportContainer
         }
 
         RefreshSelectedGizmo();
+        ApplyDisplayFilter();
+    }
+
+    public void SetDisplayFilter(EditorDisplayFilter filter)
+    {
+        _displayFilter = filter ?? throw new ArgumentNullException(nameof(filter));
+        ApplyDisplayFilter();
+    }
+
+    public int ApplyDisplayFilter()
+    {
+        var state = _getState?.Invoke();
+        var areaId = _getActiveAreaId?.Invoke();
+        var area = state?.Project.Areas.FirstOrDefault(candidate => candidate.Id == areaId);
+        if (state is null || area is null) return 0;
+
+        var blueprints = state.Project.Blueprints.ToDictionary(candidate => candidate.Id);
+        var visible = 0;
+        foreach (var entity in area.Entities)
+        {
+            if (!_entityNodes.TryGetValue(entity.Id, out var node) ||
+                !blueprints.TryGetValue(entity.BlueprintId, out var blueprint)) continue;
+            var matches = _displayFilter.VisibleKinds.Contains(blueprint.Kind) &&
+                _displayFilter.RequiredTags.All(tag => entity.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(_displayFilter.Author) ||
+                    blueprint.Provenance.Author.Contains(_displayFilter.Author, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(_displayFilter.State) ||
+                    blueprint.PaletteOrigin.ToString().Contains(_displayFilter.State, StringComparison.OrdinalIgnoreCase)) &&
+                (!_displayFilter.IsolateSelection || entity.Id == _selectedEntityId);
+            node.Visible = matches || _displayFilter.GhostHidden;
+            SetGhosted(node, !matches && _displayFilter.GhostHidden);
+            if (matches) visible++;
+        }
+
+        RefreshSelectedGizmo();
+        return visible;
+    }
+
+    private static void SetGhosted(Node node, bool ghosted)
+    {
+        foreach (var child in node.GetChildren()) SetGhosted(child, ghosted);
+        if (node is not GeometryInstance3D geometry) return;
+        geometry.Transparency = ghosted ? 0.82f : 0f;
     }
 
     public void Clear()
@@ -275,6 +319,7 @@ public partial class ProjectPreview3D : SubViewportContainer
     {
         _selectedEntityId = entityId;
         RefreshSelectedGizmo();
+        if (_displayFilter.IsolateSelection) ApplyDisplayFilter();
     }
 
     public PlacementValidationResult PreviewEntityMoveForSmokeTest(EntityId entityId, Vector3Value position)

@@ -84,6 +84,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _newModuleButton;
     private Button? _dialoguesButton;
     private Button? _areasButton;
+    private Button? _workspaceButton;
     private Button? _searchButton;
     private Button? _moduleSettingsButton;
     private Button? _reloadButton;
@@ -150,6 +151,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private BuildPipelineWindow? _buildPipeline;
     private DistributionProfilesWindow? _distributionProfiles;
     private NavigationConfigurationWindow? _navigationConfiguration;
+    private CreatorWorkspaceWindow? _workspaceWindow;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -238,6 +240,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
             OpenNavigationConfiguration,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
+        _workspaceWindow = new CreatorWorkspaceWindow();
+        _workspaceWindow.Initialize(
+            () => _history?.State,
+            LoadWorkspaceProfile,
+            SaveWorkspaceProfile,
+            ActivateArea,
+            ApplyWorkspaceFilter,
+            PlaceRepeatedSeries,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_workspaceWindow);
         _navigationConfiguration = new NavigationConfigurationWindow();
         _navigationConfiguration.Initialize(
             () => _history?.State,
@@ -319,6 +331,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _newModuleButton = null;
         _dialoguesButton = null;
         _areasButton = null;
+        _workspaceButton = null;
         _searchButton = null;
         _moduleSettingsButton = null;
         _reloadButton = null;
@@ -451,6 +464,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _newModuleButton = GetControl<Button>("Margin/Content/Actions/NewModuleButton");
         _dialoguesButton = GetControl<Button>("Margin/Content/Actions/DialoguesButton");
         _areasButton = GetControl<Button>("Margin/Content/Actions/AreasButton");
+        _workspaceButton = GetControl<Button>("Margin/Content/Actions/WorkspaceButton");
         _searchButton = GetControl<Button>("Margin/Content/Actions/SearchButton");
         _moduleSettingsButton = GetControl<Button>("Margin/Content/Actions/ModuleSettingsButton");
         _reloadButton = GetControl<Button>("Margin/Content/Actions/ValidateButton");
@@ -774,6 +788,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _newModuleButton!.Pressed += ShowNewModuleDialog;
         _dialoguesButton!.Pressed += OpenDialogueEditor;
         _areasButton!.Pressed += OpenAreaWorkspace;
+        _workspaceButton!.Pressed += OpenCreatorWorkspace;
         _searchButton!.Pressed += OpenGlobalSearch;
         _moduleSettingsButton!.Pressed += OpenModuleConfiguration;
         _reloadButton!.Pressed += ReloadProject;
@@ -826,6 +841,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_newModuleButton is not null) _newModuleButton.Pressed -= ShowNewModuleDialog;
         if (_dialoguesButton is not null) _dialoguesButton.Pressed -= OpenDialogueEditor;
         if (_areasButton is not null) _areasButton.Pressed -= OpenAreaWorkspace;
+        if (_workspaceButton is not null) _workspaceButton.Pressed -= OpenCreatorWorkspace;
         if (_searchButton is not null) _searchButton.Pressed -= OpenGlobalSearch;
         if (_moduleSettingsButton is not null) _moduleSettingsButton.Pressed -= OpenModuleConfiguration;
         if (_reloadButton is not null) _reloadButton.Pressed -= ReloadProject;
@@ -1147,6 +1163,55 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private void OpenBlueprintCatalog() => _blueprintCatalog?.Open();
 
     private void OpenAreaWorkspace() => _areaWorkspace?.Open();
+
+    private void OpenCreatorWorkspace() => _workspaceWindow?.Open();
+
+    private int ApplyWorkspaceFilter(EditorDisplayFilter filter)
+    {
+        if (_projectPreview is null) return 0;
+        _projectPreview.SetDisplayFilter(filter);
+        return _projectPreview.ApplyDisplayFilter();
+    }
+
+    private EditorWorkspaceProfile LoadWorkspaceProfile()
+    {
+        var areaId = _activeAreaContext.Current;
+        if (_projectSession is null) return EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, areaId);
+        try { return EditorWorkspaceProfileStore.TryLoad(_projectSession.RootDirectory) ?? EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, areaId); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_WORKSPACE_PROFILE_LOAD_FAILED {exception.Message}");
+            return EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, areaId);
+        }
+    }
+
+    private void SaveWorkspaceProfile(EditorWorkspaceProfile profile)
+    {
+        if (_projectSession is null) return;
+        EditorWorkspaceProfileStore.Save(_projectSession.RootDirectory, profile);
+        _projectPreview?.SetDisplayFilter(profile.DisplayFilter);
+        GD.Print("OPENRPG_FORGE_WORKSPACE_PROFILE_SAVED");
+    }
+
+    private bool PlaceRepeatedSeries(int count, float spacing, PlacementDistribution distribution, int seed)
+    {
+        if (_history is null || _blueprintPalette is null || _positionX is null || _positionZ is null ||
+            _blueprintPalette.Selected < 0 || _blueprintPalette.Selected >= _paletteBlueprintIds.Count) return false;
+        var area = GetActiveArea();
+        var positions = RepeatedPlacementPlanner.Plan(new(
+            new Vector3Value(SnapToGrid(_positionX.Value), 0, SnapToGrid(_positionZ.Value)),
+            count, spacing, distribution, Seed: seed));
+        var blueprintId = _paletteBlueprintIds[_blueprintPalette.Selected];
+        var sources = positions.Select(position => new EntityInstance(
+            EntityId.From(Guid.NewGuid()), blueprintId,
+            new TransformValue(position, QuaternionValue.Identity, Vector3Value.One))).ToArray();
+        var payload = new EntityClipboardPayload(area.Id, sources);
+        var mapping = sources.ToDictionary(entity => entity.Id, _ => EntityId.From(Guid.NewGuid()));
+        var command = new PasteEntitiesCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            area.Id, payload, mapping, Vector3Value.Zero, DryRun: false);
+        return ApplyCommand(_pasteEntitiesHandler.Handle(_history.State, command),
+            $"{count} entités placées en série ({distribution}).", mapping[sources[0].Id]);
+    }
 
     private void OpenNavigationConfiguration() => _navigationConfiguration?.Open();
 
@@ -2588,6 +2653,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _playButton!.Disabled = !enabled || _spawnEntityIds.Count == 0 || _playtestRunning;
         _dialoguesButton!.Disabled = !enabled;
         _areasButton!.Disabled = !enabled;
+        _workspaceButton!.Disabled = !enabled;
         _searchButton!.Disabled = !enabled;
         _moduleSettingsButton!.Disabled = !enabled;
         _exportButton!.Disabled = !enabled;
