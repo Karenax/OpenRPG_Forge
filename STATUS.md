@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 ITEM-04** pour `ORF-ITEM-030` et `031` : événements de transfert et activation.
+Exécuter **G8 PLACEABLE-01** pour `ORF-PLC-001`, `002`, `003`, `005` et `006` : fondation des objets de monde.

@@ -128,6 +128,8 @@ G8 ITEM-02 livre visuels découplés, encombrement, piles transactionnelles, usa
 objets critiques. La prochaine tranche est **ITEM-03**.
 G8 ITEM-03 livre transferts par destination, modificateurs, capacités, équipement par rig et loot
 déterministe. La prochaine tranche est **ITEM-04**.
+G8 ITEM-04 livre commandes d’inspecteur d’inventaire et cycle de vie complet. La famille Item G8 est
+complète ; la prochaine tranche est **PLACEABLE-01**.
 
 ## Phase 6 — 3D assistée
 

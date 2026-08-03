@@ -2964,7 +2964,7 @@
     },
     {
       "evidence": {
-        "line": 145,
+        "line": 147,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -10885,6 +10885,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Application.Items"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
       },
       "kind": "imports",
@@ -15159,6 +15168,15 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "interface:Forge.RpgKit.Application.Items.InventoryAuthoringService",
+      "target": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
       },
@@ -18507,6 +18525,42 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Items.InventoryDocument",
+      "target": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Items.InventoryEditCommand",
+      "target": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Items.InventoryEditResult",
+      "target": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Items.InventoryEditResult",
+      "target": "model:Forge.RpgKit.Application.Items.InventoryDocument"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
       },
@@ -18549,6 +18603,33 @@
       "kind": "relationship",
       "source": "model:Forge.RpgKit.Application.Items.ItemAuthoringState",
       "target": "model:Forge.RpgKit.Domain.Items.ItemDefinition"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Items.ItemLifecycleEvent",
+      "target": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Items.ItemLifecycleEvent",
+      "target": "model:Forge.RpgKit.Application.Items.ItemLifecycleEventKind"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Items.ItemLifecycleEventKind",
+      "target": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
     },
     {
       "evidence": {
@@ -22773,6 +22854,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Application.Items",
+      "target": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
       },
@@ -22959,6 +23049,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Factions",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Items",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
     },
     {
       "evidence": {
@@ -34302,6 +34401,51 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.InventoryAuthoringServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.InventoryAuthoringServiceTests",
+      "target": "interface:Forge.RpgKit.Application.Items.InventoryAuthoringService"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.InventoryAuthoringServiceTests",
+      "target": "model:Forge.RpgKit.Application.Items.InventoryDocument"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.InventoryAuthoringServiceTests",
+      "target": "model:Forge.RpgKit.Application.Items.ItemLifecycleEventKind"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.InventoryAuthoringServiceTests",
+      "target": "type:Forge.RpgKit.Application.Items.InventoryPlacement"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
       },
@@ -36984,6 +37128,24 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Application.Items.InventoryComparison",
+      "target": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Application.Items.InventoryPlacement",
+      "target": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
       },
@@ -38550,8 +38712,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:5b26aae6955af49287b27659b3b073a22b70a077f6357fad11b6354eb60c59f8",
-    "source_file_count": 835
+    "source_digest": "sha256:3a2c202b4edb3081e3476c11fd3b1ff0a86cb90eb1e02bc6cda75e69c1ca45f1",
+    "source_file_count": 838
   },
   "nodes": [
     {
@@ -41373,6 +41535,16 @@
       },
       "name": "G8-ITEM-03-GAMEPLAY.md",
       "path": "docs/aurora-parity/tasks/G8-ITEM-03-GAMEPLAY.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-ITEM-04-INSPECTOR-EVENTS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-ITEM-04-INSPECTOR-EVENTS.md",
+      "path": "docs/aurora-parity/tasks/G8-ITEM-04-INSPECTOR-EVENTS.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -44805,6 +44977,16 @@
       "path": "src/Forge.RpgKit.Application/Forge.RpgKit.Application.csproj"
     },
     {
+      "id": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "InventoryAuthoringService.cs",
+      "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs",
       "kind": "file",
       "line": 1,
@@ -46153,6 +46335,16 @@
       },
       "name": "Forge.RpgKit.Domain.Tests.csproj",
       "path": "tests/Forge.RpgKit.Domain.Tests/Forge.RpgKit.Domain.Tests.csproj"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "InventoryAuthoringServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs",
@@ -48345,6 +48537,16 @@
       "path": "apps/Forge.Runtime/Runtime/PlayerController.cs"
     },
     {
+      "id": "interface:Forge.RpgKit.Application.Items.InventoryAuthoringService",
+      "kind": "interface",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "InventoryAuthoringService",
+      "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
       "id": "interface:Forge.RpgKit.Application.Items.ItemAuthoringService",
       "kind": "interface",
       "line": 9,
@@ -50085,6 +50287,36 @@
       "path": "src/Forge.RpgKit.Application/Factions/FactionAuthoringService.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Application.Items.InventoryDocument",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "InventoryDocument",
+      "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Application.Items.InventoryEditCommand",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "InventoryEditCommand",
+      "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Application.Items.InventoryEditResult",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "InventoryEditResult",
+      "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Application.Items.ItemAuthoringResult",
       "kind": "model",
       "line": 7,
@@ -50103,6 +50335,26 @@
       },
       "name": "ItemAuthoringState",
       "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Application.Items.ItemLifecycleEvent",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "ItemLifecycleEvent",
+      "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Application.Items.ItemLifecycleEventKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "ItemLifecycleEventKind",
+      "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
     },
     {
       "id": "model:Forge.RpgKit.Domain.Creatures.AiBlackboardValue",
@@ -52257,6 +52509,16 @@
       },
       "name": "FactionReputationTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Items.InventoryAuthoringServiceTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Items"
+      },
+      "name": "InventoryAuthoringServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Items.ItemFoundationTests",
@@ -54884,6 +55146,26 @@
       },
       "name": "CreatureWizardRequest",
       "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Application.Items.InventoryComparison",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "InventoryComparison",
+      "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Application.Items.InventoryPlacement",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "InventoryPlacement",
+      "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Application.Items.ItemWizardRequest",
