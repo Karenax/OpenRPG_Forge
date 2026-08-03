@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 PLACEABLE-01** pour `ORF-PLC-001`, `002`, `003`, `005` et `006` : fondation des objets de monde.
+Exécuter **G8 PLACEABLE-02** pour `ORF-PLC-018`, `027`, `004`, `007` et `008` : validation, inspecteur, états, collision et physique.

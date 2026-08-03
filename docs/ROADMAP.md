@@ -130,6 +130,8 @@ G8 ITEM-03 livre transferts par destination, modificateurs, capacités, équipem
 déterministe. La prochaine tranche est **ITEM-04**.
 G8 ITEM-04 livre commandes d’inspecteur d’inventaire et cycle de vie complet. La famille Item G8 est
 complète ; la prochaine tranche est **PLACEABLE-01**.
+G8 PLACEABLE-01 livre blueprints composables, décors optimisés, interactions et transformations
+précises. La prochaine tranche est **PLACEABLE-02**.
 
 ## Phase 6 — 3D assistée
 

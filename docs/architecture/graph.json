@@ -30,15 +30,6 @@
     },
     {
       "evidence": {
-        "line": 8,
-        "path": "src/Forge.EngineAdapter/Spatial/EngineValueConverter.cs"
-      },
-      "kind": "serializes",
-      "source": "adapter:Forge.EngineAdapter.Spatial.EngineValueConverter",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 98,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
@@ -651,30 +642,12 @@
     },
     {
       "evidence": {
-        "line": 59,
-        "path": "src/Forge.ModuleFormat/Serialization/SpatialValueJsonConverters.cs"
-      },
-      "kind": "serializes",
-      "source": "adapter:Forge.ModuleFormat.Serialization.TransformValueJsonConverter",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 7,
         "path": "src/Forge.ModuleFormat/Serialization/SpatialValueJsonConverters.cs"
       },
       "kind": "defined_in",
       "source": "adapter:Forge.ModuleFormat.Serialization.Vector3ValueJsonConverter",
       "target": "file:src/Forge.ModuleFormat/Serialization/SpatialValueJsonConverters.cs"
-    },
-    {
-      "evidence": {
-        "line": 7,
-        "path": "src/Forge.ModuleFormat/Serialization/SpatialValueJsonConverters.cs"
-      },
-      "kind": "serializes",
-      "source": "adapter:Forge.ModuleFormat.Serialization.Vector3ValueJsonConverter",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -801,6 +774,24 @@
       "kind": "defined_in",
       "source": "component:Forge.RpgKit.Domain.Items.LootPreview",
       "target": "file:src/Forge.RpgKit.Domain/Items/ItemGameplayService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.RpgKit.Domain.Placeables.InteractableComponent",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.RpgKit.Domain.Placeables.StaticPropComponent",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
       "evidence": {
@@ -2964,7 +2955,7 @@
     },
     {
       "evidence": {
-        "line": 147,
+        "line": 149,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -7447,6 +7438,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Placeables"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
       "kind": "imports",
@@ -10929,6 +10929,24 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs",
+      "target": "namespace:Forge.RpgKit.Application.Placeables"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Placeables"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "third_party/godot-forest-demo/addons/debug_menu/debug_menu.tscn"
       },
@@ -12441,15 +12459,6 @@
     },
     {
       "evidence": {
-        "line": 84,
-        "path": "src/Forge.Application/Areas/CreateAreaHandler.cs"
-      },
-      "kind": "uses_model",
-      "source": "handler:Forge.Application.Areas.CreateAreaHandler",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 12,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
@@ -13521,15 +13530,6 @@
     },
     {
       "evidence": {
-        "line": 130,
-        "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
-      },
-      "kind": "uses_model",
-      "source": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 103,
         "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
       },
@@ -13644,15 +13644,6 @@
       "kind": "uses_model",
       "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
       "target": "model:Forge.Domain.Authoring.EditorCameraBookmarkId"
-    },
-    {
-      "evidence": {
-        "line": 125,
-        "path": "src/Forge.Application/Creator/NavigateEditorCameraHandler.cs"
-      },
-      "kind": "uses_model",
-      "source": "handler:Forge.Application.Creator.NavigateEditorCameraHandler",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -13986,15 +13977,6 @@
       "kind": "uses_model",
       "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
       "target": "model:Forge.Domain.Spatial.TransformValue"
-    },
-    {
-      "evidence": {
-        "line": 73,
-        "path": "src/Forge.Application/Entities/PasteEntitiesHandler.cs"
-      },
-      "kind": "uses_model",
-      "source": "handler:Forge.Application.Entities.PasteEntitiesHandler",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -14355,15 +14337,6 @@
       "kind": "uses_model",
       "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
       "target": "model:Forge.Domain.Spatial.TransformValue"
-    },
-    {
-      "evidence": {
-        "line": 69,
-        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
-      },
-      "kind": "uses_model",
-      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -14886,15 +14859,6 @@
       "kind": "uses_model",
       "source": "handler:Forge.Application.Projects.NewModuleHandler",
       "target": "model:Forge.Domain.Spatial.TransformValue"
-    },
-    {
-      "evidence": {
-        "line": 64,
-        "path": "src/Forge.Application/Projects/NewModuleHandler.cs"
-      },
-      "kind": "uses_model",
-      "source": "handler:Forge.Application.Projects.NewModuleHandler",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -16005,15 +15969,6 @@
     },
     {
       "evidence": {
-        "line": 13,
-        "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.Application.Creator.NavigateEditorCameraCommand",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 6,
         "path": "src/Forge.Application/Creator/SafeRenameCommand.cs"
       },
@@ -16110,15 +16065,6 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Entities.PasteEntitiesCommand",
       "target": "model:Forge.Domain.Entities.EntityId"
-    },
-    {
-      "evidence": {
-        "line": 16,
-        "path": "src/Forge.Application/Entities/PasteEntitiesCommand.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.Application.Entities.PasteEntitiesCommand",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -16245,15 +16191,6 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Entities.ScaleEntitiesCommand",
       "target": "model:Forge.Domain.Entities.EntityId"
-    },
-    {
-      "evidence": {
-        "line": 14,
-        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.Application.Entities.ScaleEntitiesCommand",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -16569,15 +16506,6 @@
       "kind": "defined_in",
       "source": "model:Forge.Application.Spatial.PlacementValidationResult",
       "target": "file:src/Forge.Application/Spatial/PlacementValidationResult.cs"
-    },
-    {
-      "evidence": {
-        "line": 9,
-        "path": "src/Forge.Application/Spatial/PlacementValidationResult.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.Application.Spatial.PlacementValidationResult",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -17019,15 +16947,6 @@
       "kind": "defined_in",
       "source": "model:Forge.Domain.Gameplay.GameplayVectorState",
       "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
-    },
-    {
-      "evidence": {
-        "line": 18,
-        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.Domain.Gameplay.GameplayVectorState",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -17859,15 +17778,6 @@
     },
     {
       "evidence": {
-        "line": 6,
-        "path": "src/Forge.Domain/Spatial/TransformValue.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.Domain.Spatial.TransformValue",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Spatial/Vector3Value.cs"
       },
@@ -18633,6 +18543,51 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Placeables.PlaceableMutationResult",
+      "target": "file:src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Placeables.PlaceableMutationResult",
+      "target": "model:Forge.RpgKit.Application.Placeables.PlaceableProjectState"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Placeables.PlaceableMutationResult",
+      "target": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Placeables.PlaceableProjectState",
+      "target": "file:src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Placeables.PlaceableProjectState",
+      "target": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
@@ -18818,15 +18773,6 @@
       },
       "kind": "relationship",
       "source": "model:Forge.RpgKit.Domain.Creatures.PerceptionResult",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
-        "line": 94,
-        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.RpgKit.Domain.Creatures.PerceptionResult",
       "target": "model:Forge.RpgKit.Domain.Creatures.SenseKind"
     },
     {
@@ -18954,6 +18900,69 @@
       "kind": "defined_in",
       "source": "model:Forge.RpgKit.Domain.Items.LootResult",
       "target": "file:src/Forge.RpgKit.Domain/Items/ItemGameplayService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Placeables.CollisionDefinition",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition",
+      "target": "model:Forge.RpgKit.Domain.Placeables.CollisionDefinition"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition",
+      "target": "model:Forge.RpgKit.Domain.Placeables.PlaceableVisualDefinition"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Placeables.PlaceableDiagnostic",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Placeables.PlaceableVisualDefinition",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Placeables.Vector3Value",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
       "evidence": {
@@ -22873,6 +22882,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Application.Placeables",
+      "target": "file:src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
       "kind": "defined_in",
@@ -22977,6 +22995,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Items",
       "target": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Placeables",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
       "evidence": {
@@ -23085,6 +23112,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Items",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Items/ItemInventoryServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Placeables",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
     },
     {
       "evidence": {
@@ -23889,15 +23925,6 @@
     },
     {
       "evidence": {
-        "line": 55,
-        "path": "src/Forge.Application/Navigation/WaypointRouteService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Navigation.WaypointRouteService",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 21,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
@@ -24231,6 +24258,42 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Application.Placeables.PlaceableAuthoringService",
+      "target": "file:src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Placeables.PlaceableAuthoringService",
+      "target": "model:Forge.RpgKit.Application.Placeables.PlaceableMutationResult"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Placeables.PlaceableAuthoringService",
+      "target": "model:Forge.RpgKit.Application.Placeables.PlaceableProjectState"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Placeables.PlaceableAuthoringService",
+      "target": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition"
+    },
+    {
+      "evidence": {
         "line": 15,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
@@ -24246,15 +24309,6 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Creatures.CreatureAiService",
       "target": "model:Forge.Domain.Combat.AbilityId"
-    },
-    {
-      "evidence": {
-        "line": 47,
-        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureAiService",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -24363,15 +24417,6 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Creatures.CreatureRulesService",
       "target": "model:Forge.Domain.Combat.AbilityId"
-    },
-    {
-      "evidence": {
-        "line": 23,
-        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureRulesService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureRulesService",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -24606,15 +24651,6 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
       "target": "model:Forge.Domain.Entities.EntityId"
-    },
-    {
-      "evidence": {
-        "line": 18,
-        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -25752,15 +25788,6 @@
     },
     {
       "evidence": {
-        "line": 113,
-        "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Creator.ApplyDiagnosticQuickFixHandlerTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 50,
         "path": "tests/Forge.Application.Tests/Creator/ApplyDiagnosticQuickFixHandlerTests.cs"
       },
@@ -26130,15 +26157,6 @@
     },
     {
       "evidence": {
-        "line": 206,
-        "path": "tests/Forge.Application.Tests/Creator/CreatorSearchAndRenameTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Creator.CreatorSearchAndRenameTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 90,
         "path": "tests/Forge.Application.Tests/Creator/CreatorSearchAndRenameTests.cs"
       },
@@ -26499,15 +26517,6 @@
     },
     {
       "evidence": {
-        "line": 41,
-        "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Creator.EditorCameraNavigationTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 74,
         "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
       },
@@ -26559,15 +26568,6 @@
       "kind": "defined_in",
       "source": "test:Forge.Application.Tests.Creator.RepeatedPlacementPlannerTests",
       "target": "file:tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
-    },
-    {
-      "evidence": {
-        "line": 12,
-        "path": "tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Creator.RepeatedPlacementPlannerTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -26847,15 +26847,6 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
-    },
-    {
-      "evidence": {
-        "line": 37,
-        "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -27372,15 +27363,6 @@
     },
     {
       "evidence": {
-        "line": 64,
-        "path": "tests/Forge.Application.Tests/Entities/EntityMutationTestContext.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Entities.EntityMutationTestContext",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 51,
         "path": "tests/Forge.Application.Tests/Entities/EntityMutationTestContext.cs"
       },
@@ -27633,15 +27615,6 @@
     },
     {
       "evidence": {
-        "line": 50,
-        "path": "tests/Forge.Application.Tests/Entities/PlaceEntityTestContext.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Entities.PlaceEntityTestContext",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 39,
         "path": "tests/Forge.Application.Tests/Entities/PlaceEntityTestContext.cs"
       },
@@ -27765,15 +27738,6 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
-    },
-    {
-      "evidence": {
-        "line": 20,
-        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -28017,15 +27981,6 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
       "target": "model:Forge.Domain.Gameplay.WorldClockState"
-    },
-    {
-      "evidence": {
-        "line": 11,
-        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -28467,15 +28422,6 @@
       "kind": "defined_in",
       "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
       "target": "file:tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
-    },
-    {
-      "evidence": {
-        "line": 13,
-        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -29235,15 +29181,6 @@
     },
     {
       "evidence": {
-        "line": 18,
-        "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 15,
         "path": "tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs"
       },
@@ -29439,15 +29376,6 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
       "target": "model:Forge.Domain.Authoring.EditorCameraProfileId"
-    },
-    {
-      "evidence": {
-        "line": 48,
-        "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -30612,15 +30540,6 @@
     },
     {
       "evidence": {
-        "line": 142,
-        "path": "tests/Forge.Domain.Tests/Navigation/NavigationAndGeometryTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Navigation.NavigationAndGeometryTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 96,
         "path": "tests/Forge.Domain.Tests/Navigation/NavigationAndGeometryTests.cs"
       },
@@ -30964,15 +30883,6 @@
     {
       "evidence": {
         "line": 10,
-        "path": "tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Spatial.TransformValueTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
-        "line": 10,
         "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
       },
       "kind": "defined_in",
@@ -31077,15 +30987,6 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
-    },
-    {
-      "evidence": {
-        "line": 55,
-        "path": "tests/Forge.Domain.Tests/Validation/ActionableDiagnosticTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Validation.ActionableDiagnosticTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -31545,15 +31446,6 @@
       "kind": "tests",
       "source": "test:Forge.EngineAdapter.Tests.Spatial.EngineValueConverterTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
-    },
-    {
-      "evidence": {
-        "line": 12,
-        "path": "tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.EngineAdapter.Tests.Spatial.EngineValueConverterTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -33321,15 +33213,6 @@
     },
     {
       "evidence": {
-        "line": 39,
-        "path": "tests/Forge.ModuleFormat.Tests/Serialization/TestProjectFactory.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.ModuleFormat.Tests.Serialization.TestProjectFactory",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 24,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/TestProjectFactory.cs"
       },
@@ -33462,15 +33345,6 @@
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
       "target": "model:Forge.Domain.Projects.ProjectId"
-    },
-    {
-      "evidence": {
-        "line": 47,
-        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -33687,15 +33561,6 @@
       "kind": "defined_in",
       "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
-    },
-    {
-      "evidence": {
-        "line": 14,
-        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -34095,15 +33960,6 @@
     },
     {
       "evidence": {
-        "line": 21,
-        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
-    },
-    {
-      "evidence": {
         "line": 22,
         "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
       },
@@ -34191,15 +34047,6 @@
       "kind": "tests",
       "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureRulesServiceTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
-    },
-    {
-      "evidence": {
-        "line": 16,
-        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureRulesServiceTests",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -34650,6 +34497,60 @@
       "kind": "tests",
       "source": "test:Forge.RpgKit.Domain.Tests.Items.ItemInventoryServiceTests",
       "target": "type:Forge.RpgKit.Domain.Items.StackPolicy"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableFoundationTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableFoundationTests",
+      "target": "model:Forge.RpgKit.Application.Placeables.PlaceableProjectState"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableFoundationTests",
+      "target": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableFoundationTests",
+      "target": "service:Forge.RpgKit.Application.Placeables.PlaceableAuthoringService"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableFoundationTests",
+      "target": "type:Forge.RpgKit.Domain.Placeables.PlaceableRules"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableFoundationTests",
+      "target": "type:Forge.RpgKit.Domain.Placeables.PlaceableTransform"
     },
     {
       "evidence": {
@@ -37830,6 +37731,51 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.InteractionVerb",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.LocalizedPlaceableText",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.PlaceableComponents",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.PlaceableRules",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.PlaceableTransform",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
         "line": 22,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
@@ -38187,15 +38133,6 @@
       "kind": "validates",
       "source": "validator:Forge.Application.Spatial.PlacementValidator",
       "target": "model:Forge.Domain.Projects.ProjectDefinition"
-    },
-    {
-      "evidence": {
-        "line": 39,
-        "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
-      },
-      "kind": "validates",
-      "source": "validator:Forge.Application.Spatial.PlacementValidator",
-      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -38712,8 +38649,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:3a2c202b4edb3081e3476c11fd3b1ff0a86cb90eb1e02bc6cda75e69c1ca45f1",
-    "source_file_count": 838
+    "source_digest": "sha256:6d905967fe5cb5923cc0181d0b599a57903208cebcc26516701847ca2b7294bc",
+    "source_file_count": 842
   },
   "nodes": [
     {
@@ -39155,6 +39092,26 @@
       },
       "name": "LootPreview",
       "path": "src/Forge.RpgKit.Domain/Items/ItemGameplayService.cs"
+    },
+    {
+      "id": "component:Forge.RpgKit.Domain.Placeables.InteractableComponent",
+      "kind": "component",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "InteractableComponent",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "component:Forge.RpgKit.Domain.Placeables.StaticPropComponent",
+      "kind": "component",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "StaticPropComponent",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
@@ -41545,6 +41502,16 @@
       },
       "name": "G8-ITEM-04-INSPECTOR-EVENTS.md",
       "path": "docs/aurora-parity/tasks/G8-ITEM-04-INSPECTOR-EVENTS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-PLACEABLE-01-FOUNDATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-PLACEABLE-01-FOUNDATION.md",
+      "path": "docs/aurora-parity/tasks/G8-PLACEABLE-01-FOUNDATION.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -44997,6 +44964,16 @@
       "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlaceableAuthoringService.cs",
+      "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Application/packages.lock.json",
       "kind": "configuration",
       "line": 1,
@@ -45135,6 +45112,16 @@
       },
       "name": "ItemModels.cs",
       "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "id": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlaceableModels.cs",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
       "id": "file:src/Forge.RpgKit.Domain/packages.lock.json",
@@ -46375,6 +46362,16 @@
       },
       "name": "ItemInventoryServiceTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemInventoryServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlaceableFoundationTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/packages.lock.json",
@@ -50357,6 +50354,26 @@
       "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Application.Placeables.PlaceableMutationResult",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Placeables"
+      },
+      "name": "PlaceableMutationResult",
+      "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Application.Placeables.PlaceableProjectState",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Placeables"
+      },
+      "name": "PlaceableProjectState",
+      "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Creatures.AiBlackboardValue",
       "kind": "model",
       "line": 11,
@@ -50595,6 +50612,56 @@
       },
       "name": "LootResult",
       "path": "src/Forge.RpgKit.Domain/Items/ItemGameplayService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Placeables.CollisionDefinition",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "CollisionDefinition",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition",
+      "kind": "model",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableDefinition",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Placeables.PlaceableDiagnostic",
+      "kind": "model",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableDiagnostic",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Placeables.PlaceableVisualDefinition",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableVisualDefinition",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Placeables.Vector3Value",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "Vector3Value",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
@@ -51198,6 +51265,11 @@
       "name": "Forge.RpgKit.Application.Items"
     },
     {
+      "id": "namespace:Forge.RpgKit.Application.Placeables",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Application.Placeables"
+    },
+    {
       "id": "namespace:Forge.RpgKit.Domain.Creatures",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Creatures"
@@ -51213,6 +51285,11 @@
       "name": "Forge.RpgKit.Domain.Items"
     },
     {
+      "id": "namespace:Forge.RpgKit.Domain.Placeables",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Placeables"
+    },
+    {
       "id": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Tests.Creatures"
@@ -51226,6 +51303,11 @@
       "id": "namespace:Forge.RpgKit.Domain.Tests.Items",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Tests.Items"
+    },
+    {
+      "id": "namespace:Forge.RpgKit.Domain.Tests.Placeables",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Tests.Placeables"
     },
     {
       "id": "namespace:Forge.Runtime",
@@ -51429,6 +51511,16 @@
       },
       "name": "FactionAuthoringService",
       "path": "src/Forge.RpgKit.Application/Factions/FactionAuthoringService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Application.Placeables.PlaceableAuthoringService",
+      "kind": "service",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Placeables"
+      },
+      "name": "PlaceableAuthoringService",
+      "path": "src/Forge.RpgKit.Application/Placeables/PlaceableAuthoringService.cs"
     },
     {
       "id": "service:Forge.RpgKit.Domain.Creatures.CreatureAiService",
@@ -52549,6 +52641,16 @@
       },
       "name": "ItemInventoryServiceTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemInventoryServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableFoundationTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Placeables"
+      },
+      "name": "PlaceableFoundationTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
     },
     {
       "id": "test:Forge.Scripting.Tests.CountingRuntime",
@@ -55926,6 +56028,56 @@
       },
       "name": "UsageResource",
       "path": "src/Forge.RpgKit.Domain/Items/ItemInventoryService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.InteractionVerb",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "InteractionVerb",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.LocalizedPlaceableText",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "LocalizedPlaceableText",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.PlaceableComponents",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableComponents",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.PlaceableRules",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableRules",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.PlaceableTransform",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableTransform",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
       "id": "type:Forge.Runtime.GameRoot",
