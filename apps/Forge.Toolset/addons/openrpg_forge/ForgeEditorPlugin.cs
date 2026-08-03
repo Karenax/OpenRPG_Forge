@@ -160,6 +160,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private RecoveryWindow? _recoveryWindow;
     private AreaEnvironmentWindow? _areaEnvironmentWindow;
     private AreaAuthoringWindow? _areaAuthoringWindow;
+    private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -260,6 +261,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areaAuthoringWindow = new AreaAuthoringWindow();
         _areaAuthoringWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaAuthoring, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaAuthoringWindow);
+        _rpgKitAuthoringWindow = new RpgKitAuthoringWindow();
+        _rpgKitAuthoringWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyRpgBlueprint,
+            Undo,
+            Redo,
+            OpenDialogueEditor,
+            () => _buildPipeline?.Open(),
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_rpgKitAuthoringWindow);
         _workspaceWindow = new CreatorWorkspaceWindow();
         _workspaceWindow.Initialize(
             () => _history?.State,
@@ -427,6 +438,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _recoveryWindow = null;
         _areaEnvironmentWindow = null;
         _areaAuthoringWindow = null;
+        _rpgKitAuthoringWindow = null;
         _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
@@ -936,6 +948,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (string.Equals(workspace, "Dialogues", StringComparison.Ordinal))
         {
             OpenDialogueEditor();
+            return;
+        }
+
+        if (string.Equals(workspace, "Quêtes", StringComparison.Ordinal))
+        {
+            _rpgKitAuthoringWindow?.Open();
             return;
         }
 
@@ -1558,6 +1576,36 @@ public partial class ForgeEditorPlugin : EditorPlugin
         PublishBlueprintSelection(blueprintId);
         _blueprintCatalog?.Refresh(blueprintId);
         return true;
+    }
+
+    private CommandResult PreviewOrApplyRpgBlueprint(
+        BlueprintId blueprintId,
+        string slug,
+        string displayName,
+        BlueprintKind kind,
+        bool dryRun)
+    {
+        if (_history is null)
+        {
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        }
+
+        var command = new UpsertBlueprintCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            blueprintId,
+            slug,
+            displayName,
+            kind,
+            dryRun);
+        var result = _upsertBlueprintHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, $"Blueprint RPG « {displayName} » enregistré.", null);
+            _blueprintCatalog?.Refresh(blueprintId);
+        }
+
+        return result;
     }
 
     private bool ConfigureBlueprintPalette(
@@ -2304,6 +2352,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         RebuildPreview();
         RefreshEditorControls();
         var project = _history.State.Project;
+        _rpgKitAuthoringWindow?.Refresh();
         var entityCount = project.Areas.Sum(area => area.Entities.Count);
         _statusLabel.Text = "✓ Projet Forge ouvert et valide";
         _detailsLabel.Text = $"{project.Title} — {project.Areas.Count} zone · {project.Blueprints.Count} blueprints · {entityCount} entités";
@@ -3176,6 +3225,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunRpgKitAuthoringSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNewModuleSmokeTest())
         {
             return;
@@ -3253,6 +3307,45 @@ public partial class ForgeEditorPlugin : EditorPlugin
         SaveProject();
         GD.Print($"OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities={_projectPreview.EntityCount} revision={_history.State.Revision}");
         StartPlaytest(headless: true, workspaceSmokeTest: true);
+    }
+
+    private bool RunRpgKitAuthoringSmokeTest()
+    {
+        if (_history is null || _rpgKitAuthoringWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G8_AUTHOR_UI_FAILED missing_workspace");
+            return false;
+        }
+
+        var blueprintId = BlueprintId.From(Guid.Parse("8a810000-0000-4000-8000-000000000001"));
+        var revision = _history.State.Revision;
+        var preview = PreviewOrApplyRpgBlueprint(blueprintId, "sentinelle-prismatique-smoke",
+            "Sentinelle prismatique smoke", BlueprintKind.Creature, dryRun: true);
+        if (!preview.Succeeded || preview.Audit.Applied || _history.State.Revision != revision ||
+            _history.State.Project.Blueprints.Any(item => item.Id == blueprintId))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G8_AUTHOR_UI_FAILED preview");
+            return false;
+        }
+
+        var applied = PreviewOrApplyRpgBlueprint(blueprintId, "sentinelle-prismatique-smoke",
+            "Sentinelle prismatique smoke", BlueprintKind.Creature, dryRun: false);
+        if (!applied.Succeeded || !applied.Audit.Applied ||
+            !_history.State.Project.Blueprints.Any(item => item.Id == blueprintId))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G8_AUTHOR_UI_FAILED apply");
+            return false;
+        }
+
+        Undo();
+        if (_history.State.Project.Blueprints.Any(item => item.Id == blueprintId))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G8_AUTHOR_UI_FAILED undo");
+            return false;
+        }
+
+        GD.Print("OPENRPG_FORGE_TOOLSET_G8_AUTHOR_UI_PASS domains=9 json=none preview=dry-run apply=command undo=restored diagnostics=structured");
+        return true;
     }
 
     private bool RunCreatorShellSmokeTest()

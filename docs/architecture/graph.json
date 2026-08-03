@@ -3054,6 +3054,33 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/plugin.cfg"
       },
@@ -3099,7 +3126,7 @@
     },
     {
       "evidence": {
-        "line": 207,
+        "line": 211,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -3123,6 +3150,15 @@
       "kind": "references",
       "source": "file:docs/aurora-parity/G7_CLOSURE_EVIDENCE.md",
       "target": "file:docs/aurora-parity/G7_COMPLETION_PLAN.md"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "docs/aurora-parity/G8_CLOSURE_EVIDENCE.md"
+      },
+      "kind": "references",
+      "source": "file:docs/aurora-parity/G8_CLOSURE_EVIDENCE.md",
+      "target": "file:docs/aurora-parity/G8_DELIVERY_PLAN.md"
     },
     {
       "evidence": {
@@ -4148,6 +4184,87 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs",
+      "target": "namespace:Forge.Domain.Combat"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs",
       "target": "namespace:Forge.Domain.Projects"
     },
     {
@@ -5795,7 +5912,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Combat"
     },
     {
       "evidence": {
@@ -5804,7 +5921,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -5813,7 +5930,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
-      "target": "namespace:Forge.Domain.Localization"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -5822,7 +5939,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -5831,7 +5948,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -5840,11 +5957,20 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
         "line": 15,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Quests"
+    },
+    {
+      "evidence": {
+        "line": 16,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "imports",
@@ -14251,6 +14377,105 @@
     {
       "evidence": {
         "line": 9,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "file:src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "model:Forge.Application.Blueprints.SetBlueprintCombatCommand"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 9,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "defined_in",
@@ -16527,6 +16752,33 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Blueprints.SetBlueprintCombatCommand",
+      "target": "file:src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.SetBlueprintCombatCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.SetBlueprintCombatCommand",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
       },
@@ -17274,7 +17526,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -17283,7 +17535,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "relationship",
@@ -17292,7 +17544,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "relationship",
@@ -20955,7 +21207,7 @@
     },
     {
       "evidence": {
-        "line": 1561,
+        "line": 1579,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -21519,6 +21771,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Blueprints",
       "target": "file:src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
     },
     {
       "evidence": {
@@ -22098,7 +22368,7 @@
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 17,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -26076,6 +26346,15 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "apps/Forge.McpHost/Forge.McpHost.csproj"
       },
@@ -26181,6 +26460,24 @@
       "kind": "imports",
       "source": "project:apps/Forge.Toolset/Forge.Toolset",
       "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "apps/Forge.Toolset/Forge.Toolset.csproj"
+      },
+      "kind": "imports",
+      "source": "project:apps/Forge.Toolset/Forge.Toolset",
+      "target": "project:src/Forge.RpgKit.Application/Forge.RpgKit.Application"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "apps/Forge.Toolset/Forge.Toolset.csproj"
+      },
+      "kind": "imports",
+      "source": "project:apps/Forge.Toolset/Forge.Toolset",
+      "target": "project:src/Forge.RpgKit.Domain/Forge.RpgKit.Domain"
     },
     {
       "evidence": {
@@ -26553,7 +26850,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 22,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -26562,7 +26859,7 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 75,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -26571,7 +26868,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 34,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -26580,7 +26877,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -26589,7 +26886,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 37,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -26598,7 +26895,7 @@
     },
     {
       "evidence": {
-        "line": 47,
+        "line": 51,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -26607,7 +26904,7 @@
     },
     {
       "evidence": {
-        "line": 64,
+        "line": 68,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -26616,7 +26913,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 69,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -26625,7 +26922,7 @@
     },
     {
       "evidence": {
-        "line": 45,
+        "line": 49,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -26634,7 +26931,7 @@
     },
     {
       "evidence": {
-        "line": 57,
+        "line": 61,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -41718,7 +42015,7 @@
     },
     {
       "evidence": {
-        "line": 76,
+        "line": 80,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -41727,7 +42024,7 @@
     },
     {
       "evidence": {
-        "line": 77,
+        "line": 81,
         "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -45885,7 +46182,7 @@
     },
     {
       "evidence": {
-        "line": 1529,
+        "line": 1547,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -46344,7 +46641,7 @@
     },
     {
       "evidence": {
-        "line": 4988,
+        "line": 5081,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -46380,7 +46677,16 @@
     },
     {
       "evidence": {
-        "line": 4993,
+        "line": 10,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.RpgKitAuthoringWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 5086,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -46389,7 +46695,7 @@
     },
     {
       "evidence": {
-        "line": 4998,
+        "line": 5091,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -46983,8 +47289,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:34e1866b11cfc119006ec541c5b10bc27bf3186a3d90e15dae5f99eaa7af2694",
-    "source_file_count": 937
+    "source_digest": "sha256:db59b6cc31d53d177639cfa861a46987427c8d9857ce95f8d3f5e29cc50b9a27",
+    "source_file_count": 942
   },
   "nodes": [
     {
@@ -49028,6 +49334,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RpgKitAuthoringWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/main_panel.tscn",
       "kind": "configuration",
       "line": 1,
@@ -49538,6 +49854,16 @@
       "path": "docs/aurora-parity/G7_COMPLETION_PLAN.md"
     },
     {
+      "id": "file:docs/aurora-parity/G8_CLOSURE_EVIDENCE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8_CLOSURE_EVIDENCE.md",
+      "path": "docs/aurora-parity/G8_CLOSURE_EVIDENCE.md"
+    },
+    {
       "id": "file:docs/aurora-parity/G8_DELIVERY_PLAN.md",
       "kind": "document",
       "line": 1,
@@ -49916,6 +50242,16 @@
       },
       "name": "G7-35-WAYPOINT-LOCATORS-DIAGNOSTICS.md",
       "path": "docs/aurora-parity/tasks/G7-35-WAYPOINT-LOCATORS-DIAGNOSTICS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-AUTHOR-UI-01.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-AUTHOR-UI-01.md",
+      "path": "docs/aurora-parity/tasks/G8-AUTHOR-UI-01.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G8-COMPANION-01-FOUNDATION.md",
@@ -50736,6 +51072,26 @@
       },
       "name": "CreateBlueprintFromEntityHandler.cs",
       "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetBlueprintCombatCommand.cs",
+      "path": "src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetBlueprintCombatHandler.cs",
+      "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs",
@@ -57808,6 +58164,16 @@
       "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Blueprints.SetBlueprintCombatHandler",
+      "kind": "handler",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "SetBlueprintCombatHandler",
+      "path": "src/Forge.Application/Blueprints/SetBlueprintCombatHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
       "kind": "handler",
       "line": 9,
@@ -58158,6 +58524,16 @@
       "path": "src/Forge.Application/Blueprints/CreateBlueprintFromEntityCommand.cs"
     },
     {
+      "id": "model:Forge.Application.Blueprints.SetBlueprintCombatCommand",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "SetBlueprintCombatCommand",
+      "path": "src/Forge.Application/Blueprints/SetBlueprintCombatCommand.cs"
+    },
+    {
       "id": "model:Forge.Application.Blueprints.UpsertBlueprintCommand",
       "kind": "model",
       "line": 7,
@@ -58460,7 +58836,7 @@
     {
       "id": "model:Forge.Application.Projects.AuthoredModuleResult",
       "kind": "model",
-      "line": 19,
+      "line": 20,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -60960,7 +61336,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 1561,
+      "line": 1579,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -61939,7 +62315,7 @@
     {
       "id": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
       "kind": "service",
-      "line": 21,
+      "line": 22,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -64336,7 +64712,7 @@
     {
       "id": "type:Forge.Application.Projects.AuthoringClock",
       "kind": "type",
-      "line": 76,
+      "line": 80,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -64346,7 +64722,7 @@
     {
       "id": "type:Forge.Application.Projects.GuidNamespace",
       "kind": "type",
-      "line": 77,
+      "line": 81,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -68936,7 +69312,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 1529,
+      "line": 1547,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -69446,7 +69822,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4988,
+      "line": 5081,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -69484,9 +69860,19 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.RpgKitAuthoringWindow",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "RpgKitAuthoringWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4993,
+      "line": 5086,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -69496,7 +69882,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4998,
+      "line": 5091,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

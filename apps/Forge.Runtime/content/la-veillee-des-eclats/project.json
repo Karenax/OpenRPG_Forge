@@ -156,7 +156,18 @@
         "slug": "lyra",
         "displayName": "Lyra, veilleuse des \u00E9clats",
         "kind": "creature",
-        "combat": null,
+        "combat": {
+          "stats": {
+            "maximumHealth": 24,
+            "maximumResource": 8,
+            "offense": 4,
+            "defense": 3,
+            "faction": "veilleuses",
+            "team": "allies"
+          },
+          "abilities": [],
+          "loot": []
+        },
         "paletteOrigin": "projectContent",
         "isFavorite": false,
         "provenance": {
@@ -174,7 +185,18 @@
         "slug": "murmure",
         "displayName": "Murmure prismatique",
         "kind": "creature",
-        "combat": null,
+        "combat": {
+          "stats": {
+            "maximumHealth": 18,
+            "maximumResource": 6,
+            "offense": 5,
+            "defense": 2,
+            "faction": "souvenirs",
+            "team": "hostiles"
+          },
+          "abilities": [],
+          "loot": []
+        },
         "paletteOrigin": "projectContent",
         "isFavorite": false,
         "provenance": {

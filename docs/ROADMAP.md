@@ -190,6 +190,10 @@ G8 SCRIPT-05 ferme l'interop éditeur/MCP transactionnelle. La prochaine tranche
 Le second module original **La Veillée des Éclats** est désormais généré par commandes, persisté par
 `ProjectSession` et testé jusqu'au rechargement du `.orpmod`. La prochaine tranche reste
 **AUTHOR-UI-01**.
+L'atelier RPG Kit est maintenant relié au bus de commandes avec dry-run, application, undo/redo et
+diagnostics. La prochaine tranche est la revue visuelle nominale/maximisée, puis la fermeture G8.
+G8 est fermé : 184/184 exigences justifiées, atelier auteur responsive, second module original
+exporté et joué, portail global vert. La prochaine tranche est l'audit de preuves **G9 Network Beta**.
 
 ## Phase 6 — 3D assistée
 

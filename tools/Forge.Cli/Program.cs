@@ -47,7 +47,24 @@ static int Run(IReadOnlyList<string> arguments)
 static int AuthorOriginalModule(string targetDirectory)
 {
     var authored = OriginalModuleAuthoringService.CreateVeilleeDesEclats();
-    var created = ProjectSession.Create(Path.GetFullPath(targetDirectory), authored.State.Project);
+    var fullPath = Path.GetFullPath(targetDirectory);
+    ProjectSessionOpenResult created;
+    if (Directory.Exists(fullPath) && File.Exists(Path.Combine(fullPath, ProjectSession.ManifestFileName)))
+    {
+        var opened = ProjectSession.Open(fullPath);
+        if (!opened.Succeeded || opened.Session?.Project.Module.Slug != "la-veillee-des-eclats")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+            return 1;
+        }
+
+        var saved = opened.Session.Save(authored.State.Project);
+        created = new ProjectSessionOpenResult(saved.Succeeded ? opened.Session : null, saved.Diagnostics);
+    }
+    else
+    {
+        created = ProjectSession.Create(fullPath, authored.State.Project);
+    }
     if (!created.Succeeded || created.Session is null)
     {
         Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = created.Diagnostics }));

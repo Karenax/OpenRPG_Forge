@@ -196,6 +196,22 @@ try {
         -Markers @('OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=les-iles-brisees', 'OPENRPG_FORGE_RUNTIME_LIFECYCLE_PASS events=3 order=ProjectLoaded>AreaEntered>WorldStarted authority=SinglePlayer', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=2 collisions=1', 'OPENRPG_FORGE_RUNTIME_GENERIC_SMOKE_PASS slug=les-iles-brisees entities=2 collisions=1 combat=false interaction=empty') `
         -StopAfterMarkers $false
 
+    $g8Workspace = Join-Path $runtimePath 'content\la-veillee-des-eclats'
+    $g8Artifact = Join-Path $artifactRoot 'la-veillee-des-eclats.orpmod'
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'export', $g8Workspace, $g8Artifact)
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'validate', $g8Artifact)
+    $g8RuntimeLog = Join-Path $artifactRoot 'g8-original-module.log'
+    Invoke-ForgeEngineMarkerTest `
+        -Name 'g8-original-module' `
+        -ProjectPath $runtimePath `
+        -Arguments @('--headless', '--path', $runtimePath, '--log-file', $g8RuntimeLog, '--', '--module-package', $g8Artifact, '--rpg-kit-smoke-test') `
+        -Markers @('OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=la-veillee-des-eclats', 'OPENRPG_FORGE_RUNTIME_LIFECYCLE_PASS events=3 order=ProjectLoaded>AreaEntered>WorldStarted authority=SinglePlayer', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=8 collisions=3', 'OPENRPG_FORGE_RUNTIME_G8_MODULE_PASS slug=la-veillee-des-eclats entities=8 collisions=3 combat=2 dialogues=1 quests=1') `
+        -StopAfterMarkers $false
+
     $mcpHostProject = Join-Path $repositoryRoot 'apps\Forge.McpHost\Forge.McpHost.csproj'
     Invoke-CheckedDotnet @(
         'run', '--project', $mcpHostProject, '--configuration', 'Release', '--no-build', '--',

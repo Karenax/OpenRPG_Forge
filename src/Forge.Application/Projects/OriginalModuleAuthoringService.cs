@@ -6,6 +6,7 @@ using Forge.Application.Quests;
 using Forge.Application.Time;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Combat;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Localization;
@@ -41,6 +42,9 @@ public static class OriginalModuleAuthoringService
             ("seuil", "Seuil des souvenirs", BlueprintKind.Trigger),
         };
         foreach (var (slug, name, kind) in blueprints) Apply(history, upsert.Handle(history.State, new(Ids.Command($"blueprint:{slug}"), history.State.Revision, Ids.Blueprint(slug), slug, name, kind, false)), patches);
+        var setCombat = new SetBlueprintCombatHandler(clock);
+        Apply(history, setCombat.Handle(history.State, new(Ids.Command("combat:lyra"), history.State.Revision, Ids.Blueprint("lyra"), new(new CombatStats(24, 8, 4, 3, "veilleuses", "allies")), false)), patches);
+        Apply(history, setCombat.Handle(history.State, new(Ids.Command("combat:murmure"), history.State.Revision, Ids.Blueprint("murmure"), new(new CombatStats(18, 6, 5, 2, "souvenirs", "hostiles")), false)), patches);
         var placements = new[] { ("lyra", -2f, 0f), ("murmure", 4f, 3f), ("eclat", 1f, -3f), ("brasero", 0f, 2f), ("porte", 0f, 7f), ("seuil", 0f, 5f) };
         foreach (var (slug, x, z) in placements) Apply(history, place.Handle(history.State, new(Ids.Command($"place:{slug}"), history.State.Revision, Ids.Area("area"), Ids.Entity(slug), Ids.Blueprint(slug), new(new(x, 0, z), QuaternionValue.Identity, Vector3Value.One), false)), patches);
 

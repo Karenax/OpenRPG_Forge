@@ -81,9 +81,10 @@ public partial class GameRoot : Node3D
         var userArguments = OS.GetCmdlineUserArgs();
         var smokeTest = userArguments.Contains("--smoke-test", StringComparer.Ordinal);
         var genericSmokeTest = userArguments.Contains("--generic-smoke-test", StringComparer.Ordinal);
+        var rpgKitSmokeTest = userArguments.Contains("--rpg-kit-smoke-test", StringComparer.Ordinal);
         var saveSmokeCreate = userArguments.Contains("--save-smoke-create", StringComparer.Ordinal);
         var saveSmokeResume = userArguments.Contains("--save-smoke-resume", StringComparer.Ordinal);
-        var automatedTest = smokeTest || genericSmokeTest || saveSmokeCreate || saveSmokeResume;
+        var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || saveSmokeCreate || saveSmokeResume;
 
         try
         {
@@ -145,7 +146,11 @@ public partial class GameRoot : Node3D
             GD.Print($"OPENRPG_FORGE_RUNTIME_SPAWN_SELECTED id={selectedSpawn.Id}");
             GD.Print($"OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities={_builtEntityCount} collisions={_collisionCount}");
 
-            if (genericSmokeTest)
+            if (rpgKitSmokeTest)
+            {
+                RunRpgKitHeadlessSmokeTest(project);
+            }
+            else if (genericSmokeTest)
             {
                 RunGenericHeadlessSmokeTest();
             }
@@ -1425,8 +1430,8 @@ public partial class GameRoot : Node3D
     {
         AssertSmoke(!_isCryptPrototype, "The generic smoke test cannot use the Crypt prototype module.");
         AssertSmoke(!string.IsNullOrWhiteSpace(_moduleSlug), "The generic module slug was not loaded.");
-        AssertSmoke(_builtEntityCount == 2, "Expected the generated floor and player spawn.");
-        AssertSmoke(_collisionCount == 1, "Expected one generated floor collision.");
+        AssertSmoke(_builtEntityCount >= 2, "Expected at least the generated floor and player spawn.");
+        AssertSmoke(_collisionCount >= 1, "Expected at least one generated floor collision.");
         AssertSmoke(_player is not null, "The generic player spawn was not reconstructed.");
         AssertSmoke(_playerCombatant is null, "A Core starter module must not require an RPG combat profile.");
         AssertSmoke(_npc is null && _keyItem is null && _door is null && _boss is null && _exit is null,
@@ -1440,6 +1445,19 @@ public partial class GameRoot : Node3D
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_GENERIC_SMOKE_PASS slug={_moduleSlug} " +
             $"entities={_builtEntityCount} collisions={_collisionCount} combat=false interaction=empty");
+        GetTree().Quit(0);
+    }
+
+    private void RunRpgKitHeadlessSmokeTest(ProjectDefinition project)
+    {
+        AssertSmoke(string.Equals(_moduleSlug, "la-veillee-des-eclats", StringComparison.Ordinal), "Unexpected RPG Kit smoke module.");
+        AssertSmoke(_builtEntityCount == 8, "Expected eight authored entities.");
+        AssertSmoke(_collisionCount >= 3, "Expected authored floor, placeable and door collisions.");
+        AssertSmoke(_player is not null, "The authored player spawn was not reconstructed.");
+        AssertSmoke(_hostiles.Count == 2, "Expected both authored combat profiles to be reconstructed.");
+        AssertSmoke(project.Dialogues.Count == 1 && project.Dialogues.Single().Nodes.Count == 2, "Expected the authored dialogue graph.");
+        AssertSmoke(project.Quests.Count == 1 && project.Quests.Single().States.Count == 3, "Expected the authored quest state machine.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G8_MODULE_PASS slug={_moduleSlug} entities={_builtEntityCount} collisions={_collisionCount} combat={_hostiles.Count} dialogues=1 quests=1");
         GetTree().Quit(0);
     }
 
