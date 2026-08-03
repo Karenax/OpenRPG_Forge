@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 CREATURE-02** pour `ORF-CRE-036`, `043`, `049`, `001` et `004` : combat, événements, validation et assistant.
+Exécuter **G8 CREATURE-03** pour `ORF-CRE-005`, `008`, `011`, `012` et `013` : espèce, apparence, animations, pose et attributs.

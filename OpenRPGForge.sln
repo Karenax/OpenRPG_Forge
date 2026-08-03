@@ -47,6 +47,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Forge.RpgKit.Domain", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Forge.RpgKit.Domain.Tests", "tests\Forge.RpgKit.Domain.Tests\Forge.RpgKit.Domain.Tests.csproj", "{F414C821-B743-43C8-8087-A22FAA8F1F93}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Forge.RpgKit.Application", "src\Forge.RpgKit.Application\Forge.RpgKit.Application.csproj", "{3DC9551A-4435-4FC9-B481-50B07FAF77F1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -273,6 +275,18 @@ Global
 		{F414C821-B743-43C8-8087-A22FAA8F1F93}.Release|x64.Build.0 = Release|Any CPU
 		{F414C821-B743-43C8-8087-A22FAA8F1F93}.Release|x86.ActiveCfg = Release|Any CPU
 		{F414C821-B743-43C8-8087-A22FAA8F1F93}.Release|x86.Build.0 = Release|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Debug|x64.Build.0 = Debug|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Debug|x86.Build.0 = Debug|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Release|x64.ActiveCfg = Release|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Release|x64.Build.0 = Release|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Release|x86.ActiveCfg = Release|Any CPU
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -296,5 +310,6 @@ Global
 		{056E0FAB-FE54-4B81-BD06-FED24C08C0DE} = {1787FE1D-075E-9E68-7218-25F1BD1BBEAB}
 		{2E8DEA54-32F0-408A-937F-B4BF87F6550A} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{F414C821-B743-43C8-8087-A22FAA8F1F93} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{3DC9551A-4435-4FC9-B481-50B07FAF77F1} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

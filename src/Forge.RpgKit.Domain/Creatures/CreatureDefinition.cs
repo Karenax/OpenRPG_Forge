@@ -5,6 +5,7 @@ namespace Forge.RpgKit.Domain.Creatures;
 
 public enum CreatureMovementMode { Grounded, Flying, Swimming, Climbing, Vehicle, ZeroG }
 public enum CreatureSpawnAuthority { Local, Host, Server }
+public enum EncounterRole { Minion, Skirmisher, Defender, Controller, Support, Boss, NonCombatant }
 
 public sealed record LocalizedCreatureText(string DefaultText, IReadOnlyDictionary<string, string> Translations);
 
@@ -32,12 +33,23 @@ public sealed record CreatureScriptBindings(
     string? OnSpawn,
     IReadOnlyDictionary<string, string> Events);
 
+public sealed record CreatureAuthoringProfile(
+    string ArchetypeId,
+    string RulesetId,
+    string RigId,
+    string FactionId,
+    EncounterRole Role,
+    double ThreatRating,
+    string VisualKitId,
+    IReadOnlySet<string> CombatTags);
+
 public sealed record CreatureDefinition(
     Guid Id,
     int SchemaVersion,
     string Provenance,
     BlueprintId BlueprintId,
     CreatureIdentity Identity,
+    CreatureAuthoringProfile Authoring,
     TransformValue DefaultTransform,
     IReadOnlyList<ResourcePool> Resources,
     CreatureMovementProfile Movement,
@@ -62,3 +74,17 @@ public sealed record CreatureSpawned(
     BlueprintId BlueprintId,
     CreatureSpawnContext Context,
     IReadOnlyDictionary<string, double> ResourceState);
+
+public sealed record DamageRequest(Guid TransactionId, Guid TargetId, string? SourceId, double Amount, string DamageType, string Cause);
+public sealed record DamageApplied(Guid EventId, Guid TransactionId, Guid TargetId, string? SourceId, double Requested, double Applied, double RemainingHealth, string DamageType, string Cause);
+public sealed record EntityDied(Guid EventId, Guid TargetId, string? KillerId, IReadOnlyList<string> Contributors, string Cause, TransformValue Location, IReadOnlyList<string> LootIds, string Policy);
+public sealed record CreatureValidationDiagnostic(string Code, string Path, string Message);
+public sealed record CreatureValidationContext(
+    IReadOnlySet<string> AvailableRigs,
+    IReadOnlySet<string> AvailableAppearances,
+    IReadOnlySet<string> AvailableCombatProfiles,
+    IReadOnlySet<string> AvailableInventoryProfiles,
+    IReadOnlySet<string> AvailableFactions,
+    IReadOnlySet<string> AvailableScripts,
+    int MaximumResources,
+    double MaximumThreatRating);

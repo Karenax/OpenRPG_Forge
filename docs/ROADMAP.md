@@ -108,6 +108,8 @@ L'audit G8 et ses 40 lots sont définis dans `docs/aurora-parity/G8_DELIVERY_PLA
 La prochaine tranche est **G8 CREATURE-01**, fondation du module La Veillée des Éclats.
 G8 CREATURE-01 livre la frontière `Forge.RpgKit.Domain`, les créatures composables, ressources,
 déplacements et l'événement de spawn autoritaire. La prochaine tranche est **CREATURE-02**.
+G8 CREATURE-02 livre assistant transactionnel, rôle/menace, dégâts, mort et validation structurée.
+La prochaine tranche est **CREATURE-03**.
 
 ## Phase 6 — 3D assistée
 

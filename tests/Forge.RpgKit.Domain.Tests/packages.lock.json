@@ -99,8 +99,21 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "forge.application": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Domain": "[1.0.0, )"
+        }
+      },
       "forge.domain": {
         "type": "Project"
+      },
+      "forge.rpgkit.application": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Application": "[1.0.0, )",
+          "Forge.RpgKit.Domain": "[1.0.0, )"
+        }
       },
       "forge.rpgkit.domain": {
         "type": "Project",
