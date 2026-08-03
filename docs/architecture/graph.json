@@ -1020,7 +1020,7 @@
     },
     {
       "evidence": {
-        "line": 1715,
+        "line": 1714,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1038,7 +1038,7 @@
     },
     {
       "evidence": {
-        "line": 1464,
+        "line": 1463,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1047,7 +1047,7 @@
     },
     {
       "evidence": {
-        "line": 1668,
+        "line": 1667,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1083,7 +1083,7 @@
     },
     {
       "evidence": {
-        "line": 1465,
+        "line": 1464,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1092,7 +1092,7 @@
     },
     {
       "evidence": {
-        "line": 1517,
+        "line": 1516,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1101,7 +1101,7 @@
     },
     {
       "evidence": {
-        "line": 1609,
+        "line": 1608,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1137,7 +1137,7 @@
     },
     {
       "evidence": {
-        "line": 1466,
+        "line": 1465,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1146,7 +1146,7 @@
     },
     {
       "evidence": {
-        "line": 1517,
+        "line": 1516,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1155,7 +1155,7 @@
     },
     {
       "evidence": {
-        "line": 1684,
+        "line": 1683,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1236,7 +1236,7 @@
     },
     {
       "evidence": {
-        "line": 1701,
+        "line": 1700,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2838,6 +2838,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/plugin.cfg"
       },
@@ -2874,7 +2883,7 @@
     },
     {
       "evidence": {
-        "line": 88,
+        "line": 90,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2883,7 +2892,7 @@
     },
     {
       "evidence": {
-        "line": 104,
+        "line": 106,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -6879,6 +6888,24 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
       },
@@ -9710,6 +9737,33 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Tests.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
@@ -20001,6 +20055,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Workspaces",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
       },
@@ -20061,6 +20124,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Workspaces",
       "target": "file:src/Forge.ModuleFormat/Workspaces/ProjectWorkspaceManifest.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Workspaces",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
     },
     {
       "evidence": {
@@ -20358,6 +20430,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Toolset.Editor",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs"
     },
     {
       "evidence": {
@@ -29190,6 +29271,42 @@
     },
     {
       "evidence": {
+        "line": 24,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.RecoverySnapshotStoreTests",
+      "target": "adapter:Forge.ModuleFormat.Serialization.ProjectJsonSerializer"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.RecoverySnapshotStoreTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.RecoverySnapshotStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.ProjectSession"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.RecoverySnapshotStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.RecoverySnapshotStore"
+    },
+    {
+      "evidence": {
         "line": 67,
         "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
       },
@@ -30891,6 +31008,33 @@
     },
     {
       "evidence": {
+        "line": 92,
+        "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Workspaces.RecoveryJournal",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Workspaces.RecoverySnapshotInfo",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Workspaces.RecoverySnapshotStore",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+    },
+    {
+      "evidence": {
         "line": 22,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
@@ -31098,7 +31242,7 @@
     },
     {
       "evidence": {
-        "line": 4862,
+        "line": 4940,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -31125,7 +31269,16 @@
     },
     {
       "evidence": {
-        "line": 4867,
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.RecoveryWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 4945,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -31134,7 +31287,7 @@
     },
     {
       "evidence": {
-        "line": 4872,
+        "line": 4950,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -31719,8 +31872,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:3ae3516fb700aef3095e9adf94df4aeacebbc6a3a4737b0cf7811cbe032a07f9",
-    "source_file_count": 733
+    "source_digest": "sha256:eba13216d23ba5a6c799795c3a86b43597c4055386bc720b2492cea86f01d664",
+    "source_file_count": 737
   },
   "nodes": [
     {
@@ -33474,6 +33627,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RecoveryWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/main_panel.tscn",
       "kind": "configuration",
       "line": 1,
@@ -34192,6 +34355,16 @@
       },
       "name": "G7-20-CREATOR-PRODUCTIVITY.md",
       "path": "docs/aurora-parity/tasks/G7-20-CREATOR-PRODUCTIVITY.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G7-21-AUTOSAVE-RECOVERY.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-21-AUTOSAVE-RECOVERY.md",
+      "path": "docs/aurora-parity/tasks/G7-21-AUTOSAVE-RECOVERY.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -37334,6 +37507,16 @@
       "path": "src/Forge.ModuleFormat/Workspaces/ProjectWorkspaceManifest.cs"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RecoverySnapshotStore.cs",
+      "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/packages.lock.json",
       "kind": "configuration",
       "line": 1,
@@ -38292,6 +38475,16 @@
       },
       "name": "ProjectSessionTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RecoverySnapshotStoreTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/packages.lock.json",
@@ -43367,6 +43560,16 @@
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
     },
     {
+      "id": "test:Forge.ModuleFormat.Tests.Workspaces.RecoverySnapshotStoreTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Workspaces"
+      },
+      "name": "RecoverySnapshotStoreTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+    },
+    {
       "id": "test:Forge.Scripting.Tests.CountingRuntime",
       "kind": "test",
       "line": 67,
@@ -45104,6 +45307,36 @@
       "path": "src/Forge.ModuleFormat/Workspaces/ProjectWorkspaceManifest.cs"
     },
     {
+      "id": "type:Forge.ModuleFormat.Workspaces.RecoveryJournal",
+      "kind": "type",
+      "line": 92,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "RecoveryJournal",
+      "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Workspaces.RecoverySnapshotInfo",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "RecoverySnapshotInfo",
+      "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Workspaces.RecoverySnapshotStore",
+      "kind": "type",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "RecoverySnapshotStore",
+      "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
+    },
+    {
       "id": "type:Forge.Runtime.GameRoot",
       "kind": "type",
       "line": 22,
@@ -45336,7 +45569,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4862,
+      "line": 4940,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -45364,9 +45597,19 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.RecoveryWindow",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "RecoveryWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4867,
+      "line": 4945,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -45376,7 +45619,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4872,
+      "line": 4950,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

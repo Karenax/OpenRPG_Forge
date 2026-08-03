@@ -227,5 +227,5 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-21 — sauvegarde automatique et récupération** pour `ORF-SHELL-024` et `ORF-PROJ-022` :
-snapshots hors contenu canonique, journal de récupération, restauration explicite et preuves de crash.
+Ouvrir **G7-22 — bibliothèque et gouvernance des palettes** pour `ORF-PAL-004`, `005`, `008`,
+`013` et `014` : arbre de catégories, recherche avancée, collections, packs et provenance visible.

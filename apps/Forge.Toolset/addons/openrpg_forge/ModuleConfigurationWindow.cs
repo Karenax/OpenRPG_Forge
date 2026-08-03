@@ -209,8 +209,9 @@ public partial class ModuleConfigurationWindow : Window
         _locale = AddField(localization, "Langue", "fr ou en-US");
         _localizedName = AddField(localization, "Nom", "Nom public du module");
         _summary = AddField(localization, "Résumé", "Une phrase courte");
-        localization.AddChild(new Label { Text = "Description" });
+        localization.AddChild(new Label { Text = "Description & instructions joueur" });
         _description = new TextEdit { CustomMinimumSize = new Vector2(0, 72), WrapMode = TextEdit.LineWrappingMode.Boundary };
+        _description.TooltipText = "Structure conseillée : synopsis, installation, règles, contrôles, avertissements et compatibilité.";
         localization.AddChild(_description);
         localization.AddChild(new Label { Text = "Crédits localisés" });
         _credits = new TextEdit { CustomMinimumSize = new Vector2(0, 58), WrapMode = TextEdit.LineWrappingMode.Boundary };

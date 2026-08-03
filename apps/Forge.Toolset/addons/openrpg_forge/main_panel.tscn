@@ -152,6 +152,12 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_new_button_hover")
 disabled = true
 text = "Espace de travail"
 
+[node name="RecoveryButton" type="Button" parent="Margin/Content/Actions"]
+custom_minimum_size = Vector2(135, 42)
+layout_mode = 2
+disabled = true
+text = "Récupération"
+
 [node name="SearchButton" type="Button" parent="Margin/Content/Actions"]
 custom_minimum_size = Vector2(145, 42)
 layout_mode = 2

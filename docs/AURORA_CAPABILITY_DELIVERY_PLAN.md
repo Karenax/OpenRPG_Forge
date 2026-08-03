@@ -220,7 +220,7 @@ sémantique, la recherche globale et le refactoring sûr, la configuration du mo
 la caméra auteur, les événements Core, le build incrémental, la conformité de distribution puis la
 navigation, la validation spatiale, les diagnostics actionnables, le navigateur d’assets et la
 localisation auteur, la mise à l’échelle, le pathfinding amélioré et l’espace de travail productif ;
-G7-21 est la prochaine tâche.
+G7-21 est franchi ; G7-22 est la prochaine tâche.
 
 **Domaines.** `SHELL`, `PROJECT`, `AREA`, `PALETTE`, parties Core de `PLACEABLE`, `DOOR`, `TRIGGER`,
 `WAYPOINT`, `AUDIO`, `GAMEPLAY`, `CONTENT`, `BUILD`, `QA` et `EE` indispensable.

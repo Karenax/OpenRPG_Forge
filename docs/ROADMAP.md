@@ -84,9 +84,11 @@ G7-19 livre le pathfinding A* déterministe avec coûts, obstacles dynamiques, r
 instrumentation et invalidation partielle.
 G7-20 livre l'espace de travail créateur avec profils persistants, filtres visuels combinés,
 placement répété atomique, zones ouvertes comparables et aide contextuelle sourcée.
+G7-21 livre l'autosauvegarde isolée, le journal de récupération vérifié et les instructions joueur
+localisées via la configuration transactionnelle du module.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-21 — sauvegarde automatique et récupération**.
+La prochaine tranche est **G7-22 — bibliothèque et gouvernance des palettes**.
 
 ## Phase 6 — 3D assistée
 

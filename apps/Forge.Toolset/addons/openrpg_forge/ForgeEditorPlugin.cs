@@ -66,6 +66,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
     private readonly SemanticClipboard _semanticClipboard = new();
+    private readonly RecoverySnapshotStore _recoveryStore = new();
     private readonly List<BlueprintId> _paletteBlueprintIds = [];
     private readonly List<EntityId> _entityIds = [];
     private readonly List<EntityId> _spawnEntityIds = [];
@@ -85,6 +86,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _dialoguesButton;
     private Button? _areasButton;
     private Button? _workspaceButton;
+    private Button? _recoveryButton;
     private Button? _searchButton;
     private Button? _moduleSettingsButton;
     private Button? _reloadButton;
@@ -152,6 +154,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private DistributionProfilesWindow? _distributionProfiles;
     private NavigationConfigurationWindow? _navigationConfiguration;
     private CreatorWorkspaceWindow? _workspaceWindow;
+    private RecoveryWindow? _recoveryWindow;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -164,6 +167,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private int _selectedDraftOverrideIndex = -1;
     private double _editorReadyElapsed;
     private double _titleRefreshElapsed;
+    private double _recoveryElapsed;
+    private long _lastRecoveryRevision = -1;
+    private long _lastSavedRevision;
 
     public override void _EnterTree()
     {
@@ -250,6 +256,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
             PlaceRepeatedSeries,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_workspaceWindow);
+        _recoveryWindow = new RecoveryWindow();
+        _recoveryWindow.Initialize(ListRecoverySnapshots, RestoreRecoverySnapshot, CaptureRecoverySnapshot,
+            ClearRecoverySnapshots, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_recoveryWindow);
         _navigationConfiguration = new NavigationConfigurationWindow();
         _navigationConfiguration.Initialize(
             () => _history?.State,
@@ -332,6 +342,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialoguesButton = null;
         _areasButton = null;
         _workspaceButton = null;
+        _recoveryButton = null;
         _searchButton = null;
         _moduleSettingsButton = null;
         _reloadButton = null;
@@ -398,6 +409,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _buildPipeline = null;
         _distributionProfiles = null;
         _navigationConfiguration = null;
+        _workspaceWindow = null;
+        _recoveryWindow = null;
         _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
@@ -438,6 +451,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             action();
         }
+
+        _recoveryElapsed += delta;
+        if (_recoveryElapsed >= 60)
+        {
+            _recoveryElapsed = 0;
+            CaptureRecoverySnapshot();
+        }
     }
 
     public override bool _HasMainScreen() => true;
@@ -465,6 +485,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialoguesButton = GetControl<Button>("Margin/Content/Actions/DialoguesButton");
         _areasButton = GetControl<Button>("Margin/Content/Actions/AreasButton");
         _workspaceButton = GetControl<Button>("Margin/Content/Actions/WorkspaceButton");
+        _recoveryButton = GetControl<Button>("Margin/Content/Actions/RecoveryButton");
         _searchButton = GetControl<Button>("Margin/Content/Actions/SearchButton");
         _moduleSettingsButton = GetControl<Button>("Margin/Content/Actions/ModuleSettingsButton");
         _reloadButton = GetControl<Button>("Margin/Content/Actions/ValidateButton");
@@ -789,6 +810,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialoguesButton!.Pressed += OpenDialogueEditor;
         _areasButton!.Pressed += OpenAreaWorkspace;
         _workspaceButton!.Pressed += OpenCreatorWorkspace;
+        _recoveryButton!.Pressed += OpenRecoveryWindow;
         _searchButton!.Pressed += OpenGlobalSearch;
         _moduleSettingsButton!.Pressed += OpenModuleConfiguration;
         _reloadButton!.Pressed += ReloadProject;
@@ -842,6 +864,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_dialoguesButton is not null) _dialoguesButton.Pressed -= OpenDialogueEditor;
         if (_areasButton is not null) _areasButton.Pressed -= OpenAreaWorkspace;
         if (_workspaceButton is not null) _workspaceButton.Pressed -= OpenCreatorWorkspace;
+        if (_recoveryButton is not null) _recoveryButton.Pressed -= OpenRecoveryWindow;
         if (_searchButton is not null) _searchButton.Pressed -= OpenGlobalSearch;
         if (_moduleSettingsButton is not null) _moduleSettingsButton.Pressed -= OpenModuleConfiguration;
         if (_reloadButton is not null) _reloadButton.Pressed -= ReloadProject;
@@ -1165,6 +1188,57 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private void OpenAreaWorkspace() => _areaWorkspace?.Open();
 
     private void OpenCreatorWorkspace() => _workspaceWindow?.Open();
+
+    private void OpenRecoveryWindow() => _recoveryWindow?.Open();
+
+    private IReadOnlyList<RecoverySnapshotInfo> ListRecoverySnapshots()
+    {
+        if (_projectSession is null) return [];
+        try { return _recoveryStore.List(_projectSession.RootDirectory); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or NotSupportedException)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_RECOVERY_LIST_FAILED {exception.Message}"); return [];
+        }
+    }
+
+    private void CaptureRecoverySnapshot()
+    {
+        if (_projectSession is null || _history is null || _history.State.Revision.Value == _lastSavedRevision ||
+            _history.State.Revision.Value == _lastRecoveryRevision) return;
+        try
+        {
+            var snapshot = _recoveryStore.Capture(_projectSession.RootDirectory, _history.State.Project,
+                _history.State.Revision.Value, DateTimeOffset.UtcNow);
+            _lastRecoveryRevision = _history.State.Revision.Value;
+            GD.Print($"OPENRPG_FORGE_AUTOSAVE_CAPTURED revision={snapshot.Revision} hash={snapshot.ProjectSha256[..12]}");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        { GD.PrintErr($"OPENRPG_FORGE_AUTOSAVE_FAILED {exception.Message}"); }
+    }
+
+    private bool RestoreRecoverySnapshot(RecoverySnapshotInfo snapshot)
+    {
+        if (_history is null) return false;
+        try
+        {
+            var project = _recoveryStore.Restore(snapshot);
+            _history = new ProjectCommandHistory(new ProjectState(project, _history.State.Revision.Next()));
+            _activeAreaContext.EnsureValid(project); RebuildPreview(); RefreshEditorControls();
+            _statusLabel!.Text = "✓ Instantané restauré en mémoire";
+            _detailsLabel!.Text = "Aucun fichier canonique modifié · Enregistrer pour confirmer";
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or InvalidDataException or System.Text.Json.JsonException or NotSupportedException)
+        { GD.PrintErr($"OPENRPG_FORGE_RECOVERY_RESTORE_FAILED {exception.Message}"); return false; }
+    }
+
+    private void ClearRecoverySnapshots()
+    {
+        if (_projectSession is null) return;
+        try { _recoveryStore.Clear(_projectSession.RootDirectory); _lastRecoveryRevision = -1; }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        { GD.PrintErr($"OPENRPG_FORGE_RECOVERY_CLEAR_FAILED {exception.Message}"); }
+    }
 
     private int ApplyWorkspaceFilter(EditorDisplayFilter filter)
     {
@@ -2172,6 +2246,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _history = new ProjectCommandHistory(new ProjectState(
             _projectSession.Project,
             new ProjectRevision(0)));
+        _lastSavedRevision = 0;
+        _lastRecoveryRevision = 0;
         var cameraProfile = EditorCameraProfileStore.LoadOrCreate(
             _projectSession.RootDirectory,
             _projectSession.Project.Id);
@@ -2520,6 +2596,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         _statusLabel.Text = "✓ Projet sauvegardé de façon atomique";
         _detailsLabel.Text = $"{_history.State.Project.Title} — aucune écriture partielle";
+        _lastSavedRevision = _history.State.Revision.Value;
         GD.Print("OPENRPG_FORGE_TOOLSET_PROJECT_SAVED");
     }
 
@@ -2654,6 +2731,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialoguesButton!.Disabled = !enabled;
         _areasButton!.Disabled = !enabled;
         _workspaceButton!.Disabled = !enabled;
+        _recoveryButton!.Disabled = !enabled;
         _searchButton!.Disabled = !enabled;
         _moduleSettingsButton!.Disabled = !enabled;
         _exportButton!.Disabled = !enabled;
