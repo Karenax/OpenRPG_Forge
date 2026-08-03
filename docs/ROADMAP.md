@@ -140,6 +140,8 @@ G8 PLACEABLE-04 livre événements de verrou, contenu et dégâts, sockets compo
 contextuels. La famille Placeable G8 est complète ; la prochaine tranche est **DOOR-01**.
 G8 DOOR-01 livre portes sur socket ou libres, machine d’états, interaction, portails et liens atomiques.
 La prochaine tranche est **DOOR-02**.
+G8 DOOR-02 livre navigation dynamique, verrou partagé, rejets localisés, pièges et validation croisée.
+La prochaine tranche est **DOOR-03**.
 
 ## Phase 6 — 3D assistée
 

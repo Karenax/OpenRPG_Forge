@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 DOOR-02** pour `ORF-DOOR-019`, `021`, `004`, `005` et `006` : validation, inspecteur, verrou, piège et états visuels.
+Exécuter **G8 DOOR-03** pour `ORF-DOOR-011`, `012` et `013` : événements d’ouverture, fermeture et transition.

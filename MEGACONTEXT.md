@@ -1417,7 +1417,7 @@ Le résumé doit contenir :
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
-> Réalise **G8 DOOR-02** pour `ORF-DOOR-019`, `021`, `004`, `005` et `006` : validation, inspecteur, verrou, piège et états visuels.
+> Réalise **G8 DOOR-03** pour `ORF-DOOR-011`, `012` et `013` : événements d’ouverture, fermeture et transition.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.
