@@ -122,6 +122,8 @@ G8 FACTION-01 livre définitions versionnées, matrice asymétrique, disposition
 structurelle. La prochaine tranche est **FACTION-02**.
 G8 FACTION-02 livre réputation personnelle et globale, tags, historique heatmap et résolution expliquée
 des réactions. La famille Faction G8 est complète ; la prochaine tranche est **ITEM-01**.
+G8 ITEM-01 livre blueprints et instances séparés, identité localisée, wizard, migration de type et
+validation structurée. La prochaine tranche est **ITEM-02**.
 
 ## Phase 6 — 3D assistée
 

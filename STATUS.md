@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 ITEM-01** pour `ORF-ITEM-015`, `001`, `002`, `003` et `004` : fondation canonique des objets.
+Exécuter **G8 ITEM-02** pour `ORF-ITEM-005`, `006`, `008`, `009` et `013` : apparence, empilement, poids, valeur et propriétés.

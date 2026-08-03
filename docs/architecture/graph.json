@@ -777,6 +777,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.RpgKit.Domain.Items.ItemTypeMigrationPreview",
+      "target": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "evidence": {
         "line": 38,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
@@ -2937,7 +2946,7 @@
     },
     {
       "evidence": {
-        "line": 139,
+        "line": 141,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -7411,6 +7420,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Items"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
       "kind": "imports",
@@ -10845,6 +10863,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs",
       "target": "namespace:Forge.RpgKit.Domain.Factions"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs",
+      "target": "namespace:Forge.RpgKit.Application.Items"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Items"
     },
     {
       "evidence": {
@@ -15087,6 +15123,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "interface:Forge.RpgKit.Application.Items.ItemAuthoringService",
+      "target": "file:src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Scripting/IForgeScriptRuntime.cs"
       },
@@ -18408,6 +18453,51 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Items.ItemAuthoringResult",
+      "target": "file:src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Items.ItemAuthoringResult",
+      "target": "model:Forge.RpgKit.Application.Items.ItemAuthoringState"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Items.ItemAuthoringResult",
+      "target": "model:Forge.RpgKit.Domain.Items.ItemDefinition"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Items.ItemAuthoringState",
+      "target": "file:src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Items.ItemAuthoringState",
+      "target": "model:Forge.RpgKit.Domain.Items.ItemDefinition"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
@@ -18648,6 +18738,33 @@
       "kind": "defined_in",
       "source": "model:Forge.RpgKit.Domain.Factions.ReputationState",
       "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Items.ItemDefinition",
+      "target": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Items.ItemDiagnostic",
+      "target": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Items.ItemInstance",
+      "target": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs"
     },
     {
       "evidence": {
@@ -22549,6 +22666,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Application.Items",
+      "target": "file:src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
       "kind": "defined_in",
@@ -22629,6 +22755,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Items",
+      "target": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
       },
@@ -22698,6 +22833,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Factions",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Items",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
     },
     {
       "evidence": {
@@ -34014,6 +34158,78 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.ItemFoundationTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.ItemFoundationTests",
+      "target": "interface:Forge.RpgKit.Application.Items.ItemAuthoringService"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.ItemFoundationTests",
+      "target": "model:Forge.RpgKit.Application.Items.ItemAuthoringState"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.ItemFoundationTests",
+      "target": "model:Forge.RpgKit.Domain.Items.ItemDefinition"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.ItemFoundationTests",
+      "target": "model:Forge.RpgKit.Domain.Items.ItemInstance"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.ItemFoundationTests",
+      "target": "type:Forge.RpgKit.Application.Items.ItemWizardRequest"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.ItemFoundationTests",
+      "target": "type:Forge.RpgKit.Domain.Items.ItemRules"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Items.ItemFoundationTests",
+      "target": "type:Forge.RpgKit.Domain.Items.ItemType"
+    },
+    {
+      "evidence": {
         "line": 67,
         "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
       },
@@ -36489,6 +36705,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Application.Items.ItemWizardRequest",
+      "target": "file:src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
@@ -37008,6 +37233,42 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Factions.ReputationTransaction",
       "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Items.ItemProperty",
+      "target": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Items.ItemRules",
+      "target": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Items.ItemType",
+      "target": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Items.LocalizedItemText",
+      "target": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs"
     },
     {
       "evidence": {
@@ -37893,8 +38154,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:f6d419d95c61fe793490c91e43d1d00bcedbc857e8d0a8eb2c3e36b00ea779d7",
-    "source_file_count": 825
+    "source_digest": "sha256:c9347c11aeadb792e4fb2735537e254d6ef730ebb76dc839169683de3effb0fe",
+    "source_file_count": 829
   },
   "nodes": [
     {
@@ -38306,6 +38567,16 @@
       },
       "name": "EditorCameraView",
       "path": "src/Forge.Domain/Authoring/EditorCameraView.cs"
+    },
+    {
+      "id": "component:Forge.RpgKit.Domain.Items.ItemTypeMigrationPreview",
+      "kind": "component",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Items"
+      },
+      "name": "ItemTypeMigrationPreview",
+      "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
     },
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
@@ -40656,6 +40927,16 @@
       },
       "name": "G8-FACTION-02-REPUTATION.md",
       "path": "docs/aurora-parity/tasks/G8-FACTION-02-REPUTATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-ITEM-01-FOUNDATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-ITEM-01-FOUNDATION.md",
+      "path": "docs/aurora-parity/tasks/G8-ITEM-01-FOUNDATION.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -44088,6 +44369,16 @@
       "path": "src/Forge.RpgKit.Application/Forge.RpgKit.Application.csproj"
     },
     {
+      "id": "file:src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ItemAuthoringService.cs",
+      "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Application/packages.lock.json",
       "kind": "configuration",
       "line": 1,
@@ -44196,6 +44487,16 @@
       },
       "name": "Forge.RpgKit.Domain.csproj",
       "path": "src/Forge.RpgKit.Domain/Forge.RpgKit.Domain.csproj"
+    },
+    {
+      "id": "file:src/Forge.RpgKit.Domain/Items/ItemModels.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ItemModels.cs",
+      "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
     },
     {
       "id": "file:src/Forge.RpgKit.Domain/packages.lock.json",
@@ -45396,6 +45697,16 @@
       },
       "name": "Forge.RpgKit.Domain.Tests.csproj",
       "path": "tests/Forge.RpgKit.Domain.Tests/Forge.RpgKit.Domain.Tests.csproj"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ItemFoundationTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/packages.lock.json",
@@ -47558,6 +47869,16 @@
       "path": "apps/Forge.Runtime/Runtime/PlayerController.cs"
     },
     {
+      "id": "interface:Forge.RpgKit.Application.Items.ItemAuthoringService",
+      "kind": "interface",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "ItemAuthoringService",
+      "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
       "id": "interface:Forge.Scripting.IForgeScriptRuntime",
       "kind": "interface",
       "line": 3,
@@ -49268,6 +49589,26 @@
       "path": "src/Forge.RpgKit.Application/Factions/FactionAuthoringService.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Application.Items.ItemAuthoringResult",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "ItemAuthoringResult",
+      "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Application.Items.ItemAuthoringState",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "ItemAuthoringState",
+      "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Creatures.AiBlackboardValue",
       "kind": "model",
       "line": 11,
@@ -49416,6 +49757,36 @@
       },
       "name": "ReputationState",
       "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Items.ItemDefinition",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Items"
+      },
+      "name": "ItemDefinition",
+      "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Items.ItemDiagnostic",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Items"
+      },
+      "name": "ItemDiagnostic",
+      "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Items.ItemInstance",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Items"
+      },
+      "name": "ItemInstance",
+      "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
     },
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
@@ -50014,6 +50385,11 @@
       "name": "Forge.RpgKit.Application.Factions"
     },
     {
+      "id": "namespace:Forge.RpgKit.Application.Items",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Application.Items"
+    },
+    {
       "id": "namespace:Forge.RpgKit.Domain.Creatures",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Creatures"
@@ -50024,6 +50400,11 @@
       "name": "Forge.RpgKit.Domain.Factions"
     },
     {
+      "id": "namespace:Forge.RpgKit.Domain.Items",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Items"
+    },
+    {
       "id": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Tests.Creatures"
@@ -50032,6 +50413,11 @@
       "id": "namespace:Forge.RpgKit.Domain.Tests.Factions",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Tests.Factions"
+    },
+    {
+      "id": "namespace:Forge.RpgKit.Domain.Tests.Items",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Tests.Items"
     },
     {
       "id": "namespace:Forge.Runtime",
@@ -51315,6 +51701,16 @@
       },
       "name": "FactionReputationTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Items.ItemFoundationTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Items"
+      },
+      "name": "ItemFoundationTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemFoundationTests.cs"
     },
     {
       "id": "test:Forge.Scripting.Tests.CountingRuntime",
@@ -53914,6 +54310,16 @@
       "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringService.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Application.Items.ItemWizardRequest",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Items"
+      },
+      "name": "ItemWizardRequest",
+      "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Creatures.AbilityImpacted",
       "kind": "type",
       "line": 9,
@@ -54492,6 +54898,46 @@
       },
       "name": "ReputationTransaction",
       "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Items.ItemProperty",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Items"
+      },
+      "name": "ItemProperty",
+      "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Items.ItemRules",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Items"
+      },
+      "name": "ItemRules",
+      "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Items.ItemType",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Items"
+      },
+      "name": "ItemType",
+      "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Items.LocalizedItemText",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Items"
+      },
+      "name": "LocalizedItemText",
+      "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
     },
     {
       "id": "type:Forge.Runtime.GameRoot",
