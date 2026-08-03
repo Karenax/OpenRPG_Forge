@@ -227,4 +227,7 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
+Le second module original **La Veillée des Éclats** est généré par 15 commandes d'auteur puis
+persisté via `ProjectSession`; son round-trip et son export `.orpmod` sont couverts automatiquement.
+
 Exécuter **G8 AUTHOR-UI-01** : exposer les services RPG Kit dans des écrans d'auteur utilisables sans édition JSON, avec dry-run, commit, undo/redo et diagnostics.

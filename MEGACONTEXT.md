@@ -1417,6 +1417,8 @@ Le résumé doit contenir :
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
+> Le second module original **La Veillée des Éclats** est généré exclusivement par les handlers
+> d'auteur et `ProjectSession`, avec round-trip/export automatisé.
 > Réalise **G8 AUTHOR-UI-01** : expose les services RPG Kit dans des écrans d'auteur utilisables sans édition JSON, avec dry-run, commit, undo/redo et diagnostics.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,

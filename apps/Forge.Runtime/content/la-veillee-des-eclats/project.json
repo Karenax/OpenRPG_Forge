@@ -1,0 +1,410 @@
+{
+  "formatVersion": "1.0.0",
+  "project": {
+    "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
+    "title": "La Veill\u00E9e des \u00C9clats",
+    "module": {
+      "id": "5e1ecd20-f6be-ee23-a34a-183a68e54d2f",
+      "slug": "la-veillee-des-eclats",
+      "displayName": "La Veill\u00E9e des \u00C9clats",
+      "description": "Au bord d\u0027un observatoire bris\u00E9, une veilleuse n\u00E9gocie avec les souvenirs lumineux d\u0027un ciel disparu.",
+      "entryAreaId": "72e76124-3a4a-5245-c00e-e348ac4cb292",
+      "metadata": {
+        "id": "5e1ecd20-f6be-ee23-a34a-183a68e54d2f",
+        "schemaVersion": 1,
+        "defaultLocale": "fr",
+        "localizations": [
+          {
+            "locale": "fr",
+            "name": "La Veill\u00E9e des \u00C9clats",
+            "summary": "Au bord d\u0027un observatoire bris\u00E9, une veilleuse n\u00E9gocie avec les souvenirs lumineux d\u0027un ciel disparu.",
+            "description": "Au bord d\u0027un observatoire bris\u00E9, une veilleuse n\u00E9gocie avec les souvenirs lumineux d\u0027un ciel disparu.",
+            "credits": ""
+          }
+        ],
+        "author": "Non renseign\u00E9",
+        "version": "0.1.0",
+        "license": "UNLICENSED",
+        "imagePath": null,
+        "tags": [],
+        "classification": "Non class\u00E9",
+        "provenance": "migration-default"
+      },
+      "variables": [],
+      "distribution": {
+        "id": "a6e041de-d4f3-56bd-9e79-26c0e374b423",
+        "schemaVersion": 1,
+        "targetProfiles": [
+          {
+            "id": "8e128978-87e0-51cf-84bc-a1b0a6b5ee02",
+            "schemaVersion": 1,
+            "target": "editor",
+            "enabled": true,
+            "includeEditorData": true,
+            "includeDebugSymbols": true,
+            "optimizeContent": false,
+            "requireApprovedLicenses": false,
+            "outputName": "editor",
+            "secretsProfile": "editor",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "f5e43105-c7f3-5fa6-a007-782bce60f2ca",
+            "schemaVersion": 1,
+            "target": "client",
+            "enabled": true,
+            "includeEditorData": false,
+            "includeDebugSymbols": false,
+            "optimizeContent": true,
+            "requireApprovedLicenses": true,
+            "outputName": "client",
+            "secretsProfile": "client",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "fffa158d-cd84-59a0-840f-a8f2cc89a6db",
+            "schemaVersion": 1,
+            "target": "dedicatedServer",
+            "enabled": true,
+            "includeEditorData": false,
+            "includeDebugSymbols": false,
+            "optimizeContent": true,
+            "requireApprovedLicenses": true,
+            "outputName": "dedicatedserver",
+            "secretsProfile": "dedicatedserver",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "7a63d9ea-6352-5a88-9750-00dbad03cb27",
+            "schemaVersion": 1,
+            "target": "test",
+            "enabled": true,
+            "includeEditorData": true,
+            "includeDebugSymbols": true,
+            "optimizeContent": false,
+            "requireApprovedLicenses": false,
+            "outputName": "test",
+            "secretsProfile": "test",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "6636a837-5382-535f-bafe-6b3482379197",
+            "schemaVersion": 1,
+            "target": "shipping",
+            "enabled": true,
+            "includeEditorData": false,
+            "includeDebugSymbols": false,
+            "optimizeContent": true,
+            "requireApprovedLicenses": true,
+            "outputName": "shipping",
+            "secretsProfile": "shipping",
+            "provenance": "migration-default"
+          }
+        ],
+        "dependencies": [],
+        "provenance": "migration-default"
+      },
+      "localization": {
+        "id": "5e1ecd20-f6be-ee23-a34a-183a68e54d2f",
+        "schemaVersion": 1,
+        "defaultLocale": "fr",
+        "locales": [
+          "fr"
+        ],
+        "messages": []
+      }
+    },
+    "blueprints": [
+      {
+        "id": "51219704-11db-8c48-2306-53e578f0fded",
+        "slug": "la-veillee-des-eclats-floor",
+        "displayName": "Sol provisoire",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/51219704-11db-8c48-2306-53e578f0fded/la-veillee-des-eclats-floor",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
+      },
+      {
+        "id": "cf19c043-a16e-e15c-3712-2e97491eb8eb",
+        "slug": "player-spawn",
+        "displayName": "Point de d\u00E9part",
+        "kind": "playerSpawn",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/cf19c043-a16e-e15c-3712-2e97491eb8eb/player-spawn",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
+      },
+      {
+        "id": "2510c9c1-673d-ca5b-3893-b7175308e026",
+        "slug": "lyra",
+        "displayName": "Lyra, veilleuse des \u00E9clats",
+        "kind": "creature",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/2510c9c1-673d-ca5b-3893-b7175308e026/lyra",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
+      },
+      {
+        "id": "a12bc494-60c9-3063-b38b-8e5b396f855d",
+        "slug": "murmure",
+        "displayName": "Murmure prismatique",
+        "kind": "creature",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/a12bc494-60c9-3063-b38b-8e5b396f855d/murmure",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
+      },
+      {
+        "id": "ad11d1b8-61b7-e5ea-9cc1-712a2aa20b04",
+        "slug": "eclat",
+        "displayName": "\u00C9clat d\u0027azur",
+        "kind": "item",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/ad11d1b8-61b7-e5ea-9cc1-712a2aa20b04/eclat",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
+      },
+      {
+        "id": "bd12e519-db6d-fb3d-951a-b7c1886ed842",
+        "slug": "brasero",
+        "displayName": "Brasero stellaire",
+        "kind": "placeable",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/bd12e519-db6d-fb3d-951a-b7c1886ed842/brasero",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
+      },
+      {
+        "id": "64935de5-bbf4-c164-51f8-ca30ae9b2a19",
+        "slug": "porte",
+        "displayName": "Porte de l\u0027observatoire",
+        "kind": "door",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/64935de5-bbf4-c164-51f8-ca30ae9b2a19/porte",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
+      },
+      {
+        "id": "18df418c-528f-e329-fc2e-45b8ea371f2b",
+        "slug": "seuil",
+        "displayName": "Seuil des souvenirs",
+        "kind": "trigger",
+        "combat": null,
+        "paletteOrigin": "projectContent",
+        "isFavorite": false,
+        "provenance": {
+          "schemaVersion": 1,
+          "source": "project://blueprints/18df418c-528f-e329-fc2e-45b8ea371f2b/seuil",
+          "author": "Project author",
+          "licenseSpdx": "UNLICENSED",
+          "contentHash": "unverified",
+          "isAiGenerated": false,
+          "modifications": []
+        }
+      }
+    ],
+    "areas": [
+      {
+        "id": "72e76124-3a4a-5245-c00e-e348ac4cb292",
+        "slug": "parvis-des-astres",
+        "documentPath": "areas/72e76124-3a4a-5245-c00e-e348ac4cb292-0a68ac43434f00c7.json"
+      }
+    ],
+    "dialogues": [
+      {
+        "id": "5c27e54b-18fc-2ce8-69cb-0885abab5caf",
+        "slug": "lyra-veillee",
+        "displayName": "La promesse de Lyra",
+        "entryNodeId": "8b5b740b-5f64-b71f-660b-561a42659471",
+        "nodes": [
+          {
+            "id": "8b5b740b-5f64-b71f-660b-561a42659471",
+            "speakerBlueprintId": "2510c9c1-673d-ca5b-3893-b7175308e026",
+            "text": {
+              "key": "dialogue.veillee.entry",
+              "fallback": "Chaque \u00E9clat se souvient d\u0027une \u00E9toile. M\u0027aiderez-vous \u00E0 les r\u00E9unir ?"
+            },
+            "onEnterActions": [],
+            "choices": [
+              {
+                "id": "ff38cc19-36bc-0f88-03dd-96ac814e530a",
+                "text": {
+                  "key": "dialogue.veillee.accept",
+                  "fallback": "Je porterai leur lumi\u00E8re."
+                },
+                "conditions": [],
+                "actions": [
+                  {
+                    "kind": "startQuest",
+                    "key": "rassembler-les-eclats",
+                    "value": "active"
+                  }
+                ],
+                "targetNodeId": "3f18f436-66fb-e89d-9719-0f9c16d4e06e"
+              },
+              {
+                "id": "93d9b651-e95e-57a4-a2c3-8a17b2b0ead7",
+                "text": {
+                  "key": "dialogue.veillee.leave",
+                  "fallback": "La nuit peut attendre."
+                },
+                "conditions": [],
+                "actions": [],
+                "targetNodeId": null
+              }
+            ]
+          },
+          {
+            "id": "3f18f436-66fb-e89d-9719-0f9c16d4e06e",
+            "speakerBlueprintId": "2510c9c1-673d-ca5b-3893-b7175308e026",
+            "text": {
+              "key": "dialogue.veillee.reveal",
+              "fallback": "Le seuil s\u0027ouvrira quand trois souvenirs chanteront ensemble."
+            },
+            "onEnterActions": [],
+            "choices": [
+              {
+                "id": "067e8abd-1e7e-67e4-15ac-4651a26619c7",
+                "text": {
+                  "key": "dialogue.veillee.end",
+                  "fallback": "Alors, commen\u00E7ons la veill\u00E9e."
+                },
+                "conditions": [],
+                "actions": [],
+                "targetNodeId": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "quests": [
+      {
+        "id": "a8535b03-dd8d-f84a-9f7f-af9a8708e1e0",
+        "slug": "rassembler-les-eclats",
+        "displayName": "Rassembler les \u00E9clats",
+        "initialStateId": "9cc1a900-ba40-c1bd-7f2f-2c21800cae3b",
+        "states": [
+          {
+            "id": "9cc1a900-ba40-c1bd-7f2f-2c21800cae3b",
+            "displayName": "En attente",
+            "journal": {
+              "localizationKey": "quest.veillee.dormant",
+              "fallback": "\u00C9coutez la veilleuse du parvis."
+            },
+            "isTerminal": false
+          },
+          {
+            "id": "8d41ce05-553b-8e41-89dc-c3e44b345230",
+            "displayName": "La collecte",
+            "journal": {
+              "localizationKey": "quest.veillee.active",
+              "fallback": "R\u00E9unissez trois \u00E9clats et rejoignez le seuil."
+            },
+            "isTerminal": false
+          },
+          {
+            "id": "c6e82fb2-053f-cca2-01f3-3cdf387eb728",
+            "displayName": "Le ciel rendu",
+            "journal": {
+              "localizationKey": "quest.veillee.complete",
+              "fallback": "L\u0027observatoire chante de nouveau."
+            },
+            "isTerminal": true
+          }
+        ],
+        "transitions": [
+          {
+            "id": "ccbca93b-4821-75ce-ebce-3e3f2f1ef44c",
+            "fromStateId": "9cc1a900-ba40-c1bd-7f2f-2c21800cae3b",
+            "toStateId": "8d41ce05-553b-8e41-89dc-c3e44b345230",
+            "conditions": [],
+            "actions": [
+              {
+                "kind": "setVariable",
+                "key": "eclats.collecte",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "id": "d9419faf-c86b-2fc9-33ea-5908398a16db",
+            "fromStateId": "8d41ce05-553b-8e41-89dc-c3e44b345230",
+            "toStateId": "c6e82fb2-053f-cca2-01f3-3cdf387eb728",
+            "conditions": [
+              {
+                "kind": "variableEquals",
+                "key": "eclats.collecte",
+                "expectedValue": "3"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "setVariable",
+                "key": "observatoire.ouvert",
+                "value": "true"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

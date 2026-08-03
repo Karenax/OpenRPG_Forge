@@ -1191,7 +1191,7 @@
     },
     {
       "evidence": {
-        "line": 1714,
+        "line": 1716,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1209,7 +1209,7 @@
     },
     {
       "evidence": {
-        "line": 1463,
+        "line": 1465,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1218,7 +1218,7 @@
     },
     {
       "evidence": {
-        "line": 1667,
+        "line": 1669,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1254,7 +1254,7 @@
     },
     {
       "evidence": {
-        "line": 1464,
+        "line": 1466,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1263,7 +1263,7 @@
     },
     {
       "evidence": {
-        "line": 1516,
+        "line": 1518,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1272,7 +1272,7 @@
     },
     {
       "evidence": {
-        "line": 1608,
+        "line": 1610,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1308,7 +1308,7 @@
     },
     {
       "evidence": {
-        "line": 1465,
+        "line": 1467,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1317,7 +1317,7 @@
     },
     {
       "evidence": {
-        "line": 1516,
+        "line": 1518,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1326,7 +1326,7 @@
     },
     {
       "evidence": {
-        "line": 1683,
+        "line": 1685,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1407,7 +1407,7 @@
     },
     {
       "evidence": {
-        "line": 1700,
+        "line": 1702,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -3099,7 +3099,7 @@
     },
     {
       "evidence": {
-        "line": 204,
+        "line": 207,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -5715,6 +5715,141 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Projects/NewModuleResult.cs",
       "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Application.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Application.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Application.Entities"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Application.Quests"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Localization"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Quests"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -9391,6 +9526,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Application.Tests/Projects/SetModuleConfigurationHandlerTests.cs"
       },
       "kind": "imports",
@@ -10921,6 +11074,33 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
       },
       "kind": "imports",
@@ -12365,7 +12545,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.Domain.Assets"
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
@@ -12374,7 +12554,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Assets"
     },
     {
       "evidence": {
@@ -12383,7 +12563,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -12392,16 +12572,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.Domain.Validation"
-    },
-    {
-      "evidence": {
-        "line": 8,
-        "path": "tools/Forge.Cli/Program.cs"
-      },
-      "kind": "imports",
-      "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -12410,7 +12581,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Build"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -12419,7 +12590,16 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Navigation"
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
     },
     {
       "evidence": {
@@ -12428,11 +12608,20 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.ModuleFormat.Navigation"
     },
     {
       "evidence": {
         "line": 11,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 12,
         "path": "tools/Forge.Cli/Program.cs"
       },
       "kind": "imports",
@@ -17082,6 +17271,33 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Localization.SetLocalizationCatalogCommand",
       "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Projects.AuthoredModuleResult",
+      "target": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Projects.AuthoredModuleResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Projects.AuthoredModuleResult",
+      "target": "model:Forge.Application.Projects.ProjectState"
     },
     {
       "evidence": {
@@ -21882,6 +22098,15 @@
     },
     {
       "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Projects",
+      "target": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Application/Projects/ProjectRevision.cs"
       },
@@ -22311,6 +22536,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Projects",
       "target": "file:tests/Forge.Application.Tests/Projects/NewModuleHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Projects",
+      "target": "file:tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
     },
     {
       "evidence": {
@@ -24600,6 +24834,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Serialization",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
       },
@@ -26307,6 +26550,96 @@
       "kind": "accesses_model",
       "source": "service:Forge.Application.Navigation.WaypointRouteService",
       "target": "model:Forge.Domain.Navigation.RouteSegmentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "target": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "target": "model:Forge.Application.Projects.AuthoredModuleResult"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "target": "model:Forge.Domain.Dialogues.DialogueDefinition"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "target": "model:Forge.Domain.Quests.QuestActionKind"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "target": "model:Forge.Domain.Quests.QuestConditionKind"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "target": "model:Forge.RpgKit.Domain.Scripting.QuestState"
     },
     {
       "evidence": {
@@ -32106,6 +32439,33 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Projects.OriginalModuleAuthoringServiceTests",
+      "target": "file:tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.OriginalModuleAuthoringServiceTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.OriginalModuleAuthoringServiceTests",
+      "target": "service:Forge.Application.Projects.OriginalModuleAuthoringService"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "tests/Forge.Application.Tests/Projects/SetModuleConfigurationHandlerTests.cs"
       },
@@ -36684,6 +37044,51 @@
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Serialization.TestProjectFactory",
       "target": "type:Forge.Domain.Entities.EntityPropertyOverrides"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.VeilleeDesEclatsSampleTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.VeilleeDesEclatsSampleTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.VeilleeDesEclatsSampleTests",
+      "target": "type:Forge.ModuleFormat.Packages.ModulePackageLoader"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.VeilleeDesEclatsSampleTests",
+      "target": "type:Forge.ModuleFormat.Packages.ModulePackager"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.VeilleeDesEclatsSampleTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.ProjectSession"
     },
     {
       "evidence": {
@@ -41310,6 +41715,24 @@
       "kind": "defined_in",
       "source": "type:Forge.Application.Localization.PseudoLocalization",
       "target": "file:src/Forge.Application/Localization/PseudoLocalization.cs"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Projects.AuthoringClock",
+      "target": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Projects.GuidNamespace",
+      "target": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
     },
     {
       "evidence": {
@@ -46560,8 +46983,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:f43e296ae4fccb3a6b45562760eded376037271bd197a79b80b4c5af4d3f4f4c",
-    "source_file_count": 929
+    "source_digest": "sha256:34e1866b11cfc119006ec541c5b10bc27bf3186a3d90e15dae5f99eaa7af2694",
+    "source_file_count": 937
   },
   "nodes": [
     {
@@ -48185,6 +48608,46 @@
       "path": "apps/Forge.Runtime/content/crypt-of-ashes/project.json"
     },
     {
+      "id": "file:apps/Forge.Runtime/content/la-veillee-des-eclats/.forge/build-graph.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "build-graph.json",
+      "path": "apps/Forge.Runtime/content/la-veillee-des-eclats/.forge/build-graph.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-0a68ac43434f00c7.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "72e76124-3a4a-5245-c00e-e348ac4cb292-0a68ac43434f00c7.json",
+      "path": "apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-0a68ac43434f00c7.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/la-veillee-des-eclats/forge.project.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "forge.project.json",
+      "path": "apps/Forge.Runtime/content/la-veillee-des-eclats/forge.project.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/la-veillee-des-eclats/project.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "project.json",
+      "path": "apps/Forge.Runtime/content/la-veillee-des-eclats/project.json"
+    },
+    {
       "id": "file:apps/Forge.Runtime/packages.lock.json",
       "kind": "configuration",
       "line": 1,
@@ -49715,6 +50178,16 @@
       "path": "docs/aurora-parity/tasks/G8-MERCHANT-02-EXPERIENCE.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G8-ORIGINAL-MODULE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-ORIGINAL-MODULE.md",
+      "path": "docs/aurora-parity/tasks/G8-ORIGINAL-MODULE.md"
+    },
+    {
       "id": "file:docs/aurora-parity/tasks/G8-PLACEABLE-01-FOUNDATION.md",
       "kind": "document",
       "line": 1,
@@ -50913,6 +51386,16 @@
       },
       "name": "NewModuleResult.cs",
       "path": "src/Forge.Application/Projects/NewModuleResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Projects/OriginalModuleAuthoringService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "OriginalModuleAuthoringService.cs",
+      "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
     },
     {
       "id": "file:src/Forge.Application/Projects/ProjectRevision.cs",
@@ -54305,6 +54788,16 @@
       "path": "tests/Forge.Application.Tests/Projects/NewModuleHandlerTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "OriginalModuleAuthoringServiceTests.cs",
+      "path": "tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Projects/SetModuleConfigurationHandlerTests.cs",
       "kind": "file",
       "line": 1,
@@ -54853,6 +55346,16 @@
       },
       "name": "TestProjectFactory.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Serialization/TestProjectFactory.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "VeilleeDesEclatsSampleTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs",
@@ -57953,6 +58456,16 @@
       },
       "name": "SetLocalizationCatalogCommand",
       "path": "src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Projects.AuthoredModuleResult",
+      "kind": "model",
+      "line": 19,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "AuthoredModuleResult",
+      "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
     },
     {
       "id": "model:Forge.Application.Projects.NewModuleCommand",
@@ -61424,6 +61937,16 @@
       "path": "src/Forge.Application/Navigation/WaypointRouteService.cs"
     },
     {
+      "id": "service:Forge.Application.Projects.OriginalModuleAuthoringService",
+      "kind": "service",
+      "line": 21,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "OriginalModuleAuthoringService",
+      "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+    },
+    {
       "id": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "kind": "service",
       "line": 21,
@@ -62204,6 +62727,16 @@
       "path": "tests/Forge.Application.Tests/Projects/NewModuleHandlerTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Projects.OriginalModuleAuthoringServiceTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Projects"
+      },
+      "name": "OriginalModuleAuthoringServiceTests",
+      "path": "tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Projects.SetModuleConfigurationHandlerTests",
       "kind": "test",
       "line": 10,
@@ -62712,6 +63245,16 @@
       },
       "name": "TestProjectFactory",
       "path": "tests/Forge.ModuleFormat.Tests/Serialization/TestProjectFactory.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Serialization.VeilleeDesEclatsSampleTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Serialization"
+      },
+      "name": "VeilleeDesEclatsSampleTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Serialization/VeilleeDesEclatsSampleTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
@@ -63789,6 +64332,26 @@
       },
       "name": "PseudoLocalization",
       "path": "src/Forge.Application/Localization/PseudoLocalization.cs"
+    },
+    {
+      "id": "type:Forge.Application.Projects.AuthoringClock",
+      "kind": "type",
+      "line": 76,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "AuthoringClock",
+      "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
+    },
+    {
+      "id": "type:Forge.Application.Projects.GuidNamespace",
+      "kind": "type",
+      "line": 77,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "GuidNamespace",
+      "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
     },
     {
       "id": "type:Forge.Application.Projects.ProjectRevision",

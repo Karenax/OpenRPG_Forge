@@ -187,6 +187,9 @@ G8 SCRIPT-04 livre tests, profiling, docs générées, analyse statique et état
 prochaine tranche est **SCRIPT-05**.
 G8 SCRIPT-05 ferme l'interop éditeur/MCP transactionnelle. La prochaine tranche est
 **AUTHOR-UI-01**, avant la création du second module original.
+Le second module original **La Veillée des Éclats** est désormais généré par commandes, persisté par
+`ProjectSession` et testé jusqu'au rechargement du `.orpmod`. La prochaine tranche reste
+**AUTHOR-UI-01**.
 
 ## Phase 6 — 3D assistée
 

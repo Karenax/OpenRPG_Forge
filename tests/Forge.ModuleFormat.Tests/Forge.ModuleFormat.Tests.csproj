@@ -44,6 +44,15 @@
     <None Include="..\..\apps\Forge.Runtime\content\broken-isles-starter\project.json"
           Link="Fixtures\broken-isles-starter\project.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\apps\Forge.Runtime\content\la-veillee-des-eclats\forge.project.json"
+          Link="Fixtures\la-veillee-des-eclats\forge.project.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\apps\Forge.Runtime\content\la-veillee-des-eclats\project.json"
+          Link="Fixtures\la-veillee-des-eclats\project.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\apps\Forge.Runtime\content\la-veillee-des-eclats\areas\*.json"
+          Link="Fixtures\la-veillee-des-eclats\areas\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

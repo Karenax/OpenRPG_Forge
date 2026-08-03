@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Forge.Application.Assets;
+using Forge.Application.Projects;
 using Forge.Domain.Assets;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
@@ -26,9 +27,14 @@ static int Run(IReadOnlyList<string> arguments)
             return RunAssets(arguments.Skip(1).ToArray());
         }
 
+        if (arguments.Count == 2 && arguments[0] == "author-original")
+        {
+            return AuthorOriginalModule(arguments[1]);
+        }
+
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|spatial|diagnose> ... | " +
-            "forge assets list <repository-or-workspace> [filters]");
+            "forge assets list <repository-or-workspace> [filters] | forge author-original <target-directory>");
         return 2;
     }
     catch (Exception exception)
@@ -36,6 +42,32 @@ static int Run(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(exception.Message);
         return 1;
     }
+}
+
+static int AuthorOriginalModule(string targetDirectory)
+{
+    var authored = OriginalModuleAuthoringService.CreateVeilleeDesEclats();
+    var created = ProjectSession.Create(Path.GetFullPath(targetDirectory), authored.State.Project);
+    if (!created.Succeeded || created.Session is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = created.Diagnostics }));
+        return 1;
+    }
+
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = true,
+        slug = created.Session.Project.Module.Slug,
+        revision = authored.State.Revision.Value,
+        commands = authored.Patches.Count,
+        areas = created.Session.Project.Areas.Count,
+        entities = created.Session.Project.Areas.Sum(area => area.Entities.Count),
+        blueprints = created.Session.Project.Blueprints.Count,
+        dialogues = created.Session.Project.Dialogues.Count,
+        quests = created.Session.Project.Quests.Count,
+    }));
+    Console.WriteLine($"OPENRPG_FORGE_ORIGINAL_MODULE_AUTHORED slug={created.Session.Project.Module.Slug} commands={authored.Patches.Count} revision={authored.State.Revision.Value}");
+    return 0;
 }
 
 static int RunAssets(IReadOnlyList<string> arguments)
