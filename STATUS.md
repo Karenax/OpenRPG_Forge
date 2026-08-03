@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 FACTION-01** pour `ORF-FAC-014`, `001`, `003`, `004` et `005` : matrice factionnelle validée.
+Exécuter **G8 FACTION-02** pour `ORF-FAC-006`, `007`, `011`, `012` et `013` : réputation, tags, heatmap et réactions.
