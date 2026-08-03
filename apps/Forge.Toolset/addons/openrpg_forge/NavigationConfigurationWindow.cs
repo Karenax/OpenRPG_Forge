@@ -52,6 +52,8 @@ public partial class NavigationConfigurationWindow : Window
 
     public int DiagnosticCount => _diagnostics?.ItemCount ?? 0;
 
+    public bool LastPathSucceeded { get; private set; }
+
     public void Initialize(
         Func<ProjectState?> getState,
         Func<AreaId?> getActiveAreaId,
@@ -436,10 +438,24 @@ public partial class NavigationConfigurationWindow : Window
             var selectedAgent = configuredArea.Navigation.AgentProfiles[0];
             var surface = analyses.First(item => item.AgentProfile.Id == selectedAgent.Id &&
                 item.DoorState == NavigationDoorState.Current).Surface;
+            var endpoints = configuredArea.Entities
+                .Select(entity => surface.CellAt(entity.Transform.Position))
+                .Distinct()
+                .Take(2)
+                .ToArray();
+            var path = endpoints.Length == 2
+                ? NavigationPathfinder.FindPath(surface, new NavigationPathQuery(endpoints[0], endpoints[1]))
+                : null;
+            LastPathSucceeded = path?.Succeeded == true;
             _showOverlay?.Invoke(surface);
             _summary!.Text =
                 $"{surface.WalkableCells.Count:N0} cellules · {surface.OffMeshEdges.Count} arête(s) hors-maillage · " +
-                $"{configuredArea.Navigation.AgentProfiles.Count} profil(s) · {_diagnostics.ItemCount} diagnostic(s)";
+                $"{configuredArea.Navigation.AgentProfiles.Count} profil(s) · {_diagnostics.ItemCount} diagnostic(s) · " +
+                (path is null
+                    ? "route non applicable"
+                    : path.Succeeded
+                        ? $"route {path.Cells.Count} cellules / {path.VisitedCellCount} visitées"
+                        : $"route {path.Failure}");
             _summary.AddThemeColorOverride("font_color",
                 _diagnostics.ItemCount == 0 ? new Color("83d6ae") : new Color("ffb36d"));
             SetStatus("Bake déterministe actualisé dans le viewport.", false);

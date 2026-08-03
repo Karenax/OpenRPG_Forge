@@ -401,8 +401,10 @@ Le détail et les preuves des 717 capacités restent suivis dans
   transactionnelle, extraction, pseudo-localisation, diagnostics et aperçu dans le Creator.
 - [x] **G7-18 — mise à l’échelle dans le Toolset** : manipulation directe de l’échelle, validation,
   propriétés précises, commande transactionnelle et historique pour `ORF-EE-002`.
-- [ ] **G7-19 — pathfinding amélioré** : requêtes de chemin déterministes, coûts, blocages dynamiques,
+- [x] **G7-19 — pathfinding amélioré** : requêtes de chemin déterministes, coûts, blocages dynamiques,
   invalidation incrémentale et diagnostics pour `ORF-EE-028`.
+- [ ] **G7-20 — productivité de la coque Creator** : filtres d’affichage, placement répété, onglets de
+  zones, aide contextuelle et profils d’éditeur.
 
 Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).

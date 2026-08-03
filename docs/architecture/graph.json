@@ -1560,7 +1560,7 @@
     },
     {
       "evidence": {
-        "line": 159,
+        "line": 161,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1569,7 +1569,7 @@
     },
     {
       "evidence": {
-        "line": 219,
+        "line": 221,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1578,7 +1578,7 @@
     },
     {
       "evidence": {
-        "line": 74,
+        "line": 76,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1614,7 +1614,7 @@
     },
     {
       "evidence": {
-        "line": 408,
+        "line": 410,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1623,7 +1623,7 @@
     },
     {
       "evidence": {
-        "line": 414,
+        "line": 416,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1632,7 +1632,7 @@
     },
     {
       "evidence": {
-        "line": 420,
+        "line": 422,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2793,7 +2793,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 86,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2802,7 +2802,7 @@
     },
     {
       "evidence": {
-        "line": 100,
+        "line": 103,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -8433,6 +8433,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.Domain.Tests/Navigation/NavigationAndGeometryTests.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs",
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -15421,6 +15439,15 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Domain/Navigation/NavigationPathResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Navigation.NavigationPathResult",
+      "target": "file:src/Forge.Domain/Navigation/NavigationPathResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Domain/Navigation/NavigationSurfaceId.cs"
       },
       "kind": "defined_in",
@@ -18418,6 +18445,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Navigation/NavigationDynamicUpdatePlan.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/NavigationDynamicUpdatePlan.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Navigation/NavigationDynamicUpdatePlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/NavigationDynamicUpdatePlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Navigation/NavigationEdge.cs"
       },
       "kind": "defined_in",
@@ -18432,6 +18477,33 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Navigation",
       "target": "file:src/Forge.Domain/Navigation/NavigationLinkKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Navigation/NavigationPathFailure.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/NavigationPathFailure.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Navigation/NavigationPathQuery.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/NavigationPathQuery.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Navigation/NavigationPathResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/NavigationPathResult.cs"
     },
     {
       "evidence": {
@@ -18810,6 +18882,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Tests.Navigation",
       "target": "file:tests/Forge.Domain.Tests/Navigation/NavigationAndGeometryTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Navigation",
+      "target": "file:tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
     },
     {
       "evidence": {
@@ -25716,6 +25797,105 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "file:tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 84,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 85,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "model:Forge.Domain.Navigation.NavigationAgentProfileId"
+    },
+    {
+      "evidence": {
+        "line": 86,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "model:Forge.Domain.Navigation.NavigationDoorState"
+    },
+    {
+      "evidence": {
+        "line": 83,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "model:Forge.Domain.Navigation.NavigationSurfaceId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "type:Forge.Domain.Navigation.NavigationCell"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "type:Forge.Domain.Navigation.NavigationDynamicUpdatePlanner"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "type:Forge.Domain.Navigation.NavigationPathFailure"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "type:Forge.Domain.Navigation.NavigationPathQuery"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "type:Forge.Domain.Navigation.NavigationPathfinder"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "target": "type:Forge.Domain.Navigation.NavigationSurface"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Domain.Tests/Quests/QuestStateMachineTests.cs"
       },
@@ -29479,11 +29659,47 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Domain/Navigation/NavigationDynamicUpdatePlan.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.NavigationDynamicUpdatePlan",
+      "target": "file:src/Forge.Domain/Navigation/NavigationDynamicUpdatePlan.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Navigation/NavigationDynamicUpdatePlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.NavigationDynamicUpdatePlanner",
+      "target": "file:src/Forge.Domain/Navigation/NavigationDynamicUpdatePlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Domain/Navigation/NavigationEdge.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Domain.Navigation.NavigationEdge",
       "target": "file:src/Forge.Domain/Navigation/NavigationEdge.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Navigation/NavigationPathFailure.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.NavigationPathFailure",
+      "target": "file:src/Forge.Domain/Navigation/NavigationPathFailure.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Navigation/NavigationPathQuery.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.NavigationPathQuery",
+      "target": "file:src/Forge.Domain/Navigation/NavigationPathQuery.cs"
     },
     {
       "evidence": {
@@ -30306,7 +30522,7 @@
     },
     {
       "evidence": {
-        "line": 4777,
+        "line": 4796,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -30333,7 +30549,7 @@
     },
     {
       "evidence": {
-        "line": 4782,
+        "line": 4801,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -30342,7 +30558,7 @@
     },
     {
       "evidence": {
-        "line": 4787,
+        "line": 4806,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -30927,8 +31143,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:1d2e35644e6ac3a1897cf307241a11309c55e9bb4982ad6cfe472c636da9a2c2",
-    "source_file_count": 713
+    "source_digest": "sha256:670cc39d83c541fc5030c17b996128420a495fa653b256e1545890d251e8b39a",
+    "source_file_count": 720
   },
   "nodes": [
     {
@@ -33342,6 +33558,16 @@
       "path": "docs/aurora-parity/tasks/G7-18-SCALE-AUTHORING.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-19-ADVANCED-PATHFINDING.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-19-ADVANCED-PATHFINDING.md",
+      "path": "docs/aurora-parity/tasks/G7-19-ADVANCED-PATHFINDING.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -35342,6 +35568,26 @@
       "path": "src/Forge.Domain/Navigation/NavigationDoorState.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Navigation/NavigationDynamicUpdatePlan.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NavigationDynamicUpdatePlan.cs",
+      "path": "src/Forge.Domain/Navigation/NavigationDynamicUpdatePlan.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Navigation/NavigationDynamicUpdatePlanner.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NavigationDynamicUpdatePlanner.cs",
+      "path": "src/Forge.Domain/Navigation/NavigationDynamicUpdatePlanner.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Navigation/NavigationEdge.cs",
       "kind": "file",
       "line": 1,
@@ -35360,6 +35606,36 @@
       },
       "name": "NavigationLinkKind.cs",
       "path": "src/Forge.Domain/Navigation/NavigationLinkKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Navigation/NavigationPathFailure.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NavigationPathFailure.cs",
+      "path": "src/Forge.Domain/Navigation/NavigationPathFailure.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Navigation/NavigationPathQuery.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NavigationPathQuery.cs",
+      "path": "src/Forge.Domain/Navigation/NavigationPathQuery.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Navigation/NavigationPathResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NavigationPathResult.cs",
+      "path": "src/Forge.Domain/Navigation/NavigationPathResult.cs"
     },
     {
       "id": "file:src/Forge.Domain/Navigation/NavigationPathfinder.cs",
@@ -36960,6 +37236,16 @@
       },
       "name": "NavigationAndGeometryTests.cs",
       "path": "tests/Forge.Domain.Tests/Navigation/NavigationAndGeometryTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NavigationPathfinderTests.cs",
+      "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Quests/QuestStateMachineTests.cs",
@@ -40342,6 +40628,16 @@
       "path": "src/Forge.Domain/Navigation/NavigationLinkKind.cs"
     },
     {
+      "id": "model:Forge.Domain.Navigation.NavigationPathResult",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "NavigationPathResult",
+      "path": "src/Forge.Domain/Navigation/NavigationPathResult.cs"
+    },
+    {
       "id": "model:Forge.Domain.Navigation.NavigationSurfaceId",
       "kind": "model",
       "line": 3,
@@ -42015,6 +42311,16 @@
       "path": "tests/Forge.Domain.Tests/Navigation/NavigationAndGeometryTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Navigation.NavigationPathfinderTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Navigation"
+      },
+      "name": "NavigationPathfinderTests",
+      "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Quests.QuestStateMachineTests",
       "kind": "test",
       "line": 5,
@@ -43252,6 +43558,26 @@
       "path": "src/Forge.Domain/Navigation/NavigationCell.cs"
     },
     {
+      "id": "type:Forge.Domain.Navigation.NavigationDynamicUpdatePlan",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "NavigationDynamicUpdatePlan",
+      "path": "src/Forge.Domain/Navigation/NavigationDynamicUpdatePlan.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.NavigationDynamicUpdatePlanner",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "NavigationDynamicUpdatePlanner",
+      "path": "src/Forge.Domain/Navigation/NavigationDynamicUpdatePlanner.cs"
+    },
+    {
       "id": "type:Forge.Domain.Navigation.NavigationEdge",
       "kind": "type",
       "line": 3,
@@ -43260,6 +43586,26 @@
       },
       "name": "NavigationEdge",
       "path": "src/Forge.Domain/Navigation/NavigationEdge.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.NavigationPathFailure",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "NavigationPathFailure",
+      "path": "src/Forge.Domain/Navigation/NavigationPathFailure.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.NavigationPathQuery",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "NavigationPathQuery",
+      "path": "src/Forge.Domain/Navigation/NavigationPathQuery.cs"
     },
     {
       "id": "type:Forge.Domain.Navigation.NavigationPathfinder",
@@ -44144,7 +44490,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4777,
+      "line": 4796,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -44174,7 +44520,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4782,
+      "line": 4801,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -44184,7 +44530,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4787,
+      "line": 4806,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

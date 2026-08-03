@@ -80,9 +80,12 @@ G7-17 livre le catalogue de localisation canonique, l’extraction des textes au
 langue, la pseudo-localisation et l’édition transactionnelle intégrée au Creator.
 G7-18 livre l’échelle uniforme/non uniforme, les contrôles précis et viewport, la validation
 géométrique et la transaction atomique multi-entités.
+G7-19 livre le pathfinding A* déterministe avec coûts, obstacles dynamiques, récupération,
+instrumentation et invalidation partielle.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-19 — pathfinding amélioré** pour `ORF-EE-028`.
+La prochaine tranche est **G7-20 — productivité de la coque Creator** pour les cinq exigences Shell
+P1 restantes hors sauvegarde automatique.
 
 ## Phase 6 — 3D assistée
 

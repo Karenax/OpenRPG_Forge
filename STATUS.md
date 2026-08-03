@@ -4,7 +4,7 @@ Dernière mise à jour : 3 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-18 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-19 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -65,6 +65,8 @@ quêtes, résout les replis par langue et offre édition, pseudo-localisation, d
 transactionnel dans une surface Creator dédiée.
 G7-18 complète l’échelle auteur : valeurs X/Y/Z, mode uniforme, Ctrl + molette, contraintes,
 validation géométrique et commande atomique multi-entités avec historique partagé.
+G7-19 ajoute un A* Core déterministe avec obstacles dynamiques, coûts, récupération des extrémités,
+budget de recherche, instrumentation et invalidation incrémentale affichés par l’analyse Navigation.
 
 ## État prouvé
 
@@ -75,7 +77,7 @@ validation géométrique et commande atomique multi-entités avec historique par
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 252 tests .NET et 24 tests Python réussis ;
+- 256 tests .NET et 24 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -225,6 +227,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-19 — pathfinding amélioré** pour `ORF-EE-028` : étendre les surfaces de navigation avec
-requêtes déterministes, coûts, blocages dynamiques, invalidation incrémentale et diagnostics sans
-faire du moteur 3D la source de vérité.
+Ouvrir **G7-20 — productivité de la coque Creator** pour `ORF-SHELL-008`, `009`, `012`, `021` et
+`023` : filtres d’affichage, placement répété, onglets de zones, aide contextuelle et profils
+d’éditeur persistants sans créer de voie de mutation parallèle.

@@ -635,10 +635,12 @@ livrés avec preuves automatisées et revues visuelles ciblées :
   traductions par commande transactionnelle annulable.
 - le Monde édite l’échelle uniforme ou par axe avec valeurs précises, Ctrl + molette, contraintes,
   validation géométrique et commande atomique multi-entités.
+- la navigation calcule des routes A* déterministes avec coûts, obstacles dynamiques, récupération,
+  budget borné et invalidation incrémentale depuis ses surfaces canoniques.
 
 Les contrats, critères et preuves sont détaillés dans `docs/aurora-parity/tasks/`,
-`docs/UX_AURORA_2026.md` et `STATUS.md`. La prochaine tranche Creator est **G7-19 — pathfinding
-amélioré** pour `ORF-EE-028`.
+`docs/UX_AURORA_2026.md` et `STATUS.md`. La prochaine tranche Creator est **G7-20 — productivité de
+la coque Creator** pour les exigences Shell P1 restantes hors autosauvegarde.
 
 ---
 
@@ -1414,10 +1416,10 @@ Le résumé doit contenir :
 ## 23. Mission courante à donner à Codex
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
-> applicables. Le bootstrap, le MVP et G7-01 à G7-18 sont déjà validés : ne les recommence pas.
-> Réalise uniquement **G7-19 — pathfinding amélioré** pour `ORF-EE-028` : audite les surfaces et
-> requêtes existantes, puis ajoute chemins déterministes, coûts, blocages dynamiques, invalidation
-> incrémentale et diagnostics. Conserve le modèle de
+> applicables. Le bootstrap, le MVP et G7-01 à G7-19 sont déjà validés : ne les recommence pas.
+> Réalise uniquement **G7-20 — productivité de la coque Creator** pour `ORF-SHELL-008`, `009`, `012`,
+> `021` et `023` : ajoute filtres d’affichage, placement répété, onglets de zones, aide contextuelle
+> et profils d’éditeur persistants. Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.
 

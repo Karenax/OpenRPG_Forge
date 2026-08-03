@@ -177,6 +177,10 @@ L’échelle G7-18 rejoint directement la barre d’édition du Monde : X/Y/Z pr
 incréments compacts et raccourci Ctrl + molette. La validation refuse avant mutation les limites et
 collisions nouvellement introduites, puis le viewport reconstruit immédiatement la représentation.
 
+G7-19 enrichit l’analyse Navigation sans ajouter une seconde carte : le résumé indique désormais la
+longueur d’une route représentative, le nombre de cellules visitées ou la cause d’échec. Obstacles
+dynamiques, coûts et récupération restent des paramètres du Core ; l’overlay demeure une vue dérivée.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

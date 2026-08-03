@@ -50,7 +50,7 @@ refactoring sûr, **G7-08** la configuration du module, **G7-09** les palettes a
 **G7-10** la caméra auteur, **G7-11** les événements Core, **G7-12** le build incrémental et
 **G7-13** la conformité de distribution, **G7-14** la navigation/validation spatiale, **G7-15** les
 diagnostics actionnables, **G7-16** le Content Browser et **G7-17** la localisation auteur ; la file
-active commence à **G7-19**. La fermeture de
+active commence à **G7-20**. La fermeture de
 `TASKS_MVP.md` ne signifie pas
 une parité Aurora complète.
 
@@ -214,12 +214,12 @@ créateur peut modifier, exporter et jouer la Crypte sans IA et sans outil propr
 
 ### G7 — Creator Core complet P0/P1
 
-**État.** En cours. G7-01 à G7-18 sont franchis avec le second module générique, la coque Creator,
+**État.** En cours. G7-01 à G7-19 sont franchis avec le second module générique, la coque Creator,
 le catalogue Blueprints, la manipulation directe, les zones indépendantes, le clipboard
 sémantique, la recherche globale et le refactoring sûr, la configuration du module, les palettes,
 la caméra auteur, les événements Core, le build incrémental, la conformité de distribution puis la
 navigation, la validation spatiale, les diagnostics actionnables, le navigateur d’assets et la
-localisation auteur et la mise à l’échelle ; G7-19 est la prochaine tâche.
+localisation auteur, la mise à l’échelle et le pathfinding amélioré ; G7-20 est la prochaine tâche.
 
 **Domaines.** `SHELL`, `PROJECT`, `AREA`, `PALETTE`, parties Core de `PLACEABLE`, `DOOR`, `TRIGGER`,
 `WAYPOINT`, `AUDIO`, `GAMEPLAY`, `CONTENT`, `BUILD`, `QA` et `EE` indispensable.
@@ -444,7 +444,8 @@ La file active est maintenant :
 | 17 | G7-16 | ORF-CONT-020, ORF-PAL-010, ORF-PAL-011 | Terminé partiellement : catalogue v1 de 605 entrées, facettes, aperçu local et import gouverné en dry-run. |
 | 18 | G7-17 | ORF-CONT-011 | Terminé partiellement : catalogue canonique, fallback, extraction, pseudo-localisation, diagnostics et édition transactionnelle. |
 | 19 | G7-18 | ORF-EE-002 | Terminé partiellement : échelle précise/uniforme, Ctrl-molette, contraintes, validation et transaction multi-entités. |
-| 20 | G7-19 | ORF-EE-028 | Pathfinding amélioré : requêtes déterministes, coûts, blocages dynamiques et invalidation incrémentale. |
+| 20 | G7-19 | ORF-EE-028 | Terminé partiellement : A* déterministe, coûts, obstacles dynamiques, récupération et invalidation partielle. |
+| 21 | G7-20 | ORF-SHELL-008, 009, 012, 021, 023 | Productivité Creator : filtres, placement répété, onglets, aide et profils d’éditeur. |
 
 Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md`,
 `docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md` et

@@ -4095,9 +4095,24 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _history.State.Project,
             appliedArea,
             agent);
+        var routeEntities = appliedArea.Entities
+            .Where(entity => current.IsWalkable(current.CellAt(entity.Transform.Position)))
+            .Take(2)
+            .ToArray();
+        var route = routeEntities.Length == 2
+            ? NavigationPathfinder.FindPath(current, new NavigationPathQuery(
+                current.CellAt(routeEntities[0].Transform.Position),
+                current.CellAt(routeEntities[1].Transform.Position)))
+            : null;
+        var changedCell = current.WalkableCells[current.WalkableCells.Count / 2];
+        var dynamic = NavigationDynamicUpdatePlanner.Plan(
+            current,
+            new HashSet<NavigationCell>(),
+            new HashSet<NavigationCell> { changedCell });
         if (geometry.Count != 0 || reachability.Diagnostics.Count != 0 ||
             partial.RequiresFullBake || partial.ChangedCells.Count == 0 || partial.ReusedCellCount == 0 ||
-            current.OffMeshEdges.Count == 0)
+            current.OffMeshEdges.Count == 0 || route?.Succeeded != true ||
+            dynamic.ChangedCells.Count != 1 || dynamic.RequiresFullSearchReset)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_FAILED analysis");
             return false;
@@ -4152,6 +4167,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_PASS agents=4 geometry=valid " +
             "reachability=spawn-object doors=states offmesh=linked flight=profiled " +
             "incremental=partial overlay=visible history=restored persistence=roundtrip");
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_G719_PATHFINDING_PASS algorithm=deterministic-a-star " +
+            $"route={route.Cells.Count} visited={route.VisitedCellCount} costs=weighted obstacles=dynamic " +
+            "recovery=endpoints budget=bounded invalidation=incremental benchmark=instrumented");
         return true;
     }
 
