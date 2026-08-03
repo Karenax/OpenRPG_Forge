@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 SCRIPT-05** pour `ORF-SCR-041` : interop éditeur/MCP transactionnelle couvrant API, sources, compilation, diagnostics, tests et aperçu des bindings.
+Exécuter **G8 AUTHOR-UI-01** : exposer les services RPG Kit dans des écrans d'auteur utilisables sans édition JSON, avec dry-run, commit, undo/redo et diagnostics.

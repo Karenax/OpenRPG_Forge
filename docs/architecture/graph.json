@@ -760,6 +760,15 @@
     {
       "evidence": {
         "line": 8,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.Mcp.Scripts.ScriptBindingPreview",
+      "target": "file:src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
         "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
       },
       "kind": "defined_in",
@@ -3090,7 +3099,7 @@
     },
     {
       "evidence": {
-        "line": 202,
+        "line": 204,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -6772,6 +6781,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs",
+      "target": "namespace:Forge.Scripting"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Mcp/Scripts/ScriptBindingContracts.cs"
       },
       "kind": "imports",
@@ -10223,6 +10241,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Scripts/ForgeScriptAgentServiceTests.cs",
+      "target": "namespace:Forge.Scripting"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Scripts"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs",
       "target": "namespace:Forge.Scripting"
     },
     {
@@ -18741,6 +18777,60 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Scripts.ScriptInteropResult",
+      "target": "file:src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Scripts.ScriptInteropResult",
+      "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Scripts.ScriptInteropResult",
+      "target": "model:Forge.Mcp.Scripts.ScriptSourceDocument"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Scripts.ScriptInteropTestResult",
+      "target": "file:src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Scripts.ScriptInteropTestResult",
+      "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Scripts.ScriptSourceDocument",
+      "target": "file:src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
+      "evidence": {
         "line": 123,
         "path": "src/Forge.Mcp/Testing/ScenarioTestAgent.cs"
       },
@@ -23962,6 +24052,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Mcp.Scripts",
+      "target": "file:src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.Mcp/Scripts/ScriptBindingContracts.cs"
       },
       "kind": "defined_in",
@@ -24012,6 +24111,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Mcp.Tests.Scripts",
       "target": "file:tests/Forge.Mcp.Tests/Scripts/ForgeScriptAgentServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Mcp.Tests.Scripts",
+      "target": "file:tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs"
     },
     {
       "evidence": {
@@ -26424,6 +26532,51 @@
       "kind": "accesses_model",
       "source": "service:Forge.Mcp.Scripts.ForgeScriptAgentService",
       "target": "model:Forge.Scripting.ForgeScriptDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Mcp.Scripts.ForgeScriptInteropService",
+      "target": "file:src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Scripts.ForgeScriptInteropService",
+      "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Scripts.ForgeScriptInteropService",
+      "target": "model:Forge.Mcp.Scripts.ScriptInteropResult"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Scripts.ForgeScriptInteropService",
+      "target": "model:Forge.Mcp.Scripts.ScriptInteropTestResult"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Scripts.ForgeScriptInteropService",
+      "target": "model:Forge.Mcp.Scripts.ScriptSourceDocument"
     },
     {
       "evidence": {
@@ -34842,6 +34995,33 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Mcp.Tests.Scripts.ForgeScriptInteropServiceTests",
+      "target": "file:tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Scripts.ForgeScriptInteropServiceTests",
+      "target": "service:Forge.Mcp.Scripts.ForgeScriptInteropService"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Scripts.ForgeScriptInteropServiceTests",
+      "target": "type:Forge.Scripting.NativeForgeScriptRuntime"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Mcp.Tests/TestWorkspace.cs"
       },
@@ -42556,6 +42736,15 @@
     {
       "evidence": {
         "line": 6,
+        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Scripts.ScriptSourceTransaction",
+      "target": "file:src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "src/Forge.Mcp/Testing/ScenarioTestAgent.cs"
       },
       "kind": "defined_in",
@@ -46371,8 +46560,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:0b30b02fb9d3796f94558ce0588c35eadf411198ca6b5c96e99ee7e77c098a1b",
-    "source_file_count": 926
+    "source_digest": "sha256:f43e296ae4fccb3a6b45562760eded376037271bd197a79b80b4c5af4d3f4f4c",
+    "source_file_count": 929
   },
   "nodes": [
     {
@@ -46794,6 +46983,16 @@
       },
       "name": "EditorCameraView",
       "path": "src/Forge.Domain/Authoring/EditorCameraView.cs"
+    },
+    {
+      "id": "component:Forge.Mcp.Scripts.ScriptBindingPreview",
+      "kind": "component",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Mcp.Scripts"
+      },
+      "name": "ScriptBindingPreview",
+      "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
     },
     {
       "id": "component:Forge.RpgKit.Domain.Companions.CompanionComponent",
@@ -49624,6 +49823,16 @@
       },
       "name": "G8-SCRIPT-04-QUALITY.md",
       "path": "docs/aurora-parity/tasks/G8-SCRIPT-04-QUALITY.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-SCRIPT-05-INTEROP.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-SCRIPT-05-INTEROP.md",
+      "path": "docs/aurora-parity/tasks/G8-SCRIPT-05-INTEROP.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G8-TRIGGER-01-FOUNDATION.md",
@@ -52536,6 +52745,16 @@
       "path": "src/Forge.Mcp/Scripts/ForgeScriptAgentService.cs"
     },
     {
+      "id": "file:src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeScriptInteropService.cs",
+      "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
       "id": "file:src/Forge.Mcp/Scripts/ScriptBindingContracts.cs",
       "kind": "file",
       "line": 1,
@@ -54454,6 +54673,16 @@
       },
       "name": "ForgeScriptAgentServiceTests.cs",
       "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptAgentServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeScriptInteropServiceTests.cs",
+      "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.Mcp.Tests/TestWorkspace.cs",
@@ -58736,6 +58965,36 @@
       "path": "src/Forge.Mcp/Scripts/ScriptBindingContracts.cs"
     },
     {
+      "id": "model:Forge.Mcp.Scripts.ScriptInteropResult",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Mcp.Scripts"
+      },
+      "name": "ScriptInteropResult",
+      "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
+      "id": "model:Forge.Mcp.Scripts.ScriptInteropTestResult",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Mcp.Scripts"
+      },
+      "name": "ScriptInteropTestResult",
+      "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
+      "id": "model:Forge.Mcp.Scripts.ScriptSourceDocument",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Mcp.Scripts"
+      },
+      "name": "ScriptSourceDocument",
+      "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
       "id": "model:Forge.Mcp.Testing.ScenarioTestResult",
       "kind": "model",
       "line": 123,
@@ -61185,6 +61444,16 @@
       "path": "src/Forge.Mcp/Scripts/ForgeScriptAgentService.cs"
     },
     {
+      "id": "service:Forge.Mcp.Scripts.ForgeScriptInteropService",
+      "kind": "service",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Mcp.Scripts"
+      },
+      "name": "ForgeScriptInteropService",
+      "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
       "id": "service:Forge.RpgKit.Application.Creatures.CreatureAuthoringService",
       "kind": "service",
       "line": 16,
@@ -62273,6 +62542,16 @@
       },
       "name": "ForgeScriptAgentServiceTests",
       "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptAgentServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.Mcp.Tests.Scripts.ForgeScriptInteropServiceTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Mcp.Tests.Scripts"
+      },
+      "name": "ForgeScriptInteropServiceTests",
+      "path": "tests/Forge.Mcp.Tests/Scripts/ForgeScriptInteropServiceTests.cs"
     },
     {
       "id": "test:Forge.Mcp.Tests.TestWorkspace",
@@ -65080,6 +65359,16 @@
       },
       "name": "ScriptBindingPlanRequest",
       "path": "src/Forge.Mcp/Scripts/ScriptBindingContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Scripts.ScriptSourceTransaction",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Mcp.Scripts"
+      },
+      "name": "ScriptSourceTransaction",
+      "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
     },
     {
       "id": "type:Forge.Mcp.Testing.ScenarioTestAgent",

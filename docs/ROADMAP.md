@@ -185,6 +185,8 @@ G8 SCRIPT-03 livre audio, horloge, événements custom, hot reload sûr et débo
 prochaine tranche est **SCRIPT-04**.
 G8 SCRIPT-04 livre tests, profiling, docs générées, analyse statique et état enregistré migrable. La
 prochaine tranche est **SCRIPT-05**.
+G8 SCRIPT-05 ferme l'interop éditeur/MCP transactionnelle. La prochaine tranche est
+**AUTHOR-UI-01**, avant la création du second module original.
 
 ## Phase 6 — 3D assistée
 
