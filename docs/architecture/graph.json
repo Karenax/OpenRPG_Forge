@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 137,
+        "line": 139,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -10839,6 +10839,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Factions"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "third_party/godot-forest-demo/addons/debug_menu/debug_menu.tscn"
       },
@@ -18633,6 +18642,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Factions.ReputationState",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
         "line": 1561,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
@@ -22602,6 +22620,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Factions",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
       },
@@ -22662,6 +22689,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Factions",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Factions/FactionFoundationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Factions",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
     },
     {
       "evidence": {
@@ -23985,6 +24021,33 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Creatures.CreatureRulesService",
       "target": "model:Forge.RpgKit.Domain.Creatures.PerceptionResult"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Factions.FactionReputationService",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Factions.FactionReputationService",
+      "target": "model:Forge.RpgKit.Domain.Factions.FactionDefinition"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Factions.FactionReputationService",
+      "target": "model:Forge.RpgKit.Domain.Factions.ReputationState"
     },
     {
       "evidence": {
@@ -33852,6 +33915,105 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "model:Forge.RpgKit.Domain.Factions.FactionDefinition"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "model:Forge.RpgKit.Domain.Factions.ReputationState"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "service:Forge.RpgKit.Domain.Factions.FactionReputationService"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "type:Forge.RpgKit.Domain.Factions.DispositionBand"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "type:Forge.RpgKit.Domain.Factions.FactionCatalog"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "type:Forge.RpgKit.Domain.Factions.FactionRelationship"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "type:Forge.RpgKit.Domain.Factions.PersonalReputationOverlay"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "type:Forge.RpgKit.Domain.Factions.ReactionContext"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "type:Forge.RpgKit.Domain.Factions.ReputationScope"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "target": "type:Forge.RpgKit.Domain.Factions.ReputationTransaction"
+    },
+    {
+      "evidence": {
         "line": 67,
         "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
       },
@@ -36741,12 +36903,30 @@
     },
     {
       "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Factions.EncounterReaction",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.RpgKit.Domain/Factions/FactionModels.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Factions.FactionCatalog",
       "target": "file:src/Forge.RpgKit.Domain/Factions/FactionModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Factions.FactionHeatmapSnapshot",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
     },
     {
       "evidence": {
@@ -36765,6 +36945,69 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Factions.FactionRelationship",
       "target": "file:src/Forge.RpgKit.Domain/Factions/FactionModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Factions.HeatmapDifference",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Factions.PersonalReputationOverlay",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Factions.ReactionContext",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Factions.ReactionResolution",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Factions.ReputationMutation",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Factions.ReputationScope",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Factions.ReputationTransaction",
+      "target": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
     },
     {
       "evidence": {
@@ -37650,8 +37893,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:fca74dfe873f768ccad960354021a72f7dfce530376d379126aa3d273f0f9ade",
-    "source_file_count": 822
+    "source_digest": "sha256:f6d419d95c61fe793490c91e43d1d00bcedbc857e8d0a8eb2c3e36b00ea779d7",
+    "source_file_count": 825
   },
   "nodes": [
     {
@@ -40403,6 +40646,16 @@
       },
       "name": "G8-FACTION-01-FOUNDATION.md",
       "path": "docs/aurora-parity/tasks/G8-FACTION-01-FOUNDATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-FACTION-02-REPUTATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-FACTION-02-REPUTATION.md",
+      "path": "docs/aurora-parity/tasks/G8-FACTION-02-REPUTATION.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -43925,6 +44178,16 @@
       "path": "src/Forge.RpgKit.Domain/Factions/FactionModels.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "FactionReputationService.cs",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Forge.RpgKit.Domain.csproj",
       "kind": "configuration",
       "line": 1,
@@ -45113,6 +45376,16 @@
       },
       "name": "FactionFoundationTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionFoundationTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "FactionReputationTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Forge.RpgKit.Domain.Tests.csproj",
@@ -49135,6 +49408,16 @@
       "path": "src/Forge.RpgKit.Domain/Factions/FactionModels.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Factions.ReputationState",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "ReputationState",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
       "line": 1561,
@@ -50002,6 +50285,16 @@
       },
       "name": "CreatureRulesService",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureRulesService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Domain.Factions.FactionReputationService",
+      "kind": "service",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "FactionReputationService",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
@@ -51012,6 +51305,16 @@
       },
       "name": "FactionFoundationTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionFoundationTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Factions.FactionReputationTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Factions"
+      },
+      "name": "FactionReputationTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionReputationTests.cs"
     },
     {
       "id": "test:Forge.Scripting.Tests.CountingRuntime",
@@ -54071,6 +54374,16 @@
       "path": "src/Forge.RpgKit.Domain/Factions/FactionModels.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Factions.EncounterReaction",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "EncounterReaction",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Factions.FactionCatalog",
       "kind": "type",
       "line": 7,
@@ -54079,6 +54392,16 @@
       },
       "name": "FactionCatalog",
       "path": "src/Forge.RpgKit.Domain/Factions/FactionModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Factions.FactionHeatmapSnapshot",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "FactionHeatmapSnapshot",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Factions.FactionMember",
@@ -54099,6 +54422,76 @@
       },
       "name": "FactionRelationship",
       "path": "src/Forge.RpgKit.Domain/Factions/FactionModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Factions.HeatmapDifference",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "HeatmapDifference",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Factions.PersonalReputationOverlay",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "PersonalReputationOverlay",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Factions.ReactionContext",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "ReactionContext",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Factions.ReactionResolution",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "ReactionResolution",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Factions.ReputationMutation",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "ReputationMutation",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Factions.ReputationScope",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "ReputationScope",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Factions.ReputationTransaction",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Factions"
+      },
+      "name": "ReputationTransaction",
+      "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
     },
     {
       "id": "type:Forge.Runtime.GameRoot",

@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 FACTION-02** pour `ORF-FAC-006`, `007`, `011`, `012` et `013` : réputation, tags, heatmap et réactions.
+Exécuter **G8 ITEM-01** pour `ORF-ITEM-015`, `001`, `002`, `003` et `004` : fondation canonique des objets.
