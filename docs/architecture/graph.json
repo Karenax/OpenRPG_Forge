@@ -2928,7 +2928,7 @@
     },
     {
       "evidence": {
-        "line": 101,
+        "line": 102,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 117,
+        "line": 118,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -5274,6 +5274,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Gameplay/GameplaySimulation.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
     },
     {
       "evidence": {
@@ -8703,6 +8712,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs",
+      "target": "namespace:Forge.Application.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
     },
     {
       "evidence": {
@@ -16572,6 +16599,186 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.EquipmentChangeKind",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.EquipmentChangedEvent",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.EquipmentChangedEvent",
+      "target": "model:Forge.Domain.Lifecycle.EquipmentChangeKind"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.EquipmentChangedEvent",
+      "target": "model:Forge.Domain.Lifecycle.ProjectGameplayEvent"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.EventTransactionResult",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.EventTransactionResult",
+      "target": "model:Forge.Domain.Lifecycle.ProjectGameplayEvent"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.InventoryChangeKind",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.InventoryChangedEvent",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.InventoryChangedEvent",
+      "target": "model:Forge.Domain.Lifecycle.InventoryChangeKind"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.InventoryChangedEvent",
+      "target": "model:Forge.Domain.Lifecycle.ProjectGameplayEvent"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.ItemUsedEvent",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.ItemUsedEvent",
+      "target": "model:Forge.Domain.Combat.AbilityId"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.ItemUsedEvent",
+      "target": "model:Forge.Domain.Lifecycle.ProjectGameplayEvent"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.LifeCycleEvent",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.LifeCycleEvent",
+      "target": "model:Forge.Domain.Lifecycle.ProjectGameplayEvent"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.PlayerConnectionEvent",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.PlayerConnectionEvent",
+      "target": "model:Forge.Domain.Lifecycle.ProjectGameplayEvent"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.ProgressionChangedEvent",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.ProgressionChangedEvent",
+      "target": "model:Forge.Domain.Lifecycle.ProjectGameplayEvent"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.ProjectGameplayEvent",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
       },
@@ -18759,6 +18966,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
       },
@@ -19215,6 +19431,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Gameplay",
       "target": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Lifecycle",
+      "target": "file:tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
     },
     {
       "evidence": {
@@ -19899,6 +20124,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Lifecycle",
       "target": "file:src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
     },
     {
       "evidence": {
@@ -26157,6 +26391,123 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "file:tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "model:Forge.Domain.Lifecycle.EquipmentChangeKind"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "model:Forge.Domain.Lifecycle.EquipmentChangedEvent"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "model:Forge.Domain.Lifecycle.InventoryChangeKind"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "model:Forge.Domain.Lifecycle.InventoryChangedEvent"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "model:Forge.Domain.Lifecycle.ItemUsedEvent"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "model:Forge.Domain.Lifecycle.PlayerConnectionEvent"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "model:Forge.Domain.Lifecycle.ProgressionChangedEvent"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "type:Forge.Application.Lifecycle.ProjectGameplayEventBus"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "type:Forge.Domain.Lifecycle.EventAuthorityScope"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "type:Forge.Domain.Lifecycle.EventBinding"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "type:Forge.Domain.Lifecycle.LifeCycleStage"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "target": "type:Forge.Domain.Lifecycle.PlayerConnectionStage"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
       },
@@ -32115,6 +32466,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Lifecycle.ProjectGameplayEventBus",
+      "target": "file:src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
       },
@@ -32872,11 +33232,47 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.EventAuthorityScope",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.EventBinding",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Domain.Lifecycle.IRuntimeLifecycleEventIdSource",
       "target": "file:src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.LifeCycleStage",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.PlayerConnectionStage",
+      "target": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
     },
     {
       "evidence": {
@@ -34599,8 +34995,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:ab114c92b67158ca647f1915b7497fd3c53eb01b99a144dc19f7baa8d4d8cfa0",
-    "source_file_count": 777
+    "source_digest": "sha256:e594ac0a4ffc4323bc3215cbbb049361764cf0509f2c1f4f41f292a7f22acaa5",
+    "source_file_count": 781
   },
   "nodes": [
     {
@@ -37224,6 +37620,16 @@
       "path": "docs/aurora-parity/tasks/G7-31-GAMEPLAY-SESSION.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-32-PROJECT-EVENTS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-32-PROJECT-EVENTS.md",
+      "path": "docs/aurora-parity/tasks/G7-32-PROJECT-EVENTS.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -38174,6 +38580,16 @@
       "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
     },
     {
+      "id": "file:src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ProjectGameplayEventBus.cs",
+      "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Localization/LocalizationCatalogExtractor.cs",
       "kind": "file",
       "line": 1,
@@ -39092,6 +39508,16 @@
       },
       "name": "IRuntimeLifecycleEventIdSource.cs",
       "path": "src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ProjectGameplayEvents.cs",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
     },
     {
       "id": "file:src/Forge.Domain/Lifecycle/RuntimeAuthority.cs",
@@ -41022,6 +41448,16 @@
       },
       "name": "GameplaySimulationTests.cs",
       "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ProjectGameplayEventBusTests.cs",
+      "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
@@ -44614,6 +45050,106 @@
       "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
     },
     {
+      "id": "model:Forge.Domain.Lifecycle.EquipmentChangeKind",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "EquipmentChangeKind",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.EquipmentChangedEvent",
+      "kind": "model",
+      "line": 47,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "EquipmentChangedEvent",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.EventTransactionResult",
+      "kind": "model",
+      "line": 57,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "EventTransactionResult",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.InventoryChangeKind",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "InventoryChangeKind",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.InventoryChangedEvent",
+      "kind": "model",
+      "line": 32,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "InventoryChangedEvent",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.ItemUsedEvent",
+      "kind": "model",
+      "line": 37,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "ItemUsedEvent",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.LifeCycleEvent",
+      "kind": "model",
+      "line": 42,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "LifeCycleEvent",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.PlayerConnectionEvent",
+      "kind": "model",
+      "line": 27,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "PlayerConnectionEvent",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.ProgressionChangedEvent",
+      "kind": "model",
+      "line": 52,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "ProgressionChangedEvent",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.ProjectGameplayEvent",
+      "kind": "model",
+      "line": 18,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "ProjectGameplayEvent",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
       "id": "model:Forge.Domain.Lifecycle.RuntimeLifecycleDispatchResult",
       "kind": "model",
       "line": 5,
@@ -45490,6 +46026,11 @@
       "name": "Forge.Application.Gameplay"
     },
     {
+      "id": "namespace:Forge.Application.Lifecycle",
+      "kind": "namespace",
+      "name": "Forge.Application.Lifecycle"
+    },
+    {
       "id": "namespace:Forge.Application.Localization",
       "kind": "namespace",
       "name": "Forge.Application.Localization"
@@ -45548,6 +46089,11 @@
       "id": "namespace:Forge.Application.Tests.Gameplay",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Gameplay"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Lifecycle",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Lifecycle"
     },
     {
       "id": "namespace:Forge.Application.Tests.Localization",
@@ -46380,6 +46926,16 @@
       },
       "name": "GameplaySimulationTests",
       "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Lifecycle"
+      },
+      "name": "ProjectGameplayEventBusTests",
+      "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
@@ -47529,6 +48085,16 @@
       "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
     },
     {
+      "id": "type:Forge.Application.Lifecycle.ProjectGameplayEventBus",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "ProjectGameplayEventBus",
+      "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+    },
+    {
       "id": "type:Forge.Application.Localization.LocalizationCatalogExtractor",
       "kind": "type",
       "line": 6,
@@ -48369,6 +48935,26 @@
       "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
     },
     {
+      "id": "type:Forge.Domain.Lifecycle.EventAuthorityScope",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "EventAuthorityScope",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Lifecycle.EventBinding",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "EventBinding",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
       "id": "type:Forge.Domain.Lifecycle.IRuntimeLifecycleEventIdSource",
       "kind": "type",
       "line": 3,
@@ -48377,6 +48963,26 @@
       },
       "name": "IRuntimeLifecycleEventIdSource",
       "path": "src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Lifecycle.LifeCycleStage",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "LifeCycleStage",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Lifecycle.PlayerConnectionStage",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "PlayerConnectionStage",
+      "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
     },
     {
       "id": "type:Forge.Domain.Lifecycle.RandomRuntimeLifecycleEventIdSource",

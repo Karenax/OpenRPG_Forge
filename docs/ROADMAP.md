@@ -97,9 +97,10 @@ G7-28 livre spatialisation 2D/3D, portée, contrôle scripté et ambiance adapta
 G7-29 livre machine musicale, bus hiérarchiques et sous-titres sonores localisés.
 G7-30 livre les primitives déterministes de vol, projectiles, physique, ciblage et temps mondial.
 G7-31 livre les portées de sauvegarde, checkpoints, shell runtime, verrous de contrôle et replay déterministe.
+G7-32 livre le bus transactionnel des événements joueur, inventaire, capacités, mort et progression.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-32 — configuration et maintenance de projet**.
+La prochaine tranche est **G7-33 — événement global et calendrier du monde**.
 
 ## Phase 6 — 3D assistée
 
