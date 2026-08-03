@@ -611,7 +611,7 @@ passer par des commandes transactionnelles, annulables, validables et testables 
 
 ### 9.5 État actuel de l’expérience Creator
 
-Le MVP solo est fermé et le gate **Creator Core G7** est ouvert. Les incréments G7-03 à G7-16 sont
+Le MVP solo est fermé et le gate **Creator Core G7** est ouvert. Les incréments G7-03 à G7-17 sont
 livrés avec preuves automatisées et revues visuelles ciblées :
 
 - le workspace **Blueprints** recherche par nom, slug ou type, crée et édite une définition par
@@ -630,10 +630,13 @@ livrés avec preuves automatisées et revues visuelles ciblées :
 - l’espace **Assets** charge 605 entrées depuis le Vault externe avec UUID, hash, licence, provenance,
   recherche à facettes, aperçu local et prévisualisation d’import sans écriture ; les détails restent
   défilables à la taille nominale et l’action braise n’est active que pour un asset gouverné.
+- l’espace **Assistant** extrait métadonnées, dialogues et quêtes dans un catalogue de localisation
+  canonique, filtre par clé et langue, prévisualise replis et pseudo-localisation puis applique les
+  traductions par commande transactionnelle annulable.
 
 Les contrats, critères et preuves sont détaillés dans `docs/aurora-parity/tasks/`,
-`docs/UX_AURORA_2026.md` et `STATUS.md`. La prochaine tranche Creator est **G7-17 — localisation
-auteur** pour `ORF-CONT-011`.
+`docs/UX_AURORA_2026.md` et `STATUS.md`. La prochaine tranche Creator est **G7-18 — mise à l’échelle
+dans le Toolset** pour `ORF-EE-002`.
 
 ---
 
@@ -1409,10 +1412,10 @@ Le résumé doit contenir :
 ## 23. Mission courante à donner à Codex
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
-> applicables. Le bootstrap, le MVP et G7-01 à G7-16 sont déjà validés : ne les recommence pas.
-> Réalise uniquement **G7-17 — localisation auteur** pour `ORF-CONT-011` : audite les textes
-> localisés existants, versionne un catalogue canonique par langue avec fallback, puis ajoute
-> extraction, pseudo-localisation, diagnostics et édition transactionnelle. Conserve le modèle de
+> applicables. Le bootstrap, le MVP et G7-01 à G7-17 sont déjà validés : ne les recommence pas.
+> Réalise uniquement **G7-18 — mise à l’échelle dans le Toolset** pour `ORF-EE-002` : audite les
+> transforms, gizmos et propriétés existants, puis ajoute échelle uniforme et par axe, validation,
+> saisie précise, aperçu et édition transactionnelle annulable. Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.
 

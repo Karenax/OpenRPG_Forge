@@ -7,6 +7,7 @@ using Forge.Application.Commands;
 using Forge.Application.Creator;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
+using Forge.Application.Localization;
 using Forge.Application.Projects;
 using Forge.Application.Quests;
 using Forge.Application.Spatial;
@@ -17,6 +18,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Build;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.Localization;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
@@ -56,6 +58,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SafeRenameHandler _safeRenameHandler = new(new SystemClock());
     private readonly SetModuleConfigurationHandler _setModuleConfigurationHandler = new(new SystemClock());
     private readonly SetModuleDistributionHandler _setModuleDistributionHandler = new(new SystemClock());
+    private readonly SetLocalizationCatalogHandler _setLocalizationCatalogHandler = new(new SystemClock());
     private readonly SetAreaNavigationHandler _setAreaNavigationHandler = new(new SystemClock());
     private readonly ApplyDiagnosticQuickFixHandler _diagnosticQuickFixHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
@@ -132,6 +135,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private DialogueEditorWindow? _dialogueEditor;
     private BlueprintCatalogWindow? _blueprintCatalog;
     private AssetContentBrowserWindow? _assetBrowser;
+    private LocalizationWorkspaceWindow? _localizationWorkspace;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -195,6 +199,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
             GetRepositoryRoot,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assetBrowser);
+        _localizationWorkspace = new LocalizationWorkspaceWindow();
+        _localizationWorkspace.Initialize(
+            () => _history?.State,
+            ApplyLocalizationCatalog,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_localizationWorkspace);
         _globalSearch = new GlobalSearchWindow();
         _globalSearch.Initialize(
             () => _history?.State,
@@ -352,6 +362,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _entityPropertiesCancelButton = null;
         _dialogueEditor = null;
         _blueprintCatalog = null;
+        _assetBrowser = null;
+        _localizationWorkspace = null;
         _globalSearch = null;
         _moduleConfiguration = null;
         _areaWorkspace = null;
@@ -861,6 +873,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (string.Equals(workspace, "Validation", StringComparison.Ordinal))
         {
             _distributionProfiles?.Open();
+            return;
+        }
+
+        if (string.Equals(workspace, "Assistant", StringComparison.Ordinal))
+        {
+            _localizationWorkspace?.Open();
             return;
         }
 
@@ -1481,6 +1499,30 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _setModuleConfigurationHandler.Handle(_history.State, command),
             $"Configuration du module enregistrée · {metadata.Localizations.Count} langue(s) · " +
             $"{variables.Count} variable(s).",
+            GetSelectedEntity()?.Id);
+    }
+
+    private bool ApplyLocalizationCatalog(LocalizationCatalog catalog, bool dryRun)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new SetLocalizationCatalogCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            catalog,
+            DryRun: dryRun);
+        var result = _setLocalizationCatalogHandler.Handle(_history.State, command);
+        if (dryRun)
+        {
+            return result.Succeeded;
+        }
+
+        return ApplyCommand(
+            result,
+            $"Catalogue de localisation appliqué · {catalog.Messages.Count} message(s) · {catalog.Locales.Count} langue(s).",
             GetSelectedEntity()?.Id);
     }
 
@@ -2784,6 +2826,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssetContentBrowserSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunLocalizationWorkspaceSmokeTest())
         {
             return;
         }
@@ -4099,6 +4146,59 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=605 sources=3 facets=search-source-category " +
             "uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed");
+        return true;
+    }
+
+    private bool RunLocalizationWorkspaceSmokeTest()
+    {
+        if (_history is null || _localizationWorkspace is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_FAILED missing_workspace");
+            return false;
+        }
+
+        var originalCatalog = _history.State.Project.Module.Localization;
+        _localizationWorkspace.Refresh();
+        var defaultLocale = _history.State.Project.Module.Metadata.DefaultLocale;
+        if (_localizationWorkspace.MessageCount == 0 || _localizationWorkspace.LocaleCount == 0 ||
+            !_localizationWorkspace.SelectForSmokeTest("module.name", defaultLocale) ||
+            !_localizationWorkspace.SetTranslationForSmokeTest("Crypte des Cendres · localisation") ||
+            !_localizationWorkspace.PreviewForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_FAILED extract_edit_preview");
+            return false;
+        }
+
+        var draft = LocalizationCatalogExtractor.Extract(_history.State.Project).Catalog;
+        var localized = new LocalizationCatalog(draft.Id, draft.DefaultLocale, draft.Locales,
+            draft.Messages.Select(message => message.Key == "module.name"
+                ? new LocalizationMessage(message.Key, message.Fallback,
+                    message.Translations.ToDictionary(pair => pair.Key, pair =>
+                        pair.Key == defaultLocale ? "Crypte des Cendres · localisation" : pair.Value),
+                    message.Provenance)
+                : message).ToArray());
+        if (!ApplyLocalizationCatalog(localized, false) ||
+            _history.State.Project.Module.Localization.Resolve("module.name", defaultLocale) != "Crypte des Cendres · localisation")
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_FAILED command");
+            return false;
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            _history.State.Project.Module.Localization != originalCatalog)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_FAILED history");
+            return false;
+        }
+
+        RefreshEditorControls();
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_PASS messages={_localizationWorkspace.MessageCount} " +
+            $"locales={_localizationWorkspace.LocaleCount} extraction=canonical fallback=resolved " +
+            "pseudo=available preview=dry-run history=restored");
         return true;
     }
 

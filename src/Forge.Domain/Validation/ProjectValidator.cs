@@ -17,6 +17,8 @@ public static class ProjectValidator
     public const string MissingPortalDestinationEntityCode = "area.portal.destination_entity_missing";
     public const string UnsupportedBlueprintProvenanceSchemaCode = "blueprint.provenance.schema_unsupported";
     public const string InvalidInstalledBlueprintProvenanceCode = "blueprint.provenance.installed_invalid";
+    public const string LocalizationDefaultLocaleMismatchCode = "localization.default_locale.mismatch";
+    public const string MissingLocalizationKeyCode = "localization.key.missing";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -128,6 +130,33 @@ public static class ProjectValidator
         foreach (var quest in project.Quests)
         {
             diagnostics.AddRange(QuestValidator.Validate(quest));
+        }
+
+        if (project.Module.Localization.Messages.Count > 0)
+        {
+            if (!string.Equals(
+                    project.Module.Localization.DefaultLocale,
+                    project.Module.Metadata.DefaultLocale,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    LocalizationDefaultLocaleMismatchCode,
+                    "The localization catalog default locale must match the module metadata default locale.",
+                    "module/localization/defaultLocale"));
+            }
+
+            var catalogKeys = project.Module.Localization.Messages.Select(message => message.Key).ToHashSet(StringComparer.Ordinal);
+            var requiredKeys = project.Dialogues.SelectMany(dialogue => dialogue.Nodes)
+                .SelectMany(node => new[] { node.Text.Key }.Concat(node.Choices.Select(choice => choice.Text.Key)))
+                .Concat(project.Quests.SelectMany(quest => quest.States).Select(state => state.Journal.LocalizationKey))
+                .Distinct(StringComparer.Ordinal);
+            foreach (var key in requiredKeys.Where(key => !catalogKeys.Contains(key)))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    MissingLocalizationKeyCode,
+                    $"Localization key '{key}' is referenced but absent from the catalog.",
+                    $"module/localization/messages/{key}"));
+            }
         }
 
         return diagnostics;

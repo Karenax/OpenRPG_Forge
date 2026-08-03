@@ -6,12 +6,24 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Combat;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.Localization;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 
 namespace Forge.ModuleFormat.Serialization;
+
+internal sealed class LocalizationCatalogIdJsonConverter : JsonConverter<LocalizationCatalogId>
+{
+    public override LocalizationCatalogId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        LocalizationCatalogId.Parse(reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("A localization catalog ID cannot be null.")
+            : throw new JsonException("A localization catalog ID must be a string."));
+
+    public override void Write(Utf8JsonWriter writer, LocalizationCatalogId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+}
 
 internal sealed class EditorCameraProfileIdJsonConverter : JsonConverter<EditorCameraProfileId>
 {

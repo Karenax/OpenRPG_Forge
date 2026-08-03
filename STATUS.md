@@ -4,7 +4,7 @@ Dernière mise à jour : 3 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-16 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-17 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -60,6 +60,9 @@ prévisualisables, transactionnels et annulables ; CLI et MCP exposent le même 
 G7-16 charge un catalogue d’assets v1 de 605 entrées avec UUID stable, hash, licence, provenance et
 disponibilité. L’espace Assets, le CLI et MCP partagent recherche à facettes, aperçu et
 prévisualisation d’un import gouverné sans écriture ; la mise en page nominale est validée visuellement.
+G7-17 ajoute un catalogue de localisation canonique au module, extrait métadonnées, dialogues et
+quêtes, résout les replis par langue et offre édition, pseudo-localisation, dry-run et historique
+transactionnel dans une surface Creator dédiée.
 
 ## État prouvé
 
@@ -70,14 +73,14 @@ prévisualisation d’un import gouverné sans écriture ; la mise en page nomin
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 243 tests .NET et 24 tests Python réussis ;
+- 248 tests .NET et 24 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
   icônes des fenêtres Forge personnalisées puis contrôlées par le smoke test et une capture ciblée ;
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
 - assistant Nouveau module validé : agrégat module, zone d’entrée, sol, spawn et workspace atomique
-  indexé au format `0.9.0`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
+  indexé au format `1.0.0`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
   `0.6.5`, `0.6.4`, `0.6.3`, `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
   édition visuelle, sérialisation, commande transactionnelle, dry-run, audit, undo/redo et smoke ;
@@ -220,6 +223,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-17 — localisation auteur** pour `ORF-CONT-011` : auditer les textes localisés déjà
-présents, versionner un catalogue canonique par langue avec fallback, puis livrer édition
-transactionnelle, extraction, pseudo-localisation, diagnostics et aperçu sans dépendance au moteur.
+Ouvrir **G7-18 — mise à l’échelle dans le Toolset** pour `ORF-EE-002` : auditer les transforms et le
+gizmo actuels, puis livrer échelle uniforme et par axe, validation, propriétés précises, commande
+transactionnelle, annuler/rétablir et preuve interactive sans faire de la scène la source de vérité.

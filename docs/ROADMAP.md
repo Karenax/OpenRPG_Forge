@@ -76,9 +76,11 @@ prévisualisables qui passent par le bus transactionnel, avec exposition CLI et 
 G7-16 livre le catalogue d’assets v1 de 605 entrées, la recherche à facettes, l’aperçu local, la
 gouvernance licence/provenance et une planification d’import sans écriture dans l’espace Assets, le
 CLI et MCP.
+G7-17 livre le catalogue de localisation canonique, l’extraction des textes auteur, les replis par
+langue, la pseudo-localisation et l’édition transactionnelle intégrée au Creator.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-17 — localisation auteur** pour `ORF-CONT-011`.
+La prochaine tranche est **G7-18 — mise à l’échelle dans le Toolset** pour `ORF-EE-002`.
 
 ## Phase 6 — 3D assistée
 

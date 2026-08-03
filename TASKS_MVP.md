@@ -397,10 +397,12 @@ Le détail et les preuves des 717 capacités restent suivis dans
   fixes transactionnels pour la dernière exigence P0 Core non commencée.
 - [x] **G7-16 — Content Browser et Asset Vault local** : manifeste versionné, catalogue adressé par
   hash, recherche à facettes, provenance/licence, aperçu et statut d’import dans l’espace Assets.
-- [ ] **G7-17 — localisation auteur** : catalogue canonique, langues et fallback, édition
+- [x] **G7-17 — localisation auteur** : catalogue canonique, langues et fallback, édition
   transactionnelle, extraction, pseudo-localisation, diagnostics et aperçu dans le Creator.
+- [ ] **G7-18 — mise à l’échelle dans le Toolset** : manipulation directe de l’échelle, validation,
+  propriétés précises, commande transactionnelle et historique pour `ORF-EE-002`.
 
-Les règles graphiques et d’interaction de G7-03 à G7-16 sont consignées dans
+Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest

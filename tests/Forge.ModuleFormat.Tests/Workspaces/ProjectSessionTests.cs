@@ -25,7 +25,7 @@ public sealed class ProjectSessionTests : IDisposable
 
         var result = ProjectSession.Open(_temporaryRoot);
 
-        Assert.True(result.Succeeded);
+        Assert.True(result.Succeeded, string.Join(" | ", result.Diagnostics.Select(item => $"{item.Code}: {item.Message}")));
         var session = Assert.IsType<ProjectSession>(result.Session);
         Assert.Equal("OpenRPG Forge test project", session.Project.Title);
         Assert.Equal(

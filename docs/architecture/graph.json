@@ -39,7 +39,7 @@
     },
     {
       "evidence": {
-        "line": 86,
+        "line": 98,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -48,7 +48,7 @@
     },
     {
       "evidence": {
-        "line": 86,
+        "line": 98,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -57,7 +57,7 @@
     },
     {
       "evidence": {
-        "line": 44,
+        "line": 56,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -66,7 +66,7 @@
     },
     {
       "evidence": {
-        "line": 44,
+        "line": 56,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -102,7 +102,7 @@
     },
     {
       "evidence": {
-        "line": 315,
+        "line": 327,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -111,7 +111,7 @@
     },
     {
       "evidence": {
-        "line": 315,
+        "line": 327,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -120,7 +120,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 84,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -129,7 +129,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 84,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -138,7 +138,7 @@
     },
     {
       "evidence": {
-        "line": 142,
+        "line": 154,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -147,7 +147,7 @@
     },
     {
       "evidence": {
-        "line": 142,
+        "line": 154,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -156,7 +156,7 @@
     },
     {
       "evidence": {
-        "line": 114,
+        "line": 126,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -165,7 +165,7 @@
     },
     {
       "evidence": {
-        "line": 114,
+        "line": 126,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -174,7 +174,7 @@
     },
     {
       "evidence": {
-        "line": 128,
+        "line": 140,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -183,7 +183,7 @@
     },
     {
       "evidence": {
-        "line": 128,
+        "line": 140,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -192,7 +192,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 42,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -201,7 +201,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 42,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -210,7 +210,7 @@
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 28,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -219,7 +219,7 @@
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 28,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -246,7 +246,7 @@
     },
     {
       "evidence": {
-        "line": 100,
+        "line": 112,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -255,7 +255,7 @@
     },
     {
       "evidence": {
-        "line": 100,
+        "line": 112,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -264,7 +264,25 @@
     },
     {
       "evidence": {
-        "line": 184,
+        "line": 17,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.LocalizationCatalogIdJsonConverter",
+      "target": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.LocalizationCatalogIdJsonConverter",
+      "target": "model:Forge.Domain.Localization.LocalizationCatalogId"
+    },
+    {
+      "evidence": {
+        "line": 196,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -273,7 +291,7 @@
     },
     {
       "evidence": {
-        "line": 185,
+        "line": 197,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -282,7 +300,7 @@
     },
     {
       "evidence": {
-        "line": 170,
+        "line": 182,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -291,7 +309,7 @@
     },
     {
       "evidence": {
-        "line": 170,
+        "line": 182,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -300,7 +318,7 @@
     },
     {
       "evidence": {
-        "line": 203,
+        "line": 215,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -309,7 +327,7 @@
     },
     {
       "evidence": {
-        "line": 203,
+        "line": 215,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -318,7 +336,7 @@
     },
     {
       "evidence": {
-        "line": 329,
+        "line": 341,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -327,7 +345,7 @@
     },
     {
       "evidence": {
-        "line": 329,
+        "line": 341,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -336,7 +354,7 @@
     },
     {
       "evidence": {
-        "line": 357,
+        "line": 369,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -345,7 +363,7 @@
     },
     {
       "evidence": {
-        "line": 357,
+        "line": 369,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -354,7 +372,7 @@
     },
     {
       "evidence": {
-        "line": 343,
+        "line": 355,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -363,7 +381,7 @@
     },
     {
       "evidence": {
-        "line": 343,
+        "line": 355,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -372,7 +390,7 @@
     },
     {
       "evidence": {
-        "line": 58,
+        "line": 70,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -381,7 +399,7 @@
     },
     {
       "evidence": {
-        "line": 58,
+        "line": 70,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -390,7 +408,7 @@
     },
     {
       "evidence": {
-        "line": 156,
+        "line": 168,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -399,7 +417,7 @@
     },
     {
       "evidence": {
-        "line": 156,
+        "line": 168,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -417,7 +435,7 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 25,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -426,7 +444,7 @@
     },
     {
       "evidence": {
-        "line": 63,
+        "line": 65,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -435,7 +453,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 31,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -444,7 +462,7 @@
     },
     {
       "evidence": {
-        "line": 79,
+        "line": 81,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -453,7 +471,7 @@
     },
     {
       "evidence": {
-        "line": 239,
+        "line": 251,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -462,7 +480,7 @@
     },
     {
       "evidence": {
-        "line": 239,
+        "line": 251,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -471,7 +489,7 @@
     },
     {
       "evidence": {
-        "line": 255,
+        "line": 267,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -480,7 +498,7 @@
     },
     {
       "evidence": {
-        "line": 255,
+        "line": 267,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -507,7 +525,7 @@
     },
     {
       "evidence": {
-        "line": 271,
+        "line": 283,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -516,7 +534,7 @@
     },
     {
       "evidence": {
-        "line": 271,
+        "line": 283,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -525,7 +543,7 @@
     },
     {
       "evidence": {
-        "line": 285,
+        "line": 297,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -534,7 +552,7 @@
     },
     {
       "evidence": {
-        "line": 285,
+        "line": 297,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -543,7 +561,7 @@
     },
     {
       "evidence": {
-        "line": 299,
+        "line": 311,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -552,7 +570,7 @@
     },
     {
       "evidence": {
-        "line": 299,
+        "line": 311,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -561,7 +579,7 @@
     },
     {
       "evidence": {
-        "line": 221,
+        "line": 233,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -570,7 +588,7 @@
     },
     {
       "evidence": {
-        "line": 221,
+        "line": 233,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -642,7 +660,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 86,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -651,7 +669,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -660,7 +678,7 @@
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 36,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -669,7 +687,7 @@
     },
     {
       "evidence": {
-        "line": 131,
+        "line": 133,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -723,7 +741,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 38,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -957,7 +975,7 @@
     },
     {
       "evidence": {
-        "line": 1346,
+        "line": 1349,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -966,7 +984,7 @@
     },
     {
       "evidence": {
-        "line": 1411,
+        "line": 1414,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -975,7 +993,7 @@
     },
     {
       "evidence": {
-        "line": 1708,
+        "line": 1711,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -984,7 +1002,7 @@
     },
     {
       "evidence": {
-        "line": 1411,
+        "line": 1414,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -993,7 +1011,7 @@
     },
     {
       "evidence": {
-        "line": 1457,
+        "line": 1460,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1002,7 +1020,7 @@
     },
     {
       "evidence": {
-        "line": 1661,
+        "line": 1664,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1020,7 +1038,7 @@
     },
     {
       "evidence": {
-        "line": 635,
+        "line": 638,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1029,7 +1047,7 @@
     },
     {
       "evidence": {
-        "line": 1411,
+        "line": 1414,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1038,7 +1056,7 @@
     },
     {
       "evidence": {
-        "line": 1458,
+        "line": 1461,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1047,7 +1065,7 @@
     },
     {
       "evidence": {
-        "line": 1510,
+        "line": 1513,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1056,7 +1074,7 @@
     },
     {
       "evidence": {
-        "line": 1602,
+        "line": 1605,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1074,7 +1092,7 @@
     },
     {
       "evidence": {
-        "line": 1316,
+        "line": 1319,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1083,7 +1101,7 @@
     },
     {
       "evidence": {
-        "line": 1411,
+        "line": 1414,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1092,7 +1110,7 @@
     },
     {
       "evidence": {
-        "line": 1459,
+        "line": 1462,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1101,7 +1119,7 @@
     },
     {
       "evidence": {
-        "line": 1510,
+        "line": 1513,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1110,7 +1128,7 @@
     },
     {
       "evidence": {
-        "line": 1677,
+        "line": 1680,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1146,7 +1164,7 @@
     },
     {
       "evidence": {
-        "line": 635,
+        "line": 638,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1173,7 +1191,7 @@
     },
     {
       "evidence": {
-        "line": 1317,
+        "line": 1320,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1191,7 +1209,7 @@
     },
     {
       "evidence": {
-        "line": 1694,
+        "line": 1697,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1542,7 +1560,7 @@
     },
     {
       "evidence": {
-        "line": 154,
+        "line": 157,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1551,7 +1569,7 @@
     },
     {
       "evidence": {
-        "line": 214,
+        "line": 217,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1560,7 +1578,7 @@
     },
     {
       "evidence": {
-        "line": 69,
+        "line": 72,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1596,7 +1614,7 @@
     },
     {
       "evidence": {
-        "line": 404,
+        "line": 406,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1605,7 +1623,7 @@
     },
     {
       "evidence": {
-        "line": 410,
+        "line": 412,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1614,7 +1632,7 @@
     },
     {
       "evidence": {
-        "line": 416,
+        "line": 418,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2303,7 +2321,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Projects"
+      "target": "namespace:Forge.Application.Localization"
     },
     {
       "evidence": {
@@ -2312,7 +2330,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Quests"
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
@@ -2321,7 +2339,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Spatial"
+      "target": "namespace:Forge.Application.Quests"
     },
     {
       "evidence": {
@@ -2330,7 +2348,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Time"
+      "target": "namespace:Forge.Application.Spatial"
     },
     {
       "evidence": {
@@ -2339,7 +2357,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Areas"
+      "target": "namespace:Forge.Application.Time"
     },
     {
       "evidence": {
@@ -2348,7 +2366,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Authoring"
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -2357,7 +2375,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
@@ -2366,7 +2384,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Build"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -2375,7 +2393,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Build"
     },
     {
       "evidence": {
@@ -2384,7 +2402,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -2393,7 +2411,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -2402,7 +2420,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -2411,7 +2429,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -2420,7 +2438,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -2429,7 +2447,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -2438,7 +2456,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Validation"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -2447,7 +2465,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Build"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -2456,16 +2474,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Navigation"
-    },
-    {
-      "evidence": {
-        "line": 29,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -2474,11 +2483,38 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.ModuleFormat.Build"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
     },
     {
       "evidence": {
         "line": 30,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
+    },
+    {
+      "evidence": {
+        "line": 32,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -2502,6 +2538,33 @@
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/GlobalSearchWindow.cs",
       "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs",
+      "target": "namespace:Forge.Application.Localization"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs",
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -2721,7 +2784,7 @@
     },
     {
       "evidence": {
-        "line": 80,
+        "line": 82,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2730,7 +2793,7 @@
     },
     {
       "evidence": {
-        "line": 96,
+        "line": 98,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2739,7 +2802,7 @@
     },
     {
       "evidence": {
-        "line": 174,
+        "line": 181,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -4585,6 +4648,114 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/LocalizationCatalogExtractor.cs",
+      "target": "namespace:Forge.Domain.Localization"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/LocalizationCatalogExtractor.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Localization/LocalizationExtractionResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/LocalizationExtractionResult.cs",
+      "target": "namespace:Forge.Domain.Localization"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs",
+      "target": "namespace:Forge.Domain.Localization"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Projects/NewModuleCommand.cs"
       },
       "kind": "imports",
@@ -5184,6 +5355,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/Modules/ModuleDefinition.cs",
       "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Modules/ModuleDefinition.cs",
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -6182,7 +6362,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -6191,7 +6371,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -6200,11 +6380,20 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
         "line": 12,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 13,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "imports",
@@ -7429,6 +7618,78 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Localization"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Application.Tests/Projects/NewModuleHandlerTests.cs"
       },
       "kind": "imports",
@@ -7902,6 +8163,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs",
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -8784,6 +9054,42 @@
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs",
+      "target": "namespace:Forge.Application.Localization"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
       "evidence": {
@@ -11442,7 +11748,7 @@
     },
     {
       "evidence": {
-        "line": 222,
+        "line": 223,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -11451,7 +11757,7 @@
     },
     {
       "evidence": {
-        "line": 219,
+        "line": 220,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -11460,7 +11766,7 @@
     },
     {
       "evidence": {
-        "line": 223,
+        "line": 224,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -11514,7 +11820,7 @@
     },
     {
       "evidence": {
-        "line": 169,
+        "line": 170,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -11523,7 +11829,7 @@
     },
     {
       "evidence": {
-        "line": 183,
+        "line": 184,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -11532,7 +11838,7 @@
     },
     {
       "evidence": {
-        "line": 196,
+        "line": 197,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -11559,7 +11865,7 @@
     },
     {
       "evidence": {
-        "line": 201,
+        "line": 202,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -12252,6 +12558,96 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "target": "file:src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 60,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 61,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "target": "model:Forge.Application.Localization.SetLocalizationCatalogCommand"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "target": "model:Forge.Domain.Modules.ModuleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "src/Forge.Application/Projects/NewModuleHandler.cs"
       },
@@ -12441,7 +12837,7 @@
     },
     {
       "evidence": {
-        "line": 111,
+        "line": 112,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -12450,7 +12846,7 @@
     },
     {
       "evidence": {
-        "line": 108,
+        "line": 109,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -12459,7 +12855,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 113,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -12477,7 +12873,7 @@
     },
     {
       "evidence": {
-        "line": 68,
+        "line": 69,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -12513,7 +12909,7 @@
     },
     {
       "evidence": {
-        "line": 54,
+        "line": 55,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -12531,7 +12927,7 @@
     },
     {
       "evidence": {
-        "line": 101,
+        "line": 102,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -12540,7 +12936,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 99,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -12549,7 +12945,7 @@
     },
     {
       "evidence": {
-        "line": 102,
+        "line": 103,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -12567,7 +12963,7 @@
     },
     {
       "evidence": {
-        "line": 58,
+        "line": 59,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -12603,7 +12999,7 @@
     },
     {
       "evidence": {
-        "line": 44,
+        "line": 45,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -13674,6 +14070,33 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Localization/LocalizationExtractionResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Localization.LocalizationExtractionResult",
+      "target": "file:src/Forge.Application/Localization/LocalizationExtractionResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Localization.SetLocalizationCatalogCommand",
+      "target": "file:src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Localization.SetLocalizationCatalogCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.Application/Projects/NewModuleCommand.cs"
       },
@@ -14394,7 +14817,16 @@
     },
     {
       "evidence": {
-        "line": 5,
+        "line": 3,
+        "path": "src/Forge.Domain/Localization/LocalizationCatalogId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Localization.LocalizationCatalogId",
+      "target": "file:src/Forge.Domain/Localization/LocalizationCatalogId.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "defined_in",
@@ -14403,7 +14835,7 @@
     },
     {
       "evidence": {
-        "line": 15,
+        "line": 16,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "relationship",
@@ -14412,7 +14844,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "relationship",
@@ -14421,7 +14853,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "relationship",
@@ -16293,6 +16725,51 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Localization",
+      "target": "file:src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Localization/LocalizationExtractionResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Localization",
+      "target": "file:src/Forge.Application/Localization/LocalizationExtractionResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Localization/PseudoLocalization.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Localization",
+      "target": "file:src/Forge.Application/Localization/PseudoLocalization.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Localization",
+      "target": "file:src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Localization",
+      "target": "file:src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Projects/NewModuleCommand.cs"
       },
@@ -16596,6 +17073,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Entities",
       "target": "file:tests/Forge.Application.Tests/Entities/TransformEntityHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Localization",
+      "target": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
     },
     {
       "evidence": {
@@ -17265,7 +17751,34 @@
     },
     {
       "evidence": {
-        "line": 2,
+        "line": 1,
+        "path": "src/Forge.Domain/Localization/LocalizationCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Localization",
+      "target": "file:src/Forge.Domain/Localization/LocalizationCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Localization/LocalizationCatalogId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Localization",
+      "target": "file:src/Forge.Domain/Localization/LocalizationCatalogId.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Localization/LocalizationMessage.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Localization",
+      "target": "file:src/Forge.Domain/Localization/LocalizationMessage.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "defined_in",
@@ -17856,6 +18369,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Tests.Lifecycle",
       "target": "file:tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Localization",
+      "target": "file:tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs"
     },
     {
       "evidence": {
@@ -18489,7 +19011,7 @@
     },
     {
       "evidence": {
-        "line": 13,
+        "line": 14,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -18639,6 +19161,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Tests.Serialization",
       "target": "file:tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Serialization",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
     },
     {
       "evidence": {
@@ -18957,7 +19488,7 @@
     },
     {
       "evidence": {
-        "line": 32,
+        "line": 34,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -18972,6 +19503,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Toolset.Editor",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/GlobalSearchWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
     },
     {
       "evidence": {
@@ -22405,6 +22945,231 @@
     {
       "evidence": {
         "line": 12,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Application.Localization.SetLocalizationCatalogCommand"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 60,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Domain.Dialogues.DialogueDefinition"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Domain.Dialogues.DialogueId"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Domain.Dialogues.DialogueNodeId"
+    },
+    {
+      "evidence": {
+        "line": 61,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Domain.Modules.ModuleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 62,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Domain.Modules.ModuleId"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Domain.Modules.ProjectMetadataId"
+    },
+    {
+      "evidence": {
+        "line": 74,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 75,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "type:Forge.Application.Localization.LocalizationCatalogExtractor"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "type:Forge.Application.Localization.PseudoLocalization"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 73,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueNode"
+    },
+    {
+      "evidence": {
+        "line": 73,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "type:Forge.Domain.Dialogues.LocalizedText"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "type:Forge.Domain.Localization.LocalizationCatalog"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "type:Forge.Domain.Localization.LocalizationMessage"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "type:Forge.Domain.Modules.ProjectLocalizedMetadata"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "target": "type:Forge.Domain.Modules.ProjectMetadata"
+    },
+    {
+      "evidence": {
+        "line": 12,
         "path": "tests/Forge.Application.Tests/Projects/NewModuleHandlerTests.cs"
       },
       "kind": "defined_in",
@@ -24048,6 +24813,42 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Lifecycle.SequentialEventIds",
       "target": "type:Forge.Domain.Lifecycle.IRuntimeLifecycleEventIdSource"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Localization.LocalizationCatalogTests",
+      "target": "file:tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Localization.LocalizationCatalogTests",
+      "target": "model:Forge.Domain.Localization.LocalizationCatalogId"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Localization.LocalizationCatalogTests",
+      "target": "type:Forge.Domain.Localization.LocalizationCatalog"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Localization.LocalizationCatalogTests",
+      "target": "type:Forge.Domain.Localization.LocalizationMessage"
     },
     {
       "evidence": {
@@ -26427,6 +27228,51 @@
     },
     {
       "evidence": {
+        "line": 22,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.LocalizationPersistenceTests",
+      "target": "adapter:Forge.ModuleFormat.Serialization.ProjectJsonSerializer"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.LocalizationPersistenceTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.LocalizationPersistenceTests",
+      "target": "model:Forge.Domain.Modules.ModuleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.LocalizationPersistenceTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.LocalizationPersistenceTests",
+      "target": "type:Forge.Application.Localization.LocalizationCatalogExtractor"
+    },
+    {
+      "evidence": {
         "line": 18,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
@@ -27615,6 +28461,24 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Localization.LocalizationCatalogExtractor",
+      "target": "file:src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Localization/PseudoLocalization.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Localization.PseudoLocalization",
+      "target": "file:src/Forge.Application/Localization/PseudoLocalization.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Projects/ProjectRevision.cs"
       },
@@ -27972,6 +28836,24 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Lifecycle.RuntimeLifecycleCoordinator",
       "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Localization/LocalizationCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Localization.LocalizationCatalog",
+      "target": "file:src/Forge.Domain/Localization/LocalizationCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Localization/LocalizationMessage.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Localization.LocalizationMessage",
+      "target": "file:src/Forge.Domain/Localization/LocalizationMessage.cs"
     },
     {
       "evidence": {
@@ -28884,6 +29766,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.LocalizationWorkspaceWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ModuleConfigurationWindow.cs"
       },
@@ -28902,7 +29793,7 @@
     },
     {
       "evidence": {
-        "line": 4488,
+        "line": 4588,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -28929,7 +29820,7 @@
     },
     {
       "evidence": {
-        "line": 4493,
+        "line": 4593,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -28938,7 +29829,7 @@
     },
     {
       "evidence": {
-        "line": 4498,
+        "line": 4598,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -29343,7 +30234,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 30,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -29352,7 +30243,7 @@
     },
     {
       "evidence": {
-        "line": 67,
+        "line": 69,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -29361,7 +30252,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 23,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -29370,7 +30261,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 23,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -29523,8 +30414,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:8cef86e890f674912bb95e7bbeaea0df51b136afa7564e88c3308dfcb172516b",
-    "source_file_count": 696
+    "source_digest": "sha256:a20031ec00f602ddfac5ec3b9f0b0793cf1885dcdf251b5f5c164f9c1d11d8cc",
+    "source_file_count": 709
   },
   "nodes": [
     {
@@ -29540,7 +30431,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AbilityIdJsonConverter",
       "kind": "adapter",
-      "line": 86,
+      "line": 98,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29550,7 +30441,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AreaIdJsonConverter",
       "kind": "adapter",
-      "line": 44,
+      "line": 56,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29570,7 +30461,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AreaNavigationDefinitionIdJsonConverter",
       "kind": "adapter",
-      "line": 315,
+      "line": 327,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29580,7 +30471,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.BlueprintIdJsonConverter",
       "kind": "adapter",
-      "line": 72,
+      "line": 84,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29590,7 +30481,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueChoiceIdJsonConverter",
       "kind": "adapter",
-      "line": 142,
+      "line": 154,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29600,7 +30491,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueIdJsonConverter",
       "kind": "adapter",
-      "line": 114,
+      "line": 126,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29610,7 +30501,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueNodeIdJsonConverter",
       "kind": "adapter",
-      "line": 128,
+      "line": 140,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29620,7 +30511,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.EditorCameraBookmarkIdJsonConverter",
       "kind": "adapter",
-      "line": 30,
+      "line": 42,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29630,7 +30521,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.EditorCameraProfileIdJsonConverter",
       "kind": "adapter",
-      "line": 16,
+      "line": 28,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29650,7 +30541,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.EntityIdJsonConverter",
       "kind": "adapter",
-      "line": 100,
+      "line": 112,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29658,9 +30549,19 @@
       "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
     },
     {
+      "id": "adapter:Forge.ModuleFormat.Serialization.LocalizationCatalogIdJsonConverter",
+      "kind": "adapter",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "LocalizationCatalogIdJsonConverter",
+      "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
       "id": "adapter:Forge.ModuleFormat.Serialization.ModuleDistributionConfigurationIdJsonConverter",
       "kind": "adapter",
-      "line": 184,
+      "line": 196,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29670,7 +30571,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ModuleIdJsonConverter",
       "kind": "adapter",
-      "line": 170,
+      "line": 182,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29680,7 +30581,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ModuleTargetProfileIdJsonConverter",
       "kind": "adapter",
-      "line": 203,
+      "line": 215,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29690,7 +30591,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.NavigationAgentProfileIdJsonConverter",
       "kind": "adapter",
-      "line": 329,
+      "line": 341,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29700,7 +30601,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.NavigationSurfaceIdJsonConverter",
       "kind": "adapter",
-      "line": 357,
+      "line": 369,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29710,7 +30611,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.OffMeshNavigationLinkIdJsonConverter",
       "kind": "adapter",
-      "line": 343,
+      "line": 355,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29720,7 +30621,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.PortalIdJsonConverter",
       "kind": "adapter",
-      "line": 58,
+      "line": 70,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29730,7 +30631,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ProjectIdJsonConverter",
       "kind": "adapter",
-      "line": 156,
+      "line": 168,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29750,7 +30651,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ProjectMetadataIdJsonConverter",
       "kind": "adapter",
-      "line": 239,
+      "line": 251,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29760,7 +30661,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ProjectVariableIdJsonConverter",
       "kind": "adapter",
-      "line": 255,
+      "line": 267,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29780,7 +30681,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestIdJsonConverter",
       "kind": "adapter",
-      "line": 271,
+      "line": 283,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29790,7 +30691,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestStateIdJsonConverter",
       "kind": "adapter",
-      "line": 285,
+      "line": 297,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29800,7 +30701,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestTransitionIdJsonConverter",
       "kind": "adapter",
-      "line": 299,
+      "line": 311,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29810,7 +30711,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ThirdPartyDependencyIdJsonConverter",
       "kind": "adapter",
-      "line": 221,
+      "line": 233,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -29900,7 +30801,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 36,
+      "line": 38,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -31188,6 +32089,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/GlobalSearchWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LocalizationWorkspaceWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/ModuleConfigurationWindow.cs",
       "kind": "file",
       "line": 1,
@@ -31896,6 +32807,16 @@
       },
       "name": "G7-16-ASSET-CONTENT-BROWSER.md",
       "path": "docs/aurora-parity/tasks/G7-16-ASSET-CONTENT-BROWSER.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G7-17-LOCALIZATION-AUTHORING.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-17-LOCALIZATION-AUTHORING.md",
+      "path": "docs/aurora-parity/tasks/G7-17-LOCALIZATION-AUTHORING.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -32676,6 +33597,56 @@
       },
       "name": "Forge.Application.csproj",
       "path": "src/Forge.Application/Forge.Application.csproj"
+    },
+    {
+      "id": "file:src/Forge.Application/Localization/LocalizationCatalogExtractor.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LocalizationCatalogExtractor.cs",
+      "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Localization/LocalizationExtractionResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LocalizationExtractionResult.cs",
+      "path": "src/Forge.Application/Localization/LocalizationExtractionResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Localization/PseudoLocalization.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PseudoLocalization.cs",
+      "path": "src/Forge.Application/Localization/PseudoLocalization.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetLocalizationCatalogCommand.cs",
+      "path": "src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetLocalizationCatalogHandler.cs",
+      "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Projects/NewModuleCommand.cs",
@@ -33536,6 +34507,36 @@
       },
       "name": "RuntimeLifecycleEventKind.cs",
       "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Localization/LocalizationCatalog.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LocalizationCatalog.cs",
+      "path": "src/Forge.Domain/Localization/LocalizationCatalog.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Localization/LocalizationCatalogId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LocalizationCatalogId.cs",
+      "path": "src/Forge.Domain/Localization/LocalizationCatalogId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Localization/LocalizationMessage.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LocalizationMessage.cs",
+      "path": "src/Forge.Domain/Localization/LocalizationMessage.cs"
     },
     {
       "id": "file:src/Forge.Domain/Modules/ModuleDefinition.cs",
@@ -35168,6 +36169,16 @@
       "path": "tests/Forge.Application.Tests/Forge.Application.Tests.csproj"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LocalizationWorkflowTests.cs",
+      "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Projects/NewModuleHandlerTests.cs",
       "kind": "file",
       "line": 1,
@@ -35356,6 +36367,16 @@
       },
       "name": "RuntimeLifecycleCoordinatorTests.cs",
       "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LocalizationCatalogTests.cs",
+      "path": "tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Modules/ModuleIdTests.cs",
@@ -35656,6 +36677,16 @@
       },
       "name": "CryptOfAshesSampleTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LocalizationPersistenceTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs",
@@ -37758,6 +38789,16 @@
       "path": "src/Forge.Application/Entities/TransformEntityHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Localization.SetLocalizationCatalogHandler",
+      "kind": "handler",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Localization"
+      },
+      "name": "SetLocalizationCatalogHandler",
+      "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Projects.NewModuleHandler",
       "kind": "handler",
       "line": 12,
@@ -38178,6 +39219,26 @@
       "path": "src/Forge.Application/Entities/TransformEntityCommand.cs"
     },
     {
+      "id": "model:Forge.Application.Localization.LocalizationExtractionResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Localization"
+      },
+      "name": "LocalizationExtractionResult",
+      "path": "src/Forge.Application/Localization/LocalizationExtractionResult.cs"
+    },
+    {
+      "id": "model:Forge.Application.Localization.SetLocalizationCatalogCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Localization"
+      },
+      "name": "SetLocalizationCatalogCommand",
+      "path": "src/Forge.Application/Localization/SetLocalizationCatalogCommand.cs"
+    },
+    {
       "id": "model:Forge.Application.Projects.NewModuleCommand",
       "kind": "model",
       "line": 10,
@@ -38548,9 +39609,19 @@
       "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs"
     },
     {
+      "id": "model:Forge.Domain.Localization.LocalizationCatalogId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Localization"
+      },
+      "name": "LocalizationCatalogId",
+      "path": "src/Forge.Domain/Localization/LocalizationCatalogId.cs"
+    },
+    {
       "id": "model:Forge.Domain.Modules.ModuleDefinition",
       "kind": "model",
-      "line": 5,
+      "line": 6,
       "metadata": {
         "namespace": "Forge.Domain.Modules"
       },
@@ -39359,6 +40430,11 @@
       "name": "Forge.Application.Entities"
     },
     {
+      "id": "namespace:Forge.Application.Localization",
+      "kind": "namespace",
+      "name": "Forge.Application.Localization"
+    },
+    {
       "id": "namespace:Forge.Application.Projects",
       "kind": "namespace",
       "name": "Forge.Application.Projects"
@@ -39407,6 +40483,11 @@
       "id": "namespace:Forge.Application.Tests.Entities",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Entities"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Localization",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Localization"
     },
     {
       "id": "namespace:Forge.Application.Tests.Projects",
@@ -39472,6 +40553,11 @@
       "id": "namespace:Forge.Domain.Lifecycle",
       "kind": "namespace",
       "name": "Forge.Domain.Lifecycle"
+    },
+    {
+      "id": "namespace:Forge.Domain.Localization",
+      "kind": "namespace",
+      "name": "Forge.Domain.Localization"
     },
     {
       "id": "namespace:Forge.Domain.Modules",
@@ -39542,6 +40628,11 @@
       "id": "namespace:Forge.Domain.Tests.Lifecycle",
       "kind": "namespace",
       "name": "Forge.Domain.Tests.Lifecycle"
+    },
+    {
+      "id": "namespace:Forge.Domain.Tests.Localization",
+      "kind": "namespace",
+      "name": "Forge.Domain.Tests.Localization"
     },
     {
       "id": "namespace:Forge.Domain.Tests.Modules",
@@ -40101,6 +41192,16 @@
       "path": "tests/Forge.Application.Tests/Entities/TransformEntityHandlerTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
+      "kind": "test",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Localization"
+      },
+      "name": "LocalizationWorkflowTests",
+      "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Projects.NewModuleHandlerTests",
       "kind": "test",
       "line": 12,
@@ -40289,6 +41390,16 @@
       },
       "name": "SequentialEventIds",
       "path": "tests/Forge.Domain.Tests/Lifecycle/RuntimeLifecycleCoordinatorTests.cs"
+    },
+    {
+      "id": "test:Forge.Domain.Tests.Localization.LocalizationCatalogTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Localization"
+      },
+      "name": "LocalizationCatalogTests",
+      "path": "tests/Forge.Domain.Tests/Localization/LocalizationCatalogTests.cs"
     },
     {
       "id": "test:Forge.Domain.Tests.Modules.ModuleIdTests",
@@ -40549,6 +41660,16 @@
       },
       "name": "FixedClock",
       "path": "tests/Forge.ModuleFormat.Tests/Serialization/BrokenIslesStarterTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Serialization.LocalizationPersistenceTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Serialization"
+      },
+      "name": "LocalizationPersistenceTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Serialization/LocalizationPersistenceTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
@@ -40988,6 +42109,26 @@
       "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
     },
     {
+      "id": "type:Forge.Application.Localization.LocalizationCatalogExtractor",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Localization"
+      },
+      "name": "LocalizationCatalogExtractor",
+      "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
+    },
+    {
+      "id": "type:Forge.Application.Localization.PseudoLocalization",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Localization"
+      },
+      "name": "PseudoLocalization",
+      "path": "src/Forge.Application/Localization/PseudoLocalization.cs"
+    },
+    {
       "id": "type:Forge.Application.Projects.ProjectRevision",
       "kind": "type",
       "line": 3,
@@ -41386,6 +42527,26 @@
       },
       "name": "RuntimeLifecycleCoordinator",
       "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Localization.LocalizationCatalog",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Localization"
+      },
+      "name": "LocalizationCatalog",
+      "path": "src/Forge.Domain/Localization/LocalizationCatalog.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Localization.LocalizationMessage",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Localization"
+      },
+      "name": "LocalizationMessage",
+      "path": "src/Forge.Domain/Localization/LocalizationMessage.cs"
     },
     {
       "id": "type:Forge.Domain.Modules.ModuleDistributionConfiguration",
@@ -42368,6 +43529,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/GlobalSearchWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.LocalizationWorkspaceWindow",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "LocalizationWorkspaceWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.ModuleConfigurationWindow",
       "kind": "type",
       "line": 8,
@@ -42390,7 +43561,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4488,
+      "line": 4588,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -42420,7 +43591,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4493,
+      "line": 4593,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -42430,7 +43601,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4498,
+      "line": 4598,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

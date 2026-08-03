@@ -166,6 +166,13 @@ chemins. Les détails défilent indépendamment afin de garder l’action et le 
 validation de licence, hash et disponibilité. Les dimensions, styles, métriques 3D, compatibilité et
 turntable enrichiront ce même contrat, sans créer une seconde bibliothèque.
 
+G7-17 active la localisation dans l’espace Assistant. L’en-tête résume messages, langues et taux de
+couverture ; la colonne gauche filtre les clés canoniques et marque les traductions présentes. La
+carte droite conserve clé, provenance et texte de repli au-dessus de l’éditeur, puis montre le texte
+résolu ou pseudo-localisé. **Prévisualiser** ne crée aucune révision ; **Appliquer au projet** porte
+l’accent braise et rejoint l’historique commun. Les états sans projet, sans sélection et traduction
+vide restent explicites, sans faire disparaître les actions du pied à 1180 × 760.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
