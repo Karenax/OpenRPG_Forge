@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 ENCOUNTER-03** pour `ORF-ENC-012`, `013`, `015` et `018` : événements, vagues et simulation statistique.
+Exécuter **G8 MERCHANT-01** pour `ORF-MER-012`, `019`, `001`, `002` et `003` : transaction, boutique et stock.

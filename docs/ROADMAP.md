@@ -152,6 +152,8 @@ G8 ENCOUNTER-01 livre volume d'activation, pool pondéré, difficulté data-driv
 et validation localisée. La prochaine tranche est **ENCOUNTER-02**.
 G8 ENCOUNTER-02 livre composition selon le groupe, bornes et budgets, politiques de cycle, ancres
 manuelles et filtre d'activation réseau. La prochaine tranche est **ENCOUNTER-03**.
+G8 ENCOUNTER-03 livre événements de cycle, phases, vagues et simulation statistique reproductible.
+La famille Encounter sélectionnée pour G8 est complète ; la prochaine tranche est **MERCHANT-01**.
 
 ## Phase 6 — 3D assistée
 
