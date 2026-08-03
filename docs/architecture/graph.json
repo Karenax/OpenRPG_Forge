@@ -957,7 +957,7 @@
     },
     {
       "evidence": {
-        "line": 1342,
+        "line": 1346,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -966,7 +966,7 @@
     },
     {
       "evidence": {
-        "line": 1407,
+        "line": 1411,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -975,7 +975,7 @@
     },
     {
       "evidence": {
-        "line": 1703,
+        "line": 1708,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -984,7 +984,7 @@
     },
     {
       "evidence": {
-        "line": 1407,
+        "line": 1411,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -993,7 +993,7 @@
     },
     {
       "evidence": {
-        "line": 1452,
+        "line": 1457,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1002,7 +1002,7 @@
     },
     {
       "evidence": {
-        "line": 1656,
+        "line": 1661,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1020,7 +1020,7 @@
     },
     {
       "evidence": {
-        "line": 631,
+        "line": 635,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1029,7 +1029,7 @@
     },
     {
       "evidence": {
-        "line": 1407,
+        "line": 1411,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1038,7 +1038,7 @@
     },
     {
       "evidence": {
-        "line": 1453,
+        "line": 1458,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1047,7 +1047,7 @@
     },
     {
       "evidence": {
-        "line": 1505,
+        "line": 1510,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1056,7 +1056,7 @@
     },
     {
       "evidence": {
-        "line": 1597,
+        "line": 1602,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1074,7 +1074,7 @@
     },
     {
       "evidence": {
-        "line": 1312,
+        "line": 1316,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1083,7 +1083,7 @@
     },
     {
       "evidence": {
-        "line": 1407,
+        "line": 1411,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1092,7 +1092,7 @@
     },
     {
       "evidence": {
-        "line": 1454,
+        "line": 1459,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1101,7 +1101,7 @@
     },
     {
       "evidence": {
-        "line": 1505,
+        "line": 1510,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1110,7 +1110,7 @@
     },
     {
       "evidence": {
-        "line": 1672,
+        "line": 1677,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1146,7 +1146,7 @@
     },
     {
       "evidence": {
-        "line": 630,
+        "line": 635,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1173,30 +1173,12 @@
     },
     {
       "evidence": {
-        "line": 1313,
+        "line": 1317,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
       "source": "file:MEGACONTEXT.md",
       "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
-    },
-    {
-      "evidence": {
-        "line": 629,
-        "path": "MEGACONTEXT.md"
-      },
-      "kind": "references",
-      "source": "file:MEGACONTEXT.md",
-      "target": "file:docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md"
-    },
-    {
-      "evidence": {
-        "line": 630,
-        "path": "MEGACONTEXT.md"
-      },
-      "kind": "references",
-      "source": "file:MEGACONTEXT.md",
-      "target": "file:docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md"
     },
     {
       "evidence": {
@@ -1209,7 +1191,7 @@
     },
     {
       "evidence": {
-        "line": 1689,
+        "line": 1694,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1560,7 +1542,7 @@
     },
     {
       "evidence": {
-        "line": 151,
+        "line": 154,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1569,7 +1551,7 @@
     },
     {
       "evidence": {
-        "line": 210,
+        "line": 214,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1578,7 +1560,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 69,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1614,7 +1596,7 @@
     },
     {
       "evidence": {
-        "line": 402,
+        "line": 404,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1623,7 +1605,7 @@
     },
     {
       "evidence": {
-        "line": 408,
+        "line": 410,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1632,7 +1614,7 @@
     },
     {
       "evidence": {
-        "line": 414,
+        "line": 416,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1664,7 +1646,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
+      "target": "namespace:Forge.Mcp.Assets"
     },
     {
       "evidence": {
@@ -1673,11 +1655,20 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
-      "target": "namespace:Forge.Mcp.Projects"
+      "target": "namespace:Forge.Mcp.Dialogues"
     },
     {
       "evidence": {
         "line": 5,
+        "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
+      "target": "namespace:Forge.Mcp.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "imports",
@@ -2070,6 +2061,33 @@
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs",
+      "target": "namespace:Forge.Application.Assets"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
     },
     {
       "evidence": {
@@ -2703,7 +2721,7 @@
     },
     {
       "evidence": {
-        "line": 77,
+        "line": 80,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2712,7 +2730,7 @@
     },
     {
       "evidence": {
-        "line": 93,
+        "line": 96,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2721,7 +2739,7 @@
     },
     {
       "evidence": {
-        "line": 172,
+        "line": 174,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -3140,6 +3158,42 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assets/AssetCatalogBrowser.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/AssetCatalogBrowser.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assets/AssetCatalogQuery.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/AssetCatalogQuery.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/AssetImportPlanner.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/AssetImportPlanner.cs",
       "target": "namespace:Forge.Domain.Validation"
     },
     {
@@ -4972,6 +5026,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Assets/AssetCatalogValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Assets/AssetCatalogValidator.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Authoring/EditorCameraPose.cs"
       },
       "kind": "imports",
@@ -5502,6 +5565,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Application.Assets"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
@@ -5511,7 +5583,7 @@
     },
     {
       "evidence": {
-        "line": 2,
+        "line": 3,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -5520,7 +5592,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 4,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -5529,7 +5601,7 @@
     },
     {
       "evidence": {
-        "line": 4,
+        "line": 5,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -5538,7 +5610,7 @@
     },
     {
       "evidence": {
-        "line": 5,
+        "line": 6,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -5547,7 +5619,7 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 7,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -5556,21 +5628,12 @@
     },
     {
       "evidence": {
-        "line": 7,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
-    },
-    {
-      "evidence": {
         "line": 8,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Assets"
     },
     {
       "evidence": {
@@ -5579,7 +5642,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -5588,7 +5651,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Validation"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -5597,7 +5660,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -5606,11 +5669,47 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Scripts"
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Assets"
     },
     {
       "evidence": {
         "line": 13,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Scripts"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 16,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -5634,6 +5733,24 @@
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Scripts/ScriptBindingContracts.cs",
       "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs",
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -6453,6 +6570,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Areas/SetAreaNavigationHandlerTests.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs",
+      "target": "namespace:Forge.Application.Assets"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs",
+      "target": "namespace:Forge.Domain.Assets"
     },
     {
       "evidence": {
@@ -7609,6 +7744,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
       },
       "kind": "imports",
@@ -8094,6 +8238,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Assets"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
@@ -8103,7 +8256,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
@@ -8112,7 +8265,7 @@
     },
     {
       "evidence": {
-        "line": 8,
+        "line": 9,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
@@ -8121,7 +8274,7 @@
     },
     {
       "evidence": {
-        "line": 9,
+        "line": 10,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
@@ -8163,6 +8316,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Testing/ScenarioTestAgentTests.cs",
       "target": "namespace:Forge.Mcp.Testing"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
     },
     {
       "evidence": {
@@ -9449,7 +9620,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Application.Assets"
     },
     {
       "evidence": {
@@ -9458,7 +9629,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Assets"
     },
     {
       "evidence": {
@@ -9467,7 +9638,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.Domain.Validation"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -9476,7 +9647,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Build"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -9485,7 +9656,16 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Navigation"
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
     },
     {
       "evidence": {
@@ -9494,11 +9674,29 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
       "target": "namespace:Forge.ModuleFormat.Packages"
     },
     {
       "evidence": {
-        "line": 8,
+        "line": 11,
         "path": "tools/Forge.Cli/Program.cs"
       },
       "kind": "imports",
@@ -12675,6 +12873,24 @@
     },
     {
       "evidence": {
+        "line": 69,
+        "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assets.AssetImportPlanResult",
+      "target": "file:src/Forge.Application/Assets/AssetImportPlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assets.AssetImportPlanResult",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Blueprints/BlueprintReferenceKind.cs"
       },
@@ -13746,6 +13962,15 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Assets/AssetCatalogItemId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assets.AssetCatalogItemId",
+      "target": "file:src/Forge.Domain/Assets/AssetCatalogItemId.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Authoring/EditorCameraBookmarkId.cs"
       },
@@ -14781,6 +15006,24 @@
     },
     {
       "evidence": {
+        "line": 33,
+        "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Assets.AgentAssetCatalogResult",
+      "target": "file:src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Assets.AgentAssetCatalogResult",
+      "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
         "line": 34,
         "path": "src/Forge.Mcp/Dialogues/DialoguePlanContracts.cs"
       },
@@ -14826,7 +15069,7 @@
     },
     {
       "evidence": {
-        "line": 449,
+        "line": 542,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -14835,7 +15078,7 @@
     },
     {
       "evidence": {
-        "line": 451,
+        "line": 544,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "relationship",
@@ -14886,6 +15129,24 @@
       "kind": "relationship",
       "source": "model:Forge.Mcp.Testing.ScenarioTestResult",
       "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 310,
+        "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Assets.AssetCatalogLoadResult",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
+    },
+    {
+      "evidence": {
+        "line": 314,
+        "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Assets.AssetCatalogLoadResult",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
     },
     {
       "evidence": {
@@ -15480,6 +15741,33 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Areas",
       "target": "file:src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Assets/AssetCatalogBrowser.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assets",
+      "target": "file:src/Forge.Application/Assets/AssetCatalogBrowser.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assets/AssetCatalogQuery.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assets",
+      "target": "file:src/Forge.Application/Assets/AssetCatalogQuery.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assets",
+      "target": "file:src/Forge.Application/Assets/AssetImportPlanner.cs"
     },
     {
       "evidence": {
@@ -16158,6 +16446,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Assets",
+      "target": "file:tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
       },
@@ -16416,6 +16713,51 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Areas",
       "target": "file:src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assets/AssetAvailability.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assets",
+      "target": "file:src/Forge.Domain/Assets/AssetAvailability.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assets/AssetCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assets",
+      "target": "file:src/Forge.Domain/Assets/AssetCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assets/AssetCatalogItem.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assets",
+      "target": "file:src/Forge.Domain/Assets/AssetCatalogItem.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assets/AssetCatalogItemId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assets",
+      "target": "file:src/Forge.Domain/Assets/AssetCatalogItemId.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Assets/AssetCatalogValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assets",
+      "target": "file:src/Forge.Domain/Assets/AssetCatalogValidator.cs"
     },
     {
       "evidence": {
@@ -17418,6 +17760,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Assets",
+      "target": "file:tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
       },
@@ -17716,6 +18067,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Mcp.Assets",
+      "target": "file:src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Mcp/Bridge/EditorBridgeContracts.cs"
       },
       "kind": "defined_in",
@@ -17760,7 +18120,7 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 18,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -17823,7 +18183,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 11,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -17850,12 +18210,21 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.McpHost",
       "target": "file:apps/Forge.McpHost/ForgeMcpTools.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Assets",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
     },
     {
       "evidence": {
@@ -18180,6 +18549,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Serialization",
       "target": "file:src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Assets",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs"
     },
     {
       "evidence": {
@@ -18513,6 +18891,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Toolset.Editor",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
     },
     {
       "evidence": {
@@ -18998,11 +19385,20 @@
       },
       "kind": "imports",
       "source": "project:tools/Forge.Cli/Forge.Cli",
+      "target": "project:src/Forge.Application/Forge.Application"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tools/Forge.Cli/Forge.Cli.csproj"
+      },
+      "kind": "imports",
+      "source": "project:tools/Forge.Cli/Forge.Cli",
       "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat"
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 21,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -19011,7 +19407,7 @@
     },
     {
       "evidence": {
-        "line": 355,
+        "line": 433,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19020,7 +19416,7 @@
     },
     {
       "evidence": {
-        "line": 122,
+        "line": 200,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19029,7 +19425,7 @@
     },
     {
       "evidence": {
-        "line": 121,
+        "line": 199,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19038,7 +19434,7 @@
     },
     {
       "evidence": {
-        "line": 283,
+        "line": 361,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19047,7 +19443,7 @@
     },
     {
       "evidence": {
-        "line": 39,
+        "line": 43,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19056,7 +19452,7 @@
     },
     {
       "evidence": {
-        "line": 270,
+        "line": 348,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19065,7 +19461,7 @@
     },
     {
       "evidence": {
-        "line": 318,
+        "line": 396,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19074,7 +19470,7 @@
     },
     {
       "evidence": {
-        "line": 338,
+        "line": 416,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19083,7 +19479,7 @@
     },
     {
       "evidence": {
-        "line": 324,
+        "line": 402,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19092,7 +19488,7 @@
     },
     {
       "evidence": {
-        "line": 333,
+        "line": 411,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19101,7 +19497,7 @@
     },
     {
       "evidence": {
-        "line": 110,
+        "line": 188,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19110,7 +19506,7 @@
     },
     {
       "evidence": {
-        "line": 308,
+        "line": 386,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19119,7 +19515,7 @@
     },
     {
       "evidence": {
-        "line": 311,
+        "line": 389,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19128,7 +19524,7 @@
     },
     {
       "evidence": {
-        "line": 271,
+        "line": 349,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19137,7 +19533,7 @@
     },
     {
       "evidence": {
-        "line": 280,
+        "line": 358,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19146,7 +19542,7 @@
     },
     {
       "evidence": {
-        "line": 357,
+        "line": 450,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19155,7 +19551,7 @@
     },
     {
       "evidence": {
-        "line": 52,
+        "line": 56,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19164,7 +19560,16 @@
     },
     {
       "evidence": {
-        "line": 97,
+        "line": 101,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Assets.AgentAssetCatalogResult"
+    },
+    {
+      "evidence": {
+        "line": 175,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19173,7 +19578,7 @@
     },
     {
       "evidence": {
-        "line": 142,
+        "line": 220,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19182,7 +19587,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 50,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19191,7 +19596,7 @@
     },
     {
       "evidence": {
-        "line": 242,
+        "line": 320,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -19557,6 +19962,78 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Areas.SetAreaNavigationHandlerTests",
       "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "file:tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "model:Forge.Domain.Assets.AssetCatalogItemId"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Application.Assets.AssetCatalogBrowser"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Application.Assets.AssetCatalogQuery"
+    },
+    {
+      "evidence": {
+        "line": 60,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Application.Assets.AssetImportPlanner"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Domain.Assets.AssetAvailability"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Domain.Assets.AssetCatalog"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Domain.Assets.AssetCatalogItem"
     },
     {
       "evidence": {
@@ -22701,6 +23178,60 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Assets.AssetCatalogTests",
+      "target": "file:tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.AssetCatalogTests",
+      "target": "model:Forge.Domain.Assets.AssetCatalogItemId"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.AssetCatalogTests",
+      "target": "type:Forge.Domain.Assets.AssetAvailability"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.AssetCatalogTests",
+      "target": "type:Forge.Domain.Assets.AssetCatalog"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.AssetCatalogTests",
+      "target": "type:Forge.Domain.Assets.AssetCatalogItem"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.AssetCatalogTests",
+      "target": "validator:Forge.Domain.Assets.AssetCatalogValidator"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
       },
@@ -24672,7 +25203,7 @@
     },
     {
       "evidence": {
-        "line": 13,
+        "line": 14,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -24681,7 +25212,7 @@
     },
     {
       "evidence": {
-        "line": 34,
+        "line": 35,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24690,7 +25221,7 @@
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 36,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24699,7 +25230,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 125,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24708,7 +25239,7 @@
     },
     {
       "evidence": {
-        "line": 39,
+        "line": 40,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24717,7 +25248,7 @@
     },
     {
       "evidence": {
-        "line": 49,
+        "line": 50,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24726,7 +25257,16 @@
     },
     {
       "evidence": {
-        "line": 121,
+        "line": 71,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Assets.AgentAssetCatalogQuery"
+    },
+    {
+      "evidence": {
+        "line": 148,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24735,7 +25275,7 @@
     },
     {
       "evidence": {
-        "line": 157,
+        "line": 184,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24744,7 +25284,7 @@
     },
     {
       "evidence": {
-        "line": 68,
+        "line": 95,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24753,7 +25293,7 @@
     },
     {
       "evidence": {
-        "line": 139,
+        "line": 166,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24762,7 +25302,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 34,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24771,7 +25311,7 @@
     },
     {
       "evidence": {
-        "line": 128,
+        "line": 155,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24780,7 +25320,7 @@
     },
     {
       "evidence": {
-        "line": 52,
+        "line": 53,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -24858,6 +25398,33 @@
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Testing.ScenarioTestAgentTests",
       "target": "type:Forge.Mcp.Testing.ScenarioTestRequest"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssetCatalogLoaderTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssetCatalogLoaderTests",
+      "target": "type:Forge.Domain.Assets.AssetAvailability"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssetCatalogLoaderTests",
+      "target": "type:Forge.ModuleFormat.Assets.AssetCatalogLoader"
     },
     {
       "evidence": {
@@ -26751,7 +27318,7 @@
     },
     {
       "evidence": {
-        "line": 135,
+        "line": 138,
         "path": "apps/Forge.McpHost/Program.cs"
       },
       "kind": "defined_in",
@@ -26793,6 +27360,42 @@
       "kind": "defined_in",
       "source": "type:Forge.Application.Areas.PortalIdRemap",
       "target": "file:src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assets/AssetCatalogBrowser.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assets.AssetCatalogBrowser",
+      "target": "file:src/Forge.Application/Assets/AssetCatalogBrowser.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assets/AssetCatalogQuery.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assets.AssetCatalogQuery",
+      "target": "file:src/Forge.Application/Assets/AssetCatalogQuery.cs"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assets.AssetImportPlan",
+      "target": "file:src/Forge.Application/Assets/AssetImportPlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assets.AssetImportPlanner",
+      "target": "file:src/Forge.Application/Assets/AssetImportPlanner.cs"
     },
     {
       "evidence": {
@@ -27072,6 +27675,33 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Areas.PortalLink",
       "target": "file:src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assets/AssetAvailability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.AssetAvailability",
+      "target": "file:src/Forge.Domain/Assets/AssetAvailability.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assets/AssetCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.AssetCatalog",
+      "target": "file:src/Forge.Domain/Assets/AssetCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assets/AssetCatalogItem.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.AssetCatalogItem",
+      "target": "file:src/Forge.Domain/Assets/AssetCatalogItem.cs"
     },
     {
       "evidence": {
@@ -27570,6 +28200,24 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Assets.AgentAssetCatalogItem",
+      "target": "file:src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Assets.AgentAssetCatalogQuery",
+      "target": "file:src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Mcp/Bridge/EditorBridgeContracts.cs"
       },
@@ -27678,7 +28326,7 @@
     },
     {
       "evidence": {
-        "line": 421,
+        "line": 514,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -27750,7 +28398,7 @@
     },
     {
       "evidence": {
-        "line": 11,
+        "line": 12,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "defined_in",
@@ -27759,7 +28407,7 @@
     },
     {
       "evidence": {
-        "line": 13,
+        "line": 14,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "uses_service",
@@ -27768,12 +28416,21 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 15,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "uses_service",
       "source": "type:Forge.McpHost.ForgeMcpTools",
       "target": "service:Forge.Mcp.Scripts.ForgeScriptAgentService"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.AssetCatalogLoader",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
     },
     {
       "evidence": {
@@ -28155,6 +28812,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.AssetContentBrowserWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
       },
@@ -28236,7 +28902,7 @@
     },
     {
       "evidence": {
-        "line": 4437,
+        "line": 4488,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -28263,7 +28929,7 @@
     },
     {
       "evidence": {
-        "line": 4442,
+        "line": 4493,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -28272,7 +28938,7 @@
     },
     {
       "evidence": {
-        "line": 4447,
+        "line": 4498,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -28368,6 +29034,24 @@
       "kind": "validates",
       "source": "validator:Forge.Application.Spatial.PlacementValidator",
       "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Assets/AssetCatalogValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Assets.AssetCatalogValidator",
+      "target": "file:src/Forge.Domain/Assets/AssetCatalogValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Domain/Assets/AssetCatalogValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assets.AssetCatalogValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
     },
     {
       "evidence": {
@@ -28839,8 +29523,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:c5ceb07856a8e04a942f876e0ded50172ca52455eae4c9da09615e7fe06e4342",
-    "source_file_count": 681
+    "source_digest": "sha256:8cef86e890f674912bb95e7bbeaea0df51b136afa7564e88c3308dfcb172516b",
+    "source_file_count": 696
   },
   "nodes": [
     {
@@ -30414,6 +31098,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetContentBrowserWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs",
       "kind": "file",
       "line": 1,
@@ -31194,6 +31888,16 @@
       "path": "docs/aurora-parity/tasks/G7-15-ACTIONABLE-DIAGNOSTICS.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-16-ASSET-CONTENT-BROWSER.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-16-ASSET-CONTENT-BROWSER.md",
+      "path": "docs/aurora-parity/tasks/G7-16-ASSET-CONTENT-BROWSER.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -31352,6 +32056,36 @@
       },
       "name": "UpsertPortalLinkHandler.cs",
       "path": "src/Forge.Application/Areas/UpsertPortalLinkHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assets/AssetCatalogBrowser.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalogBrowser.cs",
+      "path": "src/Forge.Application/Assets/AssetCatalogBrowser.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assets/AssetCatalogQuery.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalogQuery.cs",
+      "path": "src/Forge.Application/Assets/AssetCatalogQuery.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assets/AssetImportPlanner.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetImportPlanner.cs",
+      "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
     },
     {
       "id": "file:src/Forge.Application/Blueprints/BlueprintPaletteCatalog.cs",
@@ -32182,6 +32916,56 @@
       },
       "name": "PortalLink.cs",
       "path": "src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assets/AssetAvailability.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetAvailability.cs",
+      "path": "src/Forge.Domain/Assets/AssetAvailability.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assets/AssetCatalog.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalog.cs",
+      "path": "src/Forge.Domain/Assets/AssetCatalog.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assets/AssetCatalogItem.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalogItem.cs",
+      "path": "src/Forge.Domain/Assets/AssetCatalogItem.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assets/AssetCatalogItemId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalogItemId.cs",
+      "path": "src/Forge.Domain/Assets/AssetCatalogItemId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assets/AssetCatalogValidator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalogValidator.cs",
+      "path": "src/Forge.Domain/Assets/AssetCatalogValidator.cs"
     },
     {
       "id": "file:src/Forge.Domain/Authoring/EditorCameraBookmark.cs",
@@ -33464,6 +34248,16 @@
       "path": "src/Forge.Mcp/AgentDiagnostic.cs"
     },
     {
+      "id": "file:src/Forge.Mcp/Assets/AssetCatalogContracts.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalogContracts.cs",
+      "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+    },
+    {
       "id": "file:src/Forge.Mcp/Bridge/EditorBridgeContracts.cs",
       "kind": "file",
       "line": 1,
@@ -33582,6 +34376,16 @@
       },
       "name": "packages.lock.json",
       "path": "src/Forge.Mcp/packages.lock.json"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalogLoader.cs",
+      "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
     },
     {
       "id": "file:src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs",
@@ -34184,6 +34988,16 @@
       "path": "tests/Forge.Application.Tests/Areas/SetAreaNavigationHandlerTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalogBrowserTests.cs",
+      "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs",
       "kind": "file",
       "line": 1,
@@ -34422,6 +35236,16 @@
       },
       "name": "AreaDefinitionTests.cs",
       "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalogTests.cs",
+      "path": "tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs",
@@ -34722,6 +35546,16 @@
       },
       "name": "packages.lock.json",
       "path": "tests/Forge.Mcp.Tests/packages.lock.json"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetCatalogLoaderTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
@@ -37034,6 +37868,16 @@
       "path": "src/Forge.Application/Areas/UpsertPortalLinkCommand.cs"
     },
     {
+      "id": "model:Forge.Application.Assets.AssetImportPlanResult",
+      "kind": "model",
+      "line": 69,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "AssetImportPlanResult",
+      "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+    },
+    {
       "id": "model:Forge.Application.Blueprints.BlueprintReferenceKind",
       "kind": "model",
       "line": 3,
@@ -37442,6 +38286,16 @@
       },
       "name": "PortalId",
       "path": "src/Forge.Domain/Areas/PortalId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assets.AssetCatalogItemId",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetCatalogItemId",
+      "path": "src/Forge.Domain/Assets/AssetCatalogItemId.cs"
     },
     {
       "id": "model:Forge.Domain.Authoring.EditorCameraBookmarkId",
@@ -38074,6 +38928,16 @@
       "path": "src/Forge.Mcp/AgentDiagnostic.cs"
     },
     {
+      "id": "model:Forge.Mcp.Assets.AgentAssetCatalogResult",
+      "kind": "model",
+      "line": 33,
+      "metadata": {
+        "namespace": "Forge.Mcp.Assets"
+      },
+      "name": "AgentAssetCatalogResult",
+      "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+    },
+    {
       "id": "model:Forge.Mcp.Dialogues.DialoguePlanResult",
       "kind": "model",
       "line": 34,
@@ -38096,7 +38960,7 @@
     {
       "id": "model:Forge.Mcp.Projects.ForgeProjectAgentOpenResult",
       "kind": "model",
-      "line": 449,
+      "line": 542,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -38122,6 +38986,16 @@
       },
       "name": "ScenarioTestResult",
       "path": "src/Forge.Mcp/Testing/ScenarioTestAgent.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Assets.AssetCatalogLoadResult",
+      "kind": "model",
+      "line": 310,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssetCatalogLoadResult",
+      "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
     },
     {
       "id": "model:Forge.ModuleFormat.Build.BuildGraphDocument",
@@ -38455,6 +39329,11 @@
       "name": "Forge.Application.Areas"
     },
     {
+      "id": "namespace:Forge.Application.Assets",
+      "kind": "namespace",
+      "name": "Forge.Application.Assets"
+    },
+    {
       "id": "namespace:Forge.Application.Blueprints",
       "kind": "namespace",
       "name": "Forge.Application.Blueprints"
@@ -38498,6 +39377,11 @@
       "id": "namespace:Forge.Application.Tests.Areas",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Areas"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Assets",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Assets"
     },
     {
       "id": "namespace:Forge.Application.Tests.Blueprints",
@@ -38548,6 +39432,11 @@
       "id": "namespace:Forge.Domain.Areas",
       "kind": "namespace",
       "name": "Forge.Domain.Areas"
+    },
+    {
+      "id": "namespace:Forge.Domain.Assets",
+      "kind": "namespace",
+      "name": "Forge.Domain.Assets"
     },
     {
       "id": "namespace:Forge.Domain.Authoring",
@@ -38613,6 +39502,11 @@
       "id": "namespace:Forge.Domain.Tests.Areas",
       "kind": "namespace",
       "name": "Forge.Domain.Tests.Areas"
+    },
+    {
+      "id": "namespace:Forge.Domain.Tests.Assets",
+      "kind": "namespace",
+      "name": "Forge.Domain.Tests.Assets"
     },
     {
       "id": "namespace:Forge.Domain.Tests.Authoring",
@@ -38695,6 +39589,11 @@
       "name": "Forge.Mcp"
     },
     {
+      "id": "namespace:Forge.Mcp.Assets",
+      "kind": "namespace",
+      "name": "Forge.Mcp.Assets"
+    },
+    {
       "id": "namespace:Forge.Mcp.Bridge",
       "kind": "namespace",
       "name": "Forge.Mcp.Bridge"
@@ -38750,6 +39649,11 @@
       "name": "Forge.McpHost"
     },
     {
+      "id": "namespace:Forge.ModuleFormat.Assets",
+      "kind": "namespace",
+      "name": "Forge.ModuleFormat.Assets"
+    },
+    {
       "id": "namespace:Forge.ModuleFormat.Build",
       "kind": "namespace",
       "name": "Forge.ModuleFormat.Build"
@@ -38778,6 +39682,11 @@
       "id": "namespace:Forge.ModuleFormat.Serialization",
       "kind": "namespace",
       "name": "Forge.ModuleFormat.Serialization"
+    },
+    {
+      "id": "namespace:Forge.ModuleFormat.Tests.Assets",
+      "kind": "namespace",
+      "name": "Forge.ModuleFormat.Tests.Assets"
     },
     {
       "id": "namespace:Forge.ModuleFormat.Tests.Build",
@@ -38954,7 +39863,7 @@
     {
       "id": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "kind": "service",
-      "line": 17,
+      "line": 21,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -38990,6 +39899,16 @@
       },
       "name": "SetAreaNavigationHandlerTests",
       "path": "tests/Forge.Application.Tests/Areas/SetAreaNavigationHandlerTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Assets"
+      },
+      "name": "AssetCatalogBrowserTests",
+      "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
@@ -39242,6 +40161,16 @@
       "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Assets.AssetCatalogTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Assets"
+      },
+      "name": "AssetCatalogTests",
+      "path": "tests/Forge.Domain.Tests/Assets/AssetCatalogTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
       "kind": "test",
       "line": 6,
@@ -39474,7 +40403,7 @@
     {
       "id": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
       "kind": "test",
-      "line": 13,
+      "line": 14,
       "metadata": {
         "namespace": "Forge.Mcp.Tests.Projects"
       },
@@ -39510,6 +40439,16 @@
       },
       "name": "ScenarioTestAgentTests",
       "path": "tests/Forge.Mcp.Tests/Testing/ScenarioTestAgentTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Assets.AssetCatalogLoaderTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Assets"
+      },
+      "name": "AssetCatalogLoaderTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetCatalogLoaderTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
@@ -39724,7 +40663,7 @@
     {
       "id": "type:ArgumentMap",
       "kind": "type",
-      "line": 135,
+      "line": 138,
       "name": "ArgumentMap",
       "path": "apps/Forge.McpHost/Program.cs"
     },
@@ -39767,6 +40706,46 @@
       },
       "name": "PortalIdRemap",
       "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assets.AssetCatalogBrowser",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "AssetCatalogBrowser",
+      "path": "src/Forge.Application/Assets/AssetCatalogBrowser.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assets.AssetCatalogQuery",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "AssetCatalogQuery",
+      "path": "src/Forge.Application/Assets/AssetCatalogQuery.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assets.AssetImportPlan",
+      "kind": "type",
+      "line": 56,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "AssetImportPlan",
+      "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assets.AssetImportPlanner",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "AssetImportPlanner",
+      "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
     },
     {
       "id": "type:Forge.Application.Blueprints.BlueprintPaletteCatalog",
@@ -40077,6 +41056,36 @@
       },
       "name": "PortalLink",
       "path": "src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.AssetAvailability",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetAvailability",
+      "path": "src/Forge.Domain/Assets/AssetAvailability.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.AssetCatalog",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetCatalog",
+      "path": "src/Forge.Domain/Assets/AssetCatalog.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.AssetCatalogItem",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetCatalogItem",
+      "path": "src/Forge.Domain/Assets/AssetCatalogItem.cs"
     },
     {
       "id": "type:Forge.Domain.Authoring.EditorCameraBookmark",
@@ -40629,6 +41638,26 @@
       "path": "src/Forge.Mcp/AgentDiagnostic.cs"
     },
     {
+      "id": "type:Forge.Mcp.Assets.AgentAssetCatalogItem",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Mcp.Assets"
+      },
+      "name": "AgentAssetCatalogItem",
+      "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Assets.AgentAssetCatalogQuery",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Mcp.Assets"
+      },
+      "name": "AgentAssetCatalogQuery",
+      "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Bridge.EditorBridgeDiscovery",
       "kind": "type",
       "line": 3,
@@ -40741,7 +41770,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredDialoguePlan",
       "kind": "type",
-      "line": 421,
+      "line": 514,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -40821,12 +41850,22 @@
     {
       "id": "type:Forge.McpHost.ForgeMcpTools",
       "kind": "type",
-      "line": 11,
+      "line": 12,
       "metadata": {
         "namespace": "Forge.McpHost"
       },
       "name": "ForgeMcpTools",
       "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.AssetCatalogLoader",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssetCatalogLoader",
+      "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
     },
     {
       "id": "type:Forge.ModuleFormat.Build.ExternalPackage",
@@ -41249,6 +42288,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.AssetContentBrowserWindow",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "AssetContentBrowserWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.BlueprintCatalogWindow",
       "kind": "type",
       "line": 10,
@@ -41341,7 +42390,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4437,
+      "line": 4488,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -41371,7 +42420,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4442,
+      "line": 4493,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -41381,7 +42430,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4447,
+      "line": 4498,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -41437,6 +42486,16 @@
       },
       "name": "PlacementValidator",
       "path": "src/Forge.Application/Spatial/PlacementValidator.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Assets.AssetCatalogValidator",
+      "kind": "validator",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetCatalogValidator",
+      "path": "src/Forge.Domain/Assets/AssetCatalogValidator.cs"
     },
     {
       "id": "validator:Forge.Domain.Dialogues.DialogueValidator",

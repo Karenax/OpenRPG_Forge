@@ -131,6 +131,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _entityPropertiesCancelButton;
     private DialogueEditorWindow? _dialogueEditor;
     private BlueprintCatalogWindow? _blueprintCatalog;
+    private AssetContentBrowserWindow? _assetBrowser;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -189,6 +190,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             selection => { _selectionContext.Replace(selection); },
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_blueprintCatalog);
+        _assetBrowser = new AssetContentBrowserWindow();
+        _assetBrowser.Initialize(
+            GetRepositoryRoot,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_assetBrowser);
         _globalSearch = new GlobalSearchWindow();
         _globalSearch.Initialize(
             () => _history?.State,
@@ -843,6 +849,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (string.Equals(workspace, "Scripts", StringComparison.Ordinal))
         {
             _buildPipeline?.Open();
+            return;
+        }
+
+        if (string.Equals(workspace, "Assets", StringComparison.Ordinal))
+        {
+            _assetBrowser?.Open();
             return;
         }
 
@@ -2771,6 +2783,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunAssetContentBrowserSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNewModuleSmokeTest())
         {
             return;
@@ -4057,6 +4074,34 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool RunAssetContentBrowserSmokeTest()
+    {
+        if (_assetBrowser is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G716_ASSETS_FAILED missing_browser");
+            return false;
+        }
+
+        _assetBrowser.Refresh();
+        if (_assetBrowser.CatalogCount != 605 || _assetBrowser.SourceCount != 3 ||
+            _assetBrowser.FilterForSmokeTest("apple", "ambientcg") != 3 ||
+            !_assetBrowser.SelectAssetForSmokeTest("ambientcg:3DApple001") ||
+            !_assetBrowser.SelectedHasPreviewMetadata ||
+            (_assetBrowser.SelectedCanPlanImport && !_assetBrowser.PreviewImportForSmokeTest()) ||
+            _assetBrowser.FilterForSmokeTest(string.Empty, "kenney") != 50 ||
+            _assetBrowser.FilterForSmokeTest(string.Empty, category: "furniture") == 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G716_ASSETS_FAILED catalog_facets_preview");
+            return false;
+        }
+
+        _assetBrowser.FilterForSmokeTest(string.Empty);
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=605 sources=3 facets=search-source-category " +
+            "uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed");
+        return true;
+    }
+
     private bool RunEditorCameraNavigationSmokeTest()
     {
         if (_history is null || _projectPreview is null || _projectSession is null ||
@@ -4426,6 +4471,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "Forge.Runtime",
             "content",
             "crypt-of-ashes"));
+    }
+
+    private static string GetRepositoryRoot()
+    {
+        var toolsetDirectory = ProjectSettings.GlobalizePath("res://");
+        return Path.GetFullPath(Path.Combine(toolsetDirectory, "..", ".."));
     }
 
     private static string GetRuntimeProjectDirectory()

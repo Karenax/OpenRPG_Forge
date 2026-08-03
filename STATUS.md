@@ -1,10 +1,10 @@
 # État du projet — OpenRPG Forge
 
-Dernière mise à jour : 2 août 2026.
+Dernière mise à jour : 3 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-15 franchi.**
+**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-16 franchi.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -57,6 +57,9 @@ de vérité.
 G7-15 unifie les diagnostics sous un contrat canonique à UUID, sévérité, chemin, sujet, propriété,
 source et provenance. La coque Aurora cible le document concerné et propose des correctifs guidés
 prévisualisables, transactionnels et annulables ; CLI et MCP exposent le même diagnostic structuré.
+G7-16 charge un catalogue d’assets v1 de 605 entrées avec UUID stable, hash, licence, provenance et
+disponibilité. L’espace Assets, le CLI et MCP partagent recherche à facettes, aperçu et
+prévisualisation d’un import gouverné sans écriture ; la mise en page nominale est validée visuellement.
 
 ## État prouvé
 
@@ -67,7 +70,7 @@ prévisualisables, transactionnels et annulables ; CLI et MCP exposent le même 
 - moteur 3D .NET requis installé et versionné ;
 - CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 237 tests .NET et 24 tests Python réussis ;
+- 243 tests .NET et 24 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -156,17 +159,18 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   axes contraints, coordonnées locales/globales, alignements ou multi-sélection ;
 - le clipboard n’expose pas encore couper ni la copie multi-sélection depuis le viewport, et la
   duplication de zone ne porte pas les futurs documents terrain, navigation, éclairage ou audio ;
-- la recherche globale couvre les documents Core canoniques existants et les diagnostics ; scripts,
-  assets, graphes auteur, terrains, navigation et audio y entreront avec leurs schémas versionnés ;
+- la recherche globale couvre les documents Core canoniques existants et les diagnostics ; le
+  navigateur Assets possède son index spécialisé, tandis que son intégration à la recherche globale,
+  les graphes auteur, terrains, navigation et audio attend leurs schémas versionnés ;
 - les scopes joueur, groupe et serveur sont définis mais leur partition runtime attend le Network
   Kit ; les anciens modules restent autorisés à employer temporairement des clés non déclarées ;
 - les transitions de zone sont éditables, persistées et validées et leur contrat d'événements est
   prêt ; le runtime ne reconstruit toutefois pas encore la scène de destination, et orientation,
   hooks, streaming et génération automatique du lien inverse restent à faire ;
-- la coque expose les neuf workspaces et relie Monde, Blueprints, Dialogues, Scripts et Validation ;
-  le premier catalogue Blueprints et la conformité de distribution sont opérationnels, tandis que
-  les éditeurs complets Quêtes, Assets et Assistant relèvent encore du Creator Core G7 ; Scripts
-  possède l'analyse de build et de cache mais pas encore l'éditeur de code complet ;
+- la coque expose les neuf workspaces et relie Monde, Blueprints, Dialogues, Scripts, Assets et
+  Validation ; les catalogues Blueprints et Assets ainsi que la conformité de distribution sont
+  opérationnels, tandis que les éditeurs complets Quêtes et Assistant relèvent encore des gates
+  suivants ; Scripts possède l'analyse de build et de cache mais pas encore l'éditeur de code complet ;
 - les diagnostics sont désormais structurés et navigables, mais les profils de validation, filtres,
   catégories, bundle d’export et correctifs propres aux futurs imports d’assets restent à livrer ;
 - les visuels finaux du MVP sont des primitives procédurales originales ; ils ne constituent pas
@@ -216,7 +220,6 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-16 — Content Browser et Asset Vault local** pour `ORF-CONT-020`, `ORF-PAL-010` et
-`ORF-PAL-011` : versionner le manifeste d’asset, indexer le catalogue local par hash, licence et
-provenance, puis livrer l’espace Assets Aurora avec recherche à facettes, aperçu et états
-d’import explicites.
+Ouvrir **G7-17 — localisation auteur** pour `ORF-CONT-011` : auditer les textes localisés déjà
+présents, versionner un catalogue canonique par langue avec fallback, puis livrer édition
+transactionnelle, extraction, pseudo-localisation, diagnostics et aperçu sans dépendance au moteur.

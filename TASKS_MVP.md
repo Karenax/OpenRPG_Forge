@@ -395,8 +395,10 @@ Le détail et les preuves des 717 capacités restent suivis dans
   hors-maillage, rebuild partiel, reachability, diagnostics géométriques et overlay viewport.
 - [x] **G7-15 — diagnostics actionnables** : UUID, sévérité, propriété source, navigation et quick
   fixes transactionnels pour la dernière exigence P0 Core non commencée.
-- [ ] **G7-16 — Content Browser et Asset Vault local** : manifeste versionné, catalogue adressé par
+- [x] **G7-16 — Content Browser et Asset Vault local** : manifeste versionné, catalogue adressé par
   hash, recherche à facettes, provenance/licence, aperçu et statut d’import dans l’espace Assets.
+- [ ] **G7-17 — localisation auteur** : catalogue canonique, langues et fallback, édition
+  transactionnelle, extraction, pseudo-localisation, diagnostics et aperçu dans le Creator.
 
 Les règles graphiques et d’interaction de G7-03 à G7-16 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
@@ -419,9 +421,9 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 ### AV1 — Politique, métadonnées et stockage
 
 - [x] Formaliser la politique de licence du noyau CC0 et des packs optionnels.
-- [ ] Versionner le schéma de métadonnées et les manifestes de packs.
-- [ ] Implémenter le catalogue local, le stockage adressé par hash et les contrôles de licence.
-- [ ] Couvrir filtres, hashes, extraction sûre, déduplication et crédits par des tests.
+- [x] Versionner le schéma de métadonnées et les manifestes de packs.
+- [x] Implémenter le catalogue local en lecture, l’adressage par hash et les contrôles de licence.
+- [ ] Ajouter stockage installé/désinstallable, déduplication et crédits agrégés au catalogue.
 
 ### AV2 — Acquisition et normalisation
 
@@ -436,7 +438,8 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   sa copie dans `res://` et la conservation de `provenance.json`.
 - [x] Ajouter une interface de peinture viewport pour forêt, clairière, fleurs, rochers et zones
   interdites avec Undo/Redo Godot.
-- [ ] Ajouter recherche, filtres, catégories, styles, variantes, provenance et prévisualisations.
+- [x] Ajouter recherche, filtres de première tranche, catégories, provenance et prévisualisations.
+- [ ] Enrichir les manifests avec styles, variantes, dimensions, métriques 3D et compatibilité.
 - [ ] Ajouter installation à la demande, glisser-déposer et intégration au placement existant.
 - [ ] Préparer les brosses de dispersion et recettes de biome sans dupliquer les systèmes de scène.
 - [ ] Faire passer toute mutation IA/MCP par les commandes transactionnelles et la validation de

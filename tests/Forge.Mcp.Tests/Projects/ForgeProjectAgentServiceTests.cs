@@ -4,6 +4,7 @@ using Forge.Domain.Dialogues;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
+using Forge.Mcp.Assets;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
 using Forge.ModuleFormat.Workspaces;
@@ -60,6 +61,32 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Single(diagnostic.QuickFixes!);
         Assert.Equal("CreatePlayerSpawn", diagnostic.QuickFixes![0].Kind);
         Assert.Equal("derived-project-diagnostic", diagnostic.Provenance);
+    }
+
+    [Fact]
+    public void AssetCatalogResourceSupportsFacetedReadOnlySearch()
+    {
+        using var workspace = new TestWorkspace();
+
+        var result = workspace.Project.GetAssets(new AgentAssetCatalogQuery(
+            Text: "apple",
+            Source: "ambientcg",
+            MaximumResults: 10));
+
+        Assert.Equal(1, result.SchemaVersion);
+        Assert.Equal(605, result.CatalogCount);
+        Assert.Equal(3, result.Sources.Count);
+        Assert.Equal(3, result.Items.Count);
+        Assert.Empty(result.Diagnostics);
+        Assert.All(result.Items, item =>
+        {
+            Assert.NotEqual(Guid.Empty.ToString(), item.Id);
+            Assert.Equal("CC0-1.0", item.LicenseSpdx);
+            Assert.True(item.LicenseVerified);
+            Assert.Equal(64, item.ContentSha256.Length);
+            Assert.Equal("ambientcg", item.Source);
+        });
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
 
     [Fact]

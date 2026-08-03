@@ -1,16 +1,20 @@
 using Forge.Application.Commands;
+using Forge.Application.Assets;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Projects;
 using Forge.Application.Time;
 using Forge.Domain.Areas;
+using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
+using Forge.Mcp.Assets;
 using Forge.Mcp.Scripts;
 using Forge.ModuleFormat.Workspaces;
+using Forge.ModuleFormat.Assets;
 
 namespace Forge.Mcp.Projects;
 
@@ -91,6 +95,80 @@ public sealed class ForgeProjectAgentService
             return ProjectDiagnosticCatalog.Build(_history.State.Project)
                 .Select(Map)
                 .ToArray();
+        }
+    }
+
+    public AgentAssetCatalogResult GetAssets(AgentAssetCatalogQuery? query = null)
+    {
+        query ??= new AgentAssetCatalogQuery();
+        lock (_gate)
+        {
+            var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(_session.RootDirectory) ??
+                AssetCatalogLoader.FindRepositoryRoot(AppContext.BaseDirectory);
+            if (repositoryRoot is null)
+            {
+                return new AgentAssetCatalogResult(
+                    1,
+                    0,
+                    0,
+                    [],
+                    [],
+                    [],
+                    [new AgentDiagnostic(
+                        AssetCatalogLoader.CatalogMissingCode,
+                        "The OpenRPG Forge Asset Vault catalogs could not be located.",
+                        "asset_manifests/catalogs")]);
+            }
+
+            var load = AssetCatalogLoader.Load(repositoryRoot);
+            if (load.Catalog is null)
+            {
+                return new AgentAssetCatalogResult(
+                    1,
+                    0,
+                    0,
+                    [],
+                    [],
+                    [],
+                    load.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+
+            var browser = new AssetCatalogBrowser(load.Catalog);
+            var items = browser.Search(new AssetCatalogQuery(
+                query.Text,
+                query.Source,
+                query.Category,
+                query.LicenseSpdx,
+                ParseAssetAvailability(query.Availability),
+                query.MaximumResults));
+            return new AgentAssetCatalogResult(
+                load.Catalog.SchemaVersion,
+                load.Catalog.Items.Count,
+                load.Catalog.Items.Count(item => item.Availability != AssetAvailability.CatalogOnly),
+                browser.Sources,
+                browser.Categories,
+                items.Select(item => new AgentAssetCatalogItem(
+                    item.Id.ToString(),
+                    item.SchemaVersion,
+                    item.ExternalId,
+                    item.DisplayName,
+                    item.Source,
+                    item.SourceAssetId,
+                    item.SourcePage,
+                    item.LicenseSpdx,
+                    item.LicenseVerified,
+                    item.ContentSha256,
+                    item.TotalBytes,
+                    item.Categories,
+                    item.Tags,
+                    item.CatalogStatus,
+                    item.Availability.ToString(),
+                    item.RelativeModelPath,
+                    item.RelativePreviewPath,
+                    item.ThumbnailUrl,
+                    item.CanPlanImport,
+                    item.Provenance)).ToArray(),
+                load.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
         }
     }
 
@@ -353,6 +431,21 @@ public sealed class ForgeProjectAgentService
     }
 
     private static AgentDiagnostic Map(CommandDiagnostic diagnostic) => new(diagnostic.Code, diagnostic.Message);
+
+    private static AssetAvailability? ParseAssetAvailability(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return Enum.TryParse<AssetAvailability>(value, ignoreCase: true, out var availability) &&
+            Enum.IsDefined(availability)
+                ? availability
+                : throw new ArgumentException(
+                    $"Unknown asset availability '{value}'. Expected CatalogOnly, OriginalAvailable or ExtractedAvailable.",
+                    nameof(value));
+    }
 
     private static AgentDiagnostic Map(ActionableDiagnostic diagnostic) => new(
         diagnostic.Code,

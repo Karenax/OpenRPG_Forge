@@ -611,8 +611,8 @@ passer par des commandes transactionnelles, annulables, validables et testables 
 
 ### 9.5 État actuel de l’expérience Creator
 
-Le MVP solo est fermé et le gate **Creator Core G7** est ouvert. Les incréments G7-03 et G7-04 sont
-implémentés et testés :
+Le MVP solo est fermé et le gate **Creator Core G7** est ouvert. Les incréments G7-03 à G7-16 sont
+livrés avec preuves automatisées et revues visuelles ciblées :
 
 - le workspace **Blueprints** recherche par nom, slug ou type, crée et édite une définition par
   commandes transactionnelles, dérive un blueprint depuis une instance sans perdre ses overrides
@@ -625,11 +625,15 @@ implémentés et testés :
 - l’identité d’interface reste sombre, calme et lisible, avec accent braise et sans marque visible du
   moteur sous-jacent dans les surfaces contrôlées par Forge ; les champs numériques restent une
   alternative précise à la manipulation directe.
+- la coque Creator relie neuf workspaces, la recherche globale, les palettes, la configuration du
+  module, la caméra auteur, le build incrémental, la distribution, la navigation et les diagnostics ;
+- l’espace **Assets** charge 605 entrées depuis le Vault externe avec UUID, hash, licence, provenance,
+  recherche à facettes, aperçu local et prévisualisation d’import sans écriture ; les détails restent
+  défilables à la taille nominale et l’action braise n’est active que pour un asset gouverné.
 
-Les contrats, critères et preuves sont détaillés dans `docs/aurora-parity/tasks/G7-03-BLUEPRINT-CATALOG.md`,
-`docs/aurora-parity/tasks/G7-04-DIRECT-WORLD-MANIPULATION.md`, `docs/UX_AURORA_2026.md` et
-`STATUS.md`. La prochaine tranche Creator est G7-05, consacrée aux zones indépendantes et à leurs
-transitions.
+Les contrats, critères et preuves sont détaillés dans `docs/aurora-parity/tasks/`,
+`docs/UX_AURORA_2026.md` et `STATUS.md`. La prochaine tranche Creator est **G7-17 — localisation
+auteur** pour `ORF-CONT-011`.
 
 ---
 
@@ -1405,11 +1409,12 @@ Le résumé doit contenir :
 ## 23. Mission courante à donner à Codex
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
-> applicables. Le bootstrap, le MVP, G7-03 et G7-04 sont déjà validés : ne les recommence pas.
-> Réalise uniquement **G7-05 — zones indépendantes et transitions**, avec documents de zone,
-> contexte actif, transitions et validation. Conserve le modèle de domaine comme source de vérité,
-> passe les mutations par les commandes, teste chaque couche touchée, régénère le graphe et mets le
-> statut à jour uniquement avec les preuves obtenues.
+> applicables. Le bootstrap, le MVP et G7-01 à G7-16 sont déjà validés : ne les recommence pas.
+> Réalise uniquement **G7-17 — localisation auteur** pour `ORF-CONT-011` : audite les textes
+> localisés existants, versionne un catalogue canonique par langue avec fallback, puis ajoute
+> extraction, pseudo-localisation, diagnostics et édition transactionnelle. Conserve le modèle de
+> domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
+> régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.
 
 ---
 

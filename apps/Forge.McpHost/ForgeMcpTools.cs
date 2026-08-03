@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Forge.Mcp;
+using Forge.Mcp.Assets;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
@@ -30,6 +31,23 @@ public sealed class ForgeMcpTools
     [McpServerTool]
     [Description("Validates the project and returns structured diagnostics without mutating it.")]
     public IReadOnlyList<AgentDiagnostic> GetProjectDiagnostics() => _project.GetDiagnostics();
+
+    [McpServerTool]
+    [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]
+    public AgentAssetCatalogResult GetAssetCatalog(
+        string? query = null,
+        string? source = null,
+        string? category = null,
+        string? licenseSpdx = null,
+        string? availability = null,
+        int maximumResults = 100) =>
+        _project.GetAssets(new AgentAssetCatalogQuery(
+            query,
+            source,
+            category,
+            licenseSpdx,
+            availability,
+            maximumResults));
 
     [McpServerTool]
     [Description("Returns the versioned JSON schema used by dialogue mutation plans.")]

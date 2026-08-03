@@ -158,11 +158,13 @@ propriété et source. La sélection cible immédiatement l’entité ou la zone
 secondaire et sans mutation, **Appliquer** reçoit l’accent braise. L’auteur garde donc le contexte du
 Monde et peut annuler ou rétablir la correction avec le même historique que ses autres gestes.
 
-G7-16 doit activer l’espace Assets sans rompre cette hiérarchie. Une colonne de facettes compacte
-filtrera texte, type, tags, style, dimensions, polycount, licence, auteur et état d’import ; la grille
-centrale donnera priorité aux miniatures et aux états vide/chargement/erreur ; l’inspecteur droit
-montrera aperçu, package source, hash, provenance, références et compatibilité. Installer ou importer
-restera l’unique action braise et ne sera disponible qu’après validation de licence et de hash.
+G7-16 active l’espace Assets sans rompre cette hiérarchie. Une colonne compacte filtre texte, source,
+catégorie et état local ; la liste centrale garde un état vide explicite et limite l’affichage à 300
+résultats ; l’inspecteur droit montre aperçu, UUID, package source, hash, provenance, licence, tags et
+chemins. Les détails défilent indépendamment afin de garder l’action et le pied accessibles à
+1240 × 780. **Prévisualiser l’import** reste l’unique action braise et ne devient active qu’après
+validation de licence, hash et disponibilité. Les dimensions, styles, métriques 3D, compatibilité et
+turntable enrichiront ce même contrat, sans créer une seconde bibliothèque.
 
 ## Contexte graphique 3D
 

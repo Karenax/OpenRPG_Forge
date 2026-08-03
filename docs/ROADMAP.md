@@ -73,9 +73,12 @@ G7-14 livre la navigation Core par zone, les profils multi-tailles et vol, les l
 le rebuild partiel, la reachability depuis les spawns, les contrôles géométriques et l’overlay Aurora.
 G7-15 livre le diagnostic canonique v1, sa navigation partagée et des correctifs guidés
 prévisualisables qui passent par le bus transactionnel, avec exposition CLI et MCP.
+G7-16 livre le catalogue d’assets v1 de 605 entrées, la recherche à facettes, l’aperçu local, la
+gouvernance licence/provenance et une planification d’import sans écriture dans l’espace Assets, le
+CLI et MCP.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-16 — Content Browser et Asset Vault local**.
+La prochaine tranche est **G7-17 — localisation auteur** pour `ORF-CONT-011`.
 
 ## Phase 6 — 3D assistée
 

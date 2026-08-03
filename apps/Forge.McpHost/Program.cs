@@ -62,7 +62,9 @@ static async Task<int> RunSelfTestAsync(ForgeProjectAgentService project)
     var first = await client.QueryAsync("project.summary");
     var second = await client.QueryAsync("project.revision");
     var diagnostics = project.GetDiagnostics();
-    if (!sandbox.Succeeded || !first.Succeeded || !second.Succeeded || diagnostics.Count > 0)
+    var assets = project.GetAssets(new Forge.Mcp.Assets.AgentAssetCatalogQuery(MaximumResults: 1));
+    if (!sandbox.Succeeded || !first.Succeeded || !second.Succeeded || diagnostics.Count > 0 ||
+        assets.CatalogCount != 605 || assets.Diagnostics.Count > 0)
     {
         Console.Error.WriteLine("OPENRPG_FORGE_MCP_HOST_SMOKE_FAILED");
         return 4;
@@ -70,7 +72,8 @@ static async Task<int> RunSelfTestAsync(ForgeProjectAgentService project)
 
     Console.WriteLine(
         $"OPENRPG_FORGE_MCP_HOST_SMOKE_PASS sdk={McpSdkVersion} transport=stdio " +
-        $"bridge={bridge.Discovery.Transport} revision={project.GetCurrentRevision()} diagnostics={diagnostics.Count}");
+        $"bridge={bridge.Discovery.Transport} revision={project.GetCurrentRevision()} diagnostics={diagnostics.Count} " +
+        $"assets={assets.CatalogCount}");
     return 0;
 }
 

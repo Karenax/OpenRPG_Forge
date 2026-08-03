@@ -1,8 +1,11 @@
 using System.Text.Json;
+using Forge.Application.Assets;
+using Forge.Domain.Assets;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
+using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Workspaces;
@@ -18,7 +21,14 @@ static int Run(IReadOnlyList<string> arguments)
             return RunPackage(arguments.Skip(1).ToArray());
         }
 
-        Console.Error.WriteLine("Usage: forge package <export|validate|load|analyze|compliance|spatial|diagnose> ...");
+        if (arguments.Count >= 1 && arguments[0] == "assets")
+        {
+            return RunAssets(arguments.Skip(1).ToArray());
+        }
+
+        Console.Error.WriteLine(
+            "Usage: forge package <export|validate|load|analyze|compliance|spatial|diagnose> ... | " +
+            "forge assets list <repository-or-workspace> [filters]");
         return 2;
     }
     catch (Exception exception)
@@ -26,6 +36,87 @@ static int Run(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(exception.Message);
         return 1;
     }
+}
+
+static int RunAssets(IReadOnlyList<string> arguments)
+{
+    if (arguments.Count < 2 || arguments[0] != "list")
+    {
+        Console.Error.WriteLine(
+            "Usage: forge assets list <repository-or-workspace> [--query <text>] [--source <source>] " +
+            "[--category <category>] [--license <spdx>] [--availability <catalog|original|extracted>] " +
+            "[--limit <count>] [--vault <directory>]");
+        return 2;
+    }
+
+    var options = ParseOptions(arguments.Skip(2).ToArray());
+    var start = Path.GetFullPath(arguments[1]);
+    var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(start);
+    if (repositoryRoot is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = false,
+            diagnostics = new[] { new { code = AssetCatalogLoader.CatalogMissingCode, path = start } },
+        }));
+        return 1;
+    }
+
+    var load = AssetCatalogLoader.Load(repositoryRoot, options.GetValueOrDefault("vault"));
+    if (load.Catalog is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = load.Diagnostics }));
+        return 1;
+    }
+
+    var query = new AssetCatalogQuery(
+        options.GetValueOrDefault("query"),
+        options.GetValueOrDefault("source"),
+        options.GetValueOrDefault("category"),
+        options.GetValueOrDefault("license"),
+        ParseAvailability(options.GetValueOrDefault("availability")),
+        ParseLimit(options.GetValueOrDefault("limit")));
+    var browser = new AssetCatalogBrowser(load.Catalog);
+    var items = browser.Search(query);
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = load.Diagnostics.Count == 0,
+        schemaVersion = load.Catalog.SchemaVersion,
+        load.Catalog.CatalogDate,
+        load.Catalog.LicensePolicy,
+        catalogCount = load.Catalog.Items.Count,
+        resultCount = items.Count,
+        sources = browser.Sources,
+        categories = browser.Categories,
+        diagnostics = load.Diagnostics,
+        items = items.Select(item => new
+        {
+            id = item.Id.ToString(),
+            item.SchemaVersion,
+            item.ExternalId,
+            item.DisplayName,
+            item.Source,
+            item.SourceAssetId,
+            item.SourcePage,
+            item.LicenseSpdx,
+            item.LicenseVerified,
+            item.ContentSha256,
+            item.TotalBytes,
+            item.Categories,
+            item.Tags,
+            item.CatalogStatus,
+            availability = item.Availability.ToString(),
+            item.RelativeModelPath,
+            item.RelativePreviewPath,
+            item.ThumbnailUrl,
+            item.CanPlanImport,
+            item.Provenance,
+        }),
+    }));
+    Console.WriteLine(
+        $"OPENRPG_FORGE_ASSET_BROWSER_PASS catalog={load.Catalog.Items.Count} results={items.Count} " +
+        $"sources={browser.Sources.Count} schema={load.Catalog.SchemaVersion}");
+    return load.Diagnostics.Count == 0 ? 0 : 1;
 }
 
 static int RunPackage(IReadOnlyList<string> arguments)
@@ -270,3 +361,43 @@ static ModuleTargetKind ParseTarget(string value)
             $"Unknown target '{value}'. Expected Editor, Client, DedicatedServer, Test or Shipping.",
             nameof(value));
 }
+
+static Dictionary<string, string> ParseOptions(IReadOnlyList<string> arguments)
+{
+    var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    for (var index = 0; index < arguments.Count; index++)
+    {
+        var argument = arguments[index];
+        if (!argument.StartsWith("--", StringComparison.Ordinal) || index + 1 >= arguments.Count)
+        {
+            throw new ArgumentException($"Invalid asset browser option '{argument}'.");
+        }
+
+        result[argument[2..]] = arguments[++index];
+    }
+
+    return result;
+}
+
+static AssetAvailability? ParseAvailability(string? value)
+{
+    if (string.IsNullOrWhiteSpace(value))
+    {
+        return null;
+    }
+
+    return value.Trim().ToLowerInvariant() switch
+    {
+        "catalog" => AssetAvailability.CatalogOnly,
+        "original" => AssetAvailability.OriginalAvailable,
+        "extracted" => AssetAvailability.ExtractedAvailable,
+        _ => throw new ArgumentException(
+            $"Unknown asset availability '{value}'. Expected catalog, original or extracted."),
+    };
+}
+
+static int ParseLimit(string? value) => string.IsNullOrWhiteSpace(value)
+    ? 50
+    : int.TryParse(value, out var parsed) && parsed is >= 1 and <= 10_000
+        ? parsed
+        : throw new ArgumentException("Asset result limit must be between 1 and 10000.");

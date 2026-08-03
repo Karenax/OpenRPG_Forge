@@ -1,6 +1,6 @@
 # État d’implémentation — Asset Vault et carte
 
-Dernière mise à jour : 2 août 2026.
+Dernière mise à jour : 3 août 2026.
 
 ## Terminé
 
@@ -21,25 +21,29 @@ Dernière mise à jour : 2 août 2026.
 - remplacement des trois slots visuels par une ressource Godot ou un asset installé du catalogue
   Forge, avec fiche `provenance.json` ;
 - smoke test headless de génération et de peinture.
+- catalogue canonique v1 de 605 entrées avec UUID stable, SHA-256, licence, provenance et état local ;
+- espace Assets avec recherche, facettes, aperçu, gouvernance et dry-run d’import ;
+- exposition du catalogue filtré par CLI et MCP ;
+- validation visuelle aux tailles normale et maximisée, avec détails défilables et pied stable.
 
 ## Partiellement terminé
 
-- catalogue : métadonnées disponibles et recherche utilisable depuis l’outil forêt, mais pas encore
-  de SQLite ni workspace Asset Vault complet ;
+- catalogue : lecture, recherche et gouvernance disponibles dans le workspace Assets, sans encore
+  installation/désinstallation, SQLite ni gestion complète des packs ;
 - normalisation : originaux glTF/FBX/OBJ présents, conversion finale GLB et conventions visuelles à
   appliquer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
 
 ## Non commencé
 
-- workspace Asset Vault complet dans Forge ;
-- miniatures locales et planches contact ;
+- gestionnaire Asset Vault complet avec installation, mise à jour et désinstallation ;
+- génération de miniatures et planches contact ;
 - Blender Worker de normalisation ;
 - packs artistiques curatés ;
 - terrain sculpté, navigation, eau, routes et carte Forgotten Forest finale 512 × 512 m.
 
 ## Prochaine action
 
-Curater un premier pack forêt cohérent dans le Vault, remplacer les trois slots du prototype par des
-GLB normalisés, puis ajouter relief, navigation et routes sans faire des nœuds générés la source de
-vérité de la carte.
+Après G7-17, implémenter l’import transactionnel depuis le plan G7-16, puis curater un premier pack
+forêt cohérent et remplacer les trois slots du prototype par des GLB normalisés sans faire des nœuds
+générés la source de vérité de la carte.

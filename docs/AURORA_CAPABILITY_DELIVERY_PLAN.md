@@ -48,8 +48,8 @@ coque Creator, **G7-03** le catalogue Blueprints, **G7-04** la manipulation dire
 zones indépendantes, **G7-06** le clipboard sémantique, **G7-07** la recherche globale avec
 refactoring sûr, **G7-08** la configuration du module, **G7-09** les palettes avec provenance,
 **G7-10** la caméra auteur, **G7-11** les événements Core, **G7-12** le build incrémental et
-**G7-13** la conformité de distribution, **G7-14** la navigation/validation spatiale et **G7-15** les
-diagnostics actionnables ; la file active commence à **G7-16**. La fermeture de
+**G7-13** la conformité de distribution, **G7-14** la navigation/validation spatiale, **G7-15** les
+diagnostics actionnables et **G7-16** le Content Browser ; la file active commence à **G7-17**. La fermeture de
 `TASKS_MVP.md` ne signifie pas
 une parité Aurora complète.
 
@@ -213,11 +213,12 @@ créateur peut modifier, exporter et jouer la Crypte sans IA et sans outil propr
 
 ### G7 — Creator Core complet P0/P1
 
-**État.** En cours. G7-01 à G7-15 sont franchis avec le second module générique, la coque Creator,
+**État.** En cours. G7-01 à G7-16 sont franchis avec le second module générique, la coque Creator,
 le catalogue Blueprints, la manipulation directe, les zones indépendantes, le clipboard
 sémantique, la recherche globale et le refactoring sûr, la configuration du module, les palettes,
 la caméra auteur, les événements Core, le build incrémental, la conformité de distribution puis la
-navigation, la validation spatiale et les diagnostics actionnables ; G7-16 est la prochaine tâche.
+navigation, la validation spatiale, les diagnostics actionnables et le navigateur d’assets ; G7-17
+est la prochaine tâche.
 
 **Domaines.** `SHELL`, `PROJECT`, `AREA`, `PALETTE`, parties Core de `PLACEABLE`, `DOOR`, `TRIGGER`,
 `WAYPOINT`, `AUDIO`, `GAMEPLAY`, `CONTENT`, `BUILD`, `QA` et `EE` indispensable.
@@ -439,7 +440,8 @@ La file active est maintenant :
 | 14 | G7-13 | ORF-PROJ-024, ORF-BUILD-022, ORF-QA-007 | Terminé partiellement : cinq profils canoniques, registre tiers, NOTICE et gate de conformité. |
 | 15 | G7-14 | ORF-AREA-031, ORF-QA-004, ORF-QA-005 | Terminé partiellement : navigation par zone, validation géométrique et reachability depuis les spawns. |
 | 16 | G7-15 | ORF-QA-021 | Terminé partiellement : diagnostics à UUID/sévérité/source, navigation et quick fixes transactionnels. |
-| 17 | G7-16 | ORF-CONT-020, ORF-PAL-010, ORF-PAL-011 | Content Browser et Asset Vault local : manifeste, catalogue hashé, facettes, aperçu et import gouverné. |
+| 17 | G7-16 | ORF-CONT-020, ORF-PAL-010, ORF-PAL-011 | Terminé partiellement : catalogue v1 de 605 entrées, facettes, aperçu local et import gouverné en dry-run. |
+| 18 | G7-17 | ORF-CONT-011 | Localisation auteur : catalogue canonique, fallback, extraction, pseudo-localisation, diagnostics et édition transactionnelle. |
 
 Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md`,
 `docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md` et
@@ -455,7 +457,8 @@ Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODUL
 `docs/aurora-parity/tasks/G7-12-INCREMENTAL-BUILD-CACHE.md` et
 `docs/aurora-parity/tasks/G7-13-TARGET-PROFILES-DISTRIBUTION-COMPLIANCE.md`,
 `docs/aurora-parity/tasks/G7-14-NAVIGATION-SPATIAL-VALIDATION.md` et
-`docs/aurora-parity/tasks/G7-15-ACTIONABLE-DIAGNOSTICS.md`.
+`docs/aurora-parity/tasks/G7-15-ACTIONABLE-DIAGNOSTICS.md` et
+`docs/aurora-parity/tasks/G7-16-ASSET-CONTENT-BROWSER.md`.
 
 ## 7. Graphe de dépendances
 
