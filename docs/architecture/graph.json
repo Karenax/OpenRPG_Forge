@@ -3009,7 +3009,7 @@
     },
     {
       "evidence": {
-        "line": 159,
+        "line": 161,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -7546,6 +7546,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Domain/Doors/DoorEventService.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Placeables"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.RpgKit.Domain/Doors/DoorModels.cs"
       },
       "kind": "imports",
@@ -10944,6 +10953,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs",
       "target": "namespace:Forge.RpgKit.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Doors"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Placeables"
     },
     {
       "evidence": {
@@ -18993,6 +19020,24 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Doors.DoorLockEvent",
+      "target": "file:src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Doors.DoorLockEvent",
+      "target": "model:Forge.RpgKit.Domain.Placeables.LockState"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.RpgKit.Domain/Doors/DoorRuntimeService.cs"
       },
@@ -19026,6 +19071,15 @@
       "kind": "relationship",
       "source": "model:Forge.RpgKit.Domain.Doors.DoorStateDefinition",
       "target": "model:Forge.RpgKit.Domain.Doors.DoorState"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Doors.DoorStateEvent",
+      "target": "file:src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
     },
     {
       "evidence": {
@@ -23332,6 +23386,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Doors",
+      "target": "file:src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.RpgKit.Domain/Doors/DoorModels.cs"
       },
       "kind": "defined_in",
@@ -23481,6 +23544,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Doors",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
     },
     {
       "evidence": {
@@ -24939,6 +25011,51 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Creatures.CreatureRulesService",
       "target": "model:Forge.RpgKit.Domain.Creatures.PerceptionResult"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Doors.DoorEventService",
+      "target": "file:src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Doors.DoorEventService",
+      "target": "model:Forge.RpgKit.Domain.Doors.DoorDefinition"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Doors.DoorEventService",
+      "target": "model:Forge.RpgKit.Domain.Doors.DoorLockEvent"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Doors.DoorEventService",
+      "target": "model:Forge.RpgKit.Domain.Doors.DoorStateEvent"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Doors.DoorEventService",
+      "target": "model:Forge.RpgKit.Domain.Placeables.LockState"
     },
     {
       "evidence": {
@@ -34770,6 +34887,69 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Doors.DoorEventServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Doors.DoorEventServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Doors.DoorDefinition"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Doors.DoorEventServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Doors.DoorState"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Doors.DoorEventServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Doors.PortalDestinationKind"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Doors.DoorEventServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Placeables.LockState"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Doors.DoorEventServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Doors.DoorEventService"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Doors.DoorEventServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Doors.DoorPlacementMode"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorFoundationTests.cs"
       },
@@ -38694,6 +38874,24 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Doors.PortalUseCompleted",
+      "target": "file:src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Doors.PortalUseRequested",
+      "target": "file:src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.RpgKit.Domain/Factions/FactionModels.cs"
       },
@@ -40017,8 +40215,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:43d058b81bf8387b6b97fce0d4ba724c2e039933fb8e4df84d166b0554a74902",
-    "source_file_count": 858
+    "source_digest": "sha256:1d90c47b020122299f418eca00a3ef026a380fee93d3262dbb40842a10030bb3",
+    "source_file_count": 861
   },
   "nodes": [
     {
@@ -42890,6 +43088,16 @@
       },
       "name": "G8-DOOR-02-RUNTIME.md",
       "path": "docs/aurora-parity/tasks/G8-DOOR-02-RUNTIME.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-DOOR-03-EVENTS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-DOOR-03-EVENTS.md",
+      "path": "docs/aurora-parity/tasks/G8-DOOR-03-EVENTS.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G8-FACTION-01-FOUNDATION.md",
@@ -46542,6 +46750,16 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureRulesService.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Doors/DoorEventService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DoorEventService.cs",
+      "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Doors/DoorModels.cs",
       "kind": "file",
       "line": 1,
@@ -47830,6 +48048,16 @@
       },
       "name": "CreatureRulesServiceTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DoorEventServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Doors/DoorFoundationTests.cs",
@@ -52112,6 +52340,16 @@
       "path": "src/Forge.RpgKit.Domain/Doors/DoorModels.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Doors.DoorLockEvent",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Doors"
+      },
+      "name": "DoorLockEvent",
+      "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Doors.DoorNavigationState",
       "kind": "model",
       "line": 6,
@@ -52140,6 +52378,16 @@
       },
       "name": "DoorStateDefinition",
       "path": "src/Forge.RpgKit.Domain/Doors/DoorModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Doors.DoorStateEvent",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Doors"
+      },
+      "name": "DoorStateEvent",
+      "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
     },
     {
       "id": "model:Forge.RpgKit.Domain.Doors.DoorUnlockResult",
@@ -53366,6 +53614,16 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureRulesService.cs"
     },
     {
+      "id": "service:Forge.RpgKit.Domain.Doors.DoorEventService",
+      "kind": "service",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Doors"
+      },
+      "name": "DoorEventService",
+      "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+    },
+    {
       "id": "service:Forge.RpgKit.Domain.Doors.DoorRuntimeService",
       "kind": "service",
       "line": 13,
@@ -54414,6 +54672,16 @@
       },
       "name": "CreatureRulesServiceTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Doors.DoorEventServiceTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Doors"
+      },
+      "name": "DoorEventServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Doors.DoorFoundationTests",
@@ -57741,6 +58009,26 @@
       },
       "name": "LocalizedDoorFailure",
       "path": "src/Forge.RpgKit.Domain/Doors/DoorRuntimeService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Doors.PortalUseCompleted",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Doors"
+      },
+      "name": "PortalUseCompleted",
+      "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Doors.PortalUseRequested",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Doors"
+      },
+      "name": "PortalUseRequested",
+      "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Factions.DispositionBand",

@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 DOOR-03** pour `ORF-DOOR-011`, `012` et `013` : événements d’ouverture, fermeture et transition.
+Exécuter **G8 TRIGGER-01** pour `ORF-TRG-001`, `002`, `003`, `006` et `007` : volumes, formes et détection des triggers.

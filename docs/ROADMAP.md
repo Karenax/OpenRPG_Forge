@@ -142,6 +142,8 @@ G8 DOOR-01 livre portes sur socket ou libres, machine d’états, interaction, p
 La prochaine tranche est **DOOR-02**.
 G8 DOOR-02 livre navigation dynamique, verrou partagé, rejets localisés, pièges et validation croisée.
 La prochaine tranche est **DOOR-03**.
+G8 DOOR-03 livre événements contrôlés de portail, ouverture, fermeture, verrouillage et déverrouillage.
+La famille Door G8 est complète ; la prochaine tranche est **TRIGGER-01**.
 
 ## Phase 6 — 3D assistée
 
