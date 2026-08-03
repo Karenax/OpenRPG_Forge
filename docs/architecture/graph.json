@@ -246,6 +246,33 @@
     },
     {
       "evidence": {
+        "line": 37,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorWorkspaceProfileIdConverter",
+      "target": "file:src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorWorkspaceProfileIdConverter",
+      "target": "model:Forge.Domain.Authoring.EditorWorkspaceProfileId"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorWorkspaceProfileJsonSerializer",
+      "target": "file:src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
         "line": 112,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
@@ -975,7 +1002,7 @@
     },
     {
       "evidence": {
-        "line": 1351,
+        "line": 1353,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -984,7 +1011,7 @@
     },
     {
       "evidence": {
-        "line": 1416,
+        "line": 1418,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -993,7 +1020,7 @@
     },
     {
       "evidence": {
-        "line": 1713,
+        "line": 1715,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1002,7 +1029,7 @@
     },
     {
       "evidence": {
-        "line": 1416,
+        "line": 1418,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1011,7 +1038,7 @@
     },
     {
       "evidence": {
-        "line": 1462,
+        "line": 1464,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1020,7 +1047,7 @@
     },
     {
       "evidence": {
-        "line": 1666,
+        "line": 1668,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1038,7 +1065,7 @@
     },
     {
       "evidence": {
-        "line": 640,
+        "line": 642,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1047,7 +1074,7 @@
     },
     {
       "evidence": {
-        "line": 1416,
+        "line": 1418,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1056,7 +1083,7 @@
     },
     {
       "evidence": {
-        "line": 1463,
+        "line": 1465,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1065,7 +1092,7 @@
     },
     {
       "evidence": {
-        "line": 1515,
+        "line": 1517,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1074,7 +1101,7 @@
     },
     {
       "evidence": {
-        "line": 1607,
+        "line": 1609,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1092,7 +1119,7 @@
     },
     {
       "evidence": {
-        "line": 1321,
+        "line": 1323,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1101,7 +1128,7 @@
     },
     {
       "evidence": {
-        "line": 1416,
+        "line": 1418,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1110,7 +1137,7 @@
     },
     {
       "evidence": {
-        "line": 1464,
+        "line": 1466,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1119,7 +1146,7 @@
     },
     {
       "evidence": {
-        "line": 1515,
+        "line": 1517,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1128,7 +1155,7 @@
     },
     {
       "evidence": {
-        "line": 1682,
+        "line": 1684,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1164,7 +1191,7 @@
     },
     {
       "evidence": {
-        "line": 640,
+        "line": 642,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1191,7 +1218,7 @@
     },
     {
       "evidence": {
-        "line": 1322,
+        "line": 1324,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1209,7 +1236,7 @@
     },
     {
       "evidence": {
-        "line": 1699,
+        "line": 1701,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2811,7 +2838,7 @@
     },
     {
       "evidence": {
-        "line": 185,
+        "line": 189,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -5350,6 +5377,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Authoring/EditorDisplayFilter.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorWorkspaceProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Authoring/EditorWorkspaceProfile.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Blueprints/BlueprintDefinition.cs"
       },
       "kind": "imports",
@@ -6429,6 +6474,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
@@ -6722,6 +6776,24 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
@@ -8212,6 +8284,33 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
       },
       "kind": "imports",
@@ -9458,6 +9557,42 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
@@ -14808,6 +14943,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorWorkspaceProfileId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Authoring.EditorWorkspaceProfileId",
+      "target": "file:src/Forge.Domain/Authoring/EditorWorkspaceProfileId.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Domain/Blueprints/BlueprintDefinition.cs"
       },
@@ -17743,6 +17887,42 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorRole.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorRole.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Authoring/EditorWorkspaceProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorWorkspaceProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorWorkspaceProfileId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorWorkspaceProfileId.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.Domain/Blueprints/BlueprintDefinition.cs"
       },
       "kind": "defined_in",
@@ -18768,6 +18948,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Authoring",
+      "target": "file:tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
       },
@@ -19497,6 +19686,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Serialization",
+      "target": "file:src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
         "line": 14,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
@@ -19686,6 +19884,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Workspaces",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
@@ -19701,6 +19908,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Workspaces",
       "target": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Workspaces",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
     },
     {
       "evidence": {
@@ -24663,6 +24879,69 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorWorkspaceProfileTests",
+      "target": "file:tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorWorkspaceProfileTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorWorkspaceProfileTests",
+      "target": "model:Forge.Domain.Authoring.EditorWorkspaceProfileId"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorWorkspaceProfileTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorWorkspaceProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorDisplayFilter"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorWorkspaceProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorRole"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorWorkspaceProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorWorkspaceProfile"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs"
       },
@@ -28632,6 +28911,78 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
+      "target": "model:Forge.Domain.Authoring.EditorWorkspaceProfileId"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
+      "target": "type:Forge.Domain.Authoring.EditorDisplayFilter"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
+      "target": "type:Forge.Domain.Authoring.EditorRole"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
+      "target": "type:Forge.Domain.Authoring.EditorWorkspaceProfile"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.EditorWorkspaceProfileStore"
+    },
+    {
+      "evidence": {
         "line": 125,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
@@ -29295,6 +29646,33 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Authoring.EditorCameraProjection",
       "target": "file:src/Forge.Domain/Authoring/EditorCameraProjection.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorDisplayFilter",
+      "target": "file:src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorRole.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorRole",
+      "target": "file:src/Forge.Domain/Authoring/EditorRole.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Authoring/EditorWorkspaceProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorWorkspaceProfile",
+      "target": "file:src/Forge.Domain/Authoring/EditorWorkspaceProfile.cs"
     },
     {
       "evidence": {
@@ -30306,6 +30684,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Workspaces.EditorWorkspaceProfileStore",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.ModuleFormat/Workspaces/ProjectSession.cs"
       },
@@ -31143,8 +31530,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:670cc39d83c541fc5030c17b996128420a495fa653b256e1545890d251e8b39a",
-    "source_file_count": 720
+    "source_digest": "sha256:e082d2e93e2a9e08aa42eba06e4bb3cfff33e0f0b1989383a9e30388a03e7c17",
+    "source_file_count": 729
   },
   "nodes": [
     {
@@ -31266,6 +31653,26 @@
       },
       "name": "EditorCameraProfileJsonSerializer",
       "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.EditorWorkspaceProfileIdConverter",
+      "kind": "adapter",
+      "line": 37,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "EditorWorkspaceProfileIdConverter",
+      "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.EditorWorkspaceProfileJsonSerializer",
+      "kind": "adapter",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "EditorWorkspaceProfileJsonSerializer",
+      "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
     },
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.EntityIdJsonConverter",
@@ -33358,6 +33765,16 @@
       "path": "docs/audits/ASSET_AND_MAP_EXISTING_STATE.md"
     },
     {
+      "id": "file:docs/aurora-parity/G7_COMPLETION_PLAN.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7_COMPLETION_PLAN.md",
+      "path": "docs/aurora-parity/G7_COMPLETION_PLAN.md"
+    },
+    {
       "id": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",
       "kind": "document",
       "line": 1,
@@ -34776,6 +35193,46 @@
       },
       "name": "EditorCameraView.cs",
       "path": "src/Forge.Domain/Authoring/EditorCameraView.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorDisplayFilter.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorDisplayFilter.cs",
+      "path": "src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorRole.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorRole.cs",
+      "path": "src/Forge.Domain/Authoring/EditorRole.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorWorkspaceProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorWorkspaceProfile.cs",
+      "path": "src/Forge.Domain/Authoring/EditorWorkspaceProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorWorkspaceProfileId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorWorkspaceProfileId.cs",
+      "path": "src/Forge.Domain/Authoring/EditorWorkspaceProfileId.cs"
     },
     {
       "id": "file:src/Forge.Domain/Blueprints/BlueprintDefinition.cs",
@@ -36508,6 +36965,16 @@
       "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorWorkspaceProfileJsonSerializer.cs",
+      "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
       "kind": "file",
       "line": 1,
@@ -36586,6 +37053,16 @@
       },
       "name": "EditorCameraProfileStore.cs",
       "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorWorkspaceProfileStore.cs",
+      "path": "src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
     },
     {
       "id": "file:src/Forge.ModuleFormat/Workspaces/ProjectSession.cs",
@@ -37098,6 +37575,16 @@
       "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
     },
     {
+      "id": "file:tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorWorkspaceProfileTests.cs",
+      "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Domain.Tests/Blueprints/BlueprintProvenanceTests.cs",
       "kind": "file",
       "line": 1,
@@ -37556,6 +38043,16 @@
       },
       "name": "EditorCameraProfileStoreTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorWorkspaceProfileStoreTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs",
@@ -40238,6 +40735,16 @@
       "path": "src/Forge.Domain/Authoring/EditorCameraProfileId.cs"
     },
     {
+      "id": "model:Forge.Domain.Authoring.EditorWorkspaceProfileId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorWorkspaceProfileId",
+      "path": "src/Forge.Domain/Authoring/EditorWorkspaceProfileId.cs"
+    },
+    {
       "id": "model:Forge.Domain.Blueprints.BlueprintDefinition",
       "kind": "model",
       "line": 5,
@@ -42161,6 +42668,16 @@
       "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Authoring.EditorWorkspaceProfileTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Authoring"
+      },
+      "name": "EditorWorkspaceProfileTests",
+      "path": "tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Blueprints.BlueprintProvenanceTests",
       "kind": "test",
       "line": 5,
@@ -42589,6 +43106,16 @@
       },
       "name": "EditorCameraProfileStoreTests",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Workspaces"
+      },
+      "name": "EditorWorkspaceProfileStoreTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Workspaces.ProjectSessionTests",
@@ -43156,6 +43683,36 @@
       },
       "name": "EditorCameraProjection",
       "path": "src/Forge.Domain/Authoring/EditorCameraProjection.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorDisplayFilter",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorDisplayFilter",
+      "path": "src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorRole",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorRole",
+      "path": "src/Forge.Domain/Authoring/EditorRole.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorWorkspaceProfile",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorWorkspaceProfile",
+      "path": "src/Forge.Domain/Authoring/EditorWorkspaceProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Blueprints.BlueprintPaletteOrigin",
@@ -44246,6 +44803,16 @@
       },
       "name": "EditorCameraProfileStore",
       "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Workspaces.EditorWorkspaceProfileStore",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "EditorWorkspaceProfileStore",
+      "path": "src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
     },
     {
       "id": "type:Forge.ModuleFormat.Workspaces.ProjectSession",
