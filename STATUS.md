@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 ENCOUNTER-02** pour `ORF-ENC-005`, `006`, `007`, `009` et `011` : composition, cycle et points de spawn.
+Exécuter **G8 ENCOUNTER-03** pour `ORF-ENC-012`, `013`, `015` et `018` : événements, vagues et simulation statistique.

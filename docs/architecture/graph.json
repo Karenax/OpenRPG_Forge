@@ -3018,7 +3018,7 @@
     },
     {
       "evidence": {
-        "line": 167,
+        "line": 169,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -7609,6 +7609,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.RpgKit.Domain/Encounters/EncounterModels.cs"
       },
       "kind": "imports",
@@ -11132,6 +11141,51 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterAuthoringServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Triggers"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Encounters"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Placeables"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs",
       "target": "namespace:Forge.RpgKit.Domain.Triggers"
     },
     {
@@ -23745,6 +23799,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Encounters",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.RpgKit.Domain/Encounters/EncounterModels.cs"
       },
@@ -23922,6 +23985,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Encounters",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterAuthoringServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Encounters",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
     },
     {
       "evidence": {
@@ -25550,6 +25622,42 @@
       },
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Encounters.EncounterAuthoringService",
+      "target": "model:Forge.RpgKit.Domain.Encounters.EncounterDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Encounters.EncounterCompositionService",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Encounters.EncounterCompositionService",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Encounters.EncounterCompositionService",
+      "target": "model:Forge.RpgKit.Domain.Encounters.EncounterDefinition"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Encounters.EncounterCompositionService",
       "target": "model:Forge.RpgKit.Domain.Encounters.EncounterDiagnostic"
     },
     {
@@ -35814,6 +35922,159 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Encounters.EncounterDefinition"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Triggers.TriggerShapeKind"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Encounters.EncounterCompositionService"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.EncounterRole"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Encounters.Activator"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Encounters.EncounterActivationPolicy"
+    },
+    {
+      "evidence": {
+        "line": 74,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Encounters.EncounterDifficulty"
+    },
+    {
+      "evidence": {
+        "line": 60,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Encounters.EncounterRuntimePolicy"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Encounters.NetworkAuthority"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Encounters.SpawnCandidate"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Encounters.SpawnDistribution"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Encounters.SpawnVisibilityPolicy"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Triggers.TriggerShape"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.RpgKit.Domain.Tests/Factions/FactionFoundationTests.cs"
       },
@@ -39756,6 +40017,51 @@
     },
     {
       "evidence": {
+        "line": 14,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.Activator",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.ActivatorQuery",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.CountRange",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.EncounterActivationPolicy",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.EncounterComposition",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.RpgKit.Domain/Encounters/EncounterModels.cs"
       },
@@ -39771,6 +40077,24 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Encounters.EncounterDifficultyProfile",
       "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.EncounterGroup",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.EncounterRuntimePolicy",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
     },
     {
       "evidence": {
@@ -39801,12 +40125,57 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.NetworkAuthority",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.PartyAssessment",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.SpawnAnchor",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
         "line": 15,
         "path": "src/Forge.RpgKit.Domain/Encounters/EncounterModels.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Encounters.SpawnCandidate",
       "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.SpawnDistribution",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Encounters.SpawnVisibilityPolicy",
+      "target": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
     },
     {
       "evidence": {
@@ -41259,8 +41628,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:ae57e0e70563f9953a29ac92f0219991e6dd08e94dff8f9d40d5bda8321b4f6e",
-    "source_file_count": 872
+    "source_digest": "sha256:5411399d8700ac165d3bc952157ec9f7d02daf3f76352b034f43f07647453009",
+    "source_file_count": 875
   },
   "nodes": [
     {
@@ -44162,6 +44531,16 @@
       },
       "name": "G8-ENCOUNTER-01-FOUNDATION.md",
       "path": "docs/aurora-parity/tasks/G8-ENCOUNTER-01-FOUNDATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-ENCOUNTER-02-COMPOSITION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-ENCOUNTER-02-COMPOSITION.md",
+      "path": "docs/aurora-parity/tasks/G8-ENCOUNTER-02-COMPOSITION.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G8-FACTION-01-FOUNDATION.md",
@@ -47884,6 +48263,16 @@
       "path": "src/Forge.RpgKit.Domain/Encounters/EncounterAuthoringService.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EncounterCompositionService.cs",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Encounters/EncounterModels.cs",
       "kind": "file",
       "line": 1,
@@ -49222,6 +49611,16 @@
       },
       "name": "EncounterAuthoringServiceTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterAuthoringServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EncounterCompositionServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Factions/FactionFoundationTests.cs",
@@ -54963,6 +55362,16 @@
       "path": "src/Forge.RpgKit.Domain/Encounters/EncounterAuthoringService.cs"
     },
     {
+      "id": "service:Forge.RpgKit.Domain.Encounters.EncounterCompositionService",
+      "kind": "service",
+      "line": 19,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "EncounterCompositionService",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
       "id": "service:Forge.RpgKit.Domain.Factions.FactionReputationService",
       "kind": "service",
       "line": 17,
@@ -56061,6 +56470,16 @@
       },
       "name": "EncounterAuthoringServiceTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterAuthoringServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "kind": "test",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Encounters"
+      },
+      "name": "EncounterCompositionServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Factions.FactionFoundationTests",
@@ -59410,6 +59829,56 @@
       "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Encounters.Activator",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "Activator",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Encounters.ActivatorQuery",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "ActivatorQuery",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Encounters.CountRange",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "CountRange",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Encounters.EncounterActivationPolicy",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "EncounterActivationPolicy",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Encounters.EncounterComposition",
+      "kind": "type",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "EncounterComposition",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Encounters.EncounterDifficulty",
       "kind": "type",
       "line": 6,
@@ -59428,6 +59897,26 @@
       },
       "name": "EncounterDifficultyProfile",
       "path": "src/Forge.RpgKit.Domain/Encounters/EncounterModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Encounters.EncounterGroup",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "EncounterGroup",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Encounters.EncounterRuntimePolicy",
+      "kind": "type",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "EncounterRuntimePolicy",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Encounters.EncounterValidationContext",
@@ -59460,6 +59949,36 @@
       "path": "src/Forge.RpgKit.Domain/Encounters/EncounterModels.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Encounters.NetworkAuthority",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "NetworkAuthority",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Encounters.PartyAssessment",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "PartyAssessment",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Encounters.SpawnAnchor",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "SpawnAnchor",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Encounters.SpawnCandidate",
       "kind": "type",
       "line": 15,
@@ -59468,6 +59987,26 @@
       },
       "name": "SpawnCandidate",
       "path": "src/Forge.RpgKit.Domain/Encounters/EncounterModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Encounters.SpawnDistribution",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "SpawnDistribution",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Encounters.SpawnVisibilityPolicy",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Encounters"
+      },
+      "name": "SpawnVisibilityPolicy",
+      "path": "src/Forge.RpgKit.Domain/Encounters/EncounterCompositionService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Factions.DispositionBand",

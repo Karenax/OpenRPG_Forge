@@ -150,6 +150,8 @@ G8 TRIGGER-02 livre pièges, requêtes typées, dix volumes gameplay, debug runt
 La famille Trigger G8 est complète ; la prochaine tranche est **ENCOUNTER-01**.
 G8 ENCOUNTER-01 livre volume d'activation, pool pondéré, difficulté data-driven, assistant en preview
 et validation localisée. La prochaine tranche est **ENCOUNTER-02**.
+G8 ENCOUNTER-02 livre composition selon le groupe, bornes et budgets, politiques de cycle, ancres
+manuelles et filtre d'activation réseau. La prochaine tranche est **ENCOUNTER-03**.
 
 ## Phase 6 — 3D assistée
 
