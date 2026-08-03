@@ -47,6 +47,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly DuplicateAreaHandler _duplicateAreaHandler = new(new SystemClock());
     private readonly EditAreaGeometryHandler _editAreaGeometryHandler = new(new SystemClock());
     private readonly SetAreaEnvironmentHandler _setAreaEnvironmentHandler = new(new SystemClock());
+    private readonly SetAreaAuthoringHandler _setAreaAuthoringHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
     private readonly ScaleEntitiesHandler _scaleEntitiesHandler = new(new SystemClock());
@@ -158,6 +159,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private CreatorWorkspaceWindow? _workspaceWindow;
     private RecoveryWindow? _recoveryWindow;
     private AreaEnvironmentWindow? _areaEnvironmentWindow;
+    private AreaAuthoringWindow? _areaAuthoringWindow;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -249,11 +251,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ResizeArea,
             OpenNavigationConfiguration,
             OpenAreaEnvironment,
+            OpenAreaAuthoring,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
         _areaEnvironmentWindow = new AreaEnvironmentWindow();
         _areaEnvironmentWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaEnvironment, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaEnvironmentWindow);
+        _areaAuthoringWindow = new AreaAuthoringWindow();
+        _areaAuthoringWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaAuthoring, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_areaAuthoringWindow);
         _workspaceWindow = new CreatorWorkspaceWindow();
         _workspaceWindow.Initialize(
             () => _history?.State,
@@ -420,6 +426,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _workspaceWindow = null;
         _recoveryWindow = null;
         _areaEnvironmentWindow = null;
+        _areaAuthoringWindow = null;
         _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
@@ -1299,6 +1306,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private void OpenNavigationConfiguration() => _navigationConfiguration?.Open();
 
     private void OpenAreaEnvironment() => _areaEnvironmentWindow?.Open();
+
+    private void OpenAreaAuthoring() => _areaAuthoringWindow?.Open();
+
+    private bool ApplyAreaAuthoring(AreaId areaId, AreaAuthoringProfile profile)
+    {
+        if (_history is null) return false;
+        return ApplyCommand(_setAreaAuthoringHandler.Handle(_history.State,
+            new SetAreaAuthoringCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, areaId, profile, false)),
+            "Carte, événements et calques mis à jour.", null);
+    }
 
     private bool ApplyAreaEnvironment(AreaId areaId, AreaEnvironmentProfile profile)
     {

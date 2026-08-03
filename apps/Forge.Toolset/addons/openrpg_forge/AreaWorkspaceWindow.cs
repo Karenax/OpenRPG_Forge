@@ -27,6 +27,7 @@ public partial class AreaWorkspaceWindow : Window
     private Func<AreaId, AreaDimensions, AreaResizeAnchor, bool>? _resizeArea;
     private Action? _openNavigation;
     private Action? _openEnvironment;
+    private Action? _openAuthoring;
     private Action<Window>? _brandWindow;
 
     private ItemList? _areaList;
@@ -70,6 +71,7 @@ public partial class AreaWorkspaceWindow : Window
         Func<AreaId, AreaDimensions, AreaResizeAnchor, bool> resizeArea,
         Action openNavigation,
         Action openEnvironment,
+        Action openAuthoring,
         Action<Window> brandWindow)
     {
         _getState = getState ?? throw new ArgumentNullException(nameof(getState));
@@ -81,6 +83,7 @@ public partial class AreaWorkspaceWindow : Window
         _resizeArea = resizeArea ?? throw new ArgumentNullException(nameof(resizeArea));
         _openNavigation = openNavigation ?? throw new ArgumentNullException(nameof(openNavigation));
         _openEnvironment = openEnvironment ?? throw new ArgumentNullException(nameof(openEnvironment));
+        _openAuthoring = openAuthoring ?? throw new ArgumentNullException(nameof(openAuthoring));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
 
         Title = "Zones · OpenRPG Forge";
@@ -323,6 +326,8 @@ public partial class AreaWorkspaceWindow : Window
         var environmentButton = new Button { Text = "Environnement…" };
         environmentButton.Pressed += () => _openEnvironment?.Invoke();
         validationHeading.AddChild(environmentButton);
+        var authoringButton = new Button { Text = "Carte, événements & calques…" };
+        authoringButton.Pressed += () => _openAuthoring?.Invoke(); validationHeading.AddChild(authoringButton);
         validationRow.AddChild(validationHeading);
         _validationList = new ItemList { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         validationRow.AddChild(_validationList);

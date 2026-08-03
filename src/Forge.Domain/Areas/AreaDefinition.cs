@@ -25,6 +25,7 @@ public sealed record AreaDefinition
 
     public AreaNavigationDefinition Navigation { get; }
     public AreaEnvironmentProfile Environment { get; }
+    public AreaAuthoringProfile Authoring { get; }
 
     public AreaDefinition(
         AreaId id,
@@ -36,7 +37,8 @@ public sealed record AreaDefinition
         IReadOnlyList<PortalLink>? portals = null,
         int schemaVersion = CurrentSchemaVersion,
         AreaNavigationDefinition? navigation = null,
-        AreaEnvironmentProfile? environment = null)
+        AreaEnvironmentProfile? environment = null,
+        AreaAuthoringProfile? authoring = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -71,17 +73,21 @@ public sealed record AreaDefinition
         Portals = materializedPortals;
         Navigation = navigation ?? AreaNavigationDefinition.CreateDefault(id);
         Environment = environment ?? AreaEnvironmentProfile.CreateDefault(kind);
+        Authoring = authoring ?? AreaAuthoringProfile.CreateDefault();
     }
 
     public AreaDefinition WithEntities(IReadOnlyList<EntityInstance> entities) =>
-        new(Id, Slug, DisplayName, entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment);
+        new(Id, Slug, DisplayName, entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, Authoring);
 
     public AreaDefinition WithPortals(IReadOnlyList<PortalLink> portals) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, portals, SchemaVersion, Navigation, Environment);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, portals, SchemaVersion, Navigation, Environment, Authoring);
 
     public AreaDefinition WithNavigation(AreaNavigationDefinition navigation) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, navigation, Environment);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, navigation, Environment, Authoring);
 
     public AreaDefinition WithEnvironment(AreaEnvironmentProfile environment) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, environment);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, environment, Authoring);
+
+    public AreaDefinition WithAuthoring(AreaAuthoringProfile authoring) =>
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, authoring);
 }

@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-26 — streaming, minimap et terrains** pour `ORF-AREA-024`, `029` et `035`.
+Ouvrir **G7-27 — audio spatial** pour `ORF-AUD-003`, `004`, `006` et `007`.

@@ -1416,8 +1416,8 @@ Le résumé doit contenir :
 ## 23. Mission courante à donner à Codex
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
-> applicables. Le bootstrap, le MVP et G7-01 à G7-25 sont déjà validés : ne les recommence pas.
-> Réalise uniquement **G7-26 — streaming, minimap et terrains** pour `ORF-AREA-024`, `029` et `035`.
+> applicables. Le bootstrap, le MVP et G7-01 à G7-26 sont déjà validés : ne les recommence pas.
+> Réalise uniquement **G7-27 — audio spatial** pour `ORF-AUD-003`, `004`, `006` et `007`.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.

@@ -2065,6 +2065,24 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
       },
       "kind": "imports",
@@ -2910,7 +2928,7 @@
     },
     {
       "evidence": {
-        "line": 95,
+        "line": 96,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2919,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 111,
+        "line": 112,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -3339,6 +3357,69 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Areas/EditAreaGeometryHandler.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaAuthoringCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaAuthoringCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaAuthoringCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaAuthoringHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaAuthoringHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaAuthoringHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaAuthoringHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -5665,6 +5746,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Areas/AreaAuthoringProfile.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
       },
       "kind": "imports",
@@ -7335,6 +7425,42 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs",
+      "target": "namespace:Forge.Application.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -11973,6 +12099,96 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "target": "file:src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "target": "model:Forge.Application.Areas.SetAreaAuthoringCommand"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
       },
@@ -14502,6 +14718,33 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.SetAreaAuthoringCommand",
+      "target": "file:src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.SetAreaAuthoringCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.SetAreaAuthoringCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
       },
@@ -15768,6 +16011,15 @@
       "kind": "defined_in",
       "source": "model:Forge.Domain.Areas.AreaKind",
       "target": "file:src/Forge.Domain/Areas/AreaKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.AreaUserEvent",
+      "target": "file:src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
     },
     {
       "evidence": {
@@ -17590,6 +17842,24 @@
     {
       "evidence": {
         "line": 4,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
         "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
       },
       "kind": "defined_in",
@@ -18436,6 +18706,15 @@
     {
       "evidence": {
         "line": 5,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Areas",
+      "target": "file:tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
       },
       "kind": "defined_in",
@@ -18702,6 +18981,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Time",
       "target": "file:src/Forge.Application/Time/SystemClock.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
     },
     {
       "evidence": {
@@ -21127,6 +21415,15 @@
     {
       "evidence": {
         "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
       },
       "kind": "defined_in",
@@ -22275,6 +22572,60 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
       "target": "validator:Forge.Domain.Validation.ProjectValidator"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaAuthoringHandlerTests",
+      "target": "file:tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaAuthoringHandlerTests",
+      "target": "handler:Forge.Application.Areas.SetAreaAuthoringHandler"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaAuthoringHandlerTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaAuthoringHandlerTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaAuthoringHandlerTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaAuthoringHandlerTests",
+      "target": "type:Forge.Domain.Areas.AreaAuthoringProfile"
     },
     {
       "evidence": {
@@ -31098,12 +31449,30 @@
     },
     {
       "evidence": {
+        "line": 50,
+        "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaAuthoringProfile",
+      "target": "file:src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Areas/AreaDimensions.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Domain.Areas.AreaDimensions",
       "target": "file:src/Forge.Domain/Areas/AreaDimensions.cs"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaEditorLayer",
+      "target": "file:src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
     },
     {
       "evidence": {
@@ -31140,6 +31509,24 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Areas.AreaLightingProfile",
       "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaMapPin",
+      "target": "file:src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaMapProfile",
+      "target": "file:src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
     },
     {
       "evidence": {
@@ -32412,6 +32799,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.AreaAuthoringWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
       },
@@ -32538,7 +32934,7 @@
     },
     {
       "evidence": {
-        "line": 4971,
+        "line": 4988,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -32574,7 +32970,7 @@
     },
     {
       "evidence": {
-        "line": 4976,
+        "line": 4993,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -32583,7 +32979,7 @@
     },
     {
       "evidence": {
-        "line": 4981,
+        "line": 4998,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -33168,8 +33564,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:1c7d4219bef1afd70883d947e0a059bc6e2288e1c125c6aa432034a47c7cfc16",
-    "source_file_count": 754
+    "source_digest": "sha256:42f093dc05f1f8ec12d02873f849f24ce69b3a9f0b898c0f2945d412fc193aaf",
+    "source_file_count": 760
   },
   "nodes": [
     {
@@ -34773,6 +35169,16 @@
       "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaAuthoringWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs",
       "kind": "file",
       "line": 1,
@@ -35723,6 +36129,16 @@
       "path": "docs/aurora-parity/tasks/G7-25-AREA-ENVIRONMENT.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-26-AREA-AUTHORING.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-26-AREA-AUTHORING.md",
+      "path": "docs/aurora-parity/tasks/G7-26-AREA-AUTHORING.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -35881,6 +36297,26 @@
       },
       "name": "EditAreaGeometryHandler.cs",
       "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/SetAreaAuthoringCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaAuthoringCommand.cs",
+      "path": "src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/SetAreaAuthoringHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaAuthoringHandler.cs",
+      "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs",
@@ -36831,6 +37267,16 @@
       },
       "name": "packages.lock.json",
       "path": "src/Forge.Application/packages.lock.json"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/AreaAuthoringProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaAuthoringProfile.cs",
+      "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
     },
     {
       "id": "file:src/Forge.Domain/Areas/AreaDefinition.cs",
@@ -39131,6 +39577,16 @@
       },
       "name": "AreaWorkflowTests.cs",
       "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaAuthoringHandlerTests.cs",
+      "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs",
@@ -41893,6 +42349,16 @@
       "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Areas.SetAreaAuthoringHandler",
+      "kind": "handler",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "SetAreaAuthoringHandler",
+      "path": "src/Forge.Application/Areas/SetAreaAuthoringHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
       "kind": "handler",
       "line": 8,
@@ -42161,6 +42627,16 @@
       },
       "name": "EditAreaGeometryCommand",
       "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Areas.SetAreaAuthoringCommand",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "SetAreaAuthoringCommand",
+      "path": "src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
     },
     {
       "id": "model:Forge.Application.Areas.SetAreaEnvironmentCommand",
@@ -42641,6 +43117,16 @@
       },
       "name": "AreaKind",
       "path": "src/Forge.Domain/Areas/AreaKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Areas.AreaUserEvent",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaUserEvent",
+      "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
     },
     {
       "id": "model:Forge.Domain.Areas.PortalId",
@@ -44326,6 +44812,16 @@
       "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Areas.SetAreaAuthoringHandlerTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Areas"
+      },
+      "name": "SetAreaAuthoringHandlerTests",
+      "path": "tests/Forge.Application.Tests/Areas/SetAreaAuthoringHandlerTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
       "kind": "test",
       "line": 8,
@@ -45713,6 +46209,16 @@
       "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
     },
     {
+      "id": "type:Forge.Domain.Areas.AreaAuthoringProfile",
+      "kind": "type",
+      "line": 50,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaAuthoringProfile",
+      "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+    },
+    {
       "id": "type:Forge.Domain.Areas.AreaDimensions",
       "kind": "type",
       "line": 3,
@@ -45721,6 +46227,16 @@
       },
       "name": "AreaDimensions",
       "path": "src/Forge.Domain/Areas/AreaDimensions.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AreaEditorLayer",
+      "kind": "type",
+      "line": 34,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaEditorLayer",
+      "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Areas.AreaEnvironmentClass",
@@ -45761,6 +46277,26 @@
       },
       "name": "AreaLightingProfile",
       "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AreaMapPin",
+      "kind": "type",
+      "line": 18,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaMapPin",
+      "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AreaMapProfile",
+      "kind": "type",
+      "line": 20,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaMapProfile",
+      "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Areas.DayNightMode",
@@ -47143,6 +47679,16 @@
       "path": "src/Forge.Scripting/NativeForgeScriptRuntime.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.AreaAuthoringWindow",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "AreaAuthoringWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaAuthoringWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.AreaEnvironmentWindow",
       "kind": "type",
       "line": 8,
@@ -47285,7 +47831,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4971,
+      "line": 4988,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -47325,7 +47871,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4976,
+      "line": 4993,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -47335,7 +47881,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4981,
+      "line": 4998,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
