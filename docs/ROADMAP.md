@@ -100,9 +100,10 @@ G7-31 livre les portées de sauvegarde, checkpoints, shell runtime, verrous de c
 G7-32 livre le bus transactionnel des événements joueur, inventaire, capacités, mort et progression.
 G7-33 livre les événements globaux à schéma strict et l'horloge mondiale multi-fuseaux astronomique.
 G7-34 livre apparences, marqueurs révélables et routes de patrouille déterministes.
+G7-35 livre comportements d'arrivée, locators typés, requêtes et diagnostics de routes.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-35 — orientation, ancres, groupes et visualisation de routes**.
+La prochaine étape est **l'audit de clôture G7** avant ouverture du RPG Kit G8.
 
 ## Phase 6 — 3D assistée
 

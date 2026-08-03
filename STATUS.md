@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-35 — orientation, ancres, groupes et visualisation de routes** pour `ORF-WPT-009`, `014`, `015` et `016`.
+Exécuter **l'audit de clôture G7** sur les 137 exigences assignées, puis ouvrir G8 RPG Kit uniquement si toutes les preuves sont cohérentes.

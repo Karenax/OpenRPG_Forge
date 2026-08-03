@@ -45,6 +45,36 @@ public static class WaypointRouteService
         };
     }
 
+    public static IReadOnlyList<GenericLocator> Query(
+        IReadOnlyList<GenericLocator> locators, string query, LocatorPurpose? purpose = null) =>
+        locators.Where(locator =>
+                (purpose is null || locator.Purpose == purpose) &&
+                (string.IsNullOrWhiteSpace(query) || locator.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || locator.Tags.Any(tag => tag.Contains(query, StringComparison.OrdinalIgnoreCase))))
+            .OrderBy(locator => locator.Name, StringComparer.Ordinal).ThenBy(locator => locator.Id).ToArray();
+
+    public static GenericLocator? Nearest(IReadOnlyList<GenericLocator> locators, Forge.Domain.Spatial.Vector3Value origin) =>
+        locators.OrderBy(locator => Distance(locator.Position, origin)).ThenBy(locator => locator.Id).FirstOrDefault();
+
+    public static GenericLocator? RandomDeterministic(IReadOnlyList<GenericLocator> locators, int seed) =>
+        locators.Count == 0 ? null : locators.OrderBy(locator => locator.Id).ElementAt(Math.Abs(seed) % locators.Count);
+
+    public static IReadOnlyList<RouteSegmentDiagnostic> AnalyzeRoute(PatrolRoute route, IReadOnlySet<Guid>? navProjected = null)
+    {
+        Validate(route);
+        var result = new List<RouteSegmentDiagnostic>();
+        for (var index = 0; index < route.Points.Count - 1; index++)
+        {
+            var from = route.Points[index]; var to = route.Points[index + 1]; var distance = Distance(from.Position, to.Position);
+            result.Add(new(from.Id, to.Id, 1, distance, from.WaitSeconds + distance / from.Speed, from.Action, false, navProjected?.Contains(to.Id) ?? false));
+        }
+        if (route.Traversal == PatrolTraversalPolicy.Loop && route.Points.Count > 1)
+        {
+            var from = route.Points[^1]; var to = route.Points[0]; var distance = Distance(from.Position, to.Position);
+            result.Add(new(from.Id, to.Id, 1, distance, from.WaitSeconds + distance / from.Speed, from.Action, false, navProjected?.Contains(to.Id) ?? false));
+        }
+        return result;
+    }
+
     private static PatrolCursor PingPong(PatrolCursor cursor, int count)
     {
         var direction = cursor.Direction == 0 ? 1 : cursor.Direction;
@@ -62,6 +92,12 @@ public static class WaypointRouteService
         var running = 0d;
         for (var index = 0; index < points.Count; index++) { running += points[index].Weight; if (target < running) return index; }
         return points.Count - 1;
+    }
+
+    private static double Distance(Forge.Domain.Spatial.Vector3Value a, Forge.Domain.Spatial.Vector3Value b)
+    {
+        var x = a.X - b.X; var y = a.Y - b.Y; var z = a.Z - b.Z;
+        return Math.Sqrt(x * x + y * y + z * z);
     }
 
     private static void ValidateIdentity(Guid id, int schemaVersion, string provenance)
