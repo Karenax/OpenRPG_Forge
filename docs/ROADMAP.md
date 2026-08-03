@@ -179,6 +179,8 @@ G8 QUEST-03 livre tests générés exécutables et génération IA contrôlée p
 La famille Quest sélectionnée pour G8 est complète ; la prochaine tranche est **SCRIPT-01**.
 G8 SCRIPT-01 livre éditeur/wizard typé, tâches déterministes et APIs combat/effets. La prochaine
 tranche est **SCRIPT-02**.
+G8 SCRIPT-02 livre les APIs ForgeScript inventaire, quête, dialogue, faction et perception avec
+autorité, transactions, traces et tests déterministes. La prochaine tranche est **SCRIPT-03**.
 
 ## Phase 6 — 3D assistée
 

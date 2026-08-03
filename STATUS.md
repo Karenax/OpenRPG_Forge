@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 SCRIPT-02** pour `ORF-SCR-012`, `013`, `014`, `015` et `016` : inventaire, quête, dialogue, faction et perception.
+Exécuter **G8 SCRIPT-03** pour `ORF-SCR-019`, `020`, `023`, `032` et `033` : audio, temps, événements custom, hot reload et débogueur.
