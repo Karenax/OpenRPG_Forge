@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 SCRIPT-01** pour `ORF-SCR-004`, `005`, `008`, `010` et `011` : types, événements et accès au monde.
+Exécuter **G8 SCRIPT-02** pour `ORF-SCR-012`, `013`, `014`, `015` et `016` : inventaire, quête, dialogue, faction et perception.

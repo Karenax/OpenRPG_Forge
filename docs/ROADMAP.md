@@ -177,6 +177,8 @@ G8 QUEST-02 livre ressources, étapes éditables, visibilité progressive, histo
 La prochaine tranche est **QUEST-03**.
 G8 QUEST-03 livre tests générés exécutables et génération IA contrôlée par lint et validation humaine.
 La famille Quest sélectionnée pour G8 est complète ; la prochaine tranche est **SCRIPT-01**.
+G8 SCRIPT-01 livre éditeur/wizard typé, tâches déterministes et APIs combat/effets. La prochaine
+tranche est **SCRIPT-02**.
 
 ## Phase 6 — 3D assistée
 
