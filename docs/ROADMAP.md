@@ -126,6 +126,8 @@ G8 ITEM-01 livre blueprints et instances séparés, identité localisée, wizard
 validation structurée. La prochaine tranche est **ITEM-02**.
 G8 ITEM-02 livre visuels découplés, encombrement, piles transactionnelles, usages et protection des
 objets critiques. La prochaine tranche est **ITEM-03**.
+G8 ITEM-03 livre transferts par destination, modificateurs, capacités, équipement par rig et loot
+déterministe. La prochaine tranche est **ITEM-04**.
 
 ## Phase 6 — 3D assistée
 

@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 ITEM-03** pour `ORF-ITEM-014`, `015`, `016`, `018` et `024` : économie, actions, équipement et événements.
+Exécuter **G8 ITEM-04** pour `ORF-ITEM-030` et `031` : événements de transfert et activation.
