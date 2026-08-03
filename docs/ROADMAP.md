@@ -167,6 +167,8 @@ G8 COMPANION-03 livre équipement permissionné, politiques de mort, cohésion s
 La famille Companion sélectionnée pour G8 est complète ; la prochaine tranche est **DIALOGUE-01**.
 G8 DIALOGUE-01 livre graphe canonique, tokens sûrs, participants multiples, cinq modes d'évaluation,
 builders typés et notes éditoriales. La prochaine tranche est **DIALOGUE-02**.
+G8 DIALOGUE-02 livre événements de cycle, recherche/remplacement preview, badges review, mémoire
+typée et checks data-driven. La prochaine tranche est **DIALOGUE-03**.
 
 ## Phase 6 — 3D assistée
 

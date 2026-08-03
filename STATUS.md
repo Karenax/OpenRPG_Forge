@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 DIALOGUE-02** pour `ORF-DLG-017`, `018`, `019`, `022` et `024` : cycle, recherche, mémoire et checks.
+Exécuter **G8 DIALOGUE-03** pour `ORF-DLG-026`, `028`, `030`, `031` et `032` : modularité, impact, couverture, collaboration et IA contrôlée.
