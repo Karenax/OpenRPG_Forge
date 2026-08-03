@@ -2928,7 +2928,7 @@
     },
     {
       "evidence": {
-        "line": 97,
+        "line": 98,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 113,
+        "line": 114,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2970,6 +2970,15 @@
       "kind": "references",
       "source": "file:docs/aurora-parity/README.md",
       "target": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/AreaAudioMixer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/AreaAudioMixer.cs",
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -7272,6 +7281,24 @@
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs",
+      "target": "namespace:Forge.Application.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -17770,6 +17797,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.Application/Areas/AreaAudioMixer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/AreaAudioMixer.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.Application/Areas/AreaAudioSequencePlanner.cs"
       },
       "kind": "defined_in",
@@ -18711,6 +18747,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Spatial",
       "target": "file:src/Forge.Application/Spatial/PlacementValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Areas",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
     },
     {
       "evidence": {
@@ -22248,6 +22293,69 @@
       "kind": "accesses_model",
       "source": "service:Forge.Mcp.Scripts.ForgeScriptAgentService",
       "target": "model:Forge.Scripting.ForgeScriptDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
+      "target": "type:Forge.Application.Areas.AreaAudioMixer"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
+      "target": "type:Forge.Domain.Areas.AdaptiveAmbienceLayer"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
+      "target": "type:Forge.Domain.Areas.AreaAudioProfile"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
+      "target": "type:Forge.Domain.Areas.AreaSoundMode"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
+      "target": "type:Forge.Domain.Areas.AudioAuthority"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
+      "target": "type:Forge.Domain.Areas.AudioInstancePolicy"
     },
     {
       "evidence": {
@@ -31080,6 +31188,24 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/AreaAudioMixer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.AreaAudioMix",
+      "target": "file:src/Forge.Application/Areas/AreaAudioMixer.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/AreaAudioMixer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.AreaAudioMixer",
+      "target": "file:src/Forge.Application/Areas/AreaAudioMixer.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Application/Areas/AreaAudioSequencePlanner.cs"
       },
@@ -31149,6 +31275,15 @@
       "kind": "defined_in",
       "source": "type:Forge.Application.Areas.AreaResizeAnchor",
       "target": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/AreaAudioMixer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.AudioListenerContext",
+      "target": "file:src/Forge.Application/Areas/AreaAudioMixer.cs"
     },
     {
       "evidence": {
@@ -31539,7 +31674,16 @@
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 17,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AdaptiveAmbienceLayer",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 55,
         "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
       },
       "kind": "defined_in",
@@ -31584,7 +31728,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 96,
         "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
       },
       "kind": "defined_in",
@@ -31593,7 +31737,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 40,
         "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
       },
       "kind": "defined_in",
@@ -31602,7 +31746,7 @@
     },
     {
       "evidence": {
-        "line": 8,
+        "line": 20,
         "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
       },
       "kind": "defined_in",
@@ -31629,11 +31773,56 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaSoundMode",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AudioAuthority",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AudioInstancePolicy",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Domain.Areas.AudioOrderMode",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AudioRuntimeControl",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AudioSpatialProfile",
       "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
     },
     {
@@ -33672,8 +33861,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:b2d80e06aaf8eca343f6c636329dfeb70a2588847a2dfedddce8e68c67e3dd79",
-    "source_file_count": 763
+    "source_digest": "sha256:0c2cc514e296228ee4c1141459223ff19ee4732343e139500d0fe543daa64ec8",
+    "source_file_count": 766
   },
   "nodes": [
     {
@@ -36257,6 +36446,16 @@
       "path": "docs/aurora-parity/tasks/G7-27-AUDIO-SEQUENCES.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-28-AUDIO-SPATIAL-MIX.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-28-AUDIO-SPATIAL-MIX.md",
+      "path": "docs/aurora-parity/tasks/G7-28-AUDIO-SPATIAL-MIX.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -36305,6 +36504,16 @@
       },
       "name": "architecture_graph.py",
       "path": "scripts/architecture_graph.py"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/AreaAudioMixer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaAudioMixer.cs",
+      "path": "src/Forge.Application/Areas/AreaAudioMixer.cs"
     },
     {
       "id": "file:src/Forge.Application/Areas/AreaAudioSequencePlanner.cs",
@@ -39675,6 +39884,16 @@
       },
       "name": "packages.lock.json",
       "path": "src/Forge.Scripting/packages.lock.json"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaAudioMixerTests.cs",
+      "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Areas/AreaAudioSequencePlannerTests.cs",
@@ -44920,6 +45139,16 @@
       "path": "src/Forge.Mcp/Scripts/ForgeScriptAgentService.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Areas"
+      },
+      "name": "AreaAudioMixerTests",
+      "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Areas.AreaAudioSequencePlannerTests",
       "kind": "test",
       "line": 5,
@@ -45857,6 +46086,26 @@
       "path": "apps/Forge.McpHost/Program.cs"
     },
     {
+      "id": "type:Forge.Application.Areas.AreaAudioMix",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaAudioMix",
+      "path": "src/Forge.Application/Areas/AreaAudioMixer.cs"
+    },
+    {
+      "id": "type:Forge.Application.Areas.AreaAudioMixer",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaAudioMixer",
+      "path": "src/Forge.Application/Areas/AreaAudioMixer.cs"
+    },
+    {
       "id": "type:Forge.Application.Areas.AreaAudioSequencePlanner",
       "kind": "type",
       "line": 5,
@@ -45935,6 +46184,16 @@
       },
       "name": "AreaResizeAnchor",
       "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+    },
+    {
+      "id": "type:Forge.Application.Areas.AudioListenerContext",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AudioListenerContext",
+      "path": "src/Forge.Application/Areas/AreaAudioMixer.cs"
     },
     {
       "id": "type:Forge.Application.Areas.EntityIdRemap",
@@ -46367,9 +46626,19 @@
       "path": "src/Forge.Application/Time/SystemClock.cs"
     },
     {
+      "id": "type:Forge.Domain.Areas.AdaptiveAmbienceLayer",
+      "kind": "type",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AdaptiveAmbienceLayer",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
       "id": "type:Forge.Domain.Areas.AreaAudioProfile",
       "kind": "type",
-      "line": 43,
+      "line": 55,
       "metadata": {
         "namespace": "Forge.Domain.Areas"
       },
@@ -46419,7 +46688,7 @@
     {
       "id": "type:Forge.Domain.Areas.AreaEnvironmentProfile",
       "kind": "type",
-      "line": 72,
+      "line": 96,
       "metadata": {
         "namespace": "Forge.Domain.Areas"
       },
@@ -46429,7 +46698,7 @@
     {
       "id": "type:Forge.Domain.Areas.AreaFogProfile",
       "kind": "type",
-      "line": 28,
+      "line": 40,
       "metadata": {
         "namespace": "Forge.Domain.Areas"
       },
@@ -46439,7 +46708,7 @@
     {
       "id": "type:Forge.Domain.Areas.AreaLightingProfile",
       "kind": "type",
-      "line": 8,
+      "line": 20,
       "metadata": {
         "namespace": "Forge.Domain.Areas"
       },
@@ -46467,6 +46736,36 @@
       "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
     },
     {
+      "id": "type:Forge.Domain.Areas.AreaSoundMode",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaSoundMode",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AudioAuthority",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AudioAuthority",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AudioInstancePolicy",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AudioInstancePolicy",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
       "id": "type:Forge.Domain.Areas.AudioOrderMode",
       "kind": "type",
       "line": 6,
@@ -46474,6 +46773,26 @@
         "namespace": "Forge.Domain.Areas"
       },
       "name": "AudioOrderMode",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AudioRuntimeControl",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AudioRuntimeControl",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AudioSpatialProfile",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AudioSpatialProfile",
       "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
     },
     {

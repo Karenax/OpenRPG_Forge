@@ -4,6 +4,18 @@ public enum AreaEnvironmentClass { Interior, Exterior, Natural, Artificial, Unde
 public enum DayNightMode { Clock, AlwaysDay, AlwaysNight }
 public enum FogMode { Disabled, Distance, Volumetric }
 public enum AudioOrderMode { Sequential, DeterministicRandom }
+public enum AreaSoundMode { Global2D, Spatial3D }
+public enum AudioInstancePolicy { Single, Restart, Overlap }
+public enum AudioAuthority { Local, Server }
+
+public sealed record AudioSpatialProfile(AreaSoundMode Mode, float InnerRadius, float OuterRadius,
+    float AirAbsorption, string AttenuationCurve);
+
+public sealed record AudioRuntimeControl(bool InitiallyActive, AudioInstancePolicy InstancePolicy,
+    AudioAuthority Authority, float DefaultFadeSeconds, string StartedEvent, string StoppedEvent);
+
+public sealed record AdaptiveAmbienceLayer(string Resource, float StartHour, float EndHour,
+    string Weather, string LocationTag, float MinimumDanger, bool IndoorOnly, float Volume);
 
 public sealed record AreaLightingProfile
 {
@@ -53,9 +65,14 @@ public sealed record AreaAudioProfile
     public float IntervalSeconds { get; }
     public float IntervalVariationSeconds { get; }
     public float RelativeVolume { get; }
+    public AudioSpatialProfile Spatial { get; }
+    public AudioRuntimeControl RuntimeControl { get; }
+    public IReadOnlyList<AdaptiveAmbienceLayer> AdaptiveLayers { get; }
     public AreaAudioProfile(string dayMusic, string nightMusic, string combatMusic, string ambience, string reverbPreset,
         float transitionSeconds, IReadOnlyList<string>? playlist = null, AudioOrderMode orderMode = AudioOrderMode.Sequential,
-        float intervalSeconds = 0, float intervalVariationSeconds = 0, float relativeVolume = 1)
+        float intervalSeconds = 0, float intervalVariationSeconds = 0, float relativeVolume = 1,
+        AudioSpatialProfile? spatial = null, AudioRuntimeControl? runtimeControl = null,
+        IReadOnlyList<AdaptiveAmbienceLayer>? adaptiveLayers = null)
     {
         ArgumentNullException.ThrowIfNull(dayMusic); ArgumentNullException.ThrowIfNull(nightMusic);
         ArgumentNullException.ThrowIfNull(combatMusic); ArgumentNullException.ThrowIfNull(ambience); ArgumentException.ThrowIfNullOrWhiteSpace(reverbPreset);
@@ -66,6 +83,13 @@ public sealed record AreaAudioProfile
         Playlist = (playlist ?? []).Where(item => !string.IsNullOrWhiteSpace(item)).Select(item => item.Trim()).Distinct(StringComparer.Ordinal).ToArray();
         OrderMode = orderMode; IntervalSeconds = intervalSeconds; IntervalVariationSeconds = intervalVariationSeconds;
         RelativeVolume = relativeVolume;
+        Spatial = spatial ?? new(AreaSoundMode.Global2D, 0, 0, 0, "linear");
+        RuntimeControl = runtimeControl ?? new(true, AudioInstancePolicy.Single, AudioAuthority.Local, 1, "audio.started", "audio.stopped");
+        AdaptiveLayers = (adaptiveLayers ?? []).ToArray();
+        if (Spatial.InnerRadius < 0 || Spatial.OuterRadius < Spatial.InnerRadius || Spatial.AirAbsorption is < 0 or > 1 ||
+            string.IsNullOrWhiteSpace(Spatial.AttenuationCurve) || AdaptiveLayers.Any(layer =>
+                layer.StartHour is < 0 or >= 24 || layer.EndHour is < 0 or >= 24 || layer.MinimumDanger is < 0 or > 1 || layer.Volume is < 0 or > 4))
+            throw new ArgumentException("Audio spatial or adaptive profile is invalid.");
     }
 }
 

@@ -93,9 +93,10 @@ G7-24 livre groupes, remplacement, auto-ajustement déterministe, propriétés l
 G7-25 livre classification, cycle, éclairage, brouillard et audio adaptatif par zone.
 G7-26 livre événements namespacés, minimap/fog multi-étages et calques d'édition imbriqués.
 G7-27 livre playlists audio, ordre déterministe, intervalles variables et volume relatif.
+G7-28 livre spatialisation 2D/3D, portée, contrôle scripté et ambiance adaptative.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-28 — spatialisation et mixage audio**.
+La prochaine tranche est **G7-29 — reverb, occlusion et streaming audio**.
 
 ## Phase 6 — 3D assistée
 

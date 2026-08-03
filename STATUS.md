@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-28 — spatialisation et mixage audio** pour `ORF-AUD-009`, `011`, `012` et `013`.
+Ouvrir **G7-29 — reverb, occlusion et streaming audio** pour `ORF-AUD-014`, `018` et `019`.
