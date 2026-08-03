@@ -921,6 +921,15 @@
     },
     {
       "evidence": {
+        "line": 22,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.Scripting.PersistentComponent",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
         "line": 38,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
@@ -3081,7 +3090,7 @@
     },
     {
       "evidence": {
-        "line": 200,
+        "line": 202,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -11663,6 +11672,15 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Scripting.Tests/ForgeScriptAuthoringServiceTests.cs",
+      "target": "namespace:Forge.Scripting"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs",
       "target": "namespace:Forge.Scripting"
     },
     {
@@ -20748,6 +20766,15 @@
     },
     {
       "evidence": {
+        "line": 19,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Scripting.GeneratedApiDocument",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
       },
@@ -20763,6 +20790,24 @@
       "kind": "defined_in",
       "source": "model:Forge.Scripting.ScriptTaskResult",
       "target": "file:src/Forge.Scripting/ForgeScriptAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Scripting.ScriptTestResult",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Scripting.StaticDiagnostic",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
     },
     {
       "evidence": {
@@ -25419,6 +25464,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Scripting",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Scripting/ForgeScriptQuotas.cs"
       },
@@ -25470,6 +25524,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Scripting.Tests",
       "target": "file:tests/Forge.Scripting.Tests/ForgeScriptAuthoringServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Scripting.Tests",
+      "target": "file:tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
     },
     {
       "evidence": {
@@ -27738,6 +27801,42 @@
       "kind": "accesses_model",
       "source": "service:Forge.Scripting.ForgeScriptAuthoringService",
       "target": "model:Forge.Scripting.ScriptTaskResult"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Scripting.ForgeScriptQualityService",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Scripting.ForgeScriptQualityService",
+      "target": "model:Forge.Scripting.GeneratedApiDocument"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Scripting.ForgeScriptQualityService",
+      "target": "model:Forge.Scripting.ScriptTestResult"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Scripting.ForgeScriptQualityService",
+      "target": "model:Forge.Scripting.StaticDiagnostic"
     },
     {
       "evidence": {
@@ -40314,6 +40413,69 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptQualityServiceTests",
+      "target": "file:tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptQualityServiceTests",
+      "target": "service:Forge.Scripting.ForgeScriptQualityService"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptQualityServiceTests",
+      "target": "type:Forge.Scripting.ApiRegistration"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptQualityServiceTests",
+      "target": "type:Forge.Scripting.ProfileSample"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptQualityServiceTests",
+      "target": "type:Forge.Scripting.ScriptSource"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptQualityServiceTests",
+      "target": "type:Forge.Scripting.ScriptStateEnvelope"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptQualityServiceTests",
+      "target": "type:Forge.Scripting.ScriptTestCase"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
       },
@@ -45129,6 +45291,15 @@
     },
     {
       "evidence": {
+        "line": 18,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ApiRegistration",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
       },
@@ -45300,12 +45471,66 @@
     },
     {
       "evidence": {
+        "line": 17,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ProfileReport",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ProfileSample",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ScriptAssertion",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ScriptFixture",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Scripting/ForgeScriptAuthoringService.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Scripting.ScriptNetworkAuthority",
       "target": "file:src/Forge.Scripting/ForgeScriptAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ScriptSource",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ScriptStateEnvelope",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
     },
     {
       "evidence": {
@@ -45336,12 +45561,30 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ScriptTestCase",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Scripting.ScriptTimer",
       "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.TestWorld",
+      "target": "file:src/Forge.Scripting/ForgeScriptQualityService.cs"
     },
     {
       "evidence": {
@@ -46128,8 +46371,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:ee45241ef29ab7b03e465821d3878dfd90f0fed4e3e97922f8a048ef0d206bb8",
-    "source_file_count": 923
+    "source_digest": "sha256:0b30b02fb9d3796f94558ce0588c35eadf411198ca6b5c96e99ee7e77c098a1b",
+    "source_file_count": 926
   },
   "nodes": [
     {
@@ -46731,6 +46974,16 @@
       },
       "name": "QuestWizardPreview",
       "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
+    },
+    {
+      "id": "component:Forge.Scripting.PersistentComponent",
+      "kind": "component",
+      "line": 22,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "PersistentComponent",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
     },
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
@@ -49361,6 +49614,16 @@
       },
       "name": "G8-SCRIPT-03-RUNTIME-TOOLS.md",
       "path": "docs/aurora-parity/tasks/G8-SCRIPT-03-RUNTIME-TOOLS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-SCRIPT-04-QUALITY.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-SCRIPT-04-QUALITY.md",
+      "path": "docs/aurora-parity/tasks/G8-SCRIPT-04-QUALITY.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G8-TRIGGER-01-FOUNDATION.md",
@@ -53393,6 +53656,16 @@
       "path": "src/Forge.Scripting/ForgeScriptExecutionStatus.cs"
     },
     {
+      "id": "file:src/Forge.Scripting/ForgeScriptQualityService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeScriptQualityService.cs",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
       "id": "file:src/Forge.Scripting/ForgeScriptQuotas.cs",
       "kind": "file",
       "line": 1,
@@ -54821,6 +55094,16 @@
       },
       "name": "ForgeScriptAuthoringServiceTests.cs",
       "path": "tests/Forge.Scripting.Tests/ForgeScriptAuthoringServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeScriptQualityServiceTests.cs",
+      "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs",
@@ -59993,6 +60276,16 @@
       "path": "src/Forge.Scripting/ForgeScriptExecutionResult.cs"
     },
     {
+      "id": "model:Forge.Scripting.GeneratedApiDocument",
+      "kind": "model",
+      "line": 19,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "GeneratedApiDocument",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
       "id": "model:Forge.Scripting.HotReloadResult",
       "kind": "model",
       "line": 11,
@@ -60011,6 +60304,26 @@
       },
       "name": "ScriptTaskResult",
       "path": "src/Forge.Scripting/ForgeScriptAuthoringService.cs"
+    },
+    {
+      "id": "model:Forge.Scripting.ScriptTestResult",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ScriptTestResult",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "id": "model:Forge.Scripting.StaticDiagnostic",
+      "kind": "model",
+      "line": 20,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "StaticDiagnostic",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
     },
     {
       "id": "model:Forge.Toolset.Editor.PlaytestProcessResult",
@@ -61220,6 +61533,16 @@
       },
       "name": "ForgeScriptAuthoringService",
       "path": "src/Forge.Scripting/ForgeScriptAuthoringService.cs"
+    },
+    {
+      "id": "service:Forge.Scripting.ForgeScriptQualityService",
+      "kind": "service",
+      "line": 25,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ForgeScriptQualityService",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
@@ -62560,6 +62883,16 @@
       },
       "name": "ForgeScriptAuthoringServiceTests",
       "path": "tests/Forge.Scripting.Tests/ForgeScriptAuthoringServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.Scripting.Tests.ForgeScriptQualityServiceTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Scripting.Tests"
+      },
+      "name": "ForgeScriptQualityServiceTests",
+      "path": "tests/Forge.Scripting.Tests/ForgeScriptQualityServiceTests.cs"
     },
     {
       "id": "test:Forge.Scripting.Tests.ForgeScriptRuntimeToolsTests",
@@ -67769,6 +68102,16 @@
       "path": "apps/Forge.Runtime/Runtime/RuntimeHud.cs"
     },
     {
+      "id": "type:Forge.Scripting.ApiRegistration",
+      "kind": "type",
+      "line": 18,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ApiRegistration",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
       "id": "type:Forge.Scripting.AudioCue",
       "kind": "type",
       "line": 3,
@@ -67959,6 +68302,46 @@
       "path": "src/Forge.Scripting/NativeForgeScriptRuntime.cs"
     },
     {
+      "id": "type:Forge.Scripting.ProfileReport",
+      "kind": "type",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ProfileReport",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.ProfileSample",
+      "kind": "type",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ProfileSample",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.ScriptAssertion",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ScriptAssertion",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.ScriptFixture",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ScriptFixture",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
       "id": "type:Forge.Scripting.ScriptNetworkAuthority",
       "kind": "type",
       "line": 5,
@@ -67967,6 +68350,26 @@
       },
       "name": "ScriptNetworkAuthority",
       "path": "src/Forge.Scripting/ForgeScriptAuthoringService.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.ScriptSource",
+      "kind": "type",
+      "line": 21,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ScriptSource",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.ScriptStateEnvelope",
+      "kind": "type",
+      "line": 23,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ScriptStateEnvelope",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
     },
     {
       "id": "type:Forge.Scripting.ScriptTask",
@@ -67999,6 +68402,16 @@
       "path": "src/Forge.Scripting/ForgeScriptAuthoringService.cs"
     },
     {
+      "id": "type:Forge.Scripting.ScriptTestCase",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ScriptTestCase",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
+    },
+    {
       "id": "type:Forge.Scripting.ScriptTimer",
       "kind": "type",
       "line": 6,
@@ -68007,6 +68420,16 @@
       },
       "name": "ScriptTimer",
       "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.TestWorld",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "TestWorld",
+      "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
     },
     {
       "id": "type:Forge.Scripting.WorldClock",

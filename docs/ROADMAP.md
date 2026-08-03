@@ -183,6 +183,8 @@ G8 SCRIPT-02 livre les APIs ForgeScript inventaire, quête, dialogue, faction et
 autorité, transactions, traces et tests déterministes. La prochaine tranche est **SCRIPT-03**.
 G8 SCRIPT-03 livre audio, horloge, événements custom, hot reload sûr et débogueur autorisé. La
 prochaine tranche est **SCRIPT-04**.
+G8 SCRIPT-04 livre tests, profiling, docs générées, analyse statique et état enregistré migrable. La
+prochaine tranche est **SCRIPT-05**.
 
 ## Phase 6 — 3D assistée
 

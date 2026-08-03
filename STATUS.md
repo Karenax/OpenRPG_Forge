@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 SCRIPT-04** pour `ORF-SCR-034`, `035`, `037`, `038` et `040` : tests, profiling, documentation générée, analyse statique et sérialisation d'état.
+Exécuter **G8 SCRIPT-05** pour `ORF-SCR-041` : interop éditeur/MCP transactionnelle couvrant API, sources, compilation, diagnostics, tests et aperçu des bindings.
