@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 COMPANION-01** pour `ORF-CMP-024`, `001`, `002`, `003` et `005` : fondation des compagnons.
+Exécuter **G8 COMPANION-02** pour `ORF-CMP-006`, `007`, `008`, `009` et `010` : groupe, ownership, ordres et IA.

@@ -159,6 +159,8 @@ rollback exact. La prochaine tranche est **MERCHANT-02**.
 G8 MERCHANT-02 livre prix explicables, requêtes d'objets, approvisionnement, événements de session
 et contrat d'interface accessible. La famille Merchant sélectionnée pour G8 est complète ; la
 prochaine tranche est **COMPANION-01**.
+G8 COMPANION-01 livre composant canonique, contextes de dialogue, recrutement/renvoi atomiques et
+validation localisée. La prochaine tranche est **COMPANION-02**.
 
 ## Phase 6 — 3D assistée
 

@@ -759,6 +759,15 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.RpgKit.Domain.Companions.CompanionComponent",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
         "line": 13,
         "path": "src/Forge.RpgKit.Domain/Doors/DoorModels.cs"
       },
@@ -3036,7 +3045,7 @@
     },
     {
       "evidence": {
-        "line": 176,
+        "line": 178,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -7555,6 +7564,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
       "kind": "imports",
@@ -10917,6 +10935,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Companions"
     },
     {
       "evidence": {
@@ -19101,6 +19137,78 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Companions.CompanionDiagnostic",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Companions.CompanionPartyState",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Companions.CompanionTransactionResult",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Companions.CompanionTransactionResult",
+      "target": "model:Forge.RpgKit.Domain.Companions.CompanionDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Companions.CompanionTransactionResult",
+      "target": "model:Forge.RpgKit.Domain.Companions.CompanionWorldState"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Companions.CompanionWorldState",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Companions.CompanionWorldState",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Companions.CompanionWorldState",
+      "target": "model:Forge.RpgKit.Domain.Companions.CompanionPartyState"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
@@ -23890,6 +23998,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Companions",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
       "kind": "defined_in",
@@ -24120,6 +24237,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Placeables",
       "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Companions",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
     },
     {
       "evidence": {
@@ -25578,6 +25704,51 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Application.Triggers.TriggerShapeAuthoringService",
       "target": "model:Forge.RpgKit.Application.Triggers.TriggerShapeEditResult"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Companions.CompanionService",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Companions.CompanionService",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Companions.CompanionService",
+      "target": "model:Forge.RpgKit.Domain.Companions.CompanionDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Companions.CompanionService",
+      "target": "model:Forge.RpgKit.Domain.Companions.CompanionTransactionResult"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Companions.CompanionService",
+      "target": "model:Forge.RpgKit.Domain.Companions.CompanionWorldState"
     },
     {
       "evidence": {
@@ -35409,6 +35580,96 @@
     },
     {
       "evidence": {
+        "line": 44,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "component:Forge.RpgKit.Domain.Companions.CompanionComponent"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Companions.CompanionWorldState"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Companions.CompanionService"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Companions.CompanionPersistence"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Companions.CompanionValidationContext"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Companions.RecruitDialogueContext"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Companions.RecruitPolicy"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
       },
@@ -40215,6 +40476,42 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Companions.CompanionPersistence",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Companions.CompanionValidationContext",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Companions.RecruitDialogueContext",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Companions.RecruitPolicy",
+      "target": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
       },
@@ -42573,8 +42870,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:682ada1480a3b1a20f262e9e99cfa590863385cab039ea097954f0e29d4f4c00",
-    "source_file_count": 885
+    "source_digest": "sha256:64498670667c50b1ebccf451d1e6de0e0870698ce0046fbff1dcd8f776876dc1",
+    "source_file_count": 888
   },
   "nodes": [
     {
@@ -42996,6 +43293,16 @@
       },
       "name": "EditorCameraView",
       "path": "src/Forge.Domain/Authoring/EditorCameraView.cs"
+    },
+    {
+      "id": "component:Forge.RpgKit.Domain.Companions.CompanionComponent",
+      "kind": "component",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Companions"
+      },
+      "name": "CompanionComponent",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
     },
     {
       "id": "component:Forge.RpgKit.Domain.Doors.PortalComponent",
@@ -45396,6 +45703,16 @@
       },
       "name": "G7-35-WAYPOINT-LOCATORS-DIAGNOSTICS.md",
       "path": "docs/aurora-parity/tasks/G7-35-WAYPOINT-LOCATORS-DIAGNOSTICS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-COMPANION-01-FOUNDATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-COMPANION-01-FOUNDATION.md",
+      "path": "docs/aurora-parity/tasks/G8-COMPANION-01-FOUNDATION.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G8-CREATURE-01-FOUNDATION.md",
@@ -49148,6 +49465,16 @@
       "path": "src/Forge.RpgKit.Application/packages.lock.json"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Companions/CompanionService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CompanionService.cs",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs",
       "kind": "file",
       "line": 1,
@@ -50546,6 +50873,16 @@
       },
       "name": "packages.lock.json",
       "path": "tests/Forge.ModuleFormat.Tests/packages.lock.json"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CompanionServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs",
@@ -54828,6 +55165,46 @@
       "path": "src/Forge.RpgKit.Application/Triggers/TriggerShapeAuthoringService.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Companions.CompanionDiagnostic",
+      "kind": "model",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Companions"
+      },
+      "name": "CompanionDiagnostic",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Companions.CompanionPartyState",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Companions"
+      },
+      "name": "CompanionPartyState",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Companions.CompanionTransactionResult",
+      "kind": "model",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Companions"
+      },
+      "name": "CompanionTransactionResult",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Companions.CompanionWorldState",
+      "kind": "model",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Companions"
+      },
+      "name": "CompanionWorldState",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Creatures.AiBlackboardValue",
       "kind": "model",
       "line": 11,
@@ -56124,6 +56501,11 @@
       "name": "Forge.RpgKit.Application.Triggers"
     },
     {
+      "id": "namespace:Forge.RpgKit.Domain.Companions",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Companions"
+    },
+    {
       "id": "namespace:Forge.RpgKit.Domain.Creatures",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Creatures"
@@ -56157,6 +56539,11 @@
       "id": "namespace:Forge.RpgKit.Domain.Placeables",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Placeables"
+    },
+    {
+      "id": "namespace:Forge.RpgKit.Domain.Tests.Companions",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Tests.Companions"
     },
     {
       "id": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
@@ -56435,6 +56822,16 @@
       },
       "name": "TriggerShapeAuthoringService",
       "path": "src/Forge.RpgKit.Application/Triggers/TriggerShapeAuthoringService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Domain.Companions.CompanionService",
+      "kind": "service",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Companions"
+      },
+      "name": "CompanionService",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
     },
     {
       "id": "service:Forge.RpgKit.Domain.Creatures.CreatureAiService",
@@ -57545,6 +57942,16 @@
       },
       "name": "RecoverySnapshotStoreTests",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Companions"
+      },
+      "name": "CompanionServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
@@ -60442,6 +60849,46 @@
       },
       "name": "ItemWizardRequest",
       "path": "src/Forge.RpgKit.Application/Items/ItemAuthoringService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Companions.CompanionPersistence",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Companions"
+      },
+      "name": "CompanionPersistence",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Companions.CompanionValidationContext",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Companions"
+      },
+      "name": "CompanionValidationContext",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Companions.RecruitDialogueContext",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Companions"
+      },
+      "name": "RecruitDialogueContext",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Companions.RecruitPolicy",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Companions"
+      },
+      "name": "RecruitPolicy",
+      "path": "src/Forge.RpgKit.Domain/Companions/CompanionService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.AbilityImpacted",
