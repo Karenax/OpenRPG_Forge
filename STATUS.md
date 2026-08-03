@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-29 — reverb, occlusion et streaming audio** pour `ORF-AUD-014`, `018` et `019`.
+Ouvrir **G7-30 — règles et états de jeu** pour `ORF-GAME-002`, `008`, `009`, `014` et `017`.

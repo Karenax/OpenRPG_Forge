@@ -7,6 +7,20 @@ public enum AudioOrderMode { Sequential, DeterministicRandom }
 public enum AreaSoundMode { Global2D, Spatial3D }
 public enum AudioInstancePolicy { Single, Restart, Overlap }
 public enum AudioAuthority { Local, Server }
+public enum MusicState { Exploration, Tension, Combat, Boss, Victory }
+
+public sealed record MusicStateEntry(MusicState State, string Track, IReadOnlyList<string> Stems,
+    float TransitionSeconds, float CooldownSeconds);
+public sealed record AudioMixBus(Guid Id, string Name, Guid? ParentId, float Volume, string Snapshot,
+    string Platform, float DynamicRange, bool EnhanceImportantSounds);
+public sealed record LocalizedSoundCaption(string Locale, string Text);
+public sealed record SoundCaption(string Resource, IReadOnlyList<LocalizedSoundCaption> Localizations,
+    bool ShowDirection, string Importance);
+public sealed record AreaAudioOrchestration(IReadOnlyList<MusicStateEntry> MusicStates,
+    IReadOnlyList<AudioMixBus> MixBuses, IReadOnlyList<SoundCaption> Captions)
+{
+    public static AreaAudioOrchestration Empty { get; } = new([], [], []);
+}
 
 public sealed record AudioSpatialProfile(AreaSoundMode Mode, float InnerRadius, float OuterRadius,
     float AirAbsorption, string AttenuationCurve);
@@ -68,11 +82,13 @@ public sealed record AreaAudioProfile
     public AudioSpatialProfile Spatial { get; }
     public AudioRuntimeControl RuntimeControl { get; }
     public IReadOnlyList<AdaptiveAmbienceLayer> AdaptiveLayers { get; }
+    public AreaAudioOrchestration Orchestration { get; }
     public AreaAudioProfile(string dayMusic, string nightMusic, string combatMusic, string ambience, string reverbPreset,
         float transitionSeconds, IReadOnlyList<string>? playlist = null, AudioOrderMode orderMode = AudioOrderMode.Sequential,
         float intervalSeconds = 0, float intervalVariationSeconds = 0, float relativeVolume = 1,
         AudioSpatialProfile? spatial = null, AudioRuntimeControl? runtimeControl = null,
-        IReadOnlyList<AdaptiveAmbienceLayer>? adaptiveLayers = null)
+        IReadOnlyList<AdaptiveAmbienceLayer>? adaptiveLayers = null,
+        AreaAudioOrchestration? orchestration = null)
     {
         ArgumentNullException.ThrowIfNull(dayMusic); ArgumentNullException.ThrowIfNull(nightMusic);
         ArgumentNullException.ThrowIfNull(combatMusic); ArgumentNullException.ThrowIfNull(ambience); ArgumentException.ThrowIfNullOrWhiteSpace(reverbPreset);
@@ -86,10 +102,20 @@ public sealed record AreaAudioProfile
         Spatial = spatial ?? new(AreaSoundMode.Global2D, 0, 0, 0, "linear");
         RuntimeControl = runtimeControl ?? new(true, AudioInstancePolicy.Single, AudioAuthority.Local, 1, "audio.started", "audio.stopped");
         AdaptiveLayers = (adaptiveLayers ?? []).ToArray();
+        Orchestration = orchestration ?? AreaAudioOrchestration.Empty;
         if (Spatial.InnerRadius < 0 || Spatial.OuterRadius < Spatial.InnerRadius || Spatial.AirAbsorption is < 0 or > 1 ||
             string.IsNullOrWhiteSpace(Spatial.AttenuationCurve) || AdaptiveLayers.Any(layer =>
                 layer.StartHour is < 0 or >= 24 || layer.EndHour is < 0 or >= 24 || layer.MinimumDanger is < 0 or > 1 || layer.Volume is < 0 or > 4))
             throw new ArgumentException("Audio spatial or adaptive profile is invalid.");
+        if (Orchestration.MusicStates.Select(item => item.State).Distinct().Count() != Orchestration.MusicStates.Count ||
+            Orchestration.MixBuses.Select(item => item.Id).Distinct().Count() != Orchestration.MixBuses.Count ||
+            Orchestration.Captions.Select(item => item.Resource).Distinct(StringComparer.Ordinal).Count() != Orchestration.Captions.Count)
+            throw new ArgumentException("Audio orchestration entries must be unique.");
+        var busIds = Orchestration.MixBuses.Select(item => item.Id).ToHashSet();
+        if (Orchestration.MixBuses.Any(bus => bus.ParentId is not null && (!busIds.Contains(bus.ParentId.Value) || bus.ParentId == bus.Id)) ||
+            Orchestration.MixBuses.Any(bus => bus.Volume is < 0 or > 4 || bus.DynamicRange is < 0 or > 1) ||
+            Orchestration.MusicStates.Any(state => state.TransitionSeconds < 0 || state.CooldownSeconds < 0))
+            throw new ArgumentException("Audio orchestration hierarchy or ranges are invalid.");
     }
 }
 
