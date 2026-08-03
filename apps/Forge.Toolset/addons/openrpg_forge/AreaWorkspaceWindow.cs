@@ -114,6 +114,13 @@ public partial class AreaWorkspaceWindow : Window
         }
 
         _areaSummary!.Text = $"{state.Project.Areas.Count} zone(s) · documents indépendants au prochain enregistrement";
+        if (activeAreaId is not null)
+        {
+            var performance = AreaPerformanceAnalyzer.Analyze(state.Project, activeAreaId);
+            _areaSummary.Text += $" · budget {(performance.IsWithinBudget ? "OK" : "DÉPASSÉ")} · " +
+                $"{performance.UniqueAssetCount} assets · {performance.OccupiedOcclusionSectors} secteurs · " +
+                $"LOD {performance.NearLodCount}/{performance.MidLodCount}/{performance.FarLodCount}";
+        }
         var selectedIndex = activeAreaId is null ? -1 : _visibleAreaIds.FindIndex(id => id == activeAreaId);
         if (selectedIndex < 0 && _visibleAreaIds.Count > 0)
         {

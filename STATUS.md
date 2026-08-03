@@ -227,5 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-23 — import et export de bibliothèques** pour `ORF-PAL-018`, `ORF-AREA-034` et
-`ORF-AREA-033` : bundles gouvernés, modèles procéduraux de zone et import de heightmaps.
+Ouvrir **G7-24 — géométrie et édition de zone** pour `ORF-AREA-006`, `007`, `009`, `010` et `011`.

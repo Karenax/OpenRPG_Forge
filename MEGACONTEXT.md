@@ -1416,9 +1416,9 @@ Le résumé doit contenir :
 ## 23. Mission courante à donner à Codex
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
-> applicables. Le bootstrap, le MVP et G7-01 à G7-22 sont déjà validés : ne les recommence pas.
-> Réalise uniquement **G7-23 — import et export de bibliothèques** pour `ORF-PAL-018`,
-> `ORF-AREA-034` et `ORF-AREA-033`. Conserve le modèle de
+> applicables. Le bootstrap, le MVP et G7-01 à G7-23 sont déjà validés : ne les recommence pas.
+> Réalise uniquement **G7-24 — géométrie et édition de zone** pour `ORF-AREA-006`, `007`, `009`,
+> `010` et `011`. Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.
 

@@ -88,9 +88,10 @@ G7-21 livre l'autosauvegarde isolée, le journal de récupération vérifié et 
 localisées via la configuration transactionnelle du module.
 G7-22 livre l'index de bibliothèque Blueprint : catégories hiérarchiques, familles de variantes,
 collections et impact exact sur les instances.
+G7-23 livre l'analyse de performance par zone : budget d'assets, secteurs d'occlusion et bandes LOD.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-23 — import et export de bibliothèques**.
+La prochaine tranche est **G7-24 — géométrie et édition de zone**.
 
 ## Phase 6 — 3D assistée
 
