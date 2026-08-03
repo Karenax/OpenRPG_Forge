@@ -1417,7 +1417,7 @@ Le résumé doit contenir :
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
-> Réalise **G8 SCRIPT-03** pour `ORF-SCR-019`, `020`, `023`, `032` et `033` : audio, temps, événements custom, hot reload et débogueur.
+> Réalise **G8 SCRIPT-04** pour `ORF-SCR-034`, `035`, `037`, `038` et `040` : tests, profiling, documentation générée, analyse statique et sérialisation d'état.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.

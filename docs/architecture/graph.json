@@ -3081,7 +3081,7 @@
     },
     {
       "evidence": {
-        "line": 198,
+        "line": 200,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -11663,6 +11663,15 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Scripting.Tests/ForgeScriptAuthoringServiceTests.cs",
+      "target": "namespace:Forge.Scripting"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs",
       "target": "namespace:Forge.Scripting"
     },
     {
@@ -20631,6 +20640,24 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Scripting.AudioState",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Scripting.CustomEvent",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Scripting/ForgeScriptAuthoringService.cs"
       },
@@ -20718,6 +20745,15 @@
       "kind": "relationship",
       "source": "model:Forge.Scripting.ForgeScriptExecutionResult",
       "target": "model:Forge.Scripting.ForgeScriptEvent"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Scripting.HotReloadResult",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
     },
     {
       "evidence": {
@@ -25393,6 +25429,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Scripting",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Scripting/IForgeScriptRuntime.cs"
       },
       "kind": "defined_in",
@@ -25425,6 +25470,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Scripting.Tests",
       "target": "file:tests/Forge.Scripting.Tests/ForgeScriptAuthoringServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Scripting.Tests",
+      "target": "file:tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
     },
     {
       "evidence": {
@@ -31230,15 +31284,6 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Lifecycle.CustomWorldEventBusTests",
       "target": "type:Forge.Application.Lifecycle.CustomWorldEventBus"
-    },
-    {
-      "evidence": {
-        "line": 12,
-        "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Lifecycle.CustomWorldEventBusTests",
-      "target": "type:Forge.Domain.Lifecycle.CustomEventSchema"
     },
     {
       "evidence": {
@@ -40269,6 +40314,78 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptRuntimeToolsTests",
+      "target": "file:tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptRuntimeToolsTests",
+      "target": "model:Forge.Scripting.AudioState"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptRuntimeToolsTests",
+      "target": "type:Forge.Scripting.AudioCue"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptRuntimeToolsTests",
+      "target": "type:Forge.Scripting.DebugFrame"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptRuntimeToolsTests",
+      "target": "type:Forge.Scripting.ForgeScriptRuntimeTools"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptRuntimeToolsTests",
+      "target": "type:Forge.Scripting.HotReloadModule"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptRuntimeToolsTests",
+      "target": "type:Forge.Scripting.ScriptTimer"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Scripting.Tests.ForgeScriptRuntimeToolsTests",
+      "target": "type:Forge.Scripting.WorldClock"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs"
       },
@@ -45013,6 +45130,51 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.AudioCue",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.CustomEventSchema",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.DebugFrame",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.DebugSnapshot",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.EventDelivery",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Scripting/ForgeScriptArtifact.cs"
       },
       "kind": "defined_in",
@@ -45093,12 +45255,30 @@
     },
     {
       "evidence": {
+        "line": 15,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ForgeScriptRuntimeTools",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Scripting/ForgeScriptAuthoringService.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Scripting.ForgeScriptSymbol",
       "target": "file:src/Forge.Scripting/ForgeScriptAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.HotReloadModule",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
     },
     {
       "evidence": {
@@ -45153,6 +45333,24 @@
       "kind": "defined_in",
       "source": "type:Forge.Scripting.ScriptTaskStatus",
       "target": "file:src/Forge.Scripting/ForgeScriptAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.ScriptTimer",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Scripting.WorldClock",
+      "target": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
     },
     {
       "evidence": {
@@ -45930,8 +46128,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:97a222ea9f33a1f6aec2712b7d340abebb35369c44834e7dee33a290ef31ef50",
-    "source_file_count": 920
+    "source_digest": "sha256:ee45241ef29ab7b03e465821d3878dfd90f0fed4e3e97922f8a048ef0d206bb8",
+    "source_file_count": 923
   },
   "nodes": [
     {
@@ -49153,6 +49351,16 @@
       },
       "name": "G8-SCRIPT-02-WORLD-APIS.md",
       "path": "docs/aurora-parity/tasks/G8-SCRIPT-02-WORLD-APIS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-SCRIPT-03-RUNTIME-TOOLS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-SCRIPT-03-RUNTIME-TOOLS.md",
+      "path": "docs/aurora-parity/tasks/G8-SCRIPT-03-RUNTIME-TOOLS.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G8-TRIGGER-01-FOUNDATION.md",
@@ -53195,6 +53403,16 @@
       "path": "src/Forge.Scripting/ForgeScriptQuotas.cs"
     },
     {
+      "id": "file:src/Forge.Scripting/ForgeScriptRuntimeTools.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeScriptRuntimeTools.cs",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
       "id": "file:src/Forge.Scripting/IForgeScriptRuntime.cs",
       "kind": "file",
       "line": 1,
@@ -54603,6 +54821,16 @@
       },
       "name": "ForgeScriptAuthoringServiceTests.cs",
       "path": "tests/Forge.Scripting.Tests/ForgeScriptAuthoringServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ForgeScriptRuntimeToolsTests.cs",
+      "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
     },
     {
       "id": "file:tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs",
@@ -59685,6 +59913,26 @@
       "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
     },
     {
+      "id": "model:Forge.Scripting.AudioState",
+      "kind": "model",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "AudioState",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "id": "model:Forge.Scripting.CustomEvent",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "CustomEvent",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
       "id": "model:Forge.Scripting.ForgeScriptAstKind",
       "kind": "model",
       "line": 3,
@@ -59743,6 +59991,16 @@
       },
       "name": "ForgeScriptExecutionResult",
       "path": "src/Forge.Scripting/ForgeScriptExecutionResult.cs"
+    },
+    {
+      "id": "model:Forge.Scripting.HotReloadResult",
+      "kind": "model",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "HotReloadResult",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
     },
     {
       "id": "model:Forge.Scripting.ScriptTaskResult",
@@ -62302,6 +62560,16 @@
       },
       "name": "ForgeScriptAuthoringServiceTests",
       "path": "tests/Forge.Scripting.Tests/ForgeScriptAuthoringServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.Scripting.Tests.ForgeScriptRuntimeToolsTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Scripting.Tests"
+      },
+      "name": "ForgeScriptRuntimeToolsTests",
+      "path": "tests/Forge.Scripting.Tests/ForgeScriptRuntimeToolsTests.cs"
     },
     {
       "id": "test:Forge.Scripting.Tests.NativeForgeScriptRuntimeTests",
@@ -67501,6 +67769,56 @@
       "path": "apps/Forge.Runtime/Runtime/RuntimeHud.cs"
     },
     {
+      "id": "type:Forge.Scripting.AudioCue",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "AudioCue",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.CustomEventSchema",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "CustomEventSchema",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.DebugFrame",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "DebugFrame",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.DebugSnapshot",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "DebugSnapshot",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.EventDelivery",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "EventDelivery",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
       "id": "type:Forge.Scripting.ForgeScriptArtifact",
       "kind": "type",
       "line": 3,
@@ -67591,6 +67909,16 @@
       "path": "src/Forge.Scripting/ForgeScriptQuotas.cs"
     },
     {
+      "id": "type:Forge.Scripting.ForgeScriptRuntimeTools",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ForgeScriptRuntimeTools",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
       "id": "type:Forge.Scripting.ForgeScriptSymbol",
       "kind": "type",
       "line": 7,
@@ -67599,6 +67927,16 @@
       },
       "name": "ForgeScriptSymbol",
       "path": "src/Forge.Scripting/ForgeScriptAuthoringService.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.HotReloadModule",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "HotReloadModule",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
     },
     {
       "id": "type:Forge.Scripting.NativeForgeScriptRuntime",
@@ -67659,6 +67997,26 @@
       },
       "name": "ScriptTaskStatus",
       "path": "src/Forge.Scripting/ForgeScriptAuthoringService.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.ScriptTimer",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "ScriptTimer",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
+    },
+    {
+      "id": "type:Forge.Scripting.WorldClock",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Scripting"
+      },
+      "name": "WorldClock",
+      "path": "src/Forge.Scripting/ForgeScriptRuntimeTools.cs"
     },
     {
       "id": "type:Forge.Toolset.Editor.AreaAuthoringWindow",

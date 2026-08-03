@@ -181,6 +181,8 @@ G8 SCRIPT-01 livre éditeur/wizard typé, tâches déterministes et APIs combat/
 tranche est **SCRIPT-02**.
 G8 SCRIPT-02 livre les APIs ForgeScript inventaire, quête, dialogue, faction et perception avec
 autorité, transactions, traces et tests déterministes. La prochaine tranche est **SCRIPT-03**.
+G8 SCRIPT-03 livre audio, horloge, événements custom, hot reload sûr et débogueur autorisé. La
+prochaine tranche est **SCRIPT-04**.
 
 ## Phase 6 — 3D assistée
 

@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 SCRIPT-03** pour `ORF-SCR-019`, `020`, `023`, `032` et `033` : audio, temps, événements custom, hot reload et débogueur.
+Exécuter **G8 SCRIPT-04** pour `ORF-SCR-034`, `035`, `037`, `038` et `040` : tests, profiling, documentation générée, analyse statique et sérialisation d'état.
