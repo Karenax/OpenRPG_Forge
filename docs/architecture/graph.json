@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 121,
+        "line": 122,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2952,6 +2952,15 @@
       "kind": "references",
       "source": "file:docs/UX_AURORA_2026.md",
       "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "docs/aurora-parity/G7_CLOSURE_EVIDENCE.md"
+      },
+      "kind": "references",
+      "source": "file:docs/aurora-parity/G7_CLOSURE_EVIDENCE.md",
+      "target": "file:docs/aurora-parity/G7_COMPLETION_PLAN.md"
     },
     {
       "evidence": {
@@ -35508,8 +35517,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:b70e8ddb7079e063052c70b5ed29dbb1b7cd2a0e5e99bbfc0bff175e5322d66f",
-    "source_file_count": 790
+    "source_digest": "sha256:8b8badec465cca5b1354f38986c9099b74f320d8a5436b5ff93e2b399076bd18",
+    "source_file_count": 791
   },
   "nodes": [
     {
@@ -36893,14 +36902,14 @@
       "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-e469de5f-d1a1-5682-9b20-94d1ebf51cf3.json"
     },
     {
-      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-f639784182604646.json",
+      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-5194b19d7fa068dc.json",
       "kind": "configuration",
       "line": 1,
       "metadata": {
         "language": "configuration"
       },
-      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-f639784182604646.json",
-      "path": "apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-f639784182604646.json"
+      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-5194b19d7fa068dc.json",
+      "path": "apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-5194b19d7fa068dc.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/forge.project.json",
@@ -37791,6 +37800,16 @@
       },
       "name": "ASSET_AND_MAP_EXISTING_STATE.md",
       "path": "docs/audits/ASSET_AND_MAP_EXISTING_STATE.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/G7_CLOSURE_EVIDENCE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7_CLOSURE_EVIDENCE.md",
+      "path": "docs/aurora-parity/G7_CLOSURE_EVIDENCE.md"
     },
     {
       "id": "file:docs/aurora-parity/G7_COMPLETION_PLAN.md",

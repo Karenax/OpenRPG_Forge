@@ -567,6 +567,73 @@
       ],
       "offMeshLinks": [],
       "provenance": "migration-default"
+    },
+    "environment": {
+      "schemaVersion": 1,
+      "classification": "interior",
+      "tags": [],
+      "lighting": {
+        "mode": "clock",
+        "dayLengthMinutes": 24,
+        "ambientIntensity": 0.35,
+        "directionalIntensity": 1,
+        "colorTemperatureKelvin": 6500,
+        "hdr": true,
+        "shadows": true
+      },
+      "fog": {
+        "mode": "disabled",
+        "density": 0,
+        "startDistance": 20,
+        "endDistance": 100,
+        "height": 0
+      },
+      "audio": {
+        "dayMusic": "",
+        "nightMusic": "",
+        "combatMusic": "",
+        "ambience": "",
+        "reverbPreset": "neutral",
+        "transitionSeconds": 2,
+        "playlist": [],
+        "orderMode": "sequential",
+        "intervalSeconds": 0,
+        "intervalVariationSeconds": 0,
+        "relativeVolume": 1,
+        "spatial": {
+          "mode": "global2D",
+          "innerRadius": 0,
+          "outerRadius": 0,
+          "airAbsorption": 0,
+          "attenuationCurve": "linear"
+        },
+        "runtimeControl": {
+          "initiallyActive": true,
+          "instancePolicy": "single",
+          "authority": "local",
+          "defaultFadeSeconds": 1,
+          "startedEvent": "audio.started",
+          "stoppedEvent": "audio.stopped"
+        },
+        "adaptiveLayers": [],
+        "orchestration": {
+          "musicStates": [],
+          "mixBuses": [],
+          "captions": []
+        }
+      }
+    },
+    "authoring": {
+      "schemaVersion": 1,
+      "userEvents": [],
+      "map": {
+        "enabled": true,
+        "fogOfWar": true,
+        "projection": "orthographic",
+        "floorCount": 1,
+        "pins": []
+      },
+      "layers": []
     }
   }
 }

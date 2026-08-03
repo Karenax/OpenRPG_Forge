@@ -103,7 +103,8 @@ G7-34 livre apparences, marqueurs révélables et routes de patrouille détermin
 G7-35 livre comportements d'arrivée, locators typés, requêtes et diagnostics de routes.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine étape est **l'audit de clôture G7** avant ouverture du RPG Kit G8.
+G7 est fermé avec portail global vert et preuves dans `docs/aurora-parity/G7_CLOSURE_EVIDENCE.md`.
+La prochaine étape est **l'audit G8 RPG Kit** et sa matrice de livraison.
 
 ## Phase 6 — 3D assistée
 

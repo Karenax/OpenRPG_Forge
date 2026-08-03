@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **l'audit de clôture G7** sur les 137 exigences assignées, puis ouvrir G8 RPG Kit uniquement si toutes les preuves sont cohérentes.
+Auditer **G8 RPG Kit** sur ses 184 exigences, établir les lots exécutables et identifier le second module original entièrement auteur.

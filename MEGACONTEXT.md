@@ -1416,8 +1416,8 @@ Le résumé doit contenir :
 ## 23. Mission courante à donner à Codex
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
-> applicables. Le bootstrap, le MVP et G7-01 à G7-35 sont déjà validés : ne les recommence pas.
-> Réalise uniquement **l'audit de clôture G7** sur les 137 exigences assignées, puis ouvre G8 si et seulement si les preuves sont cohérentes.
+> applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
+> Réalise **l'audit G8 RPG Kit** sur les 184 exigences, puis exécute ses lots avec un second module original entièrement auteur.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.
