@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-30 — règles et états de jeu** pour `ORF-GAME-002`, `008`, `009`, `014` et `017`.
+Ouvrir **G7-31 — sauvegarde et difficulté gameplay** pour `ORF-GAME-021`, `025`, `026`, `027` et `029`.

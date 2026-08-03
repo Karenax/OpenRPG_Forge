@@ -2928,7 +2928,7 @@
     },
     {
       "evidence": {
-        "line": 99,
+        "line": 100,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 115,
+        "line": 116,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -5251,6 +5251,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Gameplay/GameplaySimulation.cs",
+      "target": "namespace:Forge.Domain.Gameplay"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Gameplay/GameplaySimulation.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
       },
       "kind": "imports",
@@ -5894,6 +5912,15 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Domain/Entities/EntityInstance.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs",
       "target": "namespace:Forge.Domain.Spatial"
     },
     {
@@ -8622,6 +8649,33 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Entities/TransformEntityHandlerTests.cs",
       "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs",
+      "target": "namespace:Forge.Application.Gameplay"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs",
+      "target": "namespace:Forge.Domain.Gameplay"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -16464,6 +16518,33 @@
     },
     {
       "evidence": {
+        "line": 18,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Gameplay.GameplayVectorState",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Gameplay.GameplayVectorState",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Gameplay.WorldClockState",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
       },
@@ -18634,6 +18715,15 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Gameplay",
+      "target": "file:src/Forge.Application/Gameplay/GameplaySimulation.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
       },
       "kind": "defined_in",
@@ -19071,6 +19161,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Entities",
       "target": "file:tests/Forge.Application.Tests/Entities/TransformEntityHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Gameplay",
+      "target": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
     },
     {
       "evidence": {
@@ -19728,6 +19827,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Entities",
       "target": "file:src/Forge.Domain/Entities/EntityPropertyValueKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Gameplay",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
     },
     {
       "evidence": {
@@ -25797,6 +25905,78 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
+      "target": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
+      "target": "model:Forge.Domain.Gameplay.GameplayVectorState"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
+      "target": "model:Forge.Domain.Gameplay.WorldClockState"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
+      "target": "type:Forge.Application.Gameplay.GameplaySimulation"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
+      "target": "type:Forge.Domain.Gameplay.PhysicsBodyMode"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
+      "target": "type:Forge.Domain.Gameplay.ProjectileMode"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
+      "target": "type:Forge.Domain.Gameplay.TargetingMode"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
       },
@@ -31737,6 +31917,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Gameplay.GameplaySimulation",
+      "target": "file:src/Forge.Application/Gameplay/GameplaySimulation.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.Application/Localization/LocalizationCatalogExtractor.cs"
       },
@@ -32292,6 +32481,87 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Entities.EntityPropertyOverrides",
       "target": "file:src/Forge.Domain/Entities/EntityPropertyOverrides.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.FlyingMovementProfile",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.PhysicsBodyMode",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.PhysicsBodyProfile",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.ProjectileMode",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.ProjectileProfile",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.TargetingMode",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.TargetingProfile",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.WorldCalendar",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.WorldSchedule",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
     },
     {
       "evidence": {
@@ -34023,8 +34293,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:19eaf1006a62fd8c7de95b2e919a69ba4db7668b688460fede732eee5a2f1257",
-    "source_file_count": 769
+    "source_digest": "sha256:281c99dec3df1d21d273b15dbb1cdf4aec6d5ec23eb51cc4246ae5e4344634a0",
+    "source_file_count": 773
   },
   "nodes": [
     {
@@ -36628,6 +36898,16 @@
       "path": "docs/aurora-parity/tasks/G7-29-AUDIO-ORCHESTRATION.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-30-GAMEPLAY-SIMULATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-30-GAMEPLAY-SIMULATION.md",
+      "path": "docs/aurora-parity/tasks/G7-30-GAMEPLAY-SIMULATION.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -37558,6 +37838,16 @@
       "path": "src/Forge.Application/Forge.Application.csproj"
     },
     {
+      "id": "file:src/Forge.Application/Gameplay/GameplaySimulation.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "GameplaySimulation.cs",
+      "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Localization/LocalizationCatalogExtractor.cs",
       "kind": "file",
       "line": 1,
@@ -38446,6 +38736,16 @@
       },
       "name": "Forge.Domain.csproj",
       "path": "src/Forge.Domain/Forge.Domain.csproj"
+    },
+    {
+      "id": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "GameplaySimulationProfiles.cs",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
     },
     {
       "id": "file:src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs",
@@ -40366,6 +40666,16 @@
       },
       "name": "Forge.Application.Tests.csproj",
       "path": "tests/Forge.Application.Tests/Forge.Application.Tests.csproj"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "GameplaySimulationTests.cs",
+      "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
@@ -43938,6 +44248,26 @@
       "path": "src/Forge.Domain/Entities/EntityPropertyValueKind.cs"
     },
     {
+      "id": "model:Forge.Domain.Gameplay.GameplayVectorState",
+      "kind": "model",
+      "line": 18,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "GameplayVectorState",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Gameplay.WorldClockState",
+      "kind": "model",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "WorldClockState",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
       "id": "model:Forge.Domain.Lifecycle.RuntimeLifecycleDispatchResult",
       "kind": "model",
       "line": 5,
@@ -44809,6 +45139,11 @@
       "name": "Forge.Application.Entities"
     },
     {
+      "id": "namespace:Forge.Application.Gameplay",
+      "kind": "namespace",
+      "name": "Forge.Application.Gameplay"
+    },
+    {
       "id": "namespace:Forge.Application.Localization",
       "kind": "namespace",
       "name": "Forge.Application.Localization"
@@ -44862,6 +45197,11 @@
       "id": "namespace:Forge.Application.Tests.Entities",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Entities"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Gameplay",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Gameplay"
     },
     {
       "id": "namespace:Forge.Application.Tests.Localization",
@@ -44927,6 +45267,11 @@
       "id": "namespace:Forge.Domain.Entities",
       "kind": "namespace",
       "name": "Forge.Domain.Entities"
+    },
+    {
+      "id": "namespace:Forge.Domain.Gameplay",
+      "kind": "namespace",
+      "name": "Forge.Domain.Gameplay"
     },
     {
       "id": "namespace:Forge.Domain.Lifecycle",
@@ -45669,6 +46014,16 @@
       },
       "name": "TransformEntityHandlerTests",
       "path": "tests/Forge.Application.Tests/Entities/TransformEntityHandlerTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Gameplay"
+      },
+      "name": "GameplaySimulationTests",
+      "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
@@ -46798,6 +47153,16 @@
       "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
     },
     {
+      "id": "type:Forge.Application.Gameplay.GameplaySimulation",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Gameplay"
+      },
+      "name": "GameplaySimulation",
+      "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
+    },
+    {
       "id": "type:Forge.Application.Localization.LocalizationCatalogExtractor",
       "kind": "type",
       "line": 6,
@@ -47416,6 +47781,96 @@
       },
       "name": "EntityPropertyOverrides",
       "path": "src/Forge.Domain/Entities/EntityPropertyOverrides.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.FlyingMovementProfile",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "FlyingMovementProfile",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.PhysicsBodyMode",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "PhysicsBodyMode",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.PhysicsBodyProfile",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "PhysicsBodyProfile",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.ProjectileMode",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "ProjectileMode",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.ProjectileProfile",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "ProjectileProfile",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.TargetingMode",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "TargetingMode",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.TargetingProfile",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "TargetingProfile",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.WorldCalendar",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "WorldCalendar",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.WorldSchedule",
+      "kind": "type",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "WorldSchedule",
+      "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
     },
     {
       "id": "type:Forge.Domain.Lifecycle.IRuntimeLifecycleEventIdSource",

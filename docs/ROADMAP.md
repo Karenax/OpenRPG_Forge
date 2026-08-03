@@ -95,9 +95,10 @@ G7-26 livre événements namespacés, minimap/fog multi-étages et calques d'éd
 G7-27 livre playlists audio, ordre déterministe, intervalles variables et volume relatif.
 G7-28 livre spatialisation 2D/3D, portée, contrôle scripté et ambiance adaptative.
 G7-29 livre machine musicale, bus hiérarchiques et sous-titres sonores localisés.
+G7-30 livre les primitives déterministes de vol, projectiles, physique, ciblage et temps mondial.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-30 — règles et états de jeu**.
+La prochaine tranche est **G7-31 — sauvegarde et difficulté gameplay**.
 
 ## Phase 6 — 3D assistée
 
