@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 122,
+        "line": 123,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -35517,8 +35517,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:8b8badec465cca5b1354f38986c9099b74f320d8a5436b5ff93e2b399076bd18",
-    "source_file_count": 791
+    "source_digest": "sha256:61f765ef61bc8489dfda15cab23bee623789bb942db5a2fa47f44ee5a6e382fd",
+    "source_file_count": 792
   },
   "nodes": [
     {
@@ -37820,6 +37820,16 @@
       },
       "name": "G7_COMPLETION_PLAN.md",
       "path": "docs/aurora-parity/G7_COMPLETION_PLAN.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/G8_DELIVERY_PLAN.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8_DELIVERY_PLAN.md",
+      "path": "docs/aurora-parity/G8_DELIVERY_PLAN.md"
     },
     {
       "id": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md",

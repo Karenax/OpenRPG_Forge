@@ -104,7 +104,8 @@ G7-35 livre comportements d'arrivée, locators typés, requêtes et diagnostics 
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
 G7 est fermé avec portail global vert et preuves dans `docs/aurora-parity/G7_CLOSURE_EVIDENCE.md`.
-La prochaine étape est **l'audit G8 RPG Kit** et sa matrice de livraison.
+L'audit G8 et ses 40 lots sont définis dans `docs/aurora-parity/G8_DELIVERY_PLAN.md`.
+La prochaine tranche est **G8 CREATURE-01**, fondation du module La Veillée des Éclats.
 
 ## Phase 6 — 3D assistée
 

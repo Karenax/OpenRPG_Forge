@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Auditer **G8 RPG Kit** sur ses 184 exigences, établir les lots exécutables et identifier le second module original entièrement auteur.
+Exécuter **G8 CREATURE-01** pour `ORF-CRE-002`, `003`, `014`, `027` et `033`, première tranche de La Veillée des Éclats.
