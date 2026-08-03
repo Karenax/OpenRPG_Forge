@@ -2928,7 +2928,7 @@
     },
     {
       "evidence": {
-        "line": 102,
+        "line": 103,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 118,
+        "line": 119,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -5274,6 +5274,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Gameplay/GameplaySimulation.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Lifecycle/CustomWorldEventBus.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/CustomWorldEventBus.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
     },
     {
       "evidence": {
@@ -8712,6 +8721,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs",
+      "target": "namespace:Forge.Application.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
     },
     {
       "evidence": {
@@ -16599,6 +16626,15 @@
     },
     {
       "evidence": {
+        "line": 15,
+        "path": "src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.CustomWorldEvent",
+      "target": "file:src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
       },
@@ -16893,6 +16929,15 @@
       "kind": "defined_in",
       "source": "model:Forge.Domain.Lifecycle.RuntimeLifecycleEventKind",
       "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.WorldAstronomicalEventKind",
+      "target": "file:src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
     },
     {
       "evidence": {
@@ -18967,6 +19012,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.Application/Lifecycle/CustomWorldEventBus.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/CustomWorldEventBus.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
       },
       "kind": "defined_in",
@@ -19431,6 +19485,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Gameplay",
       "target": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Lifecycle",
+      "target": "file:tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
     },
     {
       "evidence": {
@@ -20115,6 +20178,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Gameplay",
       "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
     },
     {
       "evidence": {
@@ -26392,6 +26464,60 @@
     {
       "evidence": {
         "line": 6,
+        "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Lifecycle.CustomWorldEventBusTests",
+      "target": "file:tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.CustomWorldEventBusTests",
+      "target": "model:Forge.Domain.Lifecycle.CustomWorldEvent"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.CustomWorldEventBusTests",
+      "target": "model:Forge.Domain.Lifecycle.WorldAstronomicalEventKind"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.CustomWorldEventBusTests",
+      "target": "type:Forge.Application.Lifecycle.CustomWorldEventBus"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.CustomWorldEventBusTests",
+      "target": "type:Forge.Domain.Lifecycle.CustomEventSchema"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.CustomWorldEventBusTests",
+      "target": "type:Forge.Domain.Lifecycle.WorldClockProfile"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
       },
       "kind": "defined_in",
@@ -32467,6 +32593,15 @@
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.Application/Lifecycle/CustomWorldEventBus.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Lifecycle.CustomWorldEventBus",
+      "target": "file:src/Forge.Application/Lifecycle/CustomWorldEventBus.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
       },
       "kind": "defined_in",
@@ -33231,6 +33366,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.CustomEventSchema",
+      "target": "file:src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
       },
@@ -33309,6 +33453,15 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Lifecycle.RuntimeLifecycleCoordinator",
       "target": "file:src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.WorldClockProfile",
+      "target": "file:src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
     },
     {
       "evidence": {
@@ -34995,8 +35148,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:e594ac0a4ffc4323bc3215cbbb049361764cf0509f2c1f4f41f292a7f22acaa5",
-    "source_file_count": 781
+    "source_digest": "sha256:2f7810f7e5c8182d8cbfd0e313a19549f2bba9c741161387a5a0a83377b96dc3",
+    "source_file_count": 785
   },
   "nodes": [
     {
@@ -37630,6 +37783,16 @@
       "path": "docs/aurora-parity/tasks/G7-32-PROJECT-EVENTS.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-33-CUSTOM-EVENTS-WORLD-CLOCK.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-33-CUSTOM-EVENTS-WORLD-CLOCK.md",
+      "path": "docs/aurora-parity/tasks/G7-33-CUSTOM-EVENTS-WORLD-CLOCK.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -38580,6 +38743,16 @@
       "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
     },
     {
+      "id": "file:src/Forge.Application/Lifecycle/CustomWorldEventBus.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CustomWorldEventBus.cs",
+      "path": "src/Forge.Application/Lifecycle/CustomWorldEventBus.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs",
       "kind": "file",
       "line": 1,
@@ -39498,6 +39671,16 @@
       },
       "name": "GameplaySimulationProfiles.cs",
       "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Lifecycle/CustomWorldEvents.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CustomWorldEvents.cs",
+      "path": "src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
     },
     {
       "id": "file:src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs",
@@ -41448,6 +41631,16 @@
       },
       "name": "GameplaySimulationTests.cs",
       "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CustomWorldEventBusTests.cs",
+      "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs",
@@ -45050,6 +45243,16 @@
       "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
     },
     {
+      "id": "model:Forge.Domain.Lifecycle.CustomWorldEvent",
+      "kind": "model",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "CustomWorldEvent",
+      "path": "src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
+    },
+    {
       "id": "model:Forge.Domain.Lifecycle.EquipmentChangeKind",
       "kind": "model",
       "line": 7,
@@ -45188,6 +45391,16 @@
       },
       "name": "RuntimeLifecycleEventKind",
       "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleEventKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Lifecycle.WorldAstronomicalEventKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "WorldAstronomicalEventKind",
+      "path": "src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
     },
     {
       "id": "model:Forge.Domain.Localization.LocalizationCatalogId",
@@ -46928,6 +47141,16 @@
       "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Lifecycle.CustomWorldEventBusTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Lifecycle"
+      },
+      "name": "CustomWorldEventBusTests",
+      "path": "tests/Forge.Application.Tests/Lifecycle/CustomWorldEventBusTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Lifecycle.ProjectGameplayEventBusTests",
       "kind": "test",
       "line": 6,
@@ -48085,6 +48308,16 @@
       "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
     },
     {
+      "id": "type:Forge.Application.Lifecycle.CustomWorldEventBus",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "CustomWorldEventBus",
+      "path": "src/Forge.Application/Lifecycle/CustomWorldEventBus.cs"
+    },
+    {
       "id": "type:Forge.Application.Lifecycle.ProjectGameplayEventBus",
       "kind": "type",
       "line": 5,
@@ -48935,6 +49168,16 @@
       "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
     },
     {
+      "id": "type:Forge.Domain.Lifecycle.CustomEventSchema",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "CustomEventSchema",
+      "path": "src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
+    },
+    {
       "id": "type:Forge.Domain.Lifecycle.EventAuthorityScope",
       "kind": "type",
       "line": 3,
@@ -49023,6 +49266,16 @@
       },
       "name": "RuntimeLifecycleCoordinator",
       "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Lifecycle.WorldClockProfile",
+      "kind": "type",
+      "line": 23,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "WorldClockProfile",
+      "path": "src/Forge.Domain/Lifecycle/CustomWorldEvents.cs"
     },
     {
       "id": "type:Forge.Domain.Localization.LocalizationCatalog",

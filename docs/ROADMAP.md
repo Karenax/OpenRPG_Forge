@@ -98,9 +98,10 @@ G7-29 livre machine musicale, bus hiérarchiques et sous-titres sonores localis�
 G7-30 livre les primitives déterministes de vol, projectiles, physique, ciblage et temps mondial.
 G7-31 livre les portées de sauvegarde, checkpoints, shell runtime, verrous de contrôle et replay déterministe.
 G7-32 livre le bus transactionnel des événements joueur, inventaire, capacités, mort et progression.
+G7-33 livre les événements globaux à schéma strict et l'horloge mondiale multi-fuseaux astronomique.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-33 — événement global et calendrier du monde**.
+La prochaine tranche est **G7-34 — notes et routes de waypoint**.
 
 ## Phase 6 — 3D assistée
 

@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-33 — événement global et calendrier du monde** pour `ORF-PROJ-014` et `016`.
+Ouvrir **G7-34 — notes et routes de waypoint** pour `ORF-WPT-002`, `003`, `004`, `007` et `008`.
