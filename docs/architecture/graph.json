@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 133,
+        "line": 135,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -7402,6 +7402,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "imports",
@@ -10656,6 +10665,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Creatures"
     },
     {
       "evidence": {
@@ -18318,6 +18345,24 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Creatures.AiBlackboardValue",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Creatures.AiControllerKind",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "evidence": {
         "line": 48,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
@@ -22404,6 +22449,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Creatures",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCombatService.cs"
       },
@@ -22455,6 +22509,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Creatures",
       "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureRulesService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
     },
     {
       "evidence": {
@@ -23607,6 +23670,42 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Application.Creatures.CreatureAuthoringService",
       "target": "model:Forge.RpgKit.Domain.Creatures.CreatureDefinition"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureAiService",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureAiService",
+      "target": "model:Forge.Domain.Combat.AbilityId"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureAiService",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureAiService",
+      "target": "model:Forge.RpgKit.Domain.Creatures.AiControllerKind"
     },
     {
       "evidence": {
@@ -32997,6 +33096,78 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Creatures.AiBlackboardValue"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Creatures.AiControllerKind"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Creatures.CreatureAiService"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.AbilityTargeted"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.AiControllerProfile"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.MovementRecoveryStrategy"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCombatAndAuthoringTests.cs"
       },
@@ -35967,6 +36138,42 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AbilityImpacted",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AbilityTargeted",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AiControllerProfile",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AiDecision",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "evidence": {
         "line": 42,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
@@ -36261,6 +36468,24 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Creatures.LocalizedCreatureText",
       "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.MovementBlocked",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.MovementRecoveryStrategy",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
     },
     {
       "evidence": {
@@ -37173,8 +37398,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:c792882d2f18676227ebbed7ff2f95b411075fca433874bc4cfad1facb251faf",
-    "source_file_count": 815
+    "source_digest": "sha256:9aa5393f0f5e4749fe596fc25142845cfda7002a9afd3a800a0936a6563cda2f",
+    "source_file_count": 818
   },
   "nodes": [
     {
@@ -39906,6 +40131,16 @@
       },
       "name": "G8-CREATURE-05-INTERACTIONS.md",
       "path": "docs/aurora-parity/tasks/G8-CREATURE-05-INTERACTIONS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-CREATURE-06-AI.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-CREATURE-06-AI.md",
+      "path": "docs/aurora-parity/tasks/G8-CREATURE-06-AI.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -43338,6 +43573,16 @@
       "path": "src/Forge.RpgKit.Application/packages.lock.json"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureAiService.cs",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Creatures/CreatureCombatService.cs",
       "kind": "file",
       "line": 1,
@@ -44516,6 +44761,16 @@
       },
       "name": "packages.lock.json",
       "path": "tests/Forge.ModuleFormat.Tests/packages.lock.json"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureAiServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCombatAndAuthoringTests.cs",
@@ -48428,6 +48683,26 @@
       "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringService.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Creatures.AiBlackboardValue",
+      "kind": "model",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AiBlackboardValue",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Creatures.AiControllerKind",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AiControllerKind",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Creatures.CreatureAbilityInstance",
       "kind": "model",
       "line": 48,
@@ -49320,6 +49595,16 @@
       },
       "name": "CreatureAuthoringService",
       "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Domain.Creatures.CreatureAiService",
+      "kind": "service",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "CreatureAiService",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
     },
     {
       "id": "service:Forge.RpgKit.Domain.Creatures.CreatureCombatService",
@@ -50290,6 +50575,16 @@
       },
       "name": "RecoverySnapshotStoreTests",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/RecoverySnapshotStoreTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Creatures"
+      },
+      "name": "CreatureAiServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCombatAndAuthoringTests",
@@ -52949,6 +53244,46 @@
       "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringService.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AbilityImpacted",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AbilityImpacted",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AbilityTargeted",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AbilityTargeted",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AiControllerProfile",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AiControllerProfile",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AiDecision",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AiDecision",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Creatures.AnimationGraphProfile",
       "kind": "type",
       "line": 42,
@@ -53277,6 +53612,26 @@
       },
       "name": "LocalizedCreatureText",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.MovementBlocked",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "MovementBlocked",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.MovementRecoveryStrategy",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "MovementRecoveryStrategy",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureAiService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.ResourcePool",

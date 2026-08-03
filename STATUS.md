@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 CREATURE-06** pour `ORF-CRE-038`, `040` et `046` : capacités ciblées, blocage et contrôleurs IA.
+Exécuter **G8 FACTION-01** pour `ORF-FAC-014`, `001`, `003`, `004` et `005` : matrice factionnelle validée.

@@ -116,6 +116,8 @@ G8 CREATURE-04 livre défenses, capacités, inventaire, factions et perception m
 La prochaine tranche est **CREATURE-05**.
 G8 CREATURE-05 livre dialogues contextuels, protections, perception différentielle et attaques typées.
 La prochaine tranche est **CREATURE-06**.
+G8 CREATURE-06 livre capacités ciblées, récupération navigation et quatre contrôleurs IA. La famille
+Créature G8 est complète ; la prochaine tranche est **FACTION-01**.
 
 ## Phase 6 — 3D assistée
 
