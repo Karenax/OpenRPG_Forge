@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-31 — sauvegarde et difficulté gameplay** pour `ORF-GAME-021`, `025`, `026`, `027` et `029`.
+Ouvrir **G7-32 — configuration et maintenance de projet** pour `ORF-PROJ-007`, `008`, `009`, `010` et `011`.

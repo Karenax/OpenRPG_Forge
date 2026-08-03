@@ -2928,7 +2928,7 @@
     },
     {
       "evidence": {
-        "line": 100,
+        "line": 101,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 116,
+        "line": 117,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -5247,6 +5247,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Entities/TransformEntityHandler.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Gameplay/GameplaySessionServices.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Gameplay/GameplaySessionServices.cs",
+      "target": "namespace:Forge.Domain.Gameplay"
     },
     {
       "evidence": {
@@ -8649,6 +8658,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Entities/TransformEntityHandlerTests.cs",
       "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs",
+      "target": "namespace:Forge.Application.Gameplay"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs",
+      "target": "namespace:Forge.Domain.Gameplay"
     },
     {
       "evidence": {
@@ -18714,6 +18741,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Gameplay/GameplaySessionServices.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Gameplay",
+      "target": "file:src/Forge.Application/Gameplay/GameplaySessionServices.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
       },
@@ -19161,6 +19197,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Entities",
       "target": "file:tests/Forge.Application.Tests/Entities/TransformEntityHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Gameplay",
+      "target": "file:tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
     },
     {
       "evidence": {
@@ -19827,6 +19872,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Entities",
       "target": "file:src/Forge.Domain/Entities/EntityPropertyValueKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Gameplay",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
     },
     {
       "evidence": {
@@ -25906,6 +25960,132 @@
     {
       "evidence": {
         "line": 6,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "file:tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Application.Gameplay.GameplaySessionServices"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.CheckpointProfile"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.ControlContext"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.CorpsePolicy"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.PartyRespawnPolicy"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.PersistenceProfile"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.PersistenceScope"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.ReplayFrame"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.ReplayRecording"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.RuntimeShellProfile"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.SaveAuthority"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.SaveConflictPolicy"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "target": "type:Forge.Domain.Gameplay.SaveEnvelope"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs"
       },
       "kind": "defined_in",
@@ -31917,6 +32097,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Gameplay/GameplaySessionServices.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Gameplay.GameplaySessionServices",
+      "target": "file:src/Forge.Application/Gameplay/GameplaySessionServices.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Application/Gameplay/GameplaySimulation.cs"
       },
@@ -32484,12 +32673,66 @@
     },
     {
       "evidence": {
+        "line": 27,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.CheckpointProfile",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.ControlContext",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.CorpsePolicy",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Domain.Gameplay.FlyingMovementProfile",
       "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.PartyRespawnPolicy",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.PersistenceProfile",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.PersistenceScope",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
     },
     {
       "evidence": {
@@ -32526,6 +32769,69 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Gameplay.ProjectileProfile",
       "target": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.ReplayDivergence",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.ReplayFrame",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.ReplayRecording",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.RuntimeShellProfile",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.SaveAuthority",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.SaveConflictPolicy",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Gameplay.SaveEnvelope",
+      "target": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
     },
     {
       "evidence": {
@@ -34293,8 +34599,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:281c99dec3df1d21d273b15dbb1cdf4aec6d5ec23eb51cc4246ae5e4344634a0",
-    "source_file_count": 773
+    "source_digest": "sha256:ab114c92b67158ca647f1915b7497fd3c53eb01b99a144dc19f7baa8d4d8cfa0",
+    "source_file_count": 777
   },
   "nodes": [
     {
@@ -36908,6 +37214,16 @@
       "path": "docs/aurora-parity/tasks/G7-30-GAMEPLAY-SIMULATION.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-31-GAMEPLAY-SESSION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-31-GAMEPLAY-SESSION.md",
+      "path": "docs/aurora-parity/tasks/G7-31-GAMEPLAY-SESSION.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -37838,6 +38154,16 @@
       "path": "src/Forge.Application/Forge.Application.csproj"
     },
     {
+      "id": "file:src/Forge.Application/Gameplay/GameplaySessionServices.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "GameplaySessionServices.cs",
+      "path": "src/Forge.Application/Gameplay/GameplaySessionServices.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Gameplay/GameplaySimulation.cs",
       "kind": "file",
       "line": 1,
@@ -38736,6 +39062,16 @@
       },
       "name": "Forge.Domain.csproj",
       "path": "src/Forge.Domain/Forge.Domain.csproj"
+    },
+    {
+      "id": "file:src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "GameplaySessionProfiles.cs",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
     },
     {
       "id": "file:src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs",
@@ -40666,6 +41002,16 @@
       },
       "name": "Forge.Application.Tests.csproj",
       "path": "tests/Forge.Application.Tests/Forge.Application.Tests.csproj"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "GameplaySessionServicesTests.cs",
+      "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Gameplay/GameplaySimulationTests.cs",
@@ -46016,6 +46362,16 @@
       "path": "tests/Forge.Application.Tests/Entities/TransformEntityHandlerTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Gameplay.GameplaySessionServicesTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Gameplay"
+      },
+      "name": "GameplaySessionServicesTests",
+      "path": "tests/Forge.Application.Tests/Gameplay/GameplaySessionServicesTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Gameplay.GameplaySimulationTests",
       "kind": "test",
       "line": 6,
@@ -47153,6 +47509,16 @@
       "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
     },
     {
+      "id": "type:Forge.Application.Gameplay.GameplaySessionServices",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Gameplay"
+      },
+      "name": "GameplaySessionServices",
+      "path": "src/Forge.Application/Gameplay/GameplaySessionServices.cs"
+    },
+    {
       "id": "type:Forge.Application.Gameplay.GameplaySimulation",
       "kind": "type",
       "line": 5,
@@ -47783,6 +48149,36 @@
       "path": "src/Forge.Domain/Entities/EntityPropertyOverrides.cs"
     },
     {
+      "id": "type:Forge.Domain.Gameplay.CheckpointProfile",
+      "kind": "type",
+      "line": 27,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "CheckpointProfile",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.ControlContext",
+      "kind": "type",
+      "line": 48,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "ControlContext",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.CorpsePolicy",
+      "kind": "type",
+      "line": 25,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "CorpsePolicy",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
       "id": "type:Forge.Domain.Gameplay.FlyingMovementProfile",
       "kind": "type",
       "line": 4,
@@ -47791,6 +48187,36 @@
       },
       "name": "FlyingMovementProfile",
       "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.PartyRespawnPolicy",
+      "kind": "type",
+      "line": 24,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "PartyRespawnPolicy",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.PersistenceProfile",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "PersistenceProfile",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.PersistenceScope",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "PersistenceScope",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
     },
     {
       "id": "type:Forge.Domain.Gameplay.PhysicsBodyMode",
@@ -47831,6 +48257,76 @@
       },
       "name": "ProjectileProfile",
       "path": "src/Forge.Domain/Gameplay/GameplaySimulationProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.ReplayDivergence",
+      "kind": "type",
+      "line": 59,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "ReplayDivergence",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.ReplayFrame",
+      "kind": "type",
+      "line": 57,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "ReplayFrame",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.ReplayRecording",
+      "kind": "type",
+      "line": 58,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "ReplayRecording",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.RuntimeShellProfile",
+      "kind": "type",
+      "line": 37,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "RuntimeShellProfile",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.SaveAuthority",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "SaveAuthority",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.SaveConflictPolicy",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "SaveConflictPolicy",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Gameplay.SaveEnvelope",
+      "kind": "type",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.Domain.Gameplay"
+      },
+      "name": "SaveEnvelope",
+      "path": "src/Forge.Domain/Gameplay/GameplaySessionProfiles.cs"
     },
     {
       "id": "type:Forge.Domain.Gameplay.TargetingMode",
