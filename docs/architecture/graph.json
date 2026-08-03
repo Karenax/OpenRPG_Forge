@@ -741,6 +741,15 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.Application.Areas.AreaResizePreview",
+      "target": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Blueprints/BlueprintPaletteView.cs"
       },
@@ -2883,7 +2892,7 @@
     },
     {
       "evidence": {
-        "line": 93,
+        "line": 94,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2892,7 +2901,7 @@
     },
     {
       "evidence": {
-        "line": 109,
+        "line": 110,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2934,6 +2943,51 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Areas/AreaDuplicationPreview.cs",
       "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -3185,6 +3239,87 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/EditAreaGeometryCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/EditAreaGeometryCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/EditAreaGeometryCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/EditAreaGeometryCommand.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/EditAreaGeometryHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/EditAreaGeometryHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/EditAreaGeometryHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/EditAreaGeometryHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/EditAreaGeometryHandler.cs",
       "target": "namespace:Forge.Domain.Validation"
     },
     {
@@ -6957,6 +7092,69 @@
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs",
+      "target": "namespace:Forge.Application.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -11551,6 +11749,114 @@
     {
       "evidence": {
         "line": 9,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "file:src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Application.Areas.EditAreaGeometryCommand"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 9,
         "path": "src/Forge.Application/Areas/SetAreaNavigationHandler.cs"
       },
       "kind": "defined_in",
@@ -13950,6 +14256,42 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Areas.DuplicateAreaCommand",
       "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.EditAreaGeometryCommand",
+      "target": "file:src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.EditAreaGeometryCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.EditAreaGeometryCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.EditAreaGeometryCommand",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
     },
     {
       "evidence": {
@@ -16932,6 +17274,15 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.Application/Areas/AreaPerformanceAnalyzer.cs"
       },
@@ -16983,6 +17334,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Areas",
       "target": "file:src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
     },
     {
       "evidence": {
@@ -17784,6 +18153,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Spatial",
       "target": "file:src/Forge.Application/Spatial/PlacementValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Areas",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
     },
     {
       "evidence": {
@@ -21249,6 +21627,114 @@
       "kind": "accesses_model",
       "source": "service:Forge.Mcp.Scripts.ForgeScriptAgentService",
       "target": "model:Forge.Scripting.ForgeScriptDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "handler:Forge.Application.Areas.EditAreaGeometryHandler"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "model:Forge.Application.Areas.EditAreaGeometryCommand"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "type:Forge.Application.Areas.AreaGeometryPlanner"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "type:Forge.Application.Areas.AreaResizeAnchor"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
     },
     {
       "evidence": {
@@ -29802,6 +30288,24 @@
     },
     {
       "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.AreaGeometryPlanner",
+      "target": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.AreaGroupPart",
+      "target": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+    },
+    {
+      "evidence": {
         "line": 24,
         "path": "src/Forge.Application/Areas/AreaPerformanceAnalyzer.cs"
       },
@@ -29826,6 +30330,15 @@
       "kind": "defined_in",
       "source": "type:Forge.Application.Areas.AreaPerformanceReport",
       "target": "file:src/Forge.Application/Areas/AreaPerformanceAnalyzer.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.AreaResizeAnchor",
+      "target": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs"
     },
     {
       "evidence": {
@@ -31584,7 +32097,7 @@
     },
     {
       "evidence": {
-        "line": 4940,
+        "line": 4955,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -31620,7 +32133,7 @@
     },
     {
       "evidence": {
-        "line": 4945,
+        "line": 4960,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -31629,7 +32142,7 @@
     },
     {
       "evidence": {
-        "line": 4950,
+        "line": 4965,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -32214,8 +32727,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:a948fd8a27c10fa29cbd313de497266ddb6ee66af0f090f0148ca672a0306084",
-    "source_file_count": 743
+    "source_digest": "sha256:826a33996d3a66d8790681cb2c8d887826e50c768051403bed5cfaa590f000e2",
+    "source_file_count": 748
   },
   "nodes": [
     {
@@ -32587,6 +33100,16 @@
       },
       "name": "AreaDuplicationPreview",
       "path": "src/Forge.Application/Areas/AreaDuplicationPreview.cs"
+    },
+    {
+      "id": "component:Forge.Application.Areas.AreaResizePreview",
+      "kind": "component",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaResizePreview",
+      "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
     },
     {
       "id": "component:Forge.Application.Blueprints.BlueprintPaletteView",
@@ -34729,6 +35252,16 @@
       "path": "docs/aurora-parity/tasks/G7-23-AREA-PERFORMANCE.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-24-AREA-GEOMETRY-EDITING.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-24-AREA-GEOMETRY-EDITING.md",
+      "path": "docs/aurora-parity/tasks/G7-24-AREA-GEOMETRY-EDITING.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -34799,6 +35332,16 @@
       "path": "src/Forge.Application/Areas/AreaDuplicationPreview.cs"
     },
     {
+      "id": "file:src/Forge.Application/Areas/AreaGeometryPlanner.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaGeometryPlanner.cs",
+      "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Areas/AreaPerformanceAnalyzer.cs",
       "kind": "file",
       "line": 1,
@@ -34857,6 +35400,26 @@
       },
       "name": "DuplicateAreaHandler.cs",
       "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/EditAreaGeometryCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditAreaGeometryCommand.cs",
+      "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/EditAreaGeometryHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditAreaGeometryHandler.cs",
+      "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Areas/SetAreaNavigationCommand.cs",
@@ -38049,6 +38612,16 @@
       "path": "src/Forge.Scripting/packages.lock.json"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaGeometryPlannerTests.cs",
+      "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Areas/AreaPerformanceAnalyzerTests.cs",
       "kind": "file",
       "line": 1,
@@ -40809,6 +41382,16 @@
       "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Areas.EditAreaGeometryHandler",
+      "kind": "handler",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "EditAreaGeometryHandler",
+      "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Areas.SetAreaNavigationHandler",
       "kind": "handler",
       "line": 9,
@@ -41057,6 +41640,16 @@
       },
       "name": "DuplicateAreaCommand",
       "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Areas.EditAreaGeometryCommand",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "EditAreaGeometryCommand",
+      "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
     },
     {
       "id": "model:Forge.Application.Areas.SetAreaNavigationCommand",
@@ -43182,6 +43775,16 @@
       "path": "src/Forge.Mcp/Scripts/ForgeScriptAgentService.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Areas.AreaGeometryPlannerTests",
+      "kind": "test",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Areas"
+      },
+      "name": "AreaGeometryPlannerTests",
+      "path": "tests/Forge.Application.Tests/Areas/AreaGeometryPlannerTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Areas.AreaPerformanceAnalyzerTests",
       "kind": "test",
       "line": 6,
@@ -44089,6 +44692,26 @@
       "path": "src/Forge.Application/Areas/AreaCloneMode.cs"
     },
     {
+      "id": "type:Forge.Application.Areas.AreaGeometryPlanner",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaGeometryPlanner",
+      "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+    },
+    {
+      "id": "type:Forge.Application.Areas.AreaGroupPart",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaGroupPart",
+      "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
+    },
+    {
       "id": "type:Forge.Application.Areas.AreaPerformanceAnalyzer",
       "kind": "type",
       "line": 24,
@@ -44117,6 +44740,16 @@
       },
       "name": "AreaPerformanceReport",
       "path": "src/Forge.Application/Areas/AreaPerformanceAnalyzer.cs"
+    },
+    {
+      "id": "type:Forge.Application.Areas.AreaResizeAnchor",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaResizeAnchor",
+      "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
     },
     {
       "id": "type:Forge.Application.Areas.EntityIdRemap",
@@ -46041,7 +46674,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4940,
+      "line": 4955,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -46081,7 +46714,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4945,
+      "line": 4960,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -46091,7 +46724,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4950,
+      "line": 4965,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

@@ -45,6 +45,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly PasteEntitiesHandler _pasteEntitiesHandler = new(new SystemClock());
     private readonly CreateAreaHandler _createAreaHandler = new(new SystemClock());
     private readonly DuplicateAreaHandler _duplicateAreaHandler = new(new SystemClock());
+    private readonly EditAreaGeometryHandler _editAreaGeometryHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
     private readonly ScaleEntitiesHandler _scaleEntitiesHandler = new(new SystemClock());
@@ -243,6 +244,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             CreateArea,
             UpsertPortal,
             DuplicateArea,
+            ResizeArea,
             OpenNavigationConfiguration,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
@@ -1478,6 +1480,19 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _clipboardSummary!.Text = $"Zone « {source.DisplayName} » copiée · {entityMap.Length} UUID remappé(s)";
         ActivateArea(destinationAreaId);
         return destinationAreaId;
+    }
+
+    private bool ResizeArea(AreaId areaId, AreaDimensions dimensions, AreaResizeAnchor anchor)
+    {
+        if (_history is null) return false;
+        var area = _history.State.Project.Areas.SingleOrDefault(candidate => candidate.Id == areaId);
+        if (area is null) return false;
+        var preview = AreaGeometryPlanner.Resize(area, dimensions, anchor);
+        var command = new EditAreaGeometryCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            areaId, dimensions, preview.Kept,
+            $"Resize area; remove {preview.Removed.Count} out-of-bounds entity(s).", DryRun: false);
+        return ApplyCommand(_editAreaGeometryHandler.Handle(_history.State, command),
+            $"Zone redimensionnée · {preview.Removed.Count} entité(s) hors limites retirée(s).", null);
     }
 
     private bool UpsertBlueprint(

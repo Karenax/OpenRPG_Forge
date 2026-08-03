@@ -24,6 +24,7 @@ public partial class AreaWorkspaceWindow : Window
     private Func<string, AreaKind, AreaDimensions, AreaTemplateKind, AreaId?>? _createArea;
     private Func<AreaId, PortalLink, bool>? _upsertPortal;
     private Func<AreaId, string, AreaCloneMode, ExternalPortalPolicy, AreaId?>? _duplicateArea;
+    private Func<AreaId, AreaDimensions, AreaResizeAnchor, bool>? _resizeArea;
     private Action? _openNavigation;
     private Action<Window>? _brandWindow;
 
@@ -50,6 +51,9 @@ public partial class AreaWorkspaceWindow : Window
     private Button? _applyCloneButton;
     private AreaId? _selectedAreaId;
     private AreaId? _cloneSourceAreaId;
+    private SpinBox? _resizeWidth;
+    private SpinBox? _resizeDepth;
+    private OptionButton? _resizeAnchor;
 
     public int AreaCount => _visibleAreaIds.Count;
 
@@ -62,6 +66,7 @@ public partial class AreaWorkspaceWindow : Window
         Func<string, AreaKind, AreaDimensions, AreaTemplateKind, AreaId?> createArea,
         Func<AreaId, PortalLink, bool> upsertPortal,
         Func<AreaId, string, AreaCloneMode, ExternalPortalPolicy, AreaId?> duplicateArea,
+        Func<AreaId, AreaDimensions, AreaResizeAnchor, bool> resizeArea,
         Action openNavigation,
         Action<Window> brandWindow)
     {
@@ -71,6 +76,7 @@ public partial class AreaWorkspaceWindow : Window
         _createArea = createArea ?? throw new ArgumentNullException(nameof(createArea));
         _upsertPortal = upsertPortal ?? throw new ArgumentNullException(nameof(upsertPortal));
         _duplicateArea = duplicateArea ?? throw new ArgumentNullException(nameof(duplicateArea));
+        _resizeArea = resizeArea ?? throw new ArgumentNullException(nameof(resizeArea));
         _openNavigation = openNavigation ?? throw new ArgumentNullException(nameof(openNavigation));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
 
@@ -265,6 +271,11 @@ public partial class AreaWorkspaceWindow : Window
         _activeAreaSummary = new Label { Text = "Aucune zone active", AutowrapMode = TextServer.AutowrapMode.WordSmart };
         _activeAreaSummary.AddThemeColorOverride("font_color", new Color("ffb07c"));
         transitions.AddChild(_activeAreaSummary);
+        var resizeRow = new HBoxContainer(); transitions.AddChild(resizeRow);
+        _resizeWidth = DimensionSpinBox(); _resizeDepth = DimensionSpinBox();
+        _resizeAnchor = new OptionButton(); foreach (var anchor in Enum.GetValues<AreaResizeAnchor>()) _resizeAnchor.AddItem(anchor.ToString());
+        resizeRow.AddChild(_resizeWidth); resizeRow.AddChild(_resizeDepth); resizeRow.AddChild(_resizeAnchor);
+        var resizeButton = new Button { Text = "Prévisualiser & redimensionner" }; resizeButton.Pressed += ResizeActiveArea; transitions.AddChild(resizeButton);
         transitions.AddChild(new Label { Text = "Point d’ancrage source" });
         _sourceEntity = new OptionButton();
         transitions.AddChild(_sourceEntity);
@@ -320,6 +331,17 @@ public partial class AreaWorkspaceWindow : Window
         CloseRequested += Hide;
         _areaList!.ItemSelected += SelectArea;
         _destinationArea!.ItemSelected += _ => RefreshDestinationEntities();
+    }
+
+    private void ResizeActiveArea()
+    {
+        var areaId = _getActiveAreaId?.Invoke();
+        if (areaId is null) return;
+        var dimensions = new AreaDimensions((int)_resizeWidth!.Value, (int)_resizeDepth!.Value);
+        var anchor = (AreaResizeAnchor)_resizeAnchor!.Selected;
+        _status!.Text = _resizeArea?.Invoke(areaId, dimensions, anchor) == true
+            ? "✓ Zone redimensionnée par une transaction atomique" : "✕ Redimensionnement refusé";
+        Refresh(areaId);
     }
 
     private void SelectArea(long index)
@@ -509,6 +531,8 @@ public partial class AreaWorkspaceWindow : Window
 
         _activeAreaSummary!.Text =
             $"{activeArea.DisplayName} · {FormatKind(activeArea.Kind)} · document v{activeArea.SchemaVersion}";
+        _resizeWidth!.Value = activeArea.Dimensions.Width;
+        _resizeDepth!.Value = activeArea.Dimensions.Depth;
         foreach (var entity in activeArea.Entities)
         {
             _sourceEntityIds.Add(entity.Id);
