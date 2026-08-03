@@ -110,6 +110,8 @@ G8 CREATURE-01 livre la frontière `Forge.RpgKit.Domain`, les créatures composa
 déplacements et l'événement de spawn autoritaire. La prochaine tranche est **CREATURE-02**.
 G8 CREATURE-02 livre assistant transactionnel, rôle/menace, dégâts, mort et validation structurée.
 La prochaine tranche est **CREATURE-03**.
+G8 CREATURE-03 livre espèce, visuel, animations, état initial et attributs inspectables.
+La prochaine tranche est **CREATURE-04**.
 
 ## Phase 6 — 3D assistée
 

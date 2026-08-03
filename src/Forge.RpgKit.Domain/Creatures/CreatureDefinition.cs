@@ -6,6 +6,8 @@ namespace Forge.RpgKit.Domain.Creatures;
 public enum CreatureMovementMode { Grounded, Flying, Swimming, Climbing, Vehicle, ZeroG }
 public enum CreatureSpawnAuthority { Local, Host, Server }
 public enum EncounterRole { Minion, Skirmisher, Defender, Controller, Support, Boss, NonCombatant }
+public enum CreatureInitialLifeState { Alive, Unconscious, Dead, Sleeping, Seated, Frozen }
+public enum AttributeFormulaOperation { Sum, Product, Ratio }
 
 public sealed record LocalizedCreatureText(string DefaultText, IReadOnlyDictionary<string, string> Translations);
 
@@ -33,6 +35,15 @@ public sealed record CreatureScriptBindings(
     string? OnSpawn,
     IReadOnlyDictionary<string, string> Events);
 
+public sealed record TraitSet(string Id, IReadOnlySet<string> Traits);
+public sealed record SpeciesDefinition(string Id, IReadOnlyList<string> ParentSpeciesIds, IReadOnlyList<TraitSet> TraitSets, IReadOnlyList<string> Variants, string RequiredSkeletonId);
+public sealed record CreatureVisualProfile(string ArchetypeId, string MeshId, string RigId, IReadOnlyDictionary<string, double> Morphs, IReadOnlyDictionary<string, string> BodySlots, IReadOnlyList<string> Materials, IReadOnlyList<string> Palettes, IReadOnlyList<string> Attachments, string PresetId);
+public sealed record AnimationGraphProfile(string Id, IReadOnlyList<string> LocomotionStates, IReadOnlyList<string> CombatStances, IReadOnlyList<string> Emotes, IReadOnlyList<string> AdditiveLayers, string RetargetProfileId);
+public sealed record CreatureInitialState(CreatureInitialLifeState LifeState, string? AnimationLoop, string? PoseId, bool Invisible);
+public sealed record AttributeModifier(string Source, double Value);
+public sealed record DerivedAttributeFormula(string AttributeId, AttributeFormulaOperation Operation, IReadOnlyList<string> Dependencies, double Constant);
+public sealed record AttributeSet(IReadOnlyDictionary<string, double> BaseValues, IReadOnlyDictionary<string, IReadOnlyList<AttributeModifier>> Modifiers, IReadOnlyList<DerivedAttributeFormula> Derived);
+
 public sealed record CreatureAuthoringProfile(
     string ArchetypeId,
     string RulesetId,
@@ -58,7 +69,12 @@ public sealed record CreatureDefinition(
     string CombatProfileId,
     string? DialogueId,
     string InventoryProfileId,
-    CreatureScriptBindings Scripts);
+    CreatureScriptBindings Scripts,
+    SpeciesDefinition? Species = null,
+    CreatureVisualProfile? Visual = null,
+    AnimationGraphProfile? Animations = null,
+    CreatureInitialState? InitialState = null,
+    AttributeSet? Attributes = null);
 
 public sealed record CreatureSpawnContext(
     Guid SpawnId,

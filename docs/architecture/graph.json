@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 127,
+        "line": 129,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -10678,6 +10678,33 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureFactoryTests.cs"
       },
       "kind": "imports",
@@ -18237,7 +18264,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 57,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -18246,7 +18273,7 @@
     },
     {
       "evidence": {
-        "line": 50,
+        "line": 61,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "relationship",
@@ -18255,7 +18282,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 70,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "relationship",
@@ -18264,7 +18291,7 @@
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 64,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "relationship",
@@ -18273,7 +18300,7 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 62,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "relationship",
@@ -18282,7 +18309,25 @@
     },
     {
       "evidence": {
-        "line": 12,
+        "line": 76,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Creatures.CreatureDefinition",
+      "target": "model:Forge.RpgKit.Domain.Creatures.CreatureInitialState"
+    },
+    {
+      "evidence": {
+        "line": 73,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Creatures.CreatureDefinition",
+      "target": "model:Forge.RpgKit.Domain.Creatures.SpeciesDefinition"
+    },
+    {
+      "evidence": {
+        "line": 14,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -18291,11 +18336,47 @@
     },
     {
       "evidence": {
-        "line": 81,
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Creatures.CreatureInitialLifeState",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Creatures.CreatureInitialState",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Creatures.CreatureInitialState",
+      "target": "model:Forge.RpgKit.Domain.Creatures.CreatureInitialLifeState"
+    },
+    {
+      "evidence": {
+        "line": 97,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
       "source": "model:Forge.RpgKit.Domain.Creatures.CreatureValidationDiagnostic",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Creatures.SpeciesDefinition",
       "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
@@ -22197,6 +22278,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Creatures",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
@@ -22221,6 +22311,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCombatAndAuthoringTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
     },
     {
       "evidence": {
@@ -23355,6 +23454,42 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Creatures.CreatureCombatService",
       "target": "model:Forge.RpgKit.Domain.Creatures.CreatureDefinition"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureCompositionService",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureCompositionService",
+      "target": "model:Forge.RpgKit.Domain.Creatures.CreatureDefinition"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureCompositionService",
+      "target": "model:Forge.RpgKit.Domain.Creatures.CreatureInitialLifeState"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureCompositionService",
+      "target": "model:Forge.RpgKit.Domain.Creatures.CreatureValidationDiagnostic"
     },
     {
       "evidence": {
@@ -32683,6 +32818,96 @@
     {
       "evidence": {
         "line": 7,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Creatures.CreatureDefinition"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Creatures.CreatureInitialLifeState"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Creatures.CreatureCompositionService"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.AttributeFormulaOperation"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.AttributeModifier"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.CreatureMovementMode"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.EncounterRole"
+    },
+    {
+      "evidence": {
+        "line": 7,
         "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureFactoryTests.cs"
       },
       "kind": "defined_in",
@@ -35310,7 +35535,43 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 41,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AnimationGraphProfile",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AttributeFormulaOperation",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AttributeModifier",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AttributeSet",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 47,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -35337,7 +35598,7 @@
     },
     {
       "evidence": {
-        "line": 23,
+        "line": 25,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -35346,7 +35607,7 @@
     },
     {
       "evidence": {
-        "line": 32,
+        "line": 34,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -35364,7 +35625,7 @@
     },
     {
       "evidence": {
-        "line": 63,
+        "line": 79,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -35373,7 +35634,7 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 87,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -35382,7 +35643,7 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 98,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -35391,7 +35652,16 @@
     },
     {
       "evidence": {
-        "line": 79,
+        "line": 40,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.CreatureVisualProfile",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 95,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -35400,11 +35670,20 @@
     },
     {
       "evidence": {
-        "line": 78,
+        "line": 94,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Creatures.DamageRequest",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.DerivedAttributeFormula",
       "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
@@ -35418,7 +35697,7 @@
     },
     {
       "evidence": {
-        "line": 80,
+        "line": 96,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -35427,7 +35706,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 12,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -35436,11 +35715,20 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 23,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Creatures.ResourcePool",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.TraitSet",
       "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
@@ -36300,8 +36588,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:814f95eff9806466ca52d976f068f4cb44a474eb9b0c35d6dabb78e138cf3eb0",
-    "source_file_count": 806
+    "source_digest": "sha256:77119e434729aa570b87a21840840058b32f47a8c9b616431a7d1c1d39d5333e",
+    "source_file_count": 809
   },
   "nodes": [
     {
@@ -39003,6 +39291,16 @@
       },
       "name": "G8-CREATURE-02-AUTHORING-COMBAT.md",
       "path": "docs/aurora-parity/tasks/G8-CREATURE-02-AUTHORING-COMBAT.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-CREATURE-03-COMPOSITION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-CREATURE-03-COMPOSITION.md",
+      "path": "docs/aurora-parity/tasks/G8-CREATURE-03-COMPOSITION.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -42445,6 +42743,16 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCombatService.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureCompositionService.cs",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs",
       "kind": "file",
       "line": 1,
@@ -43593,6 +43901,16 @@
       },
       "name": "CreatureCombatAndAuthoringTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCombatAndAuthoringTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureCompositionServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureFactoryTests.cs",
@@ -47467,7 +47785,7 @@
     {
       "id": "model:Forge.RpgKit.Domain.Creatures.CreatureDefinition",
       "kind": "model",
-      "line": 46,
+      "line": 57,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -47477,7 +47795,7 @@
     {
       "id": "model:Forge.RpgKit.Domain.Creatures.CreatureIdentity",
       "kind": "model",
-      "line": 12,
+      "line": 14,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -47485,13 +47803,43 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Creatures.CreatureInitialLifeState",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "CreatureInitialLifeState",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Creatures.CreatureInitialState",
+      "kind": "model",
+      "line": 42,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "CreatureInitialState",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Creatures.CreatureValidationDiagnostic",
       "kind": "model",
-      "line": 81,
+      "line": 97,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
       "name": "CreatureValidationDiagnostic",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Creatures.SpeciesDefinition",
+      "kind": "model",
+      "line": 39,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "SpeciesDefinition",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
@@ -48297,6 +48645,16 @@
       },
       "name": "CreatureCombatService",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCombatService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Domain.Creatures.CreatureCompositionService",
+      "kind": "service",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "CreatureCompositionService",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
@@ -49237,6 +49595,16 @@
       },
       "name": "CreatureCombatAndAuthoringTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCombatAndAuthoringTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureCompositionServiceTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Creatures"
+      },
+      "name": "CreatureCompositionServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCompositionServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureFactoryTests",
@@ -51856,9 +52224,49 @@
       "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringService.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AnimationGraphProfile",
+      "kind": "type",
+      "line": 41,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AnimationGraphProfile",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AttributeFormulaOperation",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AttributeFormulaOperation",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AttributeModifier",
+      "kind": "type",
+      "line": 43,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AttributeModifier",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AttributeSet",
+      "kind": "type",
+      "line": 45,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AttributeSet",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Creatures.CreatureAuthoringProfile",
       "kind": "type",
-      "line": 36,
+      "line": 47,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -51888,7 +52296,7 @@
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.CreatureMovementProfile",
       "kind": "type",
-      "line": 23,
+      "line": 25,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -51898,7 +52306,7 @@
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.CreatureScriptBindings",
       "kind": "type",
-      "line": 32,
+      "line": 34,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -51918,7 +52326,7 @@
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.CreatureSpawnContext",
       "kind": "type",
-      "line": 63,
+      "line": 79,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -51928,7 +52336,7 @@
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.CreatureSpawned",
       "kind": "type",
-      "line": 71,
+      "line": 87,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -51938,7 +52346,7 @@
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.CreatureValidationContext",
       "kind": "type",
-      "line": 82,
+      "line": 98,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -51946,9 +52354,19 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Creatures.CreatureVisualProfile",
+      "kind": "type",
+      "line": 40,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "CreatureVisualProfile",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Creatures.DamageApplied",
       "kind": "type",
-      "line": 79,
+      "line": 95,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -51958,11 +52376,21 @@
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.DamageRequest",
       "kind": "type",
-      "line": 78,
+      "line": 94,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
       "name": "DamageRequest",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.DerivedAttributeFormula",
+      "kind": "type",
+      "line": 44,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "DerivedAttributeFormula",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
@@ -51978,7 +52406,7 @@
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.EntityDied",
       "kind": "type",
-      "line": 80,
+      "line": 96,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -51988,7 +52416,7 @@
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.LocalizedCreatureText",
       "kind": "type",
-      "line": 10,
+      "line": 12,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
@@ -51998,11 +52426,21 @@
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.ResourcePool",
       "kind": "type",
-      "line": 21,
+      "line": 23,
       "metadata": {
         "namespace": "Forge.RpgKit.Domain.Creatures"
       },
       "name": "ResourcePool",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.TraitSet",
+      "kind": "type",
+      "line": 38,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "TraitSet",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
