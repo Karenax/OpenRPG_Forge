@@ -1417,7 +1417,7 @@ Le résumé doit contenir :
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
-> Réalise **G8 CREATURE-04** pour `ORF-CRE-015`, `021`, `022`, `025` et `026` : défenses, capacités, inventaire, faction et perception.
+> Réalise **G8 CREATURE-05** pour `ORF-CRE-028`, `031`, `034`, `035` et `037` : dialogues, protections et événements d'interaction.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.

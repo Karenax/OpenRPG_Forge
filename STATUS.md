@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 CREATURE-04** pour `ORF-CRE-015`, `021`, `022`, `025` et `026` : défenses, capacités, inventaire, faction et perception.
+Exécuter **G8 CREATURE-05** pour `ORF-CRE-028`, `031`, `034`, `035` et `037` : dialogues, protections et événements d'interaction.

@@ -112,6 +112,8 @@ G8 CREATURE-02 livre assistant transactionnel, rôle/menace, dégâts, mort et v
 La prochaine tranche est **CREATURE-03**.
 G8 CREATURE-03 livre espèce, visuel, animations, état initial et attributs inspectables.
 La prochaine tranche est **CREATURE-04**.
+G8 CREATURE-04 livre défenses, capacités, inventaire, factions et perception multisensorielle.
+La prochaine tranche est **CREATURE-05**.
 
 ## Phase 6 — 3D assistée
 
