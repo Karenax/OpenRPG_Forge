@@ -3,6 +3,7 @@ namespace Forge.Domain.Areas;
 public enum AreaEnvironmentClass { Interior, Exterior, Natural, Artificial, Underground }
 public enum DayNightMode { Clock, AlwaysDay, AlwaysNight }
 public enum FogMode { Disabled, Distance, Volumetric }
+public enum AudioOrderMode { Sequential, DeterministicRandom }
 
 public sealed record AreaLightingProfile
 {
@@ -47,13 +48,24 @@ public sealed record AreaAudioProfile
     public string Ambience { get; }
     public string ReverbPreset { get; }
     public float TransitionSeconds { get; }
-    public AreaAudioProfile(string dayMusic, string nightMusic, string combatMusic, string ambience, string reverbPreset, float transitionSeconds)
+    public IReadOnlyList<string> Playlist { get; }
+    public AudioOrderMode OrderMode { get; }
+    public float IntervalSeconds { get; }
+    public float IntervalVariationSeconds { get; }
+    public float RelativeVolume { get; }
+    public AreaAudioProfile(string dayMusic, string nightMusic, string combatMusic, string ambience, string reverbPreset,
+        float transitionSeconds, IReadOnlyList<string>? playlist = null, AudioOrderMode orderMode = AudioOrderMode.Sequential,
+        float intervalSeconds = 0, float intervalVariationSeconds = 0, float relativeVolume = 1)
     {
         ArgumentNullException.ThrowIfNull(dayMusic); ArgumentNullException.ThrowIfNull(nightMusic);
         ArgumentNullException.ThrowIfNull(combatMusic); ArgumentNullException.ThrowIfNull(ambience); ArgumentException.ThrowIfNullOrWhiteSpace(reverbPreset);
-        if (!float.IsFinite(transitionSeconds) || transitionSeconds < 0) throw new ArgumentOutOfRangeException(nameof(transitionSeconds));
+        if (!float.IsFinite(transitionSeconds) || transitionSeconds < 0 || intervalSeconds < 0 ||
+            intervalVariationSeconds < 0 || relativeVolume is < 0 or > 4) throw new ArgumentOutOfRangeException(nameof(transitionSeconds));
         DayMusic = dayMusic.Trim(); NightMusic = nightMusic.Trim(); CombatMusic = combatMusic.Trim(); Ambience = ambience.Trim();
         ReverbPreset = reverbPreset.Trim(); TransitionSeconds = transitionSeconds;
+        Playlist = (playlist ?? []).Where(item => !string.IsNullOrWhiteSpace(item)).Select(item => item.Trim()).Distinct(StringComparer.Ordinal).ToArray();
+        OrderMode = orderMode; IntervalSeconds = intervalSeconds; IntervalVariationSeconds = intervalVariationSeconds;
+        RelativeVolume = relativeVolume;
     }
 }
 

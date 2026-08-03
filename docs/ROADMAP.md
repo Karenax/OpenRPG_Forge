@@ -92,9 +92,10 @@ G7-23 livre l'analyse de performance par zone : budget d'assets, secteurs d'occl
 G7-24 livre groupes, remplacement, auto-ajustement déterministe, propriétés locales et redimensionnement atomique.
 G7-25 livre classification, cycle, éclairage, brouillard et audio adaptatif par zone.
 G7-26 livre événements namespacés, minimap/fog multi-étages et calques d'édition imbriqués.
+G7-27 livre playlists audio, ordre déterministe, intervalles variables et volume relatif.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-27 — audio spatial**.
+La prochaine tranche est **G7-28 — spatialisation et mixage audio**.
 
 ## Phase 6 — 3D assistée
 
