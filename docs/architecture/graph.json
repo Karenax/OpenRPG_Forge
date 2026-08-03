@@ -804,6 +804,15 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.RpgKit.Domain.Merchants.StoreWizardPreview",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
       },
@@ -3018,7 +3027,7 @@
     },
     {
       "evidence": {
-        "line": 171,
+        "line": 173,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -11299,6 +11308,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Merchants"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
       },
       "kind": "imports",
@@ -19524,6 +19542,114 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Merchants.MerchantDiagnostic",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Merchants.StockEntry",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Merchants.StoreDefinition",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Merchants.StoreDefinition",
+      "target": "model:Forge.RpgKit.Domain.Merchants.StockEntry"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Merchants.TradeKind",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Merchants.TradePartyState",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Merchants.TradeResult",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Merchants.TradeResult",
+      "target": "model:Forge.RpgKit.Domain.Merchants.MerchantDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Merchants.TradeResult",
+      "target": "model:Forge.RpgKit.Domain.Merchants.TradeState"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Merchants.TradeState",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Merchants.TradeState",
+      "target": "model:Forge.RpgKit.Domain.Merchants.StoreDefinition"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Merchants.TradeState",
+      "target": "model:Forge.RpgKit.Domain.Merchants.TradePartyState"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
       },
@@ -23917,6 +24043,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Merchants",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Merchants",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
       },
       "kind": "defined_in",
@@ -24111,6 +24255,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Items",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Items/ItemInventoryServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Merchants",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
     },
     {
       "evidence": {
@@ -25794,6 +25947,78 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Factions.FactionReputationService",
       "target": "model:Forge.RpgKit.Domain.Factions.ReputationState"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Merchants.MerchantService",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Merchants.MerchantService",
+      "target": "model:Forge.Domain.Dialogues.DialogueChoiceId"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Merchants.MerchantService",
+      "target": "model:Forge.RpgKit.Domain.Merchants.MerchantDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Merchants.MerchantService",
+      "target": "model:Forge.RpgKit.Domain.Merchants.StockEntry"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Merchants.MerchantService",
+      "target": "model:Forge.RpgKit.Domain.Merchants.StoreDefinition"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Merchants.MerchantService",
+      "target": "model:Forge.RpgKit.Domain.Merchants.TradePartyState"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Merchants.MerchantService",
+      "target": "model:Forge.RpgKit.Domain.Merchants.TradeResult"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Merchants.MerchantService",
+      "target": "model:Forge.RpgKit.Domain.Merchants.TradeState"
     },
     {
       "evidence": {
@@ -36750,6 +36975,87 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Merchants.MerchantServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Merchants.MerchantServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Merchants.StoreDefinition"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Merchants.MerchantServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Merchants.TradeKind"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Merchants.MerchantServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Merchants.TradeState"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Merchants.MerchantServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Merchants.MerchantService"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Merchants.MerchantServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Merchants.MerchantValidationContext"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Merchants.MerchantServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Merchants.StoreWizardRequest"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Merchants.MerchantServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Merchants.SupplyPolicy"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Merchants.MerchantServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Merchants.TradeRequest"
+    },
+    {
+      "evidence": {
         "line": 44,
         "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs"
       },
@@ -40791,6 +41097,69 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Merchants.CurrencyAmount",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Merchants.MerchantValidationContext",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Merchants.StoreWizardRequest",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Merchants.SupplyPolicy",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Merchants.TradeLine",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Merchants.TradeRequest",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Merchants.VendorBinding",
+      "target": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs"
       },
@@ -41970,8 +42339,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:c92001855b5f55a60ed533edd920bfb05125b093adde3fc038e2d8f2185258e1",
-    "source_file_count": 878
+    "source_digest": "sha256:3cedc8e221b2bde324d476823a970bb7a021eb16f5930f4da3aab79c996f5321",
+    "source_file_count": 882
   },
   "nodes": [
     {
@@ -42443,6 +42812,16 @@
       },
       "name": "LootPreview",
       "path": "src/Forge.RpgKit.Domain/Items/ItemGameplayService.cs"
+    },
+    {
+      "id": "component:Forge.RpgKit.Domain.Merchants.StoreWizardPreview",
+      "kind": "component",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "StoreWizardPreview",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
     },
     {
       "id": "component:Forge.RpgKit.Domain.Placeables.ContainerComponent",
@@ -44953,6 +45332,16 @@
       },
       "name": "G8-ITEM-04-INSPECTOR-EVENTS.md",
       "path": "docs/aurora-parity/tasks/G8-ITEM-04-INSPECTOR-EVENTS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-MERCHANT-01-FOUNDATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-MERCHANT-01-FOUNDATION.md",
+      "path": "docs/aurora-parity/tasks/G8-MERCHANT-01-FOUNDATION.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G8-PLACEABLE-01-FOUNDATION.md",
@@ -48705,6 +49094,26 @@
       "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "MerchantModels.cs",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "file:src/Forge.RpgKit.Domain/Merchants/MerchantService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "MerchantService.cs",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableEventService.cs",
       "kind": "file",
       "line": 1,
@@ -50063,6 +50472,16 @@
       },
       "name": "ItemInventoryServiceTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemInventoryServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "MerchantServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableEventServiceTests.cs",
@@ -54505,6 +54924,76 @@
       "path": "src/Forge.RpgKit.Domain/Items/ItemGameplayService.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Merchants.MerchantDiagnostic",
+      "kind": "model",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "MerchantDiagnostic",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Merchants.StockEntry",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "StockEntry",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Merchants.StoreDefinition",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "StoreDefinition",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Merchants.TradeKind",
+      "kind": "model",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "TradeKind",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Merchants.TradePartyState",
+      "kind": "model",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "TradePartyState",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Merchants.TradeResult",
+      "kind": "model",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "TradeResult",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Merchants.TradeState",
+      "kind": "model",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "TradeState",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Placeables.AttachmentResult",
       "kind": "model",
       "line": 9,
@@ -55386,6 +55875,11 @@
       "name": "Forge.RpgKit.Domain.Items"
     },
     {
+      "id": "namespace:Forge.RpgKit.Domain.Merchants",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Merchants"
+    },
+    {
       "id": "namespace:Forge.RpgKit.Domain.Placeables",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Placeables"
@@ -55414,6 +55908,11 @@
       "id": "namespace:Forge.RpgKit.Domain.Tests.Items",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Tests.Items"
+    },
+    {
+      "id": "namespace:Forge.RpgKit.Domain.Tests.Merchants",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Tests.Merchants"
     },
     {
       "id": "namespace:Forge.RpgKit.Domain.Tests.Placeables",
@@ -55772,6 +56271,16 @@
       },
       "name": "FactionReputationService",
       "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Domain.Merchants.MerchantService",
+      "kind": "service",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "MerchantService",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantService.cs"
     },
     {
       "id": "service:Forge.RpgKit.Domain.Placeables.PlaceableEventService",
@@ -56942,6 +57451,16 @@
       },
       "name": "ItemInventoryServiceTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Items/ItemInventoryServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Merchants.MerchantServiceTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Merchants"
+      },
+      "name": "MerchantServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Merchants/MerchantServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableEventServiceTests",
@@ -60789,6 +61308,76 @@
       },
       "name": "UsageResource",
       "path": "src/Forge.RpgKit.Domain/Items/ItemInventoryService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Merchants.CurrencyAmount",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "CurrencyAmount",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Merchants.MerchantValidationContext",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "MerchantValidationContext",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Merchants.StoreWizardRequest",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "StoreWizardRequest",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Merchants.SupplyPolicy",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "SupplyPolicy",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Merchants.TradeLine",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "TradeLine",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Merchants.TradeRequest",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "TradeRequest",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Merchants.VendorBinding",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Merchants"
+      },
+      "name": "VendorBinding",
+      "path": "src/Forge.RpgKit.Domain/Merchants/MerchantModels.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Placeables.AttachmentSocket",

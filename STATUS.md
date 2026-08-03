@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 MERCHANT-01** pour `ORF-MER-012`, `019`, `001`, `002` et `003` : transaction, boutique et stock.
+Exécuter **G8 MERCHANT-02** pour `ORF-MER-004`, `008`, `009`, `011` et `017` : prix, restrictions, sessions et interface.

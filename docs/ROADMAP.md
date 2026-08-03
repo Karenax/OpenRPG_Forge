@@ -154,6 +154,8 @@ G8 ENCOUNTER-02 livre composition selon le groupe, bornes et budgets, politiques
 manuelles et filtre d'activation réseau. La prochaine tranche est **ENCOUNTER-03**.
 G8 ENCOUNTER-03 livre événements de cycle, phases, vagues et simulation statistique reproductible.
 La famille Encounter sélectionnée pour G8 est complète ; la prochaine tranche est **MERCHANT-01**.
+G8 MERCHANT-01 livre magasin indépendant, assistant, stock validé et transactions atomiques avec
+rollback exact. La prochaine tranche est **MERCHANT-02**.
 
 ## Phase 6 — 3D assistée
 
