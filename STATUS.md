@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-34 — notes et routes de waypoint** pour `ORF-WPT-002`, `003`, `004`, `007` et `008`.
+Ouvrir **G7-35 — orientation, ancres, groupes et visualisation de routes** pour `ORF-WPT-009`, `014`, `015` et `016`.

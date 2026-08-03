@@ -2928,7 +2928,7 @@
     },
     {
       "evidence": {
-        "line": 103,
+        "line": 104,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 119,
+        "line": 120,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -5404,6 +5404,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Navigation/WaypointRouteService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Navigation/WaypointRouteService.cs",
+      "target": "namespace:Forge.Domain.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Projects/NewModuleCommand.cs"
       },
       "kind": "imports",
@@ -6137,6 +6146,15 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Domain/Navigation/OffMeshNavigationLink.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs",
       "target": "namespace:Forge.Domain.Spatial"
     },
     {
@@ -8829,6 +8847,33 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs",
+      "target": "namespace:Forge.Application.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs",
+      "target": "namespace:Forge.Domain.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -19074,6 +19119,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Navigation/WaypointRouteService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Navigation",
+      "target": "file:src/Forge.Application/Navigation/WaypointRouteService.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Projects/NewModuleCommand.cs"
       },
@@ -19512,6 +19566,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Localization",
       "target": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Navigation",
+      "target": "file:tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
     },
     {
       "evidence": {
@@ -20646,6 +20709,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Navigation",
       "target": "file:src/Forge.Domain/Navigation/OffMeshNavigationLinkId.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs"
     },
     {
       "evidence": {
@@ -22599,6 +22671,15 @@
       "kind": "imports",
       "source": "project:tools/Forge.Cli/Forge.Cli",
       "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Navigation/WaypointRouteService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Application.Navigation.WaypointRouteService",
+      "target": "file:src/Forge.Application/Navigation/WaypointRouteService.cs"
     },
     {
       "evidence": {
@@ -26856,6 +26937,96 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
       "target": "type:Forge.Domain.Modules.ProjectMetadata"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "file:tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "service:Forge.Application.Navigation.WaypointRouteService"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "type:Forge.Domain.Navigation.MapMarker"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "type:Forge.Domain.Navigation.MarkerVisibilityPolicy"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "type:Forge.Domain.Navigation.MarkerVisibilityScope"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "type:Forge.Domain.Navigation.PatrolPoint"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "type:Forge.Domain.Navigation.PatrolRoute"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "type:Forge.Domain.Navigation.PatrolTraversalPolicy"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "type:Forge.Domain.Navigation.WaypointProfile"
     },
     {
       "evidence": {
@@ -33555,6 +33726,33 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.MapMarker",
+      "target": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.MarkerVisibilityPolicy",
+      "target": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.MarkerVisibilityScope",
+      "target": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Navigation/NavigationAgentProfile.cs"
       },
@@ -33669,6 +33867,60 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Navigation.OffMeshNavigationLink",
       "target": "file:src/Forge.Domain/Navigation/OffMeshNavigationLink.cs"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.PatrolCursor",
+      "target": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.PatrolPoint",
+      "target": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.PatrolRoute",
+      "target": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.PatrolTraversalPolicy",
+      "target": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.WaypointEditorAppearance",
+      "target": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.WaypointProfile",
+      "target": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs"
     },
     {
       "evidence": {
@@ -35148,8 +35400,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:2f7810f7e5c8182d8cbfd0e313a19549f2bba9c741161387a5a0a83377b96dc3",
-    "source_file_count": 785
+    "source_digest": "sha256:1db2c3142be4a0f8dce406d3af92c4141be02cc3bc39537f0a7c4f29c7d67d31",
+    "source_file_count": 789
   },
   "nodes": [
     {
@@ -37793,6 +38045,16 @@
       "path": "docs/aurora-parity/tasks/G7-33-CUSTOM-EVENTS-WORLD-CLOCK.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-34-WAYPOINT-MARKERS-ROUTES.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-34-WAYPOINT-MARKERS-ROUTES.md",
+      "path": "docs/aurora-parity/tasks/G7-34-WAYPOINT-MARKERS-ROUTES.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -38811,6 +39073,16 @@
       },
       "name": "SetLocalizationCatalogHandler.cs",
       "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Navigation/WaypointRouteService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WaypointRouteService.cs",
+      "path": "src/Forge.Application/Navigation/WaypointRouteService.cs"
     },
     {
       "id": "file:src/Forge.Application/Projects/NewModuleCommand.cs",
@@ -40191,6 +40463,16 @@
       },
       "name": "OffMeshNavigationLinkId.cs",
       "path": "src/Forge.Domain/Navigation/OffMeshNavigationLinkId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WaypointProfiles.cs",
+      "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
     },
     {
       "id": "file:src/Forge.Domain/Projects/ProjectDefinition.cs",
@@ -41661,6 +41943,16 @@
       },
       "name": "LocalizationWorkflowTests.cs",
       "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WaypointRouteServiceTests.cs",
+      "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Projects/NewModuleHandlerTests.cs",
@@ -46249,6 +46541,11 @@
       "name": "Forge.Application.Localization"
     },
     {
+      "id": "namespace:Forge.Application.Navigation",
+      "kind": "namespace",
+      "name": "Forge.Application.Navigation"
+    },
+    {
       "id": "namespace:Forge.Application.Projects",
       "kind": "namespace",
       "name": "Forge.Application.Projects"
@@ -46312,6 +46609,11 @@
       "id": "namespace:Forge.Application.Tests.Localization",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Localization"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Navigation",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Navigation"
     },
     {
       "id": "namespace:Forge.Application.Tests.Projects",
@@ -46781,6 +47083,16 @@
       "path": "tools/Forge.Cli/Forge.Cli.csproj"
     },
     {
+      "id": "service:Forge.Application.Navigation.WaypointRouteService",
+      "kind": "service",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Navigation"
+      },
+      "name": "WaypointRouteService",
+      "path": "src/Forge.Application/Navigation/WaypointRouteService.cs"
+    },
+    {
       "id": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "kind": "service",
       "line": 21,
@@ -47169,6 +47481,16 @@
       },
       "name": "LocalizationWorkflowTests",
       "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Navigation"
+      },
+      "name": "WaypointRouteServiceTests",
+      "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Projects.NewModuleHandlerTests",
@@ -49378,6 +49700,36 @@
       "path": "src/Forge.Domain/Navigation/AreaNavigationAnalysis.cs"
     },
     {
+      "id": "type:Forge.Domain.Navigation.MapMarker",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "MapMarker",
+      "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.MarkerVisibilityPolicy",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "MarkerVisibilityPolicy",
+      "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.MarkerVisibilityScope",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "MarkerVisibilityScope",
+      "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
       "id": "type:Forge.Domain.Navigation.NavigationAgentProfile",
       "kind": "type",
       "line": 3,
@@ -49506,6 +49858,66 @@
       },
       "name": "OffMeshNavigationLink",
       "path": "src/Forge.Domain/Navigation/OffMeshNavigationLink.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.PatrolCursor",
+      "kind": "type",
+      "line": 51,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "PatrolCursor",
+      "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.PatrolPoint",
+      "kind": "type",
+      "line": 25,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "PatrolPoint",
+      "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.PatrolRoute",
+      "kind": "type",
+      "line": 44,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "PatrolRoute",
+      "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.PatrolTraversalPolicy",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "PatrolTraversalPolicy",
+      "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.WaypointEditorAppearance",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "WaypointEditorAppearance",
+      "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.WaypointProfile",
+      "kind": "type",
+      "line": 35,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "WaypointProfile",
+      "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
     },
     {
       "id": "type:Forge.Domain.Quests.IQuestConditionEvaluator",
