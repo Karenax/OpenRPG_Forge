@@ -134,6 +134,8 @@ G8 PLACEABLE-01 livre blueprints composables, décors optimisés, interactions e
 précises. La prochaine tranche est **PLACEABLE-02**.
 G8 PLACEABLE-02 livre conteneurs, états visuels, dégâts, InteractionExecuted et validation croisée.
 La prochaine tranche est **PLACEABLE-03**.
+G8 PLACEABLE-03 livre protection narrative, locks, traps, loot persistant et événements de conteneur.
+La prochaine tranche est **PLACEABLE-04**.
 
 ## Phase 6 — 3D assistée
 
