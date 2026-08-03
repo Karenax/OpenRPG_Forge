@@ -114,6 +114,8 @@ G8 CREATURE-03 livre espèce, visuel, animations, état initial et attributs ins
 La prochaine tranche est **CREATURE-04**.
 G8 CREATURE-04 livre défenses, capacités, inventaire, factions et perception multisensorielle.
 La prochaine tranche est **CREATURE-05**.
+G8 CREATURE-05 livre dialogues contextuels, protections, perception différentielle et attaques typées.
+La prochaine tranche est **CREATURE-06**.
 
 ## Phase 6 — 3D assistée
 

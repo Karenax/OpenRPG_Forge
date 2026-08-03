@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 CREATURE-05** pour `ORF-CRE-028`, `031`, `034`, `035` et `037` : dialogues, protections et événements d'interaction.
+Exécuter **G8 CREATURE-06** pour `ORF-CRE-038`, `040` et `046` : capacités ciblées, blocage et contrôleurs IA.

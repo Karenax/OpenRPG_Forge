@@ -2937,7 +2937,7 @@
     },
     {
       "evidence": {
-        "line": 131,
+        "line": 133,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -7420,6 +7420,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Application.Tests/Areas/AreaAudioMixerTests.cs"
       },
       "kind": "imports",
@@ -10727,6 +10736,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureFactoryTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs",
       "target": "namespace:Forge.RpgKit.Domain.Creatures"
     },
     {
@@ -22413,6 +22440,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Creatures",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureRulesService.cs"
       },
@@ -22446,6 +22482,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureFactoryTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
     },
     {
       "evidence": {
@@ -23616,6 +23661,33 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Creatures.CreatureCompositionService",
       "target": "model:Forge.RpgKit.Domain.Creatures.CreatureValidationDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureInteractionService",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureInteractionService",
+      "target": "model:Forge.Domain.Dialogues.DialogueId"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Creatures.CreatureInteractionService",
+      "target": "model:Forge.RpgKit.Domain.Creatures.PerceptionResult"
     },
     {
       "evidence": {
@@ -33249,6 +33321,96 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "target": "model:Forge.Domain.Dialogues.DialogueId"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Creatures.PerceptionResult"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Creatures.SenseKind"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Creatures.CreatureInteractionService"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.AttackDeclared"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.AttackNetworkContext"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.CreatureDialogueBinding"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Creatures.CreatureProtectionPolicy"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs"
       },
@@ -35814,6 +35976,33 @@
     },
     {
       "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AttackDeclared",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AttackNetworkContext",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.AttackResolved",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
@@ -35847,6 +36036,15 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Creatures.CreatureAuthoringProfile",
       "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.CreatureDialogueBinding",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
     },
     {
       "evidence": {
@@ -35901,6 +36099,15 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Creatures.CreaturePerceptionProfile",
       "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.CreatureProtectionPolicy",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
     },
     {
       "evidence": {
@@ -35986,6 +36193,15 @@
     {
       "evidence": {
         "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.DialogueStarting",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
         "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
       },
       "kind": "defined_in",
@@ -36009,6 +36225,24 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Creatures.FactionMembership",
       "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.InteractionDecision",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.InteractionRequested",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
     },
     {
       "evidence": {
@@ -36054,6 +36288,24 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Creatures.Stimulus",
       "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.StimulusDetected",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Creatures.StimulusLost",
+      "target": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
     },
     {
       "evidence": {
@@ -36921,8 +37173,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:a679f1214e544b90c451c2bfb895e865e106bfe30bb543c105b0b740d5bca3e6",
-    "source_file_count": 812
+    "source_digest": "sha256:c792882d2f18676227ebbed7ff2f95b411075fca433874bc4cfad1facb251faf",
+    "source_file_count": 815
   },
   "nodes": [
     {
@@ -39644,6 +39896,16 @@
       },
       "name": "G8-CREATURE-04-RULES.md",
       "path": "docs/aurora-parity/tasks/G8-CREATURE-04-RULES.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-CREATURE-05-INTERACTIONS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-CREATURE-05-INTERACTIONS.md",
+      "path": "docs/aurora-parity/tasks/G8-CREATURE-05-INTERACTIONS.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -43116,6 +43378,16 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureFactory.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureInteractionService.cs",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Creatures/CreatureRulesService.cs",
       "kind": "file",
       "line": 1,
@@ -44274,6 +44546,16 @@
       },
       "name": "CreatureFactoryTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureFactoryTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureInteractionServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs",
@@ -49060,6 +49342,16 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureCompositionService.cs"
     },
     {
+      "id": "service:Forge.RpgKit.Domain.Creatures.CreatureInteractionService",
+      "kind": "service",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "CreatureInteractionService",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
       "id": "service:Forge.RpgKit.Domain.Creatures.CreatureRulesService",
       "kind": "service",
       "line": 3,
@@ -50038,6 +50330,16 @@
       },
       "name": "CreatureFactoryTestsDefinition",
       "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureCombatAndAuthoringTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureInteractionServiceTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Creatures"
+      },
+      "name": "CreatureInteractionServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureInteractionServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureRulesServiceTests",
@@ -52657,6 +52959,36 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AttackDeclared",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AttackDeclared",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AttackNetworkContext",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AttackNetworkContext",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.AttackResolved",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "AttackResolved",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Creatures.AttributeFormulaOperation",
       "kind": "type",
       "line": 10,
@@ -52695,6 +53027,16 @@
       },
       "name": "CreatureAuthoringProfile",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.CreatureDialogueBinding",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "CreatureDialogueBinding",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.CreatureFactionProfile",
@@ -52755,6 +53097,16 @@
       },
       "name": "CreaturePerceptionProfile",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.CreatureProtectionPolicy",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "CreatureProtectionPolicy",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.CreatureScriptBindings",
@@ -52847,6 +53199,16 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Creatures.DialogueStarting",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "DialogueStarting",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Creatures.EncounterRole",
       "kind": "type",
       "line": 8,
@@ -52875,6 +53237,26 @@
       },
       "name": "FactionMembership",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.InteractionDecision",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "InteractionDecision",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.InteractionRequested",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "InteractionRequested",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.InventoryContainer",
@@ -52925,6 +53307,26 @@
       },
       "name": "Stimulus",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.StimulusDetected",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "StimulusDetected",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Creatures.StimulusLost",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Creatures"
+      },
+      "name": "StimulusLost",
+      "path": "src/Forge.RpgKit.Domain/Creatures/CreatureInteractionService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Creatures.TraitSet",
