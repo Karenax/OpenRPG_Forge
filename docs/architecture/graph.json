@@ -777,6 +777,24 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.RpgKit.Domain.Placeables.ContainerComponent",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.RpgKit.Domain.Placeables.DamageableComponent",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
       },
@@ -2955,7 +2973,7 @@
     },
     {
       "evidence": {
-        "line": 149,
+        "line": 151,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -10947,6 +10965,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Placeables"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "third_party/godot-forest-demo/addons/debug_menu/debug_menu.tscn"
       },
@@ -18912,6 +18939,15 @@
     },
     {
       "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Placeables.PlaceableDamageResult",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
       },
@@ -18948,12 +18984,30 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Placeables.PlaceableStateResult",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
       },
       "kind": "defined_in",
       "source": "model:Forge.RpgKit.Domain.Placeables.PlaceableVisualDefinition",
       "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Placeables.PlaceableVisualState",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
     },
     {
       "evidence": {
@@ -22998,6 +23052,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Placeables",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
       },
@@ -23121,6 +23184,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Placeables",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Placeables",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
     },
     {
       "evidence": {
@@ -24480,6 +24552,51 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Factions.FactionReputationService",
       "target": "model:Forge.RpgKit.Domain.Factions.ReputationState"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableInteractionService",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableInteractionService",
+      "target": "model:Forge.RpgKit.Domain.Placeables.PlaceableDamageResult"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableInteractionService",
+      "target": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableInteractionService",
+      "target": "model:Forge.RpgKit.Domain.Placeables.PlaceableDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableInteractionService",
+      "target": "model:Forge.RpgKit.Domain.Placeables.PlaceableStateResult"
     },
     {
       "evidence": {
@@ -34554,6 +34671,51 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableInteractionServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableInteractionServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableInteractionServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Placeables.PlaceableInteractionService"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableInteractionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Placeables.InteractionExecuted"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableInteractionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Placeables.PlaceableRuntimeProfile"
+    },
+    {
+      "evidence": {
         "line": 67,
         "path": "tests/Forge.Scripting.Tests/ForgeScriptArtifactCacheTests.cs"
       },
@@ -37731,6 +37893,15 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.InteractionExecuted",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
       },
@@ -37764,6 +37935,33 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Placeables.PlaceableRules",
       "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.PlaceableRuntimeProfile",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.PlaceableStateMachine",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Placeables.PlaceableStateTransition",
+      "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
     },
     {
       "evidence": {
@@ -38649,8 +38847,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:6d905967fe5cb5923cc0181d0b599a57903208cebcc26516701847ca2b7294bc",
-    "source_file_count": 842
+    "source_digest": "sha256:b5af2b49005d198f9435ad03688f257d236ed5a875fab9668ed67bfa6d1a88ed",
+    "source_file_count": 845
   },
   "nodes": [
     {
@@ -39092,6 +39290,26 @@
       },
       "name": "LootPreview",
       "path": "src/Forge.RpgKit.Domain/Items/ItemGameplayService.cs"
+    },
+    {
+      "id": "component:Forge.RpgKit.Domain.Placeables.ContainerComponent",
+      "kind": "component",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "ContainerComponent",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "id": "component:Forge.RpgKit.Domain.Placeables.DamageableComponent",
+      "kind": "component",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "DamageableComponent",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
     },
     {
       "id": "component:Forge.RpgKit.Domain.Placeables.InteractableComponent",
@@ -41512,6 +41730,16 @@
       },
       "name": "G8-PLACEABLE-01-FOUNDATION.md",
       "path": "docs/aurora-parity/tasks/G8-PLACEABLE-01-FOUNDATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-PLACEABLE-02-RUNTIME.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-PLACEABLE-02-RUNTIME.md",
+      "path": "docs/aurora-parity/tasks/G8-PLACEABLE-02-RUNTIME.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -45114,6 +45342,16 @@
       "path": "src/Forge.RpgKit.Domain/Items/ItemModels.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlaceableInteractionService.cs",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs",
       "kind": "file",
       "line": 1,
@@ -46372,6 +46610,16 @@
       },
       "name": "PlaceableFoundationTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PlaceableInteractionServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/packages.lock.json",
@@ -50624,6 +50872,16 @@
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Placeables.PlaceableDamageResult",
+      "kind": "model",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableDamageResult",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Placeables.PlaceableDefinition",
       "kind": "model",
       "line": 12,
@@ -50644,6 +50902,16 @@
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Placeables.PlaceableStateResult",
+      "kind": "model",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableStateResult",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Placeables.PlaceableVisualDefinition",
       "kind": "model",
       "line": 5,
@@ -50652,6 +50920,16 @@
       },
       "name": "PlaceableVisualDefinition",
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Placeables.PlaceableVisualState",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableVisualState",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
     },
     {
       "id": "model:Forge.RpgKit.Domain.Placeables.Vector3Value",
@@ -51581,6 +51859,16 @@
       },
       "name": "FactionReputationService",
       "path": "src/Forge.RpgKit.Domain/Factions/FactionReputationService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Domain.Placeables.PlaceableInteractionService",
+      "kind": "service",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableInteractionService",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Areas.AreaAudioMixerTests",
@@ -52651,6 +52939,16 @@
       },
       "name": "PlaceableFoundationTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableFoundationTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableInteractionServiceTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Placeables"
+      },
+      "name": "PlaceableInteractionServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
     },
     {
       "id": "test:Forge.Scripting.Tests.CountingRuntime",
@@ -56030,6 +56328,16 @@
       "path": "src/Forge.RpgKit.Domain/Items/ItemInventoryService.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Placeables.InteractionExecuted",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "InteractionExecuted",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Placeables.InteractionVerb",
       "kind": "type",
       "line": 7,
@@ -56068,6 +56376,36 @@
       },
       "name": "PlaceableRules",
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.PlaceableRuntimeProfile",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableRuntimeProfile",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.PlaceableStateMachine",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableStateMachine",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Placeables.PlaceableStateTransition",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Placeables"
+      },
+      "name": "PlaceableStateTransition",
+      "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableInteractionService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Placeables.PlaceableTransform",

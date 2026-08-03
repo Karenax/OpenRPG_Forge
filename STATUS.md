@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 PLACEABLE-02** pour `ORF-PLC-018`, `027`, `004`, `007` et `008` : validation, inspecteur, états, collision et physique.
+Exécuter **G8 PLACEABLE-03** pour `ORF-PLC-009`, `012`, `014`, `015` et `016` : verrouillage, pièges, perception et interactions.

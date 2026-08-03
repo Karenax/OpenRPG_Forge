@@ -132,6 +132,8 @@ G8 ITEM-04 livre commandes d’inspecteur d’inventaire et cycle de vie complet
 complète ; la prochaine tranche est **PLACEABLE-01**.
 G8 PLACEABLE-01 livre blueprints composables, décors optimisés, interactions et transformations
 précises. La prochaine tranche est **PLACEABLE-02**.
+G8 PLACEABLE-02 livre conteneurs, états visuels, dégâts, InteractionExecuted et validation croisée.
+La prochaine tranche est **PLACEABLE-03**.
 
 ## Phase 6 — 3D assistée
 
