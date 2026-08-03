@@ -148,6 +148,8 @@ G8 TRIGGER-01 livre formes 2D/3D, édition, filtres, politiques de tir, portail 
 d’entrée/sortie. La prochaine tranche est **TRIGGER-02**.
 G8 TRIGGER-02 livre pièges, requêtes typées, dix volumes gameplay, debug runtime et validation.
 La famille Trigger G8 est complète ; la prochaine tranche est **ENCOUNTER-01**.
+G8 ENCOUNTER-01 livre volume d'activation, pool pondéré, difficulté data-driven, assistant en preview
+et validation localisée. La prochaine tranche est **ENCOUNTER-02**.
 
 ## Phase 6 — 3D assistée
 

@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 ENCOUNTER-01** pour `ORF-ENC-002`, `003`, `020`, `001` et `004` : fondation des rencontres et vagues.
+Exécuter **G8 ENCOUNTER-02** pour `ORF-ENC-005`, `006`, `007`, `009` et `011` : composition, cycle et points de spawn.
