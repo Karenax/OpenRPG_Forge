@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 TRIGGER-02** pour `ORF-TRG-020`, `004`, `011`, `017` et `019` : validation, pièges, multi-entités et debug.
+Exécuter **G8 ENCOUNTER-01** pour `ORF-ENC-002`, `003`, `020`, `001` et `004` : fondation des rencontres et vagues.

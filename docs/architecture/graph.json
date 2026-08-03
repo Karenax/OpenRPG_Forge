@@ -3009,7 +3009,7 @@
     },
     {
       "evidence": {
-        "line": 163,
+        "line": 165,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -7600,6 +7600,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Placeables"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.RpgKit.Domain/Triggers/TriggerModels.cs"
       },
       "kind": "imports",
@@ -11178,6 +11187,33 @@
       "kind": "imports",
       "source": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableSecurityServiceTests.cs",
       "target": "namespace:Forge.RpgKit.Domain.Placeables"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Doors"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Placeables"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Triggers"
     },
     {
       "evidence": {
@@ -19470,6 +19506,42 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Triggers.GameplayVolumeDefinition",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Triggers.GameplayVolumeDefinition",
+      "target": "model:Forge.RpgKit.Domain.Triggers.GameplayVolumeKind"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Triggers.GameplayVolumeKind",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Triggers.QueryableEntity",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "src/Forge.RpgKit.Domain/Triggers/TriggerModels.cs"
       },
@@ -23826,12 +23898,30 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Triggers",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerFoundationTests.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Triggers",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerFoundationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Triggers",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
     },
     {
       "evidence": {
@@ -25470,6 +25560,78 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableSecurityService",
       "target": "model:Forge.RpgKit.Domain.Placeables.TrapResult"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Triggers.TriggerAdvancedService",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Triggers.TriggerAdvancedService",
+      "target": "model:Forge.RpgKit.Domain.Placeables.TrapResult"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Triggers.TriggerAdvancedService",
+      "target": "model:Forge.RpgKit.Domain.Triggers.GameplayVolumeDefinition"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Triggers.TriggerAdvancedService",
+      "target": "model:Forge.RpgKit.Domain.Triggers.GameplayVolumeKind"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Triggers.TriggerAdvancedService",
+      "target": "model:Forge.RpgKit.Domain.Triggers.QueryableEntity"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Triggers.TriggerAdvancedService",
+      "target": "model:Forge.RpgKit.Domain.Triggers.TriggerDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Triggers.TriggerAdvancedService",
+      "target": "model:Forge.RpgKit.Domain.Triggers.TriggerRuntimeState"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Triggers.TriggerAdvancedService",
+      "target": "model:Forge.RpgKit.Domain.Triggers.TriggerShapeKind"
     },
     {
       "evidence": {
@@ -36093,6 +36255,132 @@
     },
     {
       "evidence": {
+        "line": 20,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "component:Forge.RpgKit.Domain.Placeables.TrapComponent"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Doors.PortalDestinationKind"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Triggers.GameplayVolumeKind"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Triggers.QueryableEntity"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Triggers.TriggerRuntimeState"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Triggers.TriggerShapeKind"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Triggers.TriggerAdvancedService"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Triggers.EntityQuery"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Triggers.TrapVolume"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Triggers.TriggerFirePolicy"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Triggers.TriggerValidationContext"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Triggers.TriggerVolume"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Triggers.VolumeEntered"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerFoundationTests.cs"
       },
@@ -39684,12 +39972,57 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Triggers.EntityQuery",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Triggers.GameplayVolumeEffect",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Triggers.TrapVolume",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.RpgKit.Domain/Triggers/TriggerModels.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Triggers.TriggerAction",
       "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Triggers.TriggerDebugOverlay",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Triggers.TriggerEventTrace",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
     },
     {
       "evidence": {
@@ -39726,6 +40059,15 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Triggers.TriggerShape",
       "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Triggers.TriggerValidationContext",
+      "target": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
     },
     {
       "evidence": {
@@ -40629,8 +40971,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:d8c70b1d8b0105a8635f85cdda623569d042c9b22d40c932bee7e380aa4eb740",
-    "source_file_count": 865
+    "source_digest": "sha256:5769f73c0fe1de655906c2dccc5bafa090a6a833ff8763245e281a0e21c99386",
+    "source_file_count": 868
   },
   "nodes": [
     {
@@ -43622,6 +43964,16 @@
       },
       "name": "G8-TRIGGER-01-FOUNDATION.md",
       "path": "docs/aurora-parity/tasks/G8-TRIGGER-01-FOUNDATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-TRIGGER-02-ADVANCED.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-TRIGGER-02-ADVANCED.md",
+      "path": "docs/aurora-parity/tasks/G8-TRIGGER-02-ADVANCED.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -47314,6 +47666,16 @@
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TriggerAdvancedService.cs",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Triggers/TriggerModels.cs",
       "kind": "file",
       "line": 1,
@@ -48632,6 +48994,16 @@
       },
       "name": "PlaceableSecurityServiceTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableSecurityServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TriggerAdvancedServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerFoundationTests.cs",
@@ -53144,6 +53516,36 @@
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Triggers.GameplayVolumeDefinition",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Triggers"
+      },
+      "name": "GameplayVolumeDefinition",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Triggers.GameplayVolumeKind",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Triggers"
+      },
+      "name": "GameplayVolumeKind",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Triggers.QueryableEntity",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Triggers"
+      },
+      "name": "QueryableEntity",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Triggers.TriggerDiagnostic",
       "kind": "model",
       "line": 12,
@@ -54221,6 +54623,16 @@
       },
       "name": "PlaceableSecurityService",
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Domain.Triggers.TriggerAdvancedService",
+      "kind": "service",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Triggers"
+      },
+      "name": "TriggerAdvancedService",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
     },
     {
       "id": "service:Forge.RpgKit.Domain.Triggers.TriggerRuntimeService",
@@ -55361,6 +55773,16 @@
       },
       "name": "PlaceableSecurityServiceTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableSecurityServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerAdvancedServiceTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Triggers"
+      },
+      "name": "TriggerAdvancedServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Triggers/TriggerAdvancedServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Triggers.TriggerFoundationTests",
@@ -59100,6 +59522,36 @@
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Triggers.EntityQuery",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Triggers"
+      },
+      "name": "EntityQuery",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Triggers.GameplayVolumeEffect",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Triggers"
+      },
+      "name": "GameplayVolumeEffect",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Triggers.TrapVolume",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Triggers"
+      },
+      "name": "TrapVolume",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Triggers.TriggerAction",
       "kind": "type",
       "line": 10,
@@ -59108,6 +59560,26 @@
       },
       "name": "TriggerAction",
       "path": "src/Forge.RpgKit.Domain/Triggers/TriggerModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Triggers.TriggerDebugOverlay",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Triggers"
+      },
+      "name": "TriggerDebugOverlay",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Triggers.TriggerEventTrace",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Triggers"
+      },
+      "name": "TriggerEventTrace",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Triggers.TriggerFilter",
@@ -59148,6 +59620,16 @@
       },
       "name": "TriggerShape",
       "path": "src/Forge.RpgKit.Domain/Triggers/TriggerModels.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Triggers.TriggerValidationContext",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Triggers"
+      },
+      "name": "TriggerValidationContext",
+      "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Triggers.TriggerVolume",
