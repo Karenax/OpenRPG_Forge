@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 QUEST-01** pour `ORF-QST-006`, `008`, `010`, `011` et `012` : objectifs, journal et récompenses.
+Exécuter **G8 QUEST-02** pour `ORF-QST-013`, `014`, `015`, `019` et `020` : ressources, étapes, visibilité, historique et marqueurs.

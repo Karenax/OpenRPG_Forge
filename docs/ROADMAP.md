@@ -171,6 +171,8 @@ G8 DIALOGUE-02 livre événements de cycle, recherche/remplacement preview, badg
 typée et checks data-driven. La prochaine tranche est **DIALOGUE-03**.
 G8 DIALOGUE-03 livre sous-dialogues, analyse d'impact, couverture, collaboration et génération IA
 contrôlée. La famille Dialogue sélectionnée pour G8 est complète ; la prochaine tranche est **QUEST-01**.
+G8 QUEST-01 livre huit objectifs, wizard inspectable, cast, notes auteur et récompenses atomiques.
+La prochaine tranche est **QUEST-02**.
 
 ## Phase 6 — 3D assistée
 
