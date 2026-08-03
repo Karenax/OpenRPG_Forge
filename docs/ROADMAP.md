@@ -175,6 +175,8 @@ G8 QUEST-01 livre huit objectifs, wizard inspectable, cast, notes auteur et réc
 La prochaine tranche est **QUEST-02**.
 G8 QUEST-02 livre ressources, étapes éditables, visibilité progressive, historique et marqueurs.
 La prochaine tranche est **QUEST-03**.
+G8 QUEST-03 livre tests générés exécutables et génération IA contrôlée par lint et validation humaine.
+La famille Quest sélectionnée pour G8 est complète ; la prochaine tranche est **SCRIPT-01**.
 
 ## Phase 6 — 3D assistée
 

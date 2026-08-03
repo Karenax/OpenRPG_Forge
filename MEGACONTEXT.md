@@ -1417,7 +1417,7 @@ Le résumé doit contenir :
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
-> Réalise **G8 QUEST-03** pour `ORF-QST-024` et `025` : tests générés et IA de quête contrôlée.
+> Réalise **G8 SCRIPT-01** pour `ORF-SCR-004`, `005`, `008`, `010` et `011` : types, événements et accès au monde.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.

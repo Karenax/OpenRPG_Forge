@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 QUEST-03** pour `ORF-QST-024` et `025` : tests générés et IA de quête contrôlée.
+Exécuter **G8 SCRIPT-01** pour `ORF-SCR-004`, `005`, `008`, `010` et `011` : types, événements et accès au monde.
