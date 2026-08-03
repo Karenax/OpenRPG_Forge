@@ -173,6 +173,8 @@ G8 DIALOGUE-03 livre sous-dialogues, analyse d'impact, couverture, collaboration
 contrôlée. La famille Dialogue sélectionnée pour G8 est complète ; la prochaine tranche est **QUEST-01**.
 G8 QUEST-01 livre huit objectifs, wizard inspectable, cast, notes auteur et récompenses atomiques.
 La prochaine tranche est **QUEST-02**.
+G8 QUEST-02 livre ressources, étapes éditables, visibilité progressive, historique et marqueurs.
+La prochaine tranche est **QUEST-03**.
 
 ## Phase 6 — 3D assistée
 

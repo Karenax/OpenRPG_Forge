@@ -903,6 +903,15 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.RpgKit.Domain.Quests.QuestHistoryView",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
         "line": 14,
         "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
       },
@@ -3072,7 +3081,7 @@
     },
     {
       "evidence": {
-        "line": 190,
+        "line": 192,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -7735,6 +7744,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.RpgKit.Domain/Triggers/TriggerAdvancedService.cs"
       },
       "kind": "imports",
@@ -11529,6 +11547,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableSecurityServiceTests.cs",
       "target": "namespace:Forge.RpgKit.Domain.Placeables"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Quests"
     },
     {
       "evidence": {
@@ -20199,6 +20226,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Quests.ObjectiveMarkerBindingKind",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
       },
@@ -20217,6 +20253,33 @@
     },
     {
       "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Quests.QuestExperienceDefinition",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Quests.QuestHistoryEvent",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Quests.QuestHistoryEvent",
+      "target": "model:Forge.Domain.Quests.QuestId"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
       },
@@ -20232,6 +20295,15 @@
       "kind": "defined_in",
       "source": "model:Forge.RpgKit.Domain.Quests.QuestParticipantBindingKind",
       "target": "file:src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Quests.QuestResourceKind",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
     },
     {
       "evidence": {
@@ -24609,6 +24681,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Quests",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
       },
@@ -24885,6 +24966,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Placeables",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableSecurityServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Quests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
     },
     {
       "evidence": {
@@ -27009,6 +27099,42 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Placeables.PlaceableSecurityService",
       "target": "model:Forge.RpgKit.Domain.Placeables.TrapResult"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Quests.QuestExperienceService",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Quests.QuestExperienceService",
+      "target": "model:Forge.RpgKit.Domain.Quests.QuestDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Quests.QuestExperienceService",
+      "target": "model:Forge.RpgKit.Domain.Quests.QuestExperienceDefinition"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Quests.QuestExperienceService",
+      "target": "model:Forge.RpgKit.Domain.Quests.QuestHistoryEvent"
     },
     {
       "evidence": {
@@ -38964,6 +39090,141 @@
     },
     {
       "evidence": {
+        "line": 33,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "component:Forge.RpgKit.Domain.Quests.QuestHistoryView"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Quests.ObjectiveMarkerBindingKind"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Quests.QuestExperienceDefinition"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Quests.QuestHistoryEvent"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Quests.QuestObjectiveKind"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Quests.QuestResourceKind"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Quests.QuestExperienceService"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Quests.ObjectiveMarker"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Quests.QuestEditorialStatus"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Quests.QuestObjective"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Quests.QuestResource"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Quests.QuestStepTemplate"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Quests.QuestVisibility"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Quests.QuestVisibilityPolicy"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestFoundationServiceTests.cs"
       },
@@ -43680,6 +43941,24 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Quests.GeneratedQuestStep",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Quests.ObjectiveMarker",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
       },
@@ -43716,6 +43995,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Quests.QuestResource",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
       },
@@ -43725,12 +44013,39 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Quests.QuestStepTemplate",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Domain.Quests.QuestValidationContext",
       "target": "file:src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Quests.QuestVisibility",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Quests.QuestVisibilityPolicy",
+      "target": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
     },
     {
       "evidence": {
@@ -44733,8 +45048,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:27e8504f5343908c4dc33ef600dcc8387fe4ab5779dbdf81d42987cbfdeabae8",
-    "source_file_count": 906
+    "source_digest": "sha256:1dcf6f33de1750299ae3392a39275b1dcd993834a3c3efea2fb2a8780c29d9b9",
+    "source_file_count": 909
   },
   "nodes": [
     {
@@ -45316,6 +45631,16 @@
       },
       "name": "TrapComponent",
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
+    },
+    {
+      "id": "component:Forge.RpgKit.Domain.Quests.QuestHistoryView",
+      "kind": "component",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "QuestHistoryView",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
     },
     {
       "id": "component:Forge.RpgKit.Domain.Quests.QuestWizardPreview",
@@ -47906,6 +48231,16 @@
       },
       "name": "G8-QUEST-01-FOUNDATION.md",
       "path": "docs/aurora-parity/tasks/G8-QUEST-01-FOUNDATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-QUEST-02-EXPERIENCE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-QUEST-02-EXPERIENCE.md",
+      "path": "docs/aurora-parity/tasks/G8-QUEST-02-EXPERIENCE.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G8-TRIGGER-01-FOUNDATION.md",
@@ -51748,6 +52083,16 @@
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "QuestExperienceService.cs",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs",
       "kind": "file",
       "line": 1,
@@ -53196,6 +53541,16 @@
       },
       "name": "PlaceableSecurityServiceTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableSecurityServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "QuestExperienceServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Quests/QuestFoundationServiceTests.cs",
@@ -58028,6 +58383,16 @@
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableModels.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Quests.ObjectiveMarkerBindingKind",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "ObjectiveMarkerBindingKind",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Quests.QuestDefinition",
       "kind": "model",
       "line": 10,
@@ -58048,6 +58413,26 @@
       "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Quests.QuestExperienceDefinition",
+      "kind": "model",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "QuestExperienceDefinition",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Quests.QuestHistoryEvent",
+      "kind": "model",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "QuestHistoryEvent",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Quests.QuestObjectiveKind",
       "kind": "model",
       "line": 3,
@@ -58066,6 +58451,16 @@
       },
       "name": "QuestParticipantBindingKind",
       "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Quests.QuestResourceKind",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "QuestResourceKind",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
     },
     {
       "id": "model:Forge.RpgKit.Domain.Quests.QuestRewardResult",
@@ -59357,6 +59752,16 @@
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
     },
     {
+      "id": "service:Forge.RpgKit.Domain.Quests.QuestExperienceService",
+      "kind": "service",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "QuestExperienceService",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
       "id": "service:Forge.RpgKit.Domain.Quests.QuestFoundationService",
       "kind": "service",
       "line": 18,
@@ -60625,6 +61030,16 @@
       },
       "name": "PlaceableSecurityServiceTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableSecurityServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Quests"
+      },
+      "name": "QuestExperienceServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Quests.QuestFoundationServiceTests",
@@ -65404,6 +65819,26 @@
       "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Quests.GeneratedQuestStep",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "GeneratedQuestStep",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Quests.ObjectiveMarker",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "ObjectiveMarker",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Quests.QuestAuthorNotes",
       "kind": "type",
       "line": 9,
@@ -65444,6 +65879,16 @@
       "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Quests.QuestResource",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "QuestResource",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Quests.QuestRewardBundle",
       "kind": "type",
       "line": 8,
@@ -65454,6 +65899,16 @@
       "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Domain.Quests.QuestStepTemplate",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "QuestStepTemplate",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Domain.Quests.QuestValidationContext",
       "kind": "type",
       "line": 12,
@@ -65462,6 +65917,26 @@
       },
       "name": "QuestValidationContext",
       "path": "src/Forge.RpgKit.Domain/Quests/QuestFoundationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Quests.QuestVisibility",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "QuestVisibility",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Quests.QuestVisibilityPolicy",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Quests"
+      },
+      "name": "QuestVisibilityPolicy",
+      "path": "src/Forge.RpgKit.Domain/Quests/QuestExperienceService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Quests.QuestWizardRequest",
