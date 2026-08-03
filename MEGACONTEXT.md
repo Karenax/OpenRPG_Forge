@@ -1417,7 +1417,7 @@ Le résumé doit contenir :
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
-> Réalise **G8 ITEM-02** pour `ORF-ITEM-005`, `006`, `008`, `009` et `013` : apparence, empilement, poids, valeur et propriétés.
+> Réalise **G8 ITEM-03** pour `ORF-ITEM-014`, `015`, `016`, `018` et `024` : économie, actions, équipement et événements.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.
