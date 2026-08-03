@@ -2065,6 +2065,24 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
       },
       "kind": "imports",
@@ -2892,7 +2910,7 @@
     },
     {
       "evidence": {
-        "line": 94,
+        "line": 95,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2901,7 +2919,7 @@
     },
     {
       "evidence": {
-        "line": 110,
+        "line": 111,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -3321,6 +3339,69 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Areas/EditAreaGeometryHandler.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -7254,6 +7335,42 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs",
+      "target": "namespace:Forge.Application.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -11856,6 +11973,96 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "target": "file:src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "target": "model:Forge.Application.Areas.SetAreaEnvironmentCommand"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.Application/Areas/SetAreaNavigationHandler.cs"
       },
@@ -14292,6 +14499,33 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Areas.EditAreaGeometryCommand",
       "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.SetAreaEnvironmentCommand",
+      "target": "file:src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.SetAreaEnvironmentCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.SetAreaEnvironmentCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
     },
     {
       "evidence": {
@@ -17355,6 +17589,24 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Application/Areas/SetAreaNavigationCommand.cs"
       },
@@ -18183,6 +18435,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Areas",
+      "target": "file:tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "tests/Forge.Application.Tests/Areas/SetAreaNavigationHandlerTests.cs"
       },
@@ -18459,6 +18720,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Areas",
       "target": "file:src/Forge.Domain/Areas/AreaDimensions.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
     },
     {
       "evidence": {
@@ -20856,6 +21126,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
       },
@@ -21996,6 +22275,96 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
       "target": "validator:Forge.Domain.Validation.ProjectValidator"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "target": "file:tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "target": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "target": "model:Forge.Application.Areas.SetAreaEnvironmentCommand"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "target": "type:Forge.Domain.Areas.AreaEnvironmentClass"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "target": "type:Forge.Domain.Areas.AreaEnvironmentProfile"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "target": "type:Forge.Domain.Areas.DayNightMode"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "target": "type:Forge.Domain.Areas.FogMode"
     },
     {
       "evidence": {
@@ -30720,12 +31089,75 @@
     },
     {
       "evidence": {
+        "line": 42,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaAudioProfile",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Areas/AreaDimensions.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Domain.Areas.AreaDimensions",
       "target": "file:src/Forge.Domain/Areas/AreaDimensions.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaEnvironmentClass",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 60,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaEnvironmentProfile",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaFogProfile",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaLightingProfile",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.DayNightMode",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.FogMode",
+      "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
     },
     {
       "evidence": {
@@ -31980,6 +32412,15 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.AreaEnvironmentWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs"
       },
@@ -32097,7 +32538,7 @@
     },
     {
       "evidence": {
-        "line": 4955,
+        "line": 4971,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -32133,7 +32574,7 @@
     },
     {
       "evidence": {
-        "line": 4960,
+        "line": 4976,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -32142,7 +32583,7 @@
     },
     {
       "evidence": {
-        "line": 4965,
+        "line": 4981,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -32727,8 +33168,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:826a33996d3a66d8790681cb2c8d887826e50c768051403bed5cfaa590f000e2",
-    "source_file_count": 748
+    "source_digest": "sha256:1c7d4219bef1afd70883d947e0a059bc6e2288e1c125c6aa432034a47c7cfc16",
+    "source_file_count": 754
   },
   "nodes": [
     {
@@ -34332,6 +34773,16 @@
       "path": "apps/Forge.Toolset/addons/forge_forest_map/scenes/forge_forest_map_demo.tscn"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaEnvironmentWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AreaWorkspaceWindow.cs",
       "kind": "file",
       "line": 1,
@@ -35262,6 +35713,16 @@
       "path": "docs/aurora-parity/tasks/G7-24-AREA-GEOMETRY-EDITING.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-25-AREA-ENVIRONMENT.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-25-AREA-ENVIRONMENT.md",
+      "path": "docs/aurora-parity/tasks/G7-25-AREA-ENVIRONMENT.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -35420,6 +35881,26 @@
       },
       "name": "EditAreaGeometryHandler.cs",
       "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaEnvironmentCommand.cs",
+      "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaEnvironmentHandler.cs",
+      "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Areas/SetAreaNavigationCommand.cs",
@@ -36370,6 +36851,16 @@
       },
       "name": "AreaDimensions.cs",
       "path": "src/Forge.Domain/Areas/AreaDimensions.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaEnvironmentProfile.cs",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
     },
     {
       "id": "file:src/Forge.Domain/Areas/AreaId.cs",
@@ -38640,6 +39131,16 @@
       },
       "name": "AreaWorkflowTests.cs",
       "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaEnvironmentHandlerTests.cs",
+      "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Areas/SetAreaNavigationHandlerTests.cs",
@@ -41392,6 +41893,16 @@
       "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Areas.SetAreaEnvironmentHandler",
+      "kind": "handler",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "SetAreaEnvironmentHandler",
+      "path": "src/Forge.Application/Areas/SetAreaEnvironmentHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Areas.SetAreaNavigationHandler",
       "kind": "handler",
       "line": 9,
@@ -41650,6 +42161,16 @@
       },
       "name": "EditAreaGeometryCommand",
       "path": "src/Forge.Application/Areas/EditAreaGeometryCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Areas.SetAreaEnvironmentCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "SetAreaEnvironmentCommand",
+      "path": "src/Forge.Application/Areas/SetAreaEnvironmentCommand.cs"
     },
     {
       "id": "model:Forge.Application.Areas.SetAreaNavigationCommand",
@@ -43805,6 +44326,16 @@
       "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Areas.SetAreaEnvironmentHandlerTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Areas"
+      },
+      "name": "SetAreaEnvironmentHandlerTests",
+      "path": "tests/Forge.Application.Tests/Areas/SetAreaEnvironmentHandlerTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Areas.SetAreaNavigationHandlerTests",
       "kind": "test",
       "line": 11,
@@ -45172,6 +45703,16 @@
       "path": "src/Forge.Application/Time/SystemClock.cs"
     },
     {
+      "id": "type:Forge.Domain.Areas.AreaAudioProfile",
+      "kind": "type",
+      "line": 42,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaAudioProfile",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
       "id": "type:Forge.Domain.Areas.AreaDimensions",
       "kind": "type",
       "line": 3,
@@ -45180,6 +45721,66 @@
       },
       "name": "AreaDimensions",
       "path": "src/Forge.Domain/Areas/AreaDimensions.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AreaEnvironmentClass",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaEnvironmentClass",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AreaEnvironmentProfile",
+      "kind": "type",
+      "line": 60,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaEnvironmentProfile",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AreaFogProfile",
+      "kind": "type",
+      "line": 27,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaFogProfile",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AreaLightingProfile",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaLightingProfile",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.DayNightMode",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "DayNightMode",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.FogMode",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "FogMode",
+      "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Areas.PortalLink",
@@ -46542,6 +47143,16 @@
       "path": "src/Forge.Scripting/NativeForgeScriptRuntime.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.AreaEnvironmentWindow",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "AreaEnvironmentWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AreaEnvironmentWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.AreaWorkspaceWindow",
       "kind": "type",
       "line": 12,
@@ -46674,7 +47285,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4955,
+      "line": 4971,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -46714,7 +47325,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4960,
+      "line": 4976,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -46724,7 +47335,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4965,
+      "line": 4981,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

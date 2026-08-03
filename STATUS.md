@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Ouvrir **G7-25 — environnements et streaming de zone** pour `ORF-AREA-013`, `014`, `015`, `016` et `021`.
+Ouvrir **G7-26 — streaming, minimap et terrains** pour `ORF-AREA-024`, `029` et `035`.

@@ -24,6 +24,7 @@ public sealed record AreaDefinition
     public IReadOnlyList<PortalLink> Portals { get; }
 
     public AreaNavigationDefinition Navigation { get; }
+    public AreaEnvironmentProfile Environment { get; }
 
     public AreaDefinition(
         AreaId id,
@@ -34,7 +35,8 @@ public sealed record AreaDefinition
         AreaDimensions? dimensions = null,
         IReadOnlyList<PortalLink>? portals = null,
         int schemaVersion = CurrentSchemaVersion,
-        AreaNavigationDefinition? navigation = null)
+        AreaNavigationDefinition? navigation = null,
+        AreaEnvironmentProfile? environment = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -68,14 +70,18 @@ public sealed record AreaDefinition
         Entities = materializedEntities;
         Portals = materializedPortals;
         Navigation = navigation ?? AreaNavigationDefinition.CreateDefault(id);
+        Environment = environment ?? AreaEnvironmentProfile.CreateDefault(kind);
     }
 
     public AreaDefinition WithEntities(IReadOnlyList<EntityInstance> entities) =>
-        new(Id, Slug, DisplayName, entities, Kind, Dimensions, Portals, SchemaVersion, Navigation);
+        new(Id, Slug, DisplayName, entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment);
 
     public AreaDefinition WithPortals(IReadOnlyList<PortalLink> portals) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, portals, SchemaVersion, Navigation);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, portals, SchemaVersion, Navigation, Environment);
 
     public AreaDefinition WithNavigation(AreaNavigationDefinition navigation) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, navigation);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, navigation, Environment);
+
+    public AreaDefinition WithEnvironment(AreaEnvironmentProfile environment) =>
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, environment);
 }

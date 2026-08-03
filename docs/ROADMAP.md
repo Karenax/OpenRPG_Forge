@@ -90,9 +90,10 @@ G7-22 livre l'index de bibliothèque Blueprint : catégories hiérarchiques, fam
 collections et impact exact sur les instances.
 G7-23 livre l'analyse de performance par zone : budget d'assets, secteurs d'occlusion et bandes LOD.
 G7-24 livre groupes, remplacement, auto-ajustement déterministe, propriétés locales et redimensionnement atomique.
+G7-25 livre classification, cycle, éclairage, brouillard et audio adaptatif par zone.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-25 — environnements et streaming de zone**.
+La prochaine tranche est **G7-26 — streaming, minimap et terrains**.
 
 ## Phase 6 — 3D assistée
 

@@ -46,6 +46,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly CreateAreaHandler _createAreaHandler = new(new SystemClock());
     private readonly DuplicateAreaHandler _duplicateAreaHandler = new(new SystemClock());
     private readonly EditAreaGeometryHandler _editAreaGeometryHandler = new(new SystemClock());
+    private readonly SetAreaEnvironmentHandler _setAreaEnvironmentHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
     private readonly ScaleEntitiesHandler _scaleEntitiesHandler = new(new SystemClock());
@@ -156,6 +157,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private NavigationConfigurationWindow? _navigationConfiguration;
     private CreatorWorkspaceWindow? _workspaceWindow;
     private RecoveryWindow? _recoveryWindow;
+    private AreaEnvironmentWindow? _areaEnvironmentWindow;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -246,8 +248,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
             DuplicateArea,
             ResizeArea,
             OpenNavigationConfiguration,
+            OpenAreaEnvironment,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
+        _areaEnvironmentWindow = new AreaEnvironmentWindow();
+        _areaEnvironmentWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaEnvironment, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_areaEnvironmentWindow);
         _workspaceWindow = new CreatorWorkspaceWindow();
         _workspaceWindow.Initialize(
             () => _history?.State,
@@ -413,6 +419,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _navigationConfiguration = null;
         _workspaceWindow = null;
         _recoveryWindow = null;
+        _areaEnvironmentWindow = null;
         _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
@@ -1290,6 +1297,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
     }
 
     private void OpenNavigationConfiguration() => _navigationConfiguration?.Open();
+
+    private void OpenAreaEnvironment() => _areaEnvironmentWindow?.Open();
+
+    private bool ApplyAreaEnvironment(AreaId areaId, AreaEnvironmentProfile profile)
+    {
+        if (_history is null) return false;
+        var command = new SetAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, areaId, profile, false);
+        return ApplyCommand(_setAreaEnvironmentHandler.Handle(_history.State, command), "Environnement de zone mis à jour.", null);
+    }
 
     private void OpenGlobalSearch() => _globalSearch?.Open();
 

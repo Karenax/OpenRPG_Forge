@@ -26,6 +26,7 @@ public partial class AreaWorkspaceWindow : Window
     private Func<AreaId, string, AreaCloneMode, ExternalPortalPolicy, AreaId?>? _duplicateArea;
     private Func<AreaId, AreaDimensions, AreaResizeAnchor, bool>? _resizeArea;
     private Action? _openNavigation;
+    private Action? _openEnvironment;
     private Action<Window>? _brandWindow;
 
     private ItemList? _areaList;
@@ -68,6 +69,7 @@ public partial class AreaWorkspaceWindow : Window
         Func<AreaId, string, AreaCloneMode, ExternalPortalPolicy, AreaId?> duplicateArea,
         Func<AreaId, AreaDimensions, AreaResizeAnchor, bool> resizeArea,
         Action openNavigation,
+        Action openEnvironment,
         Action<Window> brandWindow)
     {
         _getState = getState ?? throw new ArgumentNullException(nameof(getState));
@@ -78,6 +80,7 @@ public partial class AreaWorkspaceWindow : Window
         _duplicateArea = duplicateArea ?? throw new ArgumentNullException(nameof(duplicateArea));
         _resizeArea = resizeArea ?? throw new ArgumentNullException(nameof(resizeArea));
         _openNavigation = openNavigation ?? throw new ArgumentNullException(nameof(openNavigation));
+        _openEnvironment = openEnvironment ?? throw new ArgumentNullException(nameof(openEnvironment));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
 
         Title = "Zones · OpenRPG Forge";
@@ -317,6 +320,9 @@ public partial class AreaWorkspaceWindow : Window
         navigationButton.AddThemeStyleboxOverride("normal", Card("38264f", "8060aa", 1, 8));
         navigationButton.Pressed += () => _openNavigation?.Invoke();
         validationHeading.AddChild(navigationButton);
+        var environmentButton = new Button { Text = "Environnement…" };
+        environmentButton.Pressed += () => _openEnvironment?.Invoke();
+        validationHeading.AddChild(environmentButton);
         validationRow.AddChild(validationHeading);
         _validationList = new ItemList { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         validationRow.AddChild(_validationList);
