@@ -399,8 +399,10 @@ Le détail et les preuves des 717 capacités restent suivis dans
   hash, recherche à facettes, provenance/licence, aperçu et statut d’import dans l’espace Assets.
 - [x] **G7-17 — localisation auteur** : catalogue canonique, langues et fallback, édition
   transactionnelle, extraction, pseudo-localisation, diagnostics et aperçu dans le Creator.
-- [ ] **G7-18 — mise à l’échelle dans le Toolset** : manipulation directe de l’échelle, validation,
+- [x] **G7-18 — mise à l’échelle dans le Toolset** : manipulation directe de l’échelle, validation,
   propriétés précises, commande transactionnelle et historique pour `ORF-EE-002`.
+- [ ] **G7-19 — pathfinding amélioré** : requêtes de chemin déterministes, coûts, blocages dynamiques,
+  invalidation incrémentale et diagnostics pour `ORF-EE-028`.
 
 Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).

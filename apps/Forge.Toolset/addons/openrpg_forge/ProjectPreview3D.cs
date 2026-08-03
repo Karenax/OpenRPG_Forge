@@ -1,6 +1,7 @@
 #if TOOLS
 using Forge.Application.Commands;
 using Forge.Application.Creator;
+using Forge.Application.Entities;
 using Forge.Application.Projects;
 using Forge.Application.Spatial;
 using Forge.Application.Time;
@@ -359,6 +360,12 @@ public partial class ProjectPreview3D : SubViewportContainer
 
             if (cameraButton.Pressed && cameraButton.ButtonIndex is MouseButton.WheelUp or MouseButton.WheelDown)
             {
+                if (cameraButton.CtrlPressed && ScaleSelectedFromWheel(cameraButton.ButtonIndex == MouseButton.WheelUp))
+                {
+                    AcceptEvent();
+                    return;
+                }
+
                 ApplyCameraCommand(
                     EditorCameraOperation.Zoom,
                     cameraButton.ButtonIndex == MouseButton.WheelUp ? 1 : -1);
@@ -449,6 +456,26 @@ public partial class ProjectPreview3D : SubViewportContainer
         _selectedEntityId = entityId;
         RefreshSelectedGizmo();
         _selectEntity?.Invoke(entityId);
+    }
+
+    private bool ScaleSelectedFromWheel(bool increase)
+    {
+        var state = _getState?.Invoke();
+        var entity = state?.Project.Areas.SelectMany(area => area.Entities)
+            .FirstOrDefault(candidate => candidate.Id == _selectedEntityId);
+        if (entity is null)
+        {
+            return false;
+        }
+
+        var factor = increase ? 1.1f : 0.9f;
+        var current = entity.Transform.Scale;
+        var scale = new Vector3Value(
+            Math.Clamp(current.X * factor, ScaleEntitiesHandler.MinimumScale, ScaleEntitiesHandler.MaximumScale),
+            Math.Clamp(current.Y * factor, ScaleEntitiesHandler.MinimumScale, ScaleEntitiesHandler.MaximumScale),
+            Math.Clamp(current.Z * factor, ScaleEntitiesHandler.MinimumScale, ScaleEntitiesHandler.MaximumScale));
+        return _transformEntity?.Invoke(entity.Id,
+            new TransformValue(entity.Transform.Position, entity.Transform.Rotation, scale)) == true;
     }
 
     private PlacementValidationResult PreviewEntityMove(EntityId entityId, Vector3Value position)

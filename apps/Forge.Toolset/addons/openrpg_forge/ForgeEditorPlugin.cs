@@ -47,6 +47,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly DuplicateAreaHandler _duplicateAreaHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
+    private readonly ScaleEntitiesHandler _scaleEntitiesHandler = new(new SystemClock());
     private readonly RemoveEntityHandler _removeHandler = new(new SystemClock());
     private readonly SetEntityOverridesHandler _setOverridesHandler = new(new SystemClock());
     private readonly NewModuleHandler _newModuleHandler = new(new SystemClock());
@@ -95,6 +96,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _moveZPositiveButton;
     private Button? _rotateButton;
     private Button? _deleteButton;
+    private SpinBox? _scaleX;
+    private SpinBox? _scaleY;
+    private SpinBox? _scaleZ;
+    private CheckButton? _uniformScale;
+    private Button? _scaleDownButton;
+    private Button? _scaleUpButton;
+    private Button? _applyScaleButton;
     private Button? _overridesButton;
     private Button? _copyButton;
     private Button? _pasteButton;
@@ -323,6 +331,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _moveZPositiveButton = null;
         _rotateButton = null;
         _deleteButton = null;
+        _scaleX = null;
+        _scaleY = null;
+        _scaleZ = null;
+        _uniformScale = null;
+        _scaleDownButton = null;
+        _scaleUpButton = null;
+        _applyScaleButton = null;
         _overridesButton = null;
         _copyButton = null;
         _pasteButton = null;
@@ -453,6 +468,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _moveZPositiveButton = GetControl<Button>("Margin/Content/Editing/EntityRow/MoveZPositive");
         _rotateButton = GetControl<Button>("Margin/Content/Editing/EntityRow/RotateButton");
         _deleteButton = GetControl<Button>("Margin/Content/Editing/EntityRow/DeleteButton");
+        _scaleX = GetControl<SpinBox>("Margin/Content/Editing/ScaleRow/ScaleX");
+        _scaleY = GetControl<SpinBox>("Margin/Content/Editing/ScaleRow/ScaleY");
+        _scaleZ = GetControl<SpinBox>("Margin/Content/Editing/ScaleRow/ScaleZ");
+        _uniformScale = GetControl<CheckButton>("Margin/Content/Editing/ScaleRow/UniformScale");
+        _scaleDownButton = GetControl<Button>("Margin/Content/Editing/ScaleRow/ScaleDown");
+        _scaleUpButton = GetControl<Button>("Margin/Content/Editing/ScaleRow/ScaleUp");
+        _applyScaleButton = GetControl<Button>("Margin/Content/Editing/ScaleRow/ApplyScale");
         _overridesButton = GetControl<Button>("Margin/Content/Editing/OverridesRow/OverridesButton");
         _copyButton = GetControl<Button>("Margin/Content/Editing/ClipboardRow/CopyButton");
         _pasteButton = GetControl<Button>("Margin/Content/Editing/ClipboardRow/PasteButton");
@@ -764,6 +786,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _moveZPositiveButton!.Pressed += MoveSelectedPositiveZ;
         _rotateButton!.Pressed += RotateSelected;
         _deleteButton!.Pressed += DeleteSelected;
+        _scaleX!.ValueChanged += SynchronizeUniformScale;
+        _uniformScale!.Toggled += ToggleUniformScale;
+        _scaleDownButton!.Pressed += ScaleSelectedDown;
+        _scaleUpButton!.Pressed += ScaleSelectedUp;
+        _applyScaleButton!.Pressed += ApplySelectedScale;
         _overridesButton!.Pressed += ShowEntityPropertiesDialog;
         _copyButton!.Pressed += CopySelectedEntity;
         _pasteButton!.Pressed += PasteSemanticClipboard;
@@ -811,6 +838,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_moveZPositiveButton is not null) _moveZPositiveButton.Pressed -= MoveSelectedPositiveZ;
         if (_rotateButton is not null) _rotateButton.Pressed -= RotateSelected;
         if (_deleteButton is not null) _deleteButton.Pressed -= DeleteSelected;
+        if (_scaleX is not null) _scaleX.ValueChanged -= SynchronizeUniformScale;
+        if (_uniformScale is not null) _uniformScale.Toggled -= ToggleUniformScale;
+        if (_scaleDownButton is not null) _scaleDownButton.Pressed -= ScaleSelectedDown;
+        if (_scaleUpButton is not null) _scaleUpButton.Pressed -= ScaleSelectedUp;
+        if (_applyScaleButton is not null) _applyScaleButton.Pressed -= ApplySelectedScale;
         if (_overridesButton is not null) _overridesButton.Pressed -= ShowEntityPropertiesDialog;
         if (_copyButton is not null) _copyButton.Pressed -= CopySelectedEntity;
         if (_pasteButton is not null) _pasteButton.Pressed -= PasteSemanticClipboard;
@@ -1774,7 +1806,103 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private void EntitySelectionChanged(long _)
     {
         RefreshOverrideSummary();
+        RefreshScaleControls();
         PublishSelectedEntity();
+    }
+
+    private void SynchronizeUniformScale(double value)
+    {
+        if (_uniformScale?.ButtonPressed == true && _scaleY is not null && _scaleZ is not null)
+        {
+            _scaleY.SetValueNoSignal(value);
+            _scaleZ.SetValueNoSignal(value);
+        }
+    }
+
+    private void ToggleUniformScale(bool enabled)
+    {
+        if (enabled && _scaleX is not null)
+        {
+            SynchronizeUniformScale(_scaleX.Value);
+        }
+    }
+
+    private void ScaleSelectedDown() => MultiplySelectedScale(0.9f);
+
+    private void ScaleSelectedUp() => MultiplySelectedScale(1.1f);
+
+    private void MultiplySelectedScale(float factor)
+    {
+        var selected = GetSelectedEntity();
+        if (selected is not null)
+        {
+            ApplyScaleCommand([selected.Id], new Vector3Value(factor, factor, factor), multiply: true);
+        }
+    }
+
+    private void ApplySelectedScale()
+    {
+        var selected = GetSelectedEntity();
+        if (selected is null || _scaleX is null || _scaleY is null || _scaleZ is null)
+        {
+            return;
+        }
+
+        ApplyScaleCommand(
+            [selected.Id],
+            new Vector3Value((float)_scaleX.Value, (float)_scaleY.Value, (float)_scaleZ.Value),
+            multiply: false);
+    }
+
+    private bool ApplyScaleCommand(IReadOnlyList<EntityId> entityIds, Vector3Value scale, bool multiply)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new ScaleEntitiesCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            GetActiveArea().Id,
+            entityIds,
+            scale,
+            multiply,
+            DryRun: false);
+        var preview = _scaleEntitiesHandler.Handle(_history.State, command with { DryRun = true });
+        if (!preview.Succeeded)
+        {
+            return ApplyCommand(preview, string.Empty, entityIds.Count == 1 ? entityIds[0] : null);
+        }
+
+        var applied = ApplyCommand(
+            _scaleEntitiesHandler.Handle(_history.State, command),
+            entityIds.Count == 1 ? "Échelle de l’entité appliquée." : $"Échelle appliquée à {entityIds.Count} entités.",
+            entityIds.Count == 1 ? entityIds[0] : null);
+        if (applied)
+        {
+            RefreshScaleControls();
+        }
+
+        return applied;
+    }
+
+    private void RefreshScaleControls()
+    {
+        if (_scaleX is null || _scaleY is null || _scaleZ is null)
+        {
+            return;
+        }
+
+        var selected = GetSelectedEntity();
+        if (selected is null)
+        {
+            return;
+        }
+
+        _scaleX.SetValueNoSignal(selected.Transform.Scale.X);
+        _scaleY.SetValueNoSignal(selected.Transform.Scale.Y);
+        _scaleZ.SetValueNoSignal(selected.Transform.Scale.Z);
     }
 
     private void SelectDraftOverride(long index)
@@ -2069,6 +2197,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_history is null)
         {
             return false;
+        }
+
+        var current = _history.State.Project.Areas.SelectMany(candidate => candidate.Entities)
+            .FirstOrDefault(candidate => candidate.Id == entityId);
+        if (current is not null && current.Transform.Position == transform.Position &&
+            current.Transform.Rotation == transform.Rotation && current.Transform.Scale != transform.Scale)
+        {
+            return ApplyScaleCommand([entityId], transform.Scale, multiply: false);
         }
 
         var area = _history.State.Project.Areas.FirstOrDefault(candidate =>
@@ -2409,6 +2545,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _redoButton.Disabled = !_history.CanRedo;
         _playButton.Disabled = _playtestRunning || _spawnEntityIds.Count == 0;
         RefreshOverrideSummary();
+        RefreshScaleControls();
         RefreshCreatorShell();
         _blueprintCatalog?.Refresh();
         _areaWorkspace?.Refresh();
@@ -2430,6 +2567,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _moveZPositiveButton!.Disabled = !hasEntity;
         _rotateButton!.Disabled = !hasEntity;
         _deleteButton!.Disabled = !hasEntity;
+        _scaleX!.Editable = hasEntity;
+        _scaleY!.Editable = hasEntity;
+        _scaleZ!.Editable = hasEntity;
+        _uniformScale!.Disabled = !hasEntity;
+        _scaleDownButton!.Disabled = !hasEntity;
+        _scaleUpButton!.Disabled = !hasEntity;
+        _applyScaleButton!.Disabled = !hasEntity;
         _overridesButton!.Disabled = !hasEntity;
         _copyButton!.Disabled = !hasEntity;
         _duplicateButton!.Disabled = !hasEntity;
@@ -2831,6 +2975,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunLocalizationWorkspaceSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunScaleAuthoringSmokeTest())
         {
             return;
         }
@@ -4199,6 +4348,46 @@ public partial class ForgeEditorPlugin : EditorPlugin
             $"OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_PASS messages={_localizationWorkspace.MessageCount} " +
             $"locales={_localizationWorkspace.LocaleCount} extraction=canonical fallback=resolved " +
             "pseudo=available preview=dry-run history=restored");
+        return true;
+    }
+
+    private bool RunScaleAuthoringSmokeTest()
+    {
+        if (_history is null || _scaleX is null || _scaleY is null || _scaleZ is null || _entityIds.Count < 2)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G718_SCALE_FAILED missing_controls");
+            return false;
+        }
+
+        var first = GetActiveArea().Entities.First(entity => entity.Id == _entityIds[0]);
+        var second = GetActiveArea().Entities.First(entity => entity.Id == _entityIds[1]);
+        var firstScale = first.Transform.Scale;
+        var secondScale = second.Transform.Scale;
+        if (!ApplyScaleCommand([first.Id], new Vector3Value(0.8f, 1.2f, 0.9f), multiply: false) ||
+            _history.State.Project.Areas.SelectMany(area => area.Entities)
+                .Single(entity => entity.Id == first.Id).Transform.Scale != new Vector3Value(0.8f, 1.2f, 0.9f) ||
+            !ApplyScaleCommand([first.Id, second.Id], new Vector3Value(0.9f, 0.9f, 0.9f), multiply: true))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G718_SCALE_FAILED apply");
+            return false;
+        }
+
+        var undoMulti = _history.Undo();
+        var redoMulti = _history.Redo();
+        var cleanupMulti = _history.Undo();
+        var cleanupSingle = _history.Undo();
+        if (!undoMulti.Succeeded || !redoMulti.Succeeded || !cleanupMulti.Succeeded || !cleanupSingle.Succeeded ||
+            _history.State.Project.Areas.SelectMany(area => area.Entities).Single(entity => entity.Id == first.Id).Transform.Scale != firstScale ||
+            _history.State.Project.Areas.SelectMany(area => area.Entities).Single(entity => entity.Id == second.Id).Transform.Scale != secondScale)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G718_SCALE_FAILED history");
+            return false;
+        }
+
+        RefreshEditorControls(first.Id);
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G718_SCALE_PASS modes=uniform-nonuniform input=precise-ctrl-wheel " +
+            "constraints=0.05-100 geometry=validated multi=atomic preview=dry-run history=restored persistence=canonical");
         return true;
     }
 

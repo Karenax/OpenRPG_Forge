@@ -78,9 +78,11 @@ gouvernance licence/provenance et une planification d’import sans écriture da
 CLI et MCP.
 G7-17 livre le catalogue de localisation canonique, l’extraction des textes auteur, les replis par
 langue, la pseudo-localisation et l’édition transactionnelle intégrée au Creator.
+G7-18 livre l’échelle uniforme/non uniforme, les contrôles précis et viewport, la validation
+géométrique et la transaction atomique multi-entités.
 
 La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](UX_AURORA_2026.md).
-La prochaine tranche est **G7-18 — mise à l’échelle dans le Toolset** pour `ORF-EE-002`.
+La prochaine tranche est **G7-19 — pathfinding amélioré** pour `ORF-EE-028`.
 
 ## Phase 6 — 3D assistée
 

@@ -297,6 +297,69 @@ layout_mode = 2
 disabled = true
 text = "Supprimer"
 
+[node name="ScaleRow" type="HBoxContainer" parent="Margin/Content/Editing"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ScaleLabel" type="Label" parent="Margin/Content/Editing/ScaleRow"]
+layout_mode = 2
+text = "Échelle"
+
+[node name="ScaleX" type="SpinBox" parent="Margin/Content/Editing/ScaleRow"]
+custom_minimum_size = Vector2(110, 38)
+layout_mode = 2
+min_value = 0.05
+max_value = 100.0
+step = 0.05
+value = 1.0
+prefix = "X "
+
+[node name="ScaleY" type="SpinBox" parent="Margin/Content/Editing/ScaleRow"]
+custom_minimum_size = Vector2(110, 38)
+layout_mode = 2
+min_value = 0.05
+max_value = 100.0
+step = 0.05
+value = 1.0
+prefix = "Y "
+
+[node name="ScaleZ" type="SpinBox" parent="Margin/Content/Editing/ScaleRow"]
+custom_minimum_size = Vector2(110, 38)
+layout_mode = 2
+min_value = 0.05
+max_value = 100.0
+step = 0.05
+value = 1.0
+prefix = "Z "
+
+[node name="UniformScale" type="CheckButton" parent="Margin/Content/Editing/ScaleRow"]
+layout_mode = 2
+button_pressed = true
+text = "Uniforme"
+
+[node name="ScaleDown" type="Button" parent="Margin/Content/Editing/ScaleRow"]
+custom_minimum_size = Vector2(85, 38)
+layout_mode = 2
+disabled = true
+text = "−10 %"
+
+[node name="ScaleUp" type="Button" parent="Margin/Content/Editing/ScaleRow"]
+custom_minimum_size = Vector2(85, 38)
+layout_mode = 2
+disabled = true
+text = "+10 %"
+
+[node name="ApplyScale" type="Button" parent="Margin/Content/Editing/ScaleRow"]
+custom_minimum_size = Vector2(160, 38)
+layout_mode = 2
+disabled = true
+text = "Appliquer l’échelle"
+
+[node name="ScaleHelp" type="Label" parent="Margin/Content/Editing/ScaleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Ctrl + molette dans le Monde"
+
 [node name="ClipboardRow" type="HBoxContainer" parent="Margin/Content/Editing"]
 layout_mode = 2
 theme_override_constants/separation = 8

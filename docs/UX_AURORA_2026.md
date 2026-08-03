@@ -173,6 +173,10 @@ résolu ou pseudo-localisé. **Prévisualiser** ne crée aucune révision ; **Ap
 l’accent braise et rejoint l’historique commun. Les états sans projet, sans sélection et traduction
 vide restent explicites, sans faire disparaître les actions du pied à 1180 × 760.
 
+L’échelle G7-18 rejoint directement la barre d’édition du Monde : X/Y/Z précis, verrou uniforme,
+incréments compacts et raccourci Ctrl + molette. La validation refuse avant mutation les limites et
+collisions nouvellement introduites, puis le viewport reconstruit immédiatement la représentation.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

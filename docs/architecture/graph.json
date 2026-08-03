@@ -975,7 +975,7 @@
     },
     {
       "evidence": {
-        "line": 1349,
+        "line": 1351,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -984,7 +984,7 @@
     },
     {
       "evidence": {
-        "line": 1414,
+        "line": 1416,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -993,7 +993,7 @@
     },
     {
       "evidence": {
-        "line": 1711,
+        "line": 1713,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1002,7 +1002,7 @@
     },
     {
       "evidence": {
-        "line": 1414,
+        "line": 1416,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1011,7 +1011,7 @@
     },
     {
       "evidence": {
-        "line": 1460,
+        "line": 1462,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1020,7 +1020,7 @@
     },
     {
       "evidence": {
-        "line": 1664,
+        "line": 1666,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1038,7 +1038,7 @@
     },
     {
       "evidence": {
-        "line": 638,
+        "line": 640,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1047,7 +1047,7 @@
     },
     {
       "evidence": {
-        "line": 1414,
+        "line": 1416,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1056,7 +1056,7 @@
     },
     {
       "evidence": {
-        "line": 1461,
+        "line": 1463,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1065,7 +1065,7 @@
     },
     {
       "evidence": {
-        "line": 1513,
+        "line": 1515,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1074,7 +1074,7 @@
     },
     {
       "evidence": {
-        "line": 1605,
+        "line": 1607,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1092,7 +1092,7 @@
     },
     {
       "evidence": {
-        "line": 1319,
+        "line": 1321,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1101,7 +1101,7 @@
     },
     {
       "evidence": {
-        "line": 1414,
+        "line": 1416,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1110,7 +1110,7 @@
     },
     {
       "evidence": {
-        "line": 1462,
+        "line": 1464,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1119,7 +1119,7 @@
     },
     {
       "evidence": {
-        "line": 1513,
+        "line": 1515,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1128,7 +1128,7 @@
     },
     {
       "evidence": {
-        "line": 1680,
+        "line": 1682,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1164,7 +1164,7 @@
     },
     {
       "evidence": {
-        "line": 638,
+        "line": 640,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1191,7 +1191,7 @@
     },
     {
       "evidence": {
-        "line": 1320,
+        "line": 1322,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1209,7 +1209,7 @@
     },
     {
       "evidence": {
-        "line": 1697,
+        "line": 1699,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1560,7 +1560,7 @@
     },
     {
       "evidence": {
-        "line": 157,
+        "line": 159,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1569,7 +1569,7 @@
     },
     {
       "evidence": {
-        "line": 217,
+        "line": 219,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1578,7 +1578,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 74,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1614,7 +1614,7 @@
     },
     {
       "evidence": {
-        "line": 406,
+        "line": 408,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1623,7 +1623,7 @@
     },
     {
       "evidence": {
-        "line": 412,
+        "line": 414,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1632,7 +1632,7 @@
     },
     {
       "evidence": {
-        "line": 418,
+        "line": 420,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2654,7 +2654,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Application.Projects"
+      "target": "namespace:Forge.Application.Entities"
     },
     {
       "evidence": {
@@ -2663,7 +2663,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Application.Spatial"
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
@@ -2672,16 +2672,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Application.Time"
-    },
-    {
-      "evidence": {
-        "line": 8,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Areas"
+      "target": "namespace:Forge.Application.Spatial"
     },
     {
       "evidence": {
@@ -2690,7 +2681,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Authoring"
+      "target": "namespace:Forge.Application.Time"
     },
     {
       "evidence": {
@@ -2699,7 +2690,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
@@ -2708,7 +2708,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -2717,7 +2717,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -2726,7 +2726,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -2735,11 +2735,20 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
         "line": 14,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 15,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "imports",
@@ -2784,7 +2793,7 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 84,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2793,7 +2802,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 100,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -2802,7 +2811,7 @@
     },
     {
       "evidence": {
-        "line": 181,
+        "line": 185,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -4455,6 +4464,123 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Entities/RemoveEntityHandler.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesCommand.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesCommand.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -7551,6 +7677,60 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Entities/RemoveEntityHandlerTests.cs",
       "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Entities"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -12306,6 +12486,159 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 153,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 148,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 154,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 104,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Application.Entities.ScaleEntitiesCommand"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 134,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 134,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 83,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 131,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.Application/Entities/SetEntityOverridesHandler.cs"
       },
@@ -13986,6 +14319,51 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Entities.RemoveEntityCommand",
       "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Entities.ScaleEntitiesCommand",
+      "target": "file:src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Entities.ScaleEntitiesCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Entities.ScaleEntitiesCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Entities.ScaleEntitiesCommand",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Entities.ScaleEntitiesCommand",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
     },
     {
       "evidence": {
@@ -16689,6 +17067,24 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Entities",
+      "target": "file:src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Entities",
+      "target": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Application/Entities/SetEntityOverridesCommand.cs"
       },
@@ -17055,6 +17451,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Entities",
       "target": "file:tests/Forge.Application.Tests/Entities/RemoveEntityHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Entities",
+      "target": "file:tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
     },
     {
       "evidence": {
@@ -19542,7 +19947,7 @@
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 17,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "defined_in",
@@ -22860,6 +23265,114 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Entities.RemoveEntityHandlerTests",
       "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "file:tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "handler:Forge.Application.Entities.ScaleEntitiesHandler"
+    },
+    {
+      "evidence": {
+        "line": 53,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "model:Forge.Application.Entities.ScaleEntitiesCommand"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "model:Forge.Domain.Spatial.Vector3Value"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
     },
     {
       "evidence": {
@@ -29793,7 +30306,7 @@
     },
     {
       "evidence": {
-        "line": 4588,
+        "line": 4777,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -29811,7 +30324,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "defined_in",
@@ -29820,7 +30333,7 @@
     },
     {
       "evidence": {
-        "line": 4593,
+        "line": 4782,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -29829,7 +30342,7 @@
     },
     {
       "evidence": {
-        "line": 4598,
+        "line": 4787,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -30414,8 +30927,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:a20031ec00f602ddfac5ec3b9f0b0793cf1885dcdf251b5f5c164f9c1d11d8cc",
-    "source_file_count": 709
+    "source_digest": "sha256:1d2e35644e6ac3a1897cf307241a11309c55e9bb4982ad6cfe472c636da9a2c2",
+    "source_file_count": 713
   },
   "nodes": [
     {
@@ -32819,6 +33332,16 @@
       "path": "docs/aurora-parity/tasks/G7-17-LOCALIZATION-AUTHORING.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G7-18-SCALE-AUTHORING.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G7-18-SCALE-AUTHORING.md",
+      "path": "docs/aurora-parity/tasks/G7-18-SCALE-AUTHORING.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -33547,6 +34070,26 @@
       },
       "name": "RemoveEntityHandler.cs",
       "path": "src/Forge.Application/Entities/RemoveEntityHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Entities/ScaleEntitiesCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ScaleEntitiesCommand.cs",
+      "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Entities/ScaleEntitiesHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ScaleEntitiesHandler.cs",
+      "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Entities/SetEntityOverridesCommand.cs",
@@ -36137,6 +36680,16 @@
       },
       "name": "RemoveEntityHandlerTests.cs",
       "path": "tests/Forge.Application.Tests/Entities/RemoveEntityHandlerTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ScaleEntitiesHandlerTests.cs",
+      "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Entities/SetEntityOverridesHandlerTests.cs",
@@ -38769,6 +39322,16 @@
       "path": "src/Forge.Application/Entities/RemoveEntityHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Entities.ScaleEntitiesHandler",
+      "kind": "handler",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Application.Entities"
+      },
+      "name": "ScaleEntitiesHandler",
+      "path": "src/Forge.Application/Entities/ScaleEntitiesHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Entities.SetEntityOverridesHandler",
       "kind": "handler",
       "line": 10,
@@ -39197,6 +39760,16 @@
       },
       "name": "RemoveEntityCommand",
       "path": "src/Forge.Application/Entities/RemoveEntityCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Entities.ScaleEntitiesCommand",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Entities"
+      },
+      "name": "ScaleEntitiesCommand",
+      "path": "src/Forge.Application/Entities/ScaleEntitiesCommand.cs"
     },
     {
       "id": "model:Forge.Application.Entities.SetEntityOverridesCommand",
@@ -41170,6 +41743,16 @@
       },
       "name": "RemoveEntityHandlerTests",
       "path": "tests/Forge.Application.Tests/Entities/RemoveEntityHandlerTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Entities.ScaleEntitiesHandlerTests",
+      "kind": "test",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Entities"
+      },
+      "name": "ScaleEntitiesHandlerTests",
+      "path": "tests/Forge.Application.Tests/Entities/ScaleEntitiesHandlerTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Entities.SetEntityOverridesHandlerTests",
@@ -43561,7 +44144,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 4588,
+      "line": 4777,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -43581,7 +44164,7 @@
     {
       "id": "type:Forge.Toolset.Editor.ProjectPreview3D",
       "kind": "type",
-      "line": 20,
+      "line": 21,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -43591,7 +44174,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 4593,
+      "line": 4782,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -43601,7 +44184,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 4598,
+      "line": 4787,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
