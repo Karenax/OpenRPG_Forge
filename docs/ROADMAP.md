@@ -144,6 +144,8 @@ G8 DOOR-02 livre navigation dynamique, verrou partagé, rejets localisés, pièg
 La prochaine tranche est **DOOR-03**.
 G8 DOOR-03 livre événements contrôlés de portail, ouverture, fermeture, verrouillage et déverrouillage.
 La famille Door G8 est complète ; la prochaine tranche est **TRIGGER-01**.
+G8 TRIGGER-01 livre formes 2D/3D, édition, filtres, politiques de tir, portail partagé et événements
+d’entrée/sortie. La prochaine tranche est **TRIGGER-02**.
 
 ## Phase 6 — 3D assistée
 

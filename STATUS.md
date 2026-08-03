@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 TRIGGER-01** pour `ORF-TRG-001`, `002`, `003`, `006` et `007` : volumes, formes et détection des triggers.
+Exécuter **G8 TRIGGER-02** pour `ORF-TRG-020`, `004`, `011`, `017` et `019` : validation, pièges, multi-entités et debug.
