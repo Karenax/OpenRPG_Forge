@@ -3045,7 +3045,7 @@
     },
     {
       "evidence": {
-        "line": 182,
+        "line": 184,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -11151,6 +11151,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs",
       "target": "namespace:Forge.RpgKit.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -19533,6 +19542,42 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Dialogues.DialogueActionKind",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Dialogues.DialogueDiagnostic",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Dialogues.DialogueExpressionKind",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Dialogues.ParticipantBindingKind",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
         "line": 14,
         "path": "src/Forge.RpgKit.Domain/Doors/DoorModels.cs"
       },
@@ -24204,6 +24249,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Dialogues",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.RpgKit.Domain/Doors/DoorEventService.cs"
       },
@@ -24453,6 +24507,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Dialogues",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
     },
     {
       "evidence": {
@@ -25527,15 +25590,6 @@
     },
     {
       "evidence": {
-        "line": 416,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
-      "target": "model:Forge.Domain.Dialogues.DialogueActionKind"
-    },
-    {
-      "evidence": {
         "line": 402,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
@@ -26163,6 +26217,33 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Domain.Creatures.CreatureRulesService",
       "target": "model:Forge.RpgKit.Domain.Creatures.PerceptionResult"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Dialogues.DialogueGraphService",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Dialogues.DialogueGraphService",
+      "target": "model:Forge.RpgKit.Domain.Dialogues.DialogueDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Dialogues.DialogueGraphService",
+      "target": "model:Forge.RpgKit.Domain.Dialogues.DialogueExpressionKind"
     },
     {
       "evidence": {
@@ -28506,15 +28587,6 @@
     },
     {
       "evidence": {
-        "line": 55,
-        "path": "tests/Forge.Application.Tests/Creator/CreatorSearchAndRenameTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Creator.CreatorSearchAndRenameTests",
-      "target": "type:Forge.Domain.Dialogues.DialogueNode"
-    },
-    {
-      "evidence": {
         "line": 236,
         "path": "tests/Forge.Application.Tests/Creator/CreatorSearchAndRenameTests.cs"
       },
@@ -29385,15 +29457,6 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Dialogues.SetDialogueHandlerTests",
       "target": "type:Forge.Application.Projects.ProjectRevision"
-    },
-    {
-      "evidence": {
-        "line": 133,
-        "path": "tests/Forge.Application.Tests/Dialogues/SetDialogueHandlerTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Dialogues.SetDialogueHandlerTests",
-      "target": "type:Forge.Domain.Dialogues.DialogueNode"
     },
     {
       "evidence": {
@@ -30636,15 +30699,6 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
       "target": "type:Forge.Application.Projects.ProjectRevision"
-    },
-    {
-      "evidence": {
-        "line": 73,
-        "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
-      "target": "type:Forge.Domain.Dialogues.DialogueNode"
     },
     {
       "evidence": {
@@ -31998,15 +32052,6 @@
     },
     {
       "evidence": {
-        "line": 36,
-        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTestFactory.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Dialogues.DialogueTestFactory",
-      "target": "model:Forge.Domain.Dialogues.DialogueActionKind"
-    },
-    {
-      "evidence": {
         "line": 14,
         "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTestFactory.cs"
       },
@@ -32052,15 +32097,6 @@
     },
     {
       "evidence": {
-        "line": 36,
-        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTestFactory.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Dialogues.DialogueTestFactory",
-      "target": "type:Forge.Domain.Dialogues.DialogueAction"
-    },
-    {
-      "evidence": {
         "line": 32,
         "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTestFactory.cs"
       },
@@ -32079,15 +32115,6 @@
     },
     {
       "evidence": {
-        "line": 26,
-        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTestFactory.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Dialogues.DialogueTestFactory",
-      "target": "type:Forge.Domain.Dialogues.DialogueNode"
-    },
-    {
-      "evidence": {
         "line": 29,
         "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTestFactory.cs"
       },
@@ -32103,15 +32130,6 @@
       "kind": "defined_in",
       "source": "test:Forge.Domain.Tests.Dialogues.DialogueTraversalTests",
       "target": "file:tests/Forge.Domain.Tests/Dialogues/DialogueTraversalTests.cs"
-    },
-    {
-      "evidence": {
-        "line": 24,
-        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTraversalTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Dialogues.DialogueTraversalTests",
-      "target": "model:Forge.Domain.Dialogues.DialogueActionKind"
     },
     {
       "evidence": {
@@ -32139,15 +32157,6 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Dialogues.DialogueTraversalTests",
       "target": "type:Forge.Domain.Dialogues.DialogueChoice"
-    },
-    {
-      "evidence": {
-        "line": 46,
-        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTraversalTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Dialogues.DialogueTraversalTests",
-      "target": "type:Forge.Domain.Dialogues.DialogueNode"
     },
     {
       "evidence": {
@@ -32211,15 +32220,6 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Dialogues.DialogueValidatorTests",
       "target": "type:Forge.Domain.Dialogues.DialogueChoice"
-    },
-    {
-      "evidence": {
-        "line": 33,
-        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueValidatorTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Dialogues.DialogueValidatorTests",
-      "target": "type:Forge.Domain.Dialogues.DialogueNode"
     },
     {
       "evidence": {
@@ -33660,15 +33660,6 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Validation.ProjectValidatorTests",
       "target": "type:Forge.Domain.Areas.PortalLink"
-    },
-    {
-      "evidence": {
-        "line": 82,
-        "path": "tests/Forge.Domain.Tests/Validation/ProjectValidatorTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Domain.Tests.Validation.ProjectValidatorTests",
-      "target": "type:Forge.Domain.Dialogues.DialogueNode"
     },
     {
       "evidence": {
@@ -35553,15 +35544,6 @@
     },
     {
       "evidence": {
-        "line": 61,
-        "path": "tests/Forge.ModuleFormat.Tests/Serialization/TestProjectFactory.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.ModuleFormat.Tests.Serialization.TestProjectFactory",
-      "target": "type:Forge.Domain.Dialogues.DialogueNode"
-    },
-    {
-      "evidence": {
         "line": 64,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/TestProjectFactory.cs"
       },
@@ -36156,6 +36138,15 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Dialogues.DialogueContext"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
       },
@@ -36693,6 +36684,96 @@
       "kind": "tests",
       "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureRulesServiceTests",
       "target": "type:Forge.RpgKit.Domain.Creatures.EncounterRole"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Dialogues.DialogueExpressionKind"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "target": "model:Forge.RpgKit.Domain.Dialogues.ParticipantBindingKind"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Dialogues.DialogueGraphService"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Dialogues.DialogueContext"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Dialogues.DialogueEditorialStatus"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Dialogues.DialogueEvaluationMode"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Dialogues.DialogueGraph"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Dialogues.DialogueNodeNotes"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "target": "type:Forge.RpgKit.Domain.Dialogues.DialogueTokenType"
     },
     {
       "evidence": {
@@ -41566,6 +41647,123 @@
     {
       "evidence": {
         "line": 12,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueAction",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueContext",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueEdge",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueEditorialStatus",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueEvaluationMode",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueExpression",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueGraph",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueNode",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueNodeNotes",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueToken",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.DialogueTokenType",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.ParticipantBinding",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Dialogues.RenderedDialogueNode",
+      "target": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
         "path": "src/Forge.RpgKit.Domain/Doors/DoorModels.cs"
       },
       "kind": "defined_in",
@@ -43518,8 +43716,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:a81c30b747db764dcf79eab9aed02b2a3ec177a04ebca870d054d472b8ccde0e",
-    "source_file_count": 894
+    "source_digest": "sha256:1fc7875f3f91e150b2d3673d956b58a8480c3746f5f19d437c8b92ad8443c7e2",
+    "source_file_count": 897
   },
   "nodes": [
     {
@@ -46441,6 +46639,16 @@
       },
       "name": "G8-CREATURE-06-AI.md",
       "path": "docs/aurora-parity/tasks/G8-CREATURE-06-AI.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G8-DIALOGUE-01-GRAPH.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G8-DIALOGUE-01-GRAPH.md",
+      "path": "docs/aurora-parity/tasks/G8-DIALOGUE-01-GRAPH.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G8-DOOR-01-FOUNDATION.md",
@@ -50233,6 +50441,16 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureRulesService.cs"
     },
     {
+      "id": "file:src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DialogueGraphService.cs",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Domain/Doors/DoorEventService.cs",
       "kind": "file",
       "line": 1,
@@ -51651,6 +51869,16 @@
       },
       "name": "CreatureRulesServiceTests.cs",
       "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DialogueGraphServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Doors/DoorEventServiceTests.cs",
@@ -56103,6 +56331,46 @@
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Domain.Dialogues.DialogueActionKind",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueActionKind",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Dialogues.DialogueDiagnostic",
+      "kind": "model",
+      "line": 18,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueDiagnostic",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Dialogues.DialogueExpressionKind",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueExpressionKind",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Dialogues.ParticipantBindingKind",
+      "kind": "model",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "ParticipantBindingKind",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Domain.Doors.DoorDefinition",
       "kind": "model",
       "line": 14,
@@ -57289,6 +57557,11 @@
       "name": "Forge.RpgKit.Domain.Creatures"
     },
     {
+      "id": "namespace:Forge.RpgKit.Domain.Dialogues",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Dialogues"
+    },
+    {
       "id": "namespace:Forge.RpgKit.Domain.Doors",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Doors"
@@ -57327,6 +57600,11 @@
       "id": "namespace:Forge.RpgKit.Domain.Tests.Creatures",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Tests.Creatures"
+    },
+    {
+      "id": "namespace:Forge.RpgKit.Domain.Tests.Dialogues",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Tests.Dialogues"
     },
     {
       "id": "namespace:Forge.RpgKit.Domain.Tests.Doors",
@@ -57680,6 +57958,16 @@
       },
       "name": "CreatureRulesService",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureRulesService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Domain.Dialogues.DialogueGraphService",
+      "kind": "service",
+      "line": 21,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueGraphService",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
     },
     {
       "id": "service:Forge.RpgKit.Domain.Doors.DoorEventService",
@@ -58840,6 +59128,16 @@
       },
       "name": "CreatureRulesServiceTests",
       "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureRulesServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueGraphServiceTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Dialogues"
+      },
+      "name": "DialogueGraphServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueGraphServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Doors.DoorEventServiceTests",
@@ -62337,6 +62635,136 @@
       },
       "name": "TraitSet",
       "path": "src/Forge.RpgKit.Domain/Creatures/CreatureDefinition.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueAction",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueAction",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueContext",
+      "kind": "type",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueContext",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueEdge",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueEdge",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueEditorialStatus",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueEditorialStatus",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueEvaluationMode",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueEvaluationMode",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueExpression",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueExpression",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueGraph",
+      "kind": "type",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueGraph",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueNode",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueNode",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueNodeNotes",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueNodeNotes",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueToken",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueToken",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.DialogueTokenType",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "DialogueTokenType",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.ParticipantBinding",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "ParticipantBinding",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Dialogues.RenderedDialogueNode",
+      "kind": "type",
+      "line": 19,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Dialogues"
+      },
+      "name": "RenderedDialogueNode",
+      "path": "src/Forge.RpgKit.Domain/Dialogues/DialogueGraphService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Doors.DoorInteractionPolicy",
