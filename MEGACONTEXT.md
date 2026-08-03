@@ -1417,7 +1417,7 @@ Le résumé doit contenir :
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
-> Réalise **G8 COMPANION-02** pour `ORF-CMP-006`, `007`, `008`, `009` et `010` : groupe, ownership, ordres et IA.
+> Réalise **G8 COMPANION-03** pour `ORF-CMP-012`, `017`, `018` et `022` : équipement, mort, cohésion et HUD.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.

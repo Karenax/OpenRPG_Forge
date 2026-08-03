@@ -161,6 +161,8 @@ et contrat d'interface accessible. La famille Merchant sélectionnée pour G8 es
 prochaine tranche est **COMPANION-01**.
 G8 COMPANION-01 livre composant canonique, contextes de dialogue, recrutement/renvoi atomiques et
 validation localisée. La prochaine tranche est **COMPANION-02**.
+G8 COMPANION-02 livre politiques de groupe, ownership audité, ordres de mouvement/combat et profil
+d'autonomie. La prochaine tranche est **COMPANION-03**.
 
 ## Phase 6 — 3D assistée
 
