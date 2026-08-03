@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 CREATURE-01** pour `ORF-CRE-002`, `003`, `014`, `027` et `033`, première tranche de La Veillée des Éclats.
+Exécuter **G8 CREATURE-02** pour `ORF-CRE-036`, `043`, `049`, `001` et `004` : combat, événements, validation et assistant.

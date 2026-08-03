@@ -106,6 +106,8 @@ La direction d’interface associée est documentée dans [`UX_AURORA_2026.md`](
 G7 est fermé avec portail global vert et preuves dans `docs/aurora-parity/G7_CLOSURE_EVIDENCE.md`.
 L'audit G8 et ses 40 lots sont définis dans `docs/aurora-parity/G8_DELIVERY_PLAN.md`.
 La prochaine tranche est **G8 CREATURE-01**, fondation du module La Veillée des Éclats.
+G8 CREATURE-01 livre la frontière `Forge.RpgKit.Domain`, les créatures composables, ressources,
+déplacements et l'événement de spawn autoritaire. La prochaine tranche est **CREATURE-02**.
 
 ## Phase 6 — 3D assistée
 

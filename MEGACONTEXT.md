@@ -1417,7 +1417,7 @@ Le résumé doit contenir :
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
-> Réalise **G8 CREATURE-01** pour `ORF-CRE-002`, `003`, `014`, `027` et `033`, première tranche du module auteur La Veillée des Éclats.
+> Réalise **G8 CREATURE-02** pour `ORF-CRE-036`, `043`, `049`, `001` et `004` : combat, événements, validation et assistant.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.
