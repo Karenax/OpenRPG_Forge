@@ -227,4 +227,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Exécuter **G8 MERCHANT-02** pour `ORF-MER-004`, `008`, `009`, `011` et `017` : prix, restrictions, sessions et interface.
+Exécuter **G8 COMPANION-01** pour `ORF-CMP-024`, `001`, `002`, `003` et `005` : fondation des compagnons.

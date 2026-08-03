@@ -156,6 +156,9 @@ G8 ENCOUNTER-03 livre événements de cycle, phases, vagues et simulation statis
 La famille Encounter sélectionnée pour G8 est complète ; la prochaine tranche est **MERCHANT-01**.
 G8 MERCHANT-01 livre magasin indépendant, assistant, stock validé et transactions atomiques avec
 rollback exact. La prochaine tranche est **MERCHANT-02**.
+G8 MERCHANT-02 livre prix explicables, requêtes d'objets, approvisionnement, événements de session
+et contrat d'interface accessible. La famille Merchant sélectionnée pour G8 est complète ; la
+prochaine tranche est **COMPANION-01**.
 
 ## Phase 6 — 3D assistée
 
