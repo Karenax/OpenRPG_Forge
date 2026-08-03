@@ -163,6 +163,8 @@ G8 COMPANION-01 livre composant canonique, contextes de dialogue, recrutement/re
 validation localisée. La prochaine tranche est **COMPANION-02**.
 G8 COMPANION-02 livre politiques de groupe, ownership audité, ordres de mouvement/combat et profil
 d'autonomie. La prochaine tranche est **COMPANION-03**.
+G8 COMPANION-03 livre équipement permissionné, politiques de mort, cohésion sûre et HUD accessible.
+La famille Companion sélectionnée pour G8 est complète ; la prochaine tranche est **DIALOGUE-01**.
 
 ## Phase 6 — 3D assistée
 
