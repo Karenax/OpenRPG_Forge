@@ -1,5 +1,11 @@
 {
-  "diagnostics": [],
+  "diagnostics": [
+    {
+      "line": 81,
+      "message": "Identifiant de nœud ambigu ignoré : test:Forge.Network.Tests.ManualTimeProvider",
+      "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+    }
+  ],
   "edges": [
     {
       "evidence": {
@@ -11515,6 +11521,33 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs",
+      "target": "namespace:Forge.Network.Events"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs",
+      "target": "namespace:Forge.Network.Observability"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs",
+      "target": "namespace:Forge.Network.Storage"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
       },
       "kind": "imports",
@@ -16483,6 +16516,24 @@
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.Network/Events/ServerEventBus.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Network.Events.IServerEventHandler",
+      "target": "file:src/Forge.Network/Events/ServerEventBus.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Network/Events/ServerEventBus.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Network.Events.IServerEventHandler",
+      "target": "model:Forge.Network.Events.ServerEvent"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "apps/Forge.Runtime/Runtime/PlayerController.cs"
       },
       "kind": "defined_in",
@@ -19876,6 +19927,15 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Network/Events/ServerEventBus.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.Events.ServerEvent",
+      "target": "file:src/Forge.Network/Events/ServerEventBus.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Network/Operations/AdministrationService.cs"
       },
       "kind": "defined_in",
@@ -19953,6 +20013,51 @@
       "kind": "defined_in",
       "source": "model:Forge.Network.Sessions.SessionIdentity",
       "target": "file:src/Forge.Network/Sessions/NetworkModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.Storage.DataCommandResult",
+      "target": "file:src/Forge.Network/Storage/SecureDataStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Network.Storage.DataCommandResult",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.Storage.DataParameterKind",
+      "target": "file:src/Forge.Network/Storage/SecureDataStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.Storage.NamedDataCommand",
+      "target": "file:src/Forge.Network/Storage/SecureDataStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Network.Storage.NamedDataCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
     },
     {
       "evidence": {
@@ -25581,12 +25686,30 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/Events/ServerEventBus.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Events",
+      "target": "file:src/Forge.Network/Events/ServerEventBus.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Network/Identity/AccountService.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.Network.Identity",
       "target": "file:src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Observability",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
     },
     {
       "evidence": {
@@ -25671,6 +25794,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Storage",
+      "target": "file:src/Forge.Network/Storage/SecureDataStore.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Network.Tests/AuthoritativeSessionTests.cs"
       },
@@ -25695,6 +25827,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Network.Tests",
       "target": "file:tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Tests",
+      "target": "file:tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
     },
     {
       "evidence": {
@@ -27882,6 +28023,15 @@
       "kind": "defined_in",
       "source": "service:Forge.Network.Identity.AccountService",
       "target": "file:src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Network.Observability.HealthService",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
     },
     {
       "evidence": {
@@ -33771,6 +33921,15 @@
     },
     {
       "evidence": {
+        "line": 50,
+        "path": "tests/Forge.Application.Tests/Projects/SetModuleConfigurationHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetModuleConfigurationHandlerTests",
+      "target": "type:Forge.Network.Observability.Scope"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "tests/Forge.Application.Tests/Projects/SetModuleDistributionHandlerTests.cs"
       },
@@ -38568,6 +38727,15 @@
     },
     {
       "evidence": {
+        "line": 81,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Network.Tests.ManualTimeProvider",
+      "target": "file:tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
       },
@@ -38694,6 +38862,33 @@
     },
     {
       "evidence": {
+        "line": 74,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Network.Tests.RecordingHandler",
+      "target": "file:tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 74,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.RecordingHandler",
+      "target": "handler:Forge.Network.Events.IServerEventHandler"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.RecordingHandler",
+      "target": "model:Forge.Network.Events.ServerEvent"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
       },
@@ -38763,6 +38958,105 @@
       "kind": "tests",
       "source": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
       "target": "type:Forge.Network.Replication.ObserverScope"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "file:tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "model:Forge.Network.Events.ServerEvent"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "model:Forge.Network.Storage.DataParameterKind"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "service:Forge.Network.Observability.HealthService"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "type:Forge.Network.Events.ServerEventBus"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "type:Forge.Network.Observability.HealthStatus"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "type:Forge.Network.Observability.ServerMetrics"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "type:Forge.Network.Observability.ServerProfiler"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "type:Forge.Network.Observability.StructuredLogger"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "type:Forge.Network.Storage.DataParameter"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "target": "type:Forge.Network.Storage.InMemorySecureDataStore"
     },
     {
       "evidence": {
@@ -45165,6 +45459,15 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "src/Forge.Network/Events/ServerEventBus.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Events.ServerEventBus",
+      "target": "file:src/Forge.Network/Events/ServerEventBus.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Network/Identity/AccountService.cs"
       },
@@ -45180,6 +45483,96 @@
       "kind": "defined_in",
       "source": "type:Forge.Network.Identity.AuthenticationDecision",
       "target": "file:src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Observability.HealthReport",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Observability.HealthStatus",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Observability.MetricSnapshot",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "evidence": {
+        "line": 62,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Observability.MutableAggregate",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Observability.ProfileAggregate",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "evidence": {
+        "line": 63,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Observability.Scope",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Observability.ServerMetrics",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Observability.ServerProfiler",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Observability.StructuredLog",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "src/Forge.Network/Observability/ServerObservability.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Observability.StructuredLogger",
+      "target": "file:src/Forge.Network/Observability/ServerObservability.cs"
     },
     {
       "evidence": {
@@ -45378,6 +45771,33 @@
       "kind": "defined_in",
       "source": "type:Forge.Network.Sessions.SessionRole",
       "target": "file:src/Forge.Network/Sessions/NetworkModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Storage.DataParameter",
+      "target": "file:src/Forge.Network/Storage/SecureDataStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Storage.ISecureDataStore",
+      "target": "file:src/Forge.Network/Storage/SecureDataStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Storage.InMemorySecureDataStore",
+      "target": "file:src/Forge.Network/Storage/SecureDataStore.cs"
     },
     {
       "evidence": {
@@ -48936,8 +49356,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:99274c3e2d24b9702249392999f6b749dd87bc2bf38936fccc92093a075463be",
-    "source_file_count": 979
+    "source_digest": "sha256:de76db954e5a7838dda7ef08d9022ce7c45213023b44fc46e4a93b54637d0bc7",
+    "source_file_count": 984
   },
   "nodes": [
     {
@@ -52399,6 +52819,16 @@
       },
       "name": "G9-D-OPERATIONS-CHAT-PERSISTENCE.md",
       "path": "docs/aurora-parity/tasks/G9-D-OPERATIONS-CHAT-PERSISTENCE.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G9-E-STORAGE-EVENTS-OBSERVABILITY.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G9-E-STORAGE-EVENTS-OBSERVABILITY.md",
+      "path": "docs/aurora-parity/tasks/G9-E-STORAGE-EVENTS-OBSERVABILITY.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -55891,6 +56321,16 @@
       "path": "src/Forge.Network/Discovery/ServerDiscovery.cs"
     },
     {
+      "id": "file:src/Forge.Network/Events/ServerEventBus.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ServerEventBus.cs",
+      "path": "src/Forge.Network/Events/ServerEventBus.cs"
+    },
+    {
       "id": "file:src/Forge.Network/Forge.Network.csproj",
       "kind": "configuration",
       "line": 1,
@@ -55909,6 +56349,16 @@
       },
       "name": "AccountService.cs",
       "path": "src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/Observability/ServerObservability.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ServerObservability.cs",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
     },
     {
       "id": "file:src/Forge.Network/Operations/AdministrationService.cs",
@@ -55999,6 +56449,16 @@
       },
       "name": "NetworkValidation.cs",
       "path": "src/Forge.Network/Sessions/NetworkValidation.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/Storage/SecureDataStore.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SecureDataStore.cs",
+      "path": "src/Forge.Network/Storage/SecureDataStore.cs"
     },
     {
       "id": "file:src/Forge.Network/World/CharacterRegistry.cs",
@@ -57759,6 +58219,16 @@
       },
       "name": "ReplicationContentIdentityTests.cs",
       "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "StorageEventsObservabilityTests.cs",
+      "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
     },
     {
       "id": "file:tests/Forge.Network.Tests/WorldAuthorityTests.cs",
@@ -60361,6 +60831,16 @@
       "path": "src/Forge.Network/Discovery/ServerDiscovery.cs"
     },
     {
+      "id": "handler:Forge.Network.Events.IServerEventHandler",
+      "kind": "handler",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Network.Events"
+      },
+      "name": "IServerEventHandler",
+      "path": "src/Forge.Network/Events/ServerEventBus.cs"
+    },
+    {
       "id": "handler:Forge.Runtime.PlayerController",
       "kind": "handler",
       "line": 5,
@@ -62161,6 +62641,16 @@
       "path": "src/Forge.Network/Chat/ChatService.cs"
     },
     {
+      "id": "model:Forge.Network.Events.ServerEvent",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.Events"
+      },
+      "name": "ServerEvent",
+      "path": "src/Forge.Network/Events/ServerEventBus.cs"
+    },
+    {
       "id": "model:Forge.Network.Operations.AdministrationCommand",
       "kind": "model",
       "line": 3,
@@ -62219,6 +62709,36 @@
       },
       "name": "SessionIdentity",
       "path": "src/Forge.Network/Sessions/NetworkModels.cs"
+    },
+    {
+      "id": "model:Forge.Network.Storage.DataCommandResult",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Network.Storage"
+      },
+      "name": "DataCommandResult",
+      "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+    },
+    {
+      "id": "model:Forge.Network.Storage.DataParameterKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.Storage"
+      },
+      "name": "DataParameterKind",
+      "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+    },
+    {
+      "id": "model:Forge.Network.Storage.NamedDataCommand",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Network.Storage"
+      },
+      "name": "NamedDataCommand",
+      "path": "src/Forge.Network/Storage/SecureDataStore.cs"
     },
     {
       "id": "model:Forge.Network.World.WorldDiagnostic",
@@ -64162,9 +64682,19 @@
       "name": "Forge.Network.Discovery"
     },
     {
+      "id": "namespace:Forge.Network.Events",
+      "kind": "namespace",
+      "name": "Forge.Network.Events"
+    },
+    {
       "id": "namespace:Forge.Network.Identity",
       "kind": "namespace",
       "name": "Forge.Network.Identity"
+    },
+    {
+      "id": "namespace:Forge.Network.Observability",
+      "kind": "namespace",
+      "name": "Forge.Network.Observability"
     },
     {
       "id": "namespace:Forge.Network.Operations",
@@ -64185,6 +64715,11 @@
       "id": "namespace:Forge.Network.Sessions",
       "kind": "namespace",
       "name": "Forge.Network.Sessions"
+    },
+    {
+      "id": "namespace:Forge.Network.Storage",
+      "kind": "namespace",
+      "name": "Forge.Network.Storage"
     },
     {
       "id": "namespace:Forge.Network.Tests",
@@ -64609,6 +65144,16 @@
       },
       "name": "AccountService",
       "path": "src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "id": "service:Forge.Network.Observability.HealthService",
+      "kind": "service",
+      "line": 22,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "HealthService",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
     },
     {
       "id": "service:Forge.Network.Operations.AdministrationService",
@@ -66021,6 +66566,16 @@
       "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
     },
     {
+      "id": "test:Forge.Network.Tests.RecordingHandler",
+      "kind": "test",
+      "line": 74,
+      "metadata": {
+        "namespace": "Forge.Network.Tests"
+      },
+      "name": "RecordingHandler",
+      "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
+    },
+    {
       "id": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
       "kind": "test",
       "line": 7,
@@ -66029,6 +66584,16 @@
       },
       "name": "ReplicationContentIdentityTests",
       "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+    },
+    {
+      "id": "test:Forge.Network.Tests.StorageEventsObservabilityTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Network.Tests"
+      },
+      "name": "StorageEventsObservabilityTests",
+      "path": "tests/Forge.Network.Tests/StorageEventsObservabilityTests.cs"
     },
     {
       "id": "test:Forge.Network.Tests.WorldAuthorityTests",
@@ -69148,6 +69713,16 @@
       "path": "src/Forge.Network/Discovery/ServerDiscovery.cs"
     },
     {
+      "id": "type:Forge.Network.Events.ServerEventBus",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Network.Events"
+      },
+      "name": "ServerEventBus",
+      "path": "src/Forge.Network/Events/ServerEventBus.cs"
+    },
+    {
       "id": "type:Forge.Network.Identity.Account",
       "kind": "type",
       "line": 5,
@@ -69166,6 +69741,106 @@
       },
       "name": "AuthenticationDecision",
       "path": "src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "id": "type:Forge.Network.Observability.HealthReport",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "HealthReport",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "id": "type:Forge.Network.Observability.HealthStatus",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "HealthStatus",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "id": "type:Forge.Network.Observability.MetricSnapshot",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "MetricSnapshot",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "id": "type:Forge.Network.Observability.MutableAggregate",
+      "kind": "type",
+      "line": 62,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "MutableAggregate",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "id": "type:Forge.Network.Observability.ProfileAggregate",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "ProfileAggregate",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "id": "type:Forge.Network.Observability.Scope",
+      "kind": "type",
+      "line": 63,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "Scope",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "id": "type:Forge.Network.Observability.ServerMetrics",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "ServerMetrics",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "id": "type:Forge.Network.Observability.ServerProfiler",
+      "kind": "type",
+      "line": 51,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "ServerProfiler",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "id": "type:Forge.Network.Observability.StructuredLog",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "StructuredLog",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
+    },
+    {
+      "id": "type:Forge.Network.Observability.StructuredLogger",
+      "kind": "type",
+      "line": 34,
+      "metadata": {
+        "namespace": "Forge.Network.Observability"
+      },
+      "name": "StructuredLogger",
+      "path": "src/Forge.Network/Observability/ServerObservability.cs"
     },
     {
       "id": "type:Forge.Network.Operations.AuthorizationDecision",
@@ -69386,6 +70061,36 @@
       },
       "name": "SessionRole",
       "path": "src/Forge.Network/Sessions/NetworkModels.cs"
+    },
+    {
+      "id": "type:Forge.Network.Storage.DataParameter",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Network.Storage"
+      },
+      "name": "DataParameter",
+      "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+    },
+    {
+      "id": "type:Forge.Network.Storage.ISecureDataStore",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Network.Storage"
+      },
+      "name": "ISecureDataStore",
+      "path": "src/Forge.Network/Storage/SecureDataStore.cs"
+    },
+    {
+      "id": "type:Forge.Network.Storage.InMemorySecureDataStore",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.Network.Storage"
+      },
+      "name": "InMemorySecureDataStore",
+      "path": "src/Forge.Network/Storage/SecureDataStore.cs"
     },
     {
       "id": "type:Forge.Network.World.CharacterRegistry",
