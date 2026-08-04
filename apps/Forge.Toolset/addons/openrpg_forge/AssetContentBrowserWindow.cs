@@ -426,7 +426,8 @@ public partial class AssetContentBrowserWindow : Window
 
         SetStatus(
             $"Aperçu prêt · {result.Plan!.SourceRelativePath} → {result.Plan.DestinationRelativeDirectory} · " +
-            "aucun fichier écrit",
+            $"{result.Plan.Profile.CanonicalFormat.ToUpperInvariant()} · {result.Plan.Tasks.Count} tâche(s) · " +
+            $"cache {result.Plan.CacheKey[..12]}… · aucun fichier écrit",
             false);
         return true;
     }

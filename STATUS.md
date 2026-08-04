@@ -230,4 +230,10 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 Le second module original **La Veillée des Éclats** est généré par 15 commandes d'auteur puis
 persisté via `ProjectSession`; son round-trip et son export `.orpmod` sont couverts automatiquement.
 
-Exécuter l'**audit de preuves G11 Contenu moderne et qualité de distribution** et établir ses lots bornés à partir des pipelines Core, RPG, Network et Live Director désormais validés.
+L'audit **G11 Contenu moderne et qualité de distribution** couvre 99/99 exigences dans 20 lots bornés.
+G11-A fournit les profils canoniques textures/modèles, les diagnostics gouvernés, un plan de tâches
+GLB/KTX2 et des clés de cache déterministes entre cultures ; les notices et blocages de licence sont
+désormais reliés à leurs preuves automatisées.
+
+Fermer **G11-A** par la persistance canonique et la commande d'auteur des profils d'import, puis
+exécuter un traitement reproductible sur une texture et un modèle du Vault sans modifier les sources.

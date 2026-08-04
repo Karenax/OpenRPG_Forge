@@ -6434,6 +6434,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Authoring/EditorCameraPose.cs"
       },
       "kind": "imports",
@@ -17791,7 +17800,7 @@
     },
     {
       "evidence": {
-        "line": 69,
+        "line": 188,
         "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
       },
       "kind": "defined_in",
@@ -17800,7 +17809,7 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 190,
         "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
       },
       "kind": "relationship",
@@ -19039,6 +19048,15 @@
       "kind": "defined_in",
       "source": "model:Forge.Domain.Assets.AssetCatalogItemId",
       "target": "file:src/Forge.Domain/Assets/AssetCatalogItemId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assets.AssetProcessingKind",
+      "target": "file:src/Forge.Domain/Assets/AssetProcessingProfile.cs"
     },
     {
       "evidence": {
@@ -23497,7 +23515,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 6,
         "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
       },
       "kind": "defined_in",
@@ -24817,6 +24835,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Assets",
       "target": "file:src/Forge.Domain/Assets/AssetCatalogValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assets",
+      "target": "file:src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assets",
+      "target": "file:src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
     },
     {
       "evidence": {
@@ -32389,6 +32425,15 @@
     },
     {
       "evidence": {
+        "line": 78,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "model:Forge.Domain.Assets.AssetProcessingKind"
+    },
+    {
+      "evidence": {
         "line": 23,
         "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
       },
@@ -32404,6 +32449,15 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
       "target": "type:Forge.Application.Assets.AssetCatalogQuery"
+    },
+    {
+      "evidence": {
+        "line": 75,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Application.Assets.AssetImportPlan"
     },
     {
       "evidence": {
@@ -32440,6 +32494,51 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
       "target": "type:Forge.Domain.Assets.AssetCatalogItem"
+    },
+    {
+      "evidence": {
+        "line": 92,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Domain.Assets.AssetProcessingProfile"
+    },
+    {
+      "evidence": {
+        "line": 107,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Domain.Assets.PbrTextureChannel"
+    },
+    {
+      "evidence": {
+        "line": 103,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Domain.Assets.TextureColorSpace"
+    },
+    {
+      "evidence": {
+        "line": 104,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "type:Forge.Domain.Assets.TextureCompressionProfile"
+    },
+    {
+      "evidence": {
+        "line": 132,
+        "path": "tests/Forge.Application.Tests/Assets/AssetCatalogBrowserTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.AssetCatalogBrowserTests",
+      "target": "validator:Forge.Domain.Assets.AssetProcessingProfileValidator"
     },
     {
       "evidence": {
@@ -46483,6 +46582,15 @@
     },
     {
       "evidence": {
+        "line": 182,
+        "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assets.AssetBuildTask",
+      "target": "file:src/Forge.Application/Assets/AssetImportPlanner.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Assets/AssetCatalogBrowser.cs"
       },
@@ -46501,7 +46609,7 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 166,
         "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
       },
       "kind": "defined_in",
@@ -46510,7 +46618,7 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 9,
         "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
       },
       "kind": "defined_in",
@@ -47128,6 +47236,60 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Assets.AssetCatalogItem",
       "target": "file:src/Forge.Domain/Assets/AssetCatalogItem.cs"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.AssetProcessingProfile",
+      "target": "file:src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.ModelProcessingOptions",
+      "target": "file:src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.PbrTextureChannel",
+      "target": "file:src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.TextureColorSpace",
+      "target": "file:src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.TextureCompressionProfile",
+      "target": "file:src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.TextureProcessingOptions",
+      "target": "file:src/Forge.Domain/Assets/AssetProcessingProfile.cs"
     },
     {
       "evidence": {
@@ -52586,6 +52748,33 @@
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Assets.AssetProcessingProfileValidator",
+      "target": "file:src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assets.AssetProcessingProfileValidator",
+      "target": "model:Forge.Domain.Assets.AssetProcessingKind"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assets.AssetProcessingProfileValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "src/Forge.Domain/Dialogues/DialogueValidator.cs"
       },
       "kind": "defined_in",
@@ -53071,8 +53260,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:cd15858c1b533781300ef6bdcd9c1dd334643b1ef313411db389e2cb4a479568",
-    "source_file_count": 1039
+    "source_digest": "sha256:9d023b562501e9ea59d1b291733c8dd096ad3fe4f3357efb85df13645ac68963",
+    "source_file_count": 1042
   },
   "nodes": [
     {
@@ -55736,6 +55925,16 @@
       "path": "docs/aurora-parity/G10_DELIVERY_PLAN.md"
     },
     {
+      "id": "file:docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G11_EVIDENCE_AUDIT_AND_PLAN.md",
+      "path": "docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md"
+    },
+    {
       "id": "file:docs/aurora-parity/G7_CLOSURE_EVIDENCE.md",
       "kind": "document",
       "line": 1,
@@ -58084,6 +58283,26 @@
       },
       "name": "AssetCatalogValidator.cs",
       "path": "src/Forge.Domain/Assets/AssetCatalogValidator.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assets/AssetProcessingProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetProcessingProfile.cs",
+      "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetProcessingProfileValidator.cs",
+      "path": "src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
     },
     {
       "id": "file:src/Forge.Domain/Authoring/EditorCameraBookmark.cs",
@@ -65278,7 +65497,7 @@
     {
       "id": "model:Forge.Application.Assets.AssetImportPlanResult",
       "kind": "model",
-      "line": 69,
+      "line": 188,
       "metadata": {
         "namespace": "Forge.Application.Assets"
       },
@@ -65794,6 +66013,16 @@
       },
       "name": "AssetCatalogItemId",
       "path": "src/Forge.Domain/Assets/AssetCatalogItemId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assets.AssetProcessingKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetProcessingKind",
+      "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
     },
     {
       "id": "model:Forge.Domain.Authoring.EditorCameraBookmarkId",
@@ -72162,6 +72391,16 @@
       "path": "src/Forge.Application/Areas/DuplicateAreaCommand.cs"
     },
     {
+      "id": "type:Forge.Application.Assets.AssetBuildTask",
+      "kind": "type",
+      "line": 182,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "AssetBuildTask",
+      "path": "src/Forge.Application/Assets/AssetImportPlanner.cs"
+    },
+    {
       "id": "type:Forge.Application.Assets.AssetCatalogBrowser",
       "kind": "type",
       "line": 7,
@@ -72184,7 +72423,7 @@
     {
       "id": "type:Forge.Application.Assets.AssetImportPlan",
       "kind": "type",
-      "line": 56,
+      "line": 166,
       "metadata": {
         "namespace": "Forge.Application.Assets"
       },
@@ -72194,7 +72433,7 @@
     {
       "id": "type:Forge.Application.Assets.AssetImportPlanner",
       "kind": "type",
-      "line": 6,
+      "line": 9,
       "metadata": {
         "namespace": "Forge.Application.Assets"
       },
@@ -72880,6 +73119,66 @@
       },
       "name": "AssetCatalogItem",
       "path": "src/Forge.Domain/Assets/AssetCatalogItem.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.AssetProcessingProfile",
+      "kind": "type",
+      "line": 48,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetProcessingProfile",
+      "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.ModelProcessingOptions",
+      "kind": "type",
+      "line": 41,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "ModelProcessingOptions",
+      "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.PbrTextureChannel",
+      "kind": "type",
+      "line": 23,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "PbrTextureChannel",
+      "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.TextureColorSpace",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "TextureColorSpace",
+      "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.TextureCompressionProfile",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "TextureCompressionProfile",
+      "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.TextureProcessingOptions",
+      "kind": "type",
+      "line": 34,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "TextureProcessingOptions",
+      "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Authoring.EditorCameraBookmark",
@@ -78750,6 +79049,16 @@
       },
       "name": "AssetCatalogValidator",
       "path": "src/Forge.Domain/Assets/AssetCatalogValidator.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Assets.AssetProcessingProfileValidator",
+      "kind": "validator",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetProcessingProfileValidator",
+      "path": "src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
     },
     {
       "id": "validator:Forge.Domain.Dialogues.DialogueValidator",
