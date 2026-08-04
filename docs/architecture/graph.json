@@ -11452,6 +11452,33 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs",
+      "target": "namespace:Forge.Network.Content"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs",
+      "target": "namespace:Forge.Network.Identity"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs",
+      "target": "namespace:Forge.Network.Replication"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
       },
       "kind": "imports",
@@ -19803,6 +19830,24 @@
     },
     {
       "evidence": {
+        "line": 14,
+        "path": "src/Forge.Network/Replication/ReplicationModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.Replication.ReplicatedEntity",
+      "target": "file:src/Forge.Network/Replication/ReplicationModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Network/Replication/ReplicationModels.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Network.Replication.ReplicatedEntity",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
         "line": 17,
         "path": "src/Forge.Network/Sessions/NetworkModels.cs"
       },
@@ -25419,12 +25464,48 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Content",
+      "target": "file:src/Forge.Network/Content/ContentSynchronization.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Network/Discovery/ServerDiscovery.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.Network.Discovery",
       "target": "file:src/Forge.Network/Discovery/ServerDiscovery.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Network/Identity/AccountService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Identity",
+      "target": "file:src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/Replication/ReplicationModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Replication",
+      "target": "file:src/Forge.Network/Replication/ReplicationModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/Replication/ReplicationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Replication",
+      "target": "file:src/Forge.Network/Replication/ReplicationService.cs"
     },
     {
       "evidence": {
@@ -25461,6 +25542,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Network.Tests",
       "target": "file:tests/Forge.Network.Tests/AuthoritativeSessionTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Tests",
+      "target": "file:tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
     },
     {
       "evidence": {
@@ -27594,6 +27684,60 @@
       "kind": "accesses_model",
       "source": "service:Forge.Network.Authoring.NetworkAuthoringService",
       "target": "model:Forge.Network.Authoring.NetworkConfigurationCommand"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Network.Content.ContentManifestService",
+      "target": "file:src/Forge.Network/Content/ContentSynchronization.cs"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.Content.ContentManifestService",
+      "target": "model:Forge.Domain.Modules.ModuleId"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Network/Identity/AccountService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Network.Identity.AccountService",
+      "target": "file:src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Replication/ReplicationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Network.Replication.ReplicationService",
+      "target": "file:src/Forge.Network/Replication/ReplicationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Network/Replication/ReplicationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.Replication.ReplicationService",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Network/Replication/ReplicationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.Replication.ReplicationService",
+      "target": "model:Forge.Network.Replication.ReplicatedEntity"
     },
     {
       "evidence": {
@@ -38181,6 +38325,78 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
+      "target": "file:tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
+      "target": "model:Forge.Network.Replication.ReplicatedEntity"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
+      "target": "service:Forge.Network.Content.ContentManifestService"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
+      "target": "service:Forge.Network.Identity.AccountService"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
+      "target": "service:Forge.Network.Replication.ReplicationService"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
+      "target": "type:Forge.Network.Content.ContentResource"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
+      "target": "type:Forge.Network.Replication.ObserverScope"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
       },
@@ -44517,6 +44733,33 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Content.ContentDecision",
+      "target": "file:src/Forge.Network/Content/ContentSynchronization.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Content.ContentManifest",
+      "target": "file:src/Forge.Network/Content/ContentSynchronization.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Content.ContentResource",
+      "target": "file:src/Forge.Network/Content/ContentSynchronization.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Network/Discovery/ServerDiscovery.cs"
       },
@@ -44532,6 +44775,51 @@
       "kind": "defined_in",
       "source": "type:Forge.Network.Discovery.InMemoryServerDirectory",
       "target": "file:src/Forge.Network/Discovery/ServerDiscovery.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Network/Identity/AccountService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Identity.Account",
+      "target": "file:src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Network/Identity/AccountService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Identity.AuthenticationDecision",
+      "target": "file:src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Replication/ReplicationModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Replication.NetworkVector3",
+      "target": "file:src/Forge.Network/Replication/ReplicationModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.Network/Replication/ReplicationModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Replication.ObserverScope",
+      "target": "file:src/Forge.Network/Replication/ReplicationModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.Network/Replication/ReplicationModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Replication.ReplicationDelta",
+      "target": "file:src/Forge.Network/Replication/ReplicationModels.cs"
     },
     {
       "evidence": {
@@ -48180,8 +48468,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:e2d4f2a023bbc30cbafaf140fa7c7c68279c4a9682aa881e2c2376cdb4c498ce",
-    "source_file_count": 966
+    "source_digest": "sha256:a8c56077ee92f61deb73d67184f4f24d8659975e2dc1e3364d21cfc98867c0a7",
+    "source_file_count": 972
   },
   "nodes": [
     {
@@ -51623,6 +51911,16 @@
       },
       "name": "G9-B-WORLD-SESSIONS.md",
       "path": "docs/aurora-parity/tasks/G9-B-WORLD-SESSIONS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G9-C-REPLICATION-CONTENT-IDENTITY.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G9-C-REPLICATION-CONTENT-IDENTITY.md",
+      "path": "docs/aurora-parity/tasks/G9-C-REPLICATION-CONTENT-IDENTITY.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -55085,6 +55383,16 @@
       "path": "src/Forge.Network/Configuration/NetworkConfigurationStore.cs"
     },
     {
+      "id": "file:src/Forge.Network/Content/ContentSynchronization.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentSynchronization.cs",
+      "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+    },
+    {
       "id": "file:src/Forge.Network/Discovery/ServerDiscovery.cs",
       "kind": "file",
       "line": 1,
@@ -55103,6 +55411,36 @@
       },
       "name": "Forge.Network.csproj",
       "path": "src/Forge.Network/Forge.Network.csproj"
+    },
+    {
+      "id": "file:src/Forge.Network/Identity/AccountService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AccountService.cs",
+      "path": "src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/Replication/ReplicationModels.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ReplicationModels.cs",
+      "path": "src/Forge.Network/Replication/ReplicationModels.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/Replication/ReplicationService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ReplicationService.cs",
+      "path": "src/Forge.Network/Replication/ReplicationService.cs"
     },
     {
       "id": "file:src/Forge.Network/Sessions/AuthoritativeSession.cs",
@@ -56873,6 +57211,16 @@
       },
       "name": "Forge.Network.Tests.csproj",
       "path": "tests/Forge.Network.Tests/Forge.Network.Tests.csproj"
+    },
+    {
+      "id": "file:tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ReplicationContentIdentityTests.cs",
+      "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
     },
     {
       "id": "file:tests/Forge.Network.Tests/WorldAuthorityTests.cs",
@@ -61265,6 +61613,16 @@
       "path": "src/Forge.Network/Authoring/NetworkAuthoringService.cs"
     },
     {
+      "id": "model:Forge.Network.Replication.ReplicatedEntity",
+      "kind": "model",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.Network.Replication"
+      },
+      "name": "ReplicatedEntity",
+      "path": "src/Forge.Network/Replication/ReplicationModels.cs"
+    },
+    {
       "id": "model:Forge.Network.Sessions.NetworkDiagnostic",
       "kind": "model",
       "line": 17,
@@ -63211,9 +63569,24 @@
       "name": "Forge.Network.Configuration"
     },
     {
+      "id": "namespace:Forge.Network.Content",
+      "kind": "namespace",
+      "name": "Forge.Network.Content"
+    },
+    {
       "id": "namespace:Forge.Network.Discovery",
       "kind": "namespace",
       "name": "Forge.Network.Discovery"
+    },
+    {
+      "id": "namespace:Forge.Network.Identity",
+      "kind": "namespace",
+      "name": "Forge.Network.Identity"
+    },
+    {
+      "id": "namespace:Forge.Network.Replication",
+      "kind": "namespace",
+      "name": "Forge.Network.Replication"
     },
     {
       "id": "namespace:Forge.Network.Sessions",
@@ -63613,6 +63986,36 @@
       },
       "name": "NetworkAuthoringService",
       "path": "src/Forge.Network/Authoring/NetworkAuthoringService.cs"
+    },
+    {
+      "id": "service:Forge.Network.Content.ContentManifestService",
+      "kind": "service",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Network.Content"
+      },
+      "name": "ContentManifestService",
+      "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+    },
+    {
+      "id": "service:Forge.Network.Identity.AccountService",
+      "kind": "service",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Network.Identity"
+      },
+      "name": "AccountService",
+      "path": "src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "id": "service:Forge.Network.Replication.ReplicationService",
+      "kind": "service",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.Replication"
+      },
+      "name": "ReplicationService",
+      "path": "src/Forge.Network/Replication/ReplicationService.cs"
     },
     {
       "id": "service:Forge.Network.World.PartyService",
@@ -64963,6 +65366,16 @@
       },
       "name": "AuthoritativeSessionTests",
       "path": "tests/Forge.Network.Tests/AuthoritativeSessionTests.cs"
+    },
+    {
+      "id": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Network.Tests"
+      },
+      "name": "ReplicationContentIdentityTests",
+      "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
     },
     {
       "id": "test:Forge.Network.Tests.WorldAuthorityTests",
@@ -68012,6 +68425,36 @@
       "path": "src/Forge.Network/Configuration/NetworkConfigurationStore.cs"
     },
     {
+      "id": "type:Forge.Network.Content.ContentDecision",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Network.Content"
+      },
+      "name": "ContentDecision",
+      "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+    },
+    {
+      "id": "type:Forge.Network.Content.ContentManifest",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Network.Content"
+      },
+      "name": "ContentManifest",
+      "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+    },
+    {
+      "id": "type:Forge.Network.Content.ContentResource",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Network.Content"
+      },
+      "name": "ContentResource",
+      "path": "src/Forge.Network/Content/ContentSynchronization.cs"
+    },
+    {
       "id": "type:Forge.Network.Discovery.IServerDirectory",
       "kind": "type",
       "line": 7,
@@ -68030,6 +68473,56 @@
       },
       "name": "InMemoryServerDirectory",
       "path": "src/Forge.Network/Discovery/ServerDiscovery.cs"
+    },
+    {
+      "id": "type:Forge.Network.Identity.Account",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Network.Identity"
+      },
+      "name": "Account",
+      "path": "src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "id": "type:Forge.Network.Identity.AuthenticationDecision",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Network.Identity"
+      },
+      "name": "AuthenticationDecision",
+      "path": "src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "id": "type:Forge.Network.Replication.NetworkVector3",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.Replication"
+      },
+      "name": "NetworkVector3",
+      "path": "src/Forge.Network/Replication/ReplicationModels.cs"
+    },
+    {
+      "id": "type:Forge.Network.Replication.ObserverScope",
+      "kind": "type",
+      "line": 22,
+      "metadata": {
+        "namespace": "Forge.Network.Replication"
+      },
+      "name": "ObserverScope",
+      "path": "src/Forge.Network/Replication/ReplicationModels.cs"
+    },
+    {
+      "id": "type:Forge.Network.Replication.ReplicationDelta",
+      "kind": "type",
+      "line": 23,
+      "metadata": {
+        "namespace": "Forge.Network.Replication"
+      },
+      "name": "ReplicationDelta",
+      "path": "src/Forge.Network/Replication/ReplicationModels.cs"
     },
     {
       "id": "type:Forge.Network.Sessions.AuthoritativeSession",
