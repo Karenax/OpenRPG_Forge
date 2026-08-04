@@ -230,4 +230,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 Le second module original **La Veillée des Éclats** est généré par 15 commandes d'auteur puis
 persisté via `ProjectSession`; son round-trip et son export `.orpmod` sont couverts automatiquement.
 
-Implémenter **G10-F Live Director** (`ORF-DM-029`, `ORF-DM-031` à `ORF-DM-034`) : variables live, audit immuable, scènes préparées, brouillard et chat GM.
+Implémenter **G10-G Live Director** (`ORF-DM-035`, `ORF-DM-036`) : gestion live des quêtes et rencontres, puis préparer l'intégration du scénario GM complet.
