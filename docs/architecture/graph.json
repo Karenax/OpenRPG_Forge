@@ -11452,6 +11452,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/WorldAuthorityTests.cs",
+      "target": "namespace:Forge.Network.World"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionControlServiceTests.cs"
       },
       "kind": "imports",
@@ -19812,6 +19821,24 @@
     },
     {
       "evidence": {
+        "line": 27,
+        "path": "src/Forge.Network/World/WorldModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.World.WorldDiagnostic",
+      "target": "file:src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Network/World/WorldModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.World.ZoneInstance",
+      "target": "file:src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringService.cs"
       },
@@ -25437,6 +25464,60 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Tests",
+      "target": "file:tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/World/CharacterRegistry.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.World",
+      "target": "file:src/Forge.Network/World/CharacterRegistry.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/World/CombatAuthority.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.World",
+      "target": "file:src/Forge.Network/World/CombatAuthority.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/World/PartyService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.World",
+      "target": "file:src/Forge.Network/World/PartyService.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/World/WorldModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.World",
+      "target": "file:src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/World/ZoneInstanceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.World",
+      "target": "file:src/Forge.Network/World/ZoneInstanceService.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringService.cs"
       },
@@ -27513,6 +27594,51 @@
       "kind": "accesses_model",
       "source": "service:Forge.Network.Authoring.NetworkAuthoringService",
       "target": "model:Forge.Network.Authoring.NetworkConfigurationCommand"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/World/PartyService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Network.World.PartyService",
+      "target": "file:src/Forge.Network/World/PartyService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/World/ZoneInstanceService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Network.World.ZoneInstanceService",
+      "target": "file:src/Forge.Network/World/ZoneInstanceService.cs"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.Network/World/ZoneInstanceService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.World.ZoneInstanceService",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Network/World/ZoneInstanceService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.World.ZoneInstanceService",
+      "target": "model:Forge.Network.World.WorldDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Network/World/ZoneInstanceService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.World.ZoneInstanceService",
+      "target": "model:Forge.Network.World.ZoneInstance"
     },
     {
       "evidence": {
@@ -32935,6 +33061,15 @@
     {
       "evidence": {
         "line": 12,
+        "path": "tests/Forge.Application.Tests/Navigation/WaypointRouteServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Navigation.WaypointRouteServiceTests",
+      "target": "type:Forge.Network.World.Party"
+    },
+    {
+      "evidence": {
+        "line": 12,
         "path": "tests/Forge.Application.Tests/Projects/NewModuleHandlerTests.cs"
       },
       "kind": "defined_in",
@@ -38046,6 +38181,96 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "target": "file:tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "target": "service:Forge.Network.World.PartyService"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "target": "service:Forge.Network.World.ZoneInstanceService"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "target": "type:Forge.Network.World.CharacterRegistry"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "target": "type:Forge.Network.World.CharacterStorageScope"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "target": "type:Forge.Network.World.CombatAuthority"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "target": "type:Forge.Network.World.FriendlyFirePolicy"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "target": "type:Forge.Network.World.NetworkCharacter"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "target": "type:Forge.Network.World.ZoneLifecycle"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "target": "type:Forge.Network.World.ZoneTemplate"
+    },
+    {
+      "evidence": {
         "line": 48,
         "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionControlServiceTests.cs"
       },
@@ -38115,6 +38340,15 @@
       "kind": "tests",
       "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionControlServiceTests",
       "target": "service:Forge.RpgKit.Domain.Companions.CompanionControlService"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionControlServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionControlServiceTests",
+      "target": "type:Forge.Network.World.Party"
     },
     {
       "evidence": {
@@ -38331,6 +38565,15 @@
       "kind": "tests",
       "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
       "target": "service:Forge.RpgKit.Domain.Companions.CompanionService"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Companions/CompanionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionServiceTests",
+      "target": "type:Forge.Network.World.Party"
     },
     {
       "evidence": {
@@ -39141,6 +39384,15 @@
       "kind": "tests",
       "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueExperienceServiceTests",
       "target": "service:Forge.RpgKit.Domain.Dialogues.DialogueGraphService"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueExperienceServiceTests",
+      "target": "type:Forge.Network.World.Party"
     },
     {
       "evidence": {
@@ -44373,6 +44625,105 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/World/CharacterRegistry.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.World.CharacterRegistry",
+      "target": "file:src/Forge.Network/World/CharacterRegistry.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/World/WorldModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.World.CharacterStorageScope",
+      "target": "file:src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Network/World/CombatAuthority.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.World.CombatAuthority",
+      "target": "file:src/Forge.Network/World/CombatAuthority.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Network/World/CombatAuthority.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Network.World.CombatAuthority",
+      "target": "service:Forge.Network.World.PartyService"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/World/CombatAuthority.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.World.CombatPolicy",
+      "target": "file:src/Forge.Network/World/CombatAuthority.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Network/World/WorldModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.World.FriendlyFirePolicy",
+      "target": "file:src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Network/World/WorldModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.World.NetworkCharacter",
+      "target": "file:src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Network/World/WorldModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.World.Party",
+      "target": "file:src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Network/World/WorldModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.World.WorldDecision",
+      "target": "file:src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Network/World/WorldModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.World.ZoneLifecycle",
+      "target": "file:src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Network/World/WorldModels.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.World.ZoneTemplate",
+      "target": "file:src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.RpgKit.Application/Creatures/CreatureAuthoringService.cs"
       },
@@ -47829,8 +48180,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:08c2ebb32fc96f34eabc45caae9b78b1c027c287574b82e40cba2ae07fc38012",
-    "source_file_count": 958
+    "source_digest": "sha256:e2d4f2a023bbc30cbafaf140fa7c7c68279c4a9682aa881e2c2376cdb4c498ce",
+    "source_file_count": 966
   },
   "nodes": [
     {
@@ -51252,6 +51603,26 @@
       },
       "name": "G8-TRIGGER-02-ADVANCED.md",
       "path": "docs/aurora-parity/tasks/G8-TRIGGER-02-ADVANCED.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G9-A-NETWORK-FOUNDATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G9-A-NETWORK-FOUNDATION.md",
+      "path": "docs/aurora-parity/tasks/G9-A-NETWORK-FOUNDATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G9-B-WORLD-SESSIONS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G9-B-WORLD-SESSIONS.md",
+      "path": "docs/aurora-parity/tasks/G9-B-WORLD-SESSIONS.md"
     },
     {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
@@ -54764,6 +55135,56 @@
       "path": "src/Forge.Network/Sessions/NetworkValidation.cs"
     },
     {
+      "id": "file:src/Forge.Network/World/CharacterRegistry.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CharacterRegistry.cs",
+      "path": "src/Forge.Network/World/CharacterRegistry.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/World/CombatAuthority.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CombatAuthority.cs",
+      "path": "src/Forge.Network/World/CombatAuthority.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/World/PartyService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PartyService.cs",
+      "path": "src/Forge.Network/World/PartyService.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/World/WorldModels.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WorldModels.cs",
+      "path": "src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/World/ZoneInstanceService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ZoneInstanceService.cs",
+      "path": "src/Forge.Network/World/ZoneInstanceService.cs"
+    },
+    {
       "id": "file:src/Forge.Network/packages.lock.json",
       "kind": "configuration",
       "line": 1,
@@ -56452,6 +56873,16 @@
       },
       "name": "Forge.Network.Tests.csproj",
       "path": "tests/Forge.Network.Tests/Forge.Network.Tests.csproj"
+    },
+    {
+      "id": "file:tests/Forge.Network.Tests/WorldAuthorityTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WorldAuthorityTests.cs",
+      "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
     },
     {
       "id": "file:tests/Forge.Network.Tests/packages.lock.json",
@@ -60854,6 +61285,26 @@
       "path": "src/Forge.Network/Sessions/NetworkModels.cs"
     },
     {
+      "id": "model:Forge.Network.World.WorldDiagnostic",
+      "kind": "model",
+      "line": 27,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "WorldDiagnostic",
+      "path": "src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "id": "model:Forge.Network.World.ZoneInstance",
+      "kind": "model",
+      "line": 19,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "ZoneInstance",
+      "path": "src/Forge.Network/World/WorldModels.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Application.Creatures.CreatureAuthoringResult",
       "kind": "model",
       "line": 12,
@@ -62775,6 +63226,11 @@
       "name": "Forge.Network.Tests"
     },
     {
+      "id": "namespace:Forge.Network.World",
+      "kind": "namespace",
+      "name": "Forge.Network.World"
+    },
+    {
       "id": "namespace:Forge.RpgKit.Application.Creatures",
       "kind": "namespace",
       "name": "Forge.RpgKit.Application.Creatures"
@@ -63157,6 +63613,26 @@
       },
       "name": "NetworkAuthoringService",
       "path": "src/Forge.Network/Authoring/NetworkAuthoringService.cs"
+    },
+    {
+      "id": "service:Forge.Network.World.PartyService",
+      "kind": "service",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "PartyService",
+      "path": "src/Forge.Network/World/PartyService.cs"
+    },
+    {
+      "id": "service:Forge.Network.World.ZoneInstanceService",
+      "kind": "service",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "ZoneInstanceService",
+      "path": "src/Forge.Network/World/ZoneInstanceService.cs"
     },
     {
       "id": "service:Forge.RpgKit.Application.Creatures.CreatureAuthoringService",
@@ -64487,6 +64963,16 @@
       },
       "name": "AuthoritativeSessionTests",
       "path": "tests/Forge.Network.Tests/AuthoritativeSessionTests.cs"
+    },
+    {
+      "id": "test:Forge.Network.Tests.WorldAuthorityTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Network.Tests"
+      },
+      "name": "WorldAuthorityTests",
+      "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Companions.CompanionControlServiceTests",
@@ -67644,6 +68130,106 @@
       },
       "name": "SessionRole",
       "path": "src/Forge.Network/Sessions/NetworkModels.cs"
+    },
+    {
+      "id": "type:Forge.Network.World.CharacterRegistry",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "CharacterRegistry",
+      "path": "src/Forge.Network/World/CharacterRegistry.cs"
+    },
+    {
+      "id": "type:Forge.Network.World.CharacterStorageScope",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "CharacterStorageScope",
+      "path": "src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "id": "type:Forge.Network.World.CombatAuthority",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "CombatAuthority",
+      "path": "src/Forge.Network/World/CombatAuthority.cs"
+    },
+    {
+      "id": "type:Forge.Network.World.CombatPolicy",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "CombatPolicy",
+      "path": "src/Forge.Network/World/CombatAuthority.cs"
+    },
+    {
+      "id": "type:Forge.Network.World.FriendlyFirePolicy",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "FriendlyFirePolicy",
+      "path": "src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "id": "type:Forge.Network.World.NetworkCharacter",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "NetworkCharacter",
+      "path": "src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "id": "type:Forge.Network.World.Party",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "Party",
+      "path": "src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "id": "type:Forge.Network.World.WorldDecision",
+      "kind": "type",
+      "line": 28,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "WorldDecision",
+      "path": "src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "id": "type:Forge.Network.World.ZoneLifecycle",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "ZoneLifecycle",
+      "path": "src/Forge.Network/World/WorldModels.cs"
+    },
+    {
+      "id": "type:Forge.Network.World.ZoneTemplate",
+      "kind": "type",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.Network.World"
+      },
+      "name": "ZoneTemplate",
+      "path": "src/Forge.Network/World/WorldModels.cs"
     },
     {
       "id": "type:Forge.RpgKit.Application.Creatures.CreatureWizardRequest",
