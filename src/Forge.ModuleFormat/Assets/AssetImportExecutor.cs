@@ -96,6 +96,9 @@ public static class AssetImportExecutor
                 CopyAtomically(sourcePath, outputPath);
             }
 
+            var outputSha256 = HashFile(outputPath);
+            var outputBytes = new FileInfo(outputPath).Length;
+
             var receipt = new AssetImportReceipt(
                 AssetImportReceipt.CurrentSchemaVersion,
                 plan.AssetId,
@@ -106,6 +109,8 @@ public static class AssetImportExecutor
                 plan.Provenance,
                 plan.SourceRelativePath,
                 outputRelativePath,
+                outputSha256,
+                outputBytes,
                 canonicalReady ? AssetImportExecutionStatus.CanonicalReady : AssetImportExecutionStatus.Staged,
                 plan.Tasks);
             var receiptRelativePath = $"{plan.DestinationRelativeDirectory}/import-receipt.json";
@@ -122,7 +127,9 @@ public static class AssetImportExecutor
                     outputRelativePath,
                     receiptRelativePath,
                     sourceSha256,
-                    reused),
+                    reused,
+                    outputSha256,
+                    outputBytes),
                 []);
         }
         catch (Exception exception) when (
@@ -245,6 +252,8 @@ public sealed record AssetImportReceipt(
     string Provenance,
     string SourceRelativePath,
     string OutputRelativePath,
+    string OutputContentSha256,
+    long OutputBytes,
     AssetImportExecutionStatus Status,
     IReadOnlyList<AssetBuildTask> Tasks)
 {
@@ -256,7 +265,9 @@ public sealed record AssetImportExecution(
     string OutputRelativePath,
     string ReceiptRelativePath,
     string SourceFileSha256,
-    bool Reused);
+    bool Reused,
+    string OutputContentSha256,
+    long OutputBytes);
 
 public sealed record AssetImportExecutionDiagnostic(string Code, string Message, string Path);
 

@@ -101,7 +101,9 @@ static int RunAssets(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(
             "Usage: forge assets list <repository-or-workspace> [--query <text>] [--source <source>] " +
             "[--category <category>] [--license <spdx>] [--availability <catalog|original|extracted>] " +
-            "[--limit <count>] [--vault <directory>]");
+            "[--limit <count>] [--vault <directory>] | " +
+            "forge assets prepare <repository-or-workspace> <workspace> --id <external-id> " +
+            "[--kind <model|texture>] [--vfx <true|false>] [--vault <directory>]");
         return 2;
     }
 
@@ -253,6 +255,50 @@ static int PrepareAsset(IReadOnlyList<string> arguments)
     }
 
     var execution = AssetImportExecutor.Execute(planned.Plan, load.VaultRoot, workspaceRoot);
+    AssetPackageManifest? packageManifest = null;
+    if (execution.Succeeded)
+    {
+        var loadedManifests = AssetPackageManifestStore.Load(workspaceRoot);
+        if (!loadedManifests.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = loadedManifests.Diagnostics }));
+            return 1;
+        }
+
+        var includeVfx = options.TryGetValue("vfx", out var vfxValue) &&
+            bool.TryParse(vfxValue, out var parsedVfx) && parsedVfx;
+        var prepared = execution.Execution!;
+        packageManifest = AssetPackageManifestFactory.Create(
+            item,
+            profile,
+            new AssetManifestArtifactInput(
+                prepared.OutputRelativePath,
+                prepared.OutputContentSha256,
+                prepared.OutputBytes,
+                prepared.Status == AssetImportExecutionStatus.CanonicalReady),
+            AssetPackageManifestAuthoringOptions.Default with { IncludeVfx = includeVfx });
+        var manifestState = new AssetPackageManifestState(loadedManifests.Manifests);
+        var manifestCommand = new SetAssetPackageManifestCommand(
+            CommandId.From(Guid.NewGuid()),
+            manifestState.Revision,
+            packageManifest,
+            DryRun: false);
+        var authoredManifest = new SetAssetPackageManifestHandler(new SystemClock())
+            .Handle(manifestState, manifestCommand);
+        if (!authoredManifest.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = authoredManifest.Diagnostics }));
+            return 1;
+        }
+
+        var savedManifest = AssetPackageManifestStore.Save(workspaceRoot, authoredManifest.State.Manifests);
+        if (!savedManifest.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = savedManifest.Diagnostics }));
+            return 1;
+        }
+    }
+
     Console.WriteLine(JsonSerializer.Serialize(new
     {
         valid = execution.Succeeded,
@@ -260,13 +306,25 @@ static int PrepareAsset(IReadOnlyList<string> arguments)
         kind = kind.ToString(),
         cacheKey = planned.Plan.CacheKey,
         execution = execution.Execution,
+        manifest = packageManifest is null
+            ? null
+            : new
+            {
+                id = packageManifest.Id.ToString(),
+                chunks = packageManifest.Chunks.Count,
+                collision = packageManifest.Collision is not null,
+                animation = packageManifest.Animation is not null,
+                vfx = packageManifest.Vfx is not null,
+                lod = packageManifest.Lod?.Levels.Count ?? 0,
+            },
         diagnostics = execution.Diagnostics,
     }));
     if (execution.Succeeded)
     {
         Console.WriteLine(
             $"OPENRPG_FORGE_ASSET_PREPARE_PASS asset={item.ExternalId} kind={kind.ToString().ToLowerInvariant()} " +
-            $"status={execution.Execution!.Status.ToString().ToLowerInvariant()} reused={execution.Execution.Reused.ToString().ToLowerInvariant()}");
+            $"status={execution.Execution!.Status.ToString().ToLowerInvariant()} reused={execution.Execution.Reused.ToString().ToLowerInvariant()} " +
+            $"manifest={packageManifest!.Id} chunks={packageManifest.Chunks.Count}");
     }
 
     return execution.Succeeded ? 0 : 1;

@@ -26,6 +26,23 @@ internal sealed class AssetCatalogItemIdJsonConverter : JsonConverter<AssetCatal
         writer.WriteStringValue(value.ToString());
 }
 
+internal sealed class AssetPackageManifestIdJsonConverter : JsonConverter<AssetPackageManifestId>
+{
+    public override AssetPackageManifestId Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options) =>
+        AssetPackageManifestId.Parse(reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("An asset package manifest ID cannot be null.")
+            : throw new JsonException("An asset package manifest ID must be a string."));
+
+    public override void Write(
+        Utf8JsonWriter writer,
+        AssetPackageManifestId value,
+        JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+}
+
 internal sealed class LocalizationCatalogIdJsonConverter : JsonConverter<LocalizationCatalogId>
 {
     public override LocalizationCatalogId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>

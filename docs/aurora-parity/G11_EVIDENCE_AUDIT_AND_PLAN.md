@@ -55,7 +55,12 @@ exécuteur confiné au workspace. Un GLB Kenney et une texture ambientCG du Vaul
 façon reproductible avec contrôle des hashes source avant/après. La preuve détaillée est dans
 [`tasks/G11-A-ASSET-PROCESSING-PROFILES.md`](tasks/G11-A-ASSET-PROCESSING-PROFILES.md).
 
+**G11-B est fermé le 4 août 2026.** Les sorties d'import portent désormais un manifeste
+content-addressed avec plateformes, collisions, animations, VFX et LOD ; elles sont sauvegardées,
+exportées et vérifiées par le runtime sans dépendre d'une scène moteur. La preuve détaillée est dans
+[`tasks/G11-B-ASSET-PACKAGE-MANIFESTS.md`](tasks/G11-B-ASSET-PACKAGE-MANIFESTS.md).
+
 ## Prochaine tâche unique
 
-Livrer **G11-B** : un manifeste d'assets versionné réunissant collisions, animations, VFX et LOD,
-persisté avec le projet et vérifiable avant distribution.
+Livrer **G11-C** : worker de conversion externe/Blender optionnel, round-trip contrôlé, migration et
+désinstallation sûre des assets préparés.

@@ -1,5 +1,7 @@
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text;
+using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
@@ -23,6 +25,35 @@ public sealed class ModulePackageTests : IDisposable
         var workspace = CreateWorkspace();
         Directory.CreateDirectory(Path.Combine(workspace, ".forge"));
         File.WriteAllText(Path.Combine(workspace, ".forge", "editor-camera.json"), "author preference");
+        var assetPath = Path.Combine(workspace, "assets", "imported", "test", "model.glb");
+        Directory.CreateDirectory(Path.GetDirectoryName(assetPath)!);
+        File.WriteAllBytes(assetPath, [1, 2, 3, 4]);
+        var assetHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(assetPath))).ToLowerInvariant();
+        var assetId = AssetCatalogItemId.ForExternalId("test:packaged-model");
+        var chunkId = Guid.Parse("b1100000-0000-4000-8000-000000000020");
+        var assetManifest = new AssetPackageManifest(
+            AssetPackageManifest.CurrentSchemaVersion,
+            AssetPackageManifestId.ForAsset(assetId),
+            assetId,
+            "author:package-test",
+            "CC0-1.0",
+            new string('a', 64),
+            new Dictionary<AssetTargetPlatform, long> { [AssetTargetPlatform.Windows] = 1024 },
+            [new AssetManifestChunk(
+                chunkId,
+                AssetChunkRole.Model,
+                true,
+                "assets/imported/test/model.glb",
+                assetHash,
+                4,
+                4,
+                AssetChunkCompression.None,
+                [AssetTargetPlatform.Windows])],
+            null,
+            null,
+            null,
+            new AssetLodManifest(false, 0.1m, [new(0, chunkId, 1m, 1000)]));
+        Assert.True(AssetPackageManifestStore.Save(workspace, [assetManifest]).Succeeded);
         var package = Path.Combine(_temporaryRoot, "crypt-of-ashes.orpmod");
 
         var export = ModulePackager.Export(workspace, package);
@@ -38,6 +69,8 @@ public sealed class ModulePackageTests : IDisposable
         Assert.Equal(firstLoad.CachePath, secondLoad.CachePath);
         Assert.True(File.Exists(Path.Combine(firstLoad.CachePath, "content", "project.json")));
         Assert.True(File.Exists(Path.Combine(firstLoad.CachePath, "content", "scripts", "boss.forge")));
+        Assert.True(File.Exists(Path.Combine(firstLoad.CachePath, "content", "assets", "asset-manifests.json")));
+        Assert.True(File.Exists(Path.Combine(firstLoad.CachePath, "content", "assets", "imported", "test", "model.glb")));
         Assert.False(File.Exists(Path.Combine(firstLoad.CachePath, "content", ".forge", "editor-camera.json")));
         Assert.Equal(new FileInfo(package).Length, export.ArchiveBytes);
         Assert.Empty(Directory.EnumerateFiles(_temporaryRoot, "*.tmp", SearchOption.AllDirectories));

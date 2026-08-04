@@ -197,7 +197,7 @@ try {
         Invoke-CheckedDotnet @(
             'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
             'assets', 'prepare', $repositoryRoot, $assetImportSmoke,
-            '--id', 'kenney:castle-kit', '--kind', 'model', '--vault', $assetVault)
+            '--id', 'kenney:castle-kit', '--kind', 'model', '--vfx', 'true', '--vault', $assetVault)
         Invoke-CheckedDotnet @(
             'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
             'assets', 'prepare', $repositoryRoot, $assetImportSmoke,
@@ -205,7 +205,8 @@ try {
         if ($modelSourceHash -ne (Get-FileHash -LiteralPath $modelSource -Algorithm SHA256).Hash -or
             $textureSourceHash -ne (Get-FileHash -LiteralPath $textureSource -Algorithm SHA256).Hash -or
             -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\kenney-castle-kit\model.glb')) -or
-            -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\ambientcg-3dapple001\import-receipt.json'))) {
+            -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\ambientcg-3dapple001\import-receipt.json')) -or
+            -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\asset-manifests.json'))) {
             throw 'Asset preparation did not preserve Vault sources or produce the governed outputs.'
         }
         Write-Output 'asset-import-smoke passed.'

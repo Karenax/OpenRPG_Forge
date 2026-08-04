@@ -28,6 +28,7 @@ using Forge.Domain.Quests;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
+using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Packages;
@@ -68,6 +69,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetAreaNavigationHandler _setAreaNavigationHandler = new(new SystemClock());
     private readonly ApplyDiagnosticQuickFixHandler _diagnosticQuickFixHandler = new(new SystemClock());
     private readonly SetAssetProcessingProfileHandler _assetProcessingProfileHandler = new(new SystemClock());
+    private readonly SetAssetPackageManifestHandler _assetPackageManifestHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -171,6 +173,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private ProjectPreview3D? _projectPreview;
     private ProjectCommandHistory? _history;
     private AssetProcessingProfileCommandHistory? _assetProcessingProfileHistory;
+    private AssetPackageManifestCommandHistory? _assetPackageManifestHistory;
     private Image? _forgeWindowIcon;
     private bool _playtestRunning;
     private bool _showEntityPropertiesDialogWhenReady;
@@ -229,6 +232,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ApplyAssetProcessingProfile,
             UndoAssetProcessingProfile,
             RedoAssetProcessingProfile,
+            () => _assetPackageManifestHistory?.State,
+            PrepareAssetPackageManifest,
+            UndoAssetPackageManifest,
+            RedoAssetPackageManifest,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assetBrowser);
         _localizationWorkspace = new LocalizationWorkspaceWindow();
@@ -460,6 +467,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _projectPreview = null;
         _history = null;
         _assetProcessingProfileHistory = null;
+        _assetPackageManifestHistory = null;
         GD.Print("OPENRPG_FORGE_PLUGIN_UNLOADED");
     }
 
@@ -2351,6 +2359,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _projectSession = null;
             _history = null;
             _assetProcessingProfileHistory = null;
+            _assetPackageManifestHistory = null;
             _activeAreaContext.Clear();
             _selectionContext.SetLocked(false);
             _selectionContext.Clear();
@@ -2377,6 +2386,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (!assetProfiles.Succeeded)
         {
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_PROFILES_INVALID {assetProfiles.Diagnostics[0].Code}");
+        }
+        var assetManifests = AssetPackageManifestStore.Load(_projectSession.RootDirectory);
+        _assetPackageManifestHistory = new AssetPackageManifestCommandHistory(assetManifests.Manifests);
+        if (!assetManifests.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_MANIFESTS_INVALID {assetManifests.Diagnostics[0].Code}");
         }
         _lastSavedRevision = 0;
         _lastRecoveryRevision = 0;
@@ -2493,6 +2508,154 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         _assetProcessingProfileHistory.Undo();
+        return false;
+    }
+
+    private AssetPackageManifest? PrepareAssetPackageManifest(
+        AssetCatalogItem item,
+        AssetProcessingProfile profile,
+        bool includeVfx,
+        bool dryRun)
+    {
+        if (_projectSession is null || _assetPackageManifestHistory is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var planned = AssetImportPlanner.Plan(item, profile);
+            if (!planned.Succeeded || planned.Plan is null)
+            {
+                GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_MANIFEST_PLAN_FAILED asset={item.ExternalId}");
+                return null;
+            }
+
+            AssetManifestArtifactInput artifact;
+            if (dryRun)
+            {
+                var outputPath = planned.Plan.Tasks.First().OutputRelativePath;
+                artifact = new AssetManifestArtifactInput(
+                    outputPath,
+                    item.ContentSha256,
+                    Math.Max(1, item.TotalBytes),
+                    string.Equals(profile.SourceFormat, profile.CanonicalFormat, StringComparison.Ordinal));
+            }
+            else
+            {
+                var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(GetRepositoryRoot());
+                if (repositoryRoot is null)
+                {
+                    return null;
+                }
+
+                var catalog = AssetCatalogLoader.Load(repositoryRoot);
+                if (catalog.Catalog is null || catalog.Diagnostics.Count > 0)
+                {
+                    return null;
+                }
+
+                var execution = AssetImportExecutor.Execute(
+                    planned.Plan,
+                    catalog.VaultRoot,
+                    _projectSession.RootDirectory);
+                if (!execution.Succeeded)
+                {
+                    GD.PrintErr(
+                        $"OPENRPG_FORGE_TOOLSET_ASSET_MANIFEST_IMPORT_FAILED {execution.Diagnostics[0].Code}");
+                    return null;
+                }
+
+                var prepared = execution.Execution!;
+                artifact = new AssetManifestArtifactInput(
+                    prepared.OutputRelativePath,
+                    prepared.OutputContentSha256,
+                    prepared.OutputBytes,
+                    prepared.Status == AssetImportExecutionStatus.CanonicalReady);
+            }
+
+            var manifest = AssetPackageManifestFactory.Create(
+                item,
+                profile,
+                artifact,
+                AssetPackageManifestAuthoringOptions.Default with { IncludeVfx = includeVfx });
+            var command = new SetAssetPackageManifestCommand(
+                CommandId.From(Guid.NewGuid()),
+                _assetPackageManifestHistory.State.Revision,
+                manifest,
+                dryRun);
+            var result = _assetPackageManifestHandler.Handle(_assetPackageManifestHistory.State, command);
+            if (!result.Succeeded)
+            {
+                GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_MANIFEST_INVALID {result.Diagnostics[0].Code}");
+                return null;
+            }
+
+            if (dryRun)
+            {
+                return result.Patch is not null && !result.Audit.Applied ? manifest : null;
+            }
+
+            var saved = AssetPackageManifestStore.Save(
+                _projectSession.RootDirectory,
+                result.State.Manifests);
+            if (!saved.Succeeded)
+            {
+                GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_MANIFEST_SAVE_FAILED {saved.Diagnostics[0].Code}");
+                return null;
+            }
+
+            _assetPackageManifestHistory.Record(result);
+            GD.Print(
+                $"OPENRPG_FORGE_TOOLSET_ASSET_MANIFEST_SAVED asset={item.ExternalId} id={manifest.Id} " +
+                $"chunks={manifest.Chunks.Count} revision={_assetPackageManifestHistory.State.Revision}");
+            return manifest;
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_MANIFEST_FAILED {exception.Message}");
+            return null;
+        }
+    }
+
+    private bool UndoAssetPackageManifest()
+    {
+        if (_projectSession is null || _assetPackageManifestHistory is null ||
+            !_assetPackageManifestHistory.Undo())
+        {
+            return false;
+        }
+
+        var saved = AssetPackageManifestStore.Save(
+            _projectSession.RootDirectory,
+            _assetPackageManifestHistory.State.Manifests);
+        if (saved.Succeeded)
+        {
+            return true;
+        }
+
+        _assetPackageManifestHistory.Redo();
+        return false;
+    }
+
+    private bool RedoAssetPackageManifest()
+    {
+        if (_projectSession is null || _assetPackageManifestHistory is null ||
+            !_assetPackageManifestHistory.Redo())
+        {
+            return false;
+        }
+
+        var saved = AssetPackageManifestStore.Save(
+            _projectSession.RootDirectory,
+            _assetPackageManifestHistory.State.Manifests);
+        if (saved.Succeeded)
+        {
+            return true;
+        }
+
+        _assetPackageManifestHistory.Undo();
         return false;
     }
 
@@ -4711,6 +4874,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             !_assetBrowser.SelectedHasPreviewMetadata ||
             (_assetBrowser.SelectedCanPlanImport && !_assetBrowser.PreviewImportForSmokeTest()) ||
             !_assetBrowser.PreviewProfileCommandForSmokeTest() ||
+            !_assetBrowser.PreviewManifestCommandForSmokeTest() ||
             _assetBrowser.FilterForSmokeTest(string.Empty, "kenney") != 50 ||
             _assetBrowser.FilterForSmokeTest(string.Empty, category: "furniture") == 0)
         {
@@ -4722,7 +4886,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=605 sources=3 facets=search-source-category " +
             "uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed " +
-            "profile=command-dry-run");
+            "profile=command-dry-run manifest=command-dry-run");
         return true;
     }
 

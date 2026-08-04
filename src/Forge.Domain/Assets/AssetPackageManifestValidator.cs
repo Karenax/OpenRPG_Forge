@@ -1,0 +1,241 @@
+using Forge.Domain.Validation;
+
+namespace Forge.Domain.Assets;
+
+public static class AssetPackageManifestValidator
+{
+    public const string SchemaUnsupportedCode = "asset.manifest.schema_unsupported";
+    public const string GovernanceMissingCode = "asset.manifest.governance_missing";
+    public const string ChunkInvalidCode = "asset.manifest.chunk_invalid";
+    public const string ChunkDuplicateCode = "asset.manifest.chunk_duplicate";
+    public const string ReferenceMissingCode = "asset.manifest.reference_missing";
+    public const string PlatformBudgetInvalidCode = "asset.manifest.platform_budget_invalid";
+    public const string PlatformBudgetExceededCode = "asset.manifest.platform_budget_exceeded";
+    public const string CollisionInvalidCode = "asset.manifest.collision_invalid";
+    public const string AnimationInvalidCode = "asset.manifest.animation_invalid";
+    public const string VfxInvalidCode = "asset.manifest.vfx_invalid";
+    public const string LodInvalidCode = "asset.manifest.lod_invalid";
+
+    public static IReadOnlyList<DomainDiagnostic> Validate(AssetPackageManifest manifest)
+    {
+        ArgumentNullException.ThrowIfNull(manifest);
+        var root = $"assets/manifests/{manifest.Id}";
+        var diagnostics = new List<DomainDiagnostic>();
+        if (manifest.SchemaVersion != AssetPackageManifest.CurrentSchemaVersion)
+        {
+            diagnostics.Add(new(
+                SchemaUnsupportedCode,
+                "Asset package manifest schema is unsupported.",
+                $"{root}/schemaVersion"));
+        }
+
+        if (string.IsNullOrWhiteSpace(manifest.ModificationProvenance) ||
+            string.IsNullOrWhiteSpace(manifest.LicenseSpdx) ||
+            !IsSha256(manifest.SourceContentSha256))
+        {
+            diagnostics.Add(new(
+                GovernanceMissingCode,
+                "Modification provenance, SPDX license and source SHA-256 are required.",
+                $"{root}/governance"));
+        }
+
+        var chunks = manifest.Chunks ?? [];
+        var chunkIds = chunks.Select(chunk => chunk.Id).ToHashSet();
+        if (chunks.Any(chunk => chunk.Id == Guid.Empty ||
+                !AssetCatalogValidator.IsSafeRelativePath(chunk.RelativePath) ||
+                !IsSha256(chunk.ContentSha256) ||
+                chunk.UncompressedBytes <= 0 || chunk.StoredBytes <= 0 ||
+                chunk.StoredBytes > chunk.UncompressedBytes ||
+                chunk.Platforms is null || chunk.Platforms.Count == 0 ||
+                chunk.Platforms.Distinct().Count() != chunk.Platforms.Count))
+        {
+            diagnostics.Add(new(
+                ChunkInvalidCode,
+                "Manifest chunks require safe paths, hashes, sizes and unique platform variants.",
+                $"{root}/chunks"));
+        }
+
+        if (chunks.Select(chunk => chunk.Id).Distinct().Count() != chunks.Count ||
+            chunks.Select(chunk => chunk.RelativePath)
+                .Distinct(StringComparer.OrdinalIgnoreCase).Count() != chunks.Count)
+        {
+            diagnostics.Add(new(
+                ChunkDuplicateCode,
+                "Manifest chunk IDs and paths must be unique.",
+                $"{root}/chunks"));
+        }
+
+        ValidatePlatformBudgets(manifest, chunks, root, diagnostics);
+        ValidateCollision(manifest.Collision, chunkIds, root, diagnostics);
+        ValidateAnimation(manifest.Animation, chunkIds, root, diagnostics);
+        ValidateVfx(manifest.Vfx, chunkIds, root, diagnostics);
+        ValidateLod(manifest.Lod, chunkIds, root, diagnostics);
+        return diagnostics;
+    }
+
+    private static void ValidatePlatformBudgets(
+        AssetPackageManifest manifest,
+        IReadOnlyList<AssetManifestChunk> chunks,
+        string root,
+        ICollection<DomainDiagnostic> diagnostics)
+    {
+        if (manifest.PlatformBudgets is null || manifest.PlatformBudgets.Count == 0 ||
+            manifest.PlatformBudgets.Any(item => item.Value <= 0))
+        {
+            diagnostics.Add(new(
+                PlatformBudgetInvalidCode,
+                "At least one positive platform budget is required.",
+                $"{root}/platformBudgets"));
+            return;
+        }
+
+        foreach (var budget in manifest.PlatformBudgets.OrderBy(item => item.Key))
+        {
+            var storedBytes = chunks
+                .Where(chunk => chunk.Platforms.Contains(AssetTargetPlatform.Any) ||
+                    chunk.Platforms.Contains(budget.Key))
+                .Sum(chunk => chunk.StoredBytes);
+            if (storedBytes > budget.Value)
+            {
+                diagnostics.Add(new(
+                    PlatformBudgetExceededCode,
+                    $"Stored asset chunks exceed the {budget.Key} budget ({storedBytes} > {budget.Value}).",
+                    $"{root}/platformBudgets/{budget.Key}"));
+            }
+        }
+    }
+
+    private static void ValidateCollision(
+        AssetCollisionManifest? collision,
+        IReadOnlySet<Guid> chunkIds,
+        string root,
+        ICollection<DomainDiagnostic> diagnostics)
+    {
+        if (collision is null)
+        {
+            return;
+        }
+
+        if (collision.MaterialTags is null || collision.MaterialTags.Count == 0 ||
+            collision.MaterialTags.Any(string.IsNullOrWhiteSpace) ||
+            collision.MaterialTags.Distinct(StringComparer.OrdinalIgnoreCase).Count() != collision.MaterialTags.Count ||
+            collision.CookPlatforms is null || collision.CookPlatforms.Count == 0 ||
+            collision.CookPlatforms.Distinct().Count() != collision.CookPlatforms.Count)
+        {
+            diagnostics.Add(new(
+                CollisionInvalidCode,
+                "Collision material tags and cook platforms must be non-empty and unique.",
+                $"{root}/collision"));
+        }
+
+        ValidateReference(collision.Required, collision.ChunkId, chunkIds, $"{root}/collision/chunkId", diagnostics);
+    }
+
+    private static void ValidateAnimation(
+        AssetAnimationManifest? animation,
+        IReadOnlySet<Guid> chunkIds,
+        string root,
+        ICollection<DomainDiagnostic> diagnostics)
+    {
+        if (animation is null)
+        {
+            return;
+        }
+
+        var clips = animation.Clips ?? [];
+        if (string.IsNullOrWhiteSpace(animation.Rig) || clips.Count == 0 ||
+            clips.Select(clip => clip.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() != clips.Count ||
+            clips.Any(clip => string.IsNullOrWhiteSpace(clip.Name) || clip.DurationSeconds <= 0 ||
+                clip.Events is null || clip.Events.Any(string.IsNullOrWhiteSpace) ||
+                clip.Events.Distinct(StringComparer.Ordinal).Count() != clip.Events.Count) ||
+            (!string.IsNullOrWhiteSpace(animation.RetargetMap) &&
+                !AssetCatalogValidator.IsSafeRelativePath(animation.RetargetMap)))
+        {
+            diagnostics.Add(new(
+                AnimationInvalidCode,
+                "Animation rig, clips, events or retarget map are invalid.",
+                $"{root}/animation"));
+        }
+
+        ValidateReference(animation.Required, animation.ChunkId, chunkIds, $"{root}/animation/chunkId", diagnostics);
+    }
+
+    private static void ValidateVfx(
+        AssetVfxManifest? vfx,
+        IReadOnlySet<Guid> chunkIds,
+        string root,
+        ICollection<DomainDiagnostic> diagnostics)
+    {
+        if (vfx is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(vfx.Provider) || vfx.MaximumParticles <= 0 ||
+            vfx.MaximumDrawCalls <= 0 || vfx.CullDistance <= 0)
+        {
+            diagnostics.Add(new(
+                VfxInvalidCode,
+                "VFX provider, particle budget, draw-call budget and cull distance are required.",
+                $"{root}/vfx"));
+        }
+
+        ValidateReference(vfx.Required, vfx.ChunkId, chunkIds, $"{root}/vfx/chunkId", diagnostics);
+    }
+
+    private static void ValidateLod(
+        AssetLodManifest? lod,
+        IReadOnlySet<Guid> chunkIds,
+        string root,
+        ICollection<DomainDiagnostic> diagnostics)
+    {
+        if (lod is null)
+        {
+            return;
+        }
+
+        var levels = lod.Levels ?? [];
+        var expectedLevels = Enumerable.Range(0, levels.Count).ToArray();
+        if (lod.CrossFadeSeconds is < 0 or > 5 || levels.Count == 0 ||
+            !levels.Select(level => level.Level).SequenceEqual(expectedLevels) ||
+            levels.Any(level => level.ScreenRatio is <= 0 or > 1 || level.MaximumTriangles <= 0) ||
+            !levels.Select(level => level.ScreenRatio).SequenceEqual(
+                levels.Select(level => level.ScreenRatio).OrderDescending()) ||
+            levels.Select(level => level.ScreenRatio).Distinct().Count() != levels.Count)
+        {
+            diagnostics.Add(new(
+                LodInvalidCode,
+                "LOD levels must be contiguous with descending unique screen ratios and valid budgets.",
+                $"{root}/lod"));
+        }
+
+        foreach (var level in levels)
+        {
+            ValidateReference(lod.Required, level.ChunkId, chunkIds, $"{root}/lod/levels/{level.Level}/chunkId", diagnostics);
+        }
+    }
+
+    private static void ValidateReference(
+        bool required,
+        Guid? chunkId,
+        IReadOnlySet<Guid> chunkIds,
+        string path,
+        ICollection<DomainDiagnostic> diagnostics)
+    {
+        if (chunkId is { } id && id != Guid.Empty && chunkIds.Contains(id))
+        {
+            return;
+        }
+
+        if (required)
+        {
+            diagnostics.Add(new(
+                ReferenceMissingCode,
+                "A required asset extension does not resolve to a manifest chunk.",
+                path));
+        }
+    }
+
+    private static bool IsSha256(string? value) =>
+        value is { Length: 64 } && value.All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f');
+}

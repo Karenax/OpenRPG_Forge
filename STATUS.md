@@ -241,5 +241,9 @@ dry-run et undo/redo, plan/cache déterministes et traitement réel d'un GLB Ken
 ambientCG sans modification du Vault. Le Content Browser expose ces réglages dans la même surface
 que la licence et la provenance.
 
-Livrer **G11-B** : manifeste d'assets versionné avec collisions, animations, VFX et LOD, persistance
-projet et validation avant distribution.
+**G11-B est fermé** : manifeste content-addressed persisté et éditable, chunks/plateformes, collision,
+animation, VFX et LOD, inclusion `.orpmod`, contrôle runtime de présence et SHA-256, surface auteur
+transactionnelle revue visuellement.
+
+Livrer **G11-C** : worker de conversion externe/Blender optionnel, round-trip contrôlé, migration et
+désinstallation sûre avant la curation du premier pack de carte 3D.

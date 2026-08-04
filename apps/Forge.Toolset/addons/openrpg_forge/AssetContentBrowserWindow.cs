@@ -13,6 +13,10 @@ public partial class AssetContentBrowserWindow : Window
     private Func<AssetProcessingProfile, bool, bool>? _applyProfile;
     private Func<bool>? _undoProfile;
     private Func<bool>? _redoProfile;
+    private Func<AssetPackageManifestState?>? _getManifestState;
+    private Func<AssetCatalogItem, AssetProcessingProfile, bool, bool, AssetPackageManifest?>? _prepareManifest;
+    private Func<bool>? _undoManifest;
+    private Func<bool>? _redoManifest;
     private Action<Window>? _brandWindow;
     private AssetCatalogBrowser? _browser;
     private AssetCatalogLoadResult? _load;
@@ -43,6 +47,11 @@ public partial class AssetContentBrowserWindow : Window
     private Button? _saveProfile;
     private Button? _undoProfileButton;
     private Button? _redoProfileButton;
+    private Label? _manifestSummary;
+    private CheckButton? _includeVfx;
+    private Button? _prepareManifestButton;
+    private Button? _undoManifestButton;
+    private Button? _redoManifestButton;
     private AssetCatalogItem? _selectedItem;
 
     public int CatalogCount => _browser?.Catalog.Items.Count ?? 0;
@@ -62,6 +71,10 @@ public partial class AssetContentBrowserWindow : Window
         Func<AssetProcessingProfile, bool, bool> applyProfile,
         Func<bool> undoProfile,
         Func<bool> redoProfile,
+        Func<AssetPackageManifestState?> getManifestState,
+        Func<AssetCatalogItem, AssetProcessingProfile, bool, bool, AssetPackageManifest?> prepareManifest,
+        Func<bool> undoManifest,
+        Func<bool> redoManifest,
         Action<Window> brandWindow)
     {
         _getRepositoryRoot = getRepositoryRoot ?? throw new ArgumentNullException(nameof(getRepositoryRoot));
@@ -69,6 +82,10 @@ public partial class AssetContentBrowserWindow : Window
         _applyProfile = applyProfile ?? throw new ArgumentNullException(nameof(applyProfile));
         _undoProfile = undoProfile ?? throw new ArgumentNullException(nameof(undoProfile));
         _redoProfile = redoProfile ?? throw new ArgumentNullException(nameof(redoProfile));
+        _getManifestState = getManifestState ?? throw new ArgumentNullException(nameof(getManifestState));
+        _prepareManifest = prepareManifest ?? throw new ArgumentNullException(nameof(prepareManifest));
+        _undoManifest = undoManifest ?? throw new ArgumentNullException(nameof(undoManifest));
+        _redoManifest = redoManifest ?? throw new ArgumentNullException(nameof(redoManifest));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assets & Content Browser · OpenRPG Forge";
         MinSize = new Vector2I(1240, 780);
@@ -179,6 +196,8 @@ public partial class AssetContentBrowserWindow : Window
         _profileBudgetMb.Value = Math.Max(1, _profileBudgetMb.Value + 1);
         return SaveProfile(dryRun: true);
     }
+
+    public bool PreviewManifestCommandForSmokeTest() => PrepareManifest(dryRun: true);
 
     private void BuildUi()
     {
@@ -356,6 +375,31 @@ public partial class AssetContentBrowserWindow : Window
         _redoProfileButton = new Button { Text = "Rétablir" };
         _redoProfileButton.Pressed += RedoProfile;
         profileActions.AddChild(_redoProfileButton);
+        details.AddChild(Section("MANIFESTE D’ASSETS"));
+        _manifestSummary = new Label
+        {
+            Text = "Aucun manifeste enregistré",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        details.AddChild(_manifestSummary);
+        _includeVfx = new CheckButton { Text = "Inclure un descripteur VFX gouverné" };
+        details.AddChild(_includeVfx);
+        var manifestActions = new HBoxContainer();
+        manifestActions.AddThemeConstantOverride("separation", 8);
+        details.AddChild(manifestActions);
+        _prepareManifestButton = new Button
+        {
+            Text = "Préparer + manifester",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        _prepareManifestButton.Pressed += () => PrepareManifest(dryRun: false);
+        manifestActions.AddChild(_prepareManifestButton);
+        _undoManifestButton = new Button { Text = "Annuler" };
+        _undoManifestButton.Pressed += UndoManifest;
+        manifestActions.AddChild(_undoManifestButton);
+        _redoManifestButton = new Button { Text = "Rétablir" };
+        _redoManifestButton.Pressed += RedoManifest;
+        manifestActions.AddChild(_redoManifestButton);
         _planImport = new Button
         {
             Text = "Prévisualiser l’import",
@@ -464,6 +508,7 @@ public partial class AssetContentBrowserWindow : Window
             $"Aperçu · {item.RelativePreviewPath ?? item.ThumbnailUrl ?? "indisponible"}";
         _planImport!.Disabled = !item.CanPlanImport;
         RefreshProfileControls();
+        RefreshManifestControls();
         LoadPreview(item, _load.VaultRoot);
     }
 
@@ -705,6 +750,93 @@ public partial class AssetContentBrowserWindow : Window
         _redoProfileButton!.Disabled = state is null || _redoProfile is null;
     }
 
+    private bool PrepareManifest(bool dryRun)
+    {
+        if (_selectedItem is null || _prepareManifest is null)
+        {
+            return false;
+        }
+
+        var profile = CreateProfileFromControls();
+        if (profile is null)
+        {
+            return false;
+        }
+
+        if (!dryRun)
+        {
+            if (!SaveProfile(dryRun: false))
+            {
+                return false;
+            }
+
+            profile = _getProfileState?.Invoke()?.Find(_selectedItem.Id, profile.Kind) ?? profile;
+        }
+
+        var manifest = _prepareManifest(
+            _selectedItem,
+            profile,
+            _includeVfx?.ButtonPressed == true,
+            dryRun);
+        if (manifest is null)
+        {
+            SetStatus(
+                dryRun
+                    ? "Le manifeste ne peut pas être prévisualisé."
+                    : "La préparation ou la sauvegarde du manifeste a échoué.",
+                true);
+            return false;
+        }
+
+        SetStatus(
+            dryRun
+                ? $"Aperçu du manifeste prêt · {manifest.Chunks.Count} chunk · aucun fichier écrit"
+                : $"✓ Asset préparé · manifeste {manifest.Id} · {manifest.Chunks.Count} chunk",
+            false);
+        RefreshManifestControls();
+        return true;
+    }
+
+    private void UndoManifest()
+    {
+        if (_undoManifest?.Invoke() == true)
+        {
+            SetStatus("Manifeste d’assets annulé et document canonique restauré.", false);
+            RefreshManifestControls();
+        }
+    }
+
+    private void RedoManifest()
+    {
+        if (_redoManifest?.Invoke() == true)
+        {
+            SetStatus("Manifeste d’assets rétabli et document canonique sauvegardé.", false);
+            RefreshManifestControls();
+        }
+    }
+
+    private void RefreshManifestControls()
+    {
+        if (_manifestSummary is null || _selectedItem is null)
+        {
+            return;
+        }
+
+        var manifest = _getManifestState?.Invoke()?.Find(_selectedItem.Id);
+        _manifestSummary.Text = manifest is null
+            ? "Aucun manifeste enregistré · la préparation restera confinée au projet"
+            : $"{manifest.Id} · {manifest.Chunks.Count} chunk · " +
+              $"collision {(manifest.Collision is null ? "non" : "oui")} · " +
+              $"animation {(manifest.Animation is null ? "non" : "oui")} · " +
+              $"VFX {(manifest.Vfx is null ? "non" : "oui")} · " +
+              $"LOD {manifest.Lod?.Levels.Count ?? 0}";
+        _includeVfx!.ButtonPressed = manifest?.Vfx is not null;
+        _prepareManifestButton!.Disabled = !_selectedItem.CanPlanImport;
+        var state = _getManifestState?.Invoke();
+        _undoManifestButton!.Disabled = state is null || _undoManifest is null;
+        _redoManifestButton!.Disabled = state is null || _redoManifest is null;
+    }
+
     private static void SelectOptionById(OptionButton option, int id)
     {
         for (var index = 0; index < option.ItemCount; index++)
@@ -737,6 +869,12 @@ public partial class AssetContentBrowserWindow : Window
         {
             _saveProfile.Disabled = true;
             _profileKind!.Disabled = true;
+        }
+
+        if (_prepareManifestButton is not null)
+        {
+            _prepareManifestButton.Disabled = true;
+            _manifestSummary!.Text = "Aucun manifeste enregistré";
         }
     }
 

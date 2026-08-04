@@ -440,6 +440,8 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [ ] Construire la normalisation GLB/Blender, les collisions, LOD, miniatures et audits qualité.
 - [x] Persister les profils texture/modèle, produire des tâches et reçus déterministes et préparer
   un GLB et une texture réels sans écrire dans le Vault.
+- [x] Produire un manifeste distribuable par asset avec chunks, variantes plateforme, collisions,
+  animations, VFX, LOD, budgets et contrôle runtime des hashes.
 - [ ] Documenter les sources acceptées, refusées et celles exigeant une action manuelle.
 
 ### AV3 — Interface Asset Vault
@@ -451,6 +453,8 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Ajouter recherche, filtres de première tranche, catégories, provenance et prévisualisations.
 - [x] Éditer les profils d'import dans le Content Browser par la commande transactionnelle commune,
   avec dry-run, undo/redo et validation de licence/provenance.
+- [x] Préparer et enregistrer le manifeste d'un asset dans le Content Browser, avec état vide,
+  résumé, VFX optionnel et historique transactionnel.
 - [ ] Enrichir les manifests avec styles, variantes, dimensions, métriques 3D et compatibilité.
 - [ ] Ajouter installation à la demande, glisser-déposer et intégration au placement existant.
 - [ ] Préparer les brosses de dispersion et recettes de biome sans dupliquer les systèmes de scène.

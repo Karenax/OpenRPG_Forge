@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using Forge.Domain.Areas;
+using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Combat;
 using Forge.Domain.Dialogues;
@@ -102,6 +103,7 @@ public partial class GameRoot : Node3D
             var requestedSpawnId = ParseOptionalEntityId(
                 GetArgumentValue(userArguments, SpawnIdArgument));
             var project = LoadProject(snapshotPath, modulePackagePath);
+            ValidateAssetPackageManifests();
             var lifecycleCause = loadSavePath is null
                 ? RuntimeLifecycleCause.Startup
                 : RuntimeLifecycleCause.SaveResume;
@@ -292,6 +294,68 @@ public partial class GameRoot : Node3D
             $"OPENRPG_FORGE_RUNTIME_WORKSPACE_LOADED format={ProjectSession.CurrentProjectFormatVersion} " +
             $"slug={project.Module.Slug}");
         return project;
+    }
+
+    private void ValidateAssetPackageManifests()
+    {
+        if (string.IsNullOrWhiteSpace(_moduleContentRoot))
+        {
+            return;
+        }
+
+        var loaded = AssetPackageManifestStore.Load(_moduleContentRoot);
+        if (!loaded.Succeeded)
+        {
+            throw new InvalidOperationException(
+                $"Asset package manifests could not be loaded: {loaded.Diagnostics[0].Code} " +
+                $"({loaded.Diagnostics[0].Path}).");
+        }
+
+        var platform = OS.GetName() switch
+        {
+            "Windows" => AssetTargetPlatform.Windows,
+            "Linux" => AssetTargetPlatform.Linux,
+            "macOS" => AssetTargetPlatform.MacOS,
+            "Android" => AssetTargetPlatform.Android,
+            "iOS" => AssetTargetPlatform.IOS,
+            _ => AssetTargetPlatform.Any,
+        };
+        var resolvedChunks = 0;
+        foreach (var manifest in loaded.Manifests)
+        {
+            var available = manifest.Chunks
+                .Select(chunk => new
+                {
+                    Chunk = chunk,
+                    Path = Path.Combine(
+                        _moduleContentRoot,
+                        chunk.RelativePath.Replace('/', Path.DirectorySeparatorChar)),
+                })
+                .Where(item => File.Exists(item.Path))
+                .ToDictionary(
+                    item => item.Chunk.RelativePath,
+                    item => HashFileSha256(item.Path),
+                    StringComparer.Ordinal);
+            var resolution = AssetPackageManifestResolver.Resolve(manifest, platform, available);
+            if (!resolution.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    $"Asset package manifest '{manifest.Id}' is invalid at runtime: " +
+                    $"{resolution.Diagnostics[0].Code} ({resolution.Diagnostics[0].Path}).");
+            }
+
+            resolvedChunks += resolution.Chunks.Count;
+        }
+
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests={loaded.Manifests.Count} " +
+            $"chunks={resolvedChunks} platform={platform}");
+    }
+
+    private static string HashFileSha256(string path)
+    {
+        using var stream = File.OpenRead(path);
+        return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
     }
 
     private EntityInstance BuildProject(ProjectDefinition project, EntityId? requestedSpawnId)

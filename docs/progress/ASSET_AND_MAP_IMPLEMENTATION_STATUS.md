@@ -31,6 +31,10 @@ Dernière mise à jour : 4 août 2026.
   et staging des sources qui nécessitent encore un worker ;
 - smoke réel sur un GLB Kenney et une texture ambientCG avec preuve que les hashes du Vault restent
   inchangés.
+- manifeste d'assets content-addressed avec chunks et plateformes, collision, animation, VFX et LOD,
+  persistance transactionnelle, inclusion `.orpmod` et validation runtime des hashes ;
+- surface Content Browser de préparation/manifeste avec état vide, VFX, résumé et undo/redo, revue
+  visuellement sans mutation du module de démonstration.
 
 ## Partiellement terminé
 
@@ -50,6 +54,6 @@ Dernière mise à jour : 4 août 2026.
 
 ## Prochaine action
 
-Livrer G11-B avec un manifeste collisions/animations/VFX/LOD, puis curater un premier pack forêt
+Livrer G11-C avec worker de conversion et round-trip contrôlé, puis curater un premier pack forêt
 cohérent et remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés
 la source de vérité de la carte.
