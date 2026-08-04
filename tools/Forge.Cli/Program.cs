@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Security.Cryptography;
 using Forge.Application.Assets;
 using Forge.Application.Commands;
 using Forge.Application.Projects;
@@ -36,7 +37,7 @@ static int Run(IReadOnlyList<string> arguments)
 
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|spatial|diagnose> ... | " +
-            "forge assets <list|prepare> ... | forge author-original <target-directory>");
+            "forge assets <list|prepare|roundtrip> ... | forge author-original <target-directory>");
         return 2;
     }
     catch (Exception exception)
@@ -96,6 +97,11 @@ static int RunAssets(IReadOnlyList<string> arguments)
         return PrepareAsset(arguments);
     }
 
+    if (arguments.Count >= 3 && arguments[0] == "roundtrip")
+    {
+        return ConfigureAssetRoundTrip(arguments);
+    }
+
     if (arguments.Count < 2 || arguments[0] != "list")
     {
         Console.Error.WriteLine(
@@ -103,7 +109,9 @@ static int RunAssets(IReadOnlyList<string> arguments)
             "[--category <category>] [--license <spdx>] [--availability <catalog|original|extracted>] " +
             "[--limit <count>] [--vault <directory>] | " +
             "forge assets prepare <repository-or-workspace> <workspace> --id <external-id> " +
-            "[--kind <model|texture>] [--vfx <true|false>] [--vault <directory>]");
+            "[--kind <model|texture>] [--vfx <true|false>] [--vault <directory>] | " +
+            "forge assets roundtrip <repository-or-workspace> <workspace> --id <external-id> " +
+            "[--watch <true|false>] [--dry-run <true|false>] [--vault <directory>]");
         return 2;
     }
 
@@ -328,6 +336,152 @@ static int PrepareAsset(IReadOnlyList<string> arguments)
     }
 
     return execution.Succeeded ? 0 : 1;
+}
+
+static int ConfigureAssetRoundTrip(IReadOnlyList<string> arguments)
+{
+    var options = ParseOptions(arguments.Skip(3).ToArray());
+    if (!options.TryGetValue("id", out var externalId) || string.IsNullOrWhiteSpace(externalId))
+    {
+        throw new ArgumentException("Asset round-trip requires --id <external-id>.");
+    }
+
+    var start = Path.GetFullPath(arguments[1]);
+    var workspaceRoot = Path.GetFullPath(arguments[2]);
+    var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(start)
+        ?? throw new DirectoryNotFoundException("OpenRPG Forge repository root was not found.");
+    var load = AssetCatalogLoader.Load(repositoryRoot, options.GetValueOrDefault("vault"));
+    if (load.Catalog is null || load.Diagnostics.Count > 0)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = load.Diagnostics }));
+        return 1;
+    }
+
+    var item = load.Catalog.Items.SingleOrDefault(candidate =>
+        string.Equals(candidate.ExternalId, externalId, StringComparison.OrdinalIgnoreCase));
+    if (item?.RelativeModelPath is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = false,
+            diagnostics = new[] { new { code = "asset.external_edit.asset_missing", path = externalId } },
+        }));
+        return 1;
+    }
+
+    var manifests = AssetPackageManifestStore.Load(workspaceRoot);
+    var edits = AssetExternalEditStore.Load(workspaceRoot);
+    if (!manifests.Succeeded || !edits.Succeeded)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = false,
+            diagnostics = manifests.Diagnostics.Concat(edits.Diagnostics),
+        }));
+        return 1;
+    }
+
+    var manifest = manifests.Manifests.SingleOrDefault(candidate => candidate.AssetId == item.Id);
+    if (manifest is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = false,
+            diagnostics = new[]
+            {
+                new { code = "asset.external_edit.manifest_missing", path = $"assets/{item.Id}" },
+            },
+        }));
+        return 1;
+    }
+
+    var sourcePath = Path.GetFullPath(Path.Combine(
+        load.VaultRoot,
+        item.RelativeModelPath.Replace('/', Path.DirectorySeparatorChar)));
+    var relativeSourcePath = Path.GetRelativePath(Path.GetFullPath(load.VaultRoot), sourcePath);
+    if (!File.Exists(sourcePath) ||
+        relativeSourcePath.Equals("..", StringComparison.Ordinal) ||
+        relativeSourcePath.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal) ||
+        Path.IsPathRooted(relativeSourcePath))
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = false,
+            diagnostics = new[] { new { code = "asset.external_edit.source_missing", path = item.RelativeModelPath } },
+        }));
+        return 1;
+    }
+
+    var watch = !options.TryGetValue("watch", out var watchValue) ||
+        !bool.TryParse(watchValue, out var parsedWatch) || parsedWatch;
+    var dryRun = options.TryGetValue("dry-run", out var dryRunValue) &&
+        bool.TryParse(dryRunValue, out var parsedDryRun) && parsedDryRun;
+    var configuration = AssetExternalEditFactory.CreateBlenderRoundTrip(
+        item,
+        manifest,
+        HashFileSha256(sourcePath),
+        watch);
+    var history = new AssetExternalEditCommandHistory(edits.Configurations);
+    var command = new SetAssetExternalEditCommand(
+        CommandId.From(Guid.NewGuid()),
+        history.State.Revision,
+        configuration,
+        dryRun);
+    var authored = new SetAssetExternalEditHandler(new SystemClock()).Handle(history.State, command);
+    if (!authored.Succeeded)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = authored.Diagnostics }));
+        return 1;
+    }
+
+    BlenderWorkerRequestSaveResult? request = null;
+    if (!dryRun)
+    {
+        history.Record(authored);
+        var saved = AssetExternalEditStore.Save(workspaceRoot, history.State.Configurations);
+        if (!saved.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = saved.Diagnostics }));
+            return 1;
+        }
+
+        var lodRatios = manifest.Lod?.Levels
+            .Where(level => level.Level > 0)
+            .Select(level => level.ScreenRatio)
+            .ToArray() ?? [];
+        request = BlenderWorkerRequestStore.Save(
+            workspaceRoot,
+            configuration,
+            BlenderWorkerOptions.Default with
+            {
+                LodRatios = lodRatios,
+                GenerateCollision = manifest.Collision is not null,
+            });
+        if (!request.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = request.Diagnostics }));
+            return 1;
+        }
+    }
+
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = true,
+        asset = item.ExternalId,
+        configuration = configuration.Id.ToString(),
+        manifest = configuration.ManifestId.ToString(),
+        configuration.Tool,
+        configuration.Operations,
+        configuration.TargetPlatforms,
+        configuration.WatchForChanges,
+        dryRun,
+        request = request?.RequestRelativePath,
+        diagnostics = Array.Empty<object>(),
+    }));
+    Console.WriteLine(
+        $"OPENRPG_FORGE_ASSET_ROUNDTRIP_PASS asset={item.ExternalId} dryrun={dryRun.ToString().ToLowerInvariant()} " +
+        $"operations={configuration.Operations.Count} request={request?.RequestRelativePath ?? "none"}");
+    return 0;
 }
 
 static int RunPackage(IReadOnlyList<string> arguments)
@@ -612,3 +766,9 @@ static int ParseLimit(string? value) => string.IsNullOrWhiteSpace(value)
     : int.TryParse(value, out var parsed) && parsed is >= 1 and <= 10_000
         ? parsed
         : throw new ArgumentException("Asset result limit must be between 1 and 10000.");
+
+static string HashFileSha256(string path)
+{
+    using var stream = File.OpenRead(path);
+    return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
+}

@@ -60,7 +60,12 @@ content-addressed avec plateformes, collisions, animations, VFX et LOD ; elles s
 exportées et vérifiées par le runtime sans dépendre d'une scène moteur. La preuve détaillée est dans
 [`tasks/G11-B-ASSET-PACKAGE-MANIFESTS.md`](tasks/G11-B-ASSET-PACKAGE-MANIFESTS.md).
 
+**G11-C est en validation finale le 4 août 2026.** Le round-trip externe est canonique, persistant et
+transactionnel ; un worker Blender optionnel consomme uniquement des opérations typées et confinées.
+La parité de plateforme, les migrations de confiance et les désinstallations avec analyse d’impact
+sont couvertes par le domaine. La preuve détaillée est dans
+[`tasks/G11-C-EXTERNAL-ROUNDTRIP-AND-LIFECYCLE.md`](tasks/G11-C-EXTERNAL-ROUNDTRIP-AND-LIFECYCLE.md).
+
 ## Prochaine tâche unique
 
-Livrer **G11-C** : worker de conversion externe/Blender optionnel, round-trip contrôlé, migration et
-désinstallation sûre des assets préparés.
+Clore **G11-C** par revue visuelle et portail global, puis démarrer G11-D.

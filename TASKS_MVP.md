@@ -455,6 +455,10 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   avec dry-run, undo/redo et validation de licence/provenance.
 - [x] Préparer et enregistrer le manifeste d'un asset dans le Content Browser, avec état vide,
   résumé, VFX optionnel et historique transactionnel.
+- [x] Configurer un round-trip Blender optionnel par commande transactionnelle, avec requête typée,
+  validation confinée, surveillance déclarative et undo/redo dans le Content Browser.
+- [x] Refuser migrations ou désinstallations de packs sans code hôte de confiance, sauvegarde et
+  résolution explicite des dépendants.
 - [ ] Enrichir les manifests avec styles, variantes, dimensions, métriques 3D et compatibilité.
 - [ ] Ajouter installation à la demande, glisser-déposer et intégration au placement existant.
 - [ ] Préparer les brosses de dispersion et recettes de biome sans dupliquer les systèmes de scène.

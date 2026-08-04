@@ -245,5 +245,8 @@ que la licence et la provenance.
 animation, VFX et LOD, inclusion `.orpmod`, contrôle runtime de présence et SHA-256, surface auteur
 transactionnelle revue visuellement.
 
-Livrer **G11-C** : worker de conversion externe/Blender optionnel, round-trip contrôlé, migration et
-désinstallation sûre avant la curation du premier pack de carte 3D.
+**G11-C est en validation finale** : round-trip externe persistant et transactionnel, worker Blender
+typé optionnel, parité plateforme, migrations/désinstallations analysées en dry-run et smoke réel sur
+un OBJ du Vault. La production GLB par Blender reste une preuve conditionnée à l’installation du
+binaire optionnel. Après revue visuelle et portail global, commencer G11-D puis la curation du premier
+pack de carte 3D.

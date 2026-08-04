@@ -43,6 +43,24 @@ internal sealed class AssetPackageManifestIdJsonConverter : JsonConverter<AssetP
         writer.WriteStringValue(value.ToString());
 }
 
+internal sealed class AssetExternalEditIdJsonConverter : JsonConverter<AssetExternalEditId>
+{
+    public override AssetExternalEditId Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options) => AssetExternalEditId.Parse(ReadString(ref reader));
+
+    public override void Write(
+        Utf8JsonWriter writer,
+        AssetExternalEditId value,
+        JsonSerializerOptions options) => writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("An external edit ID cannot be null.")
+            : throw new JsonException("An external edit ID must be a string.");
+}
+
 internal sealed class LocalizationCatalogIdJsonConverter : JsonConverter<LocalizationCatalogId>
 {
     public override LocalizationCatalogId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>

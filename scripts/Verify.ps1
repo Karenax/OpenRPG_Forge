@@ -132,6 +132,7 @@ try {
         throw "Aurora parity tracker freshness check failed with exit code $LASTEXITCODE."
     }
     Invoke-CheckedPython @('-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_*.py')
+    Invoke-CheckedPython @('-m', 'unittest', 'discover', '-s', 'tests\asset_pipeline', '-p', 'test_*.py')
     Invoke-CheckedPython @('scripts/architecture_graph.py', 'check')
     Test-ForgeBranding
 
@@ -202,11 +203,33 @@ try {
             'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
             'assets', 'prepare', $repositoryRoot, $assetImportSmoke,
             '--id', 'ambientcg:3DApple001', '--kind', 'texture', '--vault', $assetVault)
+        Invoke-CheckedDotnet @(
+            'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+            'assets', 'prepare', $repositoryRoot, $assetImportSmoke,
+            '--id', 'ambientcg:3DApple001', '--kind', 'model', '--vault', $assetVault)
+        Invoke-CheckedDotnet @(
+            'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+            'assets', 'roundtrip', $repositoryRoot, $assetImportSmoke,
+            '--id', 'ambientcg:3DApple001', '--watch', 'true', '--vault', $assetVault)
+        $roundTripRequest = Join-Path `
+            $assetImportSmoke `
+            'assets\roundtrip\96ce5ad8-a1e9-8255-99ce-11cf8d593506.worker-request.json'
+        $roundTripResponse = Join-Path $assetImportSmoke 'assets\roundtrip\worker-response.json'
+        Invoke-CheckedPython @(
+            (Join-Path $repositoryRoot 'tools\asset_pipeline\blender_worker.py'),
+            '--request', $roundTripRequest,
+            '--response', $roundTripResponse,
+            '--source-root', $assetVault,
+            '--workspace-root', $assetImportSmoke,
+            '--validate-only')
         if ($modelSourceHash -ne (Get-FileHash -LiteralPath $modelSource -Algorithm SHA256).Hash -or
             $textureSourceHash -ne (Get-FileHash -LiteralPath $textureSource -Algorithm SHA256).Hash -or
             -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\kenney-castle-kit\model.glb')) -or
             -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\ambientcg-3dapple001\import-receipt.json')) -or
-            -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\asset-manifests.json'))) {
+            -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\asset-manifests.json')) -or
+            -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\external-edits.json')) -or
+            -not (Test-Path -LiteralPath $roundTripRequest) -or
+            -not (Test-Path -LiteralPath $roundTripResponse)) {
             throw 'Asset preparation did not preserve Vault sources or produce the governed outputs.'
         }
         Write-Output 'asset-import-smoke passed.'

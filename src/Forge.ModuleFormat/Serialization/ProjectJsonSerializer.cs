@@ -98,6 +98,7 @@ public static class ProjectJsonSerializer
         options.Converters.Add(new AbilityIdJsonConverter());
         options.Converters.Add(new AssetCatalogItemIdJsonConverter());
         options.Converters.Add(new AssetPackageManifestIdJsonConverter());
+        options.Converters.Add(new AssetExternalEditIdJsonConverter());
         options.Converters.Add(new AreaIdJsonConverter());
         options.Converters.Add(new AreaNavigationDefinitionIdJsonConverter());
         options.Converters.Add(new PortalIdJsonConverter());

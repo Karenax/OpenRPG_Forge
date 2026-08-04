@@ -35,25 +35,27 @@ Dernière mise à jour : 4 août 2026.
   persistance transactionnelle, inclusion `.orpmod` et validation runtime des hashes ;
 - surface Content Browser de préparation/manifeste avec état vide, VFX, résumé et undo/redo, revue
   visuellement sans mutation du module de démonstration.
+- round-trip externe canonique et persistant, requête Blender typée sans code arbitraire, worker
+  confiné, validation croisée C#/Python sur un OBJ réel et analyse sûre migration/désinstallation.
 
 ## Partiellement terminé
 
 - catalogue : lecture, recherche et gouvernance disponibles dans le workspace Assets, sans encore
   installation/désinstallation, SQLite ni gestion complète des packs ;
-- normalisation : profils, cache, staging et passage direct des GLB présents ; conversion finale des
-  FBX/OBJ et textures vers GLB/KTX2 encore à appliquer ;
+- normalisation : profils, cache, staging, passage direct des GLB et worker Blender livré ; la preuve
+  d’exécution Blender réelle et la conversion KTX2 restent à appliquer sur une machine équipée ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
 
 ## Non commencé
 
-- gestionnaire Asset Vault complet avec installation, mise à jour et désinstallation ;
+- gestionnaire Asset Vault complet avec installation, mise à jour et application physique des
+  migrations/désinstallations déjà analysées par le domaine ;
 - génération de miniatures et planches contact ;
-- Blender Worker de normalisation ;
+- service de surveillance temps réel et exécution Blender validée avec le binaire optionnel ;
 - packs artistiques curatés ;
 - terrain sculpté, navigation, eau, routes et carte Forgotten Forest finale 512 × 512 m.
 
 ## Prochaine action
 
-Livrer G11-C avec worker de conversion et round-trip contrôlé, puis curater un premier pack forêt
-cohérent et remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés
-la source de vérité de la carte.
+Valider visuellement G11-C, puis curater un premier pack forêt cohérent et remplacer les trois slots
+du prototype par des GLB gouvernés sans faire des nœuds générés la source de vérité de la carte.

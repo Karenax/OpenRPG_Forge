@@ -17,6 +17,10 @@ public partial class AssetContentBrowserWindow : Window
     private Func<AssetCatalogItem, AssetProcessingProfile, bool, bool, AssetPackageManifest?>? _prepareManifest;
     private Func<bool>? _undoManifest;
     private Func<bool>? _redoManifest;
+    private Func<AssetExternalEditState?>? _getExternalEditState;
+    private Func<AssetCatalogItem, bool, bool, AssetExternalEditConfiguration?>? _configureExternalEdit;
+    private Func<bool>? _undoExternalEdit;
+    private Func<bool>? _redoExternalEdit;
     private Action<Window>? _brandWindow;
     private AssetCatalogBrowser? _browser;
     private AssetCatalogLoadResult? _load;
@@ -52,6 +56,11 @@ public partial class AssetContentBrowserWindow : Window
     private Button? _prepareManifestButton;
     private Button? _undoManifestButton;
     private Button? _redoManifestButton;
+    private Label? _externalEditSummary;
+    private CheckButton? _watchExternalChanges;
+    private Button? _configureExternalEditButton;
+    private Button? _undoExternalEditButton;
+    private Button? _redoExternalEditButton;
     private AssetCatalogItem? _selectedItem;
 
     public int CatalogCount => _browser?.Catalog.Items.Count ?? 0;
@@ -75,6 +84,10 @@ public partial class AssetContentBrowserWindow : Window
         Func<AssetCatalogItem, AssetProcessingProfile, bool, bool, AssetPackageManifest?> prepareManifest,
         Func<bool> undoManifest,
         Func<bool> redoManifest,
+        Func<AssetExternalEditState?> getExternalEditState,
+        Func<AssetCatalogItem, bool, bool, AssetExternalEditConfiguration?> configureExternalEdit,
+        Func<bool> undoExternalEdit,
+        Func<bool> redoExternalEdit,
         Action<Window> brandWindow)
     {
         _getRepositoryRoot = getRepositoryRoot ?? throw new ArgumentNullException(nameof(getRepositoryRoot));
@@ -86,6 +99,10 @@ public partial class AssetContentBrowserWindow : Window
         _prepareManifest = prepareManifest ?? throw new ArgumentNullException(nameof(prepareManifest));
         _undoManifest = undoManifest ?? throw new ArgumentNullException(nameof(undoManifest));
         _redoManifest = redoManifest ?? throw new ArgumentNullException(nameof(redoManifest));
+        _getExternalEditState = getExternalEditState ?? throw new ArgumentNullException(nameof(getExternalEditState));
+        _configureExternalEdit = configureExternalEdit ?? throw new ArgumentNullException(nameof(configureExternalEdit));
+        _undoExternalEdit = undoExternalEdit ?? throw new ArgumentNullException(nameof(undoExternalEdit));
+        _redoExternalEdit = redoExternalEdit ?? throw new ArgumentNullException(nameof(redoExternalEdit));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assets & Content Browser · OpenRPG Forge";
         MinSize = new Vector2I(1240, 780);
@@ -198,6 +215,8 @@ public partial class AssetContentBrowserWindow : Window
     }
 
     public bool PreviewManifestCommandForSmokeTest() => PrepareManifest(dryRun: true);
+
+    public bool PreviewExternalEditCommandForSmokeTest() => ConfigureExternalEdit(dryRun: true);
 
     private void BuildUi()
     {
@@ -400,6 +419,35 @@ public partial class AssetContentBrowserWindow : Window
         _redoManifestButton = new Button { Text = "Rétablir" };
         _redoManifestButton.Pressed += RedoManifest;
         manifestActions.AddChild(_redoManifestButton);
+        details.AddChild(Section("ROUND-TRIP EXTERNE"));
+        _externalEditSummary = new Label
+        {
+            Text = "Aucun round-trip configuré",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        details.AddChild(_externalEditSummary);
+        _watchExternalChanges = new CheckButton
+        {
+            Text = "Surveiller les changements de la source",
+            ButtonPressed = true,
+        };
+        details.AddChild(_watchExternalChanges);
+        var externalEditActions = new HBoxContainer();
+        externalEditActions.AddThemeConstantOverride("separation", 8);
+        details.AddChild(externalEditActions);
+        _configureExternalEditButton = new Button
+        {
+            Text = "Configurer Blender",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        _configureExternalEditButton.Pressed += () => ConfigureExternalEdit(dryRun: false);
+        externalEditActions.AddChild(_configureExternalEditButton);
+        _undoExternalEditButton = new Button { Text = "Annuler" };
+        _undoExternalEditButton.Pressed += UndoExternalEdit;
+        externalEditActions.AddChild(_undoExternalEditButton);
+        _redoExternalEditButton = new Button { Text = "Rétablir" };
+        _redoExternalEditButton.Pressed += RedoExternalEdit;
+        externalEditActions.AddChild(_redoExternalEditButton);
         _planImport = new Button
         {
             Text = "Prévisualiser l’import",
@@ -509,6 +557,7 @@ public partial class AssetContentBrowserWindow : Window
         _planImport!.Disabled = !item.CanPlanImport;
         RefreshProfileControls();
         RefreshManifestControls();
+        RefreshExternalEditControls();
         LoadPreview(item, _load.VaultRoot);
     }
 
@@ -837,6 +886,76 @@ public partial class AssetContentBrowserWindow : Window
         _redoManifestButton!.Disabled = state is null || _redoManifest is null;
     }
 
+    private bool ConfigureExternalEdit(bool dryRun)
+    {
+        if (_selectedItem is null || _configureExternalEdit is null)
+        {
+            return false;
+        }
+
+        var configuration = _configureExternalEdit(
+            _selectedItem,
+            _watchExternalChanges?.ButtonPressed != false,
+            dryRun);
+        if (configuration is null)
+        {
+            SetStatus(
+                dryRun
+                    ? "Le round-trip ne peut pas être prévisualisé ; préparez d’abord le manifeste du modèle."
+                    : "La configuration du round-trip externe a échoué.",
+                true);
+            return false;
+        }
+
+        SetStatus(
+            dryRun
+                ? $"Aperçu Blender prêt · {configuration.Operations.Count} opérations typées · aucun fichier écrit"
+                : $"✓ Round-trip Blender configuré · {configuration.Id} · requête worker générée",
+            false);
+        RefreshExternalEditControls();
+        return true;
+    }
+
+    private void UndoExternalEdit()
+    {
+        if (_undoExternalEdit?.Invoke() == true)
+        {
+            SetStatus("Round-trip externe annulé et configuration canonique restaurée.", false);
+            RefreshExternalEditControls();
+        }
+    }
+
+    private void RedoExternalEdit()
+    {
+        if (_redoExternalEdit?.Invoke() == true)
+        {
+            SetStatus("Round-trip externe rétabli et configuration canonique sauvegardée.", false);
+            RefreshExternalEditControls();
+        }
+    }
+
+    private void RefreshExternalEditControls()
+    {
+        if (_externalEditSummary is null || _selectedItem is null)
+        {
+            return;
+        }
+
+        var configuration = _getExternalEditState?.Invoke()?.Find(_selectedItem.Id);
+        _externalEditSummary.Text = configuration is null
+            ? "Aucun round-trip configuré · Blender reste optionnel et hors du runtime"
+            : $"{configuration.Tool} · {configuration.Operations.Count} opérations · " +
+              $"{string.Join(", ", configuration.TargetPlatforms)} · " +
+              $"surveillance {(configuration.WatchForChanges ? "active" : "inactive")}";
+        _watchExternalChanges!.ButtonPressed = configuration?.WatchForChanges ?? true;
+        var manifest = _getManifestState?.Invoke()?.Find(_selectedItem.Id);
+        _configureExternalEditButton!.Disabled = manifest is null ||
+            !manifest.Chunks.Any(chunk => chunk.Role == AssetChunkRole.Model);
+        var state = _getExternalEditState?.Invoke();
+        _undoExternalEditButton!.Disabled = state is null || _undoExternalEdit is null;
+        _redoExternalEditButton!.Disabled = state is null || _redoExternalEdit is null;
+    }
+
     private static void SelectOptionById(OptionButton option, int id)
     {
         for (var index = 0; index < option.ItemCount; index++)
@@ -875,6 +994,12 @@ public partial class AssetContentBrowserWindow : Window
         {
             _prepareManifestButton.Disabled = true;
             _manifestSummary!.Text = "Aucun manifeste enregistré";
+        }
+
+        if (_configureExternalEditButton is not null)
+        {
+            _configureExternalEditButton.Disabled = true;
+            _externalEditSummary!.Text = "Aucun round-trip configuré";
         }
     }
 

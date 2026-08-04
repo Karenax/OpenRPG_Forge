@@ -1,6 +1,7 @@
 #if TOOLS
 using System.Collections.Concurrent;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using Forge.Application.Areas;
 using Forge.Application.Assets;
 using Forge.Application.Blueprints;
@@ -70,6 +71,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly ApplyDiagnosticQuickFixHandler _diagnosticQuickFixHandler = new(new SystemClock());
     private readonly SetAssetProcessingProfileHandler _assetProcessingProfileHandler = new(new SystemClock());
     private readonly SetAssetPackageManifestHandler _assetPackageManifestHandler = new(new SystemClock());
+    private readonly SetAssetExternalEditHandler _assetExternalEditHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -174,6 +176,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private ProjectCommandHistory? _history;
     private AssetProcessingProfileCommandHistory? _assetProcessingProfileHistory;
     private AssetPackageManifestCommandHistory? _assetPackageManifestHistory;
+    private AssetExternalEditCommandHistory? _assetExternalEditHistory;
     private Image? _forgeWindowIcon;
     private bool _playtestRunning;
     private bool _showEntityPropertiesDialogWhenReady;
@@ -236,6 +239,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
             PrepareAssetPackageManifest,
             UndoAssetPackageManifest,
             RedoAssetPackageManifest,
+            () => _assetExternalEditHistory?.State,
+            ConfigureAssetExternalEdit,
+            UndoAssetExternalEdit,
+            RedoAssetExternalEdit,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assetBrowser);
         _localizationWorkspace = new LocalizationWorkspaceWindow();
@@ -468,6 +475,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _history = null;
         _assetProcessingProfileHistory = null;
         _assetPackageManifestHistory = null;
+        _assetExternalEditHistory = null;
         GD.Print("OPENRPG_FORGE_PLUGIN_UNLOADED");
     }
 
@@ -2360,6 +2368,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _history = null;
             _assetProcessingProfileHistory = null;
             _assetPackageManifestHistory = null;
+            _assetExternalEditHistory = null;
             _activeAreaContext.Clear();
             _selectionContext.SetLocked(false);
             _selectionContext.Clear();
@@ -2392,6 +2401,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (!assetManifests.Succeeded)
         {
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_MANIFESTS_INVALID {assetManifests.Diagnostics[0].Code}");
+        }
+        var externalEdits = AssetExternalEditStore.Load(_projectSession.RootDirectory);
+        _assetExternalEditHistory = new AssetExternalEditCommandHistory(externalEdits.Configurations);
+        if (!externalEdits.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDITS_INVALID {externalEdits.Diagnostics[0].Code}");
         }
         _lastSavedRevision = 0;
         _lastRecoveryRevision = 0;
@@ -2656,6 +2671,168 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         _assetPackageManifestHistory.Undo();
+        return false;
+    }
+
+    private AssetExternalEditConfiguration? ConfigureAssetExternalEdit(
+        AssetCatalogItem item,
+        bool watchForChanges,
+        bool dryRun)
+    {
+        if (_projectSession is null || _assetExternalEditHistory is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var manifest = _assetPackageManifestHistory?.State.Find(item.Id);
+            if (manifest is null && dryRun)
+            {
+                var profile = _assetProcessingProfileHistory?.State.Find(item.Id, AssetProcessingKind.Model) ??
+                    AssetImportPlanner.CreateDefaultProfile(item, AssetProcessingKind.Model);
+                var plan = AssetImportPlanner.Plan(item, profile);
+                if (!plan.Succeeded || plan.Plan is null)
+                {
+                    return null;
+                }
+
+                manifest = AssetPackageManifestFactory.Create(
+                    item,
+                    profile,
+                    new AssetManifestArtifactInput(
+                        plan.Plan.Tasks.First().OutputRelativePath,
+                        item.ContentSha256,
+                        Math.Max(1, item.TotalBytes),
+                        string.Equals(profile.SourceFormat, profile.CanonicalFormat, StringComparison.Ordinal)));
+            }
+
+            if (manifest is null)
+            {
+                return null;
+            }
+
+            var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(GetRepositoryRoot());
+            if (repositoryRoot is null)
+            {
+                return null;
+            }
+
+            var catalog = AssetCatalogLoader.Load(repositoryRoot);
+            if (catalog.Catalog is null || catalog.Diagnostics.Count > 0 ||
+                string.IsNullOrWhiteSpace(item.RelativeModelPath) ||
+                !AssetCatalogValidator.IsSafeRelativePath(item.RelativeModelPath))
+            {
+                return null;
+            }
+
+            var sourcePath = Path.Combine(
+                catalog.VaultRoot,
+                item.RelativeModelPath.Replace('/', Path.DirectorySeparatorChar));
+            if (!File.Exists(sourcePath))
+            {
+                return null;
+            }
+
+            using var stream = File.OpenRead(sourcePath);
+            var sourceHash = Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
+            var configuration = AssetExternalEditFactory.CreateBlenderRoundTrip(
+                item,
+                manifest,
+                sourceHash,
+                watchForChanges);
+            var command = new SetAssetExternalEditCommand(
+                CommandId.From(Guid.NewGuid()),
+                _assetExternalEditHistory.State.Revision,
+                configuration,
+                dryRun);
+            var result = _assetExternalEditHandler.Handle(_assetExternalEditHistory.State, command);
+            if (!result.Succeeded)
+            {
+                GD.PrintErr($"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDIT_INVALID {result.Diagnostics[0].Code}");
+                return null;
+            }
+
+            if (dryRun)
+            {
+                return result.Patch is not null && !result.Audit.Applied ? configuration : null;
+            }
+
+            var previous = _assetExternalEditHistory.State.Configurations;
+            var saved = AssetExternalEditStore.Save(_projectSession.RootDirectory, result.State.Configurations);
+            if (!saved.Succeeded)
+            {
+                GD.PrintErr($"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDIT_SAVE_FAILED {saved.Diagnostics[0].Code}");
+                return null;
+            }
+
+            var request = BlenderWorkerRequestStore.Save(
+                _projectSession.RootDirectory,
+                configuration,
+                BlenderWorkerOptions.Default with
+                {
+                    GenerateCollision = manifest.Collision is not null,
+                    LodRatios = manifest.Lod?.Levels
+                        .Where(level => level.Level > 0)
+                        .Select(level => level.ScreenRatio)
+                        .ToArray() ?? [],
+                });
+            if (!request.Succeeded)
+            {
+                AssetExternalEditStore.Save(_projectSession.RootDirectory, previous);
+                GD.PrintErr($"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDIT_REQUEST_FAILED {request.Diagnostics[0].Code}");
+                return null;
+            }
+
+            _assetExternalEditHistory.Record(result);
+            GD.Print(
+                $"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDIT_SAVED asset={item.ExternalId} id={configuration.Id} " +
+                $"request={request.RequestRelativePath} revision={_assetExternalEditHistory.State.Revision.Value}");
+            return configuration;
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDIT_FAILED {exception.Message}");
+            return null;
+        }
+    }
+
+    private bool UndoAssetExternalEdit()
+    {
+        if (_projectSession is null || _assetExternalEditHistory is null || !_assetExternalEditHistory.Undo())
+        {
+            return false;
+        }
+
+        var saved = AssetExternalEditStore.Save(
+            _projectSession.RootDirectory,
+            _assetExternalEditHistory.State.Configurations);
+        if (saved.Succeeded)
+        {
+            return true;
+        }
+
+        _assetExternalEditHistory.Redo();
+        return false;
+    }
+
+    private bool RedoAssetExternalEdit()
+    {
+        if (_projectSession is null || _assetExternalEditHistory is null || !_assetExternalEditHistory.Redo())
+        {
+            return false;
+        }
+
+        var saved = AssetExternalEditStore.Save(
+            _projectSession.RootDirectory,
+            _assetExternalEditHistory.State.Configurations);
+        if (saved.Succeeded)
+        {
+            return true;
+        }
+
+        _assetExternalEditHistory.Undo();
         return false;
     }
 
@@ -4875,6 +5052,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             (_assetBrowser.SelectedCanPlanImport && !_assetBrowser.PreviewImportForSmokeTest()) ||
             !_assetBrowser.PreviewProfileCommandForSmokeTest() ||
             !_assetBrowser.PreviewManifestCommandForSmokeTest() ||
+            !_assetBrowser.PreviewExternalEditCommandForSmokeTest() ||
             _assetBrowser.FilterForSmokeTest(string.Empty, "kenney") != 50 ||
             _assetBrowser.FilterForSmokeTest(string.Empty, category: "furniture") == 0)
         {
@@ -4886,7 +5064,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=605 sources=3 facets=search-source-category " +
             "uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed " +
-            "profile=command-dry-run manifest=command-dry-run");
+            "profile=command-dry-run manifest=command-dry-run roundtrip=command-dry-run");
         return true;
     }
 
