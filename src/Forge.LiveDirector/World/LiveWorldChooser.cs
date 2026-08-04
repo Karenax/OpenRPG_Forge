@@ -4,7 +4,7 @@ namespace Forge.LiveDirector.World;
 
 public sealed class LiveWorldChooser(AuthorizationService authorization)
 {
-    public sealed record Entry(Guid ObjectId, Guid ZoneId, string Kind, string Name, string Tag, Guid? PlayerAccountId, string State, IReadOnlyList<string> Diagnostics);
+    public sealed record Entry(Guid ObjectId, Guid ZoneId, string Kind, string Name, string Tag, Guid? PlayerAccountId, string State, IReadOnlyList<string> Diagnostics, string InstanceId = "default", bool Private = false, double X = 0, double Y = 0, double Z = 0);
     public sealed record Query(Guid? ZoneId, string? Kind, string? Text, Guid? PlayerAccountId, string? State);
 
     private readonly Dictionary<Guid, Entry> _entries = [];
@@ -15,6 +15,10 @@ public sealed class LiveWorldChooser(AuthorizationService authorization)
             throw new ArgumentException("LIVE_WORLD_ENTRY_INVALID", nameof(entry));
         _entries[entry.ObjectId] = entry;
     }
+
+    public Entry? Find(Guid objectId) => _entries.GetValueOrDefault(objectId);
+
+    public bool Remove(Guid objectId) => _entries.Remove(objectId);
 
     public IReadOnlyList<Entry> Search(AuthorizationSubject actor, Query query)
     {

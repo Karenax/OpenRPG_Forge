@@ -1419,7 +1419,7 @@ Le résumé doit contenir :
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
 > Le second module original **La Veillée des Éclats** est généré exclusivement par les handlers
 > d'auteur et `ProjectSession`, avec round-trip/export automatisé.
-> Réalise **G10-B Live Director** (`ORF-DM-006` à `ORF-DM-010`) : navigation vers objet, téléportation, destruction, soin et limbo autoritaires, avec preview, permissions, révisions et audit.
+> Réalise **G10-C Live Director** (`ORF-DM-011` à `ORF-DM-014`, `ORF-DM-016`) : inspection, possession, impersonation, invulnérabilité et économie GM autoritaires.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.

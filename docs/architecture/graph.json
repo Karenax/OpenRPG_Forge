@@ -1,6 +1,16 @@
 {
   "diagnostics": [
     {
+      "line": 7,
+      "message": "Identifiant de nœud ambigu ignoré : type:Forge.LiveDirector.World.Request",
+      "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+    },
+    {
+      "line": 8,
+      "message": "Identifiant de nœud ambigu ignoré : model:Forge.LiveDirector.World.Result",
+      "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+    },
+    {
       "line": 86,
       "message": "Identifiant de nœud ambigu ignoré : test:Forge.Network.Tests.ManualTimeProvider",
       "path": "tests/Forge.Network.Tests/ResilienceDeterminismTests.cs"
@@ -6981,6 +6991,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/World/LiveWorldActionService.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.LiveDirector/World/LiveWorldChooser.cs"
       },
       "kind": "imports",
@@ -10693,6 +10712,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorFoundationTests.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs",
+      "target": "namespace:Forge.LiveDirector.World"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs",
       "target": "namespace:Forge.Network.Operations"
     },
     {
@@ -19643,8 +19680,26 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.LiveDirector.World.Result",
+      "target": "file:src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.World.Result",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
       },
       "kind": "relationship",
       "source": "model:Forge.LiveDirector.World.Result",
@@ -19661,12 +19716,30 @@
     },
     {
       "evidence": {
+        "line": 15,
+        "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.World.Result",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
         "line": 20,
         "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
       },
       "kind": "relationship",
       "source": "model:Forge.LiveDirector.World.Result",
       "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.World.Result",
+      "target": "model:Forge.LiveDirector.World.Entry"
     },
     {
       "evidence": {
@@ -21485,15 +21558,6 @@
       "kind": "defined_in",
       "source": "model:Forge.RpgKit.Domain.Placeables.ContainerStateEvent",
       "target": "file:src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
-    },
-    {
-      "evidence": {
-        "line": 16,
-        "path": "src/Forge.RpgKit.Domain/Placeables/PlaceableSecurityService.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.RpgKit.Domain.Placeables.ContainerStateEvent",
-      "target": "model:Forge.LiveDirector.World.Result"
     },
     {
       "evidence": {
@@ -25287,11 +25351,29 @@
     {
       "evidence": {
         "line": 3,
+        "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.LiveDirector.Tests",
+      "target": "file:tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.LiveDirector.World",
       "target": "file:src/Forge.LiveDirector/World/LiveSpawnService.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.LiveDirector.World",
+      "target": "file:src/Forge.LiveDirector/World/LiveWorldActionService.cs"
     },
     {
       "evidence": {
@@ -28244,6 +28326,15 @@
       "kind": "defined_in",
       "source": "service:Forge.LiveDirector.World.LiveSpawnService",
       "target": "file:src/Forge.LiveDirector/World/LiveSpawnService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.LiveDirector.World.LiveWorldActionService",
+      "target": "file:src/Forge.LiveDirector/World/LiveWorldActionService.cs"
     },
     {
       "evidence": {
@@ -37220,6 +37311,69 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.LiveDirector.Tests.LiveWorldActionTests",
+      "target": "file:tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveWorldActionTests",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveWorldActionTests",
+      "target": "service:Forge.LiveDirector.World.LiveWorldActionService"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveWorldActionTests",
+      "target": "service:Forge.Network.Operations.AuthorizationService"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveWorldActionTests",
+      "target": "type:Forge.LiveDirector.World.LiveWorldChooser"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveWorldActionTests",
+      "target": "type:Forge.Network.Operations.AuthorizationSubject"
+    },
+    {
+      "evidence": {
+        "line": 75,
+        "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveWorldActionTests",
+      "target": "type:Forge.Network.Operations.NetworkRole"
+    },
+    {
+      "evidence": {
         "line": 27,
         "path": "tests/Forge.Mcp.Tests/Bridge/ForgeEditorBridgeTests.cs"
       },
@@ -40469,15 +40623,6 @@
     },
     {
       "evidence": {
-        "line": 13,
-        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureAiServiceTests",
-      "target": "model:Forge.LiveDirector.World.Result"
-    },
-    {
-      "evidence": {
         "line": 26,
         "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureAiServiceTests.cs"
       },
@@ -42869,15 +43014,6 @@
       "kind": "defined_in",
       "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableInteractionServiceTests",
       "target": "file:tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
-    },
-    {
-      "evidence": {
-        "line": 12,
-        "path": "tests/Forge.RpgKit.Domain.Tests/Placeables/PlaceableInteractionServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.RpgKit.Domain.Tests.Placeables.PlaceableInteractionServiceTests",
-      "target": "model:Forge.LiveDirector.World.Result"
     },
     {
       "evidence": {
@@ -45902,6 +46038,15 @@
       "kind": "defined_in",
       "source": "type:Forge.LiveDirector.World.Request",
       "target": "file:src/Forge.LiveDirector/World/LiveSpawnService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.LiveDirector.World.Request",
+      "target": "file:src/Forge.LiveDirector/World/LiveWorldActionService.cs"
     },
     {
       "evidence": {
@@ -50612,8 +50757,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:59c0d46ed26388d54c56149bccf3ea38186fe3949e7637dbda4e9d1bf3e4d939",
-    "source_file_count": 1008
+    "source_digest": "sha256:22f6db77ec662bc75320bbb49add32e759ebc322f005f044aa41a535be80ab08",
+    "source_file_count": 1011
   },
   "nodes": [
     {
@@ -53325,6 +53470,16 @@
       },
       "name": "G10-A-LIVE-DIRECTOR-FOUNDATION.md",
       "path": "docs/aurora-parity/tasks/G10-A-LIVE-DIRECTOR-FOUNDATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G10-B-LIVE-WORLD-ACTIONS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G10-B-LIVE-WORLD-ACTIONS.md",
+      "path": "docs/aurora-parity/tasks/G10-B-LIVE-WORLD-ACTIONS.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -57017,6 +57172,16 @@
       "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
     },
     {
+      "id": "file:src/Forge.LiveDirector/World/LiveWorldActionService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveWorldActionService.cs",
+      "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+    },
+    {
       "id": "file:src/Forge.LiveDirector/World/LiveWorldChooser.cs",
       "kind": "file",
       "line": 1,
@@ -59375,6 +59540,16 @@
       },
       "name": "LiveDirectorFoundationTests.cs",
       "path": "tests/Forge.LiveDirector.Tests/LiveDirectorFoundationTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveWorldActionTests.cs",
+      "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
     },
     {
       "id": "file:tests/Forge.LiveDirector.Tests/packages.lock.json",
@@ -66721,6 +66896,16 @@
       "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
     },
     {
+      "id": "service:Forge.LiveDirector.World.LiveWorldActionService",
+      "kind": "service",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.World"
+      },
+      "name": "LiveWorldActionService",
+      "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+    },
+    {
       "id": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "kind": "service",
       "line": 21,
@@ -67959,6 +68144,16 @@
       },
       "name": "LiveDirectorFoundationTests",
       "path": "tests/Forge.LiveDirector.Tests/LiveDirectorFoundationTests.cs"
+    },
+    {
+      "id": "test:Forge.LiveDirector.Tests.LiveWorldActionTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Tests"
+      },
+      "name": "LiveWorldActionTests",
+      "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
     },
     {
       "id": "test:Forge.Mcp.Tests.Bridge.ForgeEditorBridgeTests",
