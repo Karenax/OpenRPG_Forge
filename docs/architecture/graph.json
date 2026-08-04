@@ -7842,6 +7842,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/Chat/ChatService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Network/Chat/ChatService.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Network/Configuration/NetworkConfigurationStore.cs"
       },
@@ -11448,6 +11457,33 @@
       "kind": "imports",
       "source": "file:tests/Forge.Network.Tests/AuthoritativeSessionTests.cs",
       "target": "namespace:Forge.Network.Sessions"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs",
+      "target": "namespace:Forge.Network.Chat"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs",
+      "target": "namespace:Forge.Network.Persistence"
     },
     {
       "evidence": {
@@ -19830,6 +19866,60 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Network/Chat/ChatService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.Chat.ChatChannelKind",
+      "target": "file:src/Forge.Network/Chat/ChatService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Operations/AdministrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.Operations.AdministrationCommand",
+      "target": "file:src/Forge.Network/Operations/AdministrationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Operations/AdministrationService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Network.Operations.AdministrationCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Network/Operations/AdministrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.Operations.AdministrationResult",
+      "target": "file:src/Forge.Network/Operations/AdministrationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Network/Operations/AdministrationService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Network.Operations.AdministrationResult",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Operations/ModerationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.Operations.ModerationActionKind",
+      "target": "file:src/Forge.Network/Operations/ModerationService.cs"
+    },
+    {
+      "evidence": {
         "line": 14,
         "path": "src/Forge.Network/Replication/ReplicationModels.cs"
       },
@@ -25455,6 +25545,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Network/Chat/ChatService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Chat",
+      "target": "file:src/Forge.Network/Chat/ChatService.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.Network/Configuration/NetworkConfigurationStore.cs"
       },
@@ -25488,6 +25587,42 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Network.Identity",
       "target": "file:src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/Operations/AdministrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Operations",
+      "target": "file:src/Forge.Network/Operations/AdministrationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/Operations/Authorization.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Operations",
+      "target": "file:src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Network/Operations/ModerationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Operations",
+      "target": "file:src/Forge.Network/Operations/ModerationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Persistence/WorldPersistence.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Persistence",
+      "target": "file:src/Forge.Network/Persistence/WorldPersistence.cs"
     },
     {
       "evidence": {
@@ -25542,6 +25677,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Network.Tests",
       "target": "file:tests/Forge.Network.Tests/AuthoritativeSessionTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Tests",
+      "target": "file:tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
     },
     {
       "evidence": {
@@ -27687,6 +27831,33 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.Network/Chat/ChatService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Network.Chat.ChatService",
+      "target": "file:src/Forge.Network/Chat/ChatService.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Network/Chat/ChatService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.Chat.ChatService",
+      "target": "model:Forge.Network.Chat.ChatChannelKind"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Network/Chat/ChatService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.Chat.ChatService",
+      "target": "model:Forge.Network.Operations.ModerationActionKind"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.Network/Content/ContentSynchronization.cs"
       },
@@ -27711,6 +27882,69 @@
       "kind": "defined_in",
       "source": "service:Forge.Network.Identity.AccountService",
       "target": "file:src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Network/Operations/AdministrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Network.Operations.AdministrationService",
+      "target": "file:src/Forge.Network/Operations/AdministrationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Network/Operations/AdministrationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.Operations.AdministrationService",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Network/Operations/AdministrationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.Operations.AdministrationService",
+      "target": "model:Forge.Network.Operations.AdministrationCommand"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Network/Operations/AdministrationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.Operations.AdministrationService",
+      "target": "model:Forge.Network.Operations.AdministrationResult"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Network/Operations/Authorization.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Network.Operations.AuthorizationService",
+      "target": "file:src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Network/Operations/ModerationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Network.Operations.ModerationService",
+      "target": "file:src/Forge.Network/Operations/ModerationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Network/Operations/ModerationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Network.Operations.ModerationService",
+      "target": "model:Forge.Network.Operations.ModerationActionKind"
     },
     {
       "evidence": {
@@ -38325,6 +38559,141 @@
     },
     {
       "evidence": {
+        "line": 79,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Network.Tests.ManualTimeProvider",
+      "target": "file:tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "file:tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "model:Forge.Network.Chat.ChatChannelKind"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "model:Forge.Network.Operations.AdministrationCommand"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "model:Forge.Network.Operations.ModerationActionKind"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "service:Forge.Network.Chat.ChatService"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "service:Forge.Network.Operations.AdministrationService"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "service:Forge.Network.Operations.AuthorizationService"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "service:Forge.Network.Operations.ModerationService"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "type:Forge.Network.Operations.AuthorizationSubject"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "type:Forge.Network.Operations.NetworkCapability"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "type:Forge.Network.Operations.NetworkRole"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "type:Forge.Network.Persistence.InMemoryWorldSnapshotStore"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "target": "type:Forge.Network.World.Party"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs"
       },
@@ -44725,6 +45094,24 @@
     {
       "evidence": {
         "line": 7,
+        "path": "src/Forge.Network/Chat/ChatService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Chat.ChatDecision",
+      "target": "file:src/Forge.Network/Chat/ChatService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Network/Chat/ChatService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Chat.ChatMessage",
+      "target": "file:src/Forge.Network/Chat/ChatService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
         "path": "src/Forge.Network/Configuration/NetworkConfigurationStore.cs"
       },
       "kind": "defined_in",
@@ -44793,6 +45180,87 @@
       "kind": "defined_in",
       "source": "type:Forge.Network.Identity.AuthenticationDecision",
       "target": "file:src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Network/Operations/Authorization.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Operations.AuthorizationDecision",
+      "target": "file:src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Network/Operations/Authorization.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Operations.AuthorizationSubject",
+      "target": "file:src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Network/Operations/ModerationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Operations.ModerationAction",
+      "target": "file:src/Forge.Network/Operations/ModerationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Network/Operations/ModerationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Operations.ModerationDecision",
+      "target": "file:src/Forge.Network/Operations/ModerationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Operations/Authorization.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Operations.NetworkCapability",
+      "target": "file:src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Network/Operations/Authorization.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Operations.NetworkRole",
+      "target": "file:src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Network/Persistence/WorldPersistence.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Persistence.IWorldSnapshotStore",
+      "target": "file:src/Forge.Network/Persistence/WorldPersistence.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Network/Persistence/WorldPersistence.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Persistence.InMemoryWorldSnapshotStore",
+      "target": "file:src/Forge.Network/Persistence/WorldPersistence.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Network/Persistence/WorldPersistence.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Persistence.WorldSnapshot",
+      "target": "file:src/Forge.Network/Persistence/WorldPersistence.cs"
     },
     {
       "evidence": {
@@ -48468,8 +48936,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:a8c56077ee92f61deb73d67184f4f24d8659975e2dc1e3364d21cfc98867c0a7",
-    "source_file_count": 972
+    "source_digest": "sha256:99274c3e2d24b9702249392999f6b749dd87bc2bf38936fccc92093a075463be",
+    "source_file_count": 979
   },
   "nodes": [
     {
@@ -51923,6 +52391,16 @@
       "path": "docs/aurora-parity/tasks/G9-C-REPLICATION-CONTENT-IDENTITY.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G9-D-OPERATIONS-CHAT-PERSISTENCE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G9-D-OPERATIONS-CHAT-PERSISTENCE.md",
+      "path": "docs/aurora-parity/tasks/G9-D-OPERATIONS-CHAT-PERSISTENCE.md"
+    },
+    {
       "id": "file:docs/progress/ASSET_AND_MAP_IMPLEMENTATION_STATUS.md",
       "kind": "document",
       "line": 1,
@@ -55373,6 +55851,16 @@
       "path": "src/Forge.Network/Authoring/NetworkAuthoringService.cs"
     },
     {
+      "id": "file:src/Forge.Network/Chat/ChatService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ChatService.cs",
+      "path": "src/Forge.Network/Chat/ChatService.cs"
+    },
+    {
       "id": "file:src/Forge.Network/Configuration/NetworkConfigurationStore.cs",
       "kind": "file",
       "line": 1,
@@ -55421,6 +55909,46 @@
       },
       "name": "AccountService.cs",
       "path": "src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/Operations/AdministrationService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AdministrationService.cs",
+      "path": "src/Forge.Network/Operations/AdministrationService.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/Operations/Authorization.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "Authorization.cs",
+      "path": "src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/Operations/ModerationService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ModerationService.cs",
+      "path": "src/Forge.Network/Operations/ModerationService.cs"
+    },
+    {
+      "id": "file:src/Forge.Network/Persistence/WorldPersistence.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "WorldPersistence.cs",
+      "path": "src/Forge.Network/Persistence/WorldPersistence.cs"
     },
     {
       "id": "file:src/Forge.Network/Replication/ReplicationModels.cs",
@@ -57211,6 +57739,16 @@
       },
       "name": "Forge.Network.Tests.csproj",
       "path": "tests/Forge.Network.Tests/Forge.Network.Tests.csproj"
+    },
+    {
+      "id": "file:tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "OperationsChatPersistenceTests.cs",
+      "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
     },
     {
       "id": "file:tests/Forge.Network.Tests/ReplicationContentIdentityTests.cs",
@@ -61613,6 +62151,46 @@
       "path": "src/Forge.Network/Authoring/NetworkAuthoringService.cs"
     },
     {
+      "id": "model:Forge.Network.Chat.ChatChannelKind",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Network.Chat"
+      },
+      "name": "ChatChannelKind",
+      "path": "src/Forge.Network/Chat/ChatService.cs"
+    },
+    {
+      "id": "model:Forge.Network.Operations.AdministrationCommand",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "AdministrationCommand",
+      "path": "src/Forge.Network/Operations/AdministrationService.cs"
+    },
+    {
+      "id": "model:Forge.Network.Operations.AdministrationResult",
+      "kind": "model",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "AdministrationResult",
+      "path": "src/Forge.Network/Operations/AdministrationService.cs"
+    },
+    {
+      "id": "model:Forge.Network.Operations.ModerationActionKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "ModerationActionKind",
+      "path": "src/Forge.Network/Operations/ModerationService.cs"
+    },
+    {
       "id": "model:Forge.Network.Replication.ReplicatedEntity",
       "kind": "model",
       "line": 14,
@@ -63564,6 +64142,11 @@
       "name": "Forge.Network.Authoring"
     },
     {
+      "id": "namespace:Forge.Network.Chat",
+      "kind": "namespace",
+      "name": "Forge.Network.Chat"
+    },
+    {
       "id": "namespace:Forge.Network.Configuration",
       "kind": "namespace",
       "name": "Forge.Network.Configuration"
@@ -63582,6 +64165,16 @@
       "id": "namespace:Forge.Network.Identity",
       "kind": "namespace",
       "name": "Forge.Network.Identity"
+    },
+    {
+      "id": "namespace:Forge.Network.Operations",
+      "kind": "namespace",
+      "name": "Forge.Network.Operations"
+    },
+    {
+      "id": "namespace:Forge.Network.Persistence",
+      "kind": "namespace",
+      "name": "Forge.Network.Persistence"
     },
     {
       "id": "namespace:Forge.Network.Replication",
@@ -63988,6 +64581,16 @@
       "path": "src/Forge.Network/Authoring/NetworkAuthoringService.cs"
     },
     {
+      "id": "service:Forge.Network.Chat.ChatService",
+      "kind": "service",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Network.Chat"
+      },
+      "name": "ChatService",
+      "path": "src/Forge.Network/Chat/ChatService.cs"
+    },
+    {
       "id": "service:Forge.Network.Content.ContentManifestService",
       "kind": "service",
       "line": 10,
@@ -64006,6 +64609,36 @@
       },
       "name": "AccountService",
       "path": "src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "id": "service:Forge.Network.Operations.AdministrationService",
+      "kind": "service",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "AdministrationService",
+      "path": "src/Forge.Network/Operations/AdministrationService.cs"
+    },
+    {
+      "id": "service:Forge.Network.Operations.AuthorizationService",
+      "kind": "service",
+      "line": 18,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "AuthorizationService",
+      "path": "src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "id": "service:Forge.Network.Operations.ModerationService",
+      "kind": "service",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "ModerationService",
+      "path": "src/Forge.Network/Operations/ModerationService.cs"
     },
     {
       "id": "service:Forge.Network.Replication.ReplicationService",
@@ -65366,6 +65999,26 @@
       },
       "name": "AuthoritativeSessionTests",
       "path": "tests/Forge.Network.Tests/AuthoritativeSessionTests.cs"
+    },
+    {
+      "id": "test:Forge.Network.Tests.ManualTimeProvider",
+      "kind": "test",
+      "line": 79,
+      "metadata": {
+        "namespace": "Forge.Network.Tests"
+      },
+      "name": "ManualTimeProvider",
+      "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+    },
+    {
+      "id": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Network.Tests"
+      },
+      "name": "OperationsChatPersistenceTests",
+      "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
     },
     {
       "id": "test:Forge.Network.Tests.ReplicationContentIdentityTests",
@@ -68415,6 +69068,26 @@
       "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
     },
     {
+      "id": "type:Forge.Network.Chat.ChatDecision",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Network.Chat"
+      },
+      "name": "ChatDecision",
+      "path": "src/Forge.Network/Chat/ChatService.cs"
+    },
+    {
+      "id": "type:Forge.Network.Chat.ChatMessage",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Network.Chat"
+      },
+      "name": "ChatMessage",
+      "path": "src/Forge.Network/Chat/ChatService.cs"
+    },
+    {
       "id": "type:Forge.Network.Configuration.NetworkConfigurationStore",
       "kind": "type",
       "line": 7,
@@ -68493,6 +69166,96 @@
       },
       "name": "AuthenticationDecision",
       "path": "src/Forge.Network/Identity/AccountService.cs"
+    },
+    {
+      "id": "type:Forge.Network.Operations.AuthorizationDecision",
+      "kind": "type",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "AuthorizationDecision",
+      "path": "src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "id": "type:Forge.Network.Operations.AuthorizationSubject",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "AuthorizationSubject",
+      "path": "src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "id": "type:Forge.Network.Operations.ModerationAction",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "ModerationAction",
+      "path": "src/Forge.Network/Operations/ModerationService.cs"
+    },
+    {
+      "id": "type:Forge.Network.Operations.ModerationDecision",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "ModerationDecision",
+      "path": "src/Forge.Network/Operations/ModerationService.cs"
+    },
+    {
+      "id": "type:Forge.Network.Operations.NetworkCapability",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "NetworkCapability",
+      "path": "src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "id": "type:Forge.Network.Operations.NetworkRole",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Network.Operations"
+      },
+      "name": "NetworkRole",
+      "path": "src/Forge.Network/Operations/Authorization.cs"
+    },
+    {
+      "id": "type:Forge.Network.Persistence.IWorldSnapshotStore",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Network.Persistence"
+      },
+      "name": "IWorldSnapshotStore",
+      "path": "src/Forge.Network/Persistence/WorldPersistence.cs"
+    },
+    {
+      "id": "type:Forge.Network.Persistence.InMemoryWorldSnapshotStore",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.Network.Persistence"
+      },
+      "name": "InMemoryWorldSnapshotStore",
+      "path": "src/Forge.Network/Persistence/WorldPersistence.cs"
+    },
+    {
+      "id": "type:Forge.Network.Persistence.WorldSnapshot",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Network.Persistence"
+      },
+      "name": "WorldSnapshot",
+      "path": "src/Forge.Network/Persistence/WorldPersistence.cs"
     },
     {
       "id": "type:Forge.Network.Replication.NetworkVector3",
