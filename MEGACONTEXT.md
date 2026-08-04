@@ -1419,7 +1419,7 @@ Le résumé doit contenir :
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
 > Le second module original **La Veillée des Éclats** est généré exclusivement par les handlers
 > d'auteur et `ProjectSession`, avec round-trip/export automatisé.
-> Réalise **G10-G Live Director** (`ORF-DM-035`, `ORF-DM-036`) : gestion live des quêtes et rencontres, puis prépare l'intégration du scénario GM complet.
+> Intègre et ferme **G10 Live Director** : scénario GM sur session Network Beta, surface Aurora 2026 dédiée, capture visuelle, preuve de fermeture et validation globale.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.

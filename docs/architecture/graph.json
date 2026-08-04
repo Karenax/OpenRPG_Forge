@@ -7046,6 +7046,42 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/Encounters/LiveEncounterService.cs",
+      "target": "namespace:Forge.LiveDirector.Audit"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/Encounters/LiveEncounterService.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/Narrative/LiveQuestService.cs",
+      "target": "namespace:Forge.LiveDirector.Audit"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/Narrative/LiveQuestService.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.LiveDirector/Players/LivePlayerService.cs"
       },
       "kind": "imports",
@@ -10983,6 +11019,42 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorGovernanceTests.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs",
+      "target": "namespace:Forge.LiveDirector.Audit"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs",
+      "target": "namespace:Forge.LiveDirector.Encounters"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs",
+      "target": "namespace:Forge.LiveDirector.Narrative"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs",
       "target": "namespace:Forge.Network.Operations"
     },
     {
@@ -20222,6 +20294,60 @@
     {
       "evidence": {
         "line": 10,
+        "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.LiveDirector.Encounters.Result",
+      "target": "file:src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.Encounters.Result",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.LiveDirector.Narrative.Result",
+      "target": "file:src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.Narrative.Result",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.Narrative.Result",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.Narrative.Result",
+      "target": "model:Forge.Domain.Quests.QuestId"
+    },
+    {
+      "evidence": {
+        "line": 10,
         "path": "src/Forge.LiveDirector/Players/LivePlayerService.cs"
       },
       "kind": "defined_in",
@@ -26135,6 +26261,24 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.LiveDirector.Encounters",
+      "target": "file:src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.LiveDirector.Narrative",
+      "target": "file:src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.LiveDirector/Players/LivePlayerService.cs"
       },
       "kind": "defined_in",
@@ -26203,6 +26347,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.LiveDirector.Tests",
       "target": "file:tests/Forge.LiveDirector.Tests/LiveDirectorGovernanceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.LiveDirector.Tests",
+      "target": "file:tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
     },
     {
       "evidence": {
@@ -29254,6 +29407,24 @@
       "kind": "defined_in",
       "source": "service:Forge.LiveDirector.Economy.LiveEconomyService",
       "target": "file:src/Forge.LiveDirector/Economy/LiveEconomyService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.LiveDirector.Encounters.LiveEncounterService",
+      "target": "file:src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.LiveDirector.Narrative.LiveQuestService",
+      "target": "file:src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
     },
     {
       "evidence": {
@@ -33073,6 +33244,15 @@
     },
     {
       "evidence": {
+        "line": 147,
+        "path": "tests/Forge.Application.Tests/Creator/CreatorSearchAndRenameTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.CreatorSearchAndRenameTests",
+      "target": "type:Forge.LiveDirector.Narrative.Quest"
+    },
+    {
+      "evidence": {
         "line": 173,
         "path": "tests/Forge.Application.Tests/Creator/CreatorSearchAndRenameTests.cs"
       },
@@ -36025,6 +36205,15 @@
     },
     {
       "evidence": {
+        "line": 107,
+        "path": "tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Quests.SetQuestHandlerTests",
+      "target": "type:Forge.LiveDirector.Narrative.Quest"
+    },
+    {
+      "evidence": {
         "line": 99,
         "path": "tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs"
       },
@@ -38595,6 +38784,60 @@
       },
       "kind": "tests",
       "source": "test:Forge.LiveDirector.Tests.LiveDirectorGovernanceTests",
+      "target": "type:Forge.Network.Operations.NetworkRole"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorNarrativeEncounterTests",
+      "target": "file:tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorNarrativeEncounterTests",
+      "target": "service:Forge.LiveDirector.Encounters.LiveEncounterService"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorNarrativeEncounterTests",
+      "target": "service:Forge.LiveDirector.Narrative.LiveQuestService"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorNarrativeEncounterTests",
+      "target": "type:Forge.LiveDirector.Audit.LiveAuditJournal"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorNarrativeEncounterTests",
+      "target": "type:Forge.Network.Operations.AuthorizationSubject"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorNarrativeEncounterTests",
       "target": "type:Forge.Network.Operations.NetworkRole"
     },
     {
@@ -42784,6 +43027,15 @@
     },
     {
       "evidence": {
+        "line": 18,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueAuthoringServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Dialogues.DialogueAuthoringServiceTests",
+      "target": "type:Forge.LiveDirector.Narrative.Quest"
+    },
+    {
+      "evidence": {
         "line": 42,
         "path": "tests/Forge.RpgKit.Domain.Tests/Dialogues/DialogueAuthoringServiceTests.cs"
       },
@@ -43504,6 +43756,15 @@
     },
     {
       "evidence": {
+        "line": 20,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterAuthoringServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterAuthoringServiceTests",
+      "target": "type:Forge.LiveDirector.Encounters.Encounter"
+    },
+    {
+      "evidence": {
         "line": 55,
         "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterAuthoringServiceTests.cs"
       },
@@ -43618,6 +43879,15 @@
       "kind": "tests",
       "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
       "target": "service:Forge.RpgKit.Domain.Encounters.EncounterCompositionService"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Encounters/EncounterCompositionServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Encounters.EncounterCompositionServiceTests",
+      "target": "type:Forge.LiveDirector.Encounters.Encounter"
     },
     {
       "evidence": {
@@ -44827,6 +45097,15 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestExperienceServiceTests",
+      "target": "type:Forge.LiveDirector.Narrative.Quest"
+    },
+    {
+      "evidence": {
         "line": 33,
         "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestExperienceServiceTests.cs"
       },
@@ -44953,6 +45232,15 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestFoundationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestFoundationServiceTests",
+      "target": "type:Forge.LiveDirector.Narrative.Quest"
+    },
+    {
+      "evidence": {
         "line": 39,
         "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestFoundationServiceTests.cs"
       },
@@ -45040,6 +45328,15 @@
       "kind": "tests",
       "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestQualityServiceTests",
       "target": "type:Forge.LiveDirector.Catalog.Blueprint"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Quests/QuestQualityServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Quests.QuestQualityServiceTests",
+      "target": "type:Forge.LiveDirector.Narrative.Quest"
     },
     {
       "evidence": {
@@ -47713,6 +48010,42 @@
       "kind": "defined_in",
       "source": "type:Forge.LiveDirector.Economy.Request",
       "target": "file:src/Forge.LiveDirector/Economy/LiveEconomyService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.LiveDirector.Encounters.Encounter",
+      "target": "file:src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.LiveDirector.Encounters.Request",
+      "target": "file:src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.LiveDirector.Narrative.Quest",
+      "target": "file:src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.LiveDirector.Narrative.Request",
+      "target": "file:src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
     },
     {
       "evidence": {
@@ -52558,8 +52891,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:1d375ea5922ec526c4af2095e5c2c71d124bdb5f74e67f4e73d52c1b38a14078",
-    "source_file_count": 1031
+    "source_digest": "sha256:11369168afd2fb24d4822bc1e0dfb7f1888caa77236a81576c472e07656dfaeb",
+    "source_file_count": 1035
   },
   "nodes": [
     {
@@ -55341,6 +55674,16 @@
       },
       "name": "G10-F-LIVE-GOVERNANCE.md",
       "path": "docs/aurora-parity/tasks/G10-F-LIVE-GOVERNANCE.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G10-G-LIVE-NARRATIVE-ENCOUNTERS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G10-G-LIVE-NARRATIVE-ENCOUNTERS.md",
+      "path": "docs/aurora-parity/tasks/G10-G-LIVE-NARRATIVE-ENCOUNTERS.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -59053,6 +59396,16 @@
       "path": "src/Forge.LiveDirector/Economy/LiveEconomyService.cs"
     },
     {
+      "id": "file:src/Forge.LiveDirector/Encounters/LiveEncounterService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveEncounterService.cs",
+      "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+    },
+    {
       "id": "file:src/Forge.LiveDirector/Forge.LiveDirector.csproj",
       "kind": "configuration",
       "line": 1,
@@ -59061,6 +59414,16 @@
       },
       "name": "Forge.LiveDirector.csproj",
       "path": "src/Forge.LiveDirector/Forge.LiveDirector.csproj"
+    },
+    {
+      "id": "file:src/Forge.LiveDirector/Narrative/LiveQuestService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveQuestService.cs",
+      "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
     },
     {
       "id": "file:src/Forge.LiveDirector/Players/LivePlayerService.cs",
@@ -61541,6 +61904,16 @@
       },
       "name": "LiveDirectorGovernanceTests.cs",
       "path": "tests/Forge.LiveDirector.Tests/LiveDirectorGovernanceTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveDirectorNarrativeEncounterTests.cs",
+      "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
     },
     {
       "id": "file:tests/Forge.LiveDirector.Tests/LiveDirectorOperationsTests.cs",
@@ -66033,6 +66406,26 @@
       "path": "src/Forge.LiveDirector/Economy/LiveEconomyService.cs"
     },
     {
+      "id": "model:Forge.LiveDirector.Encounters.Result",
+      "kind": "model",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Encounters"
+      },
+      "name": "Result",
+      "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+    },
+    {
+      "id": "model:Forge.LiveDirector.Narrative.Result",
+      "kind": "model",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Narrative"
+      },
+      "name": "Result",
+      "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+    },
+    {
       "id": "model:Forge.LiveDirector.Players.Result",
       "kind": "model",
       "line": 10,
@@ -68409,6 +68802,16 @@
       "name": "Forge.LiveDirector.Economy"
     },
     {
+      "id": "namespace:Forge.LiveDirector.Encounters",
+      "kind": "namespace",
+      "name": "Forge.LiveDirector.Encounters"
+    },
+    {
+      "id": "namespace:Forge.LiveDirector.Narrative",
+      "kind": "namespace",
+      "name": "Forge.LiveDirector.Narrative"
+    },
+    {
       "id": "namespace:Forge.LiveDirector.Players",
       "kind": "namespace",
       "name": "Forge.LiveDirector.Players"
@@ -69095,6 +69498,26 @@
       },
       "name": "LiveEconomyService",
       "path": "src/Forge.LiveDirector/Economy/LiveEconomyService.cs"
+    },
+    {
+      "id": "service:Forge.LiveDirector.Encounters.LiveEncounterService",
+      "kind": "service",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Encounters"
+      },
+      "name": "LiveEncounterService",
+      "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+    },
+    {
+      "id": "service:Forge.LiveDirector.Narrative.LiveQuestService",
+      "kind": "service",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Narrative"
+      },
+      "name": "LiveQuestService",
+      "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
     },
     {
       "id": "service:Forge.LiveDirector.Players.LivePlayerService",
@@ -70455,6 +70878,16 @@
       },
       "name": "LiveDirectorGovernanceTests",
       "path": "tests/Forge.LiveDirector.Tests/LiveDirectorGovernanceTests.cs"
+    },
+    {
+      "id": "test:Forge.LiveDirector.Tests.LiveDirectorNarrativeEncounterTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Tests"
+      },
+      "name": "LiveDirectorNarrativeEncounterTests",
+      "path": "tests/Forge.LiveDirector.Tests/LiveDirectorNarrativeEncounterTests.cs"
     },
     {
       "id": "test:Forge.LiveDirector.Tests.LiveDirectorOperationsTests",
@@ -73352,6 +73785,46 @@
       },
       "name": "Request",
       "path": "src/Forge.LiveDirector/Economy/LiveEconomyService.cs"
+    },
+    {
+      "id": "type:Forge.LiveDirector.Encounters.Encounter",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Encounters"
+      },
+      "name": "Encounter",
+      "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+    },
+    {
+      "id": "type:Forge.LiveDirector.Encounters.Request",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Encounters"
+      },
+      "name": "Request",
+      "path": "src/Forge.LiveDirector/Encounters/LiveEncounterService.cs"
+    },
+    {
+      "id": "type:Forge.LiveDirector.Narrative.Quest",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Narrative"
+      },
+      "name": "Quest",
+      "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
+    },
+    {
+      "id": "type:Forge.LiveDirector.Narrative.Request",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Narrative"
+      },
+      "name": "Request",
+      "path": "src/Forge.LiveDirector/Narrative/LiveQuestService.cs"
     },
     {
       "id": "type:Forge.LiveDirector.Players.Player",
