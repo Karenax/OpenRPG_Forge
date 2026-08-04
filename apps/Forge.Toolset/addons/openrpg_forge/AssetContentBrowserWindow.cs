@@ -9,6 +9,10 @@ namespace Forge.Toolset.Editor;
 public partial class AssetContentBrowserWindow : Window
 {
     private Func<string>? _getRepositoryRoot;
+    private Func<AssetProcessingProfileState?>? _getProfileState;
+    private Func<AssetProcessingProfile, bool, bool>? _applyProfile;
+    private Func<bool>? _undoProfile;
+    private Func<bool>? _redoProfile;
     private Action<Window>? _brandWindow;
     private AssetCatalogBrowser? _browser;
     private AssetCatalogLoadResult? _load;
@@ -30,6 +34,15 @@ public partial class AssetContentBrowserWindow : Window
     private TextureRect? _preview;
     private Label? _previewPlaceholder;
     private Button? _planImport;
+    private OptionButton? _profileKind;
+    private SpinBox? _profileBudgetMb;
+    private SpinBox? _textureMaximumDimension;
+    private OptionButton? _textureCompression;
+    private CheckButton? _modelAnimations;
+    private CheckButton? _modelCollisions;
+    private Button? _saveProfile;
+    private Button? _undoProfileButton;
+    private Button? _redoProfileButton;
     private AssetCatalogItem? _selectedItem;
 
     public int CatalogCount => _browser?.Catalog.Items.Count ?? 0;
@@ -43,9 +56,19 @@ public partial class AssetContentBrowserWindow : Window
 
     public bool SelectedCanPlanImport => _selectedItem?.CanPlanImport == true;
 
-    public void Initialize(Func<string> getRepositoryRoot, Action<Window> brandWindow)
+    public void Initialize(
+        Func<string> getRepositoryRoot,
+        Func<AssetProcessingProfileState?> getProfileState,
+        Func<AssetProcessingProfile, bool, bool> applyProfile,
+        Func<bool> undoProfile,
+        Func<bool> redoProfile,
+        Action<Window> brandWindow)
     {
         _getRepositoryRoot = getRepositoryRoot ?? throw new ArgumentNullException(nameof(getRepositoryRoot));
+        _getProfileState = getProfileState ?? throw new ArgumentNullException(nameof(getProfileState));
+        _applyProfile = applyProfile ?? throw new ArgumentNullException(nameof(applyProfile));
+        _undoProfile = undoProfile ?? throw new ArgumentNullException(nameof(undoProfile));
+        _redoProfile = redoProfile ?? throw new ArgumentNullException(nameof(redoProfile));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assets & Content Browser · OpenRPG Forge";
         MinSize = new Vector2I(1240, 780);
@@ -145,6 +168,17 @@ public partial class AssetContentBrowserWindow : Window
     }
 
     public bool PreviewImportForSmokeTest() => PreviewImport();
+
+    public bool PreviewProfileCommandForSmokeTest()
+    {
+        if (_profileBudgetMb is null)
+        {
+            return false;
+        }
+
+        _profileBudgetMb.Value = Math.Max(1, _profileBudgetMb.Value + 1);
+        return SaveProfile(dryRun: true);
+    }
 
     private void BuildUi()
     {
@@ -271,6 +305,57 @@ public partial class AssetContentBrowserWindow : Window
         details.AddChild(_assetGovernance);
         details.AddChild(_assetFacets);
         details.AddChild(_assetPaths);
+        details.AddChild(Section("PROFIL D’IMPORT"));
+        _profileKind = new OptionButton();
+        _profileKind.AddItem("Modèle 3D", (int)AssetProcessingKind.Model);
+        _profileKind.AddItem("Texture", (int)AssetProcessingKind.Texture);
+        _profileKind.ItemSelected += _ => RefreshProfileKindControls();
+        details.AddChild(_profileKind);
+        _profileBudgetMb = new SpinBox
+        {
+            MinValue = 1,
+            MaxValue = 2048,
+            Step = 1,
+            Prefix = "Budget ",
+            Suffix = " Mio",
+        };
+        details.AddChild(_profileBudgetMb);
+        _textureMaximumDimension = new SpinBox
+        {
+            MinValue = 64,
+            MaxValue = 16384,
+            Step = 64,
+            Prefix = "Texture max ",
+            Suffix = " px",
+        };
+        details.AddChild(_textureMaximumDimension);
+        _textureCompression = new OptionButton();
+        foreach (var compression in Enum.GetValues<TextureCompressionProfile>())
+        {
+            _textureCompression.AddItem(compression.ToString(), (int)compression);
+        }
+
+        details.AddChild(_textureCompression);
+        _modelAnimations = new CheckButton { Text = "Importer les animations" };
+        _modelCollisions = new CheckButton { Text = "Générer les collisions" };
+        details.AddChild(_modelAnimations);
+        details.AddChild(_modelCollisions);
+        var profileActions = new HBoxContainer();
+        profileActions.AddThemeConstantOverride("separation", 8);
+        details.AddChild(profileActions);
+        _saveProfile = new Button
+        {
+            Text = "Enregistrer le profil",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        _saveProfile.Pressed += () => SaveProfile(dryRun: false);
+        profileActions.AddChild(_saveProfile);
+        _undoProfileButton = new Button { Text = "Annuler" };
+        _undoProfileButton.Pressed += UndoProfile;
+        profileActions.AddChild(_undoProfileButton);
+        _redoProfileButton = new Button { Text = "Rétablir" };
+        _redoProfileButton.Pressed += RedoProfile;
+        profileActions.AddChild(_redoProfileButton);
         _planImport = new Button
         {
             Text = "Prévisualiser l’import",
@@ -378,6 +463,7 @@ public partial class AssetContentBrowserWindow : Window
             $"Modèle · {item.RelativeModelPath ?? "non catalogué"}\n" +
             $"Aperçu · {item.RelativePreviewPath ?? item.ThumbnailUrl ?? "indisponible"}";
         _planImport!.Disabled = !item.CanPlanImport;
+        RefreshProfileControls();
         LoadPreview(item, _load.VaultRoot);
     }
 
@@ -417,7 +503,9 @@ public partial class AssetContentBrowserWindow : Window
             return false;
         }
 
-        var result = AssetImportPlanner.Plan(_selectedItem);
+        var kind = SelectedProfileKind();
+        var profile = _getProfileState?.Invoke()?.Find(_selectedItem.Id, kind);
+        var result = AssetImportPlanner.Plan(_selectedItem, profile);
         if (!result.Succeeded)
         {
             SetStatus(string.Join("\n", result.Diagnostics.Select(item => item.Message)), true);
@@ -430,6 +518,203 @@ public partial class AssetContentBrowserWindow : Window
             $"cache {result.Plan.CacheKey[..12]}… · aucun fichier écrit",
             false);
         return true;
+    }
+
+    private bool SaveProfile(bool dryRun)
+    {
+        var profile = CreateProfileFromControls();
+        if (profile is null || _applyProfile is null)
+        {
+            return false;
+        }
+
+        if (!_applyProfile(profile, true))
+        {
+            SetStatus("Le profil d’import est invalide ; aucun fichier n’a été modifié.", true);
+            return false;
+        }
+
+        if (dryRun)
+        {
+            SetStatus(
+                $"Aperçu du profil {profile.Kind} prêt · diff transactionnel · aucun fichier écrit",
+                false);
+            return true;
+        }
+
+        if (!_applyProfile(profile, false))
+        {
+            SetStatus("La sauvegarde atomique du profil d’import a échoué.", true);
+            return false;
+        }
+
+        SetStatus(
+            $"✓ Profil {profile.Kind} enregistré · révision {_getProfileState?.Invoke()?.Revision}",
+            false);
+        RefreshProfileControls();
+        return true;
+    }
+
+    private AssetProcessingProfile? CreateProfileFromControls()
+    {
+        if (_selectedItem is null || _profileBudgetMb is null)
+        {
+            return null;
+        }
+
+        AssetProcessingProfile basis;
+        var kind = SelectedProfileKind();
+        try
+        {
+            basis = _getProfileState?.Invoke()?.Find(_selectedItem.Id, kind) ??
+                AssetImportPlanner.CreateDefaultProfile(_selectedItem, kind);
+        }
+        catch (ArgumentException exception)
+        {
+            SetStatus(exception.Message, true);
+            return null;
+        }
+
+        var budget = checked((long)_profileBudgetMb.Value * 1024 * 1024);
+        if (kind == AssetProcessingKind.Texture)
+        {
+            var texture = basis.Texture! with
+            {
+                Compression = (TextureCompressionProfile)_textureCompression!.GetSelectedId(),
+                MaximumDimension = (int)_textureMaximumDimension!.Value,
+            };
+            return new AssetProcessingProfile(
+                basis.AssetId,
+                basis.SchemaVersion,
+                basis.Kind,
+                basis.SourceFormat,
+                basis.CanonicalFormat,
+                basis.LicenseSpdx,
+                basis.ContentSha256,
+                basis.Provenance,
+                budget,
+                texture: texture);
+        }
+
+        var model = basis.Model! with
+        {
+            ImportAnimations = _modelAnimations!.ButtonPressed,
+            GenerateCollisions = _modelCollisions!.ButtonPressed,
+        };
+        return new AssetProcessingProfile(
+            basis.AssetId,
+            basis.SchemaVersion,
+            basis.Kind,
+            basis.SourceFormat,
+            basis.CanonicalFormat,
+            basis.LicenseSpdx,
+            basis.ContentSha256,
+            basis.Provenance,
+            budget,
+            model: model);
+    }
+
+    private void RefreshProfileControls()
+    {
+        if (_selectedItem is null || _profileKind is null)
+        {
+            return;
+        }
+
+        _profileKind.Disabled = false;
+        ApplyProfileToControls(SelectedProfileKind());
+        RefreshHistoryButtons();
+    }
+
+    private void RefreshProfileKindControls()
+    {
+        if (_selectedItem is null)
+        {
+            return;
+        }
+
+        ApplyProfileToControls(SelectedProfileKind());
+    }
+
+    private void ApplyProfileToControls(AssetProcessingKind kind)
+    {
+        if (_selectedItem is null || _profileBudgetMb is null)
+        {
+            return;
+        }
+
+        AssetProcessingProfile profile;
+        try
+        {
+            profile = _getProfileState?.Invoke()?.Find(_selectedItem.Id, kind) ??
+                AssetImportPlanner.CreateDefaultProfile(_selectedItem, kind);
+        }
+        catch (ArgumentException exception)
+        {
+            _saveProfile!.Disabled = true;
+            SetStatus(exception.Message, true);
+            return;
+        }
+
+        _saveProfile!.Disabled = false;
+        _profileBudgetMb.Value = Math.Max(1, profile.MaximumOutputBytes / (1024d * 1024d));
+        var textureVisible = kind == AssetProcessingKind.Texture;
+        _textureMaximumDimension!.Visible = textureVisible;
+        _textureCompression!.Visible = textureVisible;
+        _modelAnimations!.Visible = !textureVisible;
+        _modelCollisions!.Visible = !textureVisible;
+        if (textureVisible)
+        {
+            _textureMaximumDimension.Value = profile.Texture!.MaximumDimension;
+            SelectOptionById(_textureCompression, (int)profile.Texture.Compression);
+        }
+        else
+        {
+            _modelAnimations.ButtonPressed = profile.Model!.ImportAnimations;
+            _modelCollisions.ButtonPressed = profile.Model.GenerateCollisions;
+        }
+    }
+
+    private AssetProcessingKind SelectedProfileKind() =>
+        _profileKind is null
+            ? AssetProcessingKind.Model
+            : (AssetProcessingKind)_profileKind.GetSelectedId();
+
+    private void UndoProfile()
+    {
+        if (_undoProfile?.Invoke() == true)
+        {
+            SetStatus("Profil d’import annulé et document canonique restauré.", false);
+            RefreshProfileControls();
+        }
+    }
+
+    private void RedoProfile()
+    {
+        if (_redoProfile?.Invoke() == true)
+        {
+            SetStatus("Profil d’import rétabli et document canonique sauvegardé.", false);
+            RefreshProfileControls();
+        }
+    }
+
+    private void RefreshHistoryButtons()
+    {
+        var state = _getProfileState?.Invoke();
+        _undoProfileButton!.Disabled = state is null || _undoProfile is null;
+        _redoProfileButton!.Disabled = state is null || _redoProfile is null;
+    }
+
+    private static void SelectOptionById(OptionButton option, int id)
+    {
+        for (var index = 0; index < option.ItemCount; index++)
+        {
+            if (option.GetItemId(index) == id)
+            {
+                option.Selected = index;
+                return;
+            }
+        }
     }
 
     private void ClearSelectionDetails()
@@ -448,6 +733,11 @@ public partial class AssetContentBrowserWindow : Window
         _previewPlaceholder!.Visible = true;
         _previewPlaceholder.Text = "Sélectionnez une ressource";
         _planImport!.Disabled = true;
+        if (_saveProfile is not null)
+        {
+            _saveProfile.Disabled = true;
+            _profileKind!.Disabled = true;
+        }
     }
 
     private static void Populate(OptionButton option, string allLabel, IEnumerable<string> values)

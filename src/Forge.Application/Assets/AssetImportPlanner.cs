@@ -40,7 +40,7 @@ public static class AssetImportPlanner
                 $"assets/{item.Id}/relativeModelPath"));
         }
 
-        profile ??= InferProfile(item);
+        profile ??= CreateDefaultProfile(item);
         if (profile.AssetId != item.Id ||
             !string.Equals(profile.ContentSha256, item.ContentSha256, StringComparison.Ordinal) ||
             !string.Equals(profile.LicenseSpdx, item.LicenseSpdx, StringComparison.Ordinal) ||
@@ -59,11 +59,17 @@ public static class AssetImportPlanner
         var destination = $"assets/imported/{slug}";
         var cacheKey = CreateCacheKey(profile);
         var tasks = CreateTasks(profile, destination, cacheKey);
+        var sourceRelativePath = profile.Kind == AssetProcessingKind.Texture
+            ? profile.Texture?.Channels
+                .OrderBy(channel => channel.Key)
+                .Select(channel => channel.Value)
+                .FirstOrDefault() ?? item.RelativeModelPath!
+            : item.RelativeModelPath!;
         var plan = diagnostics.Count == 0
             ? new AssetImportPlan(
                 AssetImportPlan.CurrentSchemaVersion,
                 item.Id,
-                item.RelativeModelPath!,
+                sourceRelativePath,
                 destination,
                 item.ContentSha256,
                 item.LicenseSpdx,
@@ -76,10 +82,27 @@ public static class AssetImportPlanner
         return new AssetImportPlanResult(plan, diagnostics);
     }
 
-    private static AssetProcessingProfile InferProfile(AssetCatalogItem item)
+    public static AssetProcessingProfile CreateDefaultProfile(
+        AssetCatalogItem item,
+        AssetProcessingKind? requestedKind = null)
     {
+        ArgumentNullException.ThrowIfNull(item);
         var sourceFormat = Path.GetExtension(item.RelativeModelPath ?? string.Empty).TrimStart('.').ToLowerInvariant();
-        var isTexture = sourceFormat is "png" or "tif" or "tiff" or "exr" or "ktx2";
+        var isTexture = requestedKind == AssetProcessingKind.Texture ||
+            requestedKind is null && sourceFormat is "png" or "tif" or "tiff" or "exr" or "ktx2";
+        var texturePath = item.RelativePreviewPath;
+        if (isTexture)
+        {
+            if (string.IsNullOrWhiteSpace(texturePath) || !AssetCatalogValidator.IsSafeRelativePath(texturePath))
+            {
+                throw new ArgumentException(
+                    "A texture processing profile requires a safe local texture or preview path.",
+                    nameof(item));
+            }
+
+            sourceFormat = Path.GetExtension(texturePath).TrimStart('.').ToLowerInvariant();
+        }
+
         var outputBudget = item.TotalBytes switch
         {
             <= 0 => 1,
@@ -98,7 +121,7 @@ public static class AssetImportPlanner
             outputBudget,
             texture: isTexture
                 ? new(TextureColorSpace.Srgb, TextureCompressionProfile.Universal, 4096, 10.24m,
-                    new Dictionary<PbrTextureChannel, string> { [PbrTextureChannel.BaseColor] = item.RelativeModelPath! })
+                    new Dictionary<PbrTextureChannel, string> { [PbrTextureChannel.BaseColor] = texturePath! })
                 : null,
             model: isTexture
                 ? null
@@ -162,28 +185,6 @@ public static class AssetImportPlanner
     private static string FormatDecimal(decimal value) =>
         value.ToString("0.###", CultureInfo.InvariantCulture);
 }
-
-public sealed record AssetImportPlan(
-    int SchemaVersion,
-    AssetCatalogItemId AssetId,
-    string SourceRelativePath,
-    string DestinationRelativeDirectory,
-    string ContentSha256,
-    string LicenseSpdx,
-    string Provenance,
-    AssetProcessingProfile Profile,
-    string CacheKey,
-    IReadOnlyList<AssetBuildTask> Tasks,
-    bool DryRun)
-{
-    public const int CurrentSchemaVersion = 1;
-}
-
-public sealed record AssetBuildTask(
-    string Name,
-    string OutputRelativePath,
-    string CacheKey,
-    IReadOnlyList<string> Dependencies);
 
 public sealed record AssetImportPlanResult(
     AssetImportPlan? Plan,

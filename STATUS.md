@@ -236,9 +236,10 @@ Le second module original **La Veillée des Éclats** est généré par 15 comma
 persisté via `ProjectSession`; son round-trip et son export `.orpmod` sont couverts automatiquement.
 
 L'audit **G11 Contenu moderne et qualité de distribution** couvre 99/99 exigences dans 20 lots bornés.
-G11-A fournit les profils canoniques textures/modèles, les diagnostics gouvernés, un plan de tâches
-GLB/KTX2 et des clés de cache déterministes entre cultures ; les notices et blocages de licence sont
-désormais reliés à leurs preuves automatisées.
+**G11-A est fermé** : profils textures/modèles persistés canoniquement, commande d'auteur avec
+dry-run et undo/redo, plan/cache déterministes et traitement réel d'un GLB Kenney et d'une texture
+ambientCG sans modification du Vault. Le Content Browser expose ces réglages dans la même surface
+que la licence et la provenance.
 
-Fermer **G11-A** par la persistance canonique et la commande d'auteur des profils d'import, puis
-exécuter un traitement reproductible sur une texture et un modèle du Vault sans modifier les sources.
+Livrer **G11-B** : manifeste d'assets versionné avec collisions, animations, VFX et LOD, persistance
+projet et validation avant distribution.

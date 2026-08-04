@@ -1,6 +1,6 @@
 # État d’implémentation — Asset Vault et carte
 
-Dernière mise à jour : 3 août 2026.
+Dernière mise à jour : 4 août 2026.
 
 ## Terminé
 
@@ -25,13 +25,19 @@ Dernière mise à jour : 3 août 2026.
 - espace Assets avec recherche, facettes, aperçu, gouvernance et dry-run d’import ;
 - exposition du catalogue filtré par CLI et MCP ;
 - validation visuelle aux tailles normale et maximisée, avec détails défilables et pied stable.
+- profils d'import texture/modèle persistés canoniquement et édités par commande transactionnelle
+  avec dry-run, undo/redo et diagnostics stables ;
+- préparation CLI/UI confinée au workspace avec reçu déterministe, copie directe des GLB canoniques
+  et staging des sources qui nécessitent encore un worker ;
+- smoke réel sur un GLB Kenney et une texture ambientCG avec preuve que les hashes du Vault restent
+  inchangés.
 
 ## Partiellement terminé
 
 - catalogue : lecture, recherche et gouvernance disponibles dans le workspace Assets, sans encore
   installation/désinstallation, SQLite ni gestion complète des packs ;
-- normalisation : originaux glTF/FBX/OBJ présents, conversion finale GLB et conventions visuelles à
-  appliquer ;
+- normalisation : profils, cache, staging et passage direct des GLB présents ; conversion finale des
+  FBX/OBJ et textures vers GLB/KTX2 encore à appliquer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
 
 ## Non commencé
@@ -44,6 +50,6 @@ Dernière mise à jour : 3 août 2026.
 
 ## Prochaine action
 
-Après G7-17, implémenter l’import transactionnel depuis le plan G7-16, puis curater un premier pack
-forêt cohérent et remplacer les trois slots du prototype par des GLB normalisés sans faire des nœuds
-générés la source de vérité de la carte.
+Livrer G11-B avec un manifeste collisions/animations/VFX/LOD, puis curater un premier pack forêt
+cohérent et remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés
+la source de vérité de la carte.

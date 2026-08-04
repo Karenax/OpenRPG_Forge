@@ -185,7 +185,10 @@ public static class AssetCatalogLoader
         if (!string.IsNullOrWhiteSpace(extractedRoot) && item.TryGetProperty("model_files", out var models))
         {
             var model = models.EnumerateArray().Select(value => value.GetString())
-                .FirstOrDefault(IsSupportedModel);
+                .Where(IsSupportedModel)
+                .OrderBy(ModelScore)
+                .ThenBy(value => value, StringComparer.Ordinal)
+                .FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(model))
             {
                 return CombineRelative(extractedRoot, model);
@@ -199,8 +202,20 @@ public static class AssetCatalogLoader
 
         return files.EnumerateArray()
             .Select(file => ReadOptionalString(file, "path"))
-            .FirstOrDefault(IsSupportedModel);
+            .Where(IsSupportedModel)
+            .OrderBy(ModelScore)
+            .ThenBy(value => value, StringComparer.Ordinal)
+            .FirstOrDefault();
     }
+
+    private static int ModelScore(string? path) => Path.GetExtension(path ?? string.Empty).ToLowerInvariant() switch
+    {
+        ".glb" => 0,
+        ".gltf" => 1,
+        ".obj" => 2,
+        ".fbx" => 3,
+        _ => 9,
+    };
 
     private static string? SelectPreviewPath(JsonElement item, string? extractedRoot)
     {

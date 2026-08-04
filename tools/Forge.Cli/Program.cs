@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Forge.Application.Assets;
+using Forge.Application.Commands;
 using Forge.Application.Projects;
+using Forge.Application.Time;
 using Forge.Domain.Assets;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
@@ -34,7 +36,7 @@ static int Run(IReadOnlyList<string> arguments)
 
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|spatial|diagnose> ... | " +
-            "forge assets list <repository-or-workspace> [filters] | forge author-original <target-directory>");
+            "forge assets <list|prepare> ... | forge author-original <target-directory>");
         return 2;
     }
     catch (Exception exception)
@@ -89,6 +91,11 @@ static int AuthorOriginalModule(string targetDirectory)
 
 static int RunAssets(IReadOnlyList<string> arguments)
 {
+    if (arguments.Count >= 3 && arguments[0] == "prepare")
+    {
+        return PrepareAsset(arguments);
+    }
+
     if (arguments.Count < 2 || arguments[0] != "list")
     {
         Console.Error.WriteLine(
@@ -166,6 +173,103 @@ static int RunAssets(IReadOnlyList<string> arguments)
         $"OPENRPG_FORGE_ASSET_BROWSER_PASS catalog={load.Catalog.Items.Count} results={items.Count} " +
         $"sources={browser.Sources.Count} schema={load.Catalog.SchemaVersion}");
     return load.Diagnostics.Count == 0 ? 0 : 1;
+}
+
+static int PrepareAsset(IReadOnlyList<string> arguments)
+{
+    var options = ParseOptions(arguments.Skip(3).ToArray());
+    if (!options.TryGetValue("id", out var externalId) || string.IsNullOrWhiteSpace(externalId))
+    {
+        throw new ArgumentException("Asset preparation requires --id <external-id>.");
+    }
+
+    var kind = options.GetValueOrDefault("kind")?.Trim().ToLowerInvariant() switch
+    {
+        "texture" => AssetProcessingKind.Texture,
+        "model" or null => AssetProcessingKind.Model,
+        var value => throw new ArgumentException($"Unknown asset processing kind '{value}'."),
+    };
+    var start = Path.GetFullPath(arguments[1]);
+    var workspaceRoot = Path.GetFullPath(arguments[2]);
+    var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(start)
+        ?? throw new DirectoryNotFoundException("OpenRPG Forge repository root was not found.");
+    var load = AssetCatalogLoader.Load(repositoryRoot, options.GetValueOrDefault("vault"));
+    if (load.Catalog is null || load.Diagnostics.Count > 0)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = load.Diagnostics }));
+        return 1;
+    }
+
+    var item = load.Catalog.Items.SingleOrDefault(candidate =>
+        string.Equals(candidate.ExternalId, externalId, StringComparison.OrdinalIgnoreCase));
+    if (item is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = false,
+            diagnostics = new[] { new { code = "asset.import.asset_missing", path = externalId } },
+        }));
+        return 1;
+    }
+
+    var loadedProfiles = AssetProcessingProfileStore.Load(workspaceRoot);
+    if (!loadedProfiles.Succeeded)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = loadedProfiles.Diagnostics }));
+        return 1;
+    }
+
+    var state = new AssetProcessingProfileState(loadedProfiles.Profiles);
+    var profile = state.Find(item.Id, kind) ?? AssetImportPlanner.CreateDefaultProfile(item, kind);
+    if (state.Find(item.Id, kind) is null)
+    {
+        var command = new SetAssetProcessingProfileCommand(
+            CommandId.From(Guid.NewGuid()),
+            state.Revision,
+            profile,
+            DryRun: false);
+        var authored = new SetAssetProcessingProfileHandler(new SystemClock()).Handle(state, command);
+        if (!authored.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = authored.Diagnostics }));
+            return 1;
+        }
+
+        var saved = AssetProcessingProfileStore.Save(workspaceRoot, authored.State.Profiles);
+        if (!saved.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = saved.Diagnostics }));
+            return 1;
+        }
+
+        profile = authored.State.Find(item.Id, kind)!;
+    }
+
+    var planned = AssetImportPlanner.Plan(item, profile);
+    if (!planned.Succeeded || planned.Plan is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = planned.Diagnostics }));
+        return 1;
+    }
+
+    var execution = AssetImportExecutor.Execute(planned.Plan, load.VaultRoot, workspaceRoot);
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = execution.Succeeded,
+        asset = item.ExternalId,
+        kind = kind.ToString(),
+        cacheKey = planned.Plan.CacheKey,
+        execution = execution.Execution,
+        diagnostics = execution.Diagnostics,
+    }));
+    if (execution.Succeeded)
+    {
+        Console.WriteLine(
+            $"OPENRPG_FORGE_ASSET_PREPARE_PASS asset={item.ExternalId} kind={kind.ToString().ToLowerInvariant()} " +
+            $"status={execution.Execution!.Status.ToString().ToLowerInvariant()} reused={execution.Execution.Reused.ToString().ToLowerInvariant()}");
+    }
+
+    return execution.Succeeded ? 0 : 1;
 }
 
 static int RunPackage(IReadOnlyList<string> arguments)

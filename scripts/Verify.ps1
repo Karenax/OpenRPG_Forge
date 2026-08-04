@@ -179,6 +179,40 @@ try {
         'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
         'assets', 'list', $repositoryRoot, '--query', 'apple', '--source', 'ambientcg')
 
+    $assetVault = if ([string]::IsNullOrWhiteSpace($env:OPENRPG_ASSET_VAULT)) {
+        [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot '..\..\OpenRPG_AssetVault'))
+    } else {
+        [System.IO.Path]::GetFullPath($env:OPENRPG_ASSET_VAULT)
+    }
+    $assetImportSmoke = Join-Path $artifactRoot 'asset-import-smoke'
+    $modelSource = Join-Path $assetVault 'normalized\kenney\castle-kit\Models\GLB format\bridge-draw.glb'
+    $textureSource = Join-Path $assetVault 'normalized\ambientcg\3DApple001\lq-1k-jpg\3DApple001.png'
+    if ((Test-Path -LiteralPath $modelSource) -and (Test-Path -LiteralPath $textureSource)) {
+        if (Test-Path -LiteralPath $assetImportSmoke) {
+            Remove-Item -LiteralPath $assetImportSmoke -Recurse -Force
+        }
+        [System.IO.Directory]::CreateDirectory($assetImportSmoke) | Out-Null
+        $modelSourceHash = (Get-FileHash -LiteralPath $modelSource -Algorithm SHA256).Hash
+        $textureSourceHash = (Get-FileHash -LiteralPath $textureSource -Algorithm SHA256).Hash
+        Invoke-CheckedDotnet @(
+            'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+            'assets', 'prepare', $repositoryRoot, $assetImportSmoke,
+            '--id', 'kenney:castle-kit', '--kind', 'model', '--vault', $assetVault)
+        Invoke-CheckedDotnet @(
+            'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+            'assets', 'prepare', $repositoryRoot, $assetImportSmoke,
+            '--id', 'ambientcg:3DApple001', '--kind', 'texture', '--vault', $assetVault)
+        if ($modelSourceHash -ne (Get-FileHash -LiteralPath $modelSource -Algorithm SHA256).Hash -or
+            $textureSourceHash -ne (Get-FileHash -LiteralPath $textureSource -Algorithm SHA256).Hash -or
+            -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\kenney-castle-kit\model.glb')) -or
+            -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\ambientcg-3dapple001\import-receipt.json'))) {
+            throw 'Asset preparation did not preserve Vault sources or produce the governed outputs.'
+        }
+        Write-Output 'asset-import-smoke passed.'
+    } else {
+        Write-Output 'asset-import-smoke skipped: external Vault fixtures unavailable.'
+    }
+
     $runtimePath = Join-Path $repositoryRoot 'apps\Forge.Runtime'
     $plainRuntimeLog = Join-Path $artifactRoot 'runtime-plain-launch.log'
     Invoke-ForgeEngineMarkerTest `

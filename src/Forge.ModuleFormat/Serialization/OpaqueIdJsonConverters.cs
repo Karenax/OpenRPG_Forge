@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Forge.Domain.Assets;
 using Forge.Domain.Authoring;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
@@ -13,6 +14,17 @@ using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 
 namespace Forge.ModuleFormat.Serialization;
+
+internal sealed class AssetCatalogItemIdJsonConverter : JsonConverter<AssetCatalogItemId>
+{
+    public override AssetCatalogItemId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        AssetCatalogItemId.Parse(reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("An asset catalog item ID cannot be null.")
+            : throw new JsonException("An asset catalog item ID must be a string."));
+
+    public override void Write(Utf8JsonWriter writer, AssetCatalogItemId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+}
 
 internal sealed class LocalizationCatalogIdJsonConverter : JsonConverter<LocalizationCatalogId>
 {

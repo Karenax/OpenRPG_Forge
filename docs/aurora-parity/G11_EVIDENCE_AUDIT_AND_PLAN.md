@@ -47,6 +47,15 @@ Chaque lot contient cinq IDs au maximum et possède un résultat observable uniq
 - mutations d'auteur via commandes transactionnelles avec dry-run et undo/redo ;
 - validation globale, graphe frais, captures et benchmarks attachés aux lots concernés.
 
+## Avancement
+
+**G11-A est fermé le 4 août 2026.** Les profils texture/modèle sont persistés canoniquement,
+modifiés par une commande transactionnelle avec dry-run et undo/redo, puis consommés par un
+exécuteur confiné au workspace. Un GLB Kenney et une texture ambientCG du Vault ont été traités de
+façon reproductible avec contrôle des hashes source avant/après. La preuve détaillée est dans
+[`tasks/G11-A-ASSET-PROCESSING-PROFILES.md`](tasks/G11-A-ASSET-PROCESSING-PROFILES.md).
+
 ## Prochaine tâche unique
 
-Fermer G11-A par la persistance canonique et la commande d'auteur des profils d'import, puis exécuter un premier traitement reproductible sur une texture et un modèle du Vault sans écrire dans les sources originales.
+Livrer **G11-B** : un manifeste d'assets versionné réunissant collisions, animations, VFX et LOD,
+persisté avec le projet et vérifiable avant distribution.

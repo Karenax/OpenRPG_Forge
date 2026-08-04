@@ -438,6 +438,8 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Intégrer les trois premières sources autorisées : Poly Haven, ambientCG et packs Kenney CC0.
 - [ ] Étendre acquisition, reprise et cache actuels avec mise à jour et désinstallation locale.
 - [ ] Construire la normalisation GLB/Blender, les collisions, LOD, miniatures et audits qualité.
+- [x] Persister les profils texture/modèle, produire des tâches et reçus déterministes et préparer
+  un GLB et une texture réels sans écrire dans le Vault.
 - [ ] Documenter les sources acceptées, refusées et celles exigeant une action manuelle.
 
 ### AV3 — Interface Asset Vault
@@ -447,6 +449,8 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Ajouter une interface de peinture viewport pour forêt, clairière, fleurs, rochers et zones
   interdites avec Undo/Redo Godot.
 - [x] Ajouter recherche, filtres de première tranche, catégories, provenance et prévisualisations.
+- [x] Éditer les profils d'import dans le Content Browser par la commande transactionnelle commune,
+  avec dry-run, undo/redo et validation de licence/provenance.
 - [ ] Enrichir les manifests avec styles, variantes, dimensions, métriques 3D et compatibilité.
 - [ ] Ajouter installation à la demande, glisser-déposer et intégration au placement existant.
 - [ ] Préparer les brosses de dispersion et recettes de biome sans dupliquer les systèmes de scène.

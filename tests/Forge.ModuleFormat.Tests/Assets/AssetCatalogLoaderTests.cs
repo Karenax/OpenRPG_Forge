@@ -17,6 +17,8 @@ public sealed class AssetCatalogLoaderTests
         File.WriteAllText(Path.Combine(vault, "normalized", "ambientcg", "Apple", "apple.obj"), "o apple");
         File.WriteAllText(Path.Combine(vault, "normalized", "ambientcg", "Apple", "apple.png"), "preview");
         File.WriteAllText(Path.Combine(vault, "normalized", "kenney", "nature", "tree.gltf"), "{}");
+        File.WriteAllText(Path.Combine(vault, "normalized", "kenney", "nature", "tree.glb"), "glTF");
+        File.WriteAllText(Path.Combine(vault, "normalized", "kenney", "nature", "tree.fbx"), "fbx");
         File.WriteAllText(Path.Combine(catalogs, "cc0_3d_all.json"), UnitCatalogJson);
         File.WriteAllText(Path.Combine(catalogs, "kenney_3d_packs.json"), PackCatalogJson);
         try
@@ -32,6 +34,8 @@ public sealed class AssetCatalogLoaderTests
             Assert.True(apple.CanPreviewLocally);
             Assert.Equal(64, apple.ContentSha256.Length);
             Assert.Equal("normalized/ambientcg/Apple/apple.png", apple.RelativePreviewPath);
+            var nature = result.Catalog.Items.Single(item => item.ExternalId == "kenney:nature");
+            Assert.Equal("normalized/kenney/nature/tree.glb", nature.RelativeModelPath);
         }
         finally
         {
@@ -88,7 +92,7 @@ public sealed class AssetCatalogLoaderTests
               "status": "downloaded-and-extracted",
               "total_bytes": 20,
               "extracted_root": "normalized/kenney/nature",
-              "model_files": ["tree.gltf"],
+              "model_files": ["tree.fbx", "tree.gltf", "tree.glb"],
               "files": [
                 { "path": "originals/nature.zip", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }
               ]
