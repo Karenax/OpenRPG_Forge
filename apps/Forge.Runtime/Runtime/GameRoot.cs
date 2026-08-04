@@ -14,6 +14,7 @@ using Forge.EngineAdapter.Spatial;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Saves;
+using Forge.ModuleFormat.Workspaces;
 using Forge.Scripting;
 using Godot;
 
@@ -174,6 +175,10 @@ public partial class GameRoot : Node3D
             {
                 GetTree().Quit(1);
             }
+            else
+            {
+                ShowStartupFailure(exception);
+            }
         }
     }
 
@@ -264,14 +269,28 @@ public partial class GameRoot : Node3D
             return snapshotProject;
         }
 
-        var json = Godot.FileAccess.GetFileAsString(ProjectPath);
-        if (string.IsNullOrWhiteSpace(json))
+        var projectFilePath = ProjectSettings.GlobalizePath(ProjectPath);
+        var workspaceRoot = Path.GetDirectoryName(projectFilePath);
+        if (string.IsNullOrWhiteSpace(workspaceRoot))
         {
-            throw new InvalidOperationException($"Project data could not be read from '{ProjectPath}'.");
+            throw new InvalidOperationException($"Project workspace could not be resolved from '{ProjectPath}'.");
         }
 
-        var project = ProjectJsonSerializer.Deserialize(json);
+        var opened = ProjectSession.Open(workspaceRoot);
+        if (!opened.Succeeded)
+        {
+            throw new InvalidOperationException(
+                "The bundled Forge workspace could not be loaded: " +
+                string.Join("; ", opened.Diagnostics.Select(diagnostic =>
+                    $"{diagnostic.Code} ({diagnostic.Path}): {diagnostic.Message}")));
+        }
+
+        var project = opened.Session!.Project;
+        _moduleContentRoot = opened.Session.RootDirectory;
         SetUnpackagedModuleIdentity(project);
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_WORKSPACE_LOADED format={ProjectSession.CurrentProjectFormatVersion} " +
+            $"slug={project.Module.Slug}");
         return project;
     }
 
@@ -331,6 +350,62 @@ public partial class GameRoot : Node3D
         _moduleContentSha256 = Convert.ToHexString(
                 SHA256.HashData(Encoding.UTF8.GetBytes(ProjectJsonSerializer.Serialize(project))))
             .ToLowerInvariant();
+    }
+
+    private void ShowStartupFailure(Exception exception)
+    {
+        var layer = new CanvasLayer { Layer = 100 };
+        AddChild(layer);
+
+        var background = new ColorRect { Color = new Color("0b0915") };
+        background.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        layer.AddChild(background);
+
+        var margin = new MarginContainer();
+        margin.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        foreach (var side in new[] { "margin_left", "margin_top", "margin_right", "margin_bottom" })
+        {
+            margin.AddThemeConstantOverride(side, 48);
+        }
+
+        layer.AddChild(margin);
+        var content = new VBoxContainer
+        {
+            Alignment = BoxContainer.AlignmentMode.Center,
+        };
+        content.AddThemeConstantOverride("separation", 18);
+        margin.AddChild(content);
+
+        var title = new Label { Text = "OpenRPG Forge n'a pas pu démarrer le module" };
+        title.AddThemeFontSizeOverride("font_size", 28);
+        title.AddThemeColorOverride("font_color", new Color("ff9858"));
+        content.AddChild(title);
+
+        var explanation = new Label
+        {
+            Text = "La scène 3D n'a pas été construite. Le diagnostic ci-dessous permet de corriger le projet sans afficher une fenêtre vide.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        explanation.AddThemeFontSizeOverride("font_size", 17);
+        explanation.AddThemeColorOverride("font_color", new Color("d8cce8"));
+        content.AddChild(explanation);
+
+        var diagnostic = new Label
+        {
+            Text = exception.Message,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        diagnostic.AddThemeColorOverride("font_color", new Color("ff806d"));
+        content.AddChild(diagnostic);
+
+        var close = new Button
+        {
+            Text = "Fermer",
+            CustomMinimumSize = new Vector2(160, 44),
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin,
+        };
+        close.Pressed += () => GetTree().Quit();
+        content.AddChild(close);
     }
 
     private static string? GetArgumentValue(IReadOnlyList<string> arguments, string name)

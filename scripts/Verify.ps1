@@ -180,6 +180,13 @@ try {
         'assets', 'list', $repositoryRoot, '--query', 'apple', '--source', 'ambientcg')
 
     $runtimePath = Join-Path $repositoryRoot 'apps\Forge.Runtime'
+    $plainRuntimeLog = Join-Path $artifactRoot 'runtime-plain-launch.log'
+    Invoke-ForgeEngineMarkerTest `
+        -Name 'runtime-plain-launch' `
+        -ProjectPath $runtimePath `
+        -Arguments @('--headless', '--path', $runtimePath, '--log-file', $plainRuntimeLog, '--quit-after', '60') `
+        -Markers @('OPENRPG_FORGE_RUNTIME_WORKSPACE_LOADED format=1.0.0 slug=crypt-of-ashes', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=16 collisions=10') `
+        -StopAfterMarkers $false
     $starterWorkspace = Join-Path $runtimePath 'content\broken-isles-starter'
     $starterArtifact = Join-Path $artifactRoot 'broken-isles-starter.orpmod'
     Invoke-CheckedDotnet @(

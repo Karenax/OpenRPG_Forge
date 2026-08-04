@@ -1519,7 +1519,7 @@
     },
     {
       "evidence": {
-        "line": 87,
+        "line": 92,
         "path": "README.md"
       },
       "kind": "references",
@@ -1528,7 +1528,7 @@
     },
     {
       "evidence": {
-        "line": 85,
+        "line": 90,
         "path": "README.md"
       },
       "kind": "references",
@@ -1537,7 +1537,7 @@
     },
     {
       "evidence": {
-        "line": 108,
+        "line": 113,
         "path": "README.md"
       },
       "kind": "references",
@@ -1546,7 +1546,7 @@
     },
     {
       "evidence": {
-        "line": 73,
+        "line": 78,
         "path": "README.md"
       },
       "kind": "references",
@@ -1816,7 +1816,7 @@
     },
     {
       "evidence": {
-        "line": 161,
+        "line": 166,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1825,7 +1825,7 @@
     },
     {
       "evidence": {
-        "line": 221,
+        "line": 226,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1834,7 +1834,7 @@
     },
     {
       "evidence": {
-        "line": 76,
+        "line": 81,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1852,7 +1852,7 @@
     },
     {
       "evidence": {
-        "line": 365,
+        "line": 367,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1870,7 +1870,7 @@
     },
     {
       "evidence": {
-        "line": 410,
+        "line": 412,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1879,7 +1879,7 @@
     },
     {
       "evidence": {
-        "line": 416,
+        "line": 418,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -1888,7 +1888,7 @@
     },
     {
       "evidence": {
-        "line": 422,
+        "line": 424,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2132,6 +2132,15 @@
     {
       "evidence": {
         "line": 17,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 18,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "imports",
@@ -23056,7 +23065,7 @@
     },
     {
       "evidence": {
-        "line": 1579,
+        "line": 1654,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -28420,7 +28429,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -52090,7 +52099,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 23,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -52099,7 +52108,7 @@
     },
     {
       "evidence": {
-        "line": 1547,
+        "line": 1622,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -53260,7 +53269,7 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:9d023b562501e9ea59d1b291733c8dd096ad3fe4f3357efb85df13645ac68963",
+    "source_digest": "sha256:a2caecce5001e5e9d38a9749ac4ca943ef7bb9bd21baf88292241cf709e6f536",
     "source_file_count": 1042
   },
   "nodes": [
@@ -68707,7 +68716,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 1579,
+      "line": 1654,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -78383,7 +78392,7 @@
     {
       "id": "type:Forge.Runtime.GameRoot",
       "kind": "type",
-      "line": 22,
+      "line": 23,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -78393,7 +78402,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 1547,
+      "line": 1622,
       "metadata": {
         "namespace": "Forge.Runtime"
       },

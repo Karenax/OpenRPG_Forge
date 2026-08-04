@@ -146,6 +146,8 @@ distante attend le premier push ; la chaîne équivalente est verte localement.
 - [x] joueur placeholder.
 - [x] déplacement.
 - [x] interaction.
+- [x] lancement interactif sans argument sur workspace scindé `1.0.0`, avec diagnostic visible en
+  cas d'échec.
 
 ### T3.2 Play from here
 

@@ -1,6 +1,6 @@
 # État du projet — OpenRPG Forge
 
-Dernière mise à jour : 3 août 2026.
+Dernière mise à jour : 4 août 2026.
 
 ## Gate actuel
 
@@ -11,6 +11,11 @@ solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et 
 zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplacement, l’interaction
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
+
+Le lancement interactif direct est de nouveau validé sur le workspace scindé `1.0.0` fourni avec le
+dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
+de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
+Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
 
 Le graphe d’architecture transversal est conservé comme outillage local, déterministe et sans
 dépendance externe. Ses 17 tests et son contrôle de fraîcheur font maintenant partie de la

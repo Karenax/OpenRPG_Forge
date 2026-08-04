@@ -39,6 +39,11 @@ Sous Windows, depuis la racine du dépôt :
 .\scripts\Run-Prototype.ps1
 ```
 
+Le lanceur compile d'abord le runtime Debug, puis ouvre le workspace Forge fourni avec le dépôt.
+Son journal de démarrage est conservé dans `artifacts/verification/runtime-interactive.log`. Si le
+chargement du module échoue, le runtime affiche désormais le diagnostic dans la fenêtre au lieu de
+rester sur un écran vide.
+
 Commandes :
 
 - `ZQSD`, `WASD` ou flèches : déplacement ;
