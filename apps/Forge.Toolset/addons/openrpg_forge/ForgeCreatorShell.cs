@@ -18,6 +18,7 @@ internal sealed class ForgeCreatorShell
         "Validation",
         "Playtests",
         "Assistant",
+        "Réseau",
     ];
 
     private readonly Tree _projectTree;

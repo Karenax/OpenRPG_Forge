@@ -2111,6 +2111,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Server/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Server/Program.cs",
+      "target": "namespace:Forge.Network.Scenarios"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "apps/Forge.Server/Program.cs"
       },
@@ -2936,6 +2945,33 @@
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/NavigationConfigurationWindow.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs",
+      "target": "namespace:Forge.Network.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs",
+      "target": "namespace:Forge.Network.Scenarios"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs",
+      "target": "namespace:Forge.Network.Sessions"
     },
     {
       "evidence": {
@@ -7881,6 +7917,51 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Network/Scenarios/NetworkBetaScenario.cs",
+      "target": "namespace:Forge.Network.Content"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Network/Scenarios/NetworkBetaScenario.cs",
+      "target": "namespace:Forge.Network.Replication"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Network/Scenarios/NetworkBetaScenario.cs",
+      "target": "namespace:Forge.Network.Sessions"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Network/Scenarios/NetworkBetaScenario.cs",
+      "target": "namespace:Forge.Network.Testing"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Network/Scenarios/NetworkBetaScenario.cs",
+      "target": "namespace:Forge.Network.World"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Network/Security/IntentGuard.cs"
       },
       "kind": "imports",
@@ -11477,6 +11558,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.Network.Tests/AuthoritativeSessionTests.cs",
       "target": "namespace:Forge.Network.Sessions"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Network.Tests/NetworkBetaScenarioTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Network.Tests/NetworkBetaScenarioTests.cs",
+      "target": "namespace:Forge.Network.Scenarios"
     },
     {
       "evidence": {
@@ -20093,6 +20183,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Network.Scenarios.NetworkBetaScenarioResult",
+      "target": "file:src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+    },
+    {
+      "evidence": {
         "line": 17,
         "path": "src/Forge.Network/Sessions/NetworkModels.cs"
       },
@@ -25880,6 +25979,15 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Scenarios",
+      "target": "file:src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Network/Security/IntentGuard.cs"
       },
@@ -25949,6 +26057,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Network.Tests",
       "target": "file:tests/Forge.Network.Tests/AuthoritativeSessionTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Network.Tests/NetworkBetaScenarioTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Network.Tests",
+      "target": "file:tests/Forge.Network.Tests/NetworkBetaScenarioTests.cs"
     },
     {
       "evidence": {
@@ -27141,6 +27258,15 @@
     {
       "evidence": {
         "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/PlaytestProcessRunner.cs"
       },
       "kind": "defined_in",
@@ -27299,6 +27425,15 @@
       "kind": "imports",
       "source": "project:apps/Forge.Toolset/Forge.Toolset",
       "target": "project:src/Forge.ModuleFormat/Forge.ModuleFormat"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "apps/Forge.Toolset/Forge.Toolset.csproj"
+      },
+      "kind": "imports",
+      "source": "project:apps/Forge.Toolset/Forge.Toolset",
+      "target": "project:src/Forge.Network/Forge.Network"
     },
     {
       "evidence": {
@@ -38921,6 +39056,24 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Network.Tests/NetworkBetaScenarioTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Network.Tests.NetworkBetaScenarioTests",
+      "target": "file:tests/Forge.Network.Tests/NetworkBetaScenarioTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Network.Tests/NetworkBetaScenarioTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Network.Tests.NetworkBetaScenarioTests",
+      "target": "type:Forge.Network.Scenarios.NetworkBetaScenario"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
       },
@@ -45977,6 +46130,60 @@
     },
     {
       "evidence": {
+        "line": 19,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Network.Scenarios.NetworkBetaScenario",
+      "target": "file:src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Network.Scenarios.NetworkBetaScenario",
+      "target": "service:Forge.Network.Content.ContentManifestService"
+    },
+    {
+      "evidence": {
+        "line": 60,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Network.Scenarios.NetworkBetaScenario",
+      "target": "service:Forge.Network.Replication.ReplicationService"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Network.Scenarios.NetworkBetaScenario",
+      "target": "service:Forge.Network.Sessions.ReconnectionService"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Network.Scenarios.NetworkBetaScenario",
+      "target": "service:Forge.Network.World.PartyService"
+    },
+    {
+      "evidence": {
+        "line": 53,
+        "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Network.Scenarios.NetworkBetaScenario",
+      "target": "service:Forge.Network.World.ZoneInstanceService"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.Network/Security/IntentGuard.cs"
       },
@@ -49073,7 +49280,25 @@
     },
     {
       "evidence": {
-        "line": 5081,
+        "line": 9,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.NetworkBetaWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Toolset.Editor.NetworkBetaWindow",
+      "target": "service:Forge.Network.Authoring.NetworkAuthoringService"
+    },
+    {
+      "evidence": {
+        "line": 5093,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -49118,7 +49343,7 @@
     },
     {
       "evidence": {
-        "line": 5086,
+        "line": 5098,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -49127,7 +49352,7 @@
     },
     {
       "evidence": {
-        "line": 5091,
+        "line": 5103,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -49721,8 +49946,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:417d0b7bd8c0cc6d85ba95180c8bf6efe61613806f4780058d5a1768592d2712",
-    "source_file_count": 991
+    "source_digest": "sha256:76517ae6b1e687423e3b082c8f6672f697382e2395c0c7e0787944baee11b7c8",
+    "source_file_count": 995
   },
   "nodes": [
     {
@@ -51766,6 +51991,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/NavigationConfigurationWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NetworkBetaWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/PlaytestProcessRunner.cs",
       "kind": "file",
       "line": 1,
@@ -52344,6 +52579,16 @@
       },
       "name": "G8_DELIVERY_PLAN.md",
       "path": "docs/aurora-parity/G8_DELIVERY_PLAN.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/G9_CLOSURE_EVIDENCE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G9_CLOSURE_EVIDENCE.md",
+      "path": "docs/aurora-parity/G9_CLOSURE_EVIDENCE.md"
     },
     {
       "id": "file:docs/aurora-parity/G9_DELIVERY_PLAN.md",
@@ -56816,6 +57061,16 @@
       "path": "src/Forge.Network/Replication/ReplicationService.cs"
     },
     {
+      "id": "file:src/Forge.Network/Scenarios/NetworkBetaScenario.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NetworkBetaScenario.cs",
+      "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+    },
+    {
       "id": "file:src/Forge.Network/Security/IntentGuard.cs",
       "kind": "file",
       "line": 1,
@@ -58624,6 +58879,16 @@
       },
       "name": "Forge.Network.Tests.csproj",
       "path": "tests/Forge.Network.Tests/Forge.Network.Tests.csproj"
+    },
+    {
+      "id": "file:tests/Forge.Network.Tests/NetworkBetaScenarioTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NetworkBetaScenarioTests.cs",
+      "path": "tests/Forge.Network.Tests/NetworkBetaScenarioTests.cs"
     },
     {
       "id": "file:tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs",
@@ -63146,6 +63411,16 @@
       "path": "src/Forge.Network/Replication/ReplicationModels.cs"
     },
     {
+      "id": "model:Forge.Network.Scenarios.NetworkBetaScenarioResult",
+      "kind": "model",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Network.Scenarios"
+      },
+      "name": "NetworkBetaScenarioResult",
+      "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+    },
+    {
       "id": "model:Forge.Network.Sessions.NetworkDiagnostic",
       "kind": "model",
       "line": 17,
@@ -65172,6 +65447,11 @@
       "name": "Forge.Network.Replication"
     },
     {
+      "id": "namespace:Forge.Network.Scenarios",
+      "kind": "namespace",
+      "name": "Forge.Network.Scenarios"
+    },
+    {
       "id": "namespace:Forge.Network.Security",
       "kind": "namespace",
       "name": "Forge.Network.Security"
@@ -67044,6 +67324,16 @@
       },
       "name": "ManualTimeProvider",
       "path": "tests/Forge.Network.Tests/OperationsChatPersistenceTests.cs"
+    },
+    {
+      "id": "test:Forge.Network.Tests.NetworkBetaScenarioTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Network.Tests"
+      },
+      "name": "NetworkBetaScenarioTests",
+      "path": "tests/Forge.Network.Tests/NetworkBetaScenarioTests.cs"
     },
     {
       "id": "test:Forge.Network.Tests.OperationsChatPersistenceTests",
@@ -70493,6 +70783,16 @@
       "path": "src/Forge.Network/Replication/ReplicationModels.cs"
     },
     {
+      "id": "type:Forge.Network.Scenarios.NetworkBetaScenario",
+      "kind": "type",
+      "line": 19,
+      "metadata": {
+        "namespace": "Forge.Network.Scenarios"
+      },
+      "name": "NetworkBetaScenario",
+      "path": "src/Forge.Network/Scenarios/NetworkBetaScenario.cs"
+    },
+    {
       "id": "type:Forge.Network.Security.IntentGuard",
       "kind": "type",
       "line": 8,
@@ -73923,9 +74223,19 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/NavigationConfigurationWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.NetworkBetaWindow",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "NetworkBetaWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/NetworkBetaWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 5081,
+      "line": 5093,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -73975,7 +74285,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 5086,
+      "line": 5098,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -73985,7 +74295,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 5091,
+      "line": 5103,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

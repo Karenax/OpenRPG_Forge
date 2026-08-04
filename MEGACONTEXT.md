@@ -1419,7 +1419,7 @@ Le résumé doit contenir :
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
 > Le second module original **La Veillée des Éclats** est généré exclusivement par les handlers
 > d'auteur et `ProjectSession`, avec round-trip/export automatisé.
-> Réalise l'**audit de preuves G9 Network Beta** pour les 30 exigences assignées, puis établis son plan de livraison borné.
+> Réalise l'**audit de preuves G10 Live Director** et établis son plan de livraison sur les contrats autoritaires fermés par G9.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.

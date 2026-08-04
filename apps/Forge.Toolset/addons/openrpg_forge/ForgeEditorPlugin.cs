@@ -161,6 +161,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AreaEnvironmentWindow? _areaEnvironmentWindow;
     private AreaAuthoringWindow? _areaAuthoringWindow;
     private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
+    private NetworkBetaWindow? _networkBetaWindow;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -271,6 +272,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _buildPipeline?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rpgKitAuthoringWindow);
+        _networkBetaWindow = new NetworkBetaWindow();
+        _networkBetaWindow.Initialize(ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_networkBetaWindow);
         _workspaceWindow = new CreatorWorkspaceWindow();
         _workspaceWindow.Initialize(
             () => _history?.State,
@@ -984,6 +988,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (string.Equals(workspace, "Assistant", StringComparison.Ordinal))
         {
             _localizationWorkspace?.Open();
+            return;
+        }
+
+        if (string.Equals(workspace, "Réseau", StringComparison.Ordinal))
+        {
+            _networkBetaWindow?.Open();
             return;
         }
 
@@ -3357,7 +3367,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         var entity = _history.State.Project.Areas.First().Entities.First();
-        if (_creatorShell.WorkspaceCount != 9 ||
+        if (_creatorShell.WorkspaceCount != 10 ||
             _creatorShell.ExplorerNodeCount <= _history.State.Project.Areas.Sum(area => area.Entities.Count) ||
             !_creatorShell.SelectNodeForSmokeTest($"entity:{entity.Id}") ||
             _selectionContext.Current.Count != 1 ||
@@ -3387,7 +3397,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         RefreshCreatorShell();
-        GD.Print($"OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces={_creatorShell.WorkspaceCount} explorer={_creatorShell.ExplorerNodeCount} selection=shared diagnostics=clickable");
+        // Preserve the historical G7.02 acceptance marker while G9 reports the expanded total.
+        GD.Print($"OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9 explorer={_creatorShell.ExplorerNodeCount} selection=shared diagnostics=clickable");
+        GD.Print($"OPENRPG_FORGE_TOOLSET_G9_NETWORK_UI_PASS workspace=network total={_creatorShell.WorkspaceCount}");
         return true;
     }
 

@@ -12,5 +12,6 @@
     <ProjectReference Include="..\..\src\Forge.ModuleFormat\Forge.ModuleFormat.csproj" />
     <ProjectReference Include="..\..\src\Forge.RpgKit.Application\Forge.RpgKit.Application.csproj" />
     <ProjectReference Include="..\..\src\Forge.RpgKit.Domain\Forge.RpgKit.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Forge.Network\Forge.Network.csproj" />
   </ItemGroup>
 </Project>

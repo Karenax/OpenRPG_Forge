@@ -230,4 +230,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 Le second module original **La Veillée des Éclats** est généré par 15 commandes d'auteur puis
 persisté via `ProjectSession`; son round-trip et son export `.orpmod` sont couverts automatiquement.
 
-Exécuter l'**audit de preuves G9 Network Beta** pour les 30 exigences assignées, puis établir son plan de livraison borné.
+Exécuter l'**audit de preuves G10 Live Director** et établir son plan de livraison sur les contrats autoritaires fermés par G9.

@@ -1,5 +1,17 @@
 using Forge.Network.Configuration;
 using Forge.Network.Sessions;
+using Forge.Network.Scenarios;
+
+if (args.Contains("--network-beta-smoke-test", StringComparer.Ordinal))
+{
+    var result = NetworkBetaScenario.Run();
+    Console.WriteLine($"OPENRPG_FORGE_NETWORK_TWO_CLIENTS_PASS revision={result.ServerRevision} digest={result.SharedDigest}");
+    Console.WriteLine($"OPENRPG_FORGE_NETWORK_RECONNECT_PASS code={result.ReconnectionCode} clientA={result.ClientARevision} clientB={result.ClientBRevision}");
+    Console.WriteLine($"OPENRPG_FORGE_NETWORK_AUTHORITY_PASS forged={result.ForgedMutationCode}");
+    Console.WriteLine($"OPENRPG_FORGE_NETWORK_BETA={(result.Passed ? "PASS" : "FAILED")}");
+    Environment.ExitCode = result.Passed ? 0 : 4;
+    return;
+}
 
 if (args.Contains("--self-test", StringComparer.Ordinal))
 {

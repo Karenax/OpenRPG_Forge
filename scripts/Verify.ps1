@@ -213,6 +213,10 @@ try {
         -StopAfterMarkers $false
 
     $mcpHostProject = Join-Path $repositoryRoot 'apps\Forge.McpHost\Forge.McpHost.csproj'
+    $serverProject = Join-Path $repositoryRoot 'apps\Forge.Server\Forge.Server.csproj'
+    Invoke-CheckedDotnet @(
+        'run', '--project', $serverProject, '--configuration', 'Release', '--no-build', '--',
+        '--network-beta-smoke-test')
     Invoke-CheckedDotnet @(
         'run', '--project', $mcpHostProject, '--configuration', 'Release', '--no-build', '--',
         '--workspace', $moduleWorkspace, '--self-test')
