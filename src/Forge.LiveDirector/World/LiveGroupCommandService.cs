@@ -7,6 +7,8 @@ public sealed class LiveGroupCommandService(LiveWorldChooser chooser, Authorizat
     public sealed record Selection(Guid SelectionId, IReadOnlyList<Guid> ObjectIds, string Query, string AuditEntry);
     public sealed record Movement(Guid CommandId, Guid SelectionId, Guid DestinationId, string Formation, long ExpectedRevision);
     public sealed record MovementResult(bool Applied, string Code, long Revision, IReadOnlyList<Guid> Moved, IReadOnlyDictionary<Guid, string> Failed, string PathPreview, string AuditEntry);
+    public sealed record Attack(Guid CommandId, Guid SelectionId, Guid TargetId, bool FactionWarningAccepted, long ExpectedRevision);
+    public sealed record AttackResult(bool Applied, string Code, long Revision, IReadOnlyList<Guid> Assigned, string ObjectivePreview, string AuditEntry);
 
     private readonly Dictionary<Guid, Selection> _selections = [];
     private readonly HashSet<Guid> _processed = [];
@@ -44,5 +46,28 @@ public sealed class LiveGroupCommandService(LiveWorldChooser chooser, Authorizat
         return new(true, failed.Count == 0 ? "LIVE_MOVEMENT_APPLIED" : "LIVE_MOVEMENT_PARTIAL", _revision, moved, failed, path, $"applied:{path}:actor={actor.AccountId}:revision={_revision}");
     }
 
+    public AttackResult AttackTarget(AuthorizationSubject actor, Attack command, bool apply)
+    {
+        if (!_selections.TryGetValue(command.SelectionId, out var selection)) return RejectAttack("LIVE_ATTACK_SELECTION_UNKNOWN", command);
+        var target = chooser.Find(command.TargetId);
+        if (target is null) return RejectAttack("LIVE_ATTACK_TARGET_UNKNOWN", command);
+        if (!authorization.Authorize(actor, NetworkCapability.ManageWorld, target.ZoneId).Allowed) return RejectAttack("LIVE_ATTACK_PERMISSION_DENIED", command);
+        if (command.ExpectedRevision != _revision) return RejectAttack("LIVE_ATTACK_REVISION_STALE", command);
+        if (_processed.Contains(command.CommandId)) return RejectAttack("LIVE_ATTACK_COMMAND_REPLAYED", command);
+        if (!command.FactionWarningAccepted) return RejectAttack("LIVE_ATTACK_FACTION_WARNING_REQUIRED", command);
+        var agents = selection.ObjectIds.Where(id => chooser.Find(id)?.Kind == "creature").ToArray();
+        var preview = $"attack-objective:target={target.ObjectId}:agents={agents.Length}:faction-warning=accepted";
+        if (!apply) return new(false, "LIVE_ATTACK_PREVIEW", _revision, agents, preview, $"previewed:{preview}:actor={actor.AccountId}");
+        foreach (var id in agents)
+        {
+            var entry = chooser.Find(id)!;
+            chooser.Upsert(entry with { State = $"attack-objective:{target.ObjectId}" });
+        }
+        _processed.Add(command.CommandId);
+        _revision++;
+        return new(true, "LIVE_ATTACK_APPLIED", _revision, agents, preview, $"applied:{preview}:actor={actor.AccountId}:revision={_revision}");
+    }
+
     private MovementResult Reject(string code, Movement command) => new(false, code, _revision, [], new Dictionary<Guid, string>(), "no path", $"rejected:{code}:command={command.CommandId}");
+    private AttackResult RejectAttack(string code, Attack command) => new(false, code, _revision, [], "no objective", $"rejected:{code}:command={command.CommandId}");
 }
