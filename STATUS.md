@@ -230,4 +230,4 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 Le second module original **La Veillée des Éclats** est généré par 15 commandes d'auteur puis
 persisté via `ProjectSession`; son round-trip et son export `.orpmod` sont couverts automatiquement.
 
-Exécuter l'**audit de preuves G10 Live Director** et établir son plan de livraison sur les contrats autoritaires fermés par G9.
+Implémenter **G10-B Live Director** (`ORF-DM-006` à `ORF-DM-010`) : navigation vers objet, téléportation, destruction, soin et limbo autoritaires, avec preview, permissions, révisions et audit.

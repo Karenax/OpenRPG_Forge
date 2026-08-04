@@ -1,0 +1,30 @@
+using Forge.Network.Operations;
+
+namespace Forge.LiveDirector.World;
+
+public sealed class LiveWorldChooser(AuthorizationService authorization)
+{
+    public sealed record Entry(Guid ObjectId, Guid ZoneId, string Kind, string Name, string Tag, Guid? PlayerAccountId, string State, IReadOnlyList<string> Diagnostics);
+    public sealed record Query(Guid? ZoneId, string? Kind, string? Text, Guid? PlayerAccountId, string? State);
+
+    private readonly Dictionary<Guid, Entry> _entries = [];
+
+    public void Upsert(Entry entry)
+    {
+        if (entry.ObjectId == Guid.Empty || entry.ZoneId == Guid.Empty || string.IsNullOrWhiteSpace(entry.Name))
+            throw new ArgumentException("LIVE_WORLD_ENTRY_INVALID", nameof(entry));
+        _entries[entry.ObjectId] = entry;
+    }
+
+    public IReadOnlyList<Entry> Search(AuthorizationSubject actor, Query query)
+    {
+        if (!authorization.Authorize(actor, NetworkCapability.ViewOperations, query.ZoneId).Allowed) return [];
+        return _entries.Values
+            .Where(x => query.ZoneId is null || x.ZoneId == query.ZoneId)
+            .Where(x => string.IsNullOrWhiteSpace(query.Kind) || string.Equals(x.Kind, query.Kind, StringComparison.OrdinalIgnoreCase))
+            .Where(x => query.PlayerAccountId is null || x.PlayerAccountId == query.PlayerAccountId)
+            .Where(x => string.IsNullOrWhiteSpace(query.State) || string.Equals(x.State, query.State, StringComparison.OrdinalIgnoreCase))
+            .Where(x => string.IsNullOrWhiteSpace(query.Text) || x.Name.Contains(query.Text, StringComparison.OrdinalIgnoreCase) || x.Tag.Contains(query.Text, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x.ZoneId).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ThenBy(x => x.ObjectId).ToArray();
+    }
+}
