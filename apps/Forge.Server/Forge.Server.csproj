@@ -1,4 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
-  <ItemGroup><ProjectReference Include="..\..\src\Forge.Network\Forge.Network.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Forge.Network\Forge.Network.csproj" />
+    <ProjectReference Include="..\..\src\Forge.LiveDirector\Forge.LiveDirector.csproj" />
+  </ItemGroup>
 </Project>

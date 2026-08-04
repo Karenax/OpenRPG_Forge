@@ -19,6 +19,7 @@ internal sealed class ForgeCreatorShell
         "Playtests",
         "Assistant",
         "Réseau",
+        "Live Director",
     ];
 
     private readonly Tree _projectTree;

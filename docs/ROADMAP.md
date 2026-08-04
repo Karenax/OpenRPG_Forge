@@ -193,7 +193,7 @@ Le second module original **La Veillée des Éclats** est désormais généré p
 L'atelier RPG Kit est maintenant relié au bus de commandes avec dry-run, application, undo/redo et
 diagnostics. La prochaine tranche est la revue visuelle nominale/maximisée, puis la fermeture G8.
 G8 est fermé : 184/184 exigences justifiées, atelier auteur responsive, second module original
-exporté et joué, portail global vert. **G9 Network Beta est fermé** : serveur headless, deux clients synchronisés, reconnexion et refus anti-triche sont couverts. **G10-A à G Live Director sont livrés** avec 32 contrats fonctionnels; restent le scénario GM intégré, la surface Aurora 2026 et la fermeture visuelle du gate.
+exporté et joué, portail global vert. **G9 Network Beta est fermé**. **G10 Live Director est fermé** avec 32 contrats, scénario GM sur Network Beta, autorité, audit immuable et surface Aurora 2026 revue visuellement. La prochaine tranche est l'audit **G11 Contenu moderne et qualité de distribution**.
 
 ## Phase 6 — 3D assistée
 

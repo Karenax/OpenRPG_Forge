@@ -1,6 +1,18 @@
 using Forge.Network.Configuration;
 using Forge.Network.Sessions;
 using Forge.Network.Scenarios;
+using Forge.LiveDirector.Scenarios;
+
+if (args.Contains("--live-director-smoke-test", StringComparer.Ordinal))
+{
+    var result = LiveDirectorScenario.Run();
+    Console.WriteLine($"OPENRPG_FORGE_LIVE_DIRECTOR_NETWORK_PASS digest={result.NetworkDigest}");
+    Console.WriteLine($"OPENRPG_FORGE_LIVE_DIRECTOR_AUTHORITY_PASS gm={result.SpawnCode} player={result.RejectedPlayerCode}");
+    Console.WriteLine($"OPENRPG_FORGE_LIVE_DIRECTOR_AUDIT_PASS entries={result.AuditEntries} hash={result.AuditHash}");
+    Console.WriteLine($"OPENRPG_FORGE_LIVE_DIRECTOR={(result.Passed ? "PASS" : "FAILED")}");
+    Environment.ExitCode = result.Passed ? 0 : 5;
+    return;
+}
 
 if (args.Contains("--network-beta-smoke-test", StringComparer.Ordinal))
 {

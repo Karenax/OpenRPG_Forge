@@ -214,6 +214,7 @@ try {
 
     $mcpHostProject = Join-Path $repositoryRoot 'apps\Forge.McpHost\Forge.McpHost.csproj'
     $serverProject = Join-Path $repositoryRoot 'apps\Forge.Server\Forge.Server.csproj'
+    Invoke-CheckedDotnet @('run', '--project', $serverProject, '--configuration', 'Release', '--no-build', '--', '--live-director-smoke-test')
     Invoke-CheckedDotnet @(
         'run', '--project', $serverProject, '--configuration', 'Release', '--no-build', '--',
         '--network-beta-smoke-test')

@@ -39,6 +39,12 @@
           "GodotSharp": "[4.7.1, )"
         }
       },
+      "forge.livedirector": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Network": "[1.0.0, )"
+        }
+      },
       "forge.moduleformat": {
         "type": "Project",
         "dependencies": {

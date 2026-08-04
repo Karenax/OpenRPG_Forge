@@ -162,6 +162,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AreaAuthoringWindow? _areaAuthoringWindow;
     private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
     private NetworkBetaWindow? _networkBetaWindow;
+    private LiveDirectorWindow? _liveDirectorWindow;
     private ForgeCreatorShell? _creatorShell;
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
@@ -275,6 +276,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _networkBetaWindow = new NetworkBetaWindow();
         _networkBetaWindow.Initialize(ApplyForgeWindowIcon);
         _mainPanel.AddChild(_networkBetaWindow);
+        _liveDirectorWindow = new LiveDirectorWindow();
+        _liveDirectorWindow.Initialize(ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_liveDirectorWindow);
         _workspaceWindow = new CreatorWorkspaceWindow();
         _workspaceWindow.Initialize(
             () => _history?.State,
@@ -994,6 +998,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (string.Equals(workspace, "Réseau", StringComparison.Ordinal))
         {
             _networkBetaWindow?.Open();
+            return;
+        }
+
+        if (string.Equals(workspace, "Live Director", StringComparison.Ordinal))
+        {
+            _liveDirectorWindow?.Open();
             return;
         }
 
@@ -3367,7 +3377,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         var entity = _history.State.Project.Areas.First().Entities.First();
-        if (_creatorShell.WorkspaceCount != 10 ||
+        if (_creatorShell.WorkspaceCount != 11 ||
             _creatorShell.ExplorerNodeCount <= _history.State.Project.Areas.Sum(area => area.Entities.Count) ||
             !_creatorShell.SelectNodeForSmokeTest($"entity:{entity.Id}") ||
             _selectionContext.Current.Count != 1 ||
@@ -3400,6 +3410,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         // Preserve the historical G7.02 acceptance marker while G9 reports the expanded total.
         GD.Print($"OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9 explorer={_creatorShell.ExplorerNodeCount} selection=shared diagnostics=clickable");
         GD.Print($"OPENRPG_FORGE_TOOLSET_G9_NETWORK_UI_PASS workspace=network total={_creatorShell.WorkspaceCount}");
+        GD.Print($"OPENRPG_FORGE_TOOLSET_G10_LIVE_DIRECTOR_UI_PASS workspace=live-director total={_creatorShell.WorkspaceCount}");
         return true;
     }
 

@@ -2149,6 +2149,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Server/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Server/Program.cs",
+      "target": "namespace:Forge.LiveDirector.Scenarios"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "apps/Forge.Server/Program.cs"
       },
@@ -2911,6 +2920,15 @@
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/GlobalSearchWindow.cs",
       "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LiveDirectorWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/LiveDirectorWindow.cs",
+      "target": "namespace:Forge.LiveDirector.Scenarios"
     },
     {
       "evidence": {
@@ -7100,6 +7118,60 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs",
+      "target": "namespace:Forge.LiveDirector.Audit"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs",
+      "target": "namespace:Forge.LiveDirector.Catalog"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs",
+      "target": "namespace:Forge.LiveDirector.Narrative"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs",
+      "target": "namespace:Forge.LiveDirector.World"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs",
+      "target": "namespace:Forge.Network.Scenarios"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.LiveDirector/Scenes/LiveSceneService.cs"
       },
       "kind": "imports",
@@ -11119,6 +11191,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs",
       "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorScenarioTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorScenarioTests.cs",
+      "target": "namespace:Forge.LiveDirector.Scenarios"
     },
     {
       "evidence": {
@@ -20374,6 +20455,24 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.LiveDirector.Scenarios.Result",
+      "target": "file:src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.Scenarios.Result",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.LiveDirector/Scenes/LiveSceneService.cs"
       },
@@ -26287,6 +26386,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.LiveDirector.Scenarios",
+      "target": "file:src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.LiveDirector/Scenes/LiveSceneService.cs"
       },
@@ -26374,6 +26482,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.LiveDirector.Tests",
       "target": "file:tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorScenarioTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.LiveDirector.Tests",
+      "target": "file:tests/Forge.LiveDirector.Tests/LiveDirectorScenarioTests.cs"
     },
     {
       "evidence": {
@@ -28591,6 +28708,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LiveDirectorWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/LiveDirectorWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
       },
@@ -28735,7 +28861,16 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 5,
+        "path": "apps/Forge.Server/Forge.Server.csproj"
+      },
+      "kind": "imports",
+      "source": "project:apps/Forge.Server/Forge.Server",
+      "target": "project:src/Forge.LiveDirector/Forge.LiveDirector"
+    },
+    {
+      "evidence": {
+        "line": 4,
         "path": "apps/Forge.Server/Forge.Server.csproj"
       },
       "kind": "imports",
@@ -28777,6 +28912,15 @@
       "kind": "imports",
       "source": "project:apps/Forge.Toolset/Forge.Toolset",
       "target": "project:src/Forge.EngineAdapter/Forge.EngineAdapter"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "apps/Forge.Toolset/Forge.Toolset.csproj"
+      },
+      "kind": "imports",
+      "source": "project:apps/Forge.Toolset/Forge.Toolset",
+      "target": "project:src/Forge.LiveDirector/Forge.LiveDirector"
     },
     {
       "evidence": {
@@ -39031,6 +39175,24 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorScenarioTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorScenarioTests",
+      "target": "file:tests/Forge.LiveDirector.Tests/LiveDirectorScenarioTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorScenarioTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorScenarioTests",
+      "target": "type:Forge.LiveDirector.Scenarios.LiveDirectorScenario"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
       },
@@ -48067,6 +48229,15 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.LiveDirector.Scenarios.LiveDirectorScenario",
+      "target": "file:src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.LiveDirector/Scenes/LiveSceneService.cs"
       },
@@ -52198,6 +52369,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LiveDirectorWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.LiveDirectorWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/LiveDirectorWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
       },
@@ -52243,7 +52423,7 @@
     },
     {
       "evidence": {
-        "line": 5093,
+        "line": 5104,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -52288,7 +52468,7 @@
     },
     {
       "evidence": {
-        "line": 5098,
+        "line": 5109,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -52297,7 +52477,7 @@
     },
     {
       "evidence": {
-        "line": 5103,
+        "line": 5114,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -52891,8 +53071,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:11369168afd2fb24d4822bc1e0dfb7f1888caa77236a81576c472e07656dfaeb",
-    "source_file_count": 1035
+    "source_digest": "sha256:cd15858c1b533781300ef6bdcd9c1dd334643b1ef313411db389e2cb4a479568",
+    "source_file_count": 1039
   },
   "nodes": [
     {
@@ -54936,6 +55116,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/GlobalSearchWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/LiveDirectorWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveDirectorWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/LiveDirectorWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs",
       "kind": "file",
       "line": 1,
@@ -55524,6 +55714,16 @@
       },
       "name": "ASSET_AND_MAP_EXISTING_STATE.md",
       "path": "docs/audits/ASSET_AND_MAP_EXISTING_STATE.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/G10_CLOSURE_EVIDENCE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G10_CLOSURE_EVIDENCE.md",
+      "path": "docs/aurora-parity/G10_CLOSURE_EVIDENCE.md"
     },
     {
       "id": "file:docs/aurora-parity/G10_DELIVERY_PLAN.md",
@@ -59436,6 +59636,16 @@
       "path": "src/Forge.LiveDirector/Players/LivePlayerService.cs"
     },
     {
+      "id": "file:src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveDirectorScenario.cs",
+      "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+    },
+    {
       "id": "file:src/Forge.LiveDirector/Scenes/LiveSceneService.cs",
       "kind": "file",
       "line": 1,
@@ -61934,6 +62144,16 @@
       },
       "name": "LiveDirectorRulesGroupTests.cs",
       "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.LiveDirector.Tests/LiveDirectorScenarioTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveDirectorScenarioTests.cs",
+      "path": "tests/Forge.LiveDirector.Tests/LiveDirectorScenarioTests.cs"
     },
     {
       "id": "file:tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs",
@@ -66436,6 +66656,16 @@
       "path": "src/Forge.LiveDirector/Players/LivePlayerService.cs"
     },
     {
+      "id": "model:Forge.LiveDirector.Scenarios.Result",
+      "kind": "model",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Scenarios"
+      },
+      "name": "Result",
+      "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
+    },
+    {
       "id": "model:Forge.LiveDirector.Scenes.Result",
       "kind": "model",
       "line": 9,
@@ -68817,6 +69047,11 @@
       "name": "Forge.LiveDirector.Players"
     },
     {
+      "id": "namespace:Forge.LiveDirector.Scenarios",
+      "kind": "namespace",
+      "name": "Forge.LiveDirector.Scenarios"
+    },
+    {
       "id": "namespace:Forge.LiveDirector.Scenes",
       "kind": "namespace",
       "name": "Forge.LiveDirector.Scenes"
@@ -70908,6 +71143,16 @@
       },
       "name": "LiveDirectorRulesGroupTests",
       "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+    },
+    {
+      "id": "test:Forge.LiveDirector.Tests.LiveDirectorScenarioTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Tests"
+      },
+      "name": "LiveDirectorScenarioTests",
+      "path": "tests/Forge.LiveDirector.Tests/LiveDirectorScenarioTests.cs"
     },
     {
       "id": "test:Forge.LiveDirector.Tests.LiveWorldActionTests",
@@ -73845,6 +74090,16 @@
       },
       "name": "Travel",
       "path": "src/Forge.LiveDirector/Players/LivePlayerService.cs"
+    },
+    {
+      "id": "type:Forge.LiveDirector.Scenarios.LiveDirectorScenario",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Scenarios"
+      },
+      "name": "LiveDirectorScenario",
+      "path": "src/Forge.LiveDirector/Scenarios/LiveDirectorScenario.cs"
     },
     {
       "id": "type:Forge.LiveDirector.Scenes.Preset",
@@ -78317,6 +78572,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/GlobalSearchWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.LiveDirectorWindow",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "LiveDirectorWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/LiveDirectorWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.LocalizationWorkspaceWindow",
       "kind": "type",
       "line": 9,
@@ -78359,7 +78624,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 5093,
+      "line": 5104,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -78409,7 +78674,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 5098,
+      "line": 5109,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -78419,7 +78684,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 5103,
+      "line": 5114,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
