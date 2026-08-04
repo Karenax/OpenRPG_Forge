@@ -1419,7 +1419,7 @@ Le résumé doit contenir :
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
 > Le second module original **La Veillée des Éclats** est généré exclusivement par les handlers
 > d'auteur et `ProjectSession`, avec round-trip/export automatisé.
-> Réalise **G10-D Live Director** (`ORF-DM-017`, `ORF-DM-019` à `ORF-DM-021`, `ORF-DM-023`) : XP, portes, triggers, sélection multiple et déplacement de groupe.
+> Réalise **G10-E Live Director** (`ORF-DM-024` à `ORF-DM-029`) : attaque de groupe, joueurs, recherche, scripts bornés et variables live.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.

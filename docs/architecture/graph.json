@@ -1,6 +1,16 @@
 {
   "diagnostics": [
     {
+      "line": 8,
+      "message": "Identifiant de nœud ambigu ignoré : type:Forge.LiveDirector.World.Request",
+      "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
+    },
+    {
+      "line": 9,
+      "message": "Identifiant de nœud ambigu ignoré : model:Forge.LiveDirector.World.Result",
+      "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
+    },
+    {
       "line": 7,
       "message": "Identifiant de nœud ambigu ignoré : type:Forge.LiveDirector.World.Request",
       "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
@@ -7000,6 +7010,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/World/LiveGroupCommandService.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.LiveDirector/World/LiveProgressionWorldService.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
       },
       "kind": "imports",
@@ -10775,6 +10803,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorFoundationTests.cs",
+      "target": "namespace:Forge.Network.Operations"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs",
+      "target": "namespace:Forge.LiveDirector.World"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs",
       "target": "namespace:Forge.Network.Operations"
     },
     {
@@ -19798,6 +19844,51 @@
     {
       "evidence": {
         "line": 9,
+        "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.LiveDirector.World.MovementResult",
+      "target": "file:src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.World.MovementResult",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.World.MovementResult",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.World.MovementResult",
+      "target": "model:Forge.LiveDirector.World.Entry"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.LiveDirector.World.Result",
+      "target": "file:src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
         "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
       },
       "kind": "defined_in",
@@ -19812,6 +19903,15 @@
       "kind": "defined_in",
       "source": "model:Forge.LiveDirector.World.Result",
       "target": "file:src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.World.Result",
+      "target": "model:Forge.Application.Commands.AuditEntry"
     },
     {
       "evidence": {
@@ -19830,6 +19930,15 @@
       "kind": "relationship",
       "source": "model:Forge.LiveDirector.World.Result",
       "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.World.Result",
+      "target": "model:Forge.Application.Commands.CommandId"
     },
     {
       "evidence": {
@@ -19857,6 +19966,15 @@
       "kind": "relationship",
       "source": "model:Forge.LiveDirector.World.Result",
       "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.LiveDirector.World.Result",
+      "target": "model:Forge.LiveDirector.World.Entry"
     },
     {
       "evidence": {
@@ -25504,11 +25622,38 @@
     {
       "evidence": {
         "line": 3,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.LiveDirector.Tests",
+      "target": "file:tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.LiveDirector.Tests",
       "target": "file:tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.LiveDirector.World",
+      "target": "file:src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.LiveDirector.World",
+      "target": "file:src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
     },
     {
       "evidence": {
@@ -28488,6 +28633,24 @@
       "kind": "defined_in",
       "source": "service:Forge.LiveDirector.Economy.LiveEconomyService",
       "target": "file:src/Forge.LiveDirector/Economy/LiveEconomyService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.LiveDirector.World.LiveGroupCommandService",
+      "target": "file:src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.LiveDirector.World.LiveProgressionWorldService",
+      "target": "file:src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
     },
     {
       "evidence": {
@@ -37582,6 +37745,87 @@
     {
       "evidence": {
         "line": 6,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorRulesGroupTests",
+      "target": "file:tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorRulesGroupTests",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorRulesGroupTests",
+      "target": "service:Forge.LiveDirector.World.LiveGroupCommandService"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorRulesGroupTests",
+      "target": "service:Forge.LiveDirector.World.LiveProgressionWorldService"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorRulesGroupTests",
+      "target": "service:Forge.Network.Operations.AuthorizationService"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorRulesGroupTests",
+      "target": "type:Forge.LiveDirector.World.LiveWorldChooser"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorRulesGroupTests",
+      "target": "type:Forge.LiveDirector.World.Movement"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorRulesGroupTests",
+      "target": "type:Forge.Network.Operations.AuthorizationSubject"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.LiveDirector.Tests.LiveDirectorRulesGroupTests",
+      "target": "type:Forge.Network.Operations.NetworkRole"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs"
       },
       "kind": "defined_in",
@@ -41187,6 +41431,15 @@
       "kind": "tests",
       "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureFactoryTests",
       "target": "model:Forge.RpgKit.Domain.Creatures.CreatureIdentity"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Creatures/CreatureFactoryTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Creatures.CreatureFactoryTests",
+      "target": "type:Forge.LiveDirector.World.Movement"
     },
     {
       "evidence": {
@@ -46357,11 +46610,29 @@
     {
       "evidence": {
         "line": 8,
+        "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.LiveDirector.World.Movement",
+      "target": "file:src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
         "path": "src/Forge.LiveDirector/World/LiveWorldChooser.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.LiveDirector.World.Query",
       "target": "file:src/Forge.LiveDirector/World/LiveWorldChooser.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.LiveDirector.World.Request",
+      "target": "file:src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
     },
     {
       "evidence": {
@@ -46380,6 +46651,15 @@
       "kind": "defined_in",
       "source": "type:Forge.LiveDirector.World.Request",
       "target": "file:src/Forge.LiveDirector/World/LiveWorldActionService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.LiveDirector.World.Selection",
+      "target": "file:src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
     },
     {
       "evidence": {
@@ -51090,8 +51370,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:7718b749c3d9206ca5780a28ba8684026c38170e4aef26e00fa927094bf02712",
-    "source_file_count": 1015
+    "source_digest": "sha256:59023131e7e3eb91494989a59842003af38f97f3dcad4d9028dac8e38307d9a4",
+    "source_file_count": 1019
   },
   "nodes": [
     {
@@ -53823,6 +54103,16 @@
       },
       "name": "G10-C-LIVE-CONTROL-ECONOMY.md",
       "path": "docs/aurora-parity/tasks/G10-C-LIVE-CONTROL-ECONOMY.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G10-D-LIVE-RULES-GROUPS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G10-D-LIVE-RULES-GROUPS.md",
+      "path": "docs/aurora-parity/tasks/G10-D-LIVE-RULES-GROUPS.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -57525,6 +57815,26 @@
       "path": "src/Forge.LiveDirector/Forge.LiveDirector.csproj"
     },
     {
+      "id": "file:src/Forge.LiveDirector/World/LiveGroupCommandService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveGroupCommandService.cs",
+      "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+    },
+    {
+      "id": "file:src/Forge.LiveDirector/World/LiveProgressionWorldService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveProgressionWorldService.cs",
+      "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+    },
+    {
       "id": "file:src/Forge.LiveDirector/World/LiveSpawnService.cs",
       "kind": "file",
       "line": 1,
@@ -59913,6 +60223,16 @@
       },
       "name": "LiveDirectorFoundationTests.cs",
       "path": "tests/Forge.LiveDirector.Tests/LiveDirectorFoundationTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LiveDirectorRulesGroupTests.cs",
+      "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
     },
     {
       "id": "file:tests/Forge.LiveDirector.Tests/LiveWorldActionTests.cs",
@@ -64385,14 +64705,24 @@
       "path": "src/Forge.LiveDirector/World/LiveWorldChooser.cs"
     },
     {
-      "id": "model:Forge.LiveDirector.World.Result",
+      "id": "model:Forge.LiveDirector.World.MovementResult",
       "kind": "model",
       "line": 9,
       "metadata": {
         "namespace": "Forge.LiveDirector.World"
       },
+      "name": "MovementResult",
+      "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+    },
+    {
+      "id": "model:Forge.LiveDirector.World.Result",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.World"
+      },
       "name": "Result",
-      "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
+      "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
     },
     {
       "id": "model:Forge.Mcp.AgentDiagnostic",
@@ -67309,6 +67639,26 @@
       "path": "src/Forge.LiveDirector/Economy/LiveEconomyService.cs"
     },
     {
+      "id": "service:Forge.LiveDirector.World.LiveGroupCommandService",
+      "kind": "service",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.World"
+      },
+      "name": "LiveGroupCommandService",
+      "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+    },
+    {
+      "id": "service:Forge.LiveDirector.World.LiveProgressionWorldService",
+      "kind": "service",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.World"
+      },
+      "name": "LiveProgressionWorldService",
+      "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+    },
+    {
       "id": "service:Forge.LiveDirector.World.LiveSpawnService",
       "kind": "service",
       "line": 6,
@@ -68577,6 +68927,16 @@
       },
       "name": "LiveDirectorFoundationTests",
       "path": "tests/Forge.LiveDirector.Tests/LiveDirectorFoundationTests.cs"
+    },
+    {
+      "id": "test:Forge.LiveDirector.Tests.LiveDirectorRulesGroupTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.Tests"
+      },
+      "name": "LiveDirectorRulesGroupTests",
+      "path": "tests/Forge.LiveDirector.Tests/LiveDirectorRulesGroupTests.cs"
     },
     {
       "id": "test:Forge.LiveDirector.Tests.LiveWorldActionTests",
@@ -71446,6 +71806,16 @@
       "path": "src/Forge.LiveDirector/World/LiveWorldChooser.cs"
     },
     {
+      "id": "type:Forge.LiveDirector.World.Movement",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.World"
+      },
+      "name": "Movement",
+      "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
+    },
+    {
       "id": "type:Forge.LiveDirector.World.Query",
       "kind": "type",
       "line": 8,
@@ -71458,12 +71828,22 @@
     {
       "id": "type:Forge.LiveDirector.World.Request",
       "kind": "type",
-      "line": 8,
+      "line": 7,
       "metadata": {
         "namespace": "Forge.LiveDirector.World"
       },
       "name": "Request",
-      "path": "src/Forge.LiveDirector/World/LiveSpawnService.cs"
+      "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
+    },
+    {
+      "id": "type:Forge.LiveDirector.World.Selection",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.LiveDirector.World"
+      },
+      "name": "Selection",
+      "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
     },
     {
       "id": "type:Forge.Mcp.AgentQuickFix",
