@@ -104,6 +104,12 @@ Le viewport Creator et le runtime partagent le même plan de mesh/collision ; la
 le streaming asynchrone borné sont testés hors moteur. La preuve détaillée est dans
 [`tasks/G11-I-GENERIC-TERRAIN-WORLD.md`](tasks/G11-I-GENERIC-TERRAIN-WORLD.md).
 
+**G11-J est fermé le 5 août 2026.** Les profils module/zone portent timers globaux et locaux,
+budgets, suspension, cycle de repos, règles et volumes conditionnels ainsi que restauration sûre de
+séquence. Le Toolset, le runtime et MCP partagent la même source canonique et une transaction
+annulable. La preuve détaillée est dans
+[`tasks/G11-J-RUNTIME-POLICIES.md`](tasks/G11-J-RUNTIME-POLICIES.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-J** : événements de repos/heartbeat, interdictions et abandon contrôlé.
+Démarrer **G11-K** : séquences/cutscenes, ancres caméra et transforms interpolés.

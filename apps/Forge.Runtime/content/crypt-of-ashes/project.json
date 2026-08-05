@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.5.0",
+  "formatVersion": "1.6.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -229,6 +229,75 @@
         ],
         "assets": [],
         "provenance": "openrpg-forge-default"
+      },
+      "runtimePolicies": {
+        "id": "30000000-0000-4000-8000-000000000001",
+        "schemaVersion": 1,
+        "heartbeats": [],
+        "rest": {
+          "id": "4b89052f-531d-5606-ae7d-e2f826e21734",
+          "schemaVersion": 1,
+          "enabled": false,
+          "partyPolicy": "individual",
+          "defaultDurationSeconds": 8,
+          "bindings": [
+            {
+              "id": "763d751a-c097-52b8-b242-08adab8197cf",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.completed",
+              "handler": "OnRestCompleted",
+              "authority": "server"
+            },
+            {
+              "id": "4387f37e-dde1-5210-b6e6-73482338b0f4",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.interrupted",
+              "handler": "OnRestInterrupted",
+              "authority": "server"
+            },
+            {
+              "id": "539ca862-64ca-5f6c-9e05-6ae35628f5fb",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.requested",
+              "handler": "OnRestRequested",
+              "authority": "server"
+            },
+            {
+              "id": "8c9fec00-36ad-528d-804e-f1fcbf62ce01",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.started",
+              "handler": "OnRestStarted",
+              "authority": "server"
+            }
+          ],
+          "provenance": "migration-default"
+        },
+        "sequenceAbort": {
+          "id": "c7aad617-cb73-5719-ae1d-da6ba89367eb",
+          "schemaVersion": 1,
+          "enabled": true,
+          "binding": {
+            "id": "76646978-b819-59b4-8aea-7f722cd8c6f4",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "forgeScriptApiVersion": "1.0",
+            "eventName": "sequence.aborted",
+            "handler": "OnSequenceAborted",
+            "authority": "server"
+          },
+          "restore": "all",
+          "maximumNarrativeRollbackSteps": 64,
+          "provenance": "migration-default"
+        },
+        "provenance": "migration-default"
       }
     },
     "blueprints": [
@@ -527,7 +596,7 @@
       {
         "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
         "slug": "crypt-of-ashes",
-        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-786a48666b2b673f.json"
+        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-50a75ec31f63d5fb.json"
       }
     ],
     "dialogues": [

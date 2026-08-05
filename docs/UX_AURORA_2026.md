@@ -210,6 +210,13 @@ nœuds du moteur. Une seule action braise applique le profil complet par transac
 reconstruit immédiatement terrain, collisions et overlays. Les providers non encore rendus
 nativement restent identifiés comme replis, jamais présentés comme une réussite silencieuse.
 
+G11-J ajoute **Rythme, repos & séquences** depuis le workspace Zones. Les tâches planifiées du
+module et de la zone montrent cadence, budget, handler et suspension ; le repos sépare cycle de
+groupe, règle locale, explication joueur, cooldown, rayon sûr et volume dangereux ; l'abandon
+présente explicitement caméra, contrôle, invulnérabilité, verrous et transaction narrative. Une
+seule action valide en dry-run puis applique module et zone par une transaction annulable. Le
+runtime utilise `R` pour demander un repos et ne masque jamais un refus de règle.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

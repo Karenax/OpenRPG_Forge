@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using Forge.Application.Areas;
+using Forge.Application.Lifecycle;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
@@ -12,6 +13,8 @@ using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
+using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Spatial;
 using Forge.EngineAdapter.Spatial;
 using Forge.EngineAdapter.Rendering;
 using Forge.EngineAdapter.World;
@@ -41,6 +44,9 @@ public partial class GameRoot : Node3D
     private readonly HashSet<string> _inventory = new(StringComparer.Ordinal);
     private readonly NativeForgeScriptRuntime _forgeScriptRuntime = new();
     private readonly List<RuntimeLifecycleEvent> _lifecycleEvents = [];
+    private readonly HeartbeatScheduler _heartbeatScheduler = new();
+    private readonly RestRuntimeCoordinator _restRuntime = new();
+    private readonly ProjectGameplayEventBus _gameplayEvents = new();
 
     private PlayerController? _player;
     private CombatantState? _playerCombatant;
@@ -86,6 +92,10 @@ public partial class GameRoot : Node3D
     private string? _climateSignature;
     private double _climateProbeElapsed;
     private Node3D? _areaWorldRoot;
+    private ModuleRuntimePolicyProfile? _moduleRuntimePolicies;
+    private AreaRuntimePolicyProfile? _areaRuntimePolicies;
+    private RestSession? _restSession;
+    private long _runtimePolicyRevision;
 
     public override void _Ready()
     {
@@ -128,6 +138,7 @@ public partial class GameRoot : Node3D
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
             _message = $"Explorez {_moduleTitle}.";
             var entryArea = project.Areas.Single(area => area.Id == project.Module.EntryAreaId);
+            ConfigureRuntimePolicies(project.Module.RuntimePolicies, entryArea.RuntimePolicies);
             ConfigureWorld(entryArea.Environment, entryArea.World, _isCryptPrototype);
             var selectedSpawn = BuildProject(project, requestedSpawnId);
             EnsureLifecycle(
@@ -198,6 +209,7 @@ public partial class GameRoot : Node3D
     public override void _Process(double delta)
     {
         AdvanceClimate(delta);
+        AdvanceRuntimePolicies(delta);
 
         if (_player is null)
         {
@@ -229,6 +241,11 @@ public partial class GameRoot : Node3D
         {
             LoadRuntimeSave(_quickSavePath!);
             UpdateHud();
+        }
+
+        if (Input.IsActionJustPressed("rest"))
+        {
+            RequestPlayerRest();
         }
 
         if (_isCryptPrototype && !_escaped && _bossDefeated && IsNear(_exit, 2.5f))
@@ -877,6 +894,98 @@ public partial class GameRoot : Node3D
         {
             _climateProbeElapsed = 0;
             ApplyClimateEffects(force: false);
+        }
+    }
+
+    private void ConfigureRuntimePolicies(ModuleRuntimePolicyProfile module, AreaRuntimePolicyProfile area)
+    {
+        _moduleRuntimePolicies = module ?? throw new ArgumentNullException(nameof(module));
+        _areaRuntimePolicies = area ?? throw new ArgumentNullException(nameof(area));
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_G11J_POLICY_PASS global={module.Heartbeats.Count} area={area.Heartbeats.Count} " +
+            $"rest={module.Rest.Enabled.ToString().ToLowerInvariant()} volumes={area.Rest.Volumes.Count} " +
+            $"abort={module.SequenceAbort.Enabled.ToString().ToLowerInvariant()} restore={module.SequenceAbort.Restore}");
+    }
+
+    private void AdvanceRuntimePolicies(double delta)
+    {
+        if (_moduleRuntimePolicies is null || _areaRuntimePolicies is null) return;
+        var milliseconds = Math.Max(0, (long)Math.Round(delta * 1_000, MidpointRounding.AwayFromZero));
+        DispatchHeartbeats(_heartbeatScheduler.Advance(_moduleRuntimePolicies.Heartbeats, milliseconds, true));
+        DispatchHeartbeats(_heartbeatScheduler.Advance(_areaRuntimePolicies.Heartbeats, milliseconds, true,
+            _currentAreaId is null ? null : AreaId.Parse(_currentAreaId)));
+        if (_restSession is { Active: true } session && DateTimeOffset.UtcNow >= session.CompletesAt)
+        {
+            var completed = _restRuntime.Complete(session, ++_runtimePolicyRevision, DateTimeOffset.UtcNow);
+            PublishRestEvents(completed.Events);
+            _restSession = completed.Session;
+            _message = completed.Accepted ? "Repos terminé." : "Le repos a été interrompu.";
+            UpdateHud();
+        }
+    }
+
+    private static void DispatchHeartbeats(HeartbeatAdvanceResult result)
+    {
+        foreach (var diagnostic in result.Diagnostics)
+        {
+            GD.Print($"OPENRPG_FORGE_RUNTIME_POLICY_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        }
+
+        foreach (var dispatch in result.Dispatches)
+        {
+            GD.Print(
+                $"OPENRPG_FORGE_RUNTIME_HEARTBEAT handler={dispatch.Handler} scope={dispatch.Scope} " +
+                $"budget_ms={dispatch.BudgetMilliseconds} due_ms={dispatch.DueAtMilliseconds}");
+        }
+    }
+
+    private void RequestPlayerRest()
+    {
+        if (_player is null || _moduleRuntimePolicies is null || _areaRuntimePolicies is null ||
+            _currentAreaId is null)
+        {
+            return;
+        }
+
+        var position = _player.GlobalPosition;
+        var restPosition = new Vector3Value(position.X, position.Y, position.Z);
+        var effectivePolicy = _areaRuntimePolicies.Rest.ResolveAt(restPosition);
+        var result = _restRuntime.Request("player", "player-party", AreaId.Parse(_currentAreaId),
+            restPosition, _moduleRuntimePolicies.Rest, _areaRuntimePolicies.Rest,
+            secure: _hostiles.Keys.All(hostile => hostile.GlobalPosition.DistanceTo(position) >
+                effectivePolicy.RequiredSecureRadius),
+            EvaluateRuntimePolicyCondition, ++_runtimePolicyRevision, DateTimeOffset.UtcNow);
+        PublishRestEvents(result.Events);
+        _restSession = result.Session;
+        _message = result.Accepted
+            ? $"Repos en cours ({_moduleRuntimePolicies.Rest.DefaultDurationSeconds} s)…"
+            : result.Events.LastOrDefault()?.Cause ?? result.DiagnosticCode ?? "Repos refusé.";
+        UpdateHud();
+    }
+
+    private bool EvaluateRuntimePolicyCondition(string expression)
+    {
+        var parts = expression.Split("==", 2, StringSplitOptions.TrimEntries);
+        if (parts.Length != 2 || !_blackboard.TryGetValue(parts[0], out var value)) return false;
+        return string.Equals(value, parts[1], StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void PublishRestEvents(IReadOnlyList<RestLifecycleEvent> events)
+    {
+        foreach (var @event in events)
+        {
+            var published = _gameplayEvents.Publish(@event);
+            if (!published.Accepted)
+            {
+                GD.PrintErr($"OPENRPG_FORGE_RUNTIME_REST_EVENT_FAILED code={published.DiagnosticCode}");
+                continue;
+            }
+
+            var binding = _moduleRuntimePolicies?.Rest.Bindings.SingleOrDefault(item =>
+                string.Equals(item.EventName, @event.EventName, StringComparison.Ordinal));
+            GD.Print(
+                $"OPENRPG_FORGE_RUNTIME_REST_EVENT stage={@event.Stage} handler={binding?.Handler ?? "unbound"} " +
+                $"revision={@event.ServerRevision}");
         }
     }
 
@@ -1857,6 +1966,7 @@ public partial class GameRoot : Node3D
         RegisterKeyAction("attack", Key.Space);
         RegisterKeyAction("quick_save", Key.F5);
         RegisterKeyAction("quick_load", Key.F9);
+        RegisterKeyAction("rest", Key.R);
     }
 
     private static void RegisterKeyAction(StringName action, params Key[] keys)

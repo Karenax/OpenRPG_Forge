@@ -165,7 +165,8 @@ public sealed class SafeRenameHandler
                 project.Module.Distribution,
                 project.Module.Localization,
                 project.Module.Content,
-                project.Module.ArtisticStyle)
+                project.Module.ArtisticStyle,
+                project.Module.RuntimePolicies)
             : project.Module;
         var areas = kind == CreatorContentKind.Area
             ? project.Areas.Select(area => area.Id.ToString() == targetId
@@ -181,7 +182,8 @@ public sealed class SafeRenameHandler
                     area.Navigation,
                     area.Environment,
                     area.Authoring,
-                    area.World)
+                    area.World,
+                    area.RuntimePolicies)
                 : area).ToArray()
             : project.Areas;
         var blueprints = kind == CreatorContentKind.Blueprint

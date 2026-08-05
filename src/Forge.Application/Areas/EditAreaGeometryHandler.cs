@@ -31,7 +31,7 @@ public sealed class EditAreaGeometryHandler
             : Domain.Areas.AreaWorldProfile.ResizeForArea(area.World, command.Dimensions);
         var updatedArea = new Domain.Areas.AreaDefinition(area.Id, area.Slug, area.DisplayName, command.Entities,
             area.Kind, command.Dimensions, area.Portals, area.SchemaVersion, area.Navigation, area.Environment,
-            area.Authoring, world);
+            area.Authoring, world, area.RuntimePolicies);
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title, state.Project.Module,
             state.Project.Blueprints, state.Project.Areas.Select(item => item.Id == area.Id ? updatedArea : item).ToArray(),
             state.Project.Dialogues, state.Project.Quests);

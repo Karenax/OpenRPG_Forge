@@ -9,6 +9,7 @@ using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Assets;
@@ -33,7 +34,9 @@ public sealed class ForgeProjectAgentService
     private readonly ProjectCommandHistory _history;
     private readonly SetDialogueHandler _dialogueHandler;
     private readonly SetEntityOverridesHandler _overridesHandler;
+    private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly IClock _clock;
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
@@ -43,6 +46,7 @@ public sealed class ForgeProjectAgentService
         _history = new ProjectCommandHistory(new ProjectState(session.Project, new ProjectRevision(0)));
         _dialogueHandler = new SetDialogueHandler(clock);
         _overridesHandler = new SetEntityOverridesHandler(clock);
+        _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
     }
 
     public string WorkspaceDirectory => _session.RootDirectory;
@@ -95,6 +99,144 @@ public sealed class ForgeProjectAgentService
             return ProjectDiagnosticCatalog.Build(_history.State.Project)
                 .Select(Map)
                 .ToArray();
+        }
+    }
+
+    public RuntimePolicyResource GetRuntimePolicies(string? areaId = null)
+    {
+        lock (_gate)
+        {
+            var project = _history.State.Project;
+            var selected = string.IsNullOrWhiteSpace(areaId)
+                ? project.Areas.Single(item => item.Id == project.Module.EntryAreaId)
+                : project.Areas.Single(item => item.Id.Value == Guid.Parse(areaId));
+            return new RuntimePolicyResource(1, _history.State.Revision.Value, selected.Id.ToString(),
+                project.Module.RuntimePolicies, selected.RuntimePolicies);
+        }
+    }
+
+    public RuntimePolicyPlanResult PlanRuntimePolicies(RuntimePolicyPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+            {
+                return RuntimePolicyFailure(request.BaseRevision, "runtime_policy_plan.schema_unsupported",
+                    "Runtime policy plan schema must be 1.");
+            }
+
+            SetRuntimePoliciesCommand command;
+            try
+            {
+                command = new SetRuntimePoliciesCommand(CommandId.From(Guid.NewGuid()),
+                    new ProjectRevision(request.BaseRevision), request.Module, AreaId.From(Guid.Parse(request.AreaId)),
+                    request.Area, true);
+            }
+            catch (Exception exception) when (exception is ArgumentException or FormatException)
+            {
+                return RuntimePolicyFailure(request.BaseRevision, "runtime_policy_plan.invalid", exception.Message);
+            }
+
+            var preview = _runtimePoliciesHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+            {
+                return new RuntimePolicyPlanResult(false, null, request.BaseRevision, preview.Patch,
+                    preview.Inverse, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            }
+
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredRuntimePolicyPlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new RuntimePolicyAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _runtimePolicyPlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public RuntimePolicyPlanResult ApplyRuntimePolicyPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_runtimePolicyPlans.TryGetValue(planId, out var plan))
+            {
+                return RuntimePolicyFailure(GetCurrentRevision(), "runtime_policy_plan.missing",
+                    $"Runtime policy plan '{planId}' does not exist.");
+            }
+
+            if (plan.Applied)
+            {
+                return RuntimePolicyFailure(plan.Command.BaseRevision.Value, "runtime_policy_plan.already_applied",
+                    $"Runtime policy plan '{planId}' is already applied.");
+            }
+
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _runtimePoliciesHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new RuntimePolicyAuditEntry(planId, "apply", _history.State.Revision.Value,
+                    _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+            {
+                plan.Audit.Add(new RuntimePolicyAuditEntry(planId, "apply", _history.State.Revision.Value,
+                    _clock.UtcNow, false));
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            }
+
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new RuntimePolicyAuditEntry(planId, "apply", plan.AppliedRevision.Value,
+                _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public RuntimePolicyPlanResult RevertRuntimePolicyPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_runtimePolicyPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+            {
+                return RuntimePolicyFailure(GetCurrentRevision(), "runtime_policy_plan.not_applied",
+                    $"Runtime policy plan '{planId}' is not currently applied.");
+            }
+
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+            {
+                return RuntimePolicyFailure(plan.Command.BaseRevision.Value, "runtime_policy_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            }
+
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+            {
+                return RuntimePolicyFailure(plan.Command.BaseRevision.Value,
+                    "runtime_policy_plan.inverse_unavailable", "The inverse operation is unavailable.");
+            }
+
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return RuntimePolicyFailure(plan.Command.BaseRevision.Value, "runtime_policy_plan.save_failed",
+                    "The reverted project could not be saved.");
+            }
+
+            plan.Reverted = true;
+            plan.Audit.Add(new RuntimePolicyAuditEntry(planId, "revert", undone.State.Revision.Value,
+                _clock.UtcNow, true));
+            return ToResult(plan);
         }
     }
 
@@ -511,6 +653,28 @@ public sealed class ForgeProjectAgentService
         null,
         [new AgentDiagnostic(code, message)]);
 
+    private static RuntimePolicyPlanResult RuntimePolicyFailure(long revision, string code, string message) => new(
+        false,
+        null,
+        revision,
+        null,
+        null,
+        [new AgentDiagnostic(code, message)],
+        false,
+        false,
+        []);
+
+    private static RuntimePolicyPlanResult ToResult(StoredRuntimePolicyPlan plan) => new(
+        true,
+        plan.PlanId,
+        plan.Command.BaseRevision.Value,
+        plan.Diff,
+        plan.Inverse,
+        [],
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
     private sealed class StoredDialoguePlan(
         string planId,
         DialogueDefinition dialogue,
@@ -530,6 +694,30 @@ public sealed class ForgeProjectAgentService
         public ProjectPatch Inverse { get; } = inverse;
 
         public List<PlanAuditEntry> Audit { get; } = audit;
+
+        public bool Applied { get; set; }
+
+        public bool Reverted { get; set; }
+
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredRuntimePolicyPlan(
+        string planId,
+        SetRuntimePoliciesCommand command,
+        ProjectPatch diff,
+        ProjectPatch inverse,
+        List<RuntimePolicyAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+
+        public SetRuntimePoliciesCommand Command { get; } = command;
+
+        public ProjectPatch Diff { get; } = diff;
+
+        public ProjectPatch Inverse { get; } = inverse;
+
+        public List<RuntimePolicyAuditEntry> Audit { get; } = audit;
 
         public bool Applied { get; set; }
 

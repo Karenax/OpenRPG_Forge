@@ -391,6 +391,26 @@ public sealed class ProjectJsonSerializerTests
     }
 
     [Fact]
+    public void Deserialize_MigratesPreRuntimePoliciesWithStableInactiveDefaults()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreRuntimePolicyFormatVersion;
+        document["project"]!["module"]!.AsObject().Remove("runtimePolicies");
+        document["project"]!["areas"]!.AsArray()[0]!.AsObject().Remove("runtimePolicies");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Equal(first.Module.RuntimePolicies.Id, second.Module.RuntimePolicies.Id);
+        Assert.False(first.Module.RuntimePolicies.Rest.Enabled);
+        Assert.Empty(first.Module.RuntimePolicies.Heartbeats);
+        Assert.Equal(first.Areas[0].RuntimePolicies.Id, second.Areas[0].RuntimePolicies.Id);
+        Assert.Empty(first.Areas[0].RuntimePolicies.Heartbeats);
+        Assert.Contains($"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(first), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Deserialize_MigratesPaletteProvenanceFormatWithProjectDefaults()
     {
         var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();

@@ -101,7 +101,9 @@ public sealed class DuplicateAreaHandler
             navigation: AreaNavigationDefinition.CloneForArea(source.Navigation, command.DestinationAreaId),
             environment: source.Environment,
             authoring: source.Authoring,
-            world: AreaWorldProfile.CloneForArea(source.World, command.DestinationAreaId));
+            world: AreaWorldProfile.CloneForArea(source.World, command.DestinationAreaId),
+            runtimePolicies: Domain.RuntimePolicies.AreaRuntimePolicyProfile.CloneForArea(
+                source.RuntimePolicies, command.DestinationAreaId));
         var updatedProject = new ProjectDefinition(
             state.Project.Id,
             state.Project.Title,

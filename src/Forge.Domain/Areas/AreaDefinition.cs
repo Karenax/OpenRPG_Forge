@@ -1,5 +1,6 @@
 using Forge.Domain.Entities;
 using Forge.Domain.Navigation;
+using Forge.Domain.RuntimePolicies;
 
 namespace Forge.Domain.Areas;
 
@@ -27,6 +28,7 @@ public sealed record AreaDefinition
     public AreaEnvironmentProfile Environment { get; }
     public AreaAuthoringProfile Authoring { get; }
     public AreaWorldProfile World { get; }
+    public AreaRuntimePolicyProfile RuntimePolicies { get; }
 
     public AreaDefinition(
         AreaId id,
@@ -40,7 +42,8 @@ public sealed record AreaDefinition
         AreaNavigationDefinition? navigation = null,
         AreaEnvironmentProfile? environment = null,
         AreaAuthoringProfile? authoring = null,
-        AreaWorldProfile? world = null)
+        AreaWorldProfile? world = null,
+        AreaRuntimePolicyProfile? runtimePolicies = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -77,23 +80,28 @@ public sealed record AreaDefinition
         Environment = environment ?? AreaEnvironmentProfile.CreateDefault(kind);
         Authoring = authoring ?? AreaAuthoringProfile.CreateDefault();
         World = world ?? AreaWorldProfile.CreateDefault(id, kind, Dimensions);
+        RuntimePolicies = runtimePolicies ?? AreaRuntimePolicyProfile.CreateDefault(id);
     }
 
     public AreaDefinition WithEntities(IReadOnlyList<EntityInstance> entities) =>
-        new(Id, Slug, DisplayName, entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, Authoring, World);
+        new(Id, Slug, DisplayName, entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, Authoring, World, RuntimePolicies);
 
     public AreaDefinition WithPortals(IReadOnlyList<PortalLink> portals) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, portals, SchemaVersion, Navigation, Environment, Authoring, World);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, portals, SchemaVersion, Navigation, Environment, Authoring, World, RuntimePolicies);
 
     public AreaDefinition WithNavigation(AreaNavigationDefinition navigation) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, navigation, Environment, Authoring, World);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, navigation, Environment, Authoring, World, RuntimePolicies);
 
     public AreaDefinition WithEnvironment(AreaEnvironmentProfile environment) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, environment, Authoring, World);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, environment, Authoring, World, RuntimePolicies);
 
     public AreaDefinition WithAuthoring(AreaAuthoringProfile authoring) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, authoring, World);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, authoring, World, RuntimePolicies);
 
     public AreaDefinition WithWorld(AreaWorldProfile world) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, Authoring, world);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, Authoring, world, RuntimePolicies);
+
+    public AreaDefinition WithRuntimePolicies(AreaRuntimePolicyProfile runtimePolicies) =>
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment,
+            Authoring, World, runtimePolicies);
 }

@@ -1,5 +1,5 @@
 {
-  "formatVersion": "0.6.3",
+  "formatVersion": "1.6.0",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -30,7 +30,234 @@
         "classification": "Non class\u00E9",
         "provenance": "migration-default"
       },
-      "variables": []
+      "variables": [],
+      "distribution": {
+        "id": "f07c3b48-eea9-5f8a-a71a-c0bf75e4ecfb",
+        "schemaVersion": 1,
+        "targetProfiles": [
+          {
+            "id": "c7453f52-bac1-5940-99bb-9497ced21299",
+            "schemaVersion": 1,
+            "target": "editor",
+            "enabled": true,
+            "includeEditorData": true,
+            "includeDebugSymbols": true,
+            "optimizeContent": false,
+            "requireApprovedLicenses": false,
+            "outputName": "editor",
+            "secretsProfile": "editor",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "3532d088-1102-5c41-ade8-9b386620a175",
+            "schemaVersion": 1,
+            "target": "client",
+            "enabled": true,
+            "includeEditorData": false,
+            "includeDebugSymbols": false,
+            "optimizeContent": true,
+            "requireApprovedLicenses": true,
+            "outputName": "client",
+            "secretsProfile": "client",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "2d0fa1dd-5acf-5953-8d26-7ca404087d58",
+            "schemaVersion": 1,
+            "target": "dedicatedServer",
+            "enabled": true,
+            "includeEditorData": false,
+            "includeDebugSymbols": false,
+            "optimizeContent": true,
+            "requireApprovedLicenses": true,
+            "outputName": "dedicatedserver",
+            "secretsProfile": "dedicatedserver",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "89b99c24-1051-56a9-8298-7a992ef37ebc",
+            "schemaVersion": 1,
+            "target": "test",
+            "enabled": true,
+            "includeEditorData": true,
+            "includeDebugSymbols": true,
+            "optimizeContent": false,
+            "requireApprovedLicenses": false,
+            "outputName": "test",
+            "secretsProfile": "test",
+            "provenance": "migration-default"
+          },
+          {
+            "id": "77130827-7f71-56ee-999f-17ae35256f49",
+            "schemaVersion": 1,
+            "target": "shipping",
+            "enabled": true,
+            "includeEditorData": false,
+            "includeDebugSymbols": false,
+            "optimizeContent": true,
+            "requireApprovedLicenses": true,
+            "outputName": "shipping",
+            "secretsProfile": "shipping",
+            "provenance": "migration-default"
+          }
+        ],
+        "dependencies": [],
+        "release": {
+          "id": "fcbcc8dc-40e0-5192-8a60-1a5b96126b97",
+          "schemaVersion": 1,
+          "channel": "development",
+          "platforms": [
+            "windowsX64"
+          ],
+          "signing": {
+            "schemaVersion": 1,
+            "mode": "optional",
+            "signingProfile": "local-signing",
+            "trustedKeyFingerprints": [],
+            "revokedKeyFingerprints": [],
+            "allowUnsignedDevelopment": true
+          },
+          "delta": {
+            "schemaVersion": 1,
+            "enabled": true,
+            "chunkSizeBytes": 1048576,
+            "allowResume": true,
+            "deduplicateByHash": true,
+            "allowRollback": true,
+            "retainedVersions": 2
+          },
+          "windowsPackaging": {
+            "schemaVersion": 1,
+            "mode": "portableAndInstaller",
+            "detectPrerequisites": true,
+            "writeInstallLog": true,
+            "includeUninstaller": true,
+            "prerequisites": [
+              "vulkan-or-d3d12",
+              "windows-x64"
+            ]
+          },
+          "provenance": "migration-default"
+        },
+        "provenance": "migration-default"
+      },
+      "localization": {
+        "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+        "schemaVersion": 1,
+        "defaultLocale": "fr",
+        "locales": [
+          "fr"
+        ],
+        "messages": []
+      },
+      "content": {
+        "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+        "schemaVersion": 1,
+        "batch": {
+          "glob": "*",
+          "extensions": [
+            ".forge",
+            ".glb",
+            ".json",
+            ".ogg",
+            ".png"
+          ],
+          "collisionPolicy": "fail",
+          "provenance": "project-author",
+          "licenseSpdx": "UNLICENSED"
+        },
+        "dataTables": [],
+        "mergePolicy": "preserveBoth",
+        "provenance": "project-author"
+      },
+      "artisticStyle": {
+        "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+        "schemaVersion": 1,
+        "metersPerUnit": 1,
+        "targetTexelDensity": 512,
+        "scaleTolerancePercent": 20,
+        "texelTolerancePercent": 50,
+        "shaderFamily": "pbr-metallic-roughness",
+        "era": "original-fantasy",
+        "realism": "stylizedRealism",
+        "palette": [
+          "earth",
+          "ember",
+          "stone",
+          "vegetation"
+        ],
+        "assets": [],
+        "provenance": "openrpg-forge-default"
+      },
+      "runtimePolicies": {
+        "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+        "schemaVersion": 1,
+        "heartbeats": [],
+        "rest": {
+          "id": "0d694507-a6e9-58e2-9bbb-fc29e395d1b3",
+          "schemaVersion": 1,
+          "enabled": false,
+          "partyPolicy": "individual",
+          "defaultDurationSeconds": 8,
+          "bindings": [
+            {
+              "id": "c307baec-5f6e-531b-b5c8-e1ad5569b1e7",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.completed",
+              "handler": "OnRestCompleted",
+              "authority": "server"
+            },
+            {
+              "id": "9addf209-67c1-5140-b071-a3a64336ffb6",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.interrupted",
+              "handler": "OnRestInterrupted",
+              "authority": "server"
+            },
+            {
+              "id": "6a2e1d1d-1421-5522-9099-850d4d9c1dca",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.requested",
+              "handler": "OnRestRequested",
+              "authority": "server"
+            },
+            {
+              "id": "6b6d0fce-abf0-56a5-a1d6-52a5f487ae33",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.started",
+              "handler": "OnRestStarted",
+              "authority": "server"
+            }
+          ],
+          "provenance": "migration-default"
+        },
+        "sequenceAbort": {
+          "id": "8dd14d4f-29d2-5d67-872b-3006178e84c3",
+          "schemaVersion": 1,
+          "enabled": true,
+          "binding": {
+            "id": "4eba9a5e-dda2-5ef4-9471-d218ecfa0196",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "forgeScriptApiVersion": "1.0",
+            "eventName": "sequence.aborted",
+            "handler": "OnSequenceAborted",
+            "authority": "server"
+          },
+          "restore": "all",
+          "maximumNarrativeRollbackSteps": 64,
+          "provenance": "migration-default"
+        },
+        "provenance": "migration-default"
+      }
     },
     "blueprints": [
       {
@@ -74,75 +301,7 @@
       {
         "id": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
         "slug": "archipel-oublie",
-        "displayName": "Archipel oubli\u00E9",
-        "schemaVersion": 1,
-        "kind": "interior",
-        "dimensions": {
-          "width": 20,
-          "depth": 20
-        },
-        "entities": [
-          {
-            "id": "50542d7e-d54f-409b-8156-06cca92b2ea6",
-            "blueprintId": "ba1e3949-af2a-409a-af27-8c6698694111",
-            "transform": {
-              "position": {
-                "x": 0,
-                "y": -0.5,
-                "z": 0
-              },
-              "rotation": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 1
-              },
-              "scale": {
-                "x": 16,
-                "y": 1,
-                "z": 16
-              }
-            },
-            "tags": [
-              "floor",
-              "solid"
-            ],
-            "overrides": {
-              "schemaVersion": 1,
-              "properties": []
-            }
-          },
-          {
-            "id": "72dd2ac1-381c-4652-a8ff-5d2be82dcb61",
-            "blueprintId": "46d891e5-a116-48df-8b2e-0fdebf16bc52",
-            "transform": {
-              "position": {
-                "x": 0,
-                "y": 0.8,
-                "z": 0
-              },
-              "rotation": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 1
-              },
-              "scale": {
-                "x": 1,
-                "y": 1,
-                "z": 1
-              }
-            },
-            "tags": [
-              "player"
-            ],
-            "overrides": {
-              "schemaVersion": 1,
-              "properties": []
-            }
-          }
-        ],
-        "portals": []
+        "documentPath": "areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-7705e01c7c4464a3.json"
       }
     ],
     "dialogues": [],

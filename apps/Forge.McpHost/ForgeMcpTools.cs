@@ -33,6 +33,26 @@ public sealed class ForgeMcpTools
     public IReadOnlyList<AgentDiagnostic> GetProjectDiagnostics() => _project.GetDiagnostics();
 
     [McpServerTool]
+    [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]
+    public RuntimePolicyResource GetRuntimePolicies(string? areaId = null) =>
+        _project.GetRuntimePolicies(areaId);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a versioned runtime-policy plan. It returns a diff and inverse without applying changes.")]
+    public RuntimePolicyPlanResult PlanRuntimePolicies(RuntimePolicyPlanRequest request) =>
+        _project.PlanRuntimePolicies(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated runtime-policy plan if its base revision still matches.")]
+    public RuntimePolicyPlanResult ApplyRuntimePolicyPlan(string planId) =>
+        _project.ApplyRuntimePolicyPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied runtime-policy plan through its inverse operation.")]
+    public RuntimePolicyPlanResult RevertRuntimePolicyPlan(string planId) =>
+        _project.RevertRuntimePolicyPlan(planId);
+
+    [McpServerTool]
     [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]
     public AgentAssetCatalogResult GetAssetCatalog(
         string? query = null,

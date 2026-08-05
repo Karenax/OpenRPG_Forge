@@ -28,6 +28,7 @@ public partial class AreaWorkspaceWindow : Window
     private Action? _openNavigation;
     private Action? _openEnvironment;
     private Action? _openTerrain;
+    private Action? _openRuntimePolicies;
     private Action? _openAuthoring;
     private Action<Window>? _brandWindow;
 
@@ -73,6 +74,7 @@ public partial class AreaWorkspaceWindow : Window
         Action openNavigation,
         Action openEnvironment,
         Action openTerrain,
+        Action openRuntimePolicies,
         Action openAuthoring,
         Action<Window> brandWindow)
     {
@@ -86,6 +88,7 @@ public partial class AreaWorkspaceWindow : Window
         _openNavigation = openNavigation ?? throw new ArgumentNullException(nameof(openNavigation));
         _openEnvironment = openEnvironment ?? throw new ArgumentNullException(nameof(openEnvironment));
         _openTerrain = openTerrain ?? throw new ArgumentNullException(nameof(openTerrain));
+        _openRuntimePolicies = openRuntimePolicies ?? throw new ArgumentNullException(nameof(openRuntimePolicies));
         _openAuthoring = openAuthoring ?? throw new ArgumentNullException(nameof(openAuthoring));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
 
@@ -332,6 +335,9 @@ public partial class AreaWorkspaceWindow : Window
         var terrainButton = new Button { Text = "Terrain & volumes…" };
         terrainButton.Pressed += () => _openTerrain?.Invoke();
         validationHeading.AddChild(terrainButton);
+        var runtimePoliciesButton = new Button { Text = "Rythme, repos & séquences…" };
+        runtimePoliciesButton.Pressed += () => _openRuntimePolicies?.Invoke();
+        validationHeading.AddChild(runtimePoliciesButton);
         var authoringButton = new Button { Text = "Carte, événements & calques…" };
         authoringButton.Pressed += () => _openAuthoring?.Invoke(); validationHeading.AddChild(authoringButton);
         validationRow.AddChild(validationHeading);

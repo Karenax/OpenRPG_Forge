@@ -422,7 +422,8 @@ Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dan
 - [x] **G11-G** — rendu PBR/HDR, éclairage par pixel, budgets dynamiques et ciel canonique.
 - [x] **G11-H** — vent, météo, eau et réverbération runtime.
 - [x] **G11-I** — terrain multi-biome, features et navigation volumétrique.
-- [ ] **G11-J à G11-T** — poursuivre les lots bornés du plan de preuves Aurora.
+- [x] **G11-J** — timers globaux/locaux, repos conditionnel et abandon sûr d'une séquence.
+- [ ] **G11-K à G11-T** — poursuivre les lots bornés du plan de preuves Aurora.
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest
 

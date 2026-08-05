@@ -3,6 +3,7 @@ using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
 using Forge.Domain.Spatial;
+using Forge.Domain.RuntimePolicies;
 using Forge.ModuleFormat.Serialization;
 
 namespace Forge.ModuleFormat.Tests.Serialization;
@@ -46,6 +47,27 @@ public sealed class AreaJsonSerializerTests
         Assert.Equal(area.World.Terrain.Id, restored.World.Terrain.Id);
         Assert.Equal(area.World.Terrain.Heights, restored.World.Terrain.Heights);
         Assert.Equal(area.World.Biomes.Select(item => item.Id), restored.World.Biomes.Select(item => item.Id));
+        Assert.Equal(area.RuntimePolicies.Id, restored.RuntimePolicies.Id);
+        Assert.Equal(RestPermissionMode.Allowed, restored.RuntimePolicies.Rest.Mode);
+    }
+
+    [Fact]
+    public void Deserialize_MigratesPreRuntimePolicyDocumentWithStableSafeDefaults()
+    {
+        var area = new AreaDefinition(AreaId.From(Guid.Parse("210a9e3e-230f-46cc-a915-8d2d83069f29")),
+            "forest-edge", "Forest edge", [], AreaKind.Exterior, new AreaDimensions(128, 96));
+        var document = JsonNode.Parse(AreaJsonSerializer.Serialize(area))!.AsObject();
+        document["formatVersion"] = AreaJsonSerializer.PreRuntimePolicyFormatVersion;
+        document["area"]!.AsObject().Remove("runtimePolicies");
+
+        var first = AreaJsonSerializer.Deserialize(document.ToJsonString());
+        var second = AreaJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Equal(first.RuntimePolicies.Id, second.RuntimePolicies.Id);
+        Assert.Empty(first.RuntimePolicies.Heartbeats);
+        Assert.Equal(RestPermissionMode.Allowed, first.RuntimePolicies.Rest.Mode);
+        Assert.Contains($"\"formatVersion\": \"{AreaJsonSerializer.CurrentFormatVersion}\"",
+            AreaJsonSerializer.Serialize(first), StringComparison.Ordinal);
     }
 
     [Fact]

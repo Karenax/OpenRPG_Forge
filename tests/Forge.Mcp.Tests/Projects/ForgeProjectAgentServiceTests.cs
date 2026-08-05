@@ -2,6 +2,7 @@ using System.Text.Json;
 using Forge.Domain.Areas;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Projects;
+using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Assets;
@@ -87,6 +88,56 @@ public sealed class ForgeProjectAgentServiceTests
             Assert.Equal("ambientcg", item.Source);
         });
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void RuntimePolicyResourceIsCanonicalAndReadOnly()
+    {
+        using var workspace = new TestWorkspace();
+
+        var resource = workspace.Project.GetRuntimePolicies();
+
+        Assert.Equal(1, resource.SchemaVersion);
+        Assert.Equal(0, resource.Revision);
+        Assert.Equal(resource.Module.Id.ToString("D"), resource.Module.Id.ToString());
+        Assert.Equal(resource.AreaId, resource.Area.Id.ToString("D"));
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void RuntimePolicyPlanSupportsDryRunApplyInversePersistenceAndAudit()
+    {
+        using var workspace = new TestWorkspace();
+        var resource = workspace.Project.GetRuntimePolicies();
+        var global = new HeartbeatScheduleDefinition(Guid.NewGuid(), 1, "World clock", HeartbeatScope.Module,
+            true, 2_000, 12, false, "1.0", "OnGlobalHeartbeat", "mcp-test");
+        var local = new HeartbeatScheduleDefinition(Guid.NewGuid(), 1, "Area ecology", HeartbeatScope.Area,
+            true, 1_000, 8, true, "1.0", "OnAreaHeartbeat", "mcp-test");
+        var module = new ModuleRuntimePolicyProfile(resource.Module.Id, 1, [global], resource.Module.Rest,
+            resource.Module.SequenceAbort, "mcp-test");
+        var area = new AreaRuntimePolicyProfile(resource.Area.Id, 1, [local], resource.Area.Rest, "mcp-test");
+        var request = new RuntimePolicyPlanRequest(1, resource.Revision, resource.AreaId, module, area);
+
+        var planned = workspace.Project.PlanRuntimePolicies(request);
+
+        Assert.True(planned.Succeeded);
+        Assert.Equal("runtimePolicies", planned.Diff?.Path);
+        Assert.Equal("planned", Assert.Single(planned.Audit).Action);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+
+        var applied = workspace.Project.ApplyRuntimePolicyPlan(planned.PlanId!);
+
+        Assert.True(applied.Applied);
+        Assert.Equal(1, workspace.Project.GetCurrentRevision());
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        Assert.Single(persisted.Module.RuntimePolicies.Heartbeats);
+        Assert.Single(persisted.Areas.Single(item => item.Id.ToString() == resource.AreaId).RuntimePolicies.Heartbeats);
+
+        var reverted = workspace.Project.RevertRuntimePolicyPlan(planned.PlanId!);
+
+        Assert.True(reverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+        Assert.Equal(2, workspace.Project.GetCurrentRevision());
     }
 
     [Fact]

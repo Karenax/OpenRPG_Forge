@@ -59,6 +59,9 @@ public sealed class ProjectGameplayEventBus
                 throw new InvalidOperationException("PROJECT_EQUIPMENT_EVENT_INVALID");
             case ProgressionChangedEvent progression when progression.PreviousLevel < 0 || progression.NewLevel <= progression.PreviousLevel:
                 throw new InvalidOperationException("PROJECT_PROGRESSION_EVENT_INVALID");
+            case RestLifecycleEvent rest when rest.AreaId.Value == Guid.Empty || rest.PlannedDurationSeconds <= 0 ||
+                                              string.IsNullOrWhiteSpace(rest.GroupId):
+                throw new InvalidOperationException("PROJECT_REST_EVENT_INVALID");
         }
     }
 }

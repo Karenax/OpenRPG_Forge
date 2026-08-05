@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.5.0",
+  "formatVersion": "1.6.0",
   "project": {
     "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
     "title": "La Veill\u00E9e des \u00C9clats",
@@ -188,6 +188,75 @@
         ],
         "assets": [],
         "provenance": "openrpg-forge-default"
+      },
+      "runtimePolicies": {
+        "id": "5e1ecd20-f6be-ee23-a34a-183a68e54d2f",
+        "schemaVersion": 1,
+        "heartbeats": [],
+        "rest": {
+          "id": "5d5c15c0-644b-5ea4-a685-84e82ec00de0",
+          "schemaVersion": 1,
+          "enabled": false,
+          "partyPolicy": "individual",
+          "defaultDurationSeconds": 8,
+          "bindings": [
+            {
+              "id": "c6a3c35d-5403-5a90-b556-17f0f14fddbd",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.completed",
+              "handler": "OnRestCompleted",
+              "authority": "server"
+            },
+            {
+              "id": "a30eebd0-a8ba-5d3a-a8cb-555350f1ffff",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.interrupted",
+              "handler": "OnRestInterrupted",
+              "authority": "server"
+            },
+            {
+              "id": "0f2679aa-cac2-5d69-adbe-298d919c2049",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.requested",
+              "handler": "OnRestRequested",
+              "authority": "server"
+            },
+            {
+              "id": "9df7338b-9dc8-50f7-9c79-1eba347baa26",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "rest.started",
+              "handler": "OnRestStarted",
+              "authority": "server"
+            }
+          ],
+          "provenance": "migration-default"
+        },
+        "sequenceAbort": {
+          "id": "8e484e1d-5bde-55c1-8a79-50115cd31b71",
+          "schemaVersion": 1,
+          "enabled": true,
+          "binding": {
+            "id": "7f770923-79b8-5a0b-971b-4322f0b6dc08",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "forgeScriptApiVersion": "1.0",
+            "eventName": "sequence.aborted",
+            "handler": "OnSequenceAborted",
+            "authority": "server"
+          },
+          "restore": "all",
+          "maximumNarrativeRollbackSteps": 64,
+          "provenance": "migration-default"
+        },
+        "provenance": "migration-default"
       }
     },
     "blueprints": [
@@ -362,7 +431,7 @@
       {
         "id": "72e76124-3a4a-5245-c00e-e348ac4cb292",
         "slug": "parvis-des-astres",
-        "documentPath": "areas/72e76124-3a4a-5245-c00e-e348ac4cb292-1c42fccde1f067b3.json"
+        "documentPath": "areas/72e76124-3a4a-5245-c00e-e348ac4cb292-1d2b297eb7319fc3.json"
       }
     ],
     "dialogues": [

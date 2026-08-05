@@ -196,7 +196,7 @@
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 17,
         "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -205,7 +205,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -817,7 +817,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 31,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -826,7 +826,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 77,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -835,7 +835,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 37,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -844,7 +844,7 @@
     },
     {
       "evidence": {
-        "line": 91,
+        "line": 93,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1024,7 +1024,7 @@
     },
     {
       "evidence": {
-        "line": 96,
+        "line": 98,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1033,7 +1033,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 26,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1042,7 +1042,7 @@
     },
     {
       "evidence": {
-        "line": 41,
+        "line": 42,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1051,7 +1051,7 @@
     },
     {
       "evidence": {
-        "line": 143,
+        "line": 145,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1330,7 +1330,7 @@
     },
     {
       "evidence": {
-        "line": 48,
+        "line": 52,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1339,7 +1339,7 @@
     },
     {
       "evidence": {
-        "line": 5086,
+        "line": 5121,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1573,7 +1573,7 @@
     },
     {
       "evidence": {
-        "line": 1367,
+        "line": 1371,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1582,7 +1582,7 @@
     },
     {
       "evidence": {
-        "line": 1432,
+        "line": 1436,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1591,7 +1591,7 @@
     },
     {
       "evidence": {
-        "line": 1732,
+        "line": 1736,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1600,7 +1600,7 @@
     },
     {
       "evidence": {
-        "line": 1432,
+        "line": 1436,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1609,7 +1609,7 @@
     },
     {
       "evidence": {
-        "line": 1481,
+        "line": 1485,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1618,7 +1618,7 @@
     },
     {
       "evidence": {
-        "line": 1685,
+        "line": 1689,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1636,7 +1636,7 @@
     },
     {
       "evidence": {
-        "line": 656,
+        "line": 660,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1645,7 +1645,7 @@
     },
     {
       "evidence": {
-        "line": 1432,
+        "line": 1436,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1654,7 +1654,7 @@
     },
     {
       "evidence": {
-        "line": 1482,
+        "line": 1486,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1663,7 +1663,7 @@
     },
     {
       "evidence": {
-        "line": 1534,
+        "line": 1538,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1672,7 +1672,7 @@
     },
     {
       "evidence": {
-        "line": 1626,
+        "line": 1630,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1690,7 +1690,7 @@
     },
     {
       "evidence": {
-        "line": 1337,
+        "line": 1341,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1699,7 +1699,7 @@
     },
     {
       "evidence": {
-        "line": 1432,
+        "line": 1436,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1708,7 +1708,7 @@
     },
     {
       "evidence": {
-        "line": 1483,
+        "line": 1487,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1717,7 +1717,7 @@
     },
     {
       "evidence": {
-        "line": 1534,
+        "line": 1538,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1726,7 +1726,7 @@
     },
     {
       "evidence": {
-        "line": 1701,
+        "line": 1705,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1762,7 +1762,7 @@
     },
     {
       "evidence": {
-        "line": 656,
+        "line": 660,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1789,7 +1789,7 @@
     },
     {
       "evidence": {
-        "line": 1338,
+        "line": 1342,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1807,7 +1807,7 @@
     },
     {
       "evidence": {
-        "line": 1718,
+        "line": 1722,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2221,7 +2221,7 @@
     },
     {
       "evidence": {
-        "line": 431,
+        "line": 432,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2230,7 +2230,7 @@
     },
     {
       "evidence": {
-        "line": 437,
+        "line": 438,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2370,7 +2370,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Areas"
+      "target": "namespace:Forge.Application.Lifecycle"
     },
     {
       "evidence": {
@@ -2379,7 +2379,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Assets"
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -2388,7 +2388,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Assets"
     },
     {
       "evidence": {
@@ -2397,7 +2397,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Combat"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -2406,7 +2406,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Combat"
     },
     {
       "evidence": {
@@ -2415,7 +2415,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -2424,7 +2424,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Lifecycle"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -2433,7 +2433,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Lifecycle"
     },
     {
       "evidence": {
@@ -2442,11 +2442,20 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
         "line": 14,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 15,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "imports",
@@ -2460,16 +2469,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.EngineAdapter.Rendering"
-    },
-    {
-      "evidence": {
-        "line": 15,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.EngineAdapter.Spatial"
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -2478,7 +2478,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.EngineAdapter.World"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -2487,16 +2487,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
-    },
-    {
-      "evidence": {
-        "line": 20,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Saves"
+      "target": "namespace:Forge.EngineAdapter.Rendering"
     },
     {
       "evidence": {
@@ -2505,7 +2496,34 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Serialization"
+      "target": "namespace:Forge.EngineAdapter.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.EngineAdapter.World"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Saves"
     },
     {
       "evidence": {
@@ -2514,11 +2532,20 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 25,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "imports",
@@ -3229,6 +3256,15 @@
     },
     {
       "evidence": {
+        "line": 14,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Application.Lifecycle"
+    },
+    {
+      "evidence": {
         "line": 13,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
@@ -3238,7 +3274,7 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 15,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3247,7 +3283,7 @@
     },
     {
       "evidence": {
-        "line": 15,
+        "line": 16,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3256,7 +3292,7 @@
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 17,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3265,7 +3301,7 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 18,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3274,7 +3310,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 19,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3283,7 +3319,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3292,7 +3328,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3301,7 +3337,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 22,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3310,7 +3346,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 23,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3319,7 +3355,7 @@
     },
     {
       "evidence": {
-        "line": 23,
+        "line": 24,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3328,7 +3364,7 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 25,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3337,7 +3373,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 26,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3346,30 +3382,12 @@
     },
     {
       "evidence": {
-        "line": 26,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Localization"
-    },
-    {
-      "evidence": {
         "line": 27,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Modules"
-    },
-    {
-      "evidence": {
-        "line": 28,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Gameplay"
     },
     {
       "evidence": {
@@ -3378,7 +3396,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -3387,7 +3414,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -3396,7 +3423,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -3405,7 +3432,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Validation"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -3414,7 +3441,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.EngineAdapter.Rendering"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -3423,16 +3450,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.EngineAdapter.World"
-    },
-    {
-      "evidence": {
-        "line": 36,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -3441,7 +3459,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Build"
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -3450,7 +3477,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Content"
+      "target": "namespace:Forge.EngineAdapter.Rendering"
     },
     {
       "evidence": {
@@ -3459,25 +3486,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Distribution"
-    },
-    {
-      "evidence": {
-        "line": 39,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Navigation"
-    },
-    {
-      "evidence": {
-        "line": 41,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.EngineAdapter.World"
     },
     {
       "evidence": {
@@ -3486,11 +3495,65 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Content"
     },
     {
       "evidence": {
         "line": 42,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Distribution"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
+    },
+    {
+      "evidence": {
+        "line": 46,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3824,6 +3887,42 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
       },
       "kind": "imports",
@@ -3904,7 +4003,7 @@
     },
     {
       "evidence": {
-        "line": 218,
+        "line": 225,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -3991,6 +4090,15 @@
       "kind": "references",
       "source": "file:docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md",
       "target": "file:docs/aurora-parity/tasks/G11-I-GENERIC-TERRAIN-WORLD.md"
+    },
+    {
+      "evidence": {
+        "line": 111,
+        "path": "docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md"
+      },
+      "kind": "references",
+      "source": "file:docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md",
+      "target": "file:docs/aurora-parity/tasks/G11-J-RUNTIME-POLICIES.md"
     },
     {
       "evidence": {
@@ -4656,6 +4764,87 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Areas/SetAreaNavigationHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs",
       "target": "namespace:Forge.Domain.Validation"
     },
     {
@@ -6947,11 +7136,146 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatDispatch.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/HeartbeatDispatch.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatDispatch.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/HeartbeatDispatch.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatScheduler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/HeartbeatScheduler.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatScheduler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/HeartbeatScheduler.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatScheduler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/HeartbeatScheduler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs",
       "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Lifecycle/RestSession.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/RestSession.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Lifecycle/RestSession.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/RestSession.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Lifecycle/RestTransitionResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/RestTransitionResult.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Lifecycle/SequenceAbortCoordinator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/SequenceAbortCoordinator.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Lifecycle/SequenceRuntimeState.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Lifecycle/SequenceRuntimeState.cs",
+      "target": "namespace:Forge.Domain.Gameplay"
     },
     {
       "evidence": {
@@ -7487,6 +7811,123 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Quests/SetQuestCommand.cs"
       },
       "kind": "imports",
@@ -7663,6 +8104,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/Areas/AreaDefinition.cs",
       "target": "namespace:Forge.Domain.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Areas/AreaDefinition.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -7892,6 +8342,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleCoordinator.cs"
       },
       "kind": "imports",
@@ -8005,6 +8464,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/Modules/ModuleDefinition.cs",
       "target": "namespace:Forge.Domain.Localization"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Modules/ModuleDefinition.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -8207,6 +8675,69 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/AreaRestPolicy.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/RuntimePolicies/AreaRestPolicy.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/RestLifecycleProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/RuntimePolicies/RestLifecycleProfile.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/RestPolicyVolume.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/RuntimePolicies/RestPolicyVolume.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortPolicy.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/RuntimePolicies/SequenceAbortPolicy.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Validation/AreaGeometryValidator.cs"
       },
       "kind": "imports",
@@ -8446,6 +8977,33 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/Validation/ProjectValidator.cs",
       "target": "namespace:Forge.Domain.Quests"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/RuntimePolicyValidator.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/RuntimePolicyValidator.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/RuntimePolicyValidator.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -9057,16 +9615,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Validation"
-    },
-    {
-      "evidence": {
-        "line": 14,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Assets"
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -9075,7 +9624,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -9084,16 +9633,16 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Scripts"
+      "target": "namespace:Forge.Mcp.Assets"
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 14,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
+      "target": "namespace:Forge.Mcp.Dialogues"
     },
     {
       "evidence": {
@@ -9102,7 +9651,43 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Scripts"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/RuntimePolicyContracts.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/RuntimePolicyContracts.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -12248,6 +12833,78 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs",
+      "target": "namespace:Forge.Application.Gameplay"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs",
+      "target": "namespace:Forge.Application.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs",
+      "target": "namespace:Forge.Domain.Gameplay"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
       },
       "kind": "imports",
@@ -12541,6 +13198,51 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Projects/SetModuleDistributionHandlerTests.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -13166,6 +13868,60 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs",
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs"
       },
       "kind": "imports",
@@ -13737,16 +14493,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Validation"
-    },
-    {
-      "evidence": {
-        "line": 7,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "imports",
-      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Assets"
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -13755,7 +14502,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -13764,7 +14511,16 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Projects"
+      "target": "namespace:Forge.Mcp.Assets"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
     },
     {
       "evidence": {
@@ -13773,11 +14529,20 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Scripts"
+      "target": "namespace:Forge.Mcp.Projects"
     },
     {
       "evidence": {
         "line": 10,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Scripts"
+    },
+    {
+      "evidence": {
+        "line": 11,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
@@ -14290,6 +15055,15 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
@@ -14299,7 +15073,7 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 7,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "imports",
@@ -17476,7 +18250,7 @@
     },
     {
       "evidence": {
-        "line": 215,
+        "line": 217,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17485,7 +18259,7 @@
     },
     {
       "evidence": {
-        "line": 212,
+        "line": 214,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17494,7 +18268,7 @@
     },
     {
       "evidence": {
-        "line": 216,
+        "line": 218,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17512,7 +18286,7 @@
     },
     {
       "evidence": {
-        "line": 121,
+        "line": 123,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17539,7 +18313,7 @@
     },
     {
       "evidence": {
-        "line": 148,
+        "line": 150,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17557,7 +18331,7 @@
     },
     {
       "evidence": {
-        "line": 147,
+        "line": 149,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17584,7 +18358,7 @@
     },
     {
       "evidence": {
-        "line": 105,
+        "line": 107,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17986,6 +18760,96 @@
       "kind": "uses_model",
       "source": "handler:Forge.Application.Areas.SetAreaNavigationHandler",
       "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "target": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Areas.SetAreaRuntimePoliciesCommand"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
     },
     {
       "evidence": {
@@ -18835,7 +19699,7 @@
     },
     {
       "evidence": {
-        "line": 95,
+        "line": 96,
         "path": "src/Forge.Application/Content/SetArtisticStyleProfileHandler.cs"
       },
       "kind": "uses_model",
@@ -18844,7 +19708,7 @@
     },
     {
       "evidence": {
-        "line": 92,
+        "line": 93,
         "path": "src/Forge.Application/Content/SetArtisticStyleProfileHandler.cs"
       },
       "kind": "uses_model",
@@ -18853,7 +19717,7 @@
     },
     {
       "evidence": {
-        "line": 96,
+        "line": 97,
         "path": "src/Forge.Application/Content/SetArtisticStyleProfileHandler.cs"
       },
       "kind": "uses_model",
@@ -18871,7 +19735,7 @@
     },
     {
       "evidence": {
-        "line": 62,
+        "line": 63,
         "path": "src/Forge.Application/Content/SetArtisticStyleProfileHandler.cs"
       },
       "kind": "uses_model",
@@ -18907,7 +19771,7 @@
     },
     {
       "evidence": {
-        "line": 47,
+        "line": 48,
         "path": "src/Forge.Application/Content/SetArtisticStyleProfileHandler.cs"
       },
       "kind": "uses_model",
@@ -18925,7 +19789,7 @@
     },
     {
       "evidence": {
-        "line": 100,
+        "line": 101,
         "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
       },
       "kind": "uses_model",
@@ -18934,7 +19798,7 @@
     },
     {
       "evidence": {
-        "line": 97,
+        "line": 98,
         "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
       },
       "kind": "uses_model",
@@ -18943,7 +19807,7 @@
     },
     {
       "evidence": {
-        "line": 101,
+        "line": 102,
         "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
       },
       "kind": "uses_model",
@@ -18961,7 +19825,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 66,
         "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
       },
       "kind": "uses_model",
@@ -18997,7 +19861,7 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 52,
         "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
       },
       "kind": "uses_model",
@@ -19294,7 +20158,7 @@
     },
     {
       "evidence": {
-        "line": 228,
+        "line": 230,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -19303,7 +20167,7 @@
     },
     {
       "evidence": {
-        "line": 225,
+        "line": 227,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -19312,7 +20176,7 @@
     },
     {
       "evidence": {
-        "line": 229,
+        "line": 231,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -19366,7 +20230,7 @@
     },
     {
       "evidence": {
-        "line": 172,
+        "line": 173,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -19375,7 +20239,7 @@
     },
     {
       "evidence": {
-        "line": 189,
+        "line": 191,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -19384,7 +20248,7 @@
     },
     {
       "evidence": {
-        "line": 202,
+        "line": 204,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -20302,7 +21166,7 @@
     },
     {
       "evidence": {
-        "line": 60,
+        "line": 61,
         "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
       },
       "kind": "uses_model",
@@ -20311,7 +21175,7 @@
     },
     {
       "evidence": {
-        "line": 58,
+        "line": 59,
         "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
       },
       "kind": "uses_model",
@@ -20320,7 +21184,7 @@
     },
     {
       "evidence": {
-        "line": 61,
+        "line": 62,
         "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
       },
       "kind": "uses_model",
@@ -20338,7 +21202,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 47,
         "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
       },
       "kind": "uses_model",
@@ -20374,7 +21238,7 @@
     },
     {
       "evidence": {
-        "line": 37,
+        "line": 38,
         "path": "src/Forge.Application/Localization/SetLocalizationCatalogHandler.cs"
       },
       "kind": "uses_model",
@@ -20563,7 +21427,7 @@
     },
     {
       "evidence": {
-        "line": 114,
+        "line": 115,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -20572,7 +21436,7 @@
     },
     {
       "evidence": {
-        "line": 111,
+        "line": 112,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -20581,7 +21445,7 @@
     },
     {
       "evidence": {
-        "line": 115,
+        "line": 116,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -20599,7 +21463,7 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 72,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -20635,7 +21499,7 @@
     },
     {
       "evidence": {
-        "line": 57,
+        "line": 58,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -20662,7 +21526,7 @@
     },
     {
       "evidence": {
-        "line": 105,
+        "line": 106,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -20671,7 +21535,7 @@
     },
     {
       "evidence": {
-        "line": 102,
+        "line": 103,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -20680,7 +21544,7 @@
     },
     {
       "evidence": {
-        "line": 106,
+        "line": 107,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -20698,7 +21562,7 @@
     },
     {
       "evidence": {
-        "line": 61,
+        "line": 62,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -20734,7 +21598,7 @@
     },
     {
       "evidence": {
-        "line": 47,
+        "line": 48,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -20749,6 +21613,177 @@
       "kind": "uses_model",
       "source": "handler:Forge.Application.Projects.SetModuleDistributionHandler",
       "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler",
+      "target": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Projects.SetModuleRuntimePoliciesCommand"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "target": "file:src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "target": "model:Forge.Application.Projects.SetRuntimePoliciesCommand"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
     },
     {
       "evidence": {
@@ -21172,6 +22207,33 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Areas.SetAreaNavigationCommand",
       "target": "model:Forge.Domain.Navigation.AreaNavigationDefinition"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.SetAreaRuntimePoliciesCommand",
+      "target": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.SetAreaRuntimePoliciesCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.SetAreaRuntimePoliciesCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
     },
     {
       "evidence": {
@@ -22418,6 +23480,96 @@
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Lifecycle.HeartbeatAdvanceResult",
+      "target": "file:src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Lifecycle.HeartbeatAdvanceResult",
+      "target": "model:Forge.Application.Lifecycle.HeartbeatDispatch"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Lifecycle.HeartbeatAdvanceResult",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatDispatch.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Lifecycle.HeartbeatDispatch",
+      "target": "file:src/Forge.Application/Lifecycle/HeartbeatDispatch.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatDispatch.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Lifecycle.HeartbeatDispatch",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Lifecycle/RestTransitionResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Lifecycle.RestTransitionResult",
+      "target": "file:src/Forge.Application/Lifecycle/RestTransitionResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Lifecycle/RestTransitionResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Lifecycle.RestTransitionResult",
+      "target": "model:Forge.Domain.Lifecycle.RestLifecycleEvent"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Lifecycle/SequenceAbortResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Lifecycle.SequenceAbortResult",
+      "target": "file:src/Forge.Application/Lifecycle/SequenceAbortResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Lifecycle/SequenceAbortResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Lifecycle.SequenceAbortResult",
+      "target": "model:Forge.Application.Lifecycle.SequenceRuntimeState"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Lifecycle/SequenceRuntimeState.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Lifecycle.SequenceRuntimeState",
+      "target": "file:src/Forge.Application/Lifecycle/SequenceRuntimeState.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "src/Forge.Application/Localization/LocalizationExtractionResult.cs"
       },
       "kind": "defined_in",
@@ -22642,6 +23794,51 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Projects.SetModuleRuntimePoliciesCommand",
+      "target": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Projects.SetModuleRuntimePoliciesCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Projects.SetRuntimePoliciesCommand",
+      "target": "file:src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Projects.SetRuntimePoliciesCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Projects.SetRuntimePoliciesCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Quests/SetQuestCommand.cs"
       },
@@ -22669,7 +23866,7 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 7,
         "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
       },
       "kind": "defined_in",
@@ -22678,7 +23875,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 11,
         "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
       },
       "kind": "relationship",
@@ -22687,7 +23884,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 19,
         "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
       },
       "kind": "relationship",
@@ -22696,7 +23893,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 23,
         "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
       },
       "kind": "relationship",
@@ -22705,7 +23902,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
       },
       "kind": "relationship",
@@ -23642,6 +24839,33 @@
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Lifecycle.RestLifecycleEvent",
+      "target": "file:src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RestLifecycleEvent",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Lifecycle.RestLifecycleEvent",
+      "target": "model:Forge.Domain.Lifecycle.ProjectGameplayEvent"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "src/Forge.Domain/Lifecycle/RuntimeLifecycleDispatchResult.cs"
       },
       "kind": "defined_in",
@@ -23776,7 +25000,7 @@
     },
     {
       "evidence": {
-        "line": 8,
+        "line": 9,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "defined_in",
@@ -23785,7 +25009,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 19,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "relationship",
@@ -23794,7 +25018,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 11,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "relationship",
@@ -23803,7 +25027,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 23,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "relationship",
@@ -24250,6 +25474,15 @@
       "kind": "relationship",
       "source": "model:Forge.Domain.Quests.QuestTransitionResult",
       "target": "model:Forge.Domain.Quests.QuestStateDefinition"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/RuntimePolicies/HeartbeatScheduleDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.RuntimePolicies.HeartbeatScheduleDefinition",
+      "target": "file:src/Forge.Domain/RuntimePolicies/HeartbeatScheduleDefinition.cs"
     },
     {
       "evidence": {
@@ -24937,7 +26170,7 @@
     },
     {
       "evidence": {
-        "line": 542,
+        "line": 730,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -24946,12 +26179,57 @@
     },
     {
       "evidence": {
-        "line": 544,
+        "line": 732,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "relationship",
       "source": "model:Forge.Mcp.Projects.ForgeProjectAgentOpenResult",
       "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Projects.RuntimePolicyAuditEntry",
+      "target": "file:src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Projects.RuntimePolicyPlanResult",
+      "target": "file:src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Projects.RuntimePolicyPlanResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Projects.RuntimePolicyPlanResult",
+      "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Projects.RuntimePolicyPlanResult",
+      "target": "model:Forge.Mcp.Projects.RuntimePolicyAuditEntry"
     },
     {
       "evidence": {
@@ -27376,7 +28654,7 @@
     },
     {
       "evidence": {
-        "line": 1950,
+        "line": 2060,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -27868,6 +29146,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Areas",
       "target": "file:src/Forge.Application/Areas/SetAreaNavigationHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
     },
     {
       "evidence": {
@@ -28772,11 +30068,92 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatDispatch.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/HeartbeatDispatch.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatScheduler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/HeartbeatScheduler.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Lifecycle",
       "target": "file:src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Lifecycle/RestSession.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/RestSession.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Lifecycle/RestTransitionResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/RestTransitionResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Lifecycle/SequenceAbortCoordinator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/SequenceAbortCoordinator.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Lifecycle/SequenceAbortResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/SequenceAbortResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Lifecycle/SequenceRuntimeState.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Lifecycle",
+      "target": "file:src/Forge.Application/Lifecycle/SequenceRuntimeState.cs"
     },
     {
       "evidence": {
@@ -28921,6 +30298,42 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Projects",
       "target": "file:src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Projects",
+      "target": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Projects",
+      "target": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Projects",
+      "target": "file:src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Projects",
+      "target": "file:src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
     },
     {
       "evidence": {
@@ -29357,6 +30770,15 @@
     {
       "evidence": {
         "line": 9,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Lifecycle",
+      "target": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
         "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
       },
       "kind": "defined_in",
@@ -29407,6 +30829,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Projects",
       "target": "file:tests/Forge.Application.Tests/Projects/SetModuleDistributionHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Projects",
+      "target": "file:tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
     },
     {
       "evidence": {
@@ -29464,7 +30895,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 4,
         "path": "src/Forge.Domain/Areas/AreaDefinition.cs"
       },
       "kind": "defined_in",
@@ -30490,6 +31921,24 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Lifecycle/RestLifecycleStage.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Lifecycle",
+      "target": "file:src/Forge.Domain/Lifecycle/RestLifecycleStage.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Domain/Lifecycle/RuntimeAuthority.cs"
       },
@@ -30580,7 +32029,7 @@
     },
     {
       "evidence": {
-        "line": 5,
+        "line": 6,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "defined_in",
@@ -31219,6 +32668,114 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/RuntimePolicies/AreaRestPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/AreaRestPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/HeartbeatScheduleDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/HeartbeatScheduleDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/HeartbeatScope.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/HeartbeatScope.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/PartyRestPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/PartyRestPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/RuntimePolicies/RestLifecycleProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/RestLifecycleProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/RestPermissionMode.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/RestPermissionMode.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/RuntimePolicies/RestPolicyVolume.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/RestPolicyVolume.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/RuntimePolicies/RuntimePolicyIdFactory.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/RuntimePolicyIdFactory.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/SequenceAbortPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortRestoreFlags.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.RuntimePolicies",
+      "target": "file:src/Forge.Domain/RuntimePolicies/SequenceAbortRestoreFlags.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Domain/Spatial/QuaternionValue.cs"
       },
@@ -31507,6 +33064,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.RuntimePolicies",
+      "target": "file:tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs"
       },
@@ -31666,6 +33232,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Validation",
       "target": "file:src/Forge.Domain/Validation/ProjectValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Validation",
+      "target": "file:src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
     },
     {
       "evidence": {
@@ -32128,7 +33703,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 19,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -32143,6 +33718,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Mcp.Projects",
       "target": "file:src/Forge.Mcp/Projects/ForgeProjectSummary.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Mcp.Projects",
+      "target": "file:src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
     },
     {
       "evidence": {
@@ -32200,7 +33784,7 @@
     },
     {
       "evidence": {
-        "line": 11,
+        "line": 12,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -32902,7 +34486,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "defined_in",
@@ -34198,7 +35782,7 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 27,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -34513,7 +36097,7 @@
     },
     {
       "evidence": {
-        "line": 44,
+        "line": 48,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -34609,6 +36193,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Toolset.Editor",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs"
     },
     {
       "evidence": {
@@ -35503,7 +37096,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 22,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -35512,7 +37105,7 @@
     },
     {
       "evidence": {
-        "line": 433,
+        "line": 575,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35521,7 +37114,7 @@
     },
     {
       "evidence": {
-        "line": 200,
+        "line": 132,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35530,7 +37123,7 @@
     },
     {
       "evidence": {
-        "line": 199,
+        "line": 341,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35539,7 +37132,7 @@
     },
     {
       "evidence": {
-        "line": 361,
+        "line": 503,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35548,7 +37141,7 @@
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 46,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35557,7 +37150,16 @@
     },
     {
       "evidence": {
-        "line": 348,
+        "line": 129,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Application.Projects.SetRuntimePoliciesCommand"
+    },
+    {
+      "evidence": {
+        "line": 133,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35566,7 +37168,7 @@
     },
     {
       "evidence": {
-        "line": 396,
+        "line": 538,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35575,7 +37177,7 @@
     },
     {
       "evidence": {
-        "line": 402,
+        "line": 544,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35584,7 +37186,7 @@
     },
     {
       "evidence": {
-        "line": 411,
+        "line": 553,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35593,7 +37195,7 @@
     },
     {
       "evidence": {
-        "line": 188,
+        "line": 330,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35602,7 +37204,7 @@
     },
     {
       "evidence": {
-        "line": 386,
+        "line": 528,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35611,7 +37213,7 @@
     },
     {
       "evidence": {
-        "line": 389,
+        "line": 531,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35620,7 +37222,7 @@
     },
     {
       "evidence": {
-        "line": 349,
+        "line": 491,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35629,7 +37231,7 @@
     },
     {
       "evidence": {
-        "line": 358,
+        "line": 500,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35638,7 +37240,7 @@
     },
     {
       "evidence": {
-        "line": 450,
+        "line": 592,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35647,7 +37249,16 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 169,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
+        "line": 60,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35656,7 +37267,7 @@
     },
     {
       "evidence": {
-        "line": 101,
+        "line": 243,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35665,7 +37276,7 @@
     },
     {
       "evidence": {
-        "line": 175,
+        "line": 317,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35674,7 +37285,7 @@
     },
     {
       "evidence": {
-        "line": 220,
+        "line": 362,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35683,7 +37294,7 @@
     },
     {
       "evidence": {
-        "line": 50,
+        "line": 54,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -35692,7 +37303,25 @@
     },
     {
       "evidence": {
-        "line": 320,
+        "line": 150,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Projects.RuntimePolicyAuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 118,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Projects.RuntimePolicyPlanResult"
+    },
+    {
+      "evidence": {
+        "line": 462,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -42479,6 +44108,168 @@
     {
       "evidence": {
         "line": 12,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 74,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "model:Forge.Application.Lifecycle.SequenceRuntimeState"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "model:Forge.Domain.Modules.ModuleId"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "model:Forge.Domain.RuntimePolicies.HeartbeatScheduleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Application.Lifecycle.HeartbeatScheduler"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Application.Lifecycle.RestRuntimeCoordinator"
+    },
+    {
+      "evidence": {
+        "line": 78,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Application.Lifecycle.SequenceAbortCoordinator"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Domain.Gameplay.ControlContext"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Domain.Lifecycle.RestLifecycleStage"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Domain.RuntimePolicies.AreaRestPolicy"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Domain.RuntimePolicies.HeartbeatScope"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Domain.RuntimePolicies.PartyRestPolicy"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Domain.RuntimePolicies.RestLifecycleProfile"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Domain.RuntimePolicies.RestPermissionMode"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.Domain.RuntimePolicies.RestPolicyVolume"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "target": "type:Forge.LiveDirector.Authentication.Session"
+    },
+    {
+      "evidence": {
+        "line": 12,
         "path": "tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs"
       },
       "kind": "defined_in",
@@ -43312,6 +45103,123 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Projects.SetModuleDistributionHandlerTests",
       "target": "type:Forge.Domain.Modules.ThirdPartyDependencyApproval"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "file:tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler"
+    },
+    {
+      "evidence": {
+        "line": 72,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "model:Forge.Application.Areas.SetAreaRuntimePoliciesCommand"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "model:Forge.Application.Projects.SetModuleRuntimePoliciesCommand"
+    },
+    {
+      "evidence": {
+        "line": 73,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "model:Forge.Application.Projects.SetRuntimePoliciesCommand"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "model:Forge.Domain.RuntimePolicies.HeartbeatScheduleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 81,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "type:Forge.Domain.RuntimePolicies.AreaRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "type:Forge.Domain.RuntimePolicies.HeartbeatScope"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "target": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile"
     },
     {
       "evidence": {
@@ -46177,6 +48085,168 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "file:tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "model:Forge.Domain.Modules.ModuleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "model:Forge.Domain.Modules.ModuleId"
+    },
+    {
+      "evidence": {
+        "line": 60,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "model:Forge.Domain.RuntimePolicies.HeartbeatScheduleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.Lifecycle.EventAuthorityScope"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.Lifecycle.EventBinding"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.RuntimePolicies.AreaRestPolicy"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.RuntimePolicies.AreaRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.RuntimePolicies.HeartbeatScope"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.RuntimePolicies.PartyRestPolicy"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.RuntimePolicies.RestLifecycleProfile"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.RuntimePolicies.RestPermissionMode"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "type:Forge.Domain.RuntimePolicies.RestPolicyVolume"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "target": "validator:Forge.Domain.Validation.RuntimePolicyValidator"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs"
       },
@@ -47635,7 +49705,7 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 15,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -47644,7 +49714,7 @@
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 36,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47653,7 +49723,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 37,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47662,7 +49732,7 @@
     },
     {
       "evidence": {
-        "line": 125,
+        "line": 176,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47671,7 +49741,7 @@
     },
     {
       "evidence": {
-        "line": 40,
+        "line": 41,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47680,7 +49750,16 @@
     },
     {
       "evidence": {
-        "line": 50,
+        "line": 112,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.RuntimePolicies.HeartbeatScheduleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 51,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47689,7 +49768,34 @@
     },
     {
       "evidence": {
-        "line": 34,
+        "line": 118,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.RuntimePolicies.AreaRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 112,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.RuntimePolicies.HeartbeatScope"
+    },
+    {
+      "evidence": {
+        "line": 116,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 35,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47698,7 +49804,7 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 72,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47707,7 +49813,7 @@
     },
     {
       "evidence": {
-        "line": 148,
+        "line": 199,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47716,7 +49822,7 @@
     },
     {
       "evidence": {
-        "line": 184,
+        "line": 235,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47725,7 +49831,7 @@
     },
     {
       "evidence": {
-        "line": 95,
+        "line": 146,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47734,7 +49840,16 @@
     },
     {
       "evidence": {
-        "line": 166,
+        "line": 119,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.RuntimePolicyPlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 217,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47743,7 +49858,7 @@
     },
     {
       "evidence": {
-        "line": 34,
+        "line": 35,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47752,7 +49867,7 @@
     },
     {
       "evidence": {
-        "line": 155,
+        "line": 206,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -47761,7 +49876,7 @@
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 54,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49084,7 +51199,7 @@
     },
     {
       "evidence": {
-        "line": 37,
+        "line": 38,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49093,7 +51208,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 11,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "defined_in",
@@ -49102,7 +51217,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 22,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49111,7 +51226,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 23,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49120,7 +51235,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49129,7 +51244,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 30,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49138,7 +51253,7 @@
     },
     {
       "evidence": {
-        "line": 44,
+        "line": 45,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49147,7 +51262,7 @@
     },
     {
       "evidence": {
-        "line": 15,
+        "line": 16,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49156,7 +51271,7 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 18,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49165,7 +51280,7 @@
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 17,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49174,7 +51289,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49183,7 +51298,7 @@
     },
     {
       "evidence": {
-        "line": 27,
+        "line": 28,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49192,12 +51307,21 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 29,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
       "target": "type:Forge.Domain.Areas.PortalLink"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "type:Forge.Domain.RuntimePolicies.RestPermissionMode"
     },
     {
       "evidence": {
@@ -49507,7 +51631,7 @@
     },
     {
       "evidence": {
-        "line": 526,
+        "line": 546,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49516,7 +51640,7 @@
     },
     {
       "evidence": {
-        "line": 527,
+        "line": 547,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49624,7 +51748,7 @@
     },
     {
       "evidence": {
-        "line": 531,
+        "line": 551,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49633,7 +51757,7 @@
     },
     {
       "evidence": {
-        "line": 530,
+        "line": 550,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49714,7 +51838,7 @@
     },
     {
       "evidence": {
-        "line": 535,
+        "line": 555,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49723,7 +51847,7 @@
     },
     {
       "evidence": {
-        "line": 533,
+        "line": 553,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49804,7 +51928,7 @@
     },
     {
       "evidence": {
-        "line": 408,
+        "line": 428,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49975,7 +52099,7 @@
     },
     {
       "evidence": {
-        "line": 540,
+        "line": 560,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -50776,7 +52900,7 @@
     },
     {
       "evidence": {
-        "line": 296,
+        "line": 326,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
       "kind": "tests",
@@ -50884,7 +53008,7 @@
     },
     {
       "evidence": {
-        "line": 301,
+        "line": 331,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
       "kind": "tests",
@@ -56374,12 +58498,48 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Lifecycle/HeartbeatScheduler.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Lifecycle.HeartbeatScheduler",
+      "target": "file:src/Forge.Application/Lifecycle/HeartbeatScheduler.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Application.Lifecycle.ProjectGameplayEventBus",
       "target": "file:src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Lifecycle.RestRuntimeCoordinator",
+      "target": "file:src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Lifecycle/RestSession.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Lifecycle.RestSession",
+      "target": "file:src/Forge.Application/Lifecycle/RestSession.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Lifecycle/SequenceAbortCoordinator.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Lifecycle.SequenceAbortCoordinator",
+      "target": "file:src/Forge.Application/Lifecycle/SequenceAbortCoordinator.cs"
     },
     {
       "evidence": {
@@ -57824,6 +59984,15 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Domain/Lifecycle/RestLifecycleStage.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Lifecycle.RestLifecycleStage",
+      "target": "file:src/Forge.Domain/Lifecycle/RestLifecycleStage.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Domain/Lifecycle/RuntimeAuthority.cs"
       },
       "kind": "defined_in",
@@ -58345,6 +60514,105 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/RuntimePolicies/AreaRestPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.AreaRestPolicy",
+      "target": "file:src/Forge.Domain/RuntimePolicies/AreaRestPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.AreaRuntimePolicyProfile",
+      "target": "file:src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/RuntimePolicies/HeartbeatScope.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.HeartbeatScope",
+      "target": "file:src/Forge.Domain/RuntimePolicies/HeartbeatScope.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile",
+      "target": "file:src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/RuntimePolicies/PartyRestPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.PartyRestPolicy",
+      "target": "file:src/Forge.Domain/RuntimePolicies/PartyRestPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/RuntimePolicies/RestLifecycleProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.RestLifecycleProfile",
+      "target": "file:src/Forge.Domain/RuntimePolicies/RestLifecycleProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/RuntimePolicies/RestPermissionMode.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.RestPermissionMode",
+      "target": "file:src/Forge.Domain/RuntimePolicies/RestPermissionMode.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/RuntimePolicies/RestPolicyVolume.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.RestPolicyVolume",
+      "target": "file:src/Forge.Domain/RuntimePolicies/RestPolicyVolume.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/RuntimePolicies/RuntimePolicyIdFactory.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.RuntimePolicyIdFactory",
+      "target": "file:src/Forge.Domain/RuntimePolicies/RuntimePolicyIdFactory.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.SequenceAbortPolicy",
+      "target": "file:src/Forge.Domain/RuntimePolicies/SequenceAbortPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortRestoreFlags.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.RuntimePolicies.SequenceAbortRestoreFlags",
+      "target": "file:src/Forge.Domain/RuntimePolicies/SequenceAbortRestoreFlags.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Validation/DiagnosticSeverity.cs"
       },
@@ -58849,11 +61117,38 @@
     },
     {
       "evidence": {
-        "line": 514,
+        "line": 13,
+        "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.RuntimePolicyPlanRequest",
+      "target": "file:src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.RuntimePolicyResource",
+      "target": "file:src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 678,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Mcp.Projects.StoredDialoguePlan",
+      "target": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
+      "evidence": {
+        "line": 705,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.StoredRuntimePolicyPlan",
       "target": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
     },
     {
@@ -62512,7 +64807,7 @@
     },
     {
       "evidence": {
-        "line": 27,
+        "line": 30,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -62521,7 +64816,7 @@
     },
     {
       "evidence": {
-        "line": 1879,
+        "line": 1989,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -62530,7 +64825,7 @@
     },
     {
       "evidence": {
-        "line": 1918,
+        "line": 2028,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -63034,7 +65329,7 @@
     },
     {
       "evidence": {
-        "line": 6457,
+        "line": 6633,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -63079,7 +65374,16 @@
     },
     {
       "evidence": {
-        "line": 6462,
+        "line": 10,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.RuntimePoliciesWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 6638,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -63088,7 +65392,7 @@
     },
     {
       "evidence": {
-        "line": 6467,
+        "line": 6643,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -63664,7 +65968,7 @@
     },
     {
       "evidence": {
-        "line": 91,
+        "line": 94,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -63687,6 +65991,42 @@
       },
       "kind": "validates",
       "source": "validator:Forge.Domain.Validation.ProjectValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Validation.RuntimePolicyValidator",
+      "target": "file:src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.RuntimePolicyValidator",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.RuntimePolicyValidator",
+      "target": "model:Forge.Domain.Modules.ModuleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.RuntimePolicyValidator",
       "target": "model:Forge.Domain.Validation.DomainDiagnostic"
     },
     {
@@ -63862,8 +66202,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:867d3862f816ce0ea567cc905741fcd574cb7a1757e467e18e38e323ea7a4dd7",
-    "source_file_count": 1219
+    "source_digest": "sha256:e8b4f94bfdd955a470856e15f30b4aad000211293604d99775cc3f6483cf76c2",
+    "source_file_count": 1259
   },
   "nodes": [
     {
@@ -64669,7 +67009,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 48,
+      "line": 52,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -65567,6 +67907,16 @@
       "path": "apps/Forge.Runtime/content/broken-isles-starter/.forge/build-graph.json"
     },
     {
+      "id": "file:apps/Forge.Runtime/content/broken-isles-starter/areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-7705e01c7c4464a3.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a-7705e01c7c4464a3.json",
+      "path": "apps/Forge.Runtime/content/broken-isles-starter/areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-7705e01c7c4464a3.json"
+    },
+    {
       "id": "file:apps/Forge.Runtime/content/broken-isles-starter/forge.project.json",
       "kind": "configuration",
       "line": 1,
@@ -65647,6 +67997,16 @@
       "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-e469de5f-d1a1-5682-9b20-94d1ebf51cf3.json"
     },
     {
+      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-50a75ec31f63d5fb.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-50a75ec31f63d5fb.json",
+      "path": "apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-50a75ec31f63d5fb.json"
+    },
+    {
       "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-786a48666b2b673f.json",
       "kind": "configuration",
       "line": 1,
@@ -65705,6 +68065,16 @@
       },
       "name": "72e76124-3a4a-5245-c00e-e348ac4cb292-1c42fccde1f067b3.json",
       "path": "apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-1c42fccde1f067b3.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-1d2b297eb7319fc3.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "72e76124-3a4a-5245-c00e-e348ac4cb292-1d2b297eb7319fc3.json",
+      "path": "apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-1d2b297eb7319fc3.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-7aa979b46173d7b8.json",
@@ -66187,6 +68557,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimePoliciesWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs",
       "kind": "file",
       "line": 1,
@@ -66495,6 +68875,16 @@
       },
       "name": "ADR-0023-generic-terrain-world-profile.md",
       "path": "docs/ADR/ADR-0023-generic-terrain-world-profile.md"
+    },
+    {
+      "id": "file:docs/ADR/ADR-0024-runtime-policy-profiles.md",
+      "kind": "decision",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "ADR-0024-runtime-policy-profiles.md",
+      "path": "docs/ADR/ADR-0024-runtime-policy-profiles.md"
     },
     {
       "id": "file:docs/ARCHITECTURE.md",
@@ -66985,6 +69375,16 @@
       },
       "name": "G11-I-GENERIC-TERRAIN-WORLD.md",
       "path": "docs/aurora-parity/tasks/G11-I-GENERIC-TERRAIN-WORLD.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G11-J-RUNTIME-POLICIES.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G11-J-RUNTIME-POLICIES.md",
+      "path": "docs/aurora-parity/tasks/G11-J-RUNTIME-POLICIES.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -68117,6 +70517,26 @@
       "path": "src/Forge.Application/Areas/SetAreaNavigationHandler.cs"
     },
     {
+      "id": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaRuntimePoliciesCommand.cs",
+      "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaRuntimePoliciesHandler.cs",
+      "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs",
       "kind": "file",
       "line": 1,
@@ -69127,6 +71547,36 @@
       "path": "src/Forge.Application/Lifecycle/CustomWorldEventBus.cs"
     },
     {
+      "id": "file:src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "HeartbeatAdvanceResult.cs",
+      "path": "src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Lifecycle/HeartbeatDispatch.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "HeartbeatDispatch.cs",
+      "path": "src/Forge.Application/Lifecycle/HeartbeatDispatch.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Lifecycle/HeartbeatScheduler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "HeartbeatScheduler.cs",
+      "path": "src/Forge.Application/Lifecycle/HeartbeatScheduler.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs",
       "kind": "file",
       "line": 1,
@@ -69135,6 +71585,66 @@
       },
       "name": "ProjectGameplayEventBus.cs",
       "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RestRuntimeCoordinator.cs",
+      "path": "src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Lifecycle/RestSession.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RestSession.cs",
+      "path": "src/Forge.Application/Lifecycle/RestSession.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Lifecycle/RestTransitionResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RestTransitionResult.cs",
+      "path": "src/Forge.Application/Lifecycle/RestTransitionResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Lifecycle/SequenceAbortCoordinator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceAbortCoordinator.cs",
+      "path": "src/Forge.Application/Lifecycle/SequenceAbortCoordinator.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Lifecycle/SequenceAbortResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceAbortResult.cs",
+      "path": "src/Forge.Application/Lifecycle/SequenceAbortResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Lifecycle/SequenceRuntimeState.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceRuntimeState.cs",
+      "path": "src/Forge.Application/Lifecycle/SequenceRuntimeState.cs"
     },
     {
       "id": "file:src/Forge.Application/Localization/LocalizationCatalogExtractor.cs",
@@ -69295,6 +71805,46 @@
       },
       "name": "SetModuleDistributionHandler.cs",
       "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetModuleRuntimePoliciesCommand.cs",
+      "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetModuleRuntimePoliciesHandler.cs",
+      "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetRuntimePoliciesCommand.cs",
+      "path": "src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetRuntimePoliciesHandler.cs",
+      "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Projects/SlugGenerator.cs",
@@ -70557,6 +73107,26 @@
       "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RestLifecycleEvent.cs",
+      "path": "src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Lifecycle/RestLifecycleStage.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RestLifecycleStage.cs",
+      "path": "src/Forge.Domain/Lifecycle/RestLifecycleStage.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Lifecycle/RuntimeAuthority.cs",
       "kind": "file",
       "line": 1,
@@ -71367,6 +73937,126 @@
       "path": "src/Forge.Domain/Quests/QuestValidator.cs"
     },
     {
+      "id": "file:src/Forge.Domain/RuntimePolicies/AreaRestPolicy.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaRestPolicy.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/AreaRestPolicy.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaRuntimePolicyProfile.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/HeartbeatScheduleDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "HeartbeatScheduleDefinition.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/HeartbeatScheduleDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/HeartbeatScope.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "HeartbeatScope.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/HeartbeatScope.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ModuleRuntimePolicyProfile.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/PartyRestPolicy.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "PartyRestPolicy.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/PartyRestPolicy.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/RestLifecycleProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RestLifecycleProfile.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/RestLifecycleProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/RestPermissionMode.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RestPermissionMode.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/RestPermissionMode.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/RestPolicyVolume.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RestPolicyVolume.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/RestPolicyVolume.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/RuntimePolicyIdFactory.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimePolicyIdFactory.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/RuntimePolicyIdFactory.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/SequenceAbortPolicy.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceAbortPolicy.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortPolicy.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/RuntimePolicies/SequenceAbortRestoreFlags.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceAbortRestoreFlags.cs",
+      "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortRestoreFlags.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Spatial/QuaternionValue.cs",
       "kind": "file",
       "line": 1,
@@ -71535,6 +74225,16 @@
       },
       "name": "ProjectValidator.cs",
       "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Validation/RuntimePolicyValidator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimePolicyValidator.cs",
+      "path": "src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
     },
     {
       "id": "file:src/Forge.Domain/packages.lock.json",
@@ -72005,6 +74705,16 @@
       },
       "name": "ForgeProjectSummary.cs",
       "path": "src/Forge.Mcp/Projects/ForgeProjectSummary.cs"
+    },
+    {
+      "id": "file:src/Forge.Mcp/Projects/RuntimePolicyContracts.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimePolicyContracts.cs",
+      "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
     },
     {
       "id": "file:src/Forge.Mcp/Scripts/ForgeScriptAgentService.cs",
@@ -74217,6 +76927,16 @@
       "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimePolicyServicesTests.cs",
+      "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Localization/LocalizationWorkflowTests.cs",
       "kind": "file",
       "line": 1,
@@ -74275,6 +76995,16 @@
       },
       "name": "SetModuleDistributionHandlerTests.cs",
       "path": "tests/Forge.Application.Tests/Projects/SetModuleDistributionHandlerTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetRuntimePoliciesHandlerTests.cs",
+      "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs",
@@ -74605,6 +77335,16 @@
       },
       "name": "QuestStateMachineTests.cs",
       "path": "tests/Forge.Domain.Tests/Quests/QuestStateMachineTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "RuntimePolicyProfileTests.cs",
+      "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs",
@@ -77817,6 +80557,16 @@
       "path": "src/Forge.Application/Areas/SetAreaNavigationHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Areas.SetAreaRuntimePoliciesHandler",
+      "kind": "handler",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "SetAreaRuntimePoliciesHandler",
+      "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
       "kind": "handler",
       "line": 9,
@@ -78067,6 +80817,26 @@
       "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Projects.SetModuleRuntimePoliciesHandler",
+      "kind": "handler",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "SetModuleRuntimePoliciesHandler",
+      "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesHandler.cs"
+    },
+    {
+      "id": "handler:Forge.Application.Projects.SetRuntimePoliciesHandler",
+      "kind": "handler",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "SetRuntimePoliciesHandler",
+      "path": "src/Forge.Application/Projects/SetRuntimePoliciesHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Quests.SetQuestHandler",
       "kind": "handler",
       "line": 10,
@@ -78255,6 +81025,16 @@
       },
       "name": "SetAreaNavigationCommand",
       "path": "src/Forge.Application/Areas/SetAreaNavigationCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Areas.SetAreaRuntimePoliciesCommand",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "SetAreaRuntimePoliciesCommand",
+      "path": "src/Forge.Application/Areas/SetAreaRuntimePoliciesCommand.cs"
     },
     {
       "id": "model:Forge.Application.Areas.SetAreaWorldProfileCommand",
@@ -78737,6 +81517,56 @@
       "path": "src/Forge.Application/Entities/TransformEntityCommand.cs"
     },
     {
+      "id": "model:Forge.Application.Lifecycle.HeartbeatAdvanceResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "HeartbeatAdvanceResult",
+      "path": "src/Forge.Application/Lifecycle/HeartbeatAdvanceResult.cs"
+    },
+    {
+      "id": "model:Forge.Application.Lifecycle.HeartbeatDispatch",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "HeartbeatDispatch",
+      "path": "src/Forge.Application/Lifecycle/HeartbeatDispatch.cs"
+    },
+    {
+      "id": "model:Forge.Application.Lifecycle.RestTransitionResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "RestTransitionResult",
+      "path": "src/Forge.Application/Lifecycle/RestTransitionResult.cs"
+    },
+    {
+      "id": "model:Forge.Application.Lifecycle.SequenceAbortResult",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "SequenceAbortResult",
+      "path": "src/Forge.Application/Lifecycle/SequenceAbortResult.cs"
+    },
+    {
+      "id": "model:Forge.Application.Lifecycle.SequenceRuntimeState",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "SequenceRuntimeState",
+      "path": "src/Forge.Application/Lifecycle/SequenceRuntimeState.cs"
+    },
+    {
       "id": "model:Forge.Application.Localization.LocalizationExtractionResult",
       "kind": "model",
       "line": 5,
@@ -78817,6 +81647,26 @@
       "path": "src/Forge.Application/Projects/SetModuleDistributionCommand.cs"
     },
     {
+      "id": "model:Forge.Application.Projects.SetModuleRuntimePoliciesCommand",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "SetModuleRuntimePoliciesCommand",
+      "path": "src/Forge.Application/Projects/SetModuleRuntimePoliciesCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Projects.SetRuntimePoliciesCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "SetRuntimePoliciesCommand",
+      "path": "src/Forge.Application/Projects/SetRuntimePoliciesCommand.cs"
+    },
+    {
       "id": "model:Forge.Application.Quests.SetQuestCommand",
       "kind": "model",
       "line": 7,
@@ -78839,7 +81689,7 @@
     {
       "id": "model:Forge.Domain.Areas.AreaDefinition",
       "kind": "model",
-      "line": 6,
+      "line": 7,
       "metadata": {
         "namespace": "Forge.Domain.Areas"
       },
@@ -79497,6 +82347,16 @@
       "path": "src/Forge.Domain/Lifecycle/ProjectGameplayEvents.cs"
     },
     {
+      "id": "model:Forge.Domain.Lifecycle.RestLifecycleEvent",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "RestLifecycleEvent",
+      "path": "src/Forge.Domain/Lifecycle/RestLifecycleEvent.cs"
+    },
+    {
       "id": "model:Forge.Domain.Lifecycle.RuntimeLifecycleDispatchResult",
       "kind": "model",
       "line": 5,
@@ -79559,7 +82419,7 @@
     {
       "id": "model:Forge.Domain.Modules.ModuleDefinition",
       "kind": "model",
-      "line": 8,
+      "line": 9,
       "metadata": {
         "namespace": "Forge.Domain.Modules"
       },
@@ -79875,6 +82735,16 @@
       },
       "name": "QuestTransitionResult",
       "path": "src/Forge.Domain/Quests/QuestTransitionResult.cs"
+    },
+    {
+      "id": "model:Forge.Domain.RuntimePolicies.HeartbeatScheduleDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "HeartbeatScheduleDefinition",
+      "path": "src/Forge.Domain/RuntimePolicies/HeartbeatScheduleDefinition.cs"
     },
     {
       "id": "model:Forge.Domain.Spatial.QuaternionValue",
@@ -80199,12 +83069,32 @@
     {
       "id": "model:Forge.Mcp.Projects.ForgeProjectAgentOpenResult",
       "kind": "model",
-      "line": 542,
+      "line": 730,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
       "name": "ForgeProjectAgentOpenResult",
       "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
+      "id": "model:Forge.Mcp.Projects.RuntimePolicyAuditEntry",
+      "kind": "model",
+      "line": 31,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "RuntimePolicyAuditEntry",
+      "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+    },
+    {
+      "id": "model:Forge.Mcp.Projects.RuntimePolicyPlanResult",
+      "kind": "model",
+      "line": 20,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "RuntimePolicyPlanResult",
+      "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
     },
     {
       "id": "model:Forge.Mcp.Scripts.ScriptBindingPlanResult",
@@ -82019,7 +84909,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 1950,
+      "line": 2060,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -82479,6 +85369,11 @@
       "name": "Forge.Domain.Quests"
     },
     {
+      "id": "namespace:Forge.Domain.RuntimePolicies",
+      "kind": "namespace",
+      "name": "Forge.Domain.RuntimePolicies"
+    },
+    {
       "id": "namespace:Forge.Domain.Spatial",
       "kind": "namespace",
       "name": "Forge.Domain.Spatial"
@@ -82552,6 +85447,11 @@
       "id": "namespace:Forge.Domain.Tests.Quests",
       "kind": "namespace",
       "name": "Forge.Domain.Tests.Quests"
+    },
+    {
+      "id": "namespace:Forge.Domain.Tests.RuntimePolicies",
+      "kind": "namespace",
+      "name": "Forge.Domain.Tests.RuntimePolicies"
     },
     {
       "id": "namespace:Forge.Domain.Tests.Spatial",
@@ -83479,7 +86379,7 @@
     {
       "id": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "kind": "service",
-      "line": 21,
+      "line": 22,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -84497,6 +87397,16 @@
       "path": "tests/Forge.Application.Tests/Lifecycle/ProjectGameplayEventBusTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Lifecycle.RuntimePolicyServicesTests",
+      "kind": "test",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Lifecycle"
+      },
+      "name": "RuntimePolicyServicesTests",
+      "path": "tests/Forge.Application.Tests/Lifecycle/RuntimePolicyServicesTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Localization.LocalizationWorkflowTests",
       "kind": "test",
       "line": 12,
@@ -84555,6 +87465,16 @@
       },
       "name": "SetModuleDistributionHandlerTests",
       "path": "tests/Forge.Application.Tests/Projects/SetModuleDistributionHandlerTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Projects.SetRuntimePoliciesHandlerTests",
+      "kind": "test",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Projects"
+      },
+      "name": "SetRuntimePoliciesHandlerTests",
+      "path": "tests/Forge.Application.Tests/Projects/SetRuntimePoliciesHandlerTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Quests.SetQuestHandlerTests",
@@ -84897,6 +87817,16 @@
       "path": "tests/Forge.Domain.Tests/Quests/QuestStateMachineTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.RuntimePolicies.RuntimePolicyProfileTests",
+      "kind": "test",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.RuntimePolicies"
+      },
+      "name": "RuntimePolicyProfileTests",
+      "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Spatial.TransformValueTests",
       "kind": "test",
       "line": 5,
@@ -85069,7 +87999,7 @@
     {
       "id": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
       "kind": "test",
-      "line": 14,
+      "line": 15,
       "metadata": {
         "namespace": "Forge.Mcp.Tests.Projects"
       },
@@ -85229,7 +88159,7 @@
     {
       "id": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
       "kind": "test",
-      "line": 10,
+      "line": 11,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Tests.Serialization"
       },
@@ -86664,6 +89594,16 @@
       "path": "src/Forge.Application/Lifecycle/CustomWorldEventBus.cs"
     },
     {
+      "id": "type:Forge.Application.Lifecycle.HeartbeatScheduler",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "HeartbeatScheduler",
+      "path": "src/Forge.Application/Lifecycle/HeartbeatScheduler.cs"
+    },
+    {
       "id": "type:Forge.Application.Lifecycle.ProjectGameplayEventBus",
       "kind": "type",
       "line": 5,
@@ -86672,6 +89612,36 @@
       },
       "name": "ProjectGameplayEventBus",
       "path": "src/Forge.Application/Lifecycle/ProjectGameplayEventBus.cs"
+    },
+    {
+      "id": "type:Forge.Application.Lifecycle.RestRuntimeCoordinator",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "RestRuntimeCoordinator",
+      "path": "src/Forge.Application/Lifecycle/RestRuntimeCoordinator.cs"
+    },
+    {
+      "id": "type:Forge.Application.Lifecycle.RestSession",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "RestSession",
+      "path": "src/Forge.Application/Lifecycle/RestSession.cs"
+    },
+    {
+      "id": "type:Forge.Application.Lifecycle.SequenceAbortCoordinator",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Lifecycle"
+      },
+      "name": "SequenceAbortCoordinator",
+      "path": "src/Forge.Application/Lifecycle/SequenceAbortCoordinator.cs"
     },
     {
       "id": "type:Forge.Application.Localization.LocalizationCatalogExtractor",
@@ -88274,6 +91244,16 @@
       "path": "src/Forge.Domain/Lifecycle/IRuntimeLifecycleEventIdSource.cs"
     },
     {
+      "id": "type:Forge.Domain.Lifecycle.RestLifecycleStage",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Lifecycle"
+      },
+      "name": "RestLifecycleStage",
+      "path": "src/Forge.Domain/Lifecycle/RestLifecycleStage.cs"
+    },
+    {
       "id": "type:Forge.Domain.Lifecycle.RuntimeAuthority",
       "kind": "type",
       "line": 3,
@@ -88854,6 +91834,116 @@
       "path": "src/Forge.Domain/Quests/QuestTransition.cs"
     },
     {
+      "id": "type:Forge.Domain.RuntimePolicies.AreaRestPolicy",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "AreaRestPolicy",
+      "path": "src/Forge.Domain/RuntimePolicies/AreaRestPolicy.cs"
+    },
+    {
+      "id": "type:Forge.Domain.RuntimePolicies.AreaRuntimePolicyProfile",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "AreaRuntimePolicyProfile",
+      "path": "src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.RuntimePolicies.HeartbeatScope",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "HeartbeatScope",
+      "path": "src/Forge.Domain/RuntimePolicies/HeartbeatScope.cs"
+    },
+    {
+      "id": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "ModuleRuntimePolicyProfile",
+      "path": "src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.RuntimePolicies.PartyRestPolicy",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "PartyRestPolicy",
+      "path": "src/Forge.Domain/RuntimePolicies/PartyRestPolicy.cs"
+    },
+    {
+      "id": "type:Forge.Domain.RuntimePolicies.RestLifecycleProfile",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "RestLifecycleProfile",
+      "path": "src/Forge.Domain/RuntimePolicies/RestLifecycleProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.RuntimePolicies.RestPermissionMode",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "RestPermissionMode",
+      "path": "src/Forge.Domain/RuntimePolicies/RestPermissionMode.cs"
+    },
+    {
+      "id": "type:Forge.Domain.RuntimePolicies.RestPolicyVolume",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "RestPolicyVolume",
+      "path": "src/Forge.Domain/RuntimePolicies/RestPolicyVolume.cs"
+    },
+    {
+      "id": "type:Forge.Domain.RuntimePolicies.RuntimePolicyIdFactory",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "RuntimePolicyIdFactory",
+      "path": "src/Forge.Domain/RuntimePolicies/RuntimePolicyIdFactory.cs"
+    },
+    {
+      "id": "type:Forge.Domain.RuntimePolicies.SequenceAbortPolicy",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "SequenceAbortPolicy",
+      "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortPolicy.cs"
+    },
+    {
+      "id": "type:Forge.Domain.RuntimePolicies.SequenceAbortRestoreFlags",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Domain.RuntimePolicies"
+      },
+      "name": "SequenceAbortRestoreFlags",
+      "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortRestoreFlags.cs"
+    },
+    {
       "id": "type:Forge.Domain.Validation.DiagnosticSeverity",
       "kind": "type",
       "line": 3,
@@ -89364,13 +92454,43 @@
       "path": "src/Forge.Mcp/Projects/ForgeProjectSummary.cs"
     },
     {
+      "id": "type:Forge.Mcp.Projects.RuntimePolicyPlanRequest",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "RuntimePolicyPlanRequest",
+      "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Projects.RuntimePolicyResource",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "RuntimePolicyResource",
+      "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Projects.StoredDialoguePlan",
       "kind": "type",
-      "line": 514,
+      "line": 678,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
       "name": "StoredDialoguePlan",
+      "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Projects.StoredRuntimePolicyPlan",
+      "kind": "type",
+      "line": 705,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "StoredRuntimePolicyPlan",
       "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
     },
     {
@@ -93346,7 +96466,7 @@
     {
       "id": "type:Forge.Runtime.GameRoot",
       "kind": "type",
-      "line": 27,
+      "line": 30,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -93356,7 +96476,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeAreaChunkLoader",
       "kind": "type",
-      "line": 1879,
+      "line": 1989,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -93366,7 +96486,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 1918,
+      "line": 2028,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -93906,7 +97026,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 6457,
+      "line": 6633,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -93954,9 +97074,19 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.RuntimePoliciesWindow",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "RuntimePoliciesWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/RuntimePoliciesWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 6462,
+      "line": 6638,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -93966,7 +97096,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 6467,
+      "line": 6643,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -94172,6 +97302,16 @@
       },
       "name": "ProjectValidator",
       "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Validation.RuntimePolicyValidator",
+      "kind": "validator",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Validation"
+      },
+      "name": "RuntimePolicyValidator",
+      "path": "src/Forge.Domain/Validation/RuntimePolicyValidator.cs"
     },
     {
       "id": "validator:Forge.ModuleFormat.Packages.ModuleManifestValidator",

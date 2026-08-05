@@ -31,6 +31,8 @@ public static class ProjectValidator
         var areaIds = project.Areas.Select(area => area.Id).ToHashSet();
         var portalIds = new HashSet<PortalId>();
 
+        diagnostics.AddRange(RuntimePolicyValidator.Validate(project.Module));
+
         if (project.Module.Content.Id.Value != project.Module.Id.Value)
         {
             diagnostics.Add(new DomainDiagnostic(
@@ -84,6 +86,7 @@ public static class ProjectValidator
         foreach (var area in project.Areas)
         {
             diagnostics.AddRange(AreaWorldValidator.Validate(area, area.World));
+            diagnostics.AddRange(RuntimePolicyValidator.Validate(area));
 
             for (var index = 0; index < area.Entities.Count; index++)
             {

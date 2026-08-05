@@ -2,6 +2,7 @@ using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Content;
 using Forge.Domain.Localization;
+using Forge.Domain.RuntimePolicies;
 
 namespace Forge.Domain.Modules;
 
@@ -29,6 +30,8 @@ public sealed record ModuleDefinition
 
     public ArtisticStyleProfile ArtisticStyle { get; }
 
+    public ModuleRuntimePolicyProfile RuntimePolicies { get; }
+
     public ModuleDefinition(
         ModuleId id,
         string slug,
@@ -40,7 +43,8 @@ public sealed record ModuleDefinition
         ModuleDistributionConfiguration? distribution = null,
         LocalizationCatalog? localization = null,
         ContentWorkspaceConfiguration? content = null,
-        ArtisticStyleProfile? artisticStyle = null)
+        ArtisticStyleProfile? artisticStyle = null,
+        ModuleRuntimePolicyProfile? runtimePolicies = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -71,5 +75,10 @@ public sealed record ModuleDefinition
         Localization = localization ?? LocalizationCatalog.CreateEmpty(id.Value, Metadata.DefaultLocale);
         Content = content ?? ContentWorkspaceConfiguration.CreateDefault(id.Value);
         ArtisticStyle = artisticStyle ?? ArtisticStyleProfile.CreateDefault(id.Value);
+        RuntimePolicies = runtimePolicies ?? ModuleRuntimePolicyProfile.CreateDefault(id);
     }
+
+    public ModuleDefinition WithRuntimePolicies(ModuleRuntimePolicyProfile runtimePolicies) =>
+        new(Id, Slug, DisplayName, Description, EntryAreaId, Metadata, Variables, Distribution, Localization,
+            Content, ArtisticStyle, runtimePolicies);
 }

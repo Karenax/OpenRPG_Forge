@@ -11,6 +11,7 @@ using Forge.Application.Creator;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Localization;
+using Forge.Application.Lifecycle;
 using Forge.Application.Projects;
 using Forge.Application.Quests;
 using Forge.Application.Spatial;
@@ -23,11 +24,14 @@ using Forge.Domain.Build;
 using Forge.Domain.Content;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.Gameplay;
 using Forge.Domain.Localization;
+using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
+using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Forge.EngineAdapter.Rendering;
@@ -58,6 +62,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly EditAreaGeometryHandler _editAreaGeometryHandler = new(new SystemClock());
     private readonly SetAreaEnvironmentHandler _setAreaEnvironmentHandler = new(new SystemClock());
     private readonly SetAreaWorldProfileHandler _setAreaWorldProfileHandler = new(new SystemClock());
+    private readonly SetRuntimePoliciesHandler _setRuntimePoliciesHandler = new(new SystemClock());
     private readonly SetAreaAuthoringHandler _setAreaAuthoringHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
@@ -177,6 +182,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private RecoveryWindow? _recoveryWindow;
     private AreaEnvironmentWindow? _areaEnvironmentWindow;
     private TerrainStudioWindow? _terrainStudioWindow;
+    private RuntimePoliciesWindow? _runtimePoliciesWindow;
     private AreaAuthoringWindow? _areaAuthoringWindow;
     private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
     private NetworkBetaWindow? _networkBetaWindow;
@@ -291,6 +297,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             OpenNavigationConfiguration,
             OpenAreaEnvironment,
             OpenTerrainStudio,
+            OpenRuntimePolicies,
             OpenAreaAuthoring,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
@@ -300,6 +307,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _terrainStudioWindow = new TerrainStudioWindow();
         _terrainStudioWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaWorldProfile, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_terrainStudioWindow);
+        _runtimePoliciesWindow = new RuntimePoliciesWindow();
+        _runtimePoliciesWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
+            ApplyRuntimePolicies, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_runtimePoliciesWindow);
         _areaAuthoringWindow = new AreaAuthoringWindow();
         _areaAuthoringWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaAuthoring, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaAuthoringWindow);
@@ -1476,6 +1487,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void OpenTerrainStudio() => _terrainStudioWindow?.Open();
 
+    private void OpenRuntimePolicies() => _runtimePoliciesWindow?.Open();
+
     private void OpenAreaAuthoring() => _areaAuthoringWindow?.Open();
 
     private bool ApplyAreaAuthoring(AreaId areaId, AreaAuthoringProfile profile)
@@ -1499,6 +1512,23 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var command = new SetAreaWorldProfileCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, areaId, profile, false);
         return ApplyCommand(_setAreaWorldProfileHandler.Handle(_history.State, command),
             "Terrain, biomes, features et volumes mis à jour.", null);
+    }
+
+    private bool ApplyRuntimePolicies(ModuleRuntimePolicyProfile moduleProfile, AreaId areaId,
+        AreaRuntimePolicyProfile areaProfile)
+    {
+        if (_history is null) return false;
+        var preview = new SetRuntimePoliciesCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            moduleProfile, areaId, areaProfile, true);
+        var previewResult = _setRuntimePoliciesHandler.Handle(_history.State, preview);
+        if (!previewResult.Succeeded) return false;
+        var command = preview with
+        {
+            CommandId = CommandId.From(Guid.NewGuid()),
+            DryRun = false,
+        };
+        return ApplyCommand(_setRuntimePoliciesHandler.Handle(_history.State, command),
+            "Rythme, repos et restauration des séquences mis à jour.", null);
     }
 
     private void OpenGlobalSearch() => _globalSearch?.Open();
@@ -3855,6 +3885,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunRuntimePolicySmokeTest())
+        {
+            return;
+        }
+
         if (!RunNavigationAndGeometrySmokeTest())
         {
             return;
@@ -5697,6 +5732,147 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             $"OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_PASS provider=heightmap vertices=81 triangles=126 " +
             $"holes=1 biomes=2 features=3 volumes=3 flight_path={path.Points.Count} streaming=async-cache-cancel " +
+            "history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunRuntimePolicySmokeTest()
+    {
+        if (_history is null || _runtimePoliciesWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_FAILED missing_workspace");
+            return false;
+        }
+
+        var area = GetActiveArea();
+        var originalModule = _history.State.Project.Module.RuntimePolicies;
+        var originalArea = area.RuntimePolicies;
+        var global = new HeartbeatScheduleDefinition(
+            Guid.Parse("d11a0000-0000-4000-8000-000000000001"), 1, "Simulation globale",
+            HeartbeatScope.Module, true, 1_500, 12, false, "1.0", "OnGlobalHeartbeat", "smoke:g11-j");
+        var local = new HeartbeatScheduleDefinition(
+            Guid.Parse("d11a0000-0000-4000-8000-000000000002"), 1, "Écologie locale",
+            HeartbeatScope.Area, true, 750, 8, true, "1.0", "OnAreaHeartbeat", "smoke:g11-j");
+        var rest = new RestLifecycleProfile(originalModule.Rest.Id, 1, true, PartyRestPolicy.WholeParty, 8,
+            originalModule.Rest.Bindings, "smoke:g11-j");
+        var abort = new SequenceAbortPolicy(originalModule.SequenceAbort.Id, 1, true,
+            originalModule.SequenceAbort.Binding, SequenceAbortRestoreFlags.All, 64, "smoke:g11-j");
+        var modulePolicies = new ModuleRuntimePolicyProfile(originalModule.Id, 1, [global], rest, abort,
+            "smoke:g11-j");
+        var danger = new RestPolicyVolume(Guid.Parse("d11a0000-0000-4000-8000-000000000003"),
+            "Sanctuaire profané", Vector3Value.Zero, new Vector3Value(4, 4, 4), RestPermissionMode.Forbidden,
+            "Le sanctuaire n’est pas sécurisé.", string.Empty, 30, 0, 100, "smoke:g11-j");
+        var areaRest = new AreaRestPolicy(originalArea.Rest.Id, 1, RestPermissionMode.Conditional,
+            "Installez un camp sécurisé.", "camp.secure == true", 30, 3, [danger], "smoke:g11-j");
+        var areaPolicies = new AreaRuntimePolicyProfile(originalArea.Id, 1, [local], areaRest, "smoke:g11-j");
+        if (!_runtimePoliciesWindow.ConfigureForSmokeTest(modulePolicies, areaPolicies) ||
+            !_runtimePoliciesWindow.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_FAILED apply");
+            return false;
+        }
+
+        var appliedModule = _history.State.Project.Module.RuntimePolicies;
+        var appliedArea = _history.State.Project.Areas.Single(item => item.Id == area.Id).RuntimePolicies;
+        var appliedGlobal = appliedModule.Heartbeats.Single();
+        var appliedLocal = appliedArea.Heartbeats.Single();
+        var scheduler = new HeartbeatScheduler();
+        var globalAdvance = scheduler.Advance(appliedModule.Heartbeats, appliedGlobal.IntervalMilliseconds * 3L,
+            true);
+        var suspendedAdvance = scheduler.Advance(appliedArea.Heartbeats, appliedLocal.IntervalMilliseconds * 3L,
+            false, area.Id);
+        var localAdvance = scheduler.Advance(appliedArea.Heartbeats, appliedLocal.IntervalMilliseconds, true,
+            area.Id);
+        if (globalAdvance.Dispatches.Count != 3 || suspendedAdvance.Dispatches.Count != 0 ||
+            localAdvance.Dispatches.Count != 1 || globalAdvance.Dispatches.Any(item =>
+                item.BudgetMilliseconds != appliedGlobal.BudgetMilliseconds || item.Handler != appliedGlobal.Handler) ||
+            localAdvance.Dispatches.Any(item => item.BudgetMilliseconds != appliedLocal.BudgetMilliseconds ||
+                item.Handler != appliedLocal.Handler) ||
+            localAdvance.Diagnostics.All(item => item.Code != HeartbeatScheduler.AggressiveIntervalCode))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_FAILED heartbeat");
+            return false;
+        }
+
+        var now = DateTimeOffset.Parse("2026-01-01T00:00:00Z");
+        var restIds = 0;
+        var restRuntime = new RestRuntimeCoordinator(() => new Guid(++restIds, 0, 0, new byte[8]));
+        var denied = restRuntime.Request("hero", "party", area.Id, Vector3Value.Zero, appliedModule.Rest,
+            appliedArea.Rest, true, _ => true, 100, now);
+        var started = restRuntime.Request("hero", "party", area.Id, new Vector3Value(6, 0, 0), appliedModule.Rest,
+            appliedArea.Rest, true, expression => expression == "camp.secure == true", 102, now);
+        var completed = started.Session is null
+            ? null
+            : restRuntime.Complete(started.Session, 104, now.AddSeconds(8));
+        var cooldown = restRuntime.Request("hero", "party", area.Id, new Vector3Value(6, 0, 0),
+            appliedModule.Rest, appliedArea.Rest, true, _ => true, 105, now.AddSeconds(9));
+        if (denied.DiagnosticCode != RestRuntimeCoordinator.ForbiddenCode || denied.Events.Count != 2 ||
+            started.Events.Select(item => item.Stage).SequenceEqual(
+                [RestLifecycleStage.Requested, RestLifecycleStage.Started]) is false ||
+            completed?.Events.Single().Stage != RestLifecycleStage.Completed ||
+            cooldown.DiagnosticCode != RestRuntimeCoordinator.CooldownCode)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_FAILED rest");
+            return false;
+        }
+
+        var exploration = new ControlContext(Guid.Parse("d11a0000-0000-4000-8000-000000000004"), 1,
+            "smoke:g11-j", "exploration", false, "follow", new HashSet<string> { "move" });
+        var cinematic = new ControlContext(Guid.Parse("d11a0000-0000-4000-8000-000000000005"), 1,
+            "smoke:g11-j", "cinematic", true, "rail", new HashSet<string> { "skip" });
+        var snapshot = new SequenceRuntimeState("camera.player", [exploration], new HashSet<string>(),
+            new HashSet<string>(), 20, null, false);
+        var current = new SequenceRuntimeState("camera.cutscene", [exploration, cinematic],
+            new HashSet<string> { "hero" }, new HashSet<string> { "input", "dialogue" }, 24, "tx-24", true);
+        var aborted = SequenceAbortCoordinator.Abort(appliedModule.SequenceAbort, current, snapshot);
+        if (!aborted.Accepted || aborted.State != snapshot with { SequenceActive = false } ||
+            !aborted.CameraRestored || !aborted.NarrativeRolledBack || aborted.ReleasedLocks != 2)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_FAILED sequence_abort");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "runtime-policy-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project;
+            var restoredArea = restored?.Areas.SingleOrDefault(item => item.Id == area.Id);
+            if (!saved.Succeeded || !reopened.Succeeded || restored is null || restoredArea is null ||
+                restored.Module.RuntimePolicies.Heartbeats.Count != 1 ||
+                restoredArea.RuntimePolicies.Heartbeats.Count != 1 ||
+                restoredArea.RuntimePolicies.Rest.Volumes.Count != 1 ||
+                restored.Module.RuntimePolicies.SequenceAbort.Restore != SequenceAbortRestoreFlags.All)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            !ReferenceEquals(_history.State.Project.Module.RuntimePolicies, originalModule) ||
+            !ReferenceEquals(_history.State.Project.Areas.Single(item => item.Id == area.Id).RuntimePolicies,
+                originalArea))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_FAILED history");
+            return false;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G11J_RUNTIME_POLICY_PASS heartbeats=global-area budgets=bounded " +
+            "suspension=inactive rest=requested-started-interrupted-completed cooldown=active " +
+            "volumes=conditional abort=camera-control-invulnerability-locks-narrative " +
             "history=restored persistence=roundtrip");
         return true;
     }

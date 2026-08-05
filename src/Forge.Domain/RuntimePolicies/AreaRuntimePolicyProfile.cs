@@ -1,0 +1,62 @@
+using Forge.Domain.Areas;
+
+namespace Forge.Domain.RuntimePolicies;
+
+public sealed record AreaRuntimePolicyProfile
+{
+    public const int CurrentSchemaVersion = 1;
+
+    public Guid Id { get; }
+    public int SchemaVersion { get; }
+    public IReadOnlyList<HeartbeatScheduleDefinition> Heartbeats { get; }
+    public AreaRestPolicy Rest { get; }
+    public string Provenance { get; }
+
+    public AreaRuntimePolicyProfile(Guid id, int schemaVersion,
+        IReadOnlyList<HeartbeatScheduleDefinition> heartbeats, AreaRestPolicy rest, string provenance)
+    {
+        ArgumentNullException.ThrowIfNull(heartbeats);
+        ArgumentNullException.ThrowIfNull(rest);
+        ArgumentException.ThrowIfNullOrWhiteSpace(provenance);
+        var values = heartbeats.OrderBy(item => item.Id).ToArray();
+        if (id == Guid.Empty || schemaVersion != CurrentSchemaVersion ||
+            values.Select(item => item.Id).Distinct().Count() != values.Length ||
+            values.Any(item => item.Scope != HeartbeatScope.Area))
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "Area runtime policy profile is invalid.");
+        }
+
+        Id = id;
+        SchemaVersion = schemaVersion;
+        Heartbeats = values;
+        Rest = rest;
+        Provenance = provenance.Trim();
+    }
+
+    public static AreaRuntimePolicyProfile CreateDefault(AreaId areaId)
+    {
+        ArgumentNullException.ThrowIfNull(areaId);
+        var rest = new AreaRestPolicy(RuntimePolicyIdFactory.Create(areaId.Value, "rest"),
+            AreaRestPolicy.CurrentSchemaVersion, RestPermissionMode.Allowed, string.Empty, string.Empty, 0, 0, [],
+            "migration-default");
+        return new AreaRuntimePolicyProfile(areaId.Value, CurrentSchemaVersion, [], rest, "migration-default");
+    }
+
+    public static AreaRuntimePolicyProfile CloneForArea(AreaRuntimePolicyProfile source, AreaId areaId)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(areaId);
+        var heartbeats = source.Heartbeats.Select((item, index) => new HeartbeatScheduleDefinition(
+            RuntimePolicyIdFactory.Create(areaId.Value, $"heartbeat:{index}"), item.SchemaVersion, item.Name,
+            HeartbeatScope.Area, item.Enabled, item.IntervalMilliseconds, item.BudgetMilliseconds,
+            item.SuspendWhenInactive, item.ForgeScriptApiVersion, item.Handler, "area-clone")).ToArray();
+        var volumes = source.Rest.Volumes.Select((item, index) => new RestPolicyVolume(
+            RuntimePolicyIdFactory.Create(areaId.Value, $"rest-volume:{index}"), item.Name, item.Center, item.Size,
+            item.Mode, item.DenialReason, item.Condition, item.CooldownSeconds, item.RequiredSecureRadius,
+            item.Priority, "area-clone")).ToArray();
+        var rest = new AreaRestPolicy(RuntimePolicyIdFactory.Create(areaId.Value, "rest"), source.Rest.SchemaVersion,
+            source.Rest.Mode, source.Rest.DenialReason, source.Rest.Condition, source.Rest.CooldownSeconds,
+            source.Rest.RequiredSecureRadius, volumes, "area-clone");
+        return new AreaRuntimePolicyProfile(areaId.Value, source.SchemaVersion, heartbeats, rest, "area-clone");
+    }
+}

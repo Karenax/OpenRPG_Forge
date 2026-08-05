@@ -246,6 +246,36 @@ public sealed class ProjectSessionTests : IDisposable
     }
 
     [Fact]
+    public void Open_MigratesPreRuntimePolicyWorkspaceAndAreaDocumentsDeterministically()
+    {
+        var created = ProjectSession.Create(
+            Path.Combine(_temporaryRoot, "pre-runtime-policy"),
+            TestProjectFactory.CreateValid());
+        var session = Assert.IsType<ProjectSession>(created.Session);
+        var projectDocument = JsonNode.Parse(File.ReadAllText(session.ProjectFilePath))!.AsObject();
+        projectDocument["formatVersion"] = "1.5.0";
+        projectDocument["project"]!["module"]!.AsObject().Remove("runtimePolicies");
+        File.WriteAllText(session.ProjectFilePath, projectDocument.ToJsonString());
+        var areaPath = Assert.Single(Directory.EnumerateFiles(Path.Combine(session.RootDirectory, "areas"), "*.json"));
+        var areaDocument = JsonNode.Parse(File.ReadAllText(areaPath))!.AsObject();
+        areaDocument["formatVersion"] = AreaJsonSerializer.PreRuntimePolicyFormatVersion;
+        areaDocument["area"]!.AsObject().Remove("runtimePolicies");
+        File.WriteAllText(areaPath, areaDocument.ToJsonString());
+
+        var first = ProjectSession.Open(session.RootDirectory);
+        var second = ProjectSession.Open(session.RootDirectory);
+        var firstProject = Assert.IsType<ProjectSession>(first.Session).Project;
+        var secondProject = Assert.IsType<ProjectSession>(second.Session).Project;
+
+        Assert.True(first.Succeeded);
+        Assert.True(second.Succeeded);
+        Assert.Equal(firstProject.Module.RuntimePolicies.Id, secondProject.Module.RuntimePolicies.Id);
+        Assert.False(firstProject.Module.RuntimePolicies.Rest.Enabled);
+        Assert.Equal(firstProject.Areas[0].RuntimePolicies.Id, secondProject.Areas[0].RuntimePolicies.Id);
+        Assert.Empty(firstProject.Areas[0].RuntimePolicies.Heartbeats);
+    }
+
+    [Fact]
     public void Open_ReturnsLocalizedDiagnosticWhenAreaDocumentIsMissing()
     {
         var created = ProjectSession.Create(
