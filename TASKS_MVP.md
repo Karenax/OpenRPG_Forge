@@ -429,7 +429,8 @@ Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dan
 - [x] **G11-N** — audio spatial, voix, patrouilles inter-zones et chargement accessible.
 - [x] **G11-O** — règles data-driven, UI scriptable, JSON sûr et snapshots runtime.
 - [x] **G11-P** — copie runtime, indicateurs AOE, NUI 2.0, compilateur et docs générées.
-- [ ] **G11-Q à G11-T** — poursuivre les lots bornés du plan de preuves Aurora.
+- [x] **G11-Q** — manifestes de tâches, crash artifacts, santé, récupération et synchronisation.
+- [ ] **G11-R à G11-T** — poursuivre les lots bornés du plan de preuves Aurora.
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest
 

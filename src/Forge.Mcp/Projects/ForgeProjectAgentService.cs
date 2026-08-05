@@ -4,6 +4,7 @@ using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Projects;
 using Forge.Application.Time;
+using Forge.Application.Validation;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
@@ -127,6 +128,19 @@ public sealed class ForgeProjectAgentService
         var result = ForgeDocumentationGenerator.Generate(repositoryRoot, "docs/generated", checkOnly: true);
         return new GeneratedDocumentationResource(1, result.Current,
             result.Files.Select(file => $"docs/generated/{file.RelativePath}").ToArray(), result.ChangedFiles);
+    }
+
+    public ProjectHealthReport GetProjectHealth(bool testsPassed = false)
+    {
+        lock (_gate)
+        {
+            var evidence = testsPassed
+                ? new[] { new ProjectHealthSignal("tests", ProjectHealthCategory.Tests,
+                    ProjectHealthSeverity.Information, "health.tests.mcp_pass", "MCP test evidence passed.",
+                    "health/tests/mcp", true) }
+                : [];
+            return ProjectHealthReportService.Evaluate(_history.State.Project, _clock.UtcNow, evidence);
+        }
     }
 
     private static string FindRepositoryRoot(string start)

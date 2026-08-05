@@ -7,7 +7,7 @@ namespace Forge.Toolset.Editor;
 public partial class RecoveryWindow : Window
 {
     private Func<IReadOnlyList<RecoverySnapshotInfo>>? _list;
-    private Func<RecoverySnapshotInfo, bool>? _restore;
+    private Func<RecoverySnapshotInfo, RecoveryComparison?>? _restore;
     private Action? _capture;
     private Action? _clear;
     private Action<Window>? _brand;
@@ -15,7 +15,8 @@ public partial class RecoveryWindow : Window
     private Label? _status;
     private IReadOnlyList<RecoverySnapshotInfo> _snapshots = [];
 
-    public void Initialize(Func<IReadOnlyList<RecoverySnapshotInfo>> list, Func<RecoverySnapshotInfo, bool> restore,
+    public void Initialize(Func<IReadOnlyList<RecoverySnapshotInfo>> list,
+        Func<RecoverySnapshotInfo, RecoveryComparison?> restore,
         Action capture, Action clear, Action<Window> brand)
     {
         _list = list; _restore = restore; _capture = capture; _clear = clear; _brand = brand;
@@ -43,7 +44,11 @@ public partial class RecoveryWindow : Window
     {
         var index = _items!.GetSelectedItems().FirstOrDefault(-1);
         if (index < 0 || index >= _snapshots.Count) return;
-        _status!.Text = _restore?.Invoke(_snapshots[index]) == true ? "✓ Copie restaurée en mémoire — utilisez Enregistrer pour confirmer" : "✕ Restauration refusée (hash ou format invalide)";
+        var comparison = _restore?.Invoke(_snapshots[index]);
+        _status!.Text = comparison is null ? "✕ Restauration refusée (hash ou format invalide)" :
+            $"✓ Copie restaurée · zones {comparison.CurrentAreas}→{comparison.SnapshotAreas} · " +
+            $"entités {comparison.CurrentEntities}→{comparison.SnapshotEntities} · " +
+            $"blueprints {comparison.CurrentBlueprints}→{comparison.SnapshotBlueprints}";
     }
 }
 #endif

@@ -1,5 +1,6 @@
 #if TOOLS
 using Forge.Application.Projects;
+using Forge.Application.Validation;
 using Forge.Domain.RuntimeExtensions;
 using Godot;
 
@@ -22,12 +23,15 @@ public partial class RuntimeExtensionsWindow : Window
     private SpinBox? _maxBlackboard;
     private CheckBox? _restoreReferences;
     private TextEdit? _modernTooling;
+    private TextEdit? _operationalReadiness;
+    private Label? _healthSummary;
     private Label? _summary;
     private Label? _status;
 
     internal string Summary => _profile is null ? "unavailable" :
         $"rules={_profile.RuleSchemas.Count};ui={_profile.UiDocuments.Count};json={_profile.JsonDocuments.Count};" +
-        $"components={_profile.SnapshotPolicy.Components.Count};toolkit={_profile.ModernTooling.UiToolkit.ToolkitVersion}";
+        $"components={_profile.SnapshotPolicy.Components.Count};toolkit={_profile.ModernTooling.UiToolkit.ToolkitVersion};" +
+        $"tasks={_profile.OperationalReadiness.TaskManifests.Count};sync={_profile.OperationalReadiness.ContentSynchronization.Resumable}";
 
     public void Initialize(Func<ProjectState?> state, Func<ModuleRuntimeExtensionProfile, bool> apply,
         Action<Window> brand)
@@ -108,6 +112,13 @@ public partial class RuntimeExtensionsWindow : Window
         _modernTooling = Editor(210); state.AddChild(_modernTooling);
         state.AddChild(Hint("Les chemins hôte restent inaccessibles. Les JSON sont validés et bornés avant le runtime."));
 
+        var readiness = Card(columns, "SANTÉ, REPRISE & SYNCHRONISATION");
+        _healthSummary = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        _healthSummary.AddThemeColorOverride("font_color", new Color("79d5ad")); readiness.AddChild(_healthSummary);
+        readiness.AddChild(Hint("Lignes : task, crash, health, recovery et sync. Les listes utilisent des virgules et '-' signifie vide."));
+        _operationalReadiness = Editor(520); readiness.AddChild(_operationalReadiness);
+        readiness.AddChild(Hint("Les tâches bornent les agents ; les secrets sont assainis ; les fichiers corrompus sont mis en quarantaine ; le cache reste sous contrôle utilisateur."));
+
         var footer = new HBoxContainer();
         _status = new Label { Text = "Prêt · aucune mutation.", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         _status.AddThemeColorOverride("font_color", new Color("9bd9bd")); footer.AddChild(_status);
@@ -155,6 +166,42 @@ public partial class RuntimeExtensionsWindow : Window
             Join("docs", modern.Documentation.OutputDirectory, string.Join(',', modern.Documentation.Catalogs),
                 modern.Documentation.IncludeMcpResources),
         });
+        var readiness = _profile.OperationalReadiness;
+        _operationalReadiness!.Text = string.Join("\n", readiness.TaskManifests.Select(task =>
+                Join("task", task.Key, task.Goal, List(task.ScopePaths), List(task.ForbiddenPaths),
+                    List(task.AcceptanceTests), task.Owner,
+                    List(task.Dependencies.Select(dependency => readiness.TaskManifests
+                        .FirstOrDefault(candidate => candidate.Id == dependency)?.Key ?? dependency.ToString("D")))))
+            .Concat(new[]
+            {
+                Join("crash", readiness.CrashArtifacts.CaptureSanitizedLogs, readiness.CrashArtifacts.DumpAdapter,
+                    readiness.CrashArtifacts.MaxLogLines, readiness.CrashArtifacts.MaxArtifactBytes,
+                    readiness.CrashArtifacts.IncludeVersion, readiness.CrashArtifacts.IncludePackageFingerprint,
+                    readiness.CrashArtifacts.IncludeReproductionId, List(readiness.CrashArtifacts.SensitiveKeys)),
+                Join("health", List(readiness.ProjectHealth.Domains), readiness.ProjectHealth.IncludeTestStatus,
+                    readiness.ProjectHealth.IncludePerformance, readiness.ProjectHealth.IncludeLicenses,
+                    readiness.ProjectHealth.IncludeMigrations, readiness.ProjectHealth.IncludeCoverage,
+                    readiness.ProjectHealth.FailBuildWhenUnhealthy),
+                Join("recovery", readiness.Recovery.AutosaveIntervalSeconds, readiness.Recovery.RetainedSnapshots,
+                    readiness.Recovery.OfferRecoveryOnOpen, readiness.Recovery.QuarantineCorruptFiles,
+                    readiness.Recovery.CompareBeforeRestore),
+                Join("sync", readiness.ContentSynchronization.Resumable,
+                    readiness.ContentSynchronization.DeduplicateByHash,
+                    readiness.ContentSynchronization.VerifyContent,
+                    readiness.ContentSynchronization.RequireTrustedSigner,
+                    readiness.ContentSynchronization.StorageDirectory,
+                    readiness.ContentSynchronization.MaximumCacheBytes,
+                    List(readiness.ContentSynchronization.AllowedLicenses),
+                    List(readiness.ContentSynchronization.TrustedSignerFingerprints)),
+            }));
+        var projectState = _state?.Invoke();
+        if (projectState is not null)
+        {
+            var report = ProjectHealthReportService.Evaluate(projectState.Project, DateTimeOffset.UtcNow);
+            _healthSummary!.Text = $"Santé {report.Status} · " + string.Join(" · ", report.Domains.Select(domain =>
+                $"{domain.Domain}:{domain.Status} ({domain.Passed}/{domain.Warning}/{domain.Failed})"));
+        }
+        else _healthSummary!.Text = "Santé indisponible · aucun projet ouvert.";
         _summary!.Text = $"Schéma v{_profile.SchemaVersion} · {Summary} · API ForgeScript 1.0";
         _status!.Text = "Prêt · documents canoniques chargés.";
     }
@@ -173,7 +220,7 @@ public partial class RuntimeExtensionsWindow : Window
                 (int)_maxReferences!.Value, (int)_maxInventory!.Value, (int)_maxBlackboard!.Value,
                 _restoreReferences!.ButtonPressed, "forge-ui");
             var profile = new ModuleRuntimeExtensionProfile(_profile.Id, 1, rules, ui, json, snapshot, "forge-ui",
-                ParseModernTooling());
+                ParseModernTooling(), ParseOperationalReadiness());
             var succeeded = _apply?.Invoke(profile) == true;
             _status!.Text = succeeded ? "✓ Extensions validées, persistantes et annulables." :
                 "✕ Application refusée · consultez les diagnostics.";
@@ -210,6 +257,44 @@ public partial class RuntimeExtensionsWindow : Window
                 Bool(compiler[3]), Int(compiler[4]), Int(compiler[5]), Csv(compiler[6]), "forge-ui"),
             new GeneratedDocumentationProfile(source.Documentation.Id, 1, docs[1], Csv(docs[2]),
                 Bool(docs[3]), "forge-ui"), "forge-ui");
+    }
+
+    private OperationalReadinessProfile ParseOperationalReadiness()
+    {
+        var rows = Lines(_operationalReadiness!).ToArray();
+        var source = _profile!.OperationalReadiness;
+        var taskRows = rows.Where(parts => Key(parts[0]) == "task").ToArray();
+        foreach (var parts in taskRows) Require(parts, 8, "task");
+        var existingIds = source.TaskManifests.ToDictionary(item => item.Key, item => item.Id, StringComparer.Ordinal);
+        var taskIds = taskRows.ToDictionary(parts => Key(parts[1]), parts =>
+            existingIds.GetValueOrDefault(Key(parts[1]), Guid.NewGuid()), StringComparer.Ordinal);
+        var tasks = taskRows.Select(parts =>
+        {
+            var dependencies = CsvOptional(parts[7]).Select(value =>
+                taskIds.TryGetValue(Key(value), out var id) ? id : Guid.Parse(value)).ToArray();
+            return new AgentTaskManifest(taskIds[Key(parts[1])], 1, parts[1], parts[2],
+                CsvOptional(parts[3]), CsvOptional(parts[4]), CsvOptional(parts[5]), parts[6], dependencies,
+                "forge-ui");
+        }).ToArray();
+        string[] Row(string key, int count)
+        {
+            var matches = rows.Where(parts => Key(parts[0]) == key).ToArray();
+            if (matches.Length != 1) throw new FormatException($"Politique '{key}' absente ou dupliquée.");
+            Require(matches[0], count, key); return matches[0];
+        }
+        var crash = Row("crash", 9); var health = Row("health", 8);
+        var recovery = Row("recovery", 6); var sync = Row("sync", 9);
+        return new OperationalReadinessProfile(source.Id, 1, tasks,
+            new CrashArtifactPolicy(source.CrashArtifacts.Id, 1, Bool(crash[1]),
+                EnumValue<CrashDumpAdapterKind>(crash[2]), Int(crash[3]), Long(crash[4]), Bool(crash[5]),
+                Bool(crash[6]), Bool(crash[7]), CsvOptional(crash[8]), "forge-ui"),
+            new ProjectHealthPolicy(source.ProjectHealth.Id, 1, Csv(health[1]), Bool(health[2]),
+                Bool(health[3]), Bool(health[4]), Bool(health[5]), Bool(health[6]), Bool(health[7]), "forge-ui"),
+            new CrashRecoveryPolicy(source.Recovery.Id, 1, Int(recovery[1]), Int(recovery[2]),
+                Bool(recovery[3]), Bool(recovery[4]), Bool(recovery[5]), "forge-ui"),
+            new ContentSynchronizationPolicy(source.ContentSynchronization.Id, 1, Bool(sync[1]),
+                Bool(sync[2]), Bool(sync[3]), Bool(sync[4]), sync[5], Long(sync[6]), Csv(sync[7]),
+                CsvOptional(sync[8]), "forge-ui"), "forge-ui");
     }
 
     private IReadOnlyList<DataDrivenRuleSchema> ParseRules()
@@ -281,12 +366,16 @@ public partial class RuntimeExtensionsWindow : Window
     private static bool Bool(string value) => value.Trim().ToLowerInvariant() switch
     { "true" or "oui" or "yes" or "1" => true, "false" or "non" or "no" or "0" => false, _ => throw new FormatException($"Booléen invalide : {value}") };
     private static int Int(string value) => int.TryParse(value, out var parsed) ? parsed : throw new FormatException($"Entier invalide : {value}");
+    private static long Long(string value) => long.TryParse(value, out var parsed) ? parsed : throw new FormatException($"Entier long invalide : {value}");
     private static float Float(string value) => float.TryParse(value, System.Globalization.NumberStyles.Float,
         System.Globalization.CultureInfo.InvariantCulture, out var parsed) ? parsed : throw new FormatException($"Nombre invalide : {value}");
     private static IReadOnlyList<string> Csv(string value) => value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    private static IReadOnlyList<string> CsvOptional(string value) => value is "-" or "" ? [] : Csv(value);
     private static string Key(string value) => value.Trim().ToLowerInvariant();
     private static string? Optional(string value) => value is "-" or "" ? null : value;
     private static string Join(params object?[] values) => string.Join('\t', values.Select(value => value?.ToString() ?? "-"));
+    private static string List(IEnumerable<string> values)
+    { var materialized = values.ToArray(); return materialized.Length == 0 ? "-" : string.Join(',', materialized); }
     private static TextEdit Editor(float height) => new() { CustomMinimumSize = new Vector2(420, height), WrapMode = TextEdit.LineWrappingMode.None };
     private static Label Hint(string text) => new() { Text = text, AutowrapMode = TextServer.AutowrapMode.WordSmart, Modulate = new Color("bcaacb") };
     private static SpinBox Spin(double min, double max, double value, double step) => new() { MinValue = min, MaxValue = max, Value = value, Step = step };

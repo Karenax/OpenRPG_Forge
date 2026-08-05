@@ -142,6 +142,12 @@ Creator, runtime, ForgeScript, CLI et MCP consomment les mêmes contrats persist
 détaillée est dans
 [`tasks/G11-P-MODERN-RUNTIME-TOOLING.md`](tasks/G11-P-MODERN-RUNTIME-TOOLING.md).
 
+**G11-Q est fermé le 5 août 2026.** Le profil opérationnel persiste manifestes de tâches, politique
+de crash, santé, récupération et synchronisation. Creator, runtime, CLI et MCP partagent les mêmes
+UUID et schémas. Le journal propose une récupération comparée sans mutation implicite ; le client
+de contenu reprend, vérifie et déduplique sous contrôle utilisateur. La preuve détaillée est dans
+[`tasks/G11-Q-OPERATIONAL-READINESS.md`](tasks/G11-Q-OPERATIONAL-READINESS.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-Q** : manifeste de tâches, artefacts de crash, santé, récupération et synchronisation.
+Démarrer **G11-R** : validation de localisation et tests ForgeScript, narration et rencontres.

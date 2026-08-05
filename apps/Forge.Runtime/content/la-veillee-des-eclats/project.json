@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.12.0",
+  "formatVersion": "1.13.0",
   "project": {
     "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
     "title": "La Veill\u00E9e des \u00C9clats",
@@ -700,6 +700,96 @@
                 "schemas"
               ],
               "includeMcpResources": true,
+              "provenance": "migration-default"
+            },
+            "provenance": "migration-default"
+          },
+          "operationalReadiness": {
+            "id": "fc35b0bf-710f-5329-9566-f5eb8bfc62bf",
+            "schemaVersion": 1,
+            "taskManifests": [
+              {
+                "id": "6d4ce3b8-1ddd-5a22-8aa6-0c4966f7f2ef",
+                "schemaVersion": 1,
+                "key": "validate-module",
+                "goal": "Validate the module without changing canonical source files.",
+                "scopePaths": [
+                  "areas",
+                  "project.json"
+                ],
+                "forbiddenPaths": [
+                  "Divers/OpenRPG_Forge_Aurora_Feature_Dossier"
+                ],
+                "acceptanceTests": [
+                  "forge docs check",
+                  "forge package validate"
+                ],
+                "owner": "project-maintainers",
+                "dependencies": [],
+                "provenance": "migration-default"
+              }
+            ],
+            "crashArtifacts": {
+              "id": "0b917206-6e4b-5b19-bfad-930a2539f7ec",
+              "schemaVersion": 1,
+              "captureSanitizedLogs": true,
+              "dumpAdapter": "managed",
+              "maxLogLines": 2000,
+              "maxArtifactBytes": 33554432,
+              "includeVersion": true,
+              "includePackageFingerprint": true,
+              "includeReproductionId": true,
+              "sensitiveKeys": [
+                "authorization",
+                "cookie",
+                "password",
+                "secret",
+                "token"
+              ],
+              "provenance": "migration-default"
+            },
+            "projectHealth": {
+              "id": "03025e93-3dd9-5757-8139-04d444840ea2",
+              "schemaVersion": 1,
+              "domains": [
+                "assets",
+                "build",
+                "content",
+                "migrations",
+                "performance",
+                "tests"
+              ],
+              "includeTestStatus": true,
+              "includePerformance": true,
+              "includeLicenses": true,
+              "includeMigrations": true,
+              "includeCoverage": true,
+              "failBuildWhenUnhealthy": true,
+              "provenance": "migration-default"
+            },
+            "recovery": {
+              "id": "517c0e3b-f260-5c88-b080-16bcd695f6c4",
+              "schemaVersion": 1,
+              "autosaveIntervalSeconds": 60,
+              "retainedSnapshots": 12,
+              "offerRecoveryOnOpen": true,
+              "quarantineCorruptFiles": true,
+              "compareBeforeRestore": true,
+              "provenance": "migration-default"
+            },
+            "contentSynchronization": {
+              "id": "0ee6d7ac-403c-5b00-bf8e-b2074875b348",
+              "schemaVersion": 1,
+              "resumable": true,
+              "deduplicateByHash": true,
+              "verifyContent": true,
+              "requireTrustedSigner": false,
+              "storageDirectory": ".forge/content-cache",
+              "maximumCacheBytes": 10737418240,
+              "allowedLicenses": [
+                "CC0-1.0"
+              ],
+              "trustedSignerFingerprints": [],
               "provenance": "migration-default"
             },
             "provenance": "migration-default"

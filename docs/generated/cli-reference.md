@@ -7,3 +7,4 @@
 - `forge package delta|apply-delta|bundle|spatial|diagnose`
 - `forge workspace migrate`
 - `forge author-original`
+- `forge readiness validate|health|crash|recovery|sync-plan`

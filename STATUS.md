@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-A à G11-P Contenu moderne fermés et G11-Q ouvert.**
+fermés ; G11-A à G11-Q Contenu moderne fermés et G11-R ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -13,7 +13,7 @@ zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplac
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.12.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.13.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -318,5 +318,12 @@ sont migrés. G11-P porte maintenant copie runtime, indicateurs, NUI, compilateu
 les AOE disposent d’une sélection déterministe et d’un mesh coloré ; le HUD utilise NUI 2.0 avec
 formulaires, listes, canvas, accessibilité, localisation et inspecteur. ForgeScript compile par lot
 avec cache incrémental, diagnostics stables, télémétrie et conformance. Six documents sont générés
-et contrôlés par CLI/MCP/gate. Les formats projet `0.6.18` et workspace `1.12.0` sont migrés. G11-Q
-porte maintenant manifestes de tâches, crash artifacts, santé, récupération et synchronisation.
+et contrôlés par CLI/MCP/gate. Les formats projet `0.6.18` et workspace `1.12.0` sont migrés.
+
+**G11-Q est fermé** : les tâches agentiques sont bornées par objectif, scope, interdictions,
+acceptation, propriétaire et dépendances ; les crash artifacts expurgent les secrets et portent
+version, empreinte et reproduction ID. Le Creator présente six domaines de santé, journalise les
+autosauvegardes et propose une récupération comparée. Le client de contenu reprend, vérifie et
+déduplique sous contrôle de confiance, licence et stockage utilisateur. Les formats projet `0.6.19`
+et workspace `1.13.0` sont migrés. G11-R porte maintenant les validations de localisation et les
+tests ForgeScript, narration et rencontres.

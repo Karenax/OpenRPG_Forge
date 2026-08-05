@@ -32,7 +32,8 @@ public sealed class SetRuntimeExtensionsHandler
         var patch = new ProjectPatch("replace", "module/runtimePolicies/extensions",
             $"Configure {command.Profile.RuleSchemas.Count} rule schema(s), {command.Profile.UiDocuments.Count} " +
             $"scriptable UI document(s), {command.Profile.JsonDocuments.Count} runtime JSON document(s), and " +
-            $"entity snapshot policy '{command.Profile.SnapshotPolicy.Id:D}'.");
+            $"entity snapshot policy '{command.Profile.SnapshotPolicy.Id:D}' plus " +
+            $"{command.Profile.OperationalReadiness.TaskManifests.Count} bounded task manifest(s).");
         var inverse = new ProjectPatch("replace", "module/runtimePolicies/extensions",
             "Restore the previous runtime extension profile.");
         var audit = new AuditEntry(command.CommandId, "set_runtime_extensions", _clock.UtcNow, !command.DryRun);

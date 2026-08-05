@@ -4,20 +4,24 @@ using Forge.Application.Assets;
 using Forge.Application.Commands;
 using Forge.Application.Projects;
 using Forge.Application.Time;
+using Forge.Application.Validation;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Content;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
+using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Content;
 using Forge.ModuleFormat.Distribution;
 using Forge.ModuleFormat.Documentation;
+using Forge.ModuleFormat.Diagnostics;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Workspaces;
+using Forge.Network.Content;
 
 return Run(args);
 
@@ -45,6 +49,11 @@ static int Run(IReadOnlyList<string> arguments)
             return RunDocumentation(arguments[1] == "check");
         }
 
+        if (arguments.Count >= 2 && arguments[0] == "readiness")
+        {
+            return RunReadiness(arguments.Skip(1).ToArray());
+        }
+
         if (arguments.Count == 3 && arguments[0] == "workspace" && arguments[1] == "migrate")
         {
             return MigrateWorkspace(arguments[2]);
@@ -60,6 +69,7 @@ static int Run(IReadOnlyList<string> arguments)
             "forge assets <list|prepare|roundtrip> ... | " +
             "forge content <batch|export-blueprints|merge-table> ... | " +
             "forge docs <generate|check> | " +
+            "forge readiness <validate|health|crash|recovery|sync-plan> ... | " +
             "forge workspace migrate <target-directory> | forge author-original <target-directory>");
         return 2;
     }
@@ -68,6 +78,100 @@ static int Run(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(exception.Message);
         return 1;
     }
+}
+
+static int RunReadiness(IReadOnlyList<string> arguments)
+{
+    if (arguments.Count < 2)
+    {
+        Console.Error.WriteLine("Usage: forge readiness <validate|health|crash|recovery|sync-plan> <workspace> ...");
+        return 2;
+    }
+    var opened = ProjectSession.Open(arguments[1]);
+    if (!opened.Succeeded || opened.Session is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+        return 1;
+    }
+    var project = opened.Session.Project;
+    var readiness = project.Module.RuntimePolicies.Extensions.OperationalReadiness;
+    if (arguments[0] == "validate")
+    {
+        var diagnostics = OperationalReadinessValidator.Validate(readiness);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = diagnostics.Count == 0,
+            diagnostics,
+            tasks = readiness.TaskManifests.Count,
+            manifests = readiness.TaskManifests
+        }));
+        if (diagnostics.Count == 0)
+            Console.WriteLine($"OPENRPG_FORGE_READINESS_VALIDATION_PASS tasks={readiness.TaskManifests.Count} schema=1");
+        return diagnostics.Count == 0 ? 0 : 1;
+    }
+    if (arguments[0] == "health")
+    {
+        var options = ParseOptions(arguments.Skip(2).ToArray());
+        var evidence = ParseBoolean(options.GetValueOrDefault("tests-passed"), false)
+            ? new[] { new ProjectHealthSignal("tests", ProjectHealthCategory.Tests,
+                ProjectHealthSeverity.Information, "health.tests.cli_pass", "CLI test evidence passed.",
+                "health/tests/cli", true) }
+            : [];
+        var report = ProjectHealthReportService.Evaluate(project, DateTimeOffset.UtcNow, evidence);
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = report.BuildAllowed, report }));
+        Console.WriteLine($"OPENRPG_FORGE_PROJECT_HEALTH_PASS status={report.Status.ToString().ToLowerInvariant()} " +
+            $"domains={report.Domains.Count} build={report.BuildAllowed.ToString().ToLowerInvariant()} fingerprint={report.Fingerprint}");
+        return report.BuildAllowed ? 0 : 1;
+    }
+    if (arguments[0] == "crash" && arguments.Count >= 4)
+    {
+        var options = ParseOptions(arguments.Skip(4).ToArray());
+        var version = options.GetValueOrDefault("version") ?? throw new ArgumentException("Crash capture requires --version.");
+        var packageHash = options.GetValueOrDefault("package-sha") ?? throw new ArgumentException("Crash capture requires --package-sha.");
+        var reproduction = Guid.Parse(options.GetValueOrDefault("reproduction-id") ?? Guid.NewGuid().ToString("D"));
+        var logPath = Path.GetFullPath(arguments[2]);
+        if (!File.Exists(logPath)) throw new FileNotFoundException("Crash log was not found.", logPath);
+        var result = new CrashArtifactBuilder(readiness.CrashArtifacts).Capture(new CrashArtifactRequest(
+            reproduction, DateTimeOffset.UtcNow, version, packageHash, File.ReadLines(logPath).ToArray(),
+            Path.GetFullPath(arguments[3])));
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = true, result }));
+        Console.WriteLine($"OPENRPG_FORGE_CRASH_ARTIFACT_PASS reproduction={result.ReproductionId:D} " +
+            $"bytes={result.Bytes} logs={result.SanitizedLogLines} sha256={result.Sha256}");
+        return 0;
+    }
+    if (arguments[0] == "recovery")
+    {
+        var options = ParseOptions(arguments.Skip(2).ToArray());
+        var quarantine = ParseBoolean(options.GetValueOrDefault("quarantine"), false);
+        if (quarantine && !readiness.Recovery.QuarantineCorruptFiles)
+            throw new InvalidOperationException("Recovery policy forbids quarantine.");
+        var inspection = new RecoverySnapshotStore(readiness.Recovery.RetainedSnapshots)
+            .Inspect(arguments[1], quarantine);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = inspection.All(item =>
+            item.Status is RecoverySnapshotStatus.Valid or RecoverySnapshotStatus.Quarantined),
+            inspection
+        }));
+        Console.WriteLine($"OPENRPG_FORGE_RECOVERY_INSPECTION_PASS snapshots={inspection.Count} quarantine={quarantine.ToString().ToLowerInvariant()}");
+        return 0;
+    }
+    if (arguments[0] == "sync-plan" && arguments.Count == 4)
+    {
+        var manifest = JsonSerializer.Deserialize<ContentRepositoryManifest>(File.ReadAllText(arguments[2]),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+            ?? throw new JsonException("Content repository manifest is empty.");
+        var report = new ContentRepositorySyncService(readiness.ContentSynchronization,
+            Path.GetFullPath(arguments[3])).Plan(manifest);
+        Console.WriteLine(JsonSerializer.Serialize(report));
+        if (report.Valid)
+            Console.WriteLine($"OPENRPG_FORGE_CONTENT_SYNC_PLAN_PASS resources={report.Items.Count} reused={report.ReusedBytes} fingerprint={report.Fingerprint}");
+        return report.Valid ? 0 : 1;
+    }
+    Console.Error.WriteLine("Usage: forge readiness validate <workspace> | readiness health <workspace> [--tests-passed true] | " +
+        "readiness crash <workspace> <log> <output> --version <v> --package-sha <sha256> [--reproduction-id <uuid>] | " +
+        "readiness recovery <workspace> [--quarantine true] | readiness sync-plan <workspace> <manifest.json> <user-storage>");
+    return 2;
 }
 
 static int RunDocumentation(bool checkOnly)

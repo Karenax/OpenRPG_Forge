@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.12.0",
+  "formatVersion": "1.13.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -965,6 +965,96 @@
                 "schemas"
               ],
               "includeMcpResources": true,
+              "provenance": "migration-default"
+            },
+            "provenance": "migration-default"
+          },
+          "operationalReadiness": {
+            "id": "f98594f2-1632-5fe8-b2f1-9d352eb534c6",
+            "schemaVersion": 1,
+            "taskManifests": [
+              {
+                "id": "90ef7dbc-a1e4-59ee-a1e3-a845e3aadee6",
+                "schemaVersion": 1,
+                "key": "validate-module",
+                "goal": "Validate the module without changing canonical source files.",
+                "scopePaths": [
+                  "areas",
+                  "project.json"
+                ],
+                "forbiddenPaths": [
+                  "Divers/OpenRPG_Forge_Aurora_Feature_Dossier"
+                ],
+                "acceptanceTests": [
+                  "forge docs check",
+                  "forge package validate"
+                ],
+                "owner": "project-maintainers",
+                "dependencies": [],
+                "provenance": "migration-default"
+              }
+            ],
+            "crashArtifacts": {
+              "id": "2e56fba8-e691-5d27-ba66-2450ccadf5b6",
+              "schemaVersion": 1,
+              "captureSanitizedLogs": true,
+              "dumpAdapter": "managed",
+              "maxLogLines": 2000,
+              "maxArtifactBytes": 33554432,
+              "includeVersion": true,
+              "includePackageFingerprint": true,
+              "includeReproductionId": true,
+              "sensitiveKeys": [
+                "authorization",
+                "cookie",
+                "password",
+                "secret",
+                "token"
+              ],
+              "provenance": "migration-default"
+            },
+            "projectHealth": {
+              "id": "628adbae-e6b8-590b-868c-84375b085f14",
+              "schemaVersion": 1,
+              "domains": [
+                "assets",
+                "build",
+                "content",
+                "migrations",
+                "performance",
+                "tests"
+              ],
+              "includeTestStatus": true,
+              "includePerformance": true,
+              "includeLicenses": true,
+              "includeMigrations": true,
+              "includeCoverage": true,
+              "failBuildWhenUnhealthy": true,
+              "provenance": "migration-default"
+            },
+            "recovery": {
+              "id": "235085f7-294d-52b9-ae02-65a9abc75552",
+              "schemaVersion": 1,
+              "autosaveIntervalSeconds": 60,
+              "retainedSnapshots": 12,
+              "offerRecoveryOnOpen": true,
+              "quarantineCorruptFiles": true,
+              "compareBeforeRestore": true,
+              "provenance": "migration-default"
+            },
+            "contentSynchronization": {
+              "id": "8ddb51f5-8172-5882-b41e-c19d0f22a615",
+              "schemaVersion": 1,
+              "resumable": true,
+              "deduplicateByHash": true,
+              "verifyContent": true,
+              "requireTrustedSigner": false,
+              "storageDirectory": ".forge/content-cache",
+              "maximumCacheBytes": 10737418240,
+              "allowedLicenses": [
+                "CC0-1.0"
+              ],
+              "trustedSignerFingerprints": [],
               "provenance": "migration-default"
             },
             "provenance": "migration-default"

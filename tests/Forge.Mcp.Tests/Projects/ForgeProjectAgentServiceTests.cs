@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Forge.Application.Validation;
 using Forge.Domain.Areas;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Gameplay;
@@ -30,6 +31,20 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal(0, summary.Revision);
         Assert.True(summary.EntityCount >= 16);
         Assert.Empty(workspace.Project.GetDiagnostics());
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void Project_health_is_structured_read_only_and_accepts_test_evidence()
+    {
+        using var workspace = new TestWorkspace();
+
+        var report = workspace.Project.GetProjectHealth(testsPassed: true);
+
+        Assert.Equal(ProjectHealthStatus.Healthy, report.Status);
+        Assert.True(report.BuildAllowed);
+        Assert.Equal(6, report.Domains.Count);
+        Assert.Equal(64, report.Fingerprint.Length);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
 

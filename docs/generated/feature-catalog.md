@@ -114,11 +114,11 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-BUILD-018 | Versioning sémantique | P0 | Implemented | G7 |
 | ORF-BUILD-019 | ADRs | P0 | Implemented | G0 |
 | ORF-BUILD-020 | Documentation générée | P1 | Tested | G11 |
-| ORF-BUILD-021 | Task manifests | P1 | Researched | G11 |
+| ORF-BUILD-021 | Task manifests | P1 | Tested | G11 |
 | ORF-BUILD-022 | Dependency approval | P0 | Implemented | G11 |
 | ORF-BUILD-023 | Third-party notices | P0 | Implemented | G11 |
 | ORF-BUILD-024 | Release channels | P2 | Implemented | G11 |
-| ORF-BUILD-025 | Crash artifacts | P1 | Researched | G11 |
+| ORF-BUILD-025 | Crash artifacts | P1 | Tested | G11 |
 | ORF-CMP-001 | Créature recrutabile | P1 | Implemented | G8 |
 | ORF-CMP-002 | Conversation avant recrutement | P1 | Implemented | G8 |
 | ORF-CMP-003 | Conversation avec son maître | P1 | Implemented | G8 |
@@ -151,7 +151,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CONT-006 | Sources textuelles | P0 | Researched | G4 |
 | ORF-CONT-007 | Compilation de package | P0 | Researched | G4 |
 | ORF-CONT-008 | Manifeste d’assets | P1 | Implemented | G11 |
-| ORF-CONT-009 | Synchronisation automatique | P2 | Researched | G11 |
+| ORF-CONT-009 | Synchronisation automatique | P2 | Tested | G11 |
 | ORF-CONT-010 | Packs curatés | P3 | Researched | G13 |
 | ORF-CONT-011 | Localisation | P0 | Implemented | G7 |
 | ORF-CONT-012 | Police TrueType et UI scalable | P1 | Implemented | G11 |
@@ -585,13 +585,13 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-QA-019 | Profilage intégré | P1 | Researched | G11 |
 | ORF-QA-020 | Logs structurés | P0 | Implemented | G7 |
 | ORF-QA-021 | Diagnostics cliquables | P0 | Implemented | G7 |
-| ORF-QA-022 | Rapport de santé du projet | P1 | Researched | G11 |
+| ORF-QA-022 | Rapport de santé du projet | P1 | Tested | G11 |
 | ORF-QA-023 | Accessibilité de l’éditeur | P1 | Researched | G11 |
 | ORF-QA-024 | Accessibilité du runtime | P1 | Researched | G11 |
 | ORF-QA-025 | Security fuzzing | P1 | Researched | G11 |
 | ORF-QA-026 | Malicious module fixtures | P0 | Implemented | G4 |
 | ORF-QA-027 | Soak tests | P2 | Researched | G13 |
-| ORF-QA-028 | Crash recovery | P1 | Researched | G11 |
+| ORF-QA-028 | Crash recovery | P1 | Tested | G11 |
 | ORF-QA-029 | Coverage Aurora-parity | P0 | Implemented | G0 |
 | ORF-QA-030 | Acceptance gates | P0 | Implemented | G0 |
 | ORF-QST-001 | Catégorie de journal | P0 | Researched | G1 |

@@ -17,13 +17,20 @@ public sealed class RuntimeExtensionPersistenceTests
         var source = project.Module.RuntimePolicies.Extensions;
         var widget = new ScriptableUiWidget(Guid.NewGuid(), "status", ScriptableUiWidgetKind.Label, null,
             "Status", "player.status", false, 0, "player");
+        var readinessSource = source.OperationalReadiness;
+        var task = new AgentTaskManifest(Guid.NewGuid(), 1, "release-module", "Release the validated module.",
+            ["project.json", "areas"], ["Divers"], ["forge package validate"], "release-team", [], "test");
+        var readiness = new OperationalReadinessProfile(readinessSource.Id, 1, [task],
+            readinessSource.CrashArtifacts, readinessSource.ProjectHealth, readinessSource.Recovery,
+            readinessSource.ContentSynchronization, "test");
         var profile = new ModuleRuntimeExtensionProfile(source.Id, 1,
             [new DataDrivenRuleSchema(Guid.NewGuid(), 1, "weapon.sword", RuleSchemaKind.Weapon,
                 "{\"type\":\"object\"}", "{\"damage\":8}", false, "test")],
             [new ScriptableUiDocument(Guid.NewGuid(), 1, "hud", "HUD", "forge-dark", false,
                 [widget], [], "test")],
             [new RuntimeJsonDocumentDefinition(Guid.NewGuid(), 1, "campaign", "{\"type\":\"object\"}",
-                "{\"chapter\":1}", 4096, 8, true, "1.0", "test")], source.SnapshotPolicy, "test");
+                "{\"chapter\":1}", 4096, 8, true, "1.0", "test")], source.SnapshotPolicy, "test",
+            source.ModernTooling, readiness);
         var handler = new SetRuntimeExtensionsHandler(new SystemClock());
         var applied = handler.Handle(state, new SetRuntimeExtensionsCommand(CommandId.From(Guid.NewGuid()),
             state.Revision, profile, false));
@@ -39,6 +46,8 @@ public sealed class RuntimeExtensionPersistenceTests
         Assert.Contains("blackboard", restored.SnapshotPolicy.Components);
         Assert.Equal("2.0", restored.ModernTooling.UiToolkit.ToolkitVersion);
         Assert.True(restored.ModernTooling.Compiler.Incremental);
+        Assert.Equal("release-module", Assert.Single(restored.OperationalReadiness.TaskManifests).Key);
+        Assert.True(restored.OperationalReadiness.Recovery.QuarantineCorruptFiles);
     }
 
     [Fact]
@@ -73,5 +82,25 @@ public sealed class RuntimeExtensionPersistenceTests
         Assert.Equal(first.Id, second.Id);
         Assert.Equal("2.0", first.UiToolkit.ToolkitVersion);
         Assert.Equal("docs/generated", first.Documentation.OutputDirectory);
+    }
+
+    [Fact]
+    public void Pre_operational_readiness_project_migrates_to_deterministic_defaults()
+    {
+        var project = TestProjectFactory.CreateValid();
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(project))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreOperationalReadinessFormatVersion;
+        document["project"]!["module"]!["runtimePolicies"]!["extensions"]!.AsObject()
+            .Remove("operationalReadiness");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString()).Module.RuntimePolicies.Extensions
+            .OperationalReadiness;
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString()).Module.RuntimePolicies.Extensions
+            .OperationalReadiness;
+
+        Assert.Equal(first.Id, second.Id);
+        Assert.Equal(first.TaskManifests.Single().Id, second.TaskManifests.Single().Id);
+        Assert.True(first.ContentSynchronization.Resumable);
+        Assert.True(first.Recovery.OfferRecoveryOnOpen);
     }
 }

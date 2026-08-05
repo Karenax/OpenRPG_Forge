@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Forge.Application.Validation;
 using Forge.Mcp;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Dialogues;
@@ -147,6 +148,11 @@ public sealed class ForgeMcpTools
     [Description("Checks deterministic generated documentation freshness without mutating source files.")]
     public GeneratedDocumentationResource CheckGeneratedDocumentation() =>
         _project.CheckGeneratedDocumentation();
+
+    [McpServerTool]
+    [Description("Returns a read-only project health dashboard by domain, severity, tests, performance, licenses, migrations and coverage.")]
+    public ProjectHealthReport GetProjectHealth(bool testsPassed = false) =>
+        _project.GetProjectHealth(testsPassed);
 
     [McpServerTool]
     [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]

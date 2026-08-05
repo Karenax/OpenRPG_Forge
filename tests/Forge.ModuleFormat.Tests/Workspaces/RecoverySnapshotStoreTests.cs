@@ -38,5 +38,28 @@ public sealed class RecoverySnapshotStoreTests : IDisposable
         Assert.Throws<InvalidDataException>(() => store.Restore(snapshots[0]));
     }
 
+    [Fact]
+    public void Preview_candidate_and_quarantine_protect_canonical_project()
+    {
+        Directory.CreateDirectory(_root);
+        var store = new RecoverySnapshotStore();
+        var project = TestProjectFactory.CreateValid();
+        var snapshot = store.Capture(_root, project, 3,
+            new DateTimeOffset(2026, 8, 5, 12, 0, 0, TimeSpan.Zero));
+        var preview = store.PreviewRestore(snapshot, project);
+        Assert.False(preview.Comparison.Changed);
+        Assert.Equal(snapshot.Id, store.FindRecoveryCandidate(_root,
+            new DateTimeOffset(2026, 8, 5, 11, 0, 0, TimeSpan.Zero))?.Id);
+
+        File.AppendAllText(snapshot.SnapshotPath, "tampered");
+        var inspection = Assert.Single(store.Inspect(_root, quarantineCorruptFiles: true));
+
+        Assert.Equal(RecoverySnapshotStatus.Quarantined, inspection.Status);
+        Assert.NotNull(inspection.QuarantinePath);
+        Assert.True(File.Exists(inspection.QuarantinePath));
+        Assert.False(File.Exists(snapshot.SnapshotPath));
+        Assert.Empty(store.List(_root));
+    }
+
     public void Dispose() { if (Directory.Exists(_root)) Directory.Delete(_root, true); }
 }

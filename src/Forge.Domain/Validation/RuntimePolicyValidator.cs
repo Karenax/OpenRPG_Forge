@@ -1,6 +1,7 @@
 using Forge.Domain.Areas;
 using Forge.Domain.Modules;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.RuntimeExtensions;
 
 namespace Forge.Domain.Validation;
 
@@ -64,6 +65,9 @@ public static class RuntimePolicyValidator
             diagnostics.Add(new DomainDiagnostic(RuntimeExtensionIdentityCode,
                 "The runtime extension profile ID must match the module ID.",
                 "module/runtimePolicies/extensions/id"));
+
+        diagnostics.AddRange(OperationalReadinessValidator.Validate(
+            module.RuntimePolicies.Extensions.OperationalReadiness));
 
         return diagnostics;
     }

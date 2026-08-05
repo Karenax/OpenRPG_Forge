@@ -280,11 +280,13 @@ public sealed record ModuleRuntimeExtensionProfile
     public IReadOnlyList<RuntimeJsonDocumentDefinition> JsonDocuments { get; }
     public EntityStateSnapshotPolicy SnapshotPolicy { get; }
     public ModernRuntimeToolingProfile ModernTooling { get; }
+    public OperationalReadinessProfile OperationalReadiness { get; }
     public string Provenance { get; }
 
     public ModuleRuntimeExtensionProfile(Guid id, int schemaVersion, IReadOnlyList<DataDrivenRuleSchema> ruleSchemas,
         IReadOnlyList<ScriptableUiDocument> uiDocuments, IReadOnlyList<RuntimeJsonDocumentDefinition> jsonDocuments,
-        EntityStateSnapshotPolicy snapshotPolicy, string provenance, ModernRuntimeToolingProfile? modernTooling = null)
+        EntityStateSnapshotPolicy snapshotPolicy, string provenance, ModernRuntimeToolingProfile? modernTooling = null,
+        OperationalReadinessProfile? operationalReadiness = null)
     {
         ArgumentNullException.ThrowIfNull(ruleSchemas);
         ArgumentNullException.ThrowIfNull(uiDocuments);
@@ -295,14 +297,22 @@ public sealed record ModuleRuntimeExtensionProfile
         RuleSchemas = Unique(ruleSchemas, item => item.Id, item => item.Key, nameof(ruleSchemas));
         UiDocuments = Unique(uiDocuments, item => item.Id, item => item.Key, nameof(uiDocuments));
         JsonDocuments = Unique(jsonDocuments, item => item.Id, item => item.Key, nameof(jsonDocuments));
-        if (RuleSchemas.Select(item => item.Id).Concat(UiDocuments.Select(item => item.Id))
-            .Concat(JsonDocuments.Select(item => item.Id)).Append(snapshotPolicy.Id).Distinct().Count() !=
-            RuleSchemas.Count + UiDocuments.Count + JsonDocuments.Count + 1)
+        var modern = modernTooling ?? ModernRuntimeToolingProfile.CreateDefault(id);
+        var readiness = operationalReadiness ?? OperationalReadinessProfile.CreateDefault(id);
+        var ids = RuleSchemas.Select(item => item.Id).Concat(UiDocuments.Select(item => item.Id))
+            .Concat(JsonDocuments.Select(item => item.Id)).Append(id).Append(snapshotPolicy.Id)
+            .Append(modern.Id).Append(modern.RuntimeCopy.Id).Append(modern.AreaEffectIndicator.Id)
+            .Append(modern.UiToolkit.Id).Append(modern.Compiler.Id).Append(modern.Documentation.Id)
+            .Append(readiness.Id).Append(readiness.CrashArtifacts.Id).Append(readiness.ProjectHealth.Id)
+            .Append(readiness.Recovery.Id).Append(readiness.ContentSynchronization.Id)
+            .Concat(readiness.TaskManifests.Select(item => item.Id)).ToArray();
+        if (ids.Distinct().Count() != ids.Length)
             throw new ArgumentException("Runtime extension UUIDs must be unique across the profile.");
         Id = id;
         SchemaVersion = schemaVersion;
         SnapshotPolicy = snapshotPolicy;
-        ModernTooling = modernTooling ?? ModernRuntimeToolingProfile.CreateDefault(id);
+        ModernTooling = modern;
+        OperationalReadiness = readiness;
         Provenance = DataDrivenRuleSchema.RequireText(provenance, nameof(provenance));
     }
 

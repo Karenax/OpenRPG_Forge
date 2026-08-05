@@ -6,6 +6,7 @@ using Forge.Application.Areas;
 using Forge.Application.Gameplay;
 using Forge.Application.Lifecycle;
 using Forge.Application.Sequences;
+using Forge.Application.Validation;
 using Forge.Application.Rules;
 using Forge.Application.RuntimeExtensions;
 using Forge.Application.Entities;
@@ -201,6 +202,7 @@ public partial class GameRoot : Node3D
 
             CreateHud();
             VerifyModernRuntimeTooling(project, entryArea);
+            VerifyOperationalReadiness(project);
             if (visualCapturePath is not null)
             {
                 UpdateHud();
@@ -1235,6 +1237,26 @@ public partial class GameRoot : Node3D
             $"copy=uuid-owner-references-state-authority aoe=mesh-targets-cover-height-colorblind-confirmation " +
             $"nui={tooling.UiToolkit.ToolkitVersion}-forms-lists-canvas-accessibility-localization-inspector " +
             $"compiler=incremental-stable-telemetry-conformance docs=metadata-generated");
+    }
+
+    private static void VerifyOperationalReadiness(ProjectDefinition project)
+    {
+        var readiness = project.Module.RuntimePolicies.Extensions.OperationalReadiness;
+        var diagnostics = OperationalReadinessValidator.Validate(readiness);
+        var testEvidence = new ProjectHealthSignal("tests", ProjectHealthCategory.Tests,
+            ProjectHealthSeverity.Information, "health.runtime.smoke", "Runtime smoke is executing.",
+            "health/tests/runtime", true);
+        var health = ProjectHealthReportService.Evaluate(project, DateTimeOffset.UnixEpoch, [testEvidence]);
+        if (diagnostics.Count != 0 || readiness.TaskManifests.Count == 0 ||
+            !readiness.CrashArtifacts.CaptureSanitizedLogs ||
+            !readiness.Recovery.OfferRecoveryOnOpen || !readiness.Recovery.QuarantineCorruptFiles ||
+            !readiness.ContentSynchronization.Resumable || !readiness.ContentSynchronization.DeduplicateByHash ||
+            !readiness.ContentSynchronization.VerifyContent || health.Status != ProjectHealthStatus.Healthy)
+            throw new InvalidOperationException("G11-Q operational readiness contract failed.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G11Q_RESILIENCE_PASS " +
+            "tasks=bounded-machine-readable crash=sanitized-version-fingerprint-reproduction " +
+            $"health={health.Domains.Count}-domains-healthy recovery=journal-reopen-quarantine-compare " +
+            "sync=resume-dedup-hash-trust-storage");
     }
 
     private static T AssertSingle<T>(IReadOnlyList<T> values) => values.Count == 1

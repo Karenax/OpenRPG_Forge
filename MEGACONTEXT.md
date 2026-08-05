@@ -611,8 +611,8 @@ passer par des commandes transactionnelles, annulables, validables et testables 
 
 ### 9.5 État actuel de l’expérience Creator
 
-Le MVP solo et les gates G7 à G10 sont fermés. **G11-A à G11-P** sont livrés avec preuves
-automatisées et revues visuelles ciblées ; G11-Q est le lot ouvert. L’expérience Creator comprend :
+Le MVP solo et les gates G7 à G10 sont fermés. **G11-A à G11-Q** sont livrés avec preuves
+automatisées et revues visuelles ciblées ; G11-R est le lot ouvert. L’expérience Creator comprend :
 
 - le workspace **Blueprints** recherche par nom, slug ou type, crée et édite une définition par
   commandes transactionnelles, dérive un blueprint depuis une instance sans perdre ses overrides
@@ -672,8 +672,9 @@ fournisseurs de combat ; G11-M a livré progression, difficulté, mutateurs, per
 combat par zone ; G11-N a livré audio spatial et événementiel, voix gouvernées, patrouilles
 inter-zones et chargement accessible ; G11-O a livré règles extensibles, UI déclarative, événements,
 JSON sûr et snapshots d’entités ; G11-P a livré copie runtime gouvernée, indicateurs AOE, NUI 2.0,
-compilateur incrémental instrumenté et documentation générée. La prochaine tranche est **G11-Q —
-manifestes de tâches, crash artifacts, santé, récupération et synchronisation**.
+compilateur incrémental instrumenté et documentation générée ; G11-Q a livré manifestes de tâches,
+crash artifacts, santé par domaines, récupération comparée et synchronisation vérifiée. La prochaine
+tranche est **G11-R — validation de localisation et tests ForgeScript, narration et rencontres**.
 
 ---
 
@@ -1452,8 +1453,8 @@ Le résumé doit contenir :
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
 > Le second module original **La Veillée des Éclats** est généré exclusivement par les handlers
 > d'auteur et `ProjectSession`, avec round-trip/export automatisé.
-> G11-A à G11-P sont fermés. Ferme **G11-Q** par les manifestes de tâches, crash artifacts, santé,
-> récupération et synchronisation, puis poursuis les lots bornés
+> G11-A à G11-Q sont fermés. Ferme **G11-R** par la validation de localisation et les tests
+> ForgeScript, narration et rencontres, puis poursuis les lots bornés
 > sans modifier les sources originales du Vault.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,

@@ -102,7 +102,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
     private readonly SemanticClipboard _semanticClipboard = new();
-    private readonly RecoverySnapshotStore _recoveryStore = new();
+    private RecoverySnapshotStore _recoveryStore = new();
     private readonly List<BlueprintId> _paletteBlueprintIds = [];
     private readonly List<EntityId> _entityIds = [];
     private readonly List<EntityId> _spawnEntityIds = [];
@@ -597,7 +597,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         _recoveryElapsed += delta;
-        if (_recoveryElapsed >= 60)
+        var recoveryInterval = _history?.State.Project.Module.RuntimePolicies.Extensions.OperationalReadiness
+            .Recovery.AutosaveIntervalSeconds ?? 60;
+        if (_recoveryElapsed >= recoveryInterval)
         {
             _recoveryElapsed = 0;
             CaptureRecoverySnapshot();
@@ -1383,7 +1385,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private IReadOnlyList<RecoverySnapshotInfo> ListRecoverySnapshots()
     {
         if (_projectSession is null) return [];
-        try { return _recoveryStore.List(_projectSession.RootDirectory); }
+        try
+        {
+            var quarantine = _history?.State.Project.Module.RuntimePolicies.Extensions.OperationalReadiness
+                .Recovery.QuarantineCorruptFiles == true;
+            var inspection = _recoveryStore.Inspect(_projectSession.RootDirectory, quarantine);
+            foreach (var item in inspection.Where(item => item.Status == RecoverySnapshotStatus.Quarantined))
+                GD.Print($"OPENRPG_FORGE_RECOVERY_QUARANTINED code={item.Code} file={Path.GetFileName(item.QuarantinePath)}");
+            return _recoveryStore.List(_projectSession.RootDirectory);
+        }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or NotSupportedException)
         {
             GD.PrintErr($"OPENRPG_FORGE_RECOVERY_LIST_FAILED {exception.Message}"); return [];
@@ -1405,20 +1415,20 @@ public partial class ForgeEditorPlugin : EditorPlugin
         { GD.PrintErr($"OPENRPG_FORGE_AUTOSAVE_FAILED {exception.Message}"); }
     }
 
-    private bool RestoreRecoverySnapshot(RecoverySnapshotInfo snapshot)
+    private RecoveryComparison? RestoreRecoverySnapshot(RecoverySnapshotInfo snapshot)
     {
-        if (_history is null) return false;
+        if (_history is null) return null;
         try
         {
-            var project = _recoveryStore.Restore(snapshot);
-            _history = new ProjectCommandHistory(new ProjectState(project, _history.State.Revision.Next()));
-            _activeAreaContext.EnsureValid(project); RebuildPreview(); RefreshEditorControls();
+            var preview = _recoveryStore.PreviewRestore(snapshot, _history.State.Project);
+            _history = new ProjectCommandHistory(new ProjectState(preview.Project, _history.State.Revision.Next()));
+            _activeAreaContext.EnsureValid(preview.Project); RebuildPreview(); RefreshEditorControls();
             _statusLabel!.Text = "✓ Instantané restauré en mémoire";
-            _detailsLabel!.Text = "Aucun fichier canonique modifié · Enregistrer pour confirmer";
-            return true;
+            _detailsLabel!.Text = $"Avant/après comparé · {preview.Comparison.CurrentSha256[..8]}→{preview.Comparison.SnapshotSha256[..8]} · Enregistrer pour confirmer";
+            return preview.Comparison;
         }
         catch (Exception exception) when (exception is IOException or InvalidDataException or System.Text.Json.JsonException or NotSupportedException)
-        { GD.PrintErr($"OPENRPG_FORGE_RECOVERY_RESTORE_FAILED {exception.Message}"); return false; }
+        { GD.PrintErr($"OPENRPG_FORGE_RECOVERY_RESTORE_FAILED {exception.Message}"); return null; }
     }
 
     private void ClearRecoverySnapshots()
@@ -2692,6 +2702,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         _projectSession = result.Session;
+        _recoveryStore = new RecoverySnapshotStore(_projectSession.Project.Module.RuntimePolicies.Extensions
+            .OperationalReadiness.Recovery.RetainedSnapshots);
         _selectionContext.SetLocked(false);
         _selectionContext.Clear();
         _history = new ProjectCommandHistory(new ProjectState(
@@ -2733,6 +2745,25 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _projectPathLabel.Text = _projectSession.RootDirectory;
         _saveButton.Disabled = false;
         _exportButton.Disabled = false;
+        var recoveryPolicy = project.Module.RuntimePolicies.Extensions.OperationalReadiness.Recovery;
+        if (recoveryPolicy.OfferRecoveryOnOpen)
+        {
+            var canonicalProjectPath = Path.Combine(
+                _projectSession.RootDirectory,
+                ProjectSession.DefaultProjectFileName);
+            var canonicalSavedAt = File.Exists(canonicalProjectPath)
+                ? new DateTimeOffset(File.GetLastWriteTimeUtc(canonicalProjectPath))
+                : DateTimeOffset.MinValue;
+            var recoveryCandidate = _recoveryStore.FindRecoveryCandidate(
+                _projectSession.RootDirectory,
+                canonicalSavedAt);
+            if (recoveryCandidate is not null)
+            {
+                _detailsLabel.Text += $" · récupération disponible (révision {recoveryCandidate.Revision})";
+                _recoveryWindow?.Open();
+                GD.Print($"OPENRPG_FORGE_RECOVERY_OFFERED id={recoveryCandidate.Id} revision={recoveryCandidate.Revision}");
+            }
+        }
         GD.Print($"OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILT entities={_projectPreview?.EntityCount ?? 0}");
         GD.Print($"OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities={entityCount}");
     }
@@ -6501,7 +6532,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
             applied.ModernTooling.RuntimeCopy.MaxCopiesPerTransaction != 32 ||
             applied.ModernTooling.AreaEffectIndicator.Shapes.Count != 4 ||
             applied.ModernTooling.UiToolkit.ToolkitVersion != "2.0" ||
-            !applied.ModernTooling.Compiler.Incremental || applied.ModernTooling.Documentation.Catalogs.Count != 6)
+            !applied.ModernTooling.Compiler.Incremental || applied.ModernTooling.Documentation.Catalogs.Count != 6 ||
+            applied.OperationalReadiness.TaskManifests.Count != 1 ||
+            !applied.OperationalReadiness.CrashArtifacts.CaptureSanitizedLogs ||
+            !applied.OperationalReadiness.ProjectHealth.IncludeCoverage ||
+            !applied.OperationalReadiness.Recovery.QuarantineCorruptFiles ||
+            !applied.OperationalReadiness.ContentSynchronization.Resumable)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_FAILED canonical_contract");
             return false;
@@ -6519,7 +6555,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
                  restored.UiDocuments.Single().Widgets.Count != 2 ||
                  restored.JsonDocuments.Single().InitialValue != "{\"chapter\":1,\"status\":\"Prêt\"}" ||
                  !restored.ModernTooling.UiToolkit.Accessibility ||
-                 restored.ModernTooling.Documentation.OutputDirectory != "docs/generated")
+                 restored.ModernTooling.Documentation.OutputDirectory != "docs/generated" ||
+                 restored.OperationalReadiness.TaskManifests.Single().Key != "validate-module" ||
+                 restored.OperationalReadiness.ContentSynchronization.StorageDirectory != ".forge/content-cache")
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_FAILED persistence");
                 return false;
@@ -6549,6 +6587,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print("OPENRPG_FORGE_TOOLSET_G11P_MODERN_PASS copy=uuid-owner-references-state-authority " +
             "aoe=mesh-targets-cover-height-colorblind-confirmation nui=2.0-forms-lists-canvas-accessibility-localization-inspector " +
             "compiler=incremental-stable-telemetry-conformance docs=metadata-generated-cli-mcp history=restored persistence=roundtrip");
+        GD.Print("OPENRPG_FORGE_TOOLSET_G11Q_RESILIENCE_PASS tasks=goal-scope-forbidden-tests-owner-dependencies " +
+            "crash=sanitized-dump-version-fingerprint-reproduction health=domains-tests-performance-licenses-migrations-coverage " +
+            "recovery=journal-reopen-quarantine-compare sync=resume-dedup-hash-trust-storage history=restored persistence=roundtrip");
         return true;
     }
 
