@@ -124,6 +124,25 @@ public sealed class ForgeMcpTools
         _project.RevertAreaExperiencePlan(planId);
 
     [McpServerTool]
+    [Description("Returns canonical data-driven rules, declarative UI, runtime JSON and entity snapshot policies without mutation.")]
+    public RuntimeExtensionResource GetRuntimeExtensions() => _project.GetRuntimeExtensions();
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a versioned runtime-extension plan with a semantic diff.")]
+    public RuntimeExtensionPlanResult PlanRuntimeExtensions(RuntimeExtensionPlanRequest request) =>
+        _project.PlanRuntimeExtensions(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated runtime-extension plan if its base revision still matches.")]
+    public RuntimeExtensionPlanResult ApplyRuntimeExtensionPlan(string planId) =>
+        _project.ApplyRuntimeExtensionPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied runtime-extension plan through its inverse operation.")]
+    public RuntimeExtensionPlanResult RevertRuntimeExtensionPlan(string planId) =>
+        _project.RevertRuntimeExtensionPlan(planId);
+
+    [McpServerTool]
     [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]
     public AgentAssetCatalogResult GetAssetCatalog(
         string? query = null,

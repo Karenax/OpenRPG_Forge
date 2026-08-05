@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-A à G11-N Contenu moderne fermés et G11-O ouvert.**
+fermés ; G11-A à G11-O Contenu moderne fermés et G11-P ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -13,7 +13,7 @@ zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplac
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.10.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.11.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -307,3 +307,9 @@ Le Creator applique le profil par commande annulable ; ForgeScript et MCP reçoi
 gouvernées ; le runtime relie l'overlay au streaming réel et joue les ressources importées en 3D.
 Les formats zone `1.8.0`, projet `0.6.16` et workspace `1.10.0` sont migrés. G11-O porte maintenant
 les règles data-driven, l'UI scriptable et la sérialisation runtime.
+
+**G11-O est fermé** : le module configure schémas de classes/progression/armes/VFX/incantation,
+documents UI, événements typés, JSON runtime et politique de snapshots. Le workspace **Données**,
+le runtime, ForgeScript et MCP partagent la commande canonique. La Crypte affiche un HUD déclaratif
+alimenté par JSON. Les formats projet `0.6.17`, workspace `1.11.0` et sauvegarde `.orpsave` `1.3.0`
+sont migrés. G11-P porte maintenant copie runtime, indicateurs, NUI, compilateur et documentation.

@@ -110,6 +110,8 @@ public static class RuntimeSaveStore
             return Failure(FileInvalidCode, "The runtime save file is empty.", fullPath);
         }
 
+        save = Migrate(save);
+
         var diagnostics = RuntimeSaveValidator.Validate(save).ToList();
         if (!string.Equals(save.ModuleId, expectedModuleId, StringComparison.OrdinalIgnoreCase))
         {
@@ -142,6 +144,16 @@ public static class RuntimeSaveStore
 
         return fullPath;
     }
+
+    private static RuntimeSaveDocument Migrate(RuntimeSaveDocument save) =>
+        string.Equals(save.FormatVersion, RuntimeSaveDocument.CurrentFormatVersion, StringComparison.Ordinal) &&
+        save.EntitySnapshots is not null
+            ? save
+            : save with
+            {
+                FormatVersion = RuntimeSaveDocument.CurrentFormatVersion,
+                EntitySnapshots = save.EntitySnapshots ?? [],
+            };
 
     private static RuntimeSaveOperationResult Failure(string code, string message, string? path) =>
         new(false, null, [new RuntimeSaveDiagnostic(code, message, path)]);

@@ -10,6 +10,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Validation;
@@ -41,12 +42,14 @@ public sealed class ForgeProjectAgentService
     private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
     private readonly SetRulesProfilesHandler _rulesProfilesHandler;
     private readonly SetAreaExperienceProfileHandler _areaExperienceHandler;
+    private readonly SetRuntimeExtensionsHandler _runtimeExtensionsHandler;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredGameplayControlPlan> _gameplayControlPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRulesProfilePlan> _rulesProfilePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAreaExperiencePlan> _areaExperiencePlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredRuntimeExtensionPlan> _runtimeExtensionPlans = new(StringComparer.Ordinal);
     private readonly IClock _clock;
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
@@ -61,6 +64,7 @@ public sealed class ForgeProjectAgentService
         _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
         _rulesProfilesHandler = new SetRulesProfilesHandler(clock);
         _areaExperienceHandler = new SetAreaExperienceProfileHandler(clock);
+        _runtimeExtensionsHandler = new SetRuntimeExtensionsHandler(clock);
     }
 
     public string WorkspaceDirectory => _session.RootDirectory;
@@ -677,6 +681,101 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public RuntimeExtensionResource GetRuntimeExtensions()
+    {
+        lock (_gate)
+            return new RuntimeExtensionResource(1, _history.State.Revision.Value,
+                _history.State.Project.Module.RuntimePolicies.Extensions);
+    }
+
+    public RuntimeExtensionPlanResult PlanRuntimeExtensions(RuntimeExtensionPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return RuntimeExtensionFailure(request.BaseRevision, "runtime_extension_plan.schema_unsupported",
+                    "Runtime extension plan schema must be 1.");
+            var command = new SetRuntimeExtensionsCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), request.Profile, true);
+            var preview = _runtimeExtensionsHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new RuntimeExtensionPlanResult(false, null, request.BaseRevision, preview.Patch,
+                    preview.Inverse, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredRuntimeExtensionPlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new RuntimeExtensionAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _runtimeExtensionPlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public RuntimeExtensionPlanResult ApplyRuntimeExtensionPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_runtimeExtensionPlans.TryGetValue(planId, out var plan))
+                return RuntimeExtensionFailure(GetCurrentRevision(), "runtime_extension_plan.missing",
+                    $"Runtime extension plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return RuntimeExtensionFailure(plan.Command.BaseRevision.Value,
+                    "runtime_extension_plan.already_applied", $"Runtime extension plan '{planId}' is already applied.");
+            var result = _runtimeExtensionsHandler.Handle(_history.State,
+                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new RuntimeExtensionAuditEntry(planId, "apply", _history.State.Revision.Value,
+                    _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                        item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new RuntimeExtensionAuditEntry(planId, "apply", plan.AppliedRevision.Value,
+                _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public RuntimeExtensionPlanResult RevertRuntimeExtensionPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_runtimeExtensionPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return RuntimeExtensionFailure(GetCurrentRevision(), "runtime_extension_plan.not_applied",
+                    $"Runtime extension plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return RuntimeExtensionFailure(plan.Command.BaseRevision.Value,
+                    "runtime_extension_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return RuntimeExtensionFailure(plan.Command.BaseRevision.Value,
+                    "runtime_extension_plan.inverse_unavailable", "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return RuntimeExtensionFailure(plan.Command.BaseRevision.Value,
+                    "runtime_extension_plan.save_failed", "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new RuntimeExtensionAuditEntry(planId, "revert", undone.State.Revision.Value,
+                _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
     public AgentAssetCatalogResult GetAssets(AgentAssetCatalogQuery? query = null)
     {
         query ??= new AgentAssetCatalogQuery();
@@ -1139,6 +1238,13 @@ public sealed class ForgeProjectAgentService
         plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
         plan.Audit.ToArray());
 
+    private static RuntimeExtensionPlanResult RuntimeExtensionFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static RuntimeExtensionPlanResult ToResult(StoredRuntimeExtensionPlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
+
     private sealed class StoredDialoguePlan(
         string planId,
         DialogueDefinition dialogue,
@@ -1237,6 +1343,19 @@ public sealed class ForgeProjectAgentService
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
         public List<AreaExperienceAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredRuntimeExtensionPlan(string planId, SetRuntimeExtensionsCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<RuntimeExtensionAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetRuntimeExtensionsCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<RuntimeExtensionAuditEntry> Audit { get; } = audit;
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }

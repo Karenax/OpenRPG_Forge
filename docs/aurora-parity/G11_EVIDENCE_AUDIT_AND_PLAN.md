@@ -131,6 +131,11 @@ patrouille inter-zones et présentation de chargement. Le Toolset, le runtime, F
 Network Beta partagent le même contrat persistant, validé et annulable. La preuve détaillée est dans
 [`tasks/G11-N-AUDIO-PATROL-LOADING.md`](tasks/G11-N-AUDIO-PATROL-LOADING.md).
 
+**G11-O est fermé le 5 août 2026.** Le module porte schémas de règles extensibles, documents UI,
+événements, JSON runtime et politique de snapshots. Creator, runtime, ForgeScript, sauvegarde 1.3
+et MCP partagent le même contrat versionné, borné et annulable. La preuve détaillée est dans
+[`tasks/G11-O-RUNTIME-EXTENSIONS.md`](tasks/G11-O-RUNTIME-EXTENSIONS.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-O** : règles data-driven, UI scriptable et sérialisation runtime.
+Démarrer **G11-P** : copie runtime, indicateurs, NUI, compilateur et documentation générée.

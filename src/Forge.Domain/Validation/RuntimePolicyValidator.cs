@@ -16,6 +16,7 @@ public static class RuntimePolicyValidator
     public const string AreaRulesIdentityCode = "runtime.rules.area_identity";
     public const string RulesProfileIdentityCode = "runtime.rules.profile_identity";
     public const string AreaExperienceIdentityCode = "runtime.experience.area_identity";
+    public const string RuntimeExtensionIdentityCode = "runtime.extension.module_identity";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ModuleDefinition module)
     {
@@ -58,6 +59,11 @@ public static class RuntimePolicyValidator
             rules.Difficulties.Any(item => item.Id == Guid.Empty))
             diagnostics.Add(new DomainDiagnostic(RulesProfileIdentityCode,
                 "Nested module rule profiles require stable identities.", "module/runtimePolicies/rules"));
+
+        if (module.RuntimePolicies.Extensions.Id != module.Id.Value)
+            diagnostics.Add(new DomainDiagnostic(RuntimeExtensionIdentityCode,
+                "The runtime extension profile ID must match the module ID.",
+                "module/runtimePolicies/extensions/id"));
 
         return diagnostics;
     }

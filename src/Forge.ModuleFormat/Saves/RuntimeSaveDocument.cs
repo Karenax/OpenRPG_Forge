@@ -15,9 +15,11 @@ public sealed record RuntimeSaveDocument(
     IReadOnlyList<RuntimeCombatantSave> Hostiles,
     RuntimeProgressFlags Progress,
     RuntimeWeatherSave? Weather,
-    RuntimeProgressionSave? Progression = null)
+    RuntimeProgressionSave? Progression = null,
+    IReadOnlyList<RuntimeEntityStateSave>? EntitySnapshots = null)
 {
-    public const string CurrentFormatVersion = "1.2.0";
+    public const string CurrentFormatVersion = "1.3.0";
+    public const string PreRuntimeExtensionsFormatVersion = "1.2.0";
     public const string PreRulesFormatVersion = "1.1.0";
 }
 
@@ -42,3 +44,13 @@ public sealed record RuntimeProgressFlags(
     bool Escaped);
 
 public sealed record RuntimeProgressionSave(int SchemaVersion, double Experience, int Level);
+
+public sealed record RuntimeEntityStateSave(
+    string EntityId,
+    int SchemaVersion,
+    IReadOnlyList<RuntimeStateComponentSave> Components,
+    IReadOnlyList<string> References,
+    IReadOnlyList<string> Inventory,
+    IReadOnlyList<RuntimeKeyValue> Blackboard);
+
+public sealed record RuntimeStateComponentSave(string Key, string JsonValue);

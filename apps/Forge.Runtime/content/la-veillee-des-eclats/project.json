@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.10.0",
+  "formatVersion": "1.11.0",
   "project": {
     "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
     "title": "La Veill\u00E9e des \u00C9clats",
@@ -597,6 +597,29 @@
                 ]
               }
             ],
+            "provenance": "migration-default"
+          },
+          "provenance": "migration-default"
+        },
+        "extensions": {
+          "id": "5e1ecd20-f6be-ee23-a34a-183a68e54d2f",
+          "schemaVersion": 1,
+          "ruleSchemas": [],
+          "uiDocuments": [],
+          "jsonDocuments": [],
+          "snapshotPolicy": {
+            "id": "a12d7abc-9364-54fd-9fc3-f1de10ab5adb",
+            "schemaVersion": 1,
+            "components": [
+              "blackboard",
+              "combat",
+              "inventory",
+              "transform"
+            ],
+            "maxReferences": 256,
+            "maxInventoryItems": 512,
+            "maxBlackboardBytes": 65536,
+            "restoreReferences": true,
             "provenance": "migration-default"
           },
           "provenance": "migration-default"

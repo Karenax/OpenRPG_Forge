@@ -36,6 +36,7 @@ using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
@@ -73,6 +74,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetGameplayControlProfileHandler _setGameplayControlProfileHandler = new(new SystemClock());
     private readonly SetRulesProfilesHandler _setRulesProfilesHandler = new(new SystemClock());
     private readonly SetAreaExperienceProfileHandler _setAreaExperienceProfileHandler = new(new SystemClock());
+    private readonly SetRuntimeExtensionsHandler _setRuntimeExtensionsHandler = new(new SystemClock());
     private readonly SetAreaAuthoringHandler _setAreaAuthoringHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
@@ -197,6 +199,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private GameplayControlsWindow? _gameplayControlsWindow;
     private RulesConfigurationWindow? _rulesConfigurationWindow;
     private AreaExperienceWindow? _areaExperienceWindow;
+    private RuntimeExtensionsWindow? _runtimeExtensionsWindow;
     private AreaAuthoringWindow? _areaAuthoringWindow;
     private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
     private NetworkBetaWindow? _networkBetaWindow;
@@ -345,6 +348,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areaExperienceWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
             ApplyAreaExperienceProfile, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaExperienceWindow);
+        _runtimeExtensionsWindow = new RuntimeExtensionsWindow();
+        _runtimeExtensionsWindow.Initialize(() => _history?.State, ApplyRuntimeExtensions, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_runtimeExtensionsWindow);
         _areaAuthoringWindow = new AreaAuthoringWindow();
         _areaAuthoringWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaAuthoring, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaAuthoringWindow);
@@ -1108,7 +1114,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         if (string.Equals(workspace, "Données", StringComparison.Ordinal))
         {
-            _contentWorkflow?.Open();
+            _runtimeExtensionsWindow?.Open();
             return;
         }
 
@@ -1620,6 +1626,17 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var command = preview with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
         return ApplyCommand(_setAreaExperienceProfileHandler.Handle(_history.State, command),
             "Audio spatial, voix, patrouilles et chargement mis à jour.", null);
+    }
+
+    private bool ApplyRuntimeExtensions(ModuleRuntimeExtensionProfile profile)
+    {
+        if (_history is null) return false;
+        var preview = new SetRuntimeExtensionsCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            profile, true);
+        if (!_setRuntimeExtensionsHandler.Handle(_history.State, preview).Succeeded) return false;
+        var command = preview with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+        return ApplyCommand(_setRuntimeExtensionsHandler.Handle(_history.State, command),
+            "Règles extensibles, UI scriptable, JSON runtime et snapshots mis à jour.", null);
     }
 
     private void OpenGlobalSearch() => _globalSearch?.Open();
@@ -3997,6 +4014,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAreaExperienceSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunRuntimeExtensionsSmokeTest())
         {
             return;
         }
@@ -6433,6 +6455,91 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot " +
             "patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch " +
             "mcp=governed history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunRuntimeExtensionsSmokeTest()
+    {
+        if (_history is null || _runtimeExtensionsWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_FAILED missing_workspace");
+            return false;
+        }
+
+        var original = _history.State.Project.Module.RuntimePolicies.Extensions;
+        var rule = new DataDrivenRuleSchema(Guid.Parse("e0110000-0000-4000-8000-000000000001"), 1,
+            "class.ember-warden", RuleSchemaKind.Class, "{\"type\":\"object\"}",
+            "{\"hitDie\":10,\"casting\":\"focus\"}", true, "smoke:g11-o");
+        var json = new RuntimeJsonDocumentDefinition(Guid.Parse("e0150000-0000-4000-8000-000000000001"), 1,
+            "adventure-state", "{\"type\":\"object\",\"required\":[\"chapter\"]}",
+            "{\"chapter\":1,\"status\":\"Prêt\"}", 4096, 8, true, "1.0", "smoke:g11-o");
+        var label = new ScriptableUiWidget(Guid.Parse("e0120000-0000-4000-8000-000000000001"),
+            "chapter-label", ScriptableUiWidgetKind.Label, null, "Chapitre", null, false, 0, "player");
+        var button = new ScriptableUiWidget(Guid.Parse("e0120000-0000-4000-8000-000000000002"),
+            "continue-button", ScriptableUiWidgetKind.Button, null, "Continuer", null, true, 1, "player");
+        var binding = new ScriptableUiEventBinding(Guid.Parse("e0130000-0000-4000-8000-000000000001"),
+            "continue-button", ScriptableUiEventKind.Pressed, "ContinueAdventure", "1.0", "gameplay",
+            "player");
+        var ui = new ScriptableUiDocument(Guid.Parse("e0120000-0000-4000-8000-000000000010"), 1,
+            "adventure-hud", "Aventure", "forge-dark", true, [label, button], [binding], "smoke:g11-o");
+        var snapshot = new EntityStateSnapshotPolicy(original.SnapshotPolicy.Id, 1,
+            ["transform", "combat", "inventory", "blackboard"], 128, 256, 32768, true, "smoke:g11-o");
+        var profile = new ModuleRuntimeExtensionProfile(original.Id, 1, [rule], [ui], [json], snapshot,
+            "smoke:g11-o");
+
+        if (!_runtimeExtensionsWindow.ConfigureForSmokeTest(profile) ||
+            !_runtimeExtensionsWindow.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_FAILED apply");
+            return false;
+        }
+
+        var applied = _history.State.Project.Module.RuntimePolicies.Extensions;
+        if (applied.RuleSchemas.Single().Kind != RuleSchemaKind.Class ||
+            applied.UiDocuments.Single().EventBindings.Single().Command != "ContinueAdventure" ||
+            applied.JsonDocuments.Single().MaxDepth != 8 || applied.SnapshotPolicy.MaxInventoryItems != 256)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_FAILED canonical_contract");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "extensions-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project.Module.RuntimePolicies.Extensions;
+            if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
+                restored.RuleSchemas.Single().Key != "class.ember-warden" ||
+                restored.UiDocuments.Single().Widgets.Count != 2 ||
+                restored.JsonDocuments.Single().InitialValue != "{\"chapter\":1,\"status\":\"Prêt\"}")
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            !ReferenceEquals(_history.State.Project.Module.RuntimePolicies.Extensions, original))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_FAILED history");
+            return false;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_PASS rules=class-progression-weapon-vfx-casting " +
+            "ui=declarative-reactive-themed-permission events=typed-focus-input-testable " +
+            "json=schema-quota-safe-api snapshots=components-references-inventory-blackboard " +
+            "history=restored persistence=roundtrip");
         return true;
     }
 

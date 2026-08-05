@@ -13,12 +13,14 @@ public static class RuntimeSaveValidator
     public const string QuestReferenceInvalidCode = "save.quest_reference_invalid";
     public const string WeatherInvalidCode = "save.weather_invalid";
     public const string ProgressionInvalidCode = "save.progression_invalid";
+    public const string EntitySnapshotInvalidCode = "save.entity_snapshot_invalid";
 
     public static IReadOnlyList<RuntimeSaveDiagnostic> Validate(RuntimeSaveDocument save)
     {
         ArgumentNullException.ThrowIfNull(save);
         var diagnostics = new List<RuntimeSaveDiagnostic>();
         if (!string.Equals(save.FormatVersion, RuntimeSaveDocument.CurrentFormatVersion, StringComparison.Ordinal) &&
+            !string.Equals(save.FormatVersion, RuntimeSaveDocument.PreRuntimeExtensionsFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(save.FormatVersion, RuntimeSaveDocument.PreRulesFormatVersion, StringComparison.Ordinal))
         {
             diagnostics.Add(new RuntimeSaveDiagnostic(
@@ -109,7 +111,38 @@ public static class RuntimeSaveValidator
                 "progression"));
         }
 
+        var snapshots = save.EntitySnapshots ?? [];
+        if (snapshots.Select(item => item.EntityId).Distinct(StringComparer.OrdinalIgnoreCase).Count() != snapshots.Count)
+            diagnostics.Add(new RuntimeSaveDiagnostic(EntitySnapshotInvalidCode,
+                "Entity snapshot IDs must be unique.", "entitySnapshots"));
+        foreach (var snapshot in snapshots)
+        {
+            var path = $"entitySnapshots/{snapshot.EntityId}";
+            var invalid = snapshot.SchemaVersion != 1 ||
+                !Guid.TryParse(snapshot.EntityId, out var entityId) || entityId == Guid.Empty ||
+                snapshot.Components.Count > 64 || snapshot.References.Count > 4096 ||
+                snapshot.Inventory.Count > 4096 ||
+                snapshot.Components.Any(component => string.IsNullOrWhiteSpace(component.Key) ||
+                    component.JsonValue.Length > 65_536 || !IsJson(component.JsonValue)) ||
+                snapshot.Components.Select(component => component.Key).Distinct(StringComparer.Ordinal).Count() != snapshot.Components.Count ||
+                snapshot.References.Any(reference => !Guid.TryParse(reference, out var referenceId) || referenceId == Guid.Empty) ||
+                snapshot.References.Distinct(StringComparer.OrdinalIgnoreCase).Count() != snapshot.References.Count ||
+                snapshot.Inventory.Any(string.IsNullOrWhiteSpace) ||
+                snapshot.Blackboard.Any(item => string.IsNullOrWhiteSpace(item.Key)) ||
+                snapshot.Blackboard.Select(item => item.Key).Distinct(StringComparer.Ordinal).Count() != snapshot.Blackboard.Count;
+            if (invalid)
+                diagnostics.Add(new RuntimeSaveDiagnostic(EntitySnapshotInvalidCode,
+                    "Entity state requires schema v1, resolved UUID references, unique bounded components, inventory and blackboard values.",
+                    path));
+        }
+
         return diagnostics;
+    }
+
+    private static bool IsJson(string value)
+    {
+        try { using var document = System.Text.Json.JsonDocument.Parse(value); return true; }
+        catch (System.Text.Json.JsonException) { return false; }
     }
 
     private static void ValidateCombatant(

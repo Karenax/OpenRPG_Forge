@@ -1,11 +1,13 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Forge.Application.Areas;
 using Forge.Application.Gameplay;
 using Forge.Application.Lifecycle;
 using Forge.Application.Sequences;
 using Forge.Application.Rules;
+using Forge.Application.RuntimeExtensions;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
@@ -18,6 +20,7 @@ using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
@@ -57,6 +60,9 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<Guid, CameraAnchorDefinition> _cameraAnchors = [];
     private readonly Dictionary<Guid, double> _scatterDueSeconds = [];
     private readonly Dictionary<Guid, int> _scatterSequences = [];
+    private readonly ForgeScriptJsonService _runtimeJson = new();
+    private readonly ForgeScriptUiEventService _scriptUiEvents = new();
+    private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
 
     private PlayerController? _player;
     private CombatantState? _playerCombatant;
@@ -118,6 +124,8 @@ public partial class GameRoot : Node3D
     private ModuleRulesProfile? _moduleRules;
     private AreaRulesProfile? _areaRules;
     private AreaExperienceProfile? _areaExperience;
+    private ModuleRuntimeExtensionProfile? _runtimeExtensions;
+    private RuntimeDeclarativeUi? _declarativeUi;
     private AreaAudioRuntimeState _areaAudioState = AreaAudioRuntimeState.Empty;
     private IReadOnlySet<string> _activeBiomeTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     private string _defaultLocale = "fr";
@@ -1100,6 +1108,21 @@ public partial class GameRoot : Node3D
         _moduleRules = module.Rules;
         _areaRules = area.Rules;
         _areaExperience = area.Experience;
+        _runtimeExtensions = module.Extensions;
+        foreach (var diagnostic in RuntimeExtensionRuntimeService.ValidateRequired(module.Extensions))
+            GD.PrintErr($"OPENRPG_FORGE_RUNTIME_EXTENSION_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path} uuid={diagnostic.SubjectId}");
+        _runtimeJsonHandles.Clear();
+        foreach (var document in module.Extensions.JsonDocuments)
+        {
+            var snapshot = _runtimeJson.Register(document.Id, document.Key, document.JsonSchema,
+                document.InitialValue, new SafeJsonQuota(document.MaxBytes, document.MaxDepth), document.Mutable);
+            _runtimeJsonHandles[document.Key] = snapshot.Handle;
+        }
+        foreach (var document in module.Extensions.UiDocuments)
+            foreach (var binding in document.EventBindings)
+                _scriptUiEvents.Register(new ScriptUiBinding(binding.Id, new ScriptUiHandle(document.Id, document.Key),
+                    binding.WidgetKey, binding.Event.ToString().ToLowerInvariant(), binding.Command,
+                    binding.ForgeScriptApiVersion, binding.InputContext, binding.Permission));
         _areaAudioState = AreaAudioRuntimeState.Empty;
         _scatterDueSeconds.Clear();
         _scatterSequences.Clear();
@@ -1129,6 +1152,10 @@ public partial class GameRoot : Node3D
             $"scatter={area.Experience.ScatterEmitters.Count} voices={area.Experience.Voices.Count} " +
             $"patrols={area.Experience.PatrolRoutes.Count} loading=accessible-progress-prefetch " +
             "audio_api=started-completed-interrupted-music-snapshot patrol_api=streaming-owner-resume");
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_G11O_EXTENSIONS_PASS rules={module.Extensions.RuleSchemas.Count} " +
+            $"ui={module.Extensions.UiDocuments.Count} json={module.Extensions.JsonDocuments.Count} " +
+            $"snapshot={module.Extensions.SnapshotPolicy.Components.Count} api=1.0 quotas=bounded");
     }
 
     private void ConfigureCinematics(ProjectDefinition project, AreaDefinition area)
@@ -1496,7 +1523,22 @@ public partial class GameRoot : Node3D
         if (_gameplayControls is not null) _actionWheel.Configure(_gameplayControls);
         _actionWheel.CommandRequested += RequestGameplayCommand;
         AddChild(_actionWheel);
+        if (_runtimeExtensions is not null && _runtimeExtensions.UiDocuments.Count > 0)
+        {
+            _declarativeUi = new RuntimeDeclarativeUi();
+            _declarativeUi.Configure(_runtimeExtensions, _runtimeJson, _scriptUiEvents, _runtimeJsonHandles);
+            _declarativeUi.EventRaised += HandleScriptableUiEvent;
+            AddChild(_declarativeUi);
+        }
         UpdateTacticalHud();
+    }
+
+    private void HandleScriptableUiEvent(ScriptUiEvent @event)
+    {
+        _message = $"Interface {@event.Document.Key} : {@event.Command}";
+        GD.Print($"OPENRPG_FORGE_RUNTIME_UI_EVENT_PASS document={@event.Document.Key} widget={@event.WidgetKey} " +
+            $"command={@event.Command} sequence={@event.Sequence}");
+        UpdateHud();
     }
 
     private void InteractWithNearest()
@@ -2172,7 +2214,8 @@ public partial class GameRoot : Node3D
                     _weatherState.ServerRevision,
                     _weatherState.ElapsedSeconds)
                 : null,
-            new RuntimeProgressionSave(1, _progressionExperience, _progressionLevel));
+            new RuntimeProgressionSave(1, _progressionExperience, _progressionLevel),
+            BuildEntityStateSnapshots());
         var result = RuntimeSaveStore.Save(path, save);
         if (!result.Succeeded)
         {
@@ -2187,6 +2230,8 @@ public partial class GameRoot : Node3D
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format={RuntimeSaveDocument.CurrentFormatVersion} " +
             $"file={Path.GetFileName(path)} quest={_questMachine?.CurrentState.Id}");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=write entities={save.EntitySnapshots?.Count ?? 0} " +
+            "components=transform-combat-inventory-blackboard schema=1");
         UpdateHud();
         return true;
     }
@@ -2225,6 +2270,8 @@ public partial class GameRoot : Node3D
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_SAVE_LOADED format={result.Save.FormatVersion} " +
             $"file={Path.GetFileName(path)} quest={result.Save.QuestStateId}");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=load entities={result.Save.EntitySnapshots?.Count ?? 0} " +
+            "components=transform-combat-inventory-blackboard schema=1");
         return true;
     }
 
@@ -2310,6 +2357,8 @@ public partial class GameRoot : Node3D
             throw new InvalidOperationException("A saved hostile is no longer available in the current scene.");
         }
 
+        ApplyEntityStateSnapshots(save.EntitySnapshots ?? []);
+
         _hasKey = save.Progress.HasKey;
         _doorUnlocked = save.Progress.DoorUnlocked;
         _bossPhaseTwo = save.Progress.BossPhaseTwo;
@@ -2325,6 +2374,58 @@ public partial class GameRoot : Node3D
         if (_doorUnlocked && _door is not null && GodotObject.IsInstanceValid(_door))
         {
             _door.QueueFree();
+        }
+    }
+
+    private IReadOnlyList<RuntimeEntityStateSave> BuildEntityStateSnapshots()
+    {
+        if (_moduleRuntimePolicies is null) return [];
+        var policy = _moduleRuntimePolicies.Extensions.SnapshotPolicy;
+        var snapshots = new List<RuntimeEntityStateSave>();
+        foreach (var pair in _entityNodes.OrderBy(item => item.Key))
+        {
+            var components = new List<RuntimeStateComponentSave>();
+            if (policy.Components.Contains("transform"))
+            {
+                var position = pair.Value.GlobalPosition;
+                components.Add(new RuntimeStateComponentSave("transform", JsonSerializer.Serialize(new
+                {
+                    x = position.X,
+                    y = position.Y,
+                    z = position.Z,
+                })));
+            }
+            var combatant = pair.Value == _player ? _playerCombatant : _hostiles.GetValueOrDefault(pair.Value);
+            if (policy.Components.Contains("combat") && combatant is not null)
+                components.Add(new RuntimeStateComponentSave("combat", JsonSerializer.Serialize(new
+                {
+                    health = combatant.Health,
+                    resource = combatant.Resource,
+                })));
+            var isPlayer = pair.Value == _player;
+            var inventory = isPlayer && policy.Components.Contains("inventory")
+                ? _inventory.Order(StringComparer.Ordinal).Take(policy.MaxInventoryItems).ToArray() : [];
+            var blackboard = isPlayer && policy.Components.Contains("blackboard")
+                ? _blackboard.Snapshot().OrderBy(item => item.Key, StringComparer.Ordinal)
+                    .Select(item => new RuntimeKeyValue(item.Key, item.Value)).ToArray() : [];
+            snapshots.Add(new RuntimeEntityStateSave(pair.Key.ToString("D"), 1, components, [], inventory,
+                blackboard));
+        }
+        return snapshots;
+    }
+
+    private void ApplyEntityStateSnapshots(IReadOnlyList<RuntimeEntityStateSave> snapshots)
+    {
+        foreach (var snapshot in snapshots)
+        {
+            if (!Guid.TryParse(snapshot.EntityId, out var id) || !_entityNodes.TryGetValue(id, out var node))
+                throw new InvalidOperationException($"Saved entity '{snapshot.EntityId}' is unavailable.");
+            var transform = snapshot.Components.SingleOrDefault(item => item.Key == "transform");
+            if (transform is null) continue;
+            using var json = JsonDocument.Parse(transform.JsonValue);
+            var root = json.RootElement;
+            node.GlobalPosition = new Vector3(root.GetProperty("x").GetSingle(), root.GetProperty("y").GetSingle(),
+                root.GetProperty("z").GetSingle());
         }
     }
 

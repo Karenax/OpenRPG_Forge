@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.10.0",
+  "formatVersion": "1.11.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -691,6 +691,150 @@
             "provenance": "migration-default"
           },
           "provenance": "migration-default"
+        },
+        "extensions": {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "ruleSchemas": [
+            {
+              "id": "e0110000-0000-4000-8000-000000000004",
+              "schemaVersion": 1,
+              "key": "casting.focus",
+              "kind": "casting",
+              "jsonSchema": "{\u0022type\u0022:\u0022object\u0022}",
+              "defaultsJson": "{\u0022resource\u0022:\u0022focus\u0022,\u0022interruptible\u0022:true}",
+              "required": false,
+              "provenance": "sample:g11-o"
+            },
+            {
+              "id": "e0110000-0000-4000-8000-000000000001",
+              "schemaVersion": 1,
+              "key": "class.ash-warden",
+              "kind": "class",
+              "jsonSchema": "{\u0022type\u0022:\u0022object\u0022}",
+              "defaultsJson": "{\u0022hitDie\u0022:10,\u0022castingModel\u0022:\u0022focus\u0022}",
+              "required": true,
+              "provenance": "sample:g11-o"
+            },
+            {
+              "id": "e0110000-0000-4000-8000-000000000003",
+              "schemaVersion": 1,
+              "key": "vfx.ash-nova",
+              "kind": "vfx",
+              "jsonSchema": "{\u0022type\u0022:\u0022object\u0022}",
+              "defaultsJson": "{\u0022cue\u0022:\u0022cue.ash-nova\u0022,\u0022radius\u0022:4}",
+              "required": false,
+              "provenance": "sample:g11-o"
+            },
+            {
+              "id": "e0110000-0000-4000-8000-000000000002",
+              "schemaVersion": 1,
+              "key": "weapon.ember-blade",
+              "kind": "weapon",
+              "jsonSchema": "{\u0022type\u0022:\u0022object\u0022}",
+              "defaultsJson": "{\u0022damage\u0022:8,\u0022damageType\u0022:\u0022fire\u0022}",
+              "required": false,
+              "provenance": "sample:g11-o"
+            }
+          ],
+          "uiDocuments": [
+            {
+              "id": "e0120000-0000-4000-8000-000000000010",
+              "schemaVersion": 1,
+              "key": "adventure-hud",
+              "title": "\u00C9tat de l\u2019aventure",
+              "themeKey": "forge-dark",
+              "required": true,
+              "widgets": [
+                {
+                  "id": "e0120000-0000-4000-8000-000000000001",
+                  "key": "chapter",
+                  "kind": "label",
+                  "parentKey": null,
+                  "text": "Crypte des Cendres",
+                  "bindingKey": "adventure-state:/chapter",
+                  "interactive": false,
+                  "focusOrder": 0,
+                  "permission": "player"
+                },
+                {
+                  "id": "e0120000-0000-4000-8000-000000000002",
+                  "key": "status",
+                  "kind": "label",
+                  "parentKey": null,
+                  "text": "Explorez la crypte",
+                  "bindingKey": "adventure-state:/status",
+                  "interactive": false,
+                  "focusOrder": 1,
+                  "permission": "player"
+                },
+                {
+                  "id": "e0120000-0000-4000-8000-000000000003",
+                  "key": "progress",
+                  "kind": "progress",
+                  "parentKey": null,
+                  "text": "Progression",
+                  "bindingKey": "adventure-state:/progress",
+                  "interactive": false,
+                  "focusOrder": 2,
+                  "permission": "player"
+                },
+                {
+                  "id": "e0120000-0000-4000-8000-000000000004",
+                  "key": "journal",
+                  "kind": "button",
+                  "parentKey": null,
+                  "text": "Ouvrir le journal",
+                  "bindingKey": null,
+                  "interactive": true,
+                  "focusOrder": 3,
+                  "permission": "player"
+                }
+              ],
+              "eventBindings": [
+                {
+                  "id": "e0130000-0000-4000-8000-000000000001",
+                  "widgetKey": "journal",
+                  "event": "pressed",
+                  "command": "ToggleJournal",
+                  "forgeScriptApiVersion": "1.0",
+                  "inputContext": "gameplay",
+                  "permission": "player"
+                }
+              ],
+              "provenance": "sample:g11-o"
+            }
+          ],
+          "jsonDocuments": [
+            {
+              "id": "e0150000-0000-4000-8000-000000000001",
+              "schemaVersion": 1,
+              "key": "adventure-state",
+              "jsonSchema": "{\u0022type\u0022:\u0022object\u0022,\u0022required\u0022:[\u0022chapter\u0022,\u0022status\u0022,\u0022progress\u0022]}",
+              "initialValue": "{\u0022chapter\u0022:\u0022Crypte des Cendres\u0022,\u0022status\u0022:\u0022Explorez la crypte\u0022,\u0022progress\u0022:0}",
+              "maxBytes": 4096,
+              "maxDepth": 8,
+              "mutable": true,
+              "forgeScriptApiVersion": "1.0",
+              "provenance": "sample:g11-o"
+            }
+          ],
+          "snapshotPolicy": {
+            "id": "5b2aad46-e648-5187-a404-60c9c83ea372",
+            "schemaVersion": 1,
+            "components": [
+              "blackboard",
+              "combat",
+              "inventory",
+              "transform"
+            ],
+            "maxReferences": 256,
+            "maxInventoryItems": 512,
+            "maxBlackboardBytes": 65536,
+            "restoreReferences": true,
+            "provenance": "migration-default"
+          },
+          "provenance": "sample:g11-o"
         },
         "provenance": "migration-default"
       }

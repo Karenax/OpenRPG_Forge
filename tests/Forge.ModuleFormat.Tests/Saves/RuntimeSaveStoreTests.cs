@@ -30,7 +30,31 @@ public sealed class RuntimeSaveStoreTests : IDisposable
         Assert.Equal(save.Progress, loaded.Save?.Progress);
         Assert.Equal(save.Weather, loaded.Save?.Weather);
         Assert.Equal(save.Progression, loaded.Save?.Progression);
+        Assert.Equal(save.EntitySnapshots![0].EntityId, loaded.Save!.EntitySnapshots![0].EntityId);
+        Assert.Equal(save.EntitySnapshots[0].Components, loaded.Save.EntitySnapshots[0].Components);
+        Assert.Equal(save.EntitySnapshots[0].Inventory, loaded.Save.EntitySnapshots[0].Inventory);
+        Assert.Equal(save.EntitySnapshots[0].Blackboard, loaded.Save.EntitySnapshots[0].Blackboard);
         Assert.Empty(Directory.EnumerateFiles(_directory, "*.tmp"));
+    }
+
+    [Fact]
+    public void LoadMigratesPreExtensionSaveToCanonicalEmptySnapshots()
+    {
+        var path = Path.Combine(_directory, "legacy.orpsave");
+        var legacy = CreateSave() with
+        {
+            FormatVersion = RuntimeSaveDocument.PreRuntimeExtensionsFormatVersion,
+            EntitySnapshots = null,
+        };
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(path, System.Text.Json.JsonSerializer.Serialize(legacy,
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
+        var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+
+        Assert.True(loaded.Succeeded);
+        Assert.Equal(RuntimeSaveDocument.CurrentFormatVersion, loaded.Save!.FormatVersion);
+        Assert.Empty(loaded.Save.EntitySnapshots!);
     }
 
     [Fact]
@@ -65,10 +89,17 @@ public sealed class RuntimeSaveStoreTests : IDisposable
         var duplicate = RuntimeSaveStore.Save(Path.Combine(_directory, "invalid.orpsave"), invalid);
         var weather = RuntimeSaveStore.Save(Path.Combine(_directory, "invalid-weather.orpsave"), invalidWeather);
         var extension = RuntimeSaveStore.Save(Path.Combine(_directory, "invalid.json"), CreateSave());
+        var invalidSnapshot = CreateSave() with
+        {
+            EntitySnapshots = [new RuntimeEntityStateSave("not-an-id", 1,
+                [new RuntimeStateComponentSave("transform", "not-json")], [], [], [])],
+        };
+        var snapshot = RuntimeSaveStore.Save(Path.Combine(_directory, "invalid-snapshot.orpsave"), invalidSnapshot);
 
         Assert.Equal(RuntimeSaveValidator.InventoryDuplicateCode, Assert.Single(duplicate.Diagnostics).Code);
         Assert.Equal(RuntimeSaveValidator.WeatherInvalidCode, Assert.Single(weather.Diagnostics).Code);
         Assert.Equal(RuntimeSaveStore.SaveFailedCode, Assert.Single(extension.Diagnostics).Code);
+        Assert.Equal(RuntimeSaveValidator.EntitySnapshotInvalidCode, Assert.Single(snapshot.Diagnostics).Code);
     }
 
     public void Dispose()
@@ -99,5 +130,8 @@ public sealed class RuntimeSaveStoreTests : IDisposable
             3,
             7,
             14.5),
-        new RuntimeProgressionSave(1, 240, 2));
+        new RuntimeProgressionSave(1, 240, 2),
+        [new RuntimeEntityStateSave("20000000-0000-4000-8000-000000000010", 1,
+            [new RuntimeStateComponentSave("transform", "{\"x\":1,\"y\":2,\"z\":3}")], [],
+            ["ash-key"], [new RuntimeKeyValue("quest.accepted", "true")])]);
 }

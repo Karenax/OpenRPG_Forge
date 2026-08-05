@@ -3,6 +3,7 @@ using Forge.Domain.Gameplay;
 using Forge.Domain.Modules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Rules;
+using Forge.Domain.RuntimeExtensions;
 
 namespace Forge.Domain.RuntimePolicies;
 
@@ -18,12 +19,14 @@ public sealed record ModuleRuntimePolicyProfile
     public ModuleCinematicProfile Cinematics { get; }
     public ModuleGameplayControlProfile Gameplay { get; }
     public ModuleRulesProfile Rules { get; }
+    public ModuleRuntimeExtensionProfile Extensions { get; }
     public string Provenance { get; }
 
     public ModuleRuntimePolicyProfile(Guid id, int schemaVersion,
         IReadOnlyList<HeartbeatScheduleDefinition> heartbeats, RestLifecycleProfile rest,
         SequenceAbortPolicy sequenceAbort, string provenance, ModuleCinematicProfile? cinematics = null,
-        ModuleGameplayControlProfile? gameplay = null, ModuleRulesProfile? rules = null)
+        ModuleGameplayControlProfile? gameplay = null, ModuleRulesProfile? rules = null,
+        ModuleRuntimeExtensionProfile? extensions = null)
     {
         ArgumentNullException.ThrowIfNull(heartbeats);
         ArgumentNullException.ThrowIfNull(rest);
@@ -45,6 +48,7 @@ public sealed record ModuleRuntimePolicyProfile
         Cinematics = cinematics ?? ModuleCinematicProfile.CreateDefault(ModuleId.From(id));
         Gameplay = gameplay ?? ModuleGameplayControlProfile.CreateDefault(ModuleId.From(id));
         Rules = rules ?? ModuleRulesProfile.CreateDefault(ModuleId.From(id));
+        Extensions = extensions ?? ModuleRuntimeExtensionProfile.CreateDefault(ModuleId.From(id));
         Provenance = provenance.Trim();
     }
 

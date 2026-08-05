@@ -68,13 +68,15 @@ function Invoke-ForgeEngineMarkerTest {
 
     # Keep the long-lived smoke inventories aligned with the current workspace schema and
     # append lot markers here so every engine invocation uses one canonical gate contract.
-    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.10.0') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.11.0').Replace('format=1.10.0', 'format=1.11.0') })
     if ($Name -eq 'toolset') {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
+        $Markers += 'OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_PASS rules=class-progression-weapon-vfx-casting ui=declarative-reactive-themed-permission events=typed-focus-input-testable json=schema-quota-safe-api snapshots=components-references-inventory-blackboard history=restored persistence=roundtrip'
     }
     elseif ($Name -eq 'runtime-plain-launch') {
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_EXPERIENCE_PASS cues=0 scatter=0 voices=0 patrols=0 loading=accessible-progress-prefetch audio_api=started-completed-interrupted-music-snapshot patrol_api=streaming-owner-resume'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_LOADING_PASS media=accessiblefallback progress=1 accessible=True streamed=0'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_G11O_EXTENSIONS_PASS rules=4 ui=1 json=1 snapshot=4 api=1.0 quotas=bounded'
     }
 
     $logPath = Join-Path $artifactRoot "$Name.log"
@@ -145,6 +147,12 @@ try {
     Invoke-CheckedDotnet @('format', $solutionPath, '--verify-no-changes', '--no-restore', '--verbosity', 'minimal')
     Invoke-CheckedDotnet @('build', $solutionPath, '--configuration', 'Release', '--no-restore')
     Invoke-CheckedDotnet @('test', $solutionPath, '--configuration', 'Release', '--no-build', '--logger', 'console;verbosity=minimal')
+    # Godot launches managed editor/runtime assemblies from its Debug cache even after a Release gate build.
+    # Refresh those caches explicitly so engine smoke tests never execute stale contracts.
+    Invoke-CheckedDotnet @('build', (Join-Path $repositoryRoot 'apps\Forge.Toolset\Forge.Toolset.csproj'),
+        '--configuration', 'Debug', '--no-restore')
+    Invoke-CheckedDotnet @('build', (Join-Path $repositoryRoot 'apps\Forge.Runtime\Forge.Runtime.csproj'),
+        '--configuration', 'Debug', '--no-restore')
     & (Join-Path $repositoryRoot 'scripts\Update-AuroraParityTracker.ps1') -Check
     if ($LASTEXITCODE -ne 0) {
         throw "Aurora parity tracker freshness check failed with exit code $LASTEXITCODE."
@@ -466,14 +474,14 @@ try {
         -Name 'save-create' `
         -ProjectPath $runtimePath `
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $saveCreateLog, '--', '--module-package', $moduleArtifact, '--save-file', $runtimeSave, '--save-smoke-create') `
-        -Markers @('OPENRPG_FORGE_FORGESCRIPT_CACHE status=', 'OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format=1.2.0', 'OPENRPG_FORGE_RUNTIME_SAVE_PASS') `
+        -Markers @('OPENRPG_FORGE_FORGESCRIPT_CACHE status=', 'OPENRPG_FORGE_RUNTIME_SAVE_WRITTEN format=1.3.0', 'OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=write', 'OPENRPG_FORGE_RUNTIME_SAVE_PASS') `
         -StopAfterMarkers $false
     $saveResumeLog = Join-Path $artifactRoot 'save-resume.log'
     Invoke-ForgeEngineMarkerTest `
         -Name 'save-resume' `
         -ProjectPath $runtimePath `
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $saveResumeLog, '--', '--module-package', $moduleArtifact, '--load-save', $runtimeSave, '--save-smoke-resume') `
-        -Markers @('OPENRPG_FORGE_RUNTIME_SAVE_LOADED format=1.2.0', 'OPENRPG_FORGE_RUNTIME_SAVE_RESUME_PASS') `
+        -Markers @('OPENRPG_FORGE_RUNTIME_SAVE_LOADED format=1.3.0', 'OPENRPG_FORGE_RUNTIME_G11O_SAVE_PASS mode=load', 'OPENRPG_FORGE_RUNTIME_SAVE_RESUME_PASS') `
         -StopAfterMarkers $false
 }
 finally {

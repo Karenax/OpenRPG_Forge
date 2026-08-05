@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.10.0",
+  "formatVersion": "1.11.0",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -597,6 +597,29 @@
                 ]
               }
             ],
+            "provenance": "migration-default"
+          },
+          "provenance": "migration-default"
+        },
+        "extensions": {
+          "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+          "schemaVersion": 1,
+          "ruleSchemas": [],
+          "uiDocuments": [],
+          "jsonDocuments": [],
+          "snapshotPolicy": {
+            "id": "d932b713-5726-57ea-a124-cb79a66b9644",
+            "schemaVersion": 1,
+            "components": [
+              "blackboard",
+              "combat",
+              "inventory",
+              "transform"
+            ],
+            "maxReferences": 256,
+            "maxInventoryItems": 512,
+            "maxBlackboardBytes": 65536,
+            "restoreReferences": true,
             "provenance": "migration-default"
           },
           "provenance": "migration-default"

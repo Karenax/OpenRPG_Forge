@@ -4,6 +4,7 @@ using Forge.Domain.Dialogues;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Projects;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
@@ -256,6 +257,32 @@ public sealed class ForgeProjectAgentServiceTests
         var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
         Assert.Equal("ambient.owl", Assert.Single(persisted.Areas[0].RuntimePolicies.Experience.AudioCues).CueId);
         var reverted = workspace.Project.RevertAreaExperiencePlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
+    public void RuntimeExtensionPlanSupportsFilteredReadDryRunApplyPersistenceAndRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var resource = workspace.Project.GetRuntimeExtensions();
+        var source = resource.Profile;
+        var rule = new DataDrivenRuleSchema(Guid.NewGuid(), 1, "casting.focus", RuleSchemaKind.Casting,
+            "{\"type\":\"object\"}", "{\"resource\":\"focus\"}", true, "mcp-test");
+        var profile = new ModuleRuntimeExtensionProfile(source.Id, 1, [rule], [], [], source.SnapshotPolicy,
+            "mcp-test");
+
+        var planned = workspace.Project.PlanRuntimeExtensions(new RuntimeExtensionPlanRequest(1,
+            resource.Revision, profile));
+
+        Assert.True(planned.Succeeded);
+        Assert.Equal("module/runtimePolicies/extensions", planned.Diff?.Path);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        var applied = workspace.Project.ApplyRuntimeExtensionPlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Module.RuntimePolicies.Extensions;
+        Assert.Equal("casting.focus", Assert.Single(persisted.RuleSchemas).Key);
+        var reverted = workspace.Project.RevertRuntimeExtensionPlan(planned.PlanId!);
         Assert.True(reverted.Reverted);
         Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
     }
