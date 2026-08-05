@@ -145,7 +145,7 @@ try {
         -Name 'toolset' `
         -ProjectPath $toolsetPath `
         -Arguments @('--headless', '--editor', '--path', $toolsetPath, '--log-file', $toolsetLog, '--', '--workspace-smoke-test') `
-        -Markers @('OPENRPG_FORGE_PLUGIN_LOADED', 'OPENRPG_FORGE_WINDOW_TITLE_PASS title=OpenRPG_Forge', 'OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities=16', 'OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9', 'OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog=10 derived=1 references=1 undo=restored', 'OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored', 'OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas=2 documents=2 transition=valid active=switched history=restored', 'OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone uuids=remapped preview=available history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G707_SEARCH_PASS search=global', 'OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed', 'OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable generated=provenance favorites=filtered temporary=isolated format=1.0.0 history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G710_CAMERA_PASS orbit=mouse pan=mouse zoom=adaptive focus=selection views=orthographic pilot=wasd bookmarks=persisted history=dedicated project=unchanged', 'OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler dependencies=automatic incremental=reused persistence=restored', 'OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked licenses=diagnostic registry=versioned notices=generated history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_PASS agents=4 geometry=valid reachability=spawn-object doors=states offmesh=linked flight=profiled incremental=partial overlay=visible history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G719_PATHFINDING_PASS algorithm=deterministic-a-star', 'OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_PASS uuid=stable severity=typed path=document property=visible source=validator quickfix=command preview=dry-run navigation=targeted history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=605 sources=3 facets=search-source-category uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed', 'OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_PASS messages=', 'OPENRPG_FORGE_TOOLSET_G718_SCALE_PASS modes=uniform-nonuniform', 'OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=1.0.0 areas=1 documents=1 entities=2', 'OPENRPG_FORGE_TOOLSET_T13_OVERRIDES_PASS schema=1 properties=3', 'OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_PASS nodes=2 choices=3', 'OPENRPG_FORGE_TOOLSET_T43_QUEST_PASS states=3 transitions=2', 'OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_PROJECT_SAVED', 'OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS spawn=20000000-0000-4000-8000-000000000010 snapshot=deleted logs=captured') `
+        -Markers @('OPENRPG_FORGE_PLUGIN_LOADED', 'OPENRPG_FORGE_WINDOW_TITLE_PASS title=OpenRPG_Forge', 'OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities=16', 'OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9', 'OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog=10 derived=1 references=1 undo=restored', 'OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored', 'OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas=2 documents=2 transition=valid active=switched history=restored', 'OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone uuids=remapped preview=available history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G707_SEARCH_PASS search=global', 'OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed', 'OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable generated=provenance favorites=filtered temporary=isolated format=1.0.0 history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G710_CAMERA_PASS orbit=mouse pan=mouse zoom=adaptive focus=selection views=orthographic pilot=wasd bookmarks=persisted history=dedicated project=unchanged', 'OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler dependencies=automatic incremental=reused persistence=restored', 'OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked licenses=diagnostic registry=versioned notices=generated channel=preview platforms=2 windows=portable-installer history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_PASS agents=4 geometry=valid reachability=spawn-object doors=states offmesh=linked flight=profiled incremental=partial overlay=visible history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G719_PATHFINDING_PASS algorithm=deterministic-a-star', 'OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_PASS uuid=stable severity=typed path=document property=visible source=validator quickfix=command preview=dry-run navigation=targeted history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=605 sources=3 facets=search-source-category uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed', 'OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_PASS messages=', 'OPENRPG_FORGE_TOOLSET_G718_SCALE_PASS modes=uniform-nonuniform', 'OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=1.0.0 areas=1 documents=1 entities=2', 'OPENRPG_FORGE_TOOLSET_T13_OVERRIDES_PASS schema=1 properties=3', 'OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_PASS nodes=2 choices=3', 'OPENRPG_FORGE_TOOLSET_T43_QUEST_PASS states=3 transitions=2', 'OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_PROJECT_SAVED', 'OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS spawn=20000000-0000-4000-8000-000000000010 snapshot=deleted logs=captured') `
         -StopAfterMarkers $true
     $prototypeHashAfter = (Get-FileHash -LiteralPath $prototypeDataPath -Algorithm SHA256).Hash
     if ($prototypeHashBefore -ne $prototypeHashAfter) {
@@ -177,6 +177,61 @@ try {
     Invoke-CheckedDotnet @(
         'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
         'package', 'diagnose', $moduleWorkspace)
+    $releaseSmoke = Join-Path $artifactRoot 'distribution-release-smoke'
+    if (Test-Path -LiteralPath $releaseSmoke) {
+        Remove-Item -LiteralPath $releaseSmoke -Recurse -Force
+    }
+    [System.IO.Directory]::CreateDirectory($releaseSmoke) | Out-Null
+    $releasePrivateKey = Join-Path $releaseSmoke 'signing-private.pem'
+    $releasePublicKey = Join-Path $releaseSmoke 'signing-public.pem'
+    $releaseSignature = Join-Path $releaseSmoke 'crypt-of-ashes.signature.json'
+    $releaseDelta = Join-Path $releaseSmoke 'crypt-of-ashes.orpdelta'
+    $releaseRebuilt = Join-Path $releaseSmoke 'crypt-of-ashes-rebuilt.orpmod'
+    $releaseResumeCache = Join-Path $releaseSmoke 'resume-cache'
+    $releaseBundle = Join-Path $releaseSmoke 'crypt-of-ashes-development-windows.zip'
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'keygen', $releasePrivateKey, $releasePublicKey)
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'sign', $moduleArtifact, $releasePrivateKey, $releaseSignature)
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'verify-signature', $moduleWorkspace, $moduleArtifact, $releaseSignature)
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'delta', $moduleWorkspace, $moduleArtifact, $moduleArtifact, $releaseDelta)
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'apply-delta', $moduleArtifact, $releaseDelta, $releaseRebuilt,
+        '--resume-cache', $releaseResumeCache)
+    if ((Get-FileHash -LiteralPath $moduleArtifact -Algorithm SHA256).Hash -ne
+        (Get-FileHash -LiteralPath $releaseRebuilt -Algorithm SHA256).Hash) {
+        throw 'Delta reconstruction did not reproduce the exact target module package.'
+    }
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'bundle', $moduleWorkspace, $moduleArtifact, $releaseBundle,
+        '--target', 'editor', '--platform', 'windows-x64',
+        '--signature', $releaseSignature, '--delta', $releaseDelta)
+    $releaseExtract = Join-Path $releaseSmoke 'bundle'
+    $releaseInstall = Join-Path $releaseSmoke 'installed-modules'
+    Expand-Archive -LiteralPath $releaseBundle -DestinationPath $releaseExtract -Force
+    foreach ($required in @('release-manifest.json', 'install.ps1', 'uninstall.ps1', 'packages\crypt-of-ashes.orpmod')) {
+        if (-not (Test-Path -LiteralPath (Join-Path $releaseExtract $required))) {
+            throw "Release bundle is missing '$required'."
+        }
+    }
+    & (Join-Path $releaseExtract 'install.ps1') -Destination $releaseInstall
+    $installedModule = Join-Path $releaseInstall 'crypt-of-ashes.orpmod'
+    if (-not (Test-Path -LiteralPath $installedModule -PathType Leaf)) {
+        throw 'Windows release installer did not install the module package.'
+    }
+    & (Join-Path $releaseExtract 'uninstall.ps1') -Destination $releaseInstall
+    if (Test-Path -LiteralPath $installedModule) {
+        throw 'Windows release uninstaller did not remove the installed module package.'
+    }
+    Write-Output 'OPENRPG_FORGE_G11D_RELEASE_SMOKE_PASS signature=ecdsa-p256 delta=resume-dedup-rollback windows=install-uninstall channel=development'
     Invoke-CheckedDotnet @(
         'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
         'assets', 'list', $repositoryRoot, '--query', 'apple', '--source', 'ambientcg')

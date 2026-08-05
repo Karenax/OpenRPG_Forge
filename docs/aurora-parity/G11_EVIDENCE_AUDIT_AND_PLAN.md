@@ -66,6 +66,12 @@ La parité de plateforme, les migrations de confiance et les désinstallations a
 sont couvertes par le domaine. La preuve détaillée est dans
 [`tasks/G11-C-EXTERNAL-ROUNDTRIP-AND-LIFECYCLE.md`](tasks/G11-C-EXTERNAL-ROUNDTRIP-AND-LIFECYCLE.md).
 
+**G11-D est fermé le 5 août 2026.** La configuration canonique combine canaux, plateformes,
+signature, delta et cycle Windows. Le CLI signe et vérifie un `.orpmod`, reconstruit un delta bit
+pour bit puis produit un bundle Windows reproductible dont installation et désinstallation sont
+testées en répertoire isolé. La preuve détaillée est dans
+[`tasks/G11-D-SIGNED-DELTA-DISTRIBUTION.md`](tasks/G11-D-SIGNED-DELTA-DISTRIBUTION.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-D** : signatures, mises à jour delta et distribution multi-plateforme gouvernée.
+Démarrer **G11-E** : imports/exports en masse, tables de données et fusion assistée.

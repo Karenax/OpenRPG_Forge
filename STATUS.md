@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-C Contenu moderne fermé et G11-D ouvert.**
+fermés ; G11-A à G11-D Contenu moderne fermés et G11-E ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -250,5 +250,10 @@ transactionnelle revue visuellement.
 **G11-C est fermé** : round-trip externe persistant et transactionnel, worker Blender typé
 optionnel, parité plateforme, migrations/désinstallations analysées en dry-run et production réelle
 d'un GLB 2 texturé depuis un OBJ du Vault. Blender 4.5.10 a produit collisions et LOD, le hash du
-source est resté inchangé et le rendu de contrôle est valide. G11-D porte maintenant signatures,
-deltas et qualité de distribution avant la curation du premier pack de carte 3D.
+source est resté inchangé et le rendu de contrôle est valide.
+
+**G11-D est fermé** : canaux Development/Preview/Stable, matrice Windows/Linux/macOS, signature
+ECDSA avec confiance/révocation, delta content-addressed reprenable et réversible, bundle Windows
+reproductible, installation journalisée et désinstallation isolée. Les exports applicatifs physiques
+Linux/macOS, Authenticode et feeds distants restent explicitement aux adaptateurs de livraison ;
+G11-E porte maintenant les workflows de contenu en masse et de fusion.

@@ -86,6 +86,41 @@ public sealed class DistributionComplianceValidatorTests
         Assert.Equal(DistributionComplianceValidator.TargetDisabledCode, diagnostic.Code);
     }
 
+    [Fact]
+    public void StableShipping_RequiresSignatureDeltaAndWindowsSafety()
+    {
+        var project = CreateProject(compliant: true);
+        var distribution = project.Module.Distribution;
+        var release = distribution.Release;
+        var unsafeStable = new ModuleReleaseConfiguration(
+            release.Id,
+            ModuleReleaseChannel.Stable,
+            release.Platforms,
+            release.Signing,
+            new ModuleDeltaConfiguration(true, 1024 * 1024, false, true, false, 2),
+            new WindowsPackagingConfiguration(
+                WindowsPackageMode.PortableZip,
+                detectPrerequisites: false,
+                writeInstallLog: false,
+                includeUninstaller: false,
+                []),
+            "test");
+        var candidate = ReplaceDistribution(
+            project,
+            new ModuleDistributionConfiguration(
+                distribution.Id,
+                distribution.TargetProfiles,
+                distribution.Dependencies,
+                "test",
+                unsafeStable));
+
+        var diagnostics = DistributionComplianceValidator.Validate(candidate, ModuleTargetKind.Shipping);
+
+        Assert.Contains(diagnostics, item => item.Code == DistributionComplianceValidator.StableSignatureRequiredCode);
+        Assert.Contains(diagnostics, item => item.Code == DistributionComplianceValidator.StableDeltaPolicyRequiredCode);
+        Assert.Contains(diagnostics, item => item.Code == DistributionComplianceValidator.WindowsPackagingSafetyRequiredCode);
+    }
+
     private static ProjectDefinition CreateProject(bool compliant)
     {
         var moduleId = ModuleId.From(Guid.Parse("d7000000-0000-4000-8000-000000000002"));

@@ -411,6 +411,14 @@ Le détail et les preuves des 717 capacités restent suivis dans
 Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
 
+## Gate post-MVP — Contenu moderne G11
+
+- [x] **G11-A** — profils de traitement et cache d'assets gouvernés.
+- [x] **G11-B** — manifestes d'assets, plateformes, collisions, animations, VFX et LOD.
+- [x] **G11-C** — round-trip externe et Blender réel avec source du Vault immuable.
+- [x] **G11-D** — signatures, deltas, canaux et bundle Windows installable/désinstallable.
+- [ ] **G11-E** — imports/exports en masse, tables de données et fusion assistée.
+
 ## Backlog post-MVP — Asset Vault et Forgotten Forest
 
 Ce chantier n’est pas inclus dans la fermeture du MVP Crypte des Cendres. Sa spécification de

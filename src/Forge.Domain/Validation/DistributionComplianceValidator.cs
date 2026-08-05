@@ -13,6 +13,9 @@ public static partial class DistributionComplianceValidator
     public const string BlueprintProvenanceUnknownCode = "distribution.blueprint.provenance_unknown";
     public const string DependencyLicenseUnknownCode = "distribution.dependency.license_unknown";
     public const string DependencyVersionInvalidCode = "distribution.dependency.version_invalid";
+    public const string StableSignatureRequiredCode = "distribution.release.stable_signature_required";
+    public const string StableDeltaPolicyRequiredCode = "distribution.release.stable_delta_policy_required";
+    public const string WindowsPackagingSafetyRequiredCode = "distribution.release.windows_packaging_safety_required";
 
     private static readonly HashSet<string> ApprovedLicenseIdentifiers = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -34,6 +37,37 @@ public static partial class DistributionComplianceValidator
                 $"Target profile '{target}' is disabled.",
                 $"module/distribution/targetProfiles/{target}/enabled"));
             return diagnostics;
+        }
+
+        var release = project.Module.Distribution.Release;
+        if (target == ModuleTargetKind.Shipping && release.Channel == ModuleReleaseChannel.Stable)
+        {
+            if (release.Signing.Mode != ModuleSigningMode.Required)
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    StableSignatureRequiredCode,
+                    "Stable Shipping releases require a trusted package signature.",
+                    "module/distribution/release/signing/mode"));
+            }
+
+            if (!release.Delta.Enabled || !release.Delta.AllowResume || !release.Delta.DeduplicateByHash ||
+                !release.Delta.AllowRollback)
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    StableDeltaPolicyRequiredCode,
+                    "Stable Shipping releases require resumable, deduplicated and rollback-safe deltas.",
+                    "module/distribution/release/delta"));
+            }
+
+            if (release.Platforms.Contains(ModuleDistributionPlatform.WindowsX64) &&
+                (!release.WindowsPackaging.DetectPrerequisites || !release.WindowsPackaging.WriteInstallLog ||
+                 !release.WindowsPackaging.IncludeUninstaller))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    WindowsPackagingSafetyRequiredCode,
+                    "Stable Windows packaging requires prerequisite detection, install logs and an uninstaller.",
+                    "module/distribution/release/windowsPackaging"));
+            }
         }
 
         var dependencyIndex = 0;

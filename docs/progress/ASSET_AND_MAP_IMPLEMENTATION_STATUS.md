@@ -59,6 +59,6 @@ Dernière mise à jour : 5 août 2026.
 
 ## Prochaine action
 
-Fermer G11-D (signatures, delta et distribution), puis curater un premier pack multi-biome cohérent
-et remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés la
-source de vérité de la carte.
+Livrer G11-E (contenu en masse et fusion), puis curater un premier pack multi-biome cohérent et
+remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés la source
+de vérité de la carte.

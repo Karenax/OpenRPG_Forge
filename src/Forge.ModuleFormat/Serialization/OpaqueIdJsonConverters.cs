@@ -259,6 +259,24 @@ internal sealed class ModuleDistributionConfigurationIdJsonConverter :
             : throw new JsonException("A module distribution configuration ID must be a string.");
 }
 
+internal sealed class ModuleReleaseConfigurationIdJsonConverter : JsonConverter<ModuleReleaseConfigurationId>
+{
+    public override ModuleReleaseConfigurationId Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options) => ModuleReleaseConfigurationId.Parse(ReadString(ref reader));
+
+    public override void Write(
+        Utf8JsonWriter writer,
+        ModuleReleaseConfigurationId value,
+        JsonSerializerOptions options) => writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("A module release configuration ID cannot be null.")
+            : throw new JsonException("A module release configuration ID must be a string.");
+}
+
 internal sealed class ModuleTargetProfileIdJsonConverter : JsonConverter<ModuleTargetProfileId>
 {
     public override ModuleTargetProfileId Read(

@@ -143,6 +143,43 @@
           }
         ],
         "dependencies": [],
+        "release": {
+          "id": "dbde751d-e286-5ebd-8799-3b98bd8b5cdb",
+          "schemaVersion": 1,
+          "channel": "development",
+          "platforms": [
+            "windowsX64"
+          ],
+          "signing": {
+            "schemaVersion": 1,
+            "mode": "optional",
+            "signingProfile": "local-signing",
+            "trustedKeyFingerprints": [],
+            "revokedKeyFingerprints": [],
+            "allowUnsignedDevelopment": true
+          },
+          "delta": {
+            "schemaVersion": 1,
+            "enabled": true,
+            "chunkSizeBytes": 1048576,
+            "allowResume": true,
+            "deduplicateByHash": true,
+            "allowRollback": true,
+            "retainedVersions": 2
+          },
+          "windowsPackaging": {
+            "schemaVersion": 1,
+            "mode": "portableAndInstaller",
+            "detectPrerequisites": true,
+            "writeInstallLog": true,
+            "includeUninstaller": true,
+            "prerequisites": [
+              "vulkan-or-d3d12",
+              "windows-x64"
+            ]
+          },
+          "provenance": "migration-default"
+        },
         "provenance": "migration-default"
       },
       "localization": {

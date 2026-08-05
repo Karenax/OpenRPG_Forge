@@ -140,11 +140,20 @@ public sealed class ProjectJsonSerializerTests
             "https://example.invalid/distribution-library",
             [ModuleTargetKind.Client, ModuleTargetKind.Shipping],
             "test");
+        var release = new ModuleReleaseConfiguration(
+            defaults.Release.Id,
+            ModuleReleaseChannel.Preview,
+            [ModuleDistributionPlatform.WindowsX64, ModuleDistributionPlatform.LinuxX64],
+            new ModuleSigningConfiguration(ModuleSigningMode.Optional, "preview", [], [], true),
+            new ModuleDeltaConfiguration(true, 512 * 1024, true, true, true, 3),
+            defaults.Release.WindowsPackaging,
+            "test");
         var distribution = new ModuleDistributionConfiguration(
             defaults.Id,
             defaults.TargetProfiles,
             [approval],
-            "test");
+            "test",
+            release);
         var module = new ModuleDefinition(
             source.Module.Id,
             source.Module.Slug,
@@ -174,6 +183,9 @@ public sealed class ProjectJsonSerializerTests
         Assert.Equal(approval.Version, restoredApproval.Version);
         Assert.Equal(approval.LicenseSpdx, restoredApproval.LicenseSpdx);
         Assert.Equal(approval.RequiredForTargets, restoredApproval.RequiredForTargets);
+        Assert.Equal(ModuleReleaseChannel.Preview, restored.Module.Distribution.Release.Channel);
+        Assert.Equal(2, restored.Module.Distribution.Release.Platforms.Count);
+        Assert.Equal(512 * 1024, restored.Module.Distribution.Release.Delta.ChunkSizeBytes);
         Assert.Contains("\"secretsProfile\"", serialized, StringComparison.Ordinal);
         Assert.DoesNotContain("secretValue", serialized, StringComparison.OrdinalIgnoreCase);
     }
@@ -196,6 +208,21 @@ public sealed class ProjectJsonSerializerTests
         Assert.Contains(
             $"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
             ProjectJsonSerializer.Serialize(first));
+    }
+
+    [Fact]
+    public void Deserialize_MigratesDistributionWithoutReleasePolicyDeterministically()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["project"]!["module"]!["distribution"]!.AsObject().Remove("release");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Equal(first.Module.Distribution.Release.Id, second.Module.Distribution.Release.Id);
+        Assert.Equal(ModuleReleaseChannel.Development, first.Module.Distribution.Release.Channel);
+        Assert.Equal([ModuleDistributionPlatform.WindowsX64], first.Module.Distribution.Release.Platforms);
+        Assert.True(first.Module.Distribution.Release.Delta.AllowRollback);
     }
 
     [Fact]

@@ -18,6 +18,7 @@ public partial class DistributionProfilesWindow : Window
     private Action<ModuleTargetKind>? _selectExportTarget;
     private Action<Window>? _brandWindow;
     private ModuleDistributionConfigurationId? _configurationId;
+    private ModuleReleaseConfiguration? _release;
     private ThirdPartyDependencyId? _dependencyId;
     private ModuleDistributionConfiguration? _approvedConfiguration;
     private bool _suppressSignals;
@@ -40,6 +41,24 @@ public partial class DistributionProfilesWindow : Window
     private LineEdit? _dependencyTargets;
     private TextEdit? _dependencyRationale;
     private TextEdit? _dependencyRemovalPlan;
+    private OptionButton? _releaseChannel;
+    private LineEdit? _releasePlatforms;
+    private OptionButton? _signingMode;
+    private LineEdit? _signingProfile;
+    private LineEdit? _trustedKeys;
+    private LineEdit? _revokedKeys;
+    private CheckButton? _allowUnsignedDevelopment;
+    private CheckButton? _deltaEnabled;
+    private LineEdit? _deltaChunkKilobytes;
+    private CheckButton? _deltaResume;
+    private CheckButton? _deltaDeduplicate;
+    private CheckButton? _deltaRollback;
+    private LineEdit? _deltaRetainedVersions;
+    private OptionButton? _windowsMode;
+    private LineEdit? _windowsPrerequisites;
+    private CheckButton? _windowsDetectPrerequisites;
+    private CheckButton? _windowsInstallLog;
+    private CheckButton? _windowsUninstaller;
     private ItemList? _diagnostics;
     private Label? _summary;
     private Label? _status;
@@ -125,6 +144,7 @@ public partial class DistributionProfilesWindow : Window
         _profiles.AddRange(configuration.TargetProfiles);
         _dependencies.Clear();
         _dependencies.AddRange(configuration.Dependencies);
+        _release = configuration.Release;
         _target!.Selected = Math.Max(_target.Selected, 0);
         LoadProfile(_target.Selected);
         RefreshDependencyList();
@@ -137,6 +157,8 @@ public partial class DistributionProfilesWindow : Window
         {
             ClearDependencyDraft();
         }
+
+        LoadRelease(configuration.Release);
 
         _suppressSignals = false;
         InvalidatePreview();
@@ -231,17 +253,43 @@ public partial class DistributionProfilesWindow : Window
         removeDependency.Pressed += RemoveDependency;
         dependencyActions.AddChild(removeDependency);
 
-        var validationCard = AddCard(body, new Vector2(360, 0));
+        var validationCard = AddCard(body, new Vector2(390, 0));
         validationCard.AddChild(Section("APERÇU DE CONFORMITÉ"));
+        var validationScroll = new ScrollContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        validationCard.AddChild(validationScroll);
+        var validationContent = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        validationContent.AddThemeConstantOverride("separation", 5);
+        validationScroll.AddChild(validationContent);
         var validationHelp = new Label
         {
-            Text = "Client, serveur dédié et Shipping bloquent licences ou provenances inconnues. Le NOTICE est généré automatiquement.",
+            Text = "Canal, plateformes, signature, delta et cycle Windows sont canoniques. Stable/Shipping exige confiance, reprise et rollback.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         };
         validationHelp.AddThemeColorOverride("font_color", new Color("d8c8ff"));
-        validationCard.AddChild(validationHelp);
-        _diagnostics = new ItemList { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        validationCard.AddChild(_diagnostics);
+        validationContent.AddChild(validationHelp);
+        _releaseChannel = AddEnumOptions<ModuleReleaseChannel>(validationContent, "Canal de release");
+        _releasePlatforms = AddField(validationContent, "Plateformes", "windows-x64, linux-x64");
+        _signingMode = AddEnumOptions<ModuleSigningMode>(validationContent, "Politique de signature");
+        _signingProfile = AddField(validationContent, "Profil de signature", "shipping-signing");
+        _trustedKeys = AddField(validationContent, "Empreintes approuvées", "sha256, sha256");
+        _revokedKeys = AddField(validationContent, "Empreintes révoquées", "sha256, sha256");
+        _allowUnsignedDevelopment = AddToggle(validationContent, "Autoriser le non-signé en développement");
+        _deltaEnabled = AddToggle(validationContent, "Activer les mises à jour delta");
+        _deltaChunkKilobytes = AddField(validationContent, "Taille de chunk (Kio)", "1024");
+        _deltaResume = AddToggle(validationContent, "Reprise des téléchargements");
+        _deltaDeduplicate = AddToggle(validationContent, "Déduplication par hash");
+        _deltaRollback = AddToggle(validationContent, "Rollback vers une version retenue");
+        _deltaRetainedVersions = AddField(validationContent, "Versions retenues", "2");
+        _windowsMode = AddEnumOptions<WindowsPackageMode>(validationContent, "Packaging Windows");
+        _windowsPrerequisites = AddField(validationContent, "Prérequis Windows", "windows-x64, vulkan-or-d3d12");
+        _windowsDetectPrerequisites = AddToggle(validationContent, "Détecter les prérequis");
+        _windowsInstallLog = AddToggle(validationContent, "Journal d'installation");
+        _windowsUninstaller = AddToggle(validationContent, "Inclure la désinstallation");
+        var updateRelease = new Button { Text = "Mettre à jour la release", CustomMinimumSize = new Vector2(0, 36) };
+        updateRelease.Pressed += UpdateRelease;
+        validationContent.AddChild(updateRelease);
+        _diagnostics = new ItemList { CustomMinimumSize = new Vector2(0, 180) };
+        validationContent.AddChild(_diagnostics);
 
         var footer = new HBoxContainer();
         footer.AddThemeConstantOverride("separation", 10);
@@ -281,14 +329,26 @@ public partial class DistributionProfilesWindow : Window
                  {
                      _outputName, _secretsProfile, _dependencyName, _dependencyVersion, _dependencyLicense,
                      _dependencyOwner, _dependencySource, _dependencyCadence, _dependencyTargets,
+                     _releasePlatforms, _signingProfile, _trustedKeys, _revokedKeys, _deltaChunkKilobytes,
+                     _deltaRetainedVersions, _windowsPrerequisites,
                  })
         {
             field!.TextChanged += _ => InvalidatePreview();
         }
 
-        foreach (var toggle in new[] { _enabled, _editorData, _debugSymbols, _optimize, _approvedLicenses })
+        foreach (var toggle in new[]
+                 {
+                     _enabled, _editorData, _debugSymbols, _optimize, _approvedLicenses,
+                     _allowUnsignedDevelopment, _deltaEnabled, _deltaResume, _deltaDeduplicate, _deltaRollback,
+                     _windowsDetectPrerequisites, _windowsInstallLog, _windowsUninstaller,
+                 })
         {
             toggle!.Toggled += _ => InvalidatePreview();
+        }
+
+        foreach (var options in new[] { _releaseChannel, _signingMode, _windowsMode })
+        {
+            options!.ItemSelected += _ => InvalidatePreview();
         }
     }
 
@@ -298,6 +358,15 @@ public partial class DistributionProfilesWindow : Window
         {
             InvalidatePreview();
             SetStatus($"Profil {FormatTarget(SelectedTarget)} prêt dans le brouillon.", false);
+        }
+    }
+
+    private void UpdateRelease()
+    {
+        if (CommitReleaseDraft())
+        {
+            InvalidatePreview();
+            SetStatus("Configuration de release prête dans le brouillon.", false);
         }
     }
 
@@ -382,7 +451,7 @@ public partial class DistributionProfilesWindow : Window
     private void Preview()
     {
         var state = _getState?.Invoke();
-        if (state is null || !CommitProfileDraft())
+        if (state is null || !CommitProfileDraft() || !CommitReleaseDraft())
         {
             return;
         }
@@ -393,7 +462,8 @@ public partial class DistributionProfilesWindow : Window
                 _configurationId ?? ModuleDistributionConfigurationId.From(Guid.NewGuid()),
                 _profiles,
                 _dependencies,
-                "creator-command");
+                "creator-command",
+                _release);
             var module = state.Project.Module;
             var candidateModule = new ModuleDefinition(
                 module.Id,
@@ -429,7 +499,8 @@ public partial class DistributionProfilesWindow : Window
 
             _applyButton!.Disabled = false;
             _summary!.Text =
-                $"{_profiles.Count} profils · {_dependencies.Count} dépendance(s) · cible {FormatTarget(SelectedTarget)}";
+                $"{_profiles.Count} profils · {_release!.Channel} · {_release.Platforms.Count} plateforme(s) · " +
+                $"signature {_release.Signing.Mode} · cible {FormatTarget(SelectedTarget)}";
             SetStatus(
                 compliance.Count == 0
                     ? "✓ Configuration valide et cible publiable."
@@ -470,6 +541,76 @@ public partial class DistributionProfilesWindow : Window
         _approvedLicenses!.SetPressedNoSignal(profile.RequireApprovedLicenses);
         _outputName!.Text = profile.OutputName;
         _secretsProfile!.Text = profile.SecretsProfile;
+    }
+
+    private void LoadRelease(ModuleReleaseConfiguration release)
+    {
+        _releaseChannel!.Selected = (int)release.Channel;
+        _releasePlatforms!.Text = string.Join(", ", release.Platforms.Select(platform => platform.ToString()));
+        _signingMode!.Selected = (int)release.Signing.Mode;
+        _signingProfile!.Text = release.Signing.SigningProfile;
+        _trustedKeys!.Text = string.Join(", ", release.Signing.TrustedKeyFingerprints);
+        _revokedKeys!.Text = string.Join(", ", release.Signing.RevokedKeyFingerprints);
+        _allowUnsignedDevelopment!.SetPressedNoSignal(release.Signing.AllowUnsignedDevelopment);
+        _deltaEnabled!.SetPressedNoSignal(release.Delta.Enabled);
+        _deltaChunkKilobytes!.Text = (release.Delta.ChunkSizeBytes / 1024).ToString();
+        _deltaResume!.SetPressedNoSignal(release.Delta.AllowResume);
+        _deltaDeduplicate!.SetPressedNoSignal(release.Delta.DeduplicateByHash);
+        _deltaRollback!.SetPressedNoSignal(release.Delta.AllowRollback);
+        _deltaRetainedVersions!.Text = release.Delta.RetainedVersions.ToString();
+        _windowsMode!.Selected = (int)release.WindowsPackaging.Mode;
+        _windowsPrerequisites!.Text = string.Join(", ", release.WindowsPackaging.Prerequisites);
+        _windowsDetectPrerequisites!.SetPressedNoSignal(release.WindowsPackaging.DetectPrerequisites);
+        _windowsInstallLog!.SetPressedNoSignal(release.WindowsPackaging.WriteInstallLog);
+        _windowsUninstaller!.SetPressedNoSignal(release.WindowsPackaging.IncludeUninstaller);
+    }
+
+    private bool CommitReleaseDraft()
+    {
+        try
+        {
+            var current = _release ?? throw new InvalidOperationException("Release configuration is not loaded.");
+            if (!int.TryParse(_deltaChunkKilobytes!.Text, out var chunkKilobytes) || chunkKilobytes <= 0)
+            {
+                throw new ArgumentException("La taille de chunk doit être un entier positif en Kio.");
+            }
+
+            if (!int.TryParse(_deltaRetainedVersions!.Text, out var retainedVersions))
+            {
+                throw new ArgumentException("Le nombre de versions retenues doit être un entier.");
+            }
+
+            _release = new ModuleReleaseConfiguration(
+                current.Id,
+                (ModuleReleaseChannel)_releaseChannel!.Selected,
+                ParsePlatforms(_releasePlatforms!.Text),
+                new ModuleSigningConfiguration(
+                    (ModuleSigningMode)_signingMode!.Selected,
+                    _signingProfile!.Text,
+                    ParseCsv(_trustedKeys!.Text),
+                    ParseCsv(_revokedKeys!.Text),
+                    _allowUnsignedDevelopment!.ButtonPressed),
+                new ModuleDeltaConfiguration(
+                    _deltaEnabled!.ButtonPressed,
+                    checked(chunkKilobytes * 1024),
+                    _deltaResume!.ButtonPressed,
+                    _deltaDeduplicate!.ButtonPressed,
+                    _deltaRollback!.ButtonPressed,
+                    retainedVersions),
+                new WindowsPackagingConfiguration(
+                    (WindowsPackageMode)_windowsMode!.Selected,
+                    _windowsDetectPrerequisites!.ButtonPressed,
+                    _windowsInstallLog!.ButtonPressed,
+                    _windowsUninstaller!.ButtonPressed,
+                    ParseCsv(_windowsPrerequisites!.Text)),
+                "creator-command");
+            return true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or OverflowException)
+        {
+            SetStatus(exception.Message, true);
+            return false;
+        }
     }
 
     private void RefreshDependencyList()
@@ -551,6 +692,42 @@ public partial class DistributionProfilesWindow : Window
         }
 
         return targets;
+    }
+
+    private static IReadOnlyList<ModuleDistributionPlatform> ParsePlatforms(string value)
+    {
+        var platforms = new List<ModuleDistributionPlatform>();
+        foreach (var token in ParseCsv(value))
+        {
+            var normalized = token.Replace("-", string.Empty, StringComparison.Ordinal)
+                .Replace("_", string.Empty, StringComparison.Ordinal);
+            if (!Enum.TryParse<ModuleDistributionPlatform>(normalized, ignoreCase: true, out var platform) ||
+                !Enum.IsDefined(platform))
+            {
+                throw new ArgumentException($"Plateforme inconnue : '{token}'.", nameof(value));
+            }
+
+            platforms.Add(platform);
+        }
+
+        return platforms;
+    }
+
+    private static IReadOnlyList<string> ParseCsv(string value) =>
+        value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private static OptionButton AddEnumOptions<TEnum>(VBoxContainer parent, string label)
+        where TEnum : struct, Enum
+    {
+        parent.AddChild(new Label { Text = label });
+        var options = new OptionButton();
+        foreach (var value in Enum.GetValues<TEnum>())
+        {
+            options.AddItem(value.ToString());
+        }
+
+        parent.AddChild(options);
+        return options;
     }
 
     private static CheckButton AddToggle(VBoxContainer parent, string text)

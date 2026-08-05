@@ -30,6 +30,7 @@ using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Assets;
+using Forge.ModuleFormat.Distribution;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Packages;
@@ -4720,11 +4721,25 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "https://example.invalid/forge-smoke-library",
             [ModuleTargetKind.Editor],
             "workspace-smoke-test");
+        var release = new ModuleReleaseConfiguration(
+            original.Release.Id,
+            ModuleReleaseChannel.Preview,
+            [ModuleDistributionPlatform.WindowsX64, ModuleDistributionPlatform.LinuxX64],
+            new ModuleSigningConfiguration(
+                ModuleSigningMode.Optional,
+                "preview-signing",
+                [],
+                [],
+                allowUnsignedDevelopment: true),
+            new ModuleDeltaConfiguration(true, 1024 * 1024, true, true, true, 3),
+            original.Release.WindowsPackaging,
+            "workspace-smoke-test");
         var configuration = new ModuleDistributionConfiguration(
             original.Id,
             profiles,
             [approval],
-            "workspace-smoke-test");
+            "workspace-smoke-test",
+            release);
         if (!_distributionProfiles.ConfigureForSmokeTest(configuration, ModuleTargetKind.Shipping) ||
             _distributionProfiles.ProfileCount != 5 ||
             _distributionProfiles.ComplianceDiagnosticCount == 0 ||
@@ -4744,6 +4759,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             var workspace = Path.Combine(smokeRoot, "workspace");
             var artifact = Path.Combine(smokeRoot, "editor.orpmod");
+            var releaseBundle = Path.Combine(smokeRoot, "editor-preview-windows.zip");
             var created = ProjectSession.Create(workspace, _history.State.Project);
             if (!created.Succeeded || created.Session is null)
             {
@@ -4753,13 +4769,26 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
             var reopened = ProjectSession.Open(workspace);
             var exported = ModulePackager.Export(workspace, artifact, target: ModuleTargetKind.Editor);
+            var bundled = ModuleReleaseBundleBuilder.Build(
+                artifact,
+                releaseBundle,
+                ModuleTargetKind.Editor,
+                ModuleDistributionPlatform.WindowsX64,
+                release);
             using var archive = ZipFile.OpenRead(artifact);
+            using var releaseArchive = ZipFile.OpenRead(releaseBundle);
             if (!reopened.Succeeded || reopened.Session is null ||
                 reopened.Session.Project.Module.Distribution.TargetProfiles.Count != 5 ||
                 reopened.Session.Project.Module.Distribution.Dependencies.Single().Id != approval.Id ||
+                reopened.Session.Project.Module.Distribution.Release.Channel != ModuleReleaseChannel.Preview ||
+                reopened.Session.Project.Module.Distribution.Release.Platforms.Count != 2 ||
                 exported.Manifest.Target != ModuleTargetKind.Editor ||
                 exported.Manifest.ThirdPartyDependencies.Single().Id != approval.Id ||
-                archive.GetEntry(DistributionNoticeBuilder.PackagePath) is null)
+                archive.GetEntry(DistributionNoticeBuilder.PackagePath) is null ||
+                bundled.Manifest.Channel != ModuleReleaseChannel.Preview ||
+                releaseArchive.GetEntry("release-manifest.json") is null ||
+                releaseArchive.GetEntry("install.ps1") is null ||
+                releaseArchive.GetEntry("uninstall.ps1") is null)
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_FAILED persistence");
                 return false;
@@ -4787,7 +4816,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         RefreshEditorControls();
         GD.Print(
             "OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked " +
-            "licenses=diagnostic registry=versioned notices=generated history=restored persistence=roundtrip");
+            "licenses=diagnostic registry=versioned notices=generated channel=preview platforms=2 " +
+            "windows=portable-installer history=restored persistence=roundtrip");
         return true;
     }
 

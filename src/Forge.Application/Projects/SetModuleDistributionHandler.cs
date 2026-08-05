@@ -60,7 +60,8 @@ public sealed class SetModuleDistributionHandler
             "replace",
             "module/distribution",
             $"Update {command.Distribution.TargetProfiles.Count} target profile(s) and " +
-            $"{command.Distribution.Dependencies.Count} dependency approval(s).");
+            $"{command.Distribution.Dependencies.Count} dependency approval(s) for " +
+            $"{command.Distribution.Release.Channel} on {command.Distribution.Release.Platforms.Count} platform(s).");
         var inverse = new ProjectPatch(
             "replace",
             "module/distribution",

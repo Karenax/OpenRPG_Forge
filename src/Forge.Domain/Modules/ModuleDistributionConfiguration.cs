@@ -15,6 +15,8 @@ public sealed record ModuleDistributionConfiguration
 
     public IReadOnlyList<ThirdPartyDependencyApproval> Dependencies { get; }
 
+    public ModuleReleaseConfiguration Release { get; }
+
     public string Provenance { get; }
 
     public ModuleDistributionConfiguration(
@@ -22,6 +24,7 @@ public sealed record ModuleDistributionConfiguration
         IReadOnlyList<ModuleTargetProfile> targetProfiles,
         IReadOnlyList<ThirdPartyDependencyApproval>? dependencies,
         string provenance,
+        ModuleReleaseConfiguration? release = null,
         int schemaVersion = CurrentSchemaVersion)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -64,6 +67,7 @@ public sealed record ModuleDistributionConfiguration
         SchemaVersion = schemaVersion;
         TargetProfiles = profiles;
         Dependencies = approvals;
+        Release = release ?? ModuleReleaseConfiguration.CreateDefault(id);
         Provenance = provenance.Trim();
     }
 
@@ -80,7 +84,9 @@ public sealed record ModuleDistributionConfiguration
             ModuleDistributionConfigurationId.From(CreateStableGuid(moduleId, "distribution")),
             profiles,
             [],
-            "migration-default");
+            "migration-default",
+            ModuleReleaseConfiguration.CreateDefault(
+                ModuleDistributionConfigurationId.From(CreateStableGuid(moduleId, "distribution"))));
     }
 
     private static ModuleTargetProfile CreateDefaultProfile(ModuleId moduleId, ModuleTargetKind target)

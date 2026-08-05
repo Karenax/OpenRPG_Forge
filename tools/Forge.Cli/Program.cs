@@ -10,6 +10,7 @@ using Forge.Domain.Navigation;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Assets;
+using Forge.ModuleFormat.Distribution;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Workspaces;
@@ -36,7 +37,7 @@ static int Run(IReadOnlyList<string> arguments)
         }
 
         Console.Error.WriteLine(
-            "Usage: forge package <export|validate|load|analyze|compliance|spatial|diagnose> ... | " +
+            "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
             "forge assets <list|prepare|roundtrip> ... | forge author-original <target-directory>");
         return 2;
     }
@@ -526,6 +527,146 @@ static int RunPackage(IReadOnlyList<string> arguments)
         return 0;
     }
 
+    if (arguments.Count == 4 && arguments[0] == "sign")
+    {
+        var signature = ModulePackageSignatureService.Sign(arguments[1], arguments[2], arguments[3]);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = true,
+            signature.FormatVersion,
+            signature.Algorithm,
+            signature.PackageSha256,
+            signature.KeyFingerprint,
+            output = Path.GetFullPath(arguments[3]),
+        }));
+        Console.WriteLine(
+            $"OPENRPG_FORGE_PACKAGE_SIGNATURE_PASS key={signature.KeyFingerprint} hash={signature.PackageSha256}");
+        return 0;
+    }
+
+    if (arguments.Count == 3 && arguments[0] == "keygen")
+    {
+        var fingerprint = ModulePackageSignatureService.GenerateKeyPair(arguments[1], arguments[2]);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = true,
+            fingerprint,
+            privateKey = Path.GetFullPath(arguments[1]),
+            publicKey = Path.GetFullPath(arguments[2]),
+        }));
+        Console.WriteLine($"OPENRPG_FORGE_SIGNING_KEYGEN_PASS key={fingerprint}");
+        return 0;
+    }
+
+    if (arguments.Count == 4 && arguments[0] == "verify-signature")
+    {
+        var opened = ProjectSession.Open(arguments[1]);
+        if (!opened.Succeeded || opened.Session is null)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+            return 1;
+        }
+
+        var result = ModulePackageSignatureService.Verify(
+            arguments[2],
+            arguments[3],
+            opened.Session.Project.Module.Distribution.Release.Signing);
+        Console.WriteLine(JsonSerializer.Serialize(result));
+        if (result.IsValid)
+        {
+            Console.WriteLine(
+                $"OPENRPG_FORGE_PACKAGE_SIGNATURE_VERIFY_PASS trusted={result.IsTrusted.ToString().ToLowerInvariant()} " +
+                $"key={result.KeyFingerprint}");
+        }
+
+        return result.IsValid ? 0 : 1;
+    }
+
+    if (arguments.Count == 5 && arguments[0] == "delta")
+    {
+        var opened = ProjectSession.Open(arguments[1]);
+        if (!opened.Succeeded || opened.Session is null)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+            return 1;
+        }
+
+        var result = ModuleDeltaPackageBuilder.Create(
+            arguments[2],
+            arguments[3],
+            arguments[4],
+            opened.Session.Project.Module.Distribution.Release.Delta);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = true,
+            result.Manifest.BasePackageSha256,
+            result.Manifest.TargetPackageSha256,
+            result.IncludedChunks,
+            result.ReusedChunks,
+            result.IncludedBytes,
+            output = result.DeltaPath,
+        }));
+        Console.WriteLine(
+            $"OPENRPG_FORGE_PACKAGE_DELTA_PASS included={result.IncludedChunks} reused={result.ReusedChunks} " +
+            $"bytes={result.IncludedBytes}");
+        return 0;
+    }
+
+    if (arguments.Count is 4 or 6 && arguments[0] == "apply-delta")
+    {
+        var resumeCache = arguments.Count == 6 && arguments[4] == "--resume-cache" ? arguments[5] : null;
+        var manifest = ModuleDeltaPackageBuilder.Apply(arguments[1], arguments[2], arguments[3], resumeCache);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = true,
+            manifest.BasePackageSha256,
+            manifest.TargetPackageSha256,
+            manifest.TargetBytes,
+            output = Path.GetFullPath(arguments[3]),
+        }));
+        Console.WriteLine(
+            $"OPENRPG_FORGE_PACKAGE_DELTA_APPLY_PASS hash={manifest.TargetPackageSha256} bytes={manifest.TargetBytes}");
+        return 0;
+    }
+
+    if (arguments.Count >= 8 && arguments[0] == "bundle")
+    {
+        var opened = ProjectSession.Open(arguments[1]);
+        if (!opened.Succeeded || opened.Session is null)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+            return 1;
+        }
+
+        var options = ParseOptions(arguments.Skip(4).ToArray());
+        var target = ParseTarget(options.GetValueOrDefault("target") ?? "editor");
+        var platform = ParsePlatform(options.GetValueOrDefault("platform") ?? "windows-x64");
+        var result = ModuleReleaseBundleBuilder.Build(
+            arguments[2],
+            arguments[3],
+            target,
+            platform,
+            opened.Session.Project.Module.Distribution.Release,
+            options.GetValueOrDefault("signature"),
+            options.GetValueOrDefault("delta"));
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = true,
+            result.Manifest.Channel,
+            result.Manifest.Target,
+            result.Manifest.Platform,
+            result.Manifest.PackageSha256,
+            result.FileCount,
+            result.BundleBytes,
+            output = result.BundlePath,
+        }));
+        Console.WriteLine(
+            $"OPENRPG_FORGE_RELEASE_BUNDLE_PASS channel={result.Manifest.Channel.ToString().ToLowerInvariant()} " +
+            $"target={target.ToString().ToLowerInvariant()} platform={platform.ToString().ToLowerInvariant()} " +
+            $"files={result.FileCount}");
+        return 0;
+    }
+
     if (arguments.Count == 2 && arguments[0] == "analyze")
     {
         var opened = ProjectSession.Open(arguments[1]);
@@ -578,6 +719,15 @@ static int RunPackage(IReadOnlyList<string> arguments)
                 dependency.Owner,
                 targets = dependency.RequiredForTargets.Select(target => target.ToString()),
             }),
+            release = new
+            {
+                id = session.Project.Module.Distribution.Release.Id.ToString(),
+                channel = session.Project.Module.Distribution.Release.Channel.ToString(),
+                platforms = session.Project.Module.Distribution.Release.Platforms.Select(platform => platform.ToString()),
+                signing = session.Project.Module.Distribution.Release.Signing.Mode.ToString(),
+                delta = session.Project.Module.Distribution.Release.Delta.Enabled,
+                windows = session.Project.Module.Distribution.Release.WindowsPackaging.Mode.ToString(),
+            },
             changed = plan.ChangedPaths,
             removed = plan.RemovedPaths,
             rebuilt = plan.RebuiltResources.Select(node => node.Path),
@@ -711,6 +861,13 @@ static int RunPackage(IReadOnlyList<string> arguments)
     Console.Error.WriteLine(
         "Usage: forge package export <workspace> <destination.orpmod> [--target <profile>] | " +
         "validate <module.orpmod> | load <module.orpmod> <cache> | analyze <workspace> | " +
+        "sign <module.orpmod> <private-key.pem> <signature.json> | " +
+        "keygen <private-key.pem> <public-key.pem> | " +
+        "verify-signature <workspace> <module.orpmod> <signature.json> | " +
+        "delta <workspace> <base.orpmod> <target.orpmod> <output.orpdelta> | " +
+        "apply-delta <base.orpmod> <delta.orpdelta> <output.orpmod> [--resume-cache <directory>] | " +
+        "bundle <workspace> <module.orpmod> <output.zip> --target <profile> --platform <platform> " +
+        "[--signature <signature.json>] [--delta <delta.orpdelta>] | " +
         "compliance <workspace> <profile> | spatial <workspace> | diagnose <workspace>");
     return 2;
 }
@@ -724,6 +881,18 @@ static ModuleTargetKind ParseTarget(string value)
         ? parsed
         : throw new ArgumentException(
             $"Unknown target '{value}'. Expected Editor, Client, DedicatedServer, Test or Shipping.",
+            nameof(value));
+}
+
+static ModuleDistributionPlatform ParsePlatform(string value)
+{
+    ArgumentException.ThrowIfNullOrWhiteSpace(value);
+    var normalized = value.Replace("-", string.Empty, StringComparison.Ordinal)
+        .Replace("_", string.Empty, StringComparison.Ordinal);
+    return Enum.TryParse<ModuleDistributionPlatform>(normalized, ignoreCase: true, out var parsed) && Enum.IsDefined(parsed)
+        ? parsed
+        : throw new ArgumentException(
+            $"Unknown platform '{value}'. Expected WindowsX64, LinuxX64 or MacOSArm64.",
             nameof(value));
 }
 
