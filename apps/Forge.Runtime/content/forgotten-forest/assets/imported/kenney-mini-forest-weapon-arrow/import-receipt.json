@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "246ca6bc-c0a5-5555-952b-12a15cb2435a",
+  "cacheKey": "55cf45f314b8713683900e7041be320d93dd6cba6d59c856ce04abd0470a817f",
+  "catalogContentSha256": "d84f466836daea08ab3e954e2dd660b8bebe2f86463875173ff661fb4b606a52",
+  "sourceFileSha256": "d84f466836daea08ab3e954e2dd660b8bebe2f86463875173ff661fb4b606a52",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/weapon-arrow.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/weapon-arrow.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-arrow/model.glb",
+  "outputContentSha256": "d84f466836daea08ab3e954e2dd660b8bebe2f86463875173ff661fb4b606a52",
+  "outputBytes": 7168,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-arrow/model.glb",
+      "cacheKey": "55cf45f314b8713683900e7041be320d93dd6cba6d59c856ce04abd0470a817f",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-arrow/animations.index.json",
+      "cacheKey": "55cf45f314b8713683900e7041be320d93dd6cba6d59c856ce04abd0470a817f",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-arrow/collisions.glb",
+      "cacheKey": "55cf45f314b8713683900e7041be320d93dd6cba6d59c856ce04abd0470a817f",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-arrow/lod-0.5.glb",
+      "cacheKey": "55cf45f314b8713683900e7041be320d93dd6cba6d59c856ce04abd0470a817f",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-arrow/lod-0.25.glb",
+      "cacheKey": "55cf45f314b8713683900e7041be320d93dd6cba6d59c856ce04abd0470a817f",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

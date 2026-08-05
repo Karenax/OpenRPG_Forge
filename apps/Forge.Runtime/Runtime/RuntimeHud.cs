@@ -48,7 +48,11 @@ public partial class RuntimeHud : CanvasLayer
         }
         margin.AddChild(panel);
 
-        var content = new VBoxContainer();
+        var content = new VBoxContainer
+        {
+            CustomMinimumSize = new Vector2(430, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
         content.AddThemeConstantOverride("separation", 8);
         panel.AddChild(content);
 
@@ -56,14 +60,15 @@ public partial class RuntimeHud : CanvasLayer
         {
             Text = ModuleTitle.ToUpperInvariant(),
             ThemeTypeVariation = "HeaderSmall",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
         };
         content.AddChild(heading);
 
-        _objective = new Label { Text = "Objectif : parler à Elyra [E]" };
-        _message = new Label { Text = "Explorez la crypte." };
-        _state = new Label { Text = "Quête : inactive | Clé : non | Boss : 5/5" };
-        _tactical = new Label { Text = "Temps : réel | Combat : temps réel avec pause" };
-        _rules = new Label { Text = "Difficulté : standard | Niveau 1 · 0 XP | PvP désactivé" };
+        _objective = WrappedLabel("Objectif : parler à Elyra [E]");
+        _message = WrappedLabel("Explorez la crypte.");
+        _state = WrappedLabel("Quête : inactive | Clé : non | Boss : 5/5");
+        _tactical = WrappedLabel("Temps : réel | Combat : temps réel avec pause");
+        _rules = WrappedLabel("Difficulté : standard | Niveau 1 · 0 XP | PvP désactivé");
         _tactical.AddThemeColorOverride("font_color", new Color("ffb06f"));
         _rules.AddThemeColorOverride("font_color", new Color("9bd9bd"));
         content.AddChild(_objective);
@@ -85,13 +90,14 @@ public partial class RuntimeHud : CanvasLayer
         var instructions = new Label
         {
             Text = CombatEnabled
-                ? "ZQSD : bouger · E : interagir · ESPACE : attaquer · TAB : roue · P : pause tactique · T : ralenti · M : mode combat · F5/F9 : sauver/reprendre"
-                : "ZQSD / flèches : déplacement   E : interagir",
+                ? "ZQSD : bouger · clic droit/milieu : orbite · molette : zoom · Début/Fin : tourner · ESPACE : attaquer · TAB : roue · P : pause · F5/F9 : sauver/reprendre"
+                : "ZQSD / flèches : déplacement · clic droit/milieu : orbite · molette : zoom · Début/Fin : tourner",
             HorizontalAlignment = HorizontalAlignment.Center,
             AnchorLeft = 0.15f,
             AnchorRight = 0.85f,
             AnchorTop = 0.93f,
             AnchorBottom = 0.99f,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
         };
         AddChild(instructions);
 
@@ -103,6 +109,13 @@ public partial class RuntimeHud : CanvasLayer
             label.SetMeta("accessible_label", label.Text);
         }
     }
+
+    private static Label WrappedLabel(string text) => new()
+    {
+        Text = text,
+        AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+    };
 
     public void UpdateState(string objective, string message, string state)
     {
@@ -132,8 +145,8 @@ public partial class RuntimeHud : CanvasLayer
         string movementCapability, float breath, float stamina)
     {
         if (_tactical is null) return;
-        _tactical.Text = $"Temps : {timeState} | Combat : {combatMode} | File : {queuedActions} | " +
-                         $"Mouvement : {movementCapability} · souffle {breath:0}/{stamina:0} endurance";
+        _tactical.Text = $"Temps : {timeState} · Combat : {combatMode} · Actions : {queuedActions} · " +
+                         $"{movementCapability} {breath:0}/{stamina:0}";
     }
 
     public void UpdateRules(string difficulty, int level, double experience, double? nextLevel,
@@ -142,7 +155,6 @@ public partial class RuntimeHud : CanvasLayer
         if (_rules is null) return;
         var progression = nextLevel is null ? $"Niveau {level} · {experience:0} XP" :
             $"Niveau {level} · {experience:0}/{nextLevel:0} XP";
-        _rules.Text = $"Difficulté : {difficulty} | {progression} | PvP : {pvpMode} | " +
-                      $"Perception : {perceptionModifiers} modificateur(s)";
+        _rules.Text = $"{difficulty} · {progression} · PvP {pvpMode} · Perception {perceptionModifiers}";
     }
 }

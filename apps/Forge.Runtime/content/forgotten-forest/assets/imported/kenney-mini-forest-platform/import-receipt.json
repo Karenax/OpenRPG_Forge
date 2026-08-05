@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "513bdb67-d69d-7256-8a88-c829b9eae152",
+  "cacheKey": "46b9767c0f30fa52917249c043a43f4040d62c1c7d2bdf3b392d814b9efcdf2a",
+  "catalogContentSha256": "72e893bd37b34311437912677881eebe73732d8ff0246c4d05548a35aebc6cb5",
+  "sourceFileSha256": "72e893bd37b34311437912677881eebe73732d8ff0246c4d05548a35aebc6cb5",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/platform.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/platform.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-platform/model.glb",
+  "outputContentSha256": "72e893bd37b34311437912677881eebe73732d8ff0246c4d05548a35aebc6cb5",
+  "outputBytes": 63436,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-platform/model.glb",
+      "cacheKey": "46b9767c0f30fa52917249c043a43f4040d62c1c7d2bdf3b392d814b9efcdf2a",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-platform/animations.index.json",
+      "cacheKey": "46b9767c0f30fa52917249c043a43f4040d62c1c7d2bdf3b392d814b9efcdf2a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-platform/collisions.glb",
+      "cacheKey": "46b9767c0f30fa52917249c043a43f4040d62c1c7d2bdf3b392d814b9efcdf2a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-platform/lod-0.5.glb",
+      "cacheKey": "46b9767c0f30fa52917249c043a43f4040d62c1c7d2bdf3b392d814b9efcdf2a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-platform/lod-0.25.glb",
+      "cacheKey": "46b9767c0f30fa52917249c043a43f4040d62c1c7d2bdf3b392d814b9efcdf2a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2073 @@
+{
+  "formatVersion": "1.0.0",
+  "manifests": [
+    {
+      "schemaVersion": 1,
+      "id": "b0909433-d393-b850-b872-9ceb22a47476",
+      "assetId": "09ecdef5-5922-c25e-97c8-60b5bc78b586",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "f46682b8eb8110fabe17f1da8e226bd2471046a25d907e41fd43ad9695f4c397",
+      "platformBudgets": {
+        "windows": 67566,
+        "linux": 67566
+      },
+      "chunks": [
+        {
+          "id": "593d2a6b-8159-875e-b010-185600345459",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-stones/model.glb",
+          "contentSha256": "f46682b8eb8110fabe17f1da8e226bd2471046a25d907e41fd43ad9695f4c397",
+          "uncompressedBytes": 23124,
+          "storedBytes": 23124,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "1e8b2102-9da9-2954-ac22-c53fcd44bef8",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-stones/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "593d2a6b-8159-875e-b010-185600345459",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "593d2a6b-8159-875e-b010-185600345459",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "593d2a6b-8159-875e-b010-185600345459",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "e8071f06-486d-525f-a5d7-747592126b28",
+      "assetId": "0e5d87f7-d152-a75b-a5aa-8a90efb02b34",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "bfec799fb5ee7d57baa444982378a917d40868d88773e1fec43656f9d754ebca",
+      "platformBudgets": {
+        "windows": 80782,
+        "linux": 80782
+      },
+      "chunks": [
+        {
+          "id": "246371ad-7f42-825a-bec3-0d0505688651",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-patch-grass/model.glb",
+          "contentSha256": "bfec799fb5ee7d57baa444982378a917d40868d88773e1fec43656f9d754ebca",
+          "uncompressedBytes": 29732,
+          "storedBytes": 29732,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "c52b908d-4da8-8059-9b2e-e47cfeef82e1",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-patch-grass/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "246371ad-7f42-825a-bec3-0d0505688651",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "246371ad-7f42-825a-bec3-0d0505688651",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "246371ad-7f42-825a-bec3-0d0505688651",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "5a21c623-09ef-5856-8df3-8e470a1af18e",
+      "assetId": "0f22b818-5310-c053-b556-c6e517490d64",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "0109c325cd873be628107da549a18a2345b1318062807050038be0361f5cad97",
+      "platformBudgets": {
+        "windows": 54526,
+        "linux": 54526
+      },
+      "chunks": [
+        {
+          "id": "5b1869d0-0e51-da55-ad9b-63b7a8436d1e",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-flag/model.glb",
+          "contentSha256": "0109c325cd873be628107da549a18a2345b1318062807050038be0361f5cad97",
+          "uncompressedBytes": 16604,
+          "storedBytes": 16604,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "041e3a8e-6347-8550-b011-ff556093e795",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-flag/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "5b1869d0-0e51-da55-ad9b-63b7a8436d1e",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "5b1869d0-0e51-da55-ad9b-63b7a8436d1e",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "5b1869d0-0e51-da55-ad9b-63b7a8436d1e",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "e141e209-6724-6754-83df-4deddfb1d10a",
+      "assetId": "102b1f1b-385f-6d52-9159-eba2bec47d6b",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "0075d5059c1ea855fecc1dba3c6262c3a01924c50b971ddde2eb8b0b5a62851a",
+      "platformBudgets": {
+        "windows": 68270,
+        "linux": 68270
+      },
+      "chunks": [
+        {
+          "id": "50509760-ecaa-d15b-a4c3-f664c55dc561",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-tree/model.glb",
+          "contentSha256": "0075d5059c1ea855fecc1dba3c6262c3a01924c50b971ddde2eb8b0b5a62851a",
+          "uncompressedBytes": 23476,
+          "storedBytes": 23476,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "09fc63ba-cac3-e557-9755-51525c119a26",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-tree/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "50509760-ecaa-d15b-a4c3-f664c55dc561",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "50509760-ecaa-d15b-a4c3-f664c55dc561",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "50509760-ecaa-d15b-a4c3-f664c55dc561",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "a9a97538-3fef-6656-aa85-f6439bf8a315",
+      "assetId": "108058e8-e77b-5451-b734-636de3805774",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "77a90f50d38139223fd4cbf67d9367730872c27552637b6112b2793e79d29b94",
+      "platformBudgets": {
+        "windows": 65838,
+        "linux": 65838
+      },
+      "chunks": [
+        {
+          "id": "51fb104f-3564-895e-914e-2181d2957895",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-ladder/model.glb",
+          "contentSha256": "77a90f50d38139223fd4cbf67d9367730872c27552637b6112b2793e79d29b94",
+          "uncompressedBytes": 22260,
+          "storedBytes": 22260,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "cb10cca0-ccf4-4b53-8aed-ee880c995fd9",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-ladder/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "51fb104f-3564-895e-914e-2181d2957895",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "51fb104f-3564-895e-914e-2181d2957895",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "51fb104f-3564-895e-914e-2181d2957895",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "2c8949f5-7f55-0258-9511-a87f7f7c7925",
+      "assetId": "192bb04e-3e7e-1c51-8c77-00cd34f95110",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "cafd760fb763fe2a76ad84b469683d18209a2b2ff013b1e11516d0fd62be2a6d",
+      "platformBudgets": {
+        "windows": 86238,
+        "linux": 86238
+      },
+      "chunks": [
+        {
+          "id": "7f735062-970c-d15d-aeb3-869e5aee4b3a",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-bridge/model.glb",
+          "contentSha256": "cafd760fb763fe2a76ad84b469683d18209a2b2ff013b1e11516d0fd62be2a6d",
+          "uncompressedBytes": 32460,
+          "storedBytes": 32460,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "a9281e5a-d2c5-f153-9712-76d0bc4f3a3e",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-bridge/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "7f735062-970c-d15d-aeb3-869e5aee4b3a",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "7f735062-970c-d15d-aeb3-869e5aee4b3a",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "7f735062-970c-d15d-aeb3-869e5aee4b3a",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "ef4420d2-0634-5a5b-968a-9d65d8ba1b57",
+      "assetId": "246ca6bc-c0a5-5555-952b-12a15cb2435a",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "d84f466836daea08ab3e954e2dd660b8bebe2f86463875173ff661fb4b606a52",
+      "platformBudgets": {
+        "windows": 35654,
+        "linux": 35654
+      },
+      "chunks": [
+        {
+          "id": "fc4caa07-fabf-ef5d-a628-38a6c23d3ad3",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-weapon-arrow/model.glb",
+          "contentSha256": "d84f466836daea08ab3e954e2dd660b8bebe2f86463875173ff661fb4b606a52",
+          "uncompressedBytes": 7168,
+          "storedBytes": 7168,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "bc578fef-b2af-7554-9490-03dd39703204",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-weapon-arrow/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "fc4caa07-fabf-ef5d-a628-38a6c23d3ad3",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "fc4caa07-fabf-ef5d-a628-38a6c23d3ad3",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "fc4caa07-fabf-ef5d-a628-38a6c23d3ad3",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "f560d5f3-c198-c251-9f4d-ceb549436491",
+      "assetId": "513bdb67-d69d-7256-8a88-c829b9eae152",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "72e893bd37b34311437912677881eebe73732d8ff0246c4d05548a35aebc6cb5",
+      "platformBudgets": {
+        "windows": 148190,
+        "linux": 148190
+      },
+      "chunks": [
+        {
+          "id": "1f513333-01a2-0657-9a63-966032527151",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-platform/model.glb",
+          "contentSha256": "72e893bd37b34311437912677881eebe73732d8ff0246c4d05548a35aebc6cb5",
+          "uncompressedBytes": 63436,
+          "storedBytes": 63436,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "bac4586e-33fc-585e-8fd4-cc0582a1408e",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-platform/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "1f513333-01a2-0657-9a63-966032527151",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "1f513333-01a2-0657-9a63-966032527151",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "1f513333-01a2-0657-9a63-966032527151",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "8b479312-e5f1-405c-8353-a106c60897cb",
+      "assetId": "7a794831-7f7b-3155-abc4-e4e4fd7ba989",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "e09b699180e66a615be406d0ca8b1e1f42d573589a41c0067988418bc548d807",
+      "platformBudgets": {
+        "windows": 67614,
+        "linux": 67614
+      },
+      "chunks": [
+        {
+          "id": "ec74e181-1fc3-8b5f-ad93-1510ea8e2477",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-rocks-ramp/model.glb",
+          "contentSha256": "e09b699180e66a615be406d0ca8b1e1f42d573589a41c0067988418bc548d807",
+          "uncompressedBytes": 23148,
+          "storedBytes": 23148,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "30004756-8fff-5c52-95af-3e3daaca8936",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-rocks-ramp/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "ec74e181-1fc3-8b5f-ad93-1510ea8e2477",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "ec74e181-1fc3-8b5f-ad93-1510ea8e2477",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "ec74e181-1fc3-8b5f-ad93-1510ea8e2477",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "93afedff-7cca-c159-bee9-c2dae7285663",
+      "assetId": "90c4247a-7483-475a-8e00-cb993953d00d",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "093e834c1edf85b4e2d2ee18490e21230088ba98022dad18a799b66ee8bea689",
+      "platformBudgets": {
+        "windows": 38334,
+        "linux": 38334
+      },
+      "chunks": [
+        {
+          "id": "52fcea30-ebc8-0e50-be4b-cb4a459fe8cd",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-weapon-bow/model.glb",
+          "contentSha256": "093e834c1edf85b4e2d2ee18490e21230088ba98022dad18a799b66ee8bea689",
+          "uncompressedBytes": 8508,
+          "storedBytes": 8508,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "5b93316e-eeed-f35d-9000-b327f9ac2592",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-weapon-bow/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "52fcea30-ebc8-0e50-be4b-cb4a459fe8cd",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "52fcea30-ebc8-0e50-be4b-cb4a459fe8cd",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "52fcea30-ebc8-0e50-be4b-cb4a459fe8cd",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "8dcecd57-c1d2-735f-8fc6-837cfab034d8",
+      "assetId": "a178454a-62d2-0c5a-972d-4d2e791d5411",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "b336de802798e481291486a7a7de587aa2a229fffb4fc5f3d226e9873d96c3b6",
+      "platformBudgets": {
+        "windows": 56710,
+        "linux": 56710
+      },
+      "chunks": [
+        {
+          "id": "06ec6892-5a64-055f-a745-b9d96bb9f8b8",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-target/model.glb",
+          "contentSha256": "b336de802798e481291486a7a7de587aa2a229fffb4fc5f3d226e9873d96c3b6",
+          "uncompressedBytes": 17696,
+          "storedBytes": 17696,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "10d9ce8a-f3e2-4052-be5e-1b757fac363a",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-target/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "06ec6892-5a64-055f-a745-b9d96bb9f8b8",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "06ec6892-5a64-055f-a745-b9d96bb9f8b8",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "06ec6892-5a64-055f-a745-b9d96bb9f8b8",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "2d3905b5-a02d-c853-9740-5f070c8805e0",
+      "assetId": "a83efe7b-1418-e55b-84b4-9f249da2b0f4",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "85ad0b7248bc6f87fb18d073c75542d264fba370021f46723b1ad8c34ed1969c",
+      "platformBudgets": {
+        "windows": 117742,
+        "linux": 117742
+      },
+      "chunks": [
+        {
+          "id": "bbaaa38e-8d38-c459-b271-c4fcf03954a1",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-building-platform/model.glb",
+          "contentSha256": "85ad0b7248bc6f87fb18d073c75542d264fba370021f46723b1ad8c34ed1969c",
+          "uncompressedBytes": 48212,
+          "storedBytes": 48212,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "817d0d41-d218-b25c-b1e9-5ec1c0d400df",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-building-platform/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "bbaaa38e-8d38-c459-b271-c4fcf03954a1",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "bbaaa38e-8d38-c459-b271-c4fcf03954a1",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "bbaaa38e-8d38-c459-b271-c4fcf03954a1",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "a63d4a39-803f-9251-9e52-1dcd2583c5a7",
+      "assetId": "ac941197-0e5d-c152-ae02-0b33e75a6ff9",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "de55047cc1cda50dbd7a2f7a240ffc3534744aabaa5a2d91efb2fcd0f4c4b7d8",
+      "platformBudgets": {
+        "windows": 81126,
+        "linux": 81126
+      },
+      "chunks": [
+        {
+          "id": "80cf5229-2171-8f5d-bec6-5a2d97f72486",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-fence/model.glb",
+          "contentSha256": "de55047cc1cda50dbd7a2f7a240ffc3534744aabaa5a2d91efb2fcd0f4c4b7d8",
+          "uncompressedBytes": 29904,
+          "storedBytes": 29904,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "19a3af2a-6c28-a253-9659-636555df95f7",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-fence/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "80cf5229-2171-8f5d-bec6-5a2d97f72486",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "80cf5229-2171-8f5d-bec6-5a2d97f72486",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "80cf5229-2171-8f5d-bec6-5a2d97f72486",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "2ec6543e-7001-435c-9536-2d816e3abe9b",
+      "assetId": "c0a3fcbf-d003-675e-af8f-b77451dcfbf0",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "0072eff50ddf6cfca2655e994ebf6654ef00f5f34ca5e09b5af654b668186abb",
+      "platformBudgets": {
+        "windows": 41670,
+        "linux": 41670
+      },
+      "chunks": [
+        {
+          "id": "256fd7e4-3d44-385f-90c2-de9419bf2cdb",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-patch-dirt/model.glb",
+          "contentSha256": "0072eff50ddf6cfca2655e994ebf6654ef00f5f34ca5e09b5af654b668186abb",
+          "uncompressedBytes": 10176,
+          "storedBytes": 10176,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "bcb83a30-180d-a251-87bf-e76aebc6a889",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-patch-dirt/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "256fd7e4-3d44-385f-90c2-de9419bf2cdb",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "256fd7e4-3d44-385f-90c2-de9419bf2cdb",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "256fd7e4-3d44-385f-90c2-de9419bf2cdb",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "3c8b473d-264c-3558-92e3-06e4b0094db1",
+      "assetId": "cfa443cc-ed01-bd59-bf60-1370ebd04200",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "1cd53687108ae5a21ec8392e9b1c588e912262f0ae63a569c494d627c3c05009",
+      "platformBudgets": {
+        "windows": 85246,
+        "linux": 85246
+      },
+      "chunks": [
+        {
+          "id": "8977d847-9a92-3051-95df-64b2a9e1fcee",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-building-roof/model.glb",
+          "contentSha256": "1cd53687108ae5a21ec8392e9b1c588e912262f0ae63a569c494d627c3c05009",
+          "uncompressedBytes": 31964,
+          "storedBytes": 31964,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "f76a591f-2c39-255e-9f20-81ada334e8ab",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-building-roof/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "8977d847-9a92-3051-95df-64b2a9e1fcee",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "8977d847-9a92-3051-95df-64b2a9e1fcee",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "8977d847-9a92-3051-95df-64b2a9e1fcee",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "d5f45257-7969-bd5a-a343-51cdd1634895",
+      "assetId": "da7a0452-4f03-6258-b1c9-c80007e01f93",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "4ce1784382a2c986b5a63cd4cf7fc41f8775148464021fc4e10d780cc7892789",
+      "platformBudgets": {
+        "windows": 66166,
+        "linux": 66166
+      },
+      "chunks": [
+        {
+          "id": "00b219ab-8648-0c5d-90e3-0160a09cbfa9",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-plant/model.glb",
+          "contentSha256": "4ce1784382a2c986b5a63cd4cf7fc41f8775148464021fc4e10d780cc7892789",
+          "uncompressedBytes": 22424,
+          "storedBytes": 22424,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "67411d2a-cead-935d-8b4b-21a719c65488",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-plant/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "00b219ab-8648-0c5d-90e3-0160a09cbfa9",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "00b219ab-8648-0c5d-90e3-0160a09cbfa9",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "00b219ab-8648-0c5d-90e3-0160a09cbfa9",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "6dea8eb7-4fee-9655-9339-f799c8e3d615",
+      "assetId": "de1baadd-5e63-a95a-a235-7c1fea451ac6",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "226728a03989a1ce52ea64b55e3d9e2ff89004f7eaca9f74c2fafda7c84bbe49",
+      "platformBudgets": {
+        "windows": 85222,
+        "linux": 85222
+      },
+      "chunks": [
+        {
+          "id": "15daf046-cf33-5d56-a901-380cfb6a1547",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-rocks-high/model.glb",
+          "contentSha256": "226728a03989a1ce52ea64b55e3d9e2ff89004f7eaca9f74c2fafda7c84bbe49",
+          "uncompressedBytes": 31952,
+          "storedBytes": 31952,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "bc186ab3-cdd2-0554-800c-96e2ca4de691",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-rocks-high/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "15daf046-cf33-5d56-a901-380cfb6a1547",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "15daf046-cf33-5d56-a901-380cfb6a1547",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "15daf046-cf33-5d56-a901-380cfb6a1547",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "42b4a15d-9ad4-9154-995f-0038e74d7687",
+      "assetId": "e0889594-d625-605a-966e-b48113254c56",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "d991f7b82d66791a37e18c218a3127b15fc4ebe799c104b9e3bdcda878a8873f",
+      "platformBudgets": {
+        "windows": 54030,
+        "linux": 54030
+      },
+      "chunks": [
+        {
+          "id": "fae9640b-8b15-6c50-a764-ec101b9d9b3b",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-building-structure/model.glb",
+          "contentSha256": "d991f7b82d66791a37e18c218a3127b15fc4ebe799c104b9e3bdcda878a8873f",
+          "uncompressedBytes": 16356,
+          "storedBytes": 16356,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "9fbae5e1-971f-b750-be85-c4704ecbedb6",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-building-structure/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "fae9640b-8b15-6c50-a764-ec101b9d9b3b",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "fae9640b-8b15-6c50-a764-ec101b9d9b3b",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "fae9640b-8b15-6c50-a764-ec101b9d9b3b",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "97c3b61f-8d69-fc53-a827-cd5e00b912fc",
+      "assetId": "e71f8820-1db3-0450-a67f-6d9b6eb444aa",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "0fd0f92e452ffab13529e51037cc804edf6ff3134f6bdd614b7aaea9ae6feb3b",
+      "platformBudgets": {
+        "windows": 499566,
+        "linux": 499566
+      },
+      "chunks": [
+        {
+          "id": "0c9c0d9d-7b56-735e-90b4-56731fe1c88b",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-character-archer/model.glb",
+          "contentSha256": "0fd0f92e452ffab13529e51037cc804edf6ff3134f6bdd614b7aaea9ae6feb3b",
+          "uncompressedBytes": 239124,
+          "storedBytes": 239124,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "d5c81d1b-f3e0-275d-a99c-4059e38eb1a1",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-character-archer/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "0c9c0d9d-7b56-735e-90b4-56731fe1c88b",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "0c9c0d9d-7b56-735e-90b4-56731fe1c88b",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "0c9c0d9d-7b56-735e-90b4-56731fe1c88b",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "5f38319d-e6be-2457-90b8-d961a8777aba",
+      "assetId": "ed3742ba-eae7-0350-b9f4-920b1f978d43",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "a3f6e7a1597ccbf57f5345e6647844e21f632e03c5faae9a45af7140c7371262",
+      "platformBudgets": {
+        "windows": 177110,
+        "linux": 177110
+      },
+      "chunks": [
+        {
+          "id": "c88cb363-08e3-135f-b0c8-768649a85b5a",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-tent/model.glb",
+          "contentSha256": "a3f6e7a1597ccbf57f5345e6647844e21f632e03c5faae9a45af7140c7371262",
+          "uncompressedBytes": 77896,
+          "storedBytes": 77896,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "a5269f37-75b5-a154-9969-19487ac06655",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-tent/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "c88cb363-08e3-135f-b0c8-768649a85b5a",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "c88cb363-08e3-135f-b0c8-768649a85b5a",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "c88cb363-08e3-135f-b0c8-768649a85b5a",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "2e466bea-3590-f152-be8b-81dd56cc7655",
+      "assetId": "f0a46655-a244-0c54-9301-5a7f9b549d52",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "f98f27210e6d4f43192290fff8af07e0e79bdd25604b78c44a8bd7b3d98ea259",
+      "platformBudgets": {
+        "windows": 85246,
+        "linux": 85246
+      },
+      "chunks": [
+        {
+          "id": "7dda4279-1774-c955-a40b-4d06c7eaa2eb",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-rocks-low/model.glb",
+          "contentSha256": "f98f27210e6d4f43192290fff8af07e0e79bdd25604b78c44a8bd7b3d98ea259",
+          "uncompressedBytes": 31964,
+          "storedBytes": 31964,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "716f2ce2-9bdd-6a5e-9246-526e4bb53df2",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-rocks-low/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "7dda4279-1774-c955-a40b-4d06c7eaa2eb",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "7dda4279-1774-c955-a40b-4d06c7eaa2eb",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "7dda4279-1774-c955-a40b-4d06c7eaa2eb",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "a4dfae2d-befe-905c-8615-370a1c07814f",
+      "assetId": "fb80555d-630c-0254-ad83-67dcc49768e0",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "c86332ac085c2a7f0f926ea9f51907bbd9354561f5717cf95dc2cfcaaff873b1",
+      "platformBudgets": {
+        "windows": 83670,
+        "linux": 83670
+      },
+      "chunks": [
+        {
+          "id": "b36b1e27-1fb8-835f-8bda-92ceb8899b95",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-tree-high/model.glb",
+          "contentSha256": "c86332ac085c2a7f0f926ea9f51907bbd9354561f5717cf95dc2cfcaaff873b1",
+          "uncompressedBytes": 31176,
+          "storedBytes": 31176,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        },
+        {
+          "id": "a6d33f80-dae0-f65d-a075-b5a91502885e",
+          "role": "texture",
+          "required": true,
+          "relativePath": "assets/imported/kenney-mini-forest-tree-high/Textures/colormap.png",
+          "contentSha256": "319f1087d8ed50a8794f9a8179f64671d5595f2365fdf3e47ec2d4eb74dba20f",
+          "uncompressedBytes": 10659,
+          "storedBytes": 10659,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "b36b1e27-1fb8-835f-8bda-92ceb8899b95",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "b36b1e27-1fb8-835f-8bda-92ceb8899b95",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "b36b1e27-1fb8-835f-8bda-92ceb8899b95",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -81,6 +81,11 @@ static int Run(IReadOnlyList<string> arguments)
             return AuthorOriginalModule(arguments[1]);
         }
 
+        if (arguments.Count >= 2 && arguments[0] == "author-forgotten-forest")
+        {
+            return AuthorForgottenForest(arguments.Skip(1).ToArray());
+        }
+
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
             "forge assets <list|prepare|roundtrip> ... | " +
@@ -90,7 +95,8 @@ static int Run(IReadOnlyList<string> arguments)
             "forge quality run <workspace> | " +
             "forge performance run <workspace> | " +
             "forge governance run <workspace> | " +
-            "forge workspace migrate <target-directory> | forge author-original <target-directory>");
+            "forge workspace migrate <target-directory> | forge author-original <target-directory> | " +
+            "forge author-forgotten-forest <target-directory> [--vault <directory>]");
         return 2;
     }
     catch (Exception exception)
@@ -486,6 +492,84 @@ static int AuthorOriginalModule(string targetDirectory)
         quests = created.Session.Project.Quests.Count,
     }));
     Console.WriteLine($"OPENRPG_FORGE_ORIGINAL_MODULE_AUTHORED slug={created.Session.Project.Module.Slug} commands={authored.Patches.Count} revision={authored.State.Revision.Value}");
+    return 0;
+}
+
+static int AuthorForgottenForest(IReadOnlyList<string> arguments)
+{
+    var targetDirectory = Path.GetFullPath(arguments[0]);
+    var options = ParseOptions(arguments.Skip(1).ToArray());
+    var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(Directory.GetCurrentDirectory())
+        ?? throw new DirectoryNotFoundException("OpenRPG Forge repository root was not found.");
+    var catalog = AssetCatalogLoader.Load(repositoryRoot, options.GetValueOrDefault("vault"));
+    if (catalog.Catalog is null || catalog.Diagnostics.Count > 0)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = catalog.Diagnostics }));
+        return 1;
+    }
+
+    var authored = ForgottenForestModuleAuthoringService.Create();
+    ProjectSessionOpenResult created;
+    if (Directory.Exists(targetDirectory) && File.Exists(Path.Combine(targetDirectory, ProjectSession.ManifestFileName)))
+    {
+        var opened = ProjectSession.Open(targetDirectory);
+        if (!opened.Succeeded || opened.Session?.Project.Module.Slug != "forgotten-forest")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+            return 1;
+        }
+
+        var saved = opened.Session.Save(authored.State.Project);
+        created = new ProjectSessionOpenResult(saved.Succeeded ? opened.Session : null, saved.Diagnostics);
+    }
+    else
+    {
+        created = ProjectSession.Create(targetDirectory, authored.State.Project);
+    }
+
+    if (!created.Succeeded || created.Session is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = created.Diagnostics }));
+        return 1;
+    }
+
+    foreach (var script in authored.Scripts)
+    {
+        var scriptPath = Path.GetFullPath(Path.Combine(
+            created.Session.RootDirectory,
+            script.Key.Replace('/', Path.DirectorySeparatorChar)));
+        var relative = Path.GetRelativePath(created.Session.RootDirectory, scriptPath);
+        if (relative.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal) || Path.IsPathRooted(relative))
+        {
+            throw new InvalidDataException($"Authored script path '{script.Key}' escapes the module workspace.");
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(scriptPath)!);
+        File.WriteAllText(scriptPath, script.Value, new System.Text.UTF8Encoding(false));
+    }
+
+    var installed = CuratedAssetPackInstaller.InstallForgottenForest(
+        repositoryRoot,
+        catalog.VaultRoot,
+        created.Session.RootDirectory);
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = true,
+        slug = created.Session.Project.Module.Slug,
+        workspace = created.Session.RootDirectory,
+        areas = created.Session.Project.Areas.Count,
+        entities = created.Session.Project.Areas.Sum(area => area.Entities.Count),
+        blueprints = created.Session.Project.Blueprints.Count,
+        biomes = created.Session.Project.Areas.Sum(area => area.World.Biomes.Count),
+        assets = installed.Entries.Count,
+        installed.ReusedCount,
+        installed.TotalBytes,
+        installed.LicenseSpdx,
+    }));
+    Console.WriteLine(
+        $"OPENRPG_FORGE_FORGOTTEN_FOREST_AUTHORED slug=forgotten-forest " +
+        $"entities={created.Session.Project.Areas.Sum(area => area.Entities.Count)} " +
+        $"assets={installed.Entries.Count} reused={installed.ReusedCount} license={installed.LicenseSpdx}");
     return 0;
 }
 

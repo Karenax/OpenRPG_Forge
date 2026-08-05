@@ -15,6 +15,8 @@ public partial class PlayerController : CharacterBody3D
 
     public float SimulationScale { get; set; } = 1;
 
+    public Camera3D? MovementCamera { get; set; }
+
     public MovementCapabilityKind CurrentCapability { get; private set; } = MovementCapabilityKind.Ground;
 
     public float BreathRemaining => _breath;
@@ -38,7 +40,7 @@ public partial class PlayerController : CharacterBody3D
 
         var scaledDelta = (float)delta * Math.Clamp(SimulationScale, .05f, 1);
         var input = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
-        var direction = new Vector3(input.X, 0, input.Y).Normalized();
+        var direction = ResolveMovementDirection(input);
         var velocity = Velocity;
         var inWater = IsInsideWater();
         var climb = IsOnAuthoredClimbSurface();
@@ -66,6 +68,19 @@ public partial class PlayerController : CharacterBody3D
         {
             LookAt(GlobalPosition + direction, Vector3.Up);
         }
+    }
+
+    private Vector3 ResolveMovementDirection(Vector2 input)
+    {
+        if (input.LengthSquared() <= .001f) return Vector3.Zero;
+        if (MovementCamera is null) return new Vector3(input.X, 0, input.Y).Normalized();
+        var forward = -MovementCamera.GlobalTransform.Basis.Z;
+        forward.Y = 0;
+        forward = forward.Normalized();
+        var right = MovementCamera.GlobalTransform.Basis.X;
+        right.Y = 0;
+        right = right.Normalized();
+        return ((right * input.X) - (forward * input.Y)).Normalized();
     }
 
     private bool IsInsideWater()

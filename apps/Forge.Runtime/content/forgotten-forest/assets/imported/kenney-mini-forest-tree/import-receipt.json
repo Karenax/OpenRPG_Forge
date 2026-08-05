@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "102b1f1b-385f-6d52-9159-eba2bec47d6b",
+  "cacheKey": "20ba622ab92c805c6b1d76a36ce9f052931f2dbf1ac3662181420b4e81a8f59f",
+  "catalogContentSha256": "0075d5059c1ea855fecc1dba3c6262c3a01924c50b971ddde2eb8b0b5a62851a",
+  "sourceFileSha256": "0075d5059c1ea855fecc1dba3c6262c3a01924c50b971ddde2eb8b0b5a62851a",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/tree.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/tree.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-tree/model.glb",
+  "outputContentSha256": "0075d5059c1ea855fecc1dba3c6262c3a01924c50b971ddde2eb8b0b5a62851a",
+  "outputBytes": 23476,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-tree/model.glb",
+      "cacheKey": "20ba622ab92c805c6b1d76a36ce9f052931f2dbf1ac3662181420b4e81a8f59f",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-tree/animations.index.json",
+      "cacheKey": "20ba622ab92c805c6b1d76a36ce9f052931f2dbf1ac3662181420b4e81a8f59f",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-tree/collisions.glb",
+      "cacheKey": "20ba622ab92c805c6b1d76a36ce9f052931f2dbf1ac3662181420b4e81a8f59f",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-tree/lod-0.5.glb",
+      "cacheKey": "20ba622ab92c805c6b1d76a36ce9f052931f2dbf1ac3662181420b4e81a8f59f",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-tree/lod-0.25.glb",
+      "cacheKey": "20ba622ab92c805c6b1d76a36ce9f052931f2dbf1ac3662181420b4e81a8f59f",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

@@ -7,6 +7,7 @@
 - `forge package delta|apply-delta|bundle|spatial|diagnose`
 - `forge workspace migrate`
 - `forge author-original`
+- `forge author-forgotten-forest`
 - `forge readiness validate|health|crash|recovery|sync-plan`
 - `forge quality run`
 - `forge performance run`

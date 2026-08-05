@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "108058e8-e77b-5451-b734-636de3805774",
+  "cacheKey": "e083eb9a04013fd4f1593f1214f54b74fd7c469bb29edb1ba3357fd35de5ec56",
+  "catalogContentSha256": "77a90f50d38139223fd4cbf67d9367730872c27552637b6112b2793e79d29b94",
+  "sourceFileSha256": "77a90f50d38139223fd4cbf67d9367730872c27552637b6112b2793e79d29b94",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/ladder.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/ladder.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-ladder/model.glb",
+  "outputContentSha256": "77a90f50d38139223fd4cbf67d9367730872c27552637b6112b2793e79d29b94",
+  "outputBytes": 22260,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-ladder/model.glb",
+      "cacheKey": "e083eb9a04013fd4f1593f1214f54b74fd7c469bb29edb1ba3357fd35de5ec56",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-ladder/animations.index.json",
+      "cacheKey": "e083eb9a04013fd4f1593f1214f54b74fd7c469bb29edb1ba3357fd35de5ec56",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-ladder/collisions.glb",
+      "cacheKey": "e083eb9a04013fd4f1593f1214f54b74fd7c469bb29edb1ba3357fd35de5ec56",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-ladder/lod-0.5.glb",
+      "cacheKey": "e083eb9a04013fd4f1593f1214f54b74fd7c469bb29edb1ba3357fd35de5ec56",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-ladder/lod-0.25.glb",
+      "cacheKey": "e083eb9a04013fd4f1593f1214f54b74fd7c469bb29edb1ba3357fd35de5ec56",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

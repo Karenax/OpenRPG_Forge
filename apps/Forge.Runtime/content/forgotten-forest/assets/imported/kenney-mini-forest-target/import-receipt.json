@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "a178454a-62d2-0c5a-972d-4d2e791d5411",
+  "cacheKey": "da5939f66b6f149af40f2e19af7554e33c33bce1bebc588d1bf0fd0329ec8b6a",
+  "catalogContentSha256": "b336de802798e481291486a7a7de587aa2a229fffb4fc5f3d226e9873d96c3b6",
+  "sourceFileSha256": "b336de802798e481291486a7a7de587aa2a229fffb4fc5f3d226e9873d96c3b6",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/target.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/target.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-target/model.glb",
+  "outputContentSha256": "b336de802798e481291486a7a7de587aa2a229fffb4fc5f3d226e9873d96c3b6",
+  "outputBytes": 17696,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-target/model.glb",
+      "cacheKey": "da5939f66b6f149af40f2e19af7554e33c33bce1bebc588d1bf0fd0329ec8b6a",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-target/animations.index.json",
+      "cacheKey": "da5939f66b6f149af40f2e19af7554e33c33bce1bebc588d1bf0fd0329ec8b6a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-target/collisions.glb",
+      "cacheKey": "da5939f66b6f149af40f2e19af7554e33c33bce1bebc588d1bf0fd0329ec8b6a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-target/lod-0.5.glb",
+      "cacheKey": "da5939f66b6f149af40f2e19af7554e33c33bce1bebc588d1bf0fd0329ec8b6a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-target/lod-0.25.glb",
+      "cacheKey": "da5939f66b6f149af40f2e19af7554e33c33bce1bebc588d1bf0fd0329ec8b6a",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

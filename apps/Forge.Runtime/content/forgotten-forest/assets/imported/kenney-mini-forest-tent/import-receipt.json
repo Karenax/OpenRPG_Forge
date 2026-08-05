@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ed3742ba-eae7-0350-b9f4-920b1f978d43",
+  "cacheKey": "afbfa548137ba29ad446d423ab63ef5a4d5d57ce8c483dc77491443b75612239",
+  "catalogContentSha256": "a3f6e7a1597ccbf57f5345e6647844e21f632e03c5faae9a45af7140c7371262",
+  "sourceFileSha256": "a3f6e7a1597ccbf57f5345e6647844e21f632e03c5faae9a45af7140c7371262",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/tent.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/tent.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-tent/model.glb",
+  "outputContentSha256": "a3f6e7a1597ccbf57f5345e6647844e21f632e03c5faae9a45af7140c7371262",
+  "outputBytes": 77896,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-tent/model.glb",
+      "cacheKey": "afbfa548137ba29ad446d423ab63ef5a4d5d57ce8c483dc77491443b75612239",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-tent/animations.index.json",
+      "cacheKey": "afbfa548137ba29ad446d423ab63ef5a4d5d57ce8c483dc77491443b75612239",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-tent/collisions.glb",
+      "cacheKey": "afbfa548137ba29ad446d423ab63ef5a4d5d57ce8c483dc77491443b75612239",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-tent/lod-0.5.glb",
+      "cacheKey": "afbfa548137ba29ad446d423ab63ef5a4d5d57ce8c483dc77491443b75612239",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-tent/lod-0.25.glb",
+      "cacheKey": "afbfa548137ba29ad446d423ab63ef5a4d5d57ce8c483dc77491443b75612239",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+void main()
+{
+    say("Le cœur de la forêt bat de nouveau. Rejoignez le sanctuaire.");
+    quest("wake-forgotten-forest");
+}

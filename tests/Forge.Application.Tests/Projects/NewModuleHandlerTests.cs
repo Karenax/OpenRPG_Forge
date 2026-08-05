@@ -49,6 +49,25 @@ public sealed class NewModuleHandlerTests
     }
 
     [Fact]
+    public void Handle_CreatesAnExteriorAreaWithRequestedDimensions()
+    {
+        var handler = new NewModuleHandler(new FixedClock(Timestamp));
+        var command = CreateCommand() with
+        {
+            AreaKind = AreaKind.Exterior,
+            Dimensions = new AreaDimensions(128, 96),
+        };
+
+        var result = handler.Handle(command);
+
+        Assert.True(result.Succeeded);
+        var area = Assert.IsType<ProjectState>(result.State).Project.Areas.Single();
+        Assert.Equal(AreaKind.Exterior, area.Kind);
+        Assert.Equal(new AreaDimensions(128, 96), area.Dimensions);
+        Assert.True(area.World.Terrain.Enabled);
+    }
+
+    [Fact]
     public void Handle_RejectsAnEmptyTitle()
     {
         var handler = new NewModuleHandler(new FixedClock(Timestamp));

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "e71f8820-1db3-0450-a67f-6d9b6eb444aa",
+  "cacheKey": "db5858adea78cba429bd4f59016067442487c3910302e1794e1f662506f86c2d",
+  "catalogContentSha256": "0fd0f92e452ffab13529e51037cc804edf6ff3134f6bdd614b7aaea9ae6feb3b",
+  "sourceFileSha256": "0fd0f92e452ffab13529e51037cc804edf6ff3134f6bdd614b7aaea9ae6feb3b",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/character-archer.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/character-archer.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-character-archer/model.glb",
+  "outputContentSha256": "0fd0f92e452ffab13529e51037cc804edf6ff3134f6bdd614b7aaea9ae6feb3b",
+  "outputBytes": 239124,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-character-archer/model.glb",
+      "cacheKey": "db5858adea78cba429bd4f59016067442487c3910302e1794e1f662506f86c2d",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-character-archer/animations.index.json",
+      "cacheKey": "db5858adea78cba429bd4f59016067442487c3910302e1794e1f662506f86c2d",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-character-archer/collisions.glb",
+      "cacheKey": "db5858adea78cba429bd4f59016067442487c3910302e1794e1f662506f86c2d",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-character-archer/lod-0.5.glb",
+      "cacheKey": "db5858adea78cba429bd4f59016067442487c3910302e1794e1f662506f86c2d",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-character-archer/lod-0.25.glb",
+      "cacheKey": "db5858adea78cba429bd4f59016067442487c3910302e1794e1f662506f86c2d",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

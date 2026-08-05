@@ -46,6 +46,7 @@ public partial class GameRoot : Node3D
     private const string ProjectPath = "res://content/crypt-of-ashes/project.json";
     private const string ProjectSnapshotArgument = "--project-snapshot";
     private const string ModulePackageArgument = "--module-package";
+    private const string WorkspaceArgument = "--workspace";
     private const string SpawnIdArgument = "--spawn-id";
     private const string SaveFileArgument = "--save-file";
     private const string LoadSaveArgument = "--load-save";
@@ -53,6 +54,8 @@ public partial class GameRoot : Node3D
     private const string VisualRegressionSuiteArgument = "--g11s-visual-suite";
     private const float InteractionDistance = 3.0f;
     private const float AttackDistance = 3.5f;
+    private const string VisualAssetProperty = "visual.asset";
+    private const string RuntimeRoleProperty = "runtime.role";
 
     private readonly Dictionary<Node3D, CombatantState> _hostiles = [];
     private readonly Dictionary<Node3D, string> _hostileNames = [];
@@ -70,6 +73,7 @@ public partial class GameRoot : Node3D
     private readonly ForgeScriptJsonService _runtimeJson = new();
     private readonly ForgeScriptUiEventService _scriptUiEvents = new();
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
+    private readonly RuntimeCameraRig _cameraRig = new();
 
     private PlayerController? _player;
     private CombatantState? _playerCombatant;
@@ -105,6 +109,11 @@ public partial class GameRoot : Node3D
     private string _moduleTitle = "OpenRPG Forge";
     private string _moduleSlug = string.Empty;
     private bool _isCryptPrototype;
+    private bool _isForgottenForestPrototype;
+    private string _guideName = "Guide";
+    private string _questItemSlug = "quest-item";
+    private string _questItemDisplayName = "Objet de quête";
+    private string _gateDisplayName = "Passage scellé";
     private bool _loadedSave;
     private RuntimeLifecycleCoordinator? _lifecycle;
     private ForgeScriptArtifactCache? _forgeScriptCache;
@@ -141,6 +150,11 @@ public partial class GameRoot : Node3D
     private double _progressionExperience;
     private int _progressionLevel = 1;
     private bool _initializationComplete;
+    private RuntimeModelLibrary? _modelLibrary;
+    private int _runtimeModelInstances;
+    private int _terrainVertices;
+    private int _terrainScatterLayers;
+    private int _terrainScatterInstances;
 
     public override async void _Ready()
     {
@@ -149,11 +163,13 @@ public partial class GameRoot : Node3D
         var smokeTest = userArguments.Contains("--smoke-test", StringComparer.Ordinal);
         var genericSmokeTest = userArguments.Contains("--generic-smoke-test", StringComparer.Ordinal);
         var rpgKitSmokeTest = userArguments.Contains("--rpg-kit-smoke-test", StringComparer.Ordinal);
+        var forgottenForestSmokeTest = userArguments.Contains("--forgotten-forest-smoke-test", StringComparer.Ordinal);
         var saveSmokeCreate = userArguments.Contains("--save-smoke-create", StringComparer.Ordinal);
         var saveSmokeResume = userArguments.Contains("--save-smoke-resume", StringComparer.Ordinal);
         var visualCapturePath = GetArgumentValue(userArguments, VisualCaptureArgument);
         var visualRegressionSuitePath = GetArgumentValue(userArguments, VisualRegressionSuiteArgument);
-        var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || saveSmokeCreate || saveSmokeResume ||
+        var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || forgottenForestSmokeTest ||
+            saveSmokeCreate || saveSmokeResume ||
             visualCapturePath is not null || visualRegressionSuitePath is not null;
 
         try
@@ -161,6 +177,7 @@ public partial class GameRoot : Node3D
             RegisterInputActions();
             var snapshotPath = GetArgumentValue(userArguments, ProjectSnapshotArgument);
             var modulePackagePath = GetArgumentValue(userArguments, ModulePackageArgument);
+            var workspacePath = GetArgumentValue(userArguments, WorkspaceArgument);
             var saveFilePath = GetArgumentValue(userArguments, SaveFileArgument);
             var loadSavePath = GetArgumentValue(userArguments, LoadSaveArgument);
             _quickSavePath = saveFilePath ?? loadSavePath ??
@@ -170,7 +187,7 @@ public partial class GameRoot : Node3D
                 ProjectSettings.GlobalizePath("user://openrpg-forge/cache/forgescript"));
             var requestedSpawnId = ParseOptionalEntityId(
                 GetArgumentValue(userArguments, SpawnIdArgument));
-            var project = LoadProject(snapshotPath, modulePackagePath);
+            var project = LoadProject(snapshotPath, modulePackagePath, workspacePath);
             ValidateAssetPackageManifests();
             var lifecycleCause = loadSavePath is null
                 ? RuntimeLifecycleCause.Startup
@@ -185,11 +202,16 @@ public partial class GameRoot : Node3D
             _moduleSlug = project.Module.Slug;
             _defaultLocale = project.Module.Metadata.DefaultLocale;
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
+            _isForgottenForestPrototype = string.Equals(_moduleSlug, "forgotten-forest", StringComparison.Ordinal);
             _message = $"Explorez {_moduleTitle}.";
             var entryArea = project.Areas.Single(area => area.Id == project.Module.EntryAreaId);
             ConfigureRuntimePolicies(project.Module.RuntimePolicies, entryArea.RuntimePolicies);
             await ConfigureWorldAsync(entryArea.Environment, entryArea.World, _isCryptPrototype);
             var selectedSpawn = BuildProject(project, requestedSpawnId);
+            if (_camera is not null && _player is not null)
+            {
+                _cameraRig.Snap(_camera, _player.GlobalPosition);
+            }
             EnsureLifecycle(
                 _lifecycle.EnterInitialArea(
                     AreaId.Parse(_currentAreaId!),
@@ -239,7 +261,11 @@ public partial class GameRoot : Node3D
             GD.Print($"OPENRPG_FORGE_RUNTIME_SPAWN_SELECTED id={selectedSpawn.Id}");
             GD.Print($"OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities={_builtEntityCount} collisions={_collisionCount}");
 
-            if (rpgKitSmokeTest)
+            if (forgottenForestSmokeTest)
+            {
+                RunForgottenForestSmokeTest(project);
+            }
+            else if (rpgKitSmokeTest)
             {
                 RunRpgKitHeadlessSmokeTest(project);
             }
@@ -399,8 +425,7 @@ public partial class GameRoot : Node3D
 
         if (_camera is not null && !_sequenceOwnsCamera)
         {
-            _camera.GlobalPosition = _player.GlobalPosition + new Vector3(13, 15, 17);
-            _camera.LookAt(_player.GlobalPosition + (Vector3.Up * 0.8f), Vector3.Up);
+            _cameraRig.Update(_camera, _player.GlobalPosition, delta);
         }
 
         if (Input.IsActionJustPressed("action_wheel"))
@@ -469,15 +494,54 @@ public partial class GameRoot : Node3D
             GD.Print("OPENRPG_FORGE_PROTOTYPE_COMPLETED");
         }
 
+        if (_isForgottenForestPrototype && !_escaped && _bossDefeated && IsNear(_exit, 3.25f))
+        {
+            _escaped = true;
+            _message = "Le sanctuaire de la forêt est apaisé. Démonstration terminée !";
+            UpdateHud();
+            GD.Print("OPENRPG_FORGE_FORGOTTEN_FOREST_COMPLETED");
+        }
+
         UpdateTacticalHud();
     }
 
-    private ProjectDefinition LoadProject(string? snapshotPath, string? modulePackagePath)
+    public override void _UnhandledInput(InputEvent @event)
     {
-        if (snapshotPath is not null && modulePackagePath is not null)
+        if (!_sequenceOwnsCamera) _cameraRig.HandleInput(@event);
+    }
+
+    private ProjectDefinition LoadProject(string? snapshotPath, string? modulePackagePath, string? workspacePath)
+    {
+        var sourceCount = (snapshotPath is null ? 0 : 1) + (modulePackagePath is null ? 0 : 1) +
+            (workspacePath is null ? 0 : 1);
+        if (sourceCount > 1)
         {
             throw new InvalidOperationException(
-                "A runtime launch cannot combine a project snapshot and a module package.");
+                "A runtime launch cannot combine a workspace, project snapshot and module package.");
+        }
+
+        if (workspacePath is not null)
+        {
+            if (!Path.IsPathFullyQualified(workspacePath) || !Directory.Exists(workspacePath))
+            {
+                throw new InvalidOperationException("The runtime workspace path must be an existing absolute directory.");
+            }
+
+            var openedWorkspace = ProjectSession.Open(workspacePath);
+            if (!openedWorkspace.Succeeded || openedWorkspace.Session is null)
+            {
+                throw new InvalidOperationException(
+                    "The requested Forge workspace could not be loaded: " +
+                    string.Join("; ", openedWorkspace.Diagnostics.Select(diagnostic =>
+                        $"{diagnostic.Code} ({diagnostic.Path}): {diagnostic.Message}")));
+            }
+
+            var workspaceProject = openedWorkspace.Session.Project;
+            _moduleContentRoot = openedWorkspace.Session.RootDirectory;
+            SetUnpackagedModuleIdentity(workspaceProject);
+            GD.Print($"OPENRPG_FORGE_RUNTIME_WORKSPACE_LOADED format={ProjectSession.CurrentProjectFormatVersion} " +
+                     $"slug={workspaceProject.Module.Slug} external=true");
+            return workspaceProject;
         }
 
         if (modulePackagePath is not null)
@@ -590,6 +654,8 @@ public partial class GameRoot : Node3D
             resolvedChunks += resolution.Chunks.Count;
         }
 
+        _modelLibrary = new RuntimeModelLibrary(_moduleContentRoot, loaded.Manifests);
+
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests={loaded.Manifests.Count} " +
             $"chunks={resolvedChunks} platform={platform}");
@@ -604,12 +670,9 @@ public partial class GameRoot : Node3D
     private EntityInstance BuildProject(ProjectDefinition project, EntityId? requestedSpawnId)
     {
         var blueprints = project.Blueprints.ToDictionary(blueprint => blueprint.Id);
-        _elyraDialogue = _isCryptPrototype
-            ? project.Dialogues.SingleOrDefault(dialogue => dialogue.Slug == "elyra-crypt-of-ashes")
-            : null;
-        var quest = _isCryptPrototype
-            ? project.Quests.SingleOrDefault(candidate => candidate.Slug == "crypt-of-ashes")
-            : null;
+        var guidedPrototype = _isCryptPrototype || _isForgottenForestPrototype;
+        _elyraDialogue = guidedPrototype ? project.Dialogues.SingleOrDefault() : null;
+        var quest = guidedPrototype ? project.Quests.SingleOrDefault() : null;
         _questDefinition = quest;
         _questMachine = quest is null ? null : new QuestStateMachine(quest);
         var spawnCandidates = project.Areas
@@ -652,6 +715,9 @@ public partial class GameRoot : Node3D
         }
 
         _currentAreaId = selectedSpawn.Area.Id.ToString();
+
+        GD.Print($"OPENRPG_FORGE_RUNTIME_MODELS_PASS manifests={_modelLibrary?.Count ?? 0} " +
+                 $"instances={_runtimeModelInstances}");
 
         return selectedSpawn.Entity;
     }
@@ -798,6 +864,7 @@ public partial class GameRoot : Node3D
             case BlueprintKind.Door:
                 _door = CreateBox(entity, blueprint.DisplayName, new Color("8f5738"));
                 _doorEntityId = entity.Id;
+                _gateDisplayName = GetOverride(entity, "runtime.displayName") ?? blueprint.DisplayName;
                 break;
             case BlueprintKind.Creature:
                 BuildCreature(entity, blueprint);
@@ -806,7 +873,7 @@ public partial class GameRoot : Node3D
                 _player = CreatePlayer(entity, blueprint);
                 break;
             case BlueprintKind.Item:
-                _keyItem = CreateItem(entity, blueprint.DisplayName);
+                _keyItem = CreateItem(entity, blueprint.DisplayName, blueprint.Slug);
                 break;
             case BlueprintKind.Trigger:
                 _exit = CreateExit(entity);
@@ -833,13 +900,14 @@ public partial class GameRoot : Node3D
 
     private void BuildCreature(EntityInstance entity, BlueprintDefinition blueprint)
     {
-        if (entity.Tags.Contains("npc", StringComparer.Ordinal))
+        if (entity.Tags.Contains("npc", StringComparer.Ordinal) || HasRuntimeRole(entity, "guide"))
         {
             _npc = CreateCreature(entity, blueprint.DisplayName, new Color("4ec9b0"));
+            _guideName = GetOverride(entity, "runtime.displayName") ?? blueprint.DisplayName;
             return;
         }
 
-        var isBoss = entity.Tags.Contains("boss", StringComparer.Ordinal);
+        var isBoss = entity.Tags.Contains("boss", StringComparer.Ordinal) || HasRuntimeRole(entity, "boss");
         var creature = CreateCreature(
             entity,
             blueprint.DisplayName,
@@ -852,8 +920,8 @@ public partial class GameRoot : Node3D
         if (isBoss)
         {
             _boss = creature;
-            _bossPhaseTwoScript = CompileEntityScript(entity, "phaseTwoScript");
-            _bossDeathScript = CompileEntityScript(entity, "deathScript");
+            _bossPhaseTwoScript = TryCompileEntityScript(entity, "phaseTwoScript");
+            _bossDeathScript = TryCompileEntityScript(entity, "deathScript");
         }
     }
 
@@ -867,14 +935,17 @@ public partial class GameRoot : Node3D
         var player = new PlayerController { Name = "Player" };
         AddChild(player);
         player.GlobalPosition = EngineValueConverter.ToEngine(entity.Transform.Position);
+        player.MovementCamera = _camera;
         if (_gameplayControls is not null) player.Configure(_gameplayControls);
 
-        var mesh = new MeshInstance3D
+        if (!TryAttachVisual(player, entity, applyPlayerVisualTransform: true))
         {
-            Mesh = new CapsuleMesh { Radius = 0.45f, Height = 1.8f },
-            MaterialOverride = CreateMaterial(new Color("74b9ff")),
-        };
-        player.AddChild(mesh);
+            player.AddChild(new MeshInstance3D
+            {
+                Mesh = new CapsuleMesh { Radius = 0.45f, Height = 1.8f },
+                MaterialOverride = CreateMaterial(new Color("74b9ff")),
+            });
+        }
 
         player.AddChild(new CollisionShape3D
         {
@@ -900,11 +971,14 @@ public partial class GameRoot : Node3D
             body.SetMeta("forge_climb", true);
         }
         root.AddChild(body);
-        body.AddChild(new MeshInstance3D
+        if (!TryAttachVisual(body, entity))
         {
-            Mesh = new BoxMesh { Size = Vector3.One },
-            MaterialOverride = CreateMaterial(color),
-        });
+            body.AddChild(new MeshInstance3D
+            {
+                Mesh = new BoxMesh { Size = Vector3.One },
+                MaterialOverride = CreateMaterial(color),
+            });
+        }
         body.AddChild(new CollisionShape3D
         {
             Shape = new BoxShape3D { Size = Vector3.One },
@@ -924,11 +998,14 @@ public partial class GameRoot : Node3D
 
         var body = new StaticBody3D();
         root.AddChild(body);
-        body.AddChild(new MeshInstance3D
+        if (!TryAttachVisual(body, entity))
         {
-            Mesh = new CylinderMesh { TopRadius = 0.5f, BottomRadius = 0.5f, Height = 1 },
-            MaterialOverride = CreateMaterial(new Color("665565")),
-        });
+            body.AddChild(new MeshInstance3D
+            {
+                Mesh = new CylinderMesh { TopRadius = 0.5f, BottomRadius = 0.5f, Height = 1 },
+                MaterialOverride = CreateMaterial(new Color("665565")),
+            });
+        }
         body.AddChild(new CollisionShape3D
         {
             Shape = new CylinderShape3D { Radius = 0.5f, Height = 1 },
@@ -945,16 +1022,19 @@ public partial class GameRoot : Node3D
             Transform = EngineValueConverter.ToEngine(entity.Transform),
         };
         AddChild(root);
-        root.AddChild(new MeshInstance3D
+        if (!TryAttachVisual(root, entity))
         {
-            Mesh = new CapsuleMesh { Radius = 0.5f, Height = 1.7f },
-            MaterialOverride = CreateMaterial(color),
-        });
+            root.AddChild(new MeshInstance3D
+            {
+                Mesh = new CapsuleMesh { Radius = 0.5f, Height = 1.7f },
+                MaterialOverride = CreateMaterial(color),
+            });
+        }
         CreateLabel(root, displayName, Colors.White, 1.35f);
         return root;
     }
 
-    private Node3D CreateItem(EntityInstance entity, string displayName)
+    private Node3D CreateItem(EntityInstance entity, string displayName, string itemSlug)
     {
         var root = new Node3D
         {
@@ -962,11 +1042,16 @@ public partial class GameRoot : Node3D
             Transform = EngineValueConverter.ToEngine(entity.Transform),
         };
         AddChild(root);
-        root.AddChild(new MeshInstance3D
+        if (!TryAttachVisual(root, entity))
         {
-            Mesh = new SphereMesh { Radius = 0.45f, Height = 0.9f },
-            MaterialOverride = CreateMaterial(new Color("ffca55"), emission: true),
-        });
+            root.AddChild(new MeshInstance3D
+            {
+                Mesh = new SphereMesh { Radius = 0.45f, Height = 0.9f },
+                MaterialOverride = CreateMaterial(new Color("ffca55"), emission: true),
+            });
+        }
+        _questItemSlug = GetOverride(entity, "runtime.item") ?? itemSlug;
+        _questItemDisplayName = GetOverride(entity, "runtime.displayName") ?? displayName;
         CreateLabel(root, displayName, new Color("ffe6a0"), 0.9f);
         return root;
     }
@@ -979,6 +1064,7 @@ public partial class GameRoot : Node3D
             Transform = EngineValueConverter.ToEngine(entity.Transform),
         };
         AddChild(root);
+        TryAttachVisual(root, entity);
         root.AddChild(new MeshInstance3D
         {
             Mesh = new CylinderMesh { TopRadius = 1, BottomRadius = 1, Height = 0.1f },
@@ -1065,7 +1151,12 @@ public partial class GameRoot : Node3D
         var started = Stopwatch.GetTimestamp();
         _activeBiomeTags = profile.Biomes.SelectMany(item => item.Tags)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var terrain = GodotTerrainAdapter.Build(profile);
+        var terrain = GodotTerrainAdapter.Build(
+            profile,
+            _modelLibrary is null ? null : _modelLibrary.ResolveScatterMesh);
+        _terrainVertices = terrain.Vertices;
+        _terrainScatterLayers = terrain.ScatterLayers;
+        _terrainScatterInstances = terrain.ScatterInstances;
         _areaWorldRoot = terrain.Root;
         AddChild(_areaWorldRoot);
         foreach (var diagnostic in terrain.Diagnostics)
@@ -1121,6 +1212,7 @@ public partial class GameRoot : Node3D
             $"OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider={profile.Terrain.Provider.ToString().ToLowerInvariant()} " +
             $"vertices={terrain.Vertices} triangles={terrain.Triangles} collisions={terrain.CollisionShapes} " +
             $"features={terrain.FeatureSegments} volumes={terrain.DebugVolumes} routes={terrain.FlightRouteSegments} " +
+            $"scatter_layers={terrain.ScatterLayers} scatter_instances={terrain.ScatterInstances} " +
             $"streamed={streaming?.Resources.Count ?? 0} cache_hits={streaming?.CacheHits ?? 0} " +
             $"elapsed_ms={elapsed.TotalMilliseconds:0.###} target_ms={profile.Loading.TargetLoadMilliseconds}");
     }
@@ -1773,6 +1865,31 @@ public partial class GameRoot : Node3D
         });
     }
 
+    private bool TryAttachVisual(Node parent, EntityInstance entity, bool applyPlayerVisualTransform = false)
+    {
+        var assetId = GetOverride(entity, VisualAssetProperty);
+        if (string.IsNullOrWhiteSpace(assetId)) return false;
+        if (_modelLibrary is null)
+            throw new InvalidOperationException($"Entity '{entity.Id}' references visual asset '{assetId}' but the module model library is unavailable.");
+        var visual = _modelLibrary.Instantiate(assetId);
+        visual.Name = "AuthoredVisual";
+        if (applyPlayerVisualTransform)
+        {
+            visual.Basis = EngineValueConverter.ToEngine(entity.Transform).Basis;
+            visual.Position = new Vector3(0, -1f, 0);
+        }
+        parent.AddChild(visual);
+        _runtimeModelInstances++;
+        return true;
+    }
+
+    private static bool HasRuntimeRole(EntityInstance entity, string role) =>
+        string.Equals(GetOverride(entity, RuntimeRoleProperty), role, StringComparison.OrdinalIgnoreCase);
+
+    private static string? GetOverride(EntityInstance entity, string key) =>
+        entity.Overrides.Properties.SingleOrDefault(property =>
+            string.Equals(property.Key, key, StringComparison.Ordinal))?.Value;
+
     private void CreateHud()
     {
         _hud = new RuntimeHud
@@ -1827,7 +1944,7 @@ public partial class GameRoot : Node3D
     {
         if (target == _npc)
         {
-            InteractWithElyra();
+            InteractWithGuide();
             UpdateHud();
             return;
         }
@@ -1835,8 +1952,8 @@ public partial class GameRoot : Node3D
         if (target == _keyItem && !_hasKey)
         {
             _hasKey = true;
-            _inventory.Add("ash-key");
-            _message = "Vous obtenez la Clé de braise.";
+            _inventory.Add(_questItemSlug);
+            _message = $"Vous obtenez {_questItemDisplayName}.";
             _keyItem.QueueFree();
             UpdateHud();
             return;
@@ -1855,7 +1972,7 @@ public partial class GameRoot : Node3D
             else
             {
                 _message = !_hasKey
-                    ? "La porte est scellée. Une clé ardente semble nécessaire."
+                    ? $"{_gateDisplayName} reste fermé. Il manque l’objet lié à la quête."
                     : "La quête n’autorise pas encore le passage.";
             }
 
@@ -1983,12 +2100,13 @@ public partial class GameRoot : Node3D
         });
     }
 
-    private ForgeScriptArtifact CompileEntityScript(EntityInstance entity, string propertyKey)
+    private ForgeScriptArtifact? TryCompileEntityScript(EntityInstance entity, string propertyKey)
     {
         var relativePath = entity.Overrides.Properties
             .SingleOrDefault(property => string.Equals(property.Key, propertyKey, StringComparison.Ordinal))
             ?.Value;
-        if (string.IsNullOrWhiteSpace(relativePath) ||
+        if (string.IsNullOrWhiteSpace(relativePath)) return null;
+        if (
             relativePath.Contains("..", StringComparison.Ordinal) ||
             Path.IsPathFullyQualified(relativePath))
         {
@@ -1996,7 +2114,7 @@ public partial class GameRoot : Node3D
                 $"Entity '{entity.Id}' requires a safe relative ForgeScript path in '{propertyKey}'.");
         }
 
-        var resourcePath = $"res://content/crypt-of-ashes/{relativePath.Replace('\\', '/')}";
+        var resourcePath = $"res://content/{_moduleSlug}/{relativePath.Replace('\\', '/')}";
         var source = _moduleContentRoot is null
             ? Godot.FileAccess.GetFileAsString(resourcePath)
             : ReadCachedModuleScript(relativePath);
@@ -2286,12 +2404,25 @@ public partial class GameRoot : Node3D
 
         UpdateTacticalHud();
 
-        if (!_isCryptPrototype)
+        if (!_isCryptPrototype && !_isForgottenForestPrototype)
         {
             _hud.UpdateState(
                 "explorer le module",
                 _message,
                 $"Module : {_moduleSlug} | Entités : {_builtEntityCount} | Combat : {(_playerCombatant is null ? "désactivé" : "actif")}");
+            return;
+        }
+
+        if (_isForgottenForestPrototype)
+        {
+            var forestObjective = _questMachine?.CurrentState.Journal.Fallback ?? "rencontrer la garde forestière [E]";
+            var forestBossCombatant = _boss is not null && _hostiles.TryGetValue(_boss, out var forestBoss)
+                ? forestBoss
+                : null;
+            var forestState = $"Relique : {(_hasKey ? "trouvée" : "à trouver")} | " +
+                              $"Passage : {(_doorUnlocked ? "ouvert" : "fermé")} | " +
+                              $"Gardien : {forestBossCombatant?.Health ?? 0}/{forestBossCombatant?.Profile.Stats.MaximumHealth ?? 0}";
+            _hud.UpdateState(forestObjective, _message, forestState);
             return;
         }
 
@@ -2318,11 +2449,11 @@ public partial class GameRoot : Node3D
         _hud.UpdateState(objective, _message, state);
     }
 
-    private void InteractWithElyra()
+    private void InteractWithGuide()
     {
         if (_elyraDialogue is null)
         {
-            _message = "Elyra reste silencieuse : aucun dialogue n’est lié à ce module.";
+            _message = $"{_guideName} reste silencieux : aucun dialogue n’est lié à ce module.";
             return;
         }
 
@@ -2332,13 +2463,13 @@ public partial class GameRoot : Node3D
         var choice = traversal.GetAvailableChoices(evaluator).FirstOrDefault();
         if (choice is null)
         {
-            _message = $"Elyra : {start.Node!.Text.Fallback}";
+            _message = $"{_guideName} : {start.Node!.Text.Fallback}";
             return;
         }
 
         var step = traversal.Choose(choice.Id, evaluator);
         ApplyDialogueActions(step.Actions);
-        _message = $"Elyra : {step.Node?.Text.Fallback ?? start.Node!.Text.Fallback}";
+        _message = $"{_guideName} : {step.Node?.Text.Fallback ?? start.Node!.Text.Fallback}";
     }
 
     private void ApplyDialogueActions(IReadOnlyList<DialogueAction> actions)
@@ -2418,7 +2549,7 @@ public partial class GameRoot : Node3D
             _door.QueueFree();
         }
 
-        _message = "La Porte des Cendres se déverrouille.";
+        _message = $"{_gateDisplayName} s’ouvre.";
     }
 
     private void SetProjectVariable(string key, string value)
@@ -2812,6 +2943,47 @@ public partial class GameRoot : Node3D
         GetTree().Quit(0);
     }
 
+    private void RunForgottenForestSmokeTest(ProjectDefinition project)
+    {
+        AssertSmoke(_isForgottenForestPrototype, "The Forgotten Forest smoke test loaded another module.");
+        AssertSmoke(project.Areas.Single().Kind == AreaKind.Exterior, "Forgotten Forest must remain an exterior area.");
+        AssertSmoke(_terrainVertices == 33 * 33, "The authored 33 x 33 terrain grid was not reconstructed.");
+        AssertSmoke(_terrainScatterLayers >= 3, "The biome scatter did not reconstruct enough visual layers.");
+        AssertSmoke(_terrainScatterInstances >= 300, "The forest is too sparse for the playable slice.");
+        AssertSmoke(_modelLibrary?.Count == 22, "All 22 governed Mini Forest models must be available.");
+        AssertSmoke(_runtimeModelInstances >= 18, "Authored entities did not use their governed 3D models.");
+        AssertSmoke(_player is not null && _npc is not null && _keyItem is not null && _door is not null &&
+            _boss is not null && _exit is not null, "The playable forest scenario is incomplete.");
+        AssertSmoke(_hostiles.Count == 3, "Forgotten Forest must reconstruct two scouts and its boss.");
+        AssertSmoke(project.Dialogues.Count == 1 && project.Quests.Count == 1,
+            "Forgotten Forest dialogue or quest data is missing.");
+
+        InteractWith(_npc!);
+        AssertSmoke(_questMachine?.CurrentState.DisplayName == "La Graine de lune",
+            "Guide dialogue did not start the forest quest.");
+        InteractWith(_keyItem!);
+        AssertSmoke(_inventory.Contains("moonseed"), "Moonseed interaction did not update the inventory.");
+        InteractWith(_door!);
+        AssertSmoke(_doorUnlocked && _questMachine?.CurrentState.DisplayName == "Le Gardien des Racines",
+            "The Moonseed did not open the bramble passage.");
+        while (_hostiles.TryGetValue(_boss!, out var combatant) && combatant.Health > 0)
+        {
+            DamageHostile(_boss!);
+        }
+
+        AssertSmoke(_bossPhaseTwo, "The Root Guardian phase two script did not execute.");
+        AssertSmoke(_bossDefeated && _questMachine?.Completed == true,
+            "The Root Guardian defeat did not complete the data-driven quest.");
+        _player!.GlobalPosition = _exit!.GlobalPosition;
+        _escaped = true;
+        GD.Print(
+            $"OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain={_terrainVertices} " +
+            $"scatter_layers={_terrainScatterLayers} scatter_instances={_terrainScatterInstances} " +
+            $"manifests={_modelLibrary!.Count} model_instances={_runtimeModelInstances} " +
+            $"entities={_builtEntityCount} quest=completed boss=defeated camera=orbit");
+        GetTree().Quit(0);
+    }
+
     private void RunRpgKitHeadlessSmokeTest(ProjectDefinition project)
     {
         AssertSmoke(string.Equals(_moduleSlug, "la-veillee-des-eclats", StringComparison.Ordinal), "Unexpected RPG Kit smoke module.");
@@ -2903,6 +3075,8 @@ public partial class GameRoot : Node3D
         RegisterKeyAction("combat_mode", Key.M);
         RegisterKeyAction("dive", Key.Ctrl);
         RegisterKeyAction("climb", Key.Shift);
+        RegisterKeyAction("camera_left", Key.Home);
+        RegisterKeyAction("camera_right", Key.End);
     }
 
     private static void RegisterKeyAction(StringName action, params Key[] keys)

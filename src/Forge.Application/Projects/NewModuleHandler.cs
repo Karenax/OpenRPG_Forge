@@ -77,7 +77,9 @@ public sealed class NewModuleHandler
             command.AreaId,
             areaSlug,
             command.AreaDisplayName.Trim(),
-            [floor, playerSpawn]);
+            [floor, playerSpawn],
+            command.AreaKind,
+            command.Dimensions);
         var module = new ModuleDefinition(
             command.ModuleId,
             moduleSlug,

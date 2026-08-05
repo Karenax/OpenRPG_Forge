@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "a83efe7b-1418-e55b-84b4-9f249da2b0f4",
+  "cacheKey": "c15364dd4fa39999c3526bfb404139eac429bae0dbce03b6455713cd5f558fff",
+  "catalogContentSha256": "85ad0b7248bc6f87fb18d073c75542d264fba370021f46723b1ad8c34ed1969c",
+  "sourceFileSha256": "85ad0b7248bc6f87fb18d073c75542d264fba370021f46723b1ad8c34ed1969c",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/building-platform.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/building-platform.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-building-platform/model.glb",
+  "outputContentSha256": "85ad0b7248bc6f87fb18d073c75542d264fba370021f46723b1ad8c34ed1969c",
+  "outputBytes": 48212,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-building-platform/model.glb",
+      "cacheKey": "c15364dd4fa39999c3526bfb404139eac429bae0dbce03b6455713cd5f558fff",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-building-platform/animations.index.json",
+      "cacheKey": "c15364dd4fa39999c3526bfb404139eac429bae0dbce03b6455713cd5f558fff",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-building-platform/collisions.glb",
+      "cacheKey": "c15364dd4fa39999c3526bfb404139eac429bae0dbce03b6455713cd5f558fff",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-building-platform/lod-0.5.glb",
+      "cacheKey": "c15364dd4fa39999c3526bfb404139eac429bae0dbce03b6455713cd5f558fff",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-building-platform/lod-0.25.glb",
+      "cacheKey": "c15364dd4fa39999c3526bfb404139eac429bae0dbce03b6455713cd5f558fff",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

@@ -5,11 +5,12 @@ using Godot;
 namespace Forge.EngineAdapter.World;
 
 public sealed record GodotTerrainResult(Node3D Root, int Vertices, int Triangles, int CollisionShapes,
-    int FeatureSegments, int DebugVolumes, int FlightRouteSegments, IReadOnlyList<DomainDiagnostic> Diagnostics);
+    int FeatureSegments, int DebugVolumes, int FlightRouteSegments, int ScatterLayers, int ScatterInstances,
+    IReadOnlyList<DomainDiagnostic> Diagnostics);
 
 public static class GodotTerrainAdapter
 {
-    public static GodotTerrainResult Build(AreaWorldProfile world)
+    public static GodotTerrainResult Build(AreaWorldProfile world, Func<string, Mesh?>? scatterMeshResolver = null)
     {
         ArgumentNullException.ThrowIfNull(world);
         var plan = TerrainBuildPlanBuilder.Build(world);
@@ -73,8 +74,12 @@ public static class GodotTerrainAdapter
         }
         root.AddChild(routesRoot);
 
+        var scatter = GodotBiomeScatterAdapter.Build(world, scatterMeshResolver);
+        root.AddChild(scatter.Root);
+        collisionShapes += scatter.CollisionShapes;
+
         return new GodotTerrainResult(root, plan.Vertices.Count, plan.TriangleCount, collisionShapes,
-            featureSegments, debugVolumes, routeSegments, plan.Diagnostics);
+            featureSegments, debugVolumes, routeSegments, scatter.Layers, scatter.Instances, plan.Diagnostics);
     }
 
     private static ArrayMesh BuildTerrainMesh(TerrainBuildPlan plan)
@@ -95,6 +100,7 @@ public static class GodotTerrainAdapter
             VertexColorUseAsAlbedo = true,
             Roughness = .88f,
             Metallic = .02f,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
         });
         return mesh;
     }

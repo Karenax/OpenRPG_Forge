@@ -5,7 +5,8 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. Le lot actif porte une carte 3D jouable et artistiquement revue.**
+G11 Contenu moderne fermés. AV4B livre maintenant une première carte 3D extérieure jouable,
+exportable et visuellement vérifiée.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -13,10 +14,18 @@ zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplac
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
 
+Forgotten Forest reconstruit une zone extérieure canonique 128 × 128 m : relief 33 × 33, sentier,
+ruisseau, quatre recettes de biome, 357 instances MultiMesh, camp, pont, tour et sanctuaire. Les 22
+modèles Kenney Mini Forest sont importés individuellement depuis le Vault sous licence CC0-1.0 avec
+hash, manifestes, palette externe, crédits et provenance. Le runtime offre une caméra orbitale et un
+déplacement relatif à la caméra ; son smoke termine dialogue, collecte, passage, boss et quête.
+
 Le lancement interactif direct est validé sur le workspace scindé `1.15.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
+`Run-ForgottenForest.ps1` authorise de nouveau la carte et ses assets de manière idempotente, puis la
+lance en Forward+ ; l’archive de 75 fichiers est validée et rejouée par le gate depuis son cache.
 
 Le graphe d’architecture transversal est conservé comme outillage local, déterministe et sans
 dépendance externe. Ses 17 tests et son contrôle de fraîcheur font maintenant partie de la
@@ -201,12 +210,12 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   sa bêta testée ; la surveillance d'assets continue et le déploiement multijoueur public de
   production restent à livrer ;
 - le premier Asset Vault externe contient 555 assets CC0 Poly Haven/ambientCG et 50 packs 3D Kenney,
-  soit environ 5 236 modèles logiques estimés ; leur normalisation visuelle, l’interface Assets et la
-  sélection Forgotten Forest restent à livrer ;
-- le prototype `forge_forest_map` charge une scène 128 × 128 m, génère la forêt par chunks
-  `MultiMesh`, peint forêt/clairière/fleurs/rochers/zones interdites dans un masque RGBA versionné et
-  remplace les modèles depuis une ressource Godot ou le catalogue installé ; le relief, la navigation
-  et la composition Forgotten Forest finale restent à livrer ;
+  soit environ 5 236 modèles logiques estimés ; Forgotten Forest en consomme désormais une sélection
+  cohérente de 22 GLB, mais la normalisation visuelle et les métriques 3D du catalogue complet restent
+  à étendre ;
+- Forgotten Forest est jouable sur le terrain générique avec végétation, bâtiments, éclairage,
+  caméra, quête et export. Un bake de navigation avancé, une eau simulée, des animations, de l’audio
+  et des VFX de production restent nécessaires avant de qualifier la carte de contenu final ;
 - le workflow CI est défini, mais son exécution distante attend le premier push.
 
 ## Décisions verrouillées
@@ -349,3 +358,12 @@ revue et audit sécurité, puis projette ces preuves dans le manifeste `.orpmod`
 projet `0.6.21` et workspace `1.15.0` sont migrés. Le prochain incrément est la carte 3D jouable et
 artistiquement revue demandée pour le prototype final. Le tracker compte désormais 56 capacités
 `Tested`.
+
+**AV4B — première tranche jouable livrée** : le module `forgotten-forest` est authorisé depuis le
+domaine et persisté comme workspace scindé. Son pack curaté copie 22 GLB et leur palette externe sans
+modifier le Vault, écrit profils, reçus, 44 chunks de manifeste et crédits. Le runtime charge un
+workspace externe ou un `.orpmod`, reconstruit relief, collisions, features et scatter déterministe,
+puis instancie les modèles réels. Les tests couvrent l’authoring, l’idempotence de l’import et le
+scénario jouable complet ; une capture Forward+ 1280 × 720 a été inspectée après correction du
+culling, des échelles, du cadrage et du HUD. La suite AV4B porte le bake de navigation, l’eau et la
+finition audiovisuelle, puis l’intégration de ces outils dans le Creator Aurora.

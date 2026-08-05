@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "192bb04e-3e7e-1c51-8c77-00cd34f95110",
+  "cacheKey": "0e3f15ad85e724a1f6848478f2b1cd78c9f3fee3c26fc709ddb3f947e6beba9e",
+  "catalogContentSha256": "cafd760fb763fe2a76ad84b469683d18209a2b2ff013b1e11516d0fd62be2a6d",
+  "sourceFileSha256": "cafd760fb763fe2a76ad84b469683d18209a2b2ff013b1e11516d0fd62be2a6d",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/bridge.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/bridge.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-bridge/model.glb",
+  "outputContentSha256": "cafd760fb763fe2a76ad84b469683d18209a2b2ff013b1e11516d0fd62be2a6d",
+  "outputBytes": 32460,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-bridge/model.glb",
+      "cacheKey": "0e3f15ad85e724a1f6848478f2b1cd78c9f3fee3c26fc709ddb3f947e6beba9e",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-bridge/animations.index.json",
+      "cacheKey": "0e3f15ad85e724a1f6848478f2b1cd78c9f3fee3c26fc709ddb3f947e6beba9e",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-bridge/collisions.glb",
+      "cacheKey": "0e3f15ad85e724a1f6848478f2b1cd78c9f3fee3c26fc709ddb3f947e6beba9e",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-bridge/lod-0.5.glb",
+      "cacheKey": "0e3f15ad85e724a1f6848478f2b1cd78c9f3fee3c26fc709ddb3f947e6beba9e",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-bridge/lod-0.25.glb",
+      "cacheKey": "0e3f15ad85e724a1f6848478f2b1cd78c9f3fee3c26fc709ddb3f947e6beba9e",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

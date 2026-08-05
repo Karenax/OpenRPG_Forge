@@ -580,6 +580,28 @@ try {
         -Markers @('OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=la-veillee-des-eclats', 'OPENRPG_FORGE_RUNTIME_LIFECYCLE_PASS events=3 order=ProjectLoaded>AreaEntered>WorldStarted authority=SinglePlayer', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=8 collisions=3', 'OPENRPG_FORGE_RUNTIME_G8_MODULE_PASS slug=la-veillee-des-eclats entities=8 collisions=3 combat=2 dialogues=1 quests=1') `
         -StopAfterMarkers $false
 
+    $forestWorkspace = Join-Path $runtimePath 'content\forgotten-forest'
+    $forestArtifact = Join-Path $artifactRoot 'forgotten-forest.orpmod'
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'export', $forestWorkspace, $forestArtifact)
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'package', 'validate', $forestArtifact)
+    $forestRuntimeLog = Join-Path $artifactRoot 'forgotten-forest.log'
+    Invoke-ForgeEngineMarkerTest `
+        -Name 'forgotten-forest' `
+        -ProjectPath $runtimePath `
+        -Arguments @('--headless', '--path', $runtimePath, '--log-file', $forestRuntimeLog, '--',
+            '--module-package', $forestArtifact, '--forgotten-forest-smoke-test') `
+        -Markers @(
+            'OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=forgotten-forest',
+            'OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests=22 chunks=44 platform=Windows',
+            'OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider=heightmap vertices=1089 triangles=2048',
+            'OPENRPG_FORGE_RUNTIME_MODELS_PASS manifests=22 instances=18',
+            'OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain=1089 scatter_layers=3') `
+        -StopAfterMarkers $false
+
     $mcpHostProject = Join-Path $repositoryRoot 'apps\Forge.McpHost\Forge.McpHost.csproj'
     $serverProject = Join-Path $repositoryRoot 'apps\Forge.Server\Forge.Server.csproj'
     Invoke-CheckedDotnet @('run', '--project', $serverProject, '--configuration', 'Release', '--no-build', '--', '--live-director-smoke-test')

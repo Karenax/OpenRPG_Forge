@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "90c4247a-7483-475a-8e00-cb993953d00d",
+  "cacheKey": "3fbb4fbd7e4ff9ff85adc876d0ad436af3fd354b92cd1d065d46860dc1b046bc",
+  "catalogContentSha256": "093e834c1edf85b4e2d2ee18490e21230088ba98022dad18a799b66ee8bea689",
+  "sourceFileSha256": "093e834c1edf85b4e2d2ee18490e21230088ba98022dad18a799b66ee8bea689",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/weapon-bow.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/weapon-bow.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-bow/model.glb",
+  "outputContentSha256": "093e834c1edf85b4e2d2ee18490e21230088ba98022dad18a799b66ee8bea689",
+  "outputBytes": 8508,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-bow/model.glb",
+      "cacheKey": "3fbb4fbd7e4ff9ff85adc876d0ad436af3fd354b92cd1d065d46860dc1b046bc",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-bow/animations.index.json",
+      "cacheKey": "3fbb4fbd7e4ff9ff85adc876d0ad436af3fd354b92cd1d065d46860dc1b046bc",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-bow/collisions.glb",
+      "cacheKey": "3fbb4fbd7e4ff9ff85adc876d0ad436af3fd354b92cd1d065d46860dc1b046bc",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-bow/lod-0.5.glb",
+      "cacheKey": "3fbb4fbd7e4ff9ff85adc876d0ad436af3fd354b92cd1d065d46860dc1b046bc",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-weapon-bow/lod-0.25.glb",
+      "cacheKey": "3fbb4fbd7e4ff9ff85adc876d0ad436af3fd354b92cd1d065d46860dc1b046bc",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

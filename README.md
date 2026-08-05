@@ -2,11 +2,13 @@
 
 OpenRPG Forge est un projet de moteur, runtime et toolset libre pour créer des RPG 3D modulaires. Il vise une expérience de création accessible, un domaine RPG indépendant du moteur, des modules partageables et une assistance IA facultative et transactionnelle.
 
-Le dépôt contient désormais un **MVP fonctionnel de la Crypte des Cendres** : solution C# compilable,
+Le dépôt contient désormais deux **prototypes fonctionnels** : la Crypte des Cendres et la carte
+extérieure Forgotten Forest. La solution C# compilable fournit
 domaine versionné, application de création **Forge**, runtime 3D jouable, ForgeScript natif, archives
 `.orpmod`, sauvegarde/reprise et host MCP transactionnel. La commande `scripts/Verify.ps1` valide
-l’ensemble localement. Les espaces auteur avancés décrits dans la cible Aurora 2026 restent la phase
-suivante du produit.
+l’ensemble localement. Forgotten Forest ajoute terrain canonique, caméra orbitale, 357 instances de
+biome, 22 modèles GLB CC0 gouvernés, quête, combat et export autonome. Les espaces auteur avancés
+décrits dans la cible Aurora 2026 restent la phase suivante du produit.
 
 Le lancement utilise un splash **OpenRPG_Forge** dédié, commun au runtime et à l’application de
 création. La fenêtre de l’application porte également le titre **OpenRPG_Forge**. Le visuel peut
@@ -52,6 +54,19 @@ Commandes :
 - `F5` / `F9` : sauvegarder / reprendre le checkpoint rapide.
 
 Le parcours actuel permet de parler à Elyra, récupérer la Clé de braise, ouvrir la porte, combattre la Sentinelle puis le Gardien des Cendres, déclencher sa phase 2 et terminer la quête.
+
+Pour lancer la carte extérieure **Forgotten Forest** :
+
+```powershell
+.\scripts\Run-ForgottenForest.ps1
+```
+
+Le lanceur régénère de façon idempotente le module et ses crédits depuis le Vault CC0, compile le
+runtime puis ouvre la carte en Forward+. Le Vault original reste inchangé. Forgotten Forest permet
+de se déplacer sur un terrain 128 × 128 m, d’orbiter et zoomer la caméra, de suivre le sentier,
+parler à Maëlys, trouver la Graine de lune, ouvrir le Passage des Ronces et affronter le Gardien des
+Racines. Commandes caméra : clic droit ou milieu pour orbiter, molette pour zoomer, `Début`/`Fin`
+pour tourner au clavier.
 
 ## Ouvrir le toolset
 
@@ -109,6 +124,7 @@ Ce script exécute :
 - smoke test de l’application de création dans le moteur 3D ;
 - export/validation `.orpmod` ;
 - scénario runtime headless complet piloté par l'agent MCP ;
+- export, validation et rechargement headless de Forgotten Forest avec ses assets gouvernés ;
 - sauvegarde dans un premier processus puis reprise/fin de quête dans un second.
 
 Voir [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) pour les versions locales utilisées.

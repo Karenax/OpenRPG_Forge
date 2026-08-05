@@ -20,4 +20,6 @@ public sealed record NewModuleCommand(
     string Title,
     string ModuleDescription,
     string AreaDisplayName,
-    bool DryRun);
+    bool DryRun,
+    AreaKind AreaKind = AreaKind.Interior,
+    AreaDimensions? Dimensions = null);

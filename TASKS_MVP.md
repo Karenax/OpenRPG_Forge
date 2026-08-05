@@ -494,25 +494,25 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 
 #### AV4A — Fondation de terrain générique multi-biome
 
-- [ ] Formaliser dans un ADR le contrat de terrain partagé : plan horizontal X/Z, altitude Y,
+- [x] Formaliser dans un ADR le contrat de terrain partagé : plan horizontal X/Z, altitude Y,
   séparation stricte entre terrain, couches de biome, gameplay et entités placées.
-- [ ] Ajouter au domaine C# versionné une définition de terrain associée à la zone : dimensions,
+- [x] Ajouter au domaine C# versionné une définition de terrain associée à la zone : dimensions,
   découpage, résolution, seed et références contrôlées vers heightmaps, masques de matériaux et
   masque de trous.
-- [ ] Étendre le format `.orpmod`, les migrations et les tests de round-trip afin que le terrain soit
+- [x] Étendre le format `.orpmod`, les migrations et les tests de round-trip afin que le terrain soit
   inspectable et indépendant de toute scène ou ressource Godot.
 - [ ] Concevoir les commandes transactionnelles de sculpture et peinture : lever/abaisser, aplanir,
   lisser, peindre les matériaux et ouvrir/fermer un trou, avec prévisualisation et Undo/Redo.
-- [ ] Évaluer Terrain3D face à un adapter interne, vérifier licence et compatibilité, puis épingler la
+- [x] Évaluer Terrain3D face à un adapter interne, vérifier licence et compatibilité, puis épingler la
   solution retenue sans faire de ses nœuds la source de vérité.
-- [ ] Reconstruire dans Godot la géométrie, les collisions et les requêtes d'altitude/pente depuis le
+- [x] Reconstruire dans l’adapter 3D la géométrie, les collisions et les requêtes d'altitude/pente depuis le
   document canonique, avec validation headless et génération déterministe.
-- [ ] Partager les requêtes de surface avec placement, eau, chemins, navigation et biomes ; traiter
+- [x] Partager les requêtes de surface avec placement, eau, chemins, navigation et biomes ; traiter
   une grotte, un tunnel ou un surplomb comme un trou de terrain accompagné d'une géométrie 3D
   séparée.
-- [ ] Définir des recettes de biome réutilisables qui échantillonnent altitude, pente, matériau,
+- [x] Définir des recettes de biome réutilisables qui échantillonnent altitude, pente, matériau,
   humidité, eau, chemins et exclusions sans posséder ni dupliquer le terrain.
-- [ ] Migrer le prototype `forge_forest_map` en première couche de biome posée sur ce terrain et
+- [x] Migrer le prototype `forge_forest_map` en première couche de biome posée sur ce terrain et
   supprimer son hypothèse de sol plan sans créer une seconde source de vérité.
 - [ ] Mesurer mémoire, temps de reconstruction, sculpture, collisions, navigation, LOD et culling sur
   une zone extérieure représentative avant d'étendre la taille des cartes.
@@ -521,12 +521,15 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 
 - [x] Livrer une scène de création 128 × 128 m reconstructible, avec scatter cellulaire, masque RGBA
   versionné, kit de départ attribué et smoke test headless.
-- [ ] Concevoir une carte extérieure cohérente à partir d’une sélection d’assets homogène.
-- [ ] Intégrer la fondation de terrain AV4A, végétation, bâtiments, eau, éclairage, navigation et
-  landmarks.
-- [ ] Réutiliser les briques existantes de dialogue, quête, combat, transition et sauvegarde.
-- [ ] Ajouter profils graphiques, validation automatisée, playtest et rapports de performance.
-- [ ] Vérifier export du module, dépendances, crédits et ouverture depuis un clone propre.
+- [x] Concevoir une carte extérieure cohérente à partir d’une sélection de 22 GLB Kenney Mini Forest
+  CC0 avec identité, hash, manifeste, palette externe et crédits.
+- [x] Intégrer la fondation de terrain AV4A, végétation MultiMesh, bâtiments, ruisseau stylisé,
+  éclairage, caméra orbitale et landmarks.
+- [ ] Finaliser le bake de navigation, une eau simulée et les traversées avant la carte de production.
+- [x] Réutiliser les briques existantes de dialogue, quête, combat, transition et sauvegarde.
+- [x] Ajouter profil Forward+, validation automatisée, playtest headless, capture visuelle et métriques
+  de reconstruction.
+- [x] Vérifier export du module, dépendances, crédits et ouverture de l’archive depuis le cache runtime.
 
 ### AV5 — Livraison et extension
 

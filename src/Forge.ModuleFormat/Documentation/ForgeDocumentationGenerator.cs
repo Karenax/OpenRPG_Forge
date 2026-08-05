@@ -18,6 +18,7 @@ public static class ForgeDocumentationGenerator
         "assets list|prepare|roundtrip", "content batch|export-blueprints|merge-table",
         "docs generate|check", "package export|validate|load|analyze|compliance|keygen|sign|verify-signature",
         "package delta|apply-delta|bundle|spatial|diagnose", "workspace migrate", "author-original",
+        "author-forgotten-forest",
         "readiness validate|health|crash|recovery|sync-plan", "quality run", "performance run", "governance run",
     ];
 

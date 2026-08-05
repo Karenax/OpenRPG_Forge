@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "de1baadd-5e63-a95a-a235-7c1fea451ac6",
+  "cacheKey": "0dd431b9163ce999869722c639c99b040c6dae0caa9399559aec7383b40bacad",
+  "catalogContentSha256": "226728a03989a1ce52ea64b55e3d9e2ff89004f7eaca9f74c2fafda7c84bbe49",
+  "sourceFileSha256": "226728a03989a1ce52ea64b55e3d9e2ff89004f7eaca9f74c2fafda7c84bbe49",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/rocks-high.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/rocks-high.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-rocks-high/model.glb",
+  "outputContentSha256": "226728a03989a1ce52ea64b55e3d9e2ff89004f7eaca9f74c2fafda7c84bbe49",
+  "outputBytes": 31952,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-rocks-high/model.glb",
+      "cacheKey": "0dd431b9163ce999869722c639c99b040c6dae0caa9399559aec7383b40bacad",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-rocks-high/animations.index.json",
+      "cacheKey": "0dd431b9163ce999869722c639c99b040c6dae0caa9399559aec7383b40bacad",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-rocks-high/collisions.glb",
+      "cacheKey": "0dd431b9163ce999869722c639c99b040c6dae0caa9399559aec7383b40bacad",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-rocks-high/lod-0.5.glb",
+      "cacheKey": "0dd431b9163ce999869722c639c99b040c6dae0caa9399559aec7383b40bacad",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-rocks-high/lod-0.25.glb",
+      "cacheKey": "0dd431b9163ce999869722c639c99b040c6dae0caa9399559aec7383b40bacad",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

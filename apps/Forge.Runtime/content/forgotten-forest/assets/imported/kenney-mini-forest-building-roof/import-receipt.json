@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "cfa443cc-ed01-bd59-bf60-1370ebd04200",
+  "cacheKey": "31e7fd0b208db1a5c6428c54f4ceb36fc2755718083204d2e4528fb0bfcb6bfd",
+  "catalogContentSha256": "1cd53687108ae5a21ec8392e9b1c588e912262f0ae63a569c494d627c3c05009",
+  "sourceFileSha256": "1cd53687108ae5a21ec8392e9b1c588e912262f0ae63a569c494d627c3c05009",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/building-roof.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/building-roof.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-building-roof/model.glb",
+  "outputContentSha256": "1cd53687108ae5a21ec8392e9b1c588e912262f0ae63a569c494d627c3c05009",
+  "outputBytes": 31964,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-building-roof/model.glb",
+      "cacheKey": "31e7fd0b208db1a5c6428c54f4ceb36fc2755718083204d2e4528fb0bfcb6bfd",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-building-roof/animations.index.json",
+      "cacheKey": "31e7fd0b208db1a5c6428c54f4ceb36fc2755718083204d2e4528fb0bfcb6bfd",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-building-roof/collisions.glb",
+      "cacheKey": "31e7fd0b208db1a5c6428c54f4ceb36fc2755718083204d2e4528fb0bfcb6bfd",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-building-roof/lod-0.5.glb",
+      "cacheKey": "31e7fd0b208db1a5c6428c54f4ceb36fc2755718083204d2e4528fb0bfcb6bfd",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-building-roof/lod-0.25.glb",
+      "cacheKey": "31e7fd0b208db1a5c6428c54f4ceb36fc2755718083204d2e4528fb0bfcb6bfd",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

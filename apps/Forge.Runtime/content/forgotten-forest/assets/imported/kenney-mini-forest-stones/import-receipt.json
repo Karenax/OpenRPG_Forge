@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "09ecdef5-5922-c25e-97c8-60b5bc78b586",
+  "cacheKey": "6ab705068f47d5be6b45ec5a30d43f6541e2adb4772d11bc7769db7b1948e7a2",
+  "catalogContentSha256": "f46682b8eb8110fabe17f1da8e226bd2471046a25d907e41fd43ad9695f4c397",
+  "sourceFileSha256": "f46682b8eb8110fabe17f1da8e226bd2471046a25d907e41fd43ad9695f4c397",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/stones.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/stones.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-stones/model.glb",
+  "outputContentSha256": "f46682b8eb8110fabe17f1da8e226bd2471046a25d907e41fd43ad9695f4c397",
+  "outputBytes": 23124,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-stones/model.glb",
+      "cacheKey": "6ab705068f47d5be6b45ec5a30d43f6541e2adb4772d11bc7769db7b1948e7a2",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-stones/animations.index.json",
+      "cacheKey": "6ab705068f47d5be6b45ec5a30d43f6541e2adb4772d11bc7769db7b1948e7a2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-stones/collisions.glb",
+      "cacheKey": "6ab705068f47d5be6b45ec5a30d43f6541e2adb4772d11bc7769db7b1948e7a2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-stones/lod-0.5.glb",
+      "cacheKey": "6ab705068f47d5be6b45ec5a30d43f6541e2adb4772d11bc7769db7b1948e7a2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-stones/lod-0.25.glb",
+      "cacheKey": "6ab705068f47d5be6b45ec5a30d43f6541e2adb4772d11bc7769db7b1948e7a2",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

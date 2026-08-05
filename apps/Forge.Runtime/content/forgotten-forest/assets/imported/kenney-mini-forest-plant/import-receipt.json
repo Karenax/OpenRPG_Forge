@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "da7a0452-4f03-6258-b1c9-c80007e01f93",
+  "cacheKey": "4259b514a7f8740403d7556d2b109f878c812ff73f209a358cd9b09d5aeadb43",
+  "catalogContentSha256": "4ce1784382a2c986b5a63cd4cf7fc41f8775148464021fc4e10d780cc7892789",
+  "sourceFileSha256": "4ce1784382a2c986b5a63cd4cf7fc41f8775148464021fc4e10d780cc7892789",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/plant.glb",
+  "sourceRelativePath": "normalized/kenney/mini-forest/Models/GLB format/plant.glb",
+  "outputRelativePath": "assets/imported/kenney-mini-forest-plant/model.glb",
+  "outputContentSha256": "4ce1784382a2c986b5a63cd4cf7fc41f8775148464021fc4e10d780cc7892789",
+  "outputBytes": 22424,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-plant/model.glb",
+      "cacheKey": "4259b514a7f8740403d7556d2b109f878c812ff73f209a358cd9b09d5aeadb43",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-plant/animations.index.json",
+      "cacheKey": "4259b514a7f8740403d7556d2b109f878c812ff73f209a358cd9b09d5aeadb43",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-plant/collisions.glb",
+      "cacheKey": "4259b514a7f8740403d7556d2b109f878c812ff73f209a358cd9b09d5aeadb43",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-plant/lod-0.5.glb",
+      "cacheKey": "4259b514a7f8740403d7556d2b109f878c812ff73f209a358cd9b09d5aeadb43",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-mini-forest-plant/lod-0.25.glb",
+      "cacheKey": "4259b514a7f8740403d7556d2b109f878c812ff73f209a358cd9b09d5aeadb43",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

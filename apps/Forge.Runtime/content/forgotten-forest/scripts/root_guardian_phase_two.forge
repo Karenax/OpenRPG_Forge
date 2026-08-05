@@ -1,0 +1,7 @@
+void main()
+{
+    say("Le Gardien fait jaillir deux rôdeurs des racines !");
+    spawn("rootbound-scout");
+    spawn("rootbound-scout");
+    cast_ability(0, "thorn-claw");
+}

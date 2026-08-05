@@ -52,3 +52,20 @@ python tools/asset_pipeline/validate_cc0_catalog.py `
 La validation recalcule SHA-256, contrôle tailles, licences CC0, dépendances locales glTF et modèles
 extraits. Le pipeline de normalisation Godot/Blender, les collisions, LOD et previews restent le
 prochain incrément avant usage de production dans une carte.
+
+## Pack curaté Forgotten Forest
+
+La première sélection cohérente est décrite par
+`asset_manifests/packs/forgotten_forest_core.json`. Elle expose individuellement les 22 GLB du pack
+Kenney Mini Forest au lieu de traiter le ZIP comme un seul asset. L’authoring vérifie la licence
+CC0-1.0 du catalogue, recalcule chaque SHA-256, copie le modèle et sa palette PNG externe dans le
+workspace, puis écrit profils, reçus, manifestes et `assets/CREDITS_ASSETS.md`.
+
+```powershell
+dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
+  author-forgotten-forest apps/Forge.Runtime/content/forgotten-forest `
+  --vault E:\OpenRPG_AssetVault
+```
+
+La commande est idempotente et ne modifie jamais `normalized/kenney/mini-forest`. Pour authoriser,
+compiler et lancer la carte en une fois, utiliser `scripts/Run-ForgottenForest.ps1`.
