@@ -164,6 +164,10 @@ public sealed class ForgeMcpTools
     public WorkspacePerformanceLabReport RunProjectPerformanceLab() => _project.RunPerformanceLab();
 
     [McpServerTool]
+    [Description("Runs the read-only editor/runtime accessibility, security-fuzz and dependency-governance laboratory.")]
+    public WorkspaceGovernanceLabReport RunProjectGovernanceLab() => _project.RunGovernanceLab();
+
+    [McpServerTool]
     [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]
     public AgentAssetCatalogResult GetAssetCatalog(
         string? query = null,

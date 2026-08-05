@@ -50,6 +50,11 @@ public sealed class SetModuleDistributionHandlerTests
         Assert.False(dryRun.Audit.Applied);
         Assert.Equal(5, applied.State.Project.Module.Distribution.TargetProfiles.Count);
         Assert.Equal(dependency, Assert.Single(applied.State.Project.Module.Distribution.Dependencies));
+        Assert.Equal(DependencyApprovalState.Approved, dependency.ApprovalState);
+        Assert.Equal(DependencyRiskLevel.Low, dependency.RiskLevel);
+        Assert.Equal(2, dependency.RequiredApprovals);
+        Assert.Equal(2, dependency.ApproverRoles.Count);
+        Assert.Equal(dependency.SourceReference, dependency.SecurityAuditReference);
         Assert.Equal(Timestamp, applied.Audit.Timestamp);
         Assert.Equal("module/distribution", applied.Patch!.Path);
         Assert.True(history.Undo().Succeeded);

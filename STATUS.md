@@ -4,8 +4,8 @@ Dernière mise à jour : 5 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-A à G11-S Contenu moderne fermés et G11-T ouvert.**
+**MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
+G11 Contenu moderne fermés. Le lot actif porte une carte 3D jouable et artistiquement revue.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -13,7 +13,7 @@ zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplac
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.14.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.15.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -338,5 +338,14 @@ fermeture, le tracker comptait 47 capacités `Tested` et G11-S devenait la tranc
 benchmarks, budgets desktop/mobile/serveur et capture intégrée. Creator affiche les cinq nouvelles
 cartes ; CLI, runtime et MCP partagent l’empreinte et les lectures sans mutation. Le runtime a
 produit huit comparaisons réelles en deux résolutions, deux caméras et deux qualités. Les formats
-projet `0.6.20` et workspace `1.14.0` sont migrés. Le tracker compte maintenant 52 capacités
-`Tested` ; G11-T porte accessibilité, fuzzing sécurité et gouvernance finale.
+projet `0.6.20` et workspace `1.14.0` sont migrés. Ce jalon comptait 52 capacités `Tested` avant la
+fermeture de G11-T.
+
+**G11-T est fermé** : Creator expose maintenant quinze cartes qualité et configure les profils
+accessibilité/fuzzing sans éditer les fichiers générés. Le runtime applique taille de texte,
+contraste, sous-titres et descriptions sonores ; 112 cas déterministes couvrent sept frontières avec
+zéro crash inattendu et zéro évasion de chemin. Le registre tiers impose risque, état, deux rôles de
+revue et audit sécurité, puis projette ces preuves dans le manifeste `.orpmod` 1.2. Les formats
+projet `0.6.21` et workspace `1.15.0` sont migrés. Le prochain incrément est la carte 3D jouable et
+artistiquement revue demandée pour le prototype final. Le tracker compte désormais 56 capacités
+`Tested`.

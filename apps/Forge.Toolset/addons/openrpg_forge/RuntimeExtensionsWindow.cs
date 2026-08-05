@@ -193,6 +193,21 @@ public partial class RuntimeExtensionsWindow : Window
             modern.QualityAssurance.Profiler.IncludeNetworkSpans,
             modern.QualityAssurance.Profiler.OneClickCapture,
             modern.QualityAssurance.Profiler.OutputDirectory));
+        var accessibility = modern.QualityAssurance.Accessibility;
+        toolingRows.Add(Join("accessibility", accessibility.EditorKeyboardOnly,
+            accessibility.EditorScreenReaderLabels, accessibility.EditorColorIndependentStatus,
+            accessibility.EditorShortcutReference,
+            accessibility.MinimumContrastRatio.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            accessibility.EditorTextScale.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            accessibility.RuntimeSubtitles, accessibility.RuntimeCaptions,
+            accessibility.RuntimeTextScale.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            accessibility.RuntimeHighContrast, accessibility.RuntimeColorVisionMode,
+            accessibility.RuntimeInputAssists, accessibility.RuntimeReducedMotion,
+            accessibility.RuntimeDifficultyAssists));
+        var fuzz = modern.QualityAssurance.SecurityFuzz;
+        toolingRows.Add(Join("fuzz", fuzz.Seed, fuzz.CasesPerBoundary, fuzz.MaximumInputBytes,
+            fuzz.TimeBudgetMilliseconds, string.Join(',', fuzz.Boundaries), fuzz.RequireNoCrash,
+            fuzz.RequireNoPathEscape));
         _modernTooling!.Text = string.Join("\n", toolingRows);
         var readiness = _profile.OperationalReadiness;
         _operationalReadiness!.Text = string.Join("\n", readiness.TaskManifests.Select(task =>
@@ -277,6 +292,7 @@ public partial class RuntimeExtensionsWindow : Window
         var compiler = Row("compiler", 7); var docs = Row("docs", 4);
         var network = Row("network", 7); var visual = Row("visual", 6);
         var benchmark = Row("benchmark", 4); var profiler = Row("profiler", 8);
+        var accessibility = Row("accessibility", 15); var fuzz = Row("fuzz", 8);
         var budgetRows = lines.Where(parts => Key(parts[0]) == "budget").ToArray();
         if (budgetRows.Length == 0) throw new FormatException("Au moins un budget de plateforme est requis.");
         foreach (var budget in budgetRows) Require(budget, 11, "budget");
@@ -300,7 +316,15 @@ public partial class RuntimeExtensionsWindow : Window
             new IntegratedProfilerProfile(qualitySource.Profiler.Id, 1,
                 Csv(profiler[1]).Select(EnumValue<QualityTraceSurface>).ToArray(), Int(profiler[2]),
                 Bool(profiler[3]), Bool(profiler[4]), Bool(profiler[5]), Bool(profiler[6]), profiler[7],
-                "forge-ui"), "forge-ui");
+                "forge-ui"), "forge-ui",
+            new AccessibilityQualityProfile(qualitySource.Accessibility.Id, 1,
+                Bool(accessibility[1]), Bool(accessibility[2]), Bool(accessibility[3]), Bool(accessibility[4]),
+                Double(accessibility[5]), Double(accessibility[6]), Bool(accessibility[7]),
+                Bool(accessibility[8]), Double(accessibility[9]), Bool(accessibility[10]),
+                EnumValue<RuntimeColorVisionMode>(accessibility[11]), Bool(accessibility[12]),
+                Bool(accessibility[13]), Bool(accessibility[14]), "forge-ui"),
+            new SecurityFuzzProfile(qualitySource.SecurityFuzz.Id, 1, Int(fuzz[1]), Int(fuzz[2]),
+                Int(fuzz[3]), Int(fuzz[4]), Csv(fuzz[5]), Bool(fuzz[6]), Bool(fuzz[7]), "forge-ui"));
         return new ModernRuntimeToolingProfile(source.Id, 1,
             new RuntimeObjectCopyPolicy(source.RuntimeCopy.Id, 1, Int(copy[1]), Bool(copy[2]), Bool(copy[3]),
                 EnumValue<RuntimeReferenceCopyMode>(copy[4]), Csv(copy[5]), "forge-ui"),

@@ -6624,7 +6624,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!_qualityLabWindow.RunForSmokeTest() || _qualityLabWindow.Report is not { } report ||
-            _qualityLabWindow.PerformanceReport is not { } performance)
+            _qualityLabWindow.PerformanceReport is not { } performance ||
+            _qualityLabWindow.GovernanceReport is not { } governance)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11R_QUALITY_FAILED report");
             return false;
@@ -6680,6 +6681,21 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "benchmarks=interior-exterior-stress-load-frame-memory-nav-package " +
             "budgets=frame-memory-texture-draw-light-script-network " +
             "profiler=editor-runtime-server-script-database-network");
+        var governanceCovered = governance.Passed && governance.Accessibility.Passed &&
+            governance.Accessibility.EditorChecks.All(item => item.Passed) &&
+            governance.Accessibility.RuntimeChecks.All(item => item.Passed) &&
+            governance.SecurityFuzz.TotalCases == 112 && governance.SecurityFuzz.Boundaries.Count == 7 &&
+            governance.SecurityFuzz.Boundaries.All(item => item.UnexpectedFailures == 0 && item.PathEscapes == 0) &&
+            governance.Dependencies.Passed && governance.ReportPath is null;
+        if (!governanceCovered)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11T_GOVERNANCE_FAILED coverage");
+            return false;
+        }
+
+        GD.Print("OPENRPG_FORGE_TOOLSET_G11T_GOVERNANCE_PASS " +
+            "editor=keyboard-labels-scale-contrast-shortcuts runtime=subtitles-captions-color-input-motion-difficulty " +
+            "fuzz=112-cases-7-boundaries-no-crash-no-escape dependencies=approval-risk-review-audit-lifecycle");
         return true;
     }
 

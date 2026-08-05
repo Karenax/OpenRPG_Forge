@@ -93,6 +93,26 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void Governance_lab_is_deterministic_complete_and_read_only()
+    {
+        using var workspace = new TestWorkspace();
+
+        var first = workspace.Project.RunGovernanceLab();
+        var second = workspace.Project.RunGovernanceLab();
+
+        Assert.True(first.Passed);
+        Assert.Equal(first.Fingerprint, second.Fingerprint);
+        Assert.True(first.Accessibility.Passed);
+        Assert.True(first.SecurityFuzz.Passed);
+        Assert.Equal(112, first.SecurityFuzz.TotalCases);
+        Assert.Equal(7, first.SecurityFuzz.Boundaries.Count);
+        Assert.True(first.Dependencies.Passed);
+        Assert.Null(first.ReportPath);
+        Assert.False(File.Exists(Path.Combine(workspace.RootDirectory, ".forge", "quality", "governance-report.json")));
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
     public void DiagnosticsExposeCanonicalIdentitySourceAndQuickFixes()
     {
         using var workspace = new TestWorkspace();

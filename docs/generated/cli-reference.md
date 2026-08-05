@@ -10,3 +10,4 @@
 - `forge readiness validate|health|crash|recovery|sync-plan`
 - `forge quality run`
 - `forge performance run`
+- `forge governance run`

@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.14.0",
+  "formatVersion": "1.15.0",
   "project": {
     "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
     "title": "La Veill\u00E9e des \u00C9clats",
@@ -816,6 +816,45 @@
                 "includeNetworkSpans": true,
                 "oneClickCapture": true,
                 "outputDirectory": ".forge/quality/traces",
+                "provenance": "migration-default"
+              },
+              "accessibility": {
+                "id": "b6b804a4-9c9e-5400-8579-fc93f94f0b8b",
+                "schemaVersion": 1,
+                "editorKeyboardOnly": true,
+                "editorScreenReaderLabels": true,
+                "editorColorIndependentStatus": true,
+                "editorShortcutReference": true,
+                "minimumContrastRatio": 4.5,
+                "editorTextScale": 1.25,
+                "runtimeSubtitles": true,
+                "runtimeCaptions": true,
+                "runtimeTextScale": 1.2,
+                "runtimeHighContrast": true,
+                "runtimeColorVisionMode": "deuteranopia",
+                "runtimeInputAssists": true,
+                "runtimeReducedMotion": false,
+                "runtimeDifficultyAssists": true,
+                "provenance": "migration-default"
+              },
+              "securityFuzz": {
+                "id": "db2c665a-a0c4-57f8-b914-f1ebcede99c3",
+                "schemaVersion": 1,
+                "seed": 2026,
+                "casesPerBoundary": 16,
+                "maximumInputBytes": 65536,
+                "timeBudgetMilliseconds": 10000,
+                "boundaries": [
+                  "forgescript",
+                  "image-header",
+                  "model-header",
+                  "network-json",
+                  "package-archive",
+                  "path-sandbox",
+                  "project-json"
+                ],
+                "requireNoCrash": true,
+                "requireNoPathEscape": true,
                 "provenance": "migration-default"
               },
               "provenance": "migration-default"

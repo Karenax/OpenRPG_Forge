@@ -107,7 +107,11 @@ public static partial class ModuleManifestValidator
                 !SemanticVersionRegex().IsMatch(dependency.Version ?? string.Empty) ||
                 string.IsNullOrWhiteSpace(dependency.Owner) ||
                 string.IsNullOrWhiteSpace(dependency.SourceReference) ||
-                string.IsNullOrWhiteSpace(dependency.LicenseSpdx))
+                string.IsNullOrWhiteSpace(dependency.LicenseSpdx) ||
+                dependency.ApprovalState != DependencyApprovalState.Approved ||
+                dependency.RequiredApprovals is < 1 or > 8 ||
+                dependency.ApproverRoles.Count < dependency.RequiredApprovals ||
+                string.IsNullOrWhiteSpace(dependency.SecurityAuditReference))
             {
                 diagnostics.Add(new ModulePackageDiagnostic(
                     InvalidThirdPartyDependencyCode,

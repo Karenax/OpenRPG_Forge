@@ -126,4 +126,28 @@ public sealed class RuntimeExtensionPersistenceTests
         Assert.Equal(3, first.PlatformBudgets.Count);
         Assert.True(first.Profiler.OneClickCapture);
     }
+
+    [Fact]
+    public void Pre_governance_quality_project_migrates_accessibility_and_fuzzing_to_stable_defaults()
+    {
+        var project = TestProjectFactory.CreateValid();
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(project))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreGovernanceQualityFormatVersion;
+        var quality = document["project"]!["module"]!["runtimePolicies"]!["extensions"]!["modernTooling"]!
+            ["qualityAssurance"]!.AsObject();
+        quality.Remove("accessibility");
+        quality.Remove("securityFuzz");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString()).Module.RuntimePolicies.Extensions
+            .ModernTooling.QualityAssurance;
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString()).Module.RuntimePolicies.Extensions
+            .ModernTooling.QualityAssurance;
+
+        Assert.Equal(first.Accessibility.Id, second.Accessibility.Id);
+        Assert.Equal(first.SecurityFuzz.Id, second.SecurityFuzz.Id);
+        Assert.True(first.Accessibility.EditorKeyboardOnly);
+        Assert.True(first.Accessibility.RuntimeSubtitles);
+        Assert.Equal(7, first.SecurityFuzz.Boundaries.Count);
+        Assert.Equal(16, first.SecurityFuzz.CasesPerBoundary);
+    }
 }

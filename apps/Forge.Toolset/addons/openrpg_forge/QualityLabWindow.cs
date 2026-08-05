@@ -12,6 +12,7 @@ public partial class QualityLabWindow : Window
 {
     private readonly WorkspaceQualityLabService _service = new(new NativeForgeScriptRuntime());
     private readonly WorkspacePerformanceLabService _performanceService = new();
+    private readonly WorkspaceGovernanceLabService _governanceService = new(new NativeForgeScriptRuntime());
     private Func<ProjectDefinition?>? _project;
     private Func<string?>? _workspaceRoot;
     private Action<Window>? _brand;
@@ -28,11 +29,17 @@ public partial class QualityLabWindow : Window
     private RichTextLabel? _benchmarks;
     private RichTextLabel? _budgets;
     private RichTextLabel? _profiler;
+    private RichTextLabel? _editorAccessibility;
+    private RichTextLabel? _runtimeAccessibility;
+    private RichTextLabel? _securityFuzz;
+    private RichTextLabel? _dependencies;
     private WorkspaceQualityLabReport? _report;
     private WorkspacePerformanceLabReport? _performanceReport;
+    private WorkspaceGovernanceLabReport? _governanceReport;
 
     internal WorkspaceQualityLabReport? Report => _report;
     internal WorkspacePerformanceLabReport? PerformanceReport => _performanceReport;
+    internal WorkspaceGovernanceLabReport? GovernanceReport => _governanceReport;
 
     public void Initialize(
         Func<ProjectDefinition?> project,
@@ -60,7 +67,7 @@ public partial class QualityLabWindow : Window
     internal bool RunForSmokeTest()
     {
         Run(writePseudoLocalizationSnapshot: false);
-        return _report?.Passed == true && _performanceReport?.Passed == true;
+        return _report?.Passed == true && _performanceReport?.Passed == true && _governanceReport?.Passed == true;
     }
 
     private void Build()
@@ -129,6 +136,10 @@ public partial class QualityLabWindow : Window
         _benchmarks = Card(grid, "BENCHMARKS 3D", "Intérieur, extérieur et stress · charge, frame, mémoire, nav");
         _budgets = Card(grid, "BUDGETS PLATEFORMES", "Frame, mémoire, textures, draws, lumières, scripts et réseau");
         _profiler = Card(grid, "PROFILAGE INTÉGRÉ", "Éditeur, runtime et serveur · script, données et réseau");
+        _editorAccessibility = Card(grid, "ACCESSIBILITÉ ÉDITEUR", "Clavier, libellés, texte, contraste et raccourcis");
+        _runtimeAccessibility = Card(grid, "ACCESSIBILITÉ RUNTIME", "Sous-titres, contraste, daltonisme, entrées et difficulté");
+        _securityFuzz = Card(grid, "FUZZING SÉCURITÉ", "JSON, archives, scripts, réseau, images, modèles et chemins");
+        _dependencies = Card(grid, "GOUVERNANCE", "Versions, licences, responsables, risques, revues et retrait");
 
         var footer = new HBoxContainer();
         footer.AddThemeConstantOverride("separation", 8);
@@ -204,6 +215,7 @@ public partial class QualityLabWindow : Window
         {
             _report = null;
             _performanceReport = null;
+            _governanceReport = null;
             _summary!.Text = "Aucun projet Forge ouvert.";
             SetStatus("⚠ Ouvrez un projet avant de lancer le laboratoire.", new Color("e8c36a"));
             ClearCards();
@@ -218,13 +230,16 @@ public partial class QualityLabWindow : Window
             _report = _service.Run(workspaceRoot, project, options);
             _performanceReport = _performanceService.Run(workspaceRoot, project,
                 new WorkspacePerformanceLabOptions(writePseudoLocalizationSnapshot));
-            Render(_report, _performanceReport);
+            _governanceReport = _governanceService.Run(workspaceRoot, project,
+                new WorkspaceGovernanceLabOptions(writePseudoLocalizationSnapshot));
+            Render(_report, _performanceReport, _governanceReport);
         }
         catch (Exception exception) when (exception is ArgumentException or DirectoryNotFoundException or
             FileNotFoundException or InvalidOperationException or IOException or UnauthorizedAccessException)
         {
             _report = null;
             _performanceReport = null;
+            _governanceReport = null;
             _summary!.Text = "Le laboratoire n’a pas pu produire de rapport.";
             SetStatus($"✕ {exception.Message}", new Color("ff756d"));
             ClearCards();
@@ -232,12 +247,13 @@ public partial class QualityLabWindow : Window
         }
     }
 
-    private void Render(WorkspaceQualityLabReport report, WorkspacePerformanceLabReport performance)
+    private void Render(WorkspaceQualityLabReport report, WorkspacePerformanceLabReport performance,
+        WorkspaceGovernanceLabReport governance)
     {
         var warnings = report.Localization.Issues.Count(issue => issue.Severity == LocalizationQualitySeverity.Warning);
         var errors = report.Localization.Issues.Count(issue => issue.Severity == LocalizationQualitySeverity.Error);
-        var allPassed = report.Passed && performance.Passed;
-        _summary!.Text = $"{Symbol(allPassed)} Rapports {Short(report.Fingerprint)}/{Short(performance.Fingerprint)} · " +
+        var allPassed = report.Passed && performance.Passed && governance.Passed;
+        _summary!.Text = $"{Symbol(allPassed)} Rapports {Short(report.Fingerprint)}/{Short(performance.Fingerprint)}/{Short(governance.Fingerprint)} · " +
             $"{report.Localization.Coverage.Count} langue(s) · {report.Scripts.Tests.Count} script(s) · " +
             $"{report.Dialogues.Count} dialogue(s) · {report.Quests.Count} quête(s) · {report.Encounters.TotalRuns} simulation(s) · " +
             $"{performance.Network.Scenarios.Count} réseau · {performance.VisualReviews.Cases.Count} visuel · " +
@@ -319,8 +335,23 @@ public partial class QualityLabWindow : Window
             $"Catégories : {Escape(string.Join(", ", categories))}\n" +
             $"Capture : {Escape(performance.TracePath ?? "mémoire (smoke test)")}";
 
+        _editorAccessibility!.Text = string.Join("\n", governance.Accessibility.EditorChecks.Select(check =>
+            $"{Symbol(check.Passed)} [b]{Escape(check.Code)}[/b]\n   {Escape(check.Message)}"));
+        _runtimeAccessibility!.Text = string.Join("\n", governance.Accessibility.RuntimeChecks.Select(check =>
+            $"{Symbol(check.Passed)} [b]{Escape(check.Code)}[/b]\n   {Escape(check.Message)}"));
+        _securityFuzz!.Text = $"{Symbol(governance.SecurityFuzz.Passed)} [b]{governance.SecurityFuzz.TotalCases}[/b] cas\n" +
+            $"{Symbol(governance.SecurityFuzz.Boundaries.All(item => item.UnexpectedFailures == 0))} zéro crash inattendu\n" +
+            $"{Symbol(governance.SecurityFuzz.Boundaries.All(item => item.PathEscapes == 0))} zéro évasion de chemin\n\n" +
+            string.Join("\n", governance.SecurityFuzz.Boundaries.Select(item =>
+                $"{Escape(item.Boundary)} · {item.Accepted} accepté / {item.Rejected} refusé"));
+        _dependencies!.Text = $"{Symbol(governance.Dependencies.Passed)} [b]{governance.Dependencies.DependencyCount}[/b] dépendance(s)\n" +
+            $"{Symbol(governance.Dependencies.Checks.All(item => item.Passed))} registre et revues conformes\n\n" +
+            (governance.Dependencies.Checks.Count == 0 ? "Aucune dépendance tierce déclarée." :
+                string.Join("\n", governance.Dependencies.Checks.Select(item =>
+                    $"{Symbol(item.Passed)} {Escape(item.Code)}")));
+
         SetStatus(allPassed
-                ? "✓ Module prêt pour le playtest · qualité fonctionnelle, réseau et performance validées."
+                ? "✓ Module prêt pour le playtest · qualité, performance, accessibilité, sécurité et gouvernance validées."
                 : "✕ Des erreurs bloquantes doivent être corrigées avant l’export.",
             allPassed ? new Color("79d5ad") : new Color("ff756d"));
 
@@ -331,7 +362,8 @@ public partial class QualityLabWindow : Window
     private void ClearCards()
     {
         foreach (var card in new[] { _localization, _scripts, _dialogues, _quests, _encounters,
-                     _pseudoLocalization, _network, _visual, _benchmarks, _budgets, _profiler })
+                     _pseudoLocalization, _network, _visual, _benchmarks, _budgets, _profiler,
+                     _editorAccessibility, _runtimeAccessibility, _securityFuzz, _dependencies })
             if (card is not null) card.Text = "Indisponible.";
     }
 

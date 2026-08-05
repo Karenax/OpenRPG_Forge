@@ -18,7 +18,7 @@ public sealed record ModuleManifest(
     string LicenseNoticePath,
     string ContentSha256)
 {
-    public const string CurrentFormatVersion = "1.1.0";
+    public const string CurrentFormatVersion = "1.2.0";
 
     public static ModuleManifest Create(
         ProjectDefinition project,
@@ -48,7 +48,12 @@ public sealed record ModuleManifest(
                     dependency.Version,
                     dependency.LicenseSpdx,
                     dependency.Owner,
-                    dependency.SourceReference))
+                    dependency.SourceReference,
+                    dependency.ApprovalState,
+                    dependency.RiskLevel,
+                    dependency.ApproverRoles,
+                    dependency.RequiredApprovals,
+                    dependency.SecurityAuditReference))
                 .OrderBy(dependency => dependency.Name, StringComparer.OrdinalIgnoreCase)
                 .ToArray(),
             DistributionNoticeBuilder.PackagePath,

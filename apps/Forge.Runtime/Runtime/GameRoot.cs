@@ -209,6 +209,7 @@ public partial class GameRoot : Node3D
             VerifyOperationalReadiness(project);
             VerifyQualityLab(project);
             VerifyPerformanceLab(project);
+            VerifyGovernanceLab(project);
             if (visualRegressionSuitePath is not null)
             {
                 UpdateHud();
@@ -1391,6 +1392,22 @@ public partial class GameRoot : Node3D
             "profiler=editor-runtime-server-script-database-network");
     }
 
+    private void VerifyGovernanceLab(ProjectDefinition project)
+    {
+        if (string.IsNullOrWhiteSpace(_moduleContentRoot) || !Directory.Exists(_moduleContentRoot)) return;
+        var report = new WorkspaceGovernanceLabService(_forgeScriptRuntime).Run(_moduleContentRoot, project,
+            new WorkspaceGovernanceLabOptions(false));
+        if (!report.Passed || report.SecurityFuzz.Boundaries.Count != 7 ||
+            report.SecurityFuzz.TotalCases != 112 ||
+            report.SecurityFuzz.Boundaries.Any(item => item.UnexpectedFailures != 0 || item.PathEscapes != 0))
+            throw new InvalidOperationException("G11-T governance laboratory contract failed.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G11T_GOVERNANCE_PASS " +
+            $"editor={report.Accessibility.EditorChecks.Count}-keyboard-labels-scale-contrast " +
+            $"runtime={report.Accessibility.RuntimeChecks.Count}-subtitles-captions-color-input-motion-difficulty " +
+            $"fuzz={report.SecurityFuzz.TotalCases}-cases-7-boundaries-no-crash-no-escape " +
+            $"dependencies={report.Dependencies.DependencyCount}-approved-risk-review-audit-lifecycle");
+    }
+
     private static T AssertSingle<T>(IReadOnlyList<T> values) => values.Count == 1
         ? values[0] : throw new InvalidOperationException($"Expected one result, found {values.Count}.");
 
@@ -1398,6 +1415,11 @@ public partial class GameRoot : Node3D
     {
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(area);
+        if (_runtimeExtensions?.ModernTooling.QualityAssurance.Accessibility.RuntimeReducedMotion == true)
+        {
+            GD.Print("OPENRPG_FORGE_RUNTIME_ACCESSIBILITY reduced_motion=startup-cinematic-skipped");
+            return;
+        }
         _cameraAnchors.Clear();
         foreach (var anchor in area.RuntimePolicies.Cinematics.CameraAnchors)
         {
@@ -1753,7 +1775,12 @@ public partial class GameRoot : Node3D
 
     private void CreateHud()
     {
-        _hud = new RuntimeHud { ModuleTitle = _moduleTitle, CombatEnabled = _playerCombatant is not null };
+        _hud = new RuntimeHud
+        {
+            ModuleTitle = _moduleTitle,
+            CombatEnabled = _playerCombatant is not null,
+            Accessibility = _runtimeExtensions?.ModernTooling.QualityAssurance.Accessibility,
+        };
         AddChild(_hud);
         _actionWheel = new RuntimeActionWheel();
         if (_gameplayControls is not null) _actionWheel.Configure(_gameplayControls);

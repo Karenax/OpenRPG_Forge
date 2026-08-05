@@ -13,6 +13,9 @@ public static partial class DistributionComplianceValidator
     public const string BlueprintProvenanceUnknownCode = "distribution.blueprint.provenance_unknown";
     public const string DependencyLicenseUnknownCode = "distribution.dependency.license_unknown";
     public const string DependencyVersionInvalidCode = "distribution.dependency.version_invalid";
+    public const string DependencyApprovalRequiredCode = "distribution.dependency.approval_required";
+    public const string DependencyReviewRequiredCode = "distribution.dependency.review_required";
+    public const string DependencySecurityAuditMissingCode = "distribution.dependency.security_audit_missing";
     public const string StableSignatureRequiredCode = "distribution.release.stable_signature_required";
     public const string StableDeltaPolicyRequiredCode = "distribution.release.stable_delta_policy_required";
     public const string WindowsPackagingSafetyRequiredCode = "distribution.release.windows_packaging_safety_required";
@@ -95,6 +98,27 @@ public static partial class DistributionComplianceValidator
                     DependencyLicenseUnknownCode,
                     $"Dependency '{dependency.Name}' does not declare an approved SPDX license.",
                     $"module/distribution/dependencies/{dependencyIndex}/licenseSpdx"));
+            }
+
+            if (dependency.ApprovalState != DependencyApprovalState.Approved)
+            {
+                diagnostics.Add(new DomainDiagnostic(DependencyApprovalRequiredCode,
+                    $"Dependency '{dependency.Name}' is not approved for distribution.",
+                    $"module/distribution/dependencies/{dependencyIndex}/approvalState"));
+            }
+
+            if (dependency.ApproverRoles.Count < dependency.RequiredApprovals)
+            {
+                diagnostics.Add(new DomainDiagnostic(DependencyReviewRequiredCode,
+                    $"Dependency '{dependency.Name}' does not have enough independent review roles.",
+                    $"module/distribution/dependencies/{dependencyIndex}/approverRoles"));
+            }
+
+            if (string.IsNullOrWhiteSpace(dependency.SecurityAuditReference))
+            {
+                diagnostics.Add(new DomainDiagnostic(DependencySecurityAuditMissingCode,
+                    $"Dependency '{dependency.Name}' has no security audit reference.",
+                    $"module/distribution/dependencies/{dependencyIndex}/securityAuditReference"));
             }
 
             dependencyIndex++;

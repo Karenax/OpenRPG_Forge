@@ -20,7 +20,7 @@ public sealed class RulesProfilePersistenceTests
         Assert.Equal(area.Id.Value, restored.Areas[0].RuntimePolicies.Rules.Perception.Id);
         Assert.True(restored.Areas[0].RuntimePolicies.Rules.Combat.ServerAuthoritative);
         Assert.Contains("\"rules\"", json, StringComparison.Ordinal);
-        Assert.Equal("0.6.20", ProjectJsonSerializer.CurrentFormatVersion);
+        Assert.Equal("0.6.21", ProjectJsonSerializer.CurrentFormatVersion);
         Assert.Equal("1.8.0", AreaJsonSerializer.CurrentFormatVersion);
     }
 

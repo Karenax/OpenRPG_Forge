@@ -158,6 +158,13 @@ réseau hostile, huit fixtures visuelles réelles, benchmarks de zone, budgets p
 traces intégrées. La preuve détaillée est dans
 [`tasks/G11-S-PERFORMANCE-QUALITY-LAB.md`](tasks/G11-S-PERFORMANCE-QUALITY-LAB.md).
 
+## Fermeture G11-T
+
+**G11-T est fermé** : profil d’accessibilité éditeur/runtime, HUD accessible, 112 cas de fuzzing sur
+sept frontières, registre tiers à risque/revues/audit et contrôle NuGet. La preuve détaillée est dans
+[`tasks/G11-T-ACCESSIBILITY-SECURITY-GOVERNANCE.md`](tasks/G11-T-ACCESSIBILITY-SECURITY-GOVERNANCE.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-T** : accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale.
+Construire la tranche de contenu jouable et artistiquement revue sur la fondation terrain
+multi-biome, avant d’engager les extensions IA G12.

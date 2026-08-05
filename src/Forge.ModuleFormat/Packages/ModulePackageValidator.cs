@@ -206,10 +206,17 @@ public static class ModulePackageValidator
                             item.Version,
                             item.LicenseSpdx,
                             item.Owner,
-                            item.SourceReference))
+                            item.SourceReference,
+                            item.ApprovalState,
+                            item.RiskLevel,
+                            item.ApproverRoles,
+                            item.RequiredApprovals,
+                            item.SecurityAuditReference))
                         .OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
                         .ToArray();
-                    if (!expectedApprovals.SequenceEqual(manifest.ThirdPartyDependencies))
+                    if (expectedApprovals.Length != manifest.ThirdPartyDependencies.Count ||
+                        expectedApprovals.Zip(manifest.ThirdPartyDependencies)
+                            .Any(pair => !EquivalentApproval(pair.First, pair.Second)))
                     {
                         diagnostics.Add(new ModulePackageDiagnostic(
                             DependencyApprovalMismatchCode,
@@ -249,6 +256,18 @@ public static class ModulePackageValidator
 
         return new ModulePackageValidationResult(manifest, project, diagnostics);
     }
+
+    private static bool EquivalentApproval(ModuleManifestDependency expected, ModuleManifestDependency actual) =>
+        expected.Id == actual.Id &&
+        string.Equals(expected.Name, actual.Name, StringComparison.Ordinal) &&
+        string.Equals(expected.Version, actual.Version, StringComparison.Ordinal) &&
+        string.Equals(expected.LicenseSpdx, actual.LicenseSpdx, StringComparison.Ordinal) &&
+        string.Equals(expected.Owner, actual.Owner, StringComparison.Ordinal) &&
+        string.Equals(expected.SourceReference, actual.SourceReference, StringComparison.Ordinal) &&
+        expected.ApprovalState == actual.ApprovalState && expected.RiskLevel == actual.RiskLevel &&
+        expected.RequiredApprovals == actual.RequiredApprovals &&
+        string.Equals(expected.SecurityAuditReference, actual.SecurityAuditReference, StringComparison.Ordinal) &&
+        expected.ApproverRoles.SequenceEqual(actual.ApproverRoles, StringComparer.OrdinalIgnoreCase);
 
     public static bool IsSafeArchivePath(string path)
     {

@@ -2,7 +2,7 @@
 
 Fichier généré depuis le contrat `ModuleManifest`.
 
-- Format : `1.1.0`
+- Format : `1.2.0`
 - Extension : `.orpmod`
 - Identité : UUID stable, slug, version et manifeste canonique
 - Intégrité : SHA-256 par entrée et validation avant chargement

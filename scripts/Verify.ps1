@@ -29,6 +29,34 @@ function Invoke-CheckedPython {
     }
 }
 
+function Test-NuGetVulnerabilities {
+    $output = & dotnet package list --project $solutionPath --vulnerable --include-transitive --no-restore --format json 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "NuGet vulnerability audit failed with exit code $LASTEXITCODE.`n$($output -join "`n")"
+    }
+    $document = ($output -join "`n") | ConvertFrom-Json
+    $vulnerable = @($document.projects | ForEach-Object {
+        $frameworksProperty = $_.PSObject.Properties['frameworks']
+        if ($null -ne $frameworksProperty) {
+            $frameworksProperty.Value
+        }
+    } | ForEach-Object {
+        $packages = @()
+        $topLevelProperty = $_.PSObject.Properties['topLevelPackages']
+        $transitiveProperty = $_.PSObject.Properties['transitivePackages']
+        if ($null -ne $topLevelProperty) { $packages += @($topLevelProperty.Value) }
+        if ($null -ne $transitiveProperty) { $packages += @($transitiveProperty.Value) }
+        $packages
+    } | Where-Object {
+        $vulnerabilitiesProperty = $_.PSObject.Properties['vulnerabilities']
+        $null -ne $vulnerabilitiesProperty -and @($vulnerabilitiesProperty.Value).Count -gt 0
+    })
+    if ($vulnerable.Count -gt 0) {
+        throw "NuGet vulnerability audit found $($vulnerable.Count) vulnerable package entries."
+    }
+    Write-Output "dependency vulnerability audit passed: $(@($document.projects).Count) projects, 0 vulnerable packages."
+}
+
 function Invoke-ForgeCliMarkerTest {
     param(
         [Parameter(Mandatory)][string[]]$Arguments,
@@ -86,7 +114,7 @@ function Invoke-ForgeEngineMarkerTest {
 
     # Keep the long-lived smoke inventories aligned with the current workspace schema and
     # append lot markers here so every engine invocation uses one canonical gate contract.
-    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.14.0').Replace('format=1.10.0', 'format=1.14.0').Replace('format=1.11.0', 'format=1.14.0').Replace('format=1.12.0', 'format=1.14.0').Replace('format=1.13.0', 'format=1.14.0') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.15.0').Replace('format=1.10.0', 'format=1.15.0').Replace('format=1.11.0', 'format=1.15.0').Replace('format=1.12.0', 'format=1.15.0').Replace('format=1.13.0', 'format=1.15.0').Replace('format=1.14.0', 'format=1.15.0') })
     if ($Name -eq 'toolset') {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_PASS rules=class-progression-weapon-vfx-casting ui=declarative-reactive-themed-permission events=typed-focus-input-testable json=schema-quota-safe-api snapshots=components-references-inventory-blackboard history=restored persistence=roundtrip'
@@ -94,6 +122,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11Q_RESILIENCE_PASS tasks=goal-scope-forbidden-tests-owner-dependencies crash=sanitized-dump-version-fingerprint-reproduction health=domains-tests-performance-licenses-migrations-coverage recovery=journal-reopen-quarantine-compare sync=resume-dedup-hash-trust-storage history=restored persistence=roundtrip'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11R_QUALITY_PASS localization=coverage-placeholders-plurals-overflow-pseudo scripts=sandbox-quota-mock-coverage dialogues=branches-conditions-actions quests=events-transitions-save-scope encounters=profiles-seeds-nav-cleanup'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11S_PERFORMANCE_PASS network=latency-loss-reconnect-mismatch-authority visual=fixtures-tolerance-quality benchmarks=interior-exterior-stress-load-frame-memory-nav-package budgets=frame-memory-texture-draw-light-script-network profiler=editor-runtime-server-script-database-network'
+        $Markers += 'OPENRPG_FORGE_TOOLSET_G11T_GOVERNANCE_PASS editor=keyboard-labels-scale-contrast-shortcuts runtime=subtitles-captions-color-input-motion-difficulty fuzz=112-cases-7-boundaries-no-crash-no-escape dependencies=approval-risk-review-audit-lifecycle'
     }
     elseif ($Name -eq 'runtime-plain-launch') {
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_EXPERIENCE_PASS cues=0 scatter=0 voices=0 patrols=0 loading=accessible-progress-prefetch audio_api=started-completed-interrupted-music-snapshot patrol_api=streaming-owner-resume'
@@ -103,6 +132,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11Q_RESILIENCE_PASS tasks=bounded-machine-readable crash=sanitized-version-fingerprint-reproduction health=6-domains-healthy recovery=journal-reopen-quarantine-compare sync=resume-dedup-hash-trust-storage'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11R_QUALITY_PASS localization=coverage-placeholders-plurals-overflow-pseudo scripts=2-sandbox-quota-mock-coverage dialogues=1-branches-actions quests=1-events-save-scope encounters=9-seeds-nav-cleanup'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11S_PERFORMANCE_PASS network=9-latency-loss-reconnect-mismatch-authority visual=8-fixtures-tolerance-quality benchmarks=9-interior-exterior-stress-load-frame-memory-nav-package budgets=3-frame-memory-texture-draw-light-script-network profiler=editor-runtime-server-script-database-network'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_G11T_GOVERNANCE_PASS editor=7-keyboard-labels-scale-contrast runtime=7-subtitles-captions-color-input-motion-difficulty fuzz=112-cases-7-boundaries-no-crash-no-escape dependencies=0-approved-risk-review-audit-lifecycle'
     }
 
     $logPath = Join-Path $artifactRoot "$Name.log"
@@ -170,6 +200,7 @@ function Invoke-ForgeEngineMarkerTest {
 Push-Location $repositoryRoot
 try {
     Invoke-CheckedDotnet @('restore', $solutionPath, '--locked-mode')
+    Test-NuGetVulnerabilities
     Invoke-CheckedDotnet @('format', $solutionPath, '--verify-no-changes', '--no-restore', '--verbosity', 'minimal')
     Invoke-CheckedDotnet @('build', $solutionPath, '--configuration', 'Release', '--no-restore')
     Invoke-CheckedDotnet @('test', $solutionPath, '--configuration', 'Release', '--no-build', '--logger', 'console;verbosity=minimal')
@@ -256,6 +287,10 @@ try {
         -Arguments @('run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
             'performance', 'run', $moduleWorkspace) `
         -Marker 'OPENRPG_FORGE_PERFORMANCE_LAB_PASS network_scenarios=9 visual_cases=8 benchmarks=9 budgets=9 spans=5 artifacts=written'
+    Invoke-ForgeCliMarkerTest `
+        -Arguments @('run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+            'governance', 'run', $moduleWorkspace) `
+        -Marker 'OPENRPG_FORGE_GOVERNANCE_LAB_PASS editor=7 runtime=7 fuzz_cases=112 boundaries=7 dependencies=0 artifact=written'
     $releaseSmoke = Join-Path $artifactRoot 'distribution-release-smoke'
     if (Test-Path -LiteralPath $releaseSmoke) {
         Remove-Item -LiteralPath $releaseSmoke -Recurse -Force

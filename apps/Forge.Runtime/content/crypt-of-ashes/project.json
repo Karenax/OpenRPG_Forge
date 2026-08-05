@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.14.0",
+  "formatVersion": "1.15.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -1081,6 +1081,45 @@
                 "includeNetworkSpans": true,
                 "oneClickCapture": true,
                 "outputDirectory": ".forge/quality/traces",
+                "provenance": "migration-default"
+              },
+              "accessibility": {
+                "id": "733bc6f5-aa91-5015-9203-108922e3cb0c",
+                "schemaVersion": 1,
+                "editorKeyboardOnly": true,
+                "editorScreenReaderLabels": true,
+                "editorColorIndependentStatus": true,
+                "editorShortcutReference": true,
+                "minimumContrastRatio": 4.5,
+                "editorTextScale": 1.25,
+                "runtimeSubtitles": true,
+                "runtimeCaptions": true,
+                "runtimeTextScale": 1.2,
+                "runtimeHighContrast": true,
+                "runtimeColorVisionMode": "deuteranopia",
+                "runtimeInputAssists": true,
+                "runtimeReducedMotion": false,
+                "runtimeDifficultyAssists": true,
+                "provenance": "migration-default"
+              },
+              "securityFuzz": {
+                "id": "2c73ef38-c2c2-5379-b3a6-9c667cca7b68",
+                "schemaVersion": 1,
+                "seed": 2026,
+                "casesPerBoundary": 16,
+                "maximumInputBytes": 65536,
+                "timeBudgetMilliseconds": 10000,
+                "boundaries": [
+                  "forgescript",
+                  "image-header",
+                  "model-header",
+                  "network-json",
+                  "package-archive",
+                  "path-sandbox",
+                  "project-json"
+                ],
+                "requireNoCrash": true,
+                "requireNoPathEscape": true,
                 "provenance": "migration-default"
               },
               "provenance": "migration-default"

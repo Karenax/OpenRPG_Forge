@@ -164,6 +164,15 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public WorkspaceGovernanceLabReport RunGovernanceLab()
+    {
+        lock (_gate)
+        {
+            return new WorkspaceGovernanceLabService(new NativeForgeScriptRuntime())
+                .Run(_session.RootDirectory, _history.State.Project, new WorkspaceGovernanceLabOptions(false));
+        }
+    }
+
     private static string FindRepositoryRoot(string start)
     {
         var directory = new DirectoryInfo(Path.GetFullPath(start));

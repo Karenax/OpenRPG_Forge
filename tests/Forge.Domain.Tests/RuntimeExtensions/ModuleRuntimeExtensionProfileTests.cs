@@ -57,6 +57,17 @@ public sealed class ModuleRuntimeExtensionProfileTests
         Assert.True(profile.UiToolkit.Accessibility);
         Assert.True(profile.Compiler.Incremental);
         Assert.Equal(6, profile.Documentation.Catalogs.Count);
+        Assert.True(profile.QualityAssurance.Accessibility.EditorKeyboardOnly);
+        Assert.True(profile.QualityAssurance.Accessibility.RuntimeSubtitles);
+        Assert.Equal(RuntimeColorVisionMode.Deuteranopia,
+            profile.QualityAssurance.Accessibility.RuntimeColorVisionMode);
+        Assert.True(SecurityFuzzProfile.SupportedBoundaries.SetEquals(
+            profile.QualityAssurance.SecurityFuzz.Boundaries));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new AccessibilityQualityProfile(Guid.NewGuid(), 1,
+            true, true, true, true, 2, 1, true, true, 1, true, RuntimeColorVisionMode.Standard,
+            true, false, true, "test"));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SecurityFuzzProfile(Guid.NewGuid(), 1, 1,
+            1, 64, 100, ["unknown-boundary"], true, true, "test"));
         Assert.Throws<ArgumentException>(() => new GeneratedDocumentationProfile(Guid.NewGuid(), 1,
             "../outside", ["features"], true, "test"));
     }

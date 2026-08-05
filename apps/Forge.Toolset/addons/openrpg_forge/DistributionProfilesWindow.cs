@@ -39,6 +39,11 @@ public partial class DistributionProfilesWindow : Window
     private LineEdit? _dependencySource;
     private LineEdit? _dependencyCadence;
     private LineEdit? _dependencyTargets;
+    private OptionButton? _dependencyApprovalState;
+    private OptionButton? _dependencyRisk;
+    private LineEdit? _dependencyReviewers;
+    private LineEdit? _dependencyRequiredApprovals;
+    private LineEdit? _dependencySecurityAudit;
     private TextEdit? _dependencyRationale;
     private TextEdit? _dependencyRemovalPlan;
     private OptionButton? _releaseChannel;
@@ -236,7 +241,11 @@ public partial class DistributionProfilesWindow : Window
         _dependencySource = AddGridField(dependencyGrid, "Source", "https://…");
         _dependencyCadence = AddGridField(dependencyGrid, "Cadence", "trimestrielle");
         _dependencyTargets = AddGridField(dependencyGrid, "Cibles", "client, shipping");
-        dependencyGrid.AddChild(new Control());
+        _dependencyApprovalState = AddGridEnum<DependencyApprovalState>(dependencyGrid, "Approbation");
+        _dependencyRisk = AddGridEnum<DependencyRiskLevel>(dependencyGrid, "Risque");
+        _dependencyReviewers = AddGridField(dependencyGrid, "Rôles de revue", "owner, security-review");
+        _dependencyRequiredApprovals = AddGridField(dependencyGrid, "Revues requises", "2");
+        _dependencySecurityAudit = AddGridField(dependencyGrid, "Audit sécurité", "rapport ou URL");
         dependencyCard.AddChild(new Label { Text = "Justification" });
         _dependencyRationale = new TextEdit { CustomMinimumSize = new Vector2(0, 54) };
         dependencyCard.AddChild(_dependencyRationale);
@@ -329,6 +338,7 @@ public partial class DistributionProfilesWindow : Window
                  {
                      _outputName, _secretsProfile, _dependencyName, _dependencyVersion, _dependencyLicense,
                      _dependencyOwner, _dependencySource, _dependencyCadence, _dependencyTargets,
+                     _dependencyReviewers, _dependencyRequiredApprovals, _dependencySecurityAudit,
                      _releasePlatforms, _signingProfile, _trustedKeys, _revokedKeys, _deltaChunkKilobytes,
                      _deltaRetainedVersions, _windowsPrerequisites,
                  })
@@ -346,7 +356,8 @@ public partial class DistributionProfilesWindow : Window
             toggle!.Toggled += _ => InvalidatePreview();
         }
 
-        foreach (var options in new[] { _releaseChannel, _signingMode, _windowsMode })
+        foreach (var options in new[] { _releaseChannel, _signingMode, _windowsMode,
+                     _dependencyApprovalState, _dependencyRisk })
         {
             options!.ItemSelected += _ => InvalidatePreview();
         }
@@ -412,7 +423,13 @@ public partial class DistributionProfilesWindow : Window
                 _dependencyRemovalPlan!.Text,
                 _dependencySource!.Text,
                 ParseTargets(_dependencyTargets!.Text),
-                "creator-command");
+                "creator-command",
+                approvalState: (DependencyApprovalState)_dependencyApprovalState!.Selected,
+                riskLevel: (DependencyRiskLevel)_dependencyRisk!.Selected,
+                approverRoles: ParseCsv(_dependencyReviewers!.Text),
+                requiredApprovals: int.Parse(_dependencyRequiredApprovals!.Text,
+                    System.Globalization.CultureInfo.InvariantCulture),
+                securityAuditReference: _dependencySecurityAudit!.Text);
             var duplicate = _dependencies.FindIndex(item =>
                 item.Id != dependency.Id && string.Equals(item.Name, dependency.Name, StringComparison.OrdinalIgnoreCase));
             if (duplicate >= 0)
@@ -432,7 +449,7 @@ public partial class DistributionProfilesWindow : Window
             InvalidatePreview();
             SetStatus($"Dépendance '{dependency.Name}' prête dans le registre.", false);
         }
-        catch (ArgumentException exception)
+        catch (Exception exception) when (exception is ArgumentException or FormatException or OverflowException)
         {
             SetStatus(exception.Message, true);
         }
@@ -624,10 +641,13 @@ public partial class DistributionProfilesWindow : Window
         {
             _dependencyList.AddItem(
                 $"{dependency.Name} {dependency.Version}\n{dependency.LicenseSpdx} · {dependency.Owner} · " +
+                $"{dependency.ApprovalState} · {dependency.RiskLevel} · " +
                 string.Join(", ", dependency.RequiredForTargets.Select(FormatTarget)));
             _dependencyList.SetItemTooltip(
                 _dependencyList.ItemCount - 1,
-                $"UUID {dependency.Id}\nCadence {dependency.UpdateCadence}\nRetrait {dependency.RemovalPlan}");
+                $"UUID {dependency.Id}\nCadence {dependency.UpdateCadence}\n" +
+                $"Revues {dependency.RequiredApprovals}: {string.Join(", ", dependency.ApproverRoles)}\n" +
+                $"Audit {dependency.SecurityAuditReference}\nRetrait {dependency.RemovalPlan}");
         }
     }
 
@@ -643,6 +663,12 @@ public partial class DistributionProfilesWindow : Window
         _dependencySource!.Text = dependency.SourceReference;
         _dependencyCadence!.Text = dependency.UpdateCadence;
         _dependencyTargets!.Text = string.Join(", ", dependency.RequiredForTargets.Select(target => target.ToString()));
+        _dependencyApprovalState!.Selected = (int)dependency.ApprovalState;
+        _dependencyRisk!.Selected = (int)dependency.RiskLevel;
+        _dependencyReviewers!.Text = string.Join(", ", dependency.ApproverRoles);
+        _dependencyRequiredApprovals!.Text = dependency.RequiredApprovals.ToString(
+            System.Globalization.CultureInfo.InvariantCulture);
+        _dependencySecurityAudit!.Text = dependency.SecurityAuditReference;
         _dependencyRationale!.Text = dependency.Rationale;
         _dependencyRemovalPlan!.Text = dependency.RemovalPlan;
     }
@@ -654,6 +680,7 @@ public partial class DistributionProfilesWindow : Window
                  {
                      _dependencyName, _dependencyVersion, _dependencyLicense, _dependencyOwner, _dependencySource,
                      _dependencyCadence, _dependencyTargets,
+                     _dependencyReviewers, _dependencyRequiredApprovals, _dependencySecurityAudit,
                  })
         {
             field!.Text = string.Empty;
@@ -661,6 +688,9 @@ public partial class DistributionProfilesWindow : Window
 
         _dependencyRationale!.Text = string.Empty;
         _dependencyRemovalPlan!.Text = string.Empty;
+        _dependencyApprovalState!.Selected = (int)DependencyApprovalState.Approved;
+        _dependencyRisk!.Selected = (int)DependencyRiskLevel.Low;
+        _dependencyRequiredApprovals!.Text = "2";
     }
 
     private void InvalidatePreview()
@@ -755,6 +785,16 @@ public partial class DistributionProfilesWindow : Window
         var field = new LineEdit { PlaceholderText = placeholder, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         parent.AddChild(field);
         return field;
+    }
+
+    private static OptionButton AddGridEnum<TEnum>(GridContainer parent, string label)
+        where TEnum : struct, Enum
+    {
+        parent.AddChild(new Label { Text = label });
+        var options = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var value in Enum.GetValues<TEnum>()) options.AddItem(value.ToString());
+        parent.AddChild(options);
+        return options;
     }
 
     private static Label Section(string text)

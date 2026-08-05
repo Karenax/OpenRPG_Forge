@@ -1,5 +1,22 @@
 namespace Forge.Domain.Modules;
 
+public enum DependencyApprovalState
+{
+    Approved,
+    Draft,
+    UnderReview,
+    Rejected,
+    Retiring,
+}
+
+public enum DependencyRiskLevel
+{
+    Low,
+    Medium,
+    High,
+    Critical,
+}
+
 public sealed record ThirdPartyDependencyApproval
 {
     public const int CurrentSchemaVersion = 1;
@@ -28,6 +45,16 @@ public sealed record ThirdPartyDependencyApproval
 
     public string Provenance { get; }
 
+    public DependencyApprovalState ApprovalState { get; }
+
+    public DependencyRiskLevel RiskLevel { get; }
+
+    public IReadOnlyList<string> ApproverRoles { get; }
+
+    public int RequiredApprovals { get; }
+
+    public string SecurityAuditReference { get; }
+
     public ThirdPartyDependencyApproval(
         ThirdPartyDependencyId id,
         string name,
@@ -40,7 +67,12 @@ public sealed record ThirdPartyDependencyApproval
         string sourceReference,
         IReadOnlyList<ModuleTargetKind> requiredForTargets,
         string provenance,
-        int schemaVersion = CurrentSchemaVersion)
+        int schemaVersion = CurrentSchemaVersion,
+        DependencyApprovalState approvalState = DependencyApprovalState.Approved,
+        DependencyRiskLevel riskLevel = DependencyRiskLevel.Low,
+        IReadOnlyList<string>? approverRoles = null,
+        int requiredApprovals = 0,
+        string? securityAuditReference = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -67,6 +99,15 @@ public sealed record ThirdPartyDependencyApproval
                 nameof(requiredForTargets));
         }
 
+        var roles = (approverRoles ?? [owner.Trim(), "security-review"])
+            .Select(value => value?.Trim() ?? string.Empty).Where(value => value.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        var approvalCount = requiredApprovals == 0 ? 2 : requiredApprovals;
+        if (!Enum.IsDefined(approvalState) || !Enum.IsDefined(riskLevel) || approvalCount is < 1 or > 8 ||
+            roles.Length < approvalCount ||
+            approvalState == DependencyApprovalState.Approved && string.IsNullOrWhiteSpace(securityAuditReference ?? sourceReference))
+            throw new ArgumentException("Dependency governance requires valid risk, reviewers and security evidence.");
+
         Id = id;
         SchemaVersion = schemaVersion;
         Name = name.Trim();
@@ -79,5 +120,10 @@ public sealed record ThirdPartyDependencyApproval
         SourceReference = sourceReference.Trim();
         RequiredForTargets = targets;
         Provenance = provenance.Trim();
+        ApprovalState = approvalState;
+        RiskLevel = riskLevel;
+        ApproverRoles = roles;
+        RequiredApprovals = approvalCount;
+        SecurityAuditReference = (securityAuditReference ?? sourceReference).Trim();
     }
 }

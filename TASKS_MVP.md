@@ -432,7 +432,7 @@ Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dan
 - [x] **G11-Q** — manifestes de tâches, crash artifacts, santé, récupération et synchronisation.
 - [x] **G11-R** — laboratoire qualité : localisation, ForgeScript, dialogues, quêtes et rencontres.
 - [x] **G11-S** — tests réseau/visuels, benchmarks, budgets et profilage intégré.
-- [ ] **G11-T** — accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale.
+- [x] **G11-T** — accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale.
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest
 

@@ -115,7 +115,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-BUILD-019 | ADRs | P0 | Implemented | G0 |
 | ORF-BUILD-020 | Documentation générée | P1 | Tested | G11 |
 | ORF-BUILD-021 | Task manifests | P1 | Tested | G11 |
-| ORF-BUILD-022 | Dependency approval | P0 | Implemented | G11 |
+| ORF-BUILD-022 | Dependency approval | P0 | Tested | G11 |
 | ORF-BUILD-023 | Third-party notices | P0 | Implemented | G11 |
 | ORF-BUILD-024 | Release channels | P2 | Implemented | G11 |
 | ORF-BUILD-025 | Crash artifacts | P1 | Tested | G11 |
@@ -586,9 +586,9 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-QA-020 | Logs structurés | P0 | Implemented | G7 |
 | ORF-QA-021 | Diagnostics cliquables | P0 | Implemented | G7 |
 | ORF-QA-022 | Rapport de santé du projet | P1 | Tested | G11 |
-| ORF-QA-023 | Accessibilité de l’éditeur | P1 | Researched | G11 |
-| ORF-QA-024 | Accessibilité du runtime | P1 | Researched | G11 |
-| ORF-QA-025 | Security fuzzing | P1 | Researched | G11 |
+| ORF-QA-023 | Accessibilité de l’éditeur | P1 | Tested | G11 |
+| ORF-QA-024 | Accessibilité du runtime | P1 | Tested | G11 |
+| ORF-QA-025 | Security fuzzing | P1 | Tested | G11 |
 | ORF-QA-026 | Malicious module fixtures | P0 | Implemented | G4 |
 | ORF-QA-027 | Soak tests | P2 | Researched | G13 |
 | ORF-QA-028 | Crash recovery | P1 | Tested | G11 |

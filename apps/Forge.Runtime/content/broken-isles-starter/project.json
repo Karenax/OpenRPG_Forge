@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.14.0",
+  "formatVersion": "1.15.0",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -816,6 +816,45 @@
                 "includeNetworkSpans": true,
                 "oneClickCapture": true,
                 "outputDirectory": ".forge/quality/traces",
+                "provenance": "migration-default"
+              },
+              "accessibility": {
+                "id": "d4e06f93-e955-5fa6-94d7-27fc7ccb7aaf",
+                "schemaVersion": 1,
+                "editorKeyboardOnly": true,
+                "editorScreenReaderLabels": true,
+                "editorColorIndependentStatus": true,
+                "editorShortcutReference": true,
+                "minimumContrastRatio": 4.5,
+                "editorTextScale": 1.25,
+                "runtimeSubtitles": true,
+                "runtimeCaptions": true,
+                "runtimeTextScale": 1.2,
+                "runtimeHighContrast": true,
+                "runtimeColorVisionMode": "deuteranopia",
+                "runtimeInputAssists": true,
+                "runtimeReducedMotion": false,
+                "runtimeDifficultyAssists": true,
+                "provenance": "migration-default"
+              },
+              "securityFuzz": {
+                "id": "e33927e8-6b22-515a-b646-9f1b50a42720",
+                "schemaVersion": 1,
+                "seed": 2026,
+                "casesPerBoundary": 16,
+                "maximumInputBytes": 65536,
+                "timeBudgetMilliseconds": 10000,
+                "boundaries": [
+                  "forgescript",
+                  "image-header",
+                  "model-header",
+                  "network-json",
+                  "package-archive",
+                  "path-sandbox",
+                  "project-json"
+                ],
+                "requireNoCrash": true,
+                "requireNoPathEscape": true,
                 "provenance": "migration-default"
               },
               "provenance": "migration-default"

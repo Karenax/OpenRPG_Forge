@@ -66,6 +66,11 @@ static int Run(IReadOnlyList<string> arguments)
             return RunPerformanceLab(arguments[2]);
         }
 
+        if (arguments.Count == 3 && arguments[0] == "governance" && arguments[1] == "run")
+        {
+            return RunGovernanceLab(arguments[2]);
+        }
+
         if (arguments.Count == 3 && arguments[0] == "workspace" && arguments[1] == "migrate")
         {
             return MigrateWorkspace(arguments[2]);
@@ -84,6 +89,7 @@ static int Run(IReadOnlyList<string> arguments)
             "forge readiness <validate|health|crash|recovery|sync-plan> ... | " +
             "forge quality run <workspace> | " +
             "forge performance run <workspace> | " +
+            "forge governance run <workspace> | " +
             "forge workspace migrate <target-directory> | forge author-original <target-directory>");
         return 2;
     }
@@ -129,6 +135,25 @@ static int RunQualityLab(string workspaceDirectory)
             $"locales={report.Localization.Coverage.Count} scripts={report.Scripts.Tests.Count} " +
             $"dialogues={report.Dialogues.Count} quests={report.Quests.Count} " +
             $"encounter_runs={report.Encounters.TotalRuns} pseudo=snapshot fingerprint={report.Fingerprint}");
+    return report.Passed ? 0 : 1;
+}
+
+static int RunGovernanceLab(string workspaceDirectory)
+{
+    var opened = ProjectSession.Open(workspaceDirectory);
+    if (!opened.Succeeded || opened.Session is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+        return 1;
+    }
+    var report = new WorkspaceGovernanceLabService(new NativeForgeScriptRuntime())
+        .Run(opened.Session.RootDirectory, opened.Session.Project);
+    Console.WriteLine(JsonSerializer.Serialize(new { valid = report.Passed, report }));
+    if (report.Passed)
+        Console.WriteLine("OPENRPG_FORGE_GOVERNANCE_LAB_PASS " +
+            $"editor={report.Accessibility.EditorChecks.Count} runtime={report.Accessibility.RuntimeChecks.Count} " +
+            $"fuzz_cases={report.SecurityFuzz.TotalCases} boundaries={report.SecurityFuzz.Boundaries.Count} " +
+            $"dependencies={report.Dependencies.DependencyCount} artifact=written fingerprint={report.Fingerprint}");
     return report.Passed ? 0 : 1;
 }
 

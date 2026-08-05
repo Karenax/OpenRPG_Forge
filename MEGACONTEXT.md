@@ -611,8 +611,8 @@ passer par des commandes transactionnelles, annulables, validables et testables 
 
 ### 9.5 État actuel de l’expérience Creator
 
-Le MVP solo et les gates G7 à G10 sont fermés. **G11-A à G11-S** sont livrés avec preuves
-automatisées et revues visuelles ciblées ; G11-T est le lot ouvert. L’expérience Creator comprend :
+Le MVP solo et les gates G7 à G11 sont fermés avec preuves automatisées et revues visuelles
+ciblées. Le lot actif construit une carte 3D jouable et artistiquement revue. L’expérience Creator comprend :
 
 - le workspace **Blueprints** recherche par nom, slug ou type, crée et édite une définition par
   commandes transactionnelles, dérive un blueprint depuis une instance sans perdre ses overrides
@@ -664,11 +664,12 @@ automatisées et revues visuelles ciblées ; G11-T est le lot ouvert. L’expér
 - le même workspace configure copie runtime, indicateurs AOE, toolkit NUI 2.0, compilateur et
   documentation ; la Crypte affiche formulaires, listes et canvas, tandis que CLI/MCP contrôlent six
   catalogues générés sans édition manuelle.
-- le bouton **Qualité** ouvre un laboratoire à onze volets partagé avec CLI, runtime et MCP :
+- le bouton **Qualité** ouvre un laboratoire à quinze volets partagé avec CLI, runtime et MCP :
   couverture et pseudo-localisation, scripts natifs sous quotas, narration, rencontres, réseau
   hostile, huit fixtures visuelles, benchmarks de zone, budgets multi-plateformes et traces
-  éditeur/runtime/serveur. Ses paramètres sont persistés dans le module et modifiables par la même
-  commande annulable que les autres politiques modernes.
+  éditeur/runtime/serveur, accessibilité éditeur/runtime, fuzzing de sept frontières et gouvernance
+  des dépendances. Ses paramètres sont persistés dans le module et modifiables par la même commande
+  annulable que les autres politiques modernes.
 
 Les contrats, critères et preuves sont détaillés dans `docs/aurora-parity/tasks/`,
 `docs/UX_AURORA_2026.md` et `STATUS.md`. G11-K a livré séquences/cutscenes, ancres caméra et
@@ -680,8 +681,9 @@ JSON sûr et snapshots d’entités ; G11-P a livré copie runtime gouvernée, i
 compilateur incrémental instrumenté et documentation générée ; G11-Q a livré manifestes de tâches,
 crash artifacts, santé par domaines, récupération comparée et synchronisation vérifiée ; G11-R a
 livré le laboratoire déterministe de localisation, ForgeScript, narration et rencontres ; G11-S a
-livré réseau hostile, régression visuelle, benchmarks, budgets et profilage intégré. La prochaine
-tranche est **G11-T — accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale**.
+livré réseau hostile, régression visuelle, benchmarks, budgets et profilage intégré ; G11-T a livré
+accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale. La prochaine tranche produit
+une vraie carte 3D jouable, agréable et revue visuellement avant les extensions IA G12.
 
 ---
 
