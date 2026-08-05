@@ -193,7 +193,7 @@ Le second module original **La Veillée des Éclats** est désormais généré p
 L'atelier RPG Kit est maintenant relié au bus de commandes avec dry-run, application, undo/redo et
 diagnostics. La prochaine tranche est la revue visuelle nominale/maximisée, puis la fermeture G8.
 G8 est fermé : 184/184 exigences justifiées, atelier auteur responsive, second module original
-exporté et joué, portail global vert. **G9 Network Beta est fermé**. **G10 Live Director est fermé** avec 32 contrats, scénario GM sur Network Beta, autorité, audit immuable et surface Aurora 2026 revue visuellement. L'audit **G11 Contenu moderne et qualité de distribution** couvre désormais ses 99 exigences dans 20 lots de cinq IDs maximum. **G11-A et G11-B sont fermés** ; G11-C livre le round-trip externe persistant, le pont Blender typé optionnel, la parité plateforme et l’analyse sûre des migrations/désinstallations, avec clôture après revue visuelle et portail global.
+exporté et joué, portail global vert. **G9 Network Beta est fermé**. **G10 Live Director est fermé** avec 32 contrats, scénario GM sur Network Beta, autorité, audit immuable et surface Aurora 2026 revue visuellement. L'audit **G11 Contenu moderne et qualité de distribution** couvre désormais ses 99 exigences dans 20 lots de cinq IDs maximum. **G11-A, G11-B et G11-C sont fermés** ; le round-trip externe persistant et le pont Blender typé ont produit un GLB 2 réel avec source immuable. G11-D porte maintenant signatures, deltas et distribution multi-plateforme gouvernée.
 
 ## Phase 6 — 3D assistée
 

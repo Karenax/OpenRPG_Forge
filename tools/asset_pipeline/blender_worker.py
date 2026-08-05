@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -159,6 +160,11 @@ def _write_json_atomically(path: pathlib.Path, payload: dict) -> None:
             os.unlink(temporary)
 
 
+def _encode_bridge_payload(payload: object) -> str:
+    serialized = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(serialized).decode("ascii")
+
+
 def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, validate_only: bool) -> dict:
     source_path = pathlib.Path(request.pop("_sourcePath"))
     output_path = pathlib.Path(request.pop("_outputPath"))
@@ -196,14 +202,17 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
         "--",
         str(source_path),
         str(output_path),
-        json.dumps(request["operations"], separators=(",", ":")),
-        json.dumps(request["options"], separators=(",", ":")),
+        _encode_bridge_payload(request["operations"]),
+        _encode_bridge_payload(request["options"]),
     ]
     completed = subprocess.run(command, capture_output=True, text=True, timeout=900, check=False)
     if completed.returncode != 0:
         detail = (completed.stderr or completed.stdout or "Blender worker failed.").strip()[-2000:]
         raise WorkerError("asset.worker.blender_failed", detail, request["outputRelativePath"])
     if not output_path.is_file():
+        detail = (completed.stderr or completed.stdout or "").strip()
+        if detail:
+            raise WorkerError("asset.worker.blender_failed", detail[-2000:], request["outputRelativePath"])
         raise WorkerError("asset.worker.output_missing", "Blender did not produce the requested GLB.", request["outputRelativePath"])
     if _sha256(source_path) != source_hash_before:
         raise WorkerError("asset.worker.source_modified", "External worker modified the immutable source.", request["sourceRelativePath"])

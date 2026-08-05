@@ -1,10 +1,11 @@
 # État du projet — OpenRPG Forge
 
-Dernière mise à jour : 4 août 2026.
+Dernière mise à jour : 5 août 2026.
 
 ## Gate actuel
 
-**MVP solo validé, G0 fermé et G7 Creator Core ouvert — G7-19 franchi.**
+**MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
+fermés ; G11-C Contenu moderne fermé et G11-D ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -75,12 +76,13 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 
 ## État prouvé
 
-- dépôt Git configuré sur la branche `main`, baseline initiale locale enregistrée et origine `https://github.com/Karenax/OpenRPG_Forge.git` prête pour un futur push ;
+- dépôt Git configuré sur `main` et synchronisé avec `https://github.com/Karenax/OpenRPG_Forge.git` ;
 - Windows 11 Professionnel 64 bits, build 26200 ;
 - Git `2.55.0.windows.2` disponible ;
 - SDK .NET `10.0.302` installé et épinglé par `global.json` ;
 - moteur 3D .NET requis installé et versionné ;
-- CMake et Blender ne sont pas requis ; le build natif emploie le toolchain Zig 0.16.0 épinglé ;
+- CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
+  disponible comme worker de création optionnel ;
 - solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
 - 256 tests .NET et 24 tests Python réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
@@ -245,8 +247,8 @@ que la licence et la provenance.
 animation, VFX et LOD, inclusion `.orpmod`, contrôle runtime de présence et SHA-256, surface auteur
 transactionnelle revue visuellement.
 
-**G11-C est en validation finale** : round-trip externe persistant et transactionnel, worker Blender
-typé optionnel, parité plateforme, migrations/désinstallations analysées en dry-run et smoke réel sur
-un OBJ du Vault. La production GLB par Blender reste une preuve conditionnée à l’installation du
-binaire optionnel. Après revue visuelle et portail global, commencer G11-D puis la curation du premier
-pack de carte 3D.
+**G11-C est fermé** : round-trip externe persistant et transactionnel, worker Blender typé
+optionnel, parité plateforme, migrations/désinstallations analysées en dry-run et production réelle
+d'un GLB 2 texturé depuis un OBJ du Vault. Blender 4.5.10 a produit collisions et LOD, le hash du
+source est resté inchangé et le rendu de contrôle est valide. G11-D porte maintenant signatures,
+deltas et qualité de distribution avant la curation du premier pack de carte 3D.

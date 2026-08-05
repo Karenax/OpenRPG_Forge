@@ -7,6 +7,7 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $solutionPath = Join-Path $repositoryRoot 'OpenRPGForge.sln'
 $artifactRoot = Join-Path $repositoryRoot 'artifacts\verification'
 $enginePath = Get-ForgeEnginePath
+$blenderPath = Get-ForgeBlenderPath -Optional
 
 New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
 
@@ -188,13 +189,17 @@ try {
     $assetImportSmoke = Join-Path $artifactRoot 'asset-import-smoke'
     $modelSource = Join-Path $assetVault 'normalized\kenney\castle-kit\Models\GLB format\bridge-draw.glb'
     $textureSource = Join-Path $assetVault 'normalized\ambientcg\3DApple001\lq-1k-jpg\3DApple001.png'
-    if ((Test-Path -LiteralPath $modelSource) -and (Test-Path -LiteralPath $textureSource)) {
+    $roundTripSource = Join-Path $assetVault 'normalized\ambientcg\3DApple001\lq-1k-jpg\3DApple001_LQ-1K-JPG.obj'
+    if ((Test-Path -LiteralPath $modelSource) -and
+        (Test-Path -LiteralPath $textureSource) -and
+        (Test-Path -LiteralPath $roundTripSource)) {
         if (Test-Path -LiteralPath $assetImportSmoke) {
             Remove-Item -LiteralPath $assetImportSmoke -Recurse -Force
         }
         [System.IO.Directory]::CreateDirectory($assetImportSmoke) | Out-Null
         $modelSourceHash = (Get-FileHash -LiteralPath $modelSource -Algorithm SHA256).Hash
         $textureSourceHash = (Get-FileHash -LiteralPath $textureSource -Algorithm SHA256).Hash
+        $roundTripSourceHash = (Get-FileHash -LiteralPath $roundTripSource -Algorithm SHA256).Hash
         Invoke-CheckedDotnet @(
             'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
             'assets', 'prepare', $repositoryRoot, $assetImportSmoke,
@@ -215,15 +220,44 @@ try {
             $assetImportSmoke `
             'assets\roundtrip\96ce5ad8-a1e9-8255-99ce-11cf8d593506.worker-request.json'
         $roundTripResponse = Join-Path $assetImportSmoke 'assets\roundtrip\worker-response.json'
-        Invoke-CheckedPython @(
+        $workerArguments = @(
             (Join-Path $repositoryRoot 'tools\asset_pipeline\blender_worker.py'),
             '--request', $roundTripRequest,
             '--response', $roundTripResponse,
             '--source-root', $assetVault,
-            '--workspace-root', $assetImportSmoke,
-            '--validate-only')
+            '--workspace-root', $assetImportSmoke)
+        if ($blenderPath) {
+            $workerArguments += @('--blender', $blenderPath)
+        }
+        else {
+            $workerArguments += '--validate-only'
+        }
+        Invoke-CheckedPython $workerArguments
+        $roundTripResult = Get-Content -LiteralPath $roundTripResponse -Raw | ConvertFrom-Json
+        if (-not $roundTripResult.valid) {
+            throw 'The Blender worker did not return a valid governed response.'
+        }
+        if ($blenderPath) {
+            $roundTripOutput = Join-Path $assetImportSmoke 'assets\imported\ambientcg-3dapple001\model.glb'
+            if (-not $roundTripResult.executed -or -not (Test-Path -LiteralPath $roundTripOutput -PathType Leaf)) {
+                throw 'The installed Blender worker did not produce the governed GLB output.'
+            }
+            $roundTripOutputHash = (Get-FileHash -LiteralPath $roundTripOutput -Algorithm SHA256).Hash
+            $roundTripOutputBytes = [System.IO.File]::ReadAllBytes($roundTripOutput)
+            $roundTripMagic = [System.Text.Encoding]::ASCII.GetString($roundTripOutputBytes, 0, 4)
+            $roundTripDeclaredLength = [BitConverter]::ToUInt32($roundTripOutputBytes, 8)
+            if ($roundTripMagic -ne 'glTF' -or
+                $roundTripDeclaredLength -ne $roundTripOutputBytes.Length -or
+                $roundTripOutputHash -ne $roundTripResult.outputSha256) {
+                throw 'The Blender output is not a self-consistent GLB 2 artifact.'
+            }
+            Write-Output (
+                "OPENRPG_FORGE_G11C_BLENDER_SMOKE_PASS bytes=$($roundTripOutputBytes.Length) " +
+                "sha256=$($roundTripResult.outputSha256)")
+        }
         if ($modelSourceHash -ne (Get-FileHash -LiteralPath $modelSource -Algorithm SHA256).Hash -or
             $textureSourceHash -ne (Get-FileHash -LiteralPath $textureSource -Algorithm SHA256).Hash -or
+            $roundTripSourceHash -ne (Get-FileHash -LiteralPath $roundTripSource -Algorithm SHA256).Hash -or
             -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\kenney-castle-kit\model.glb')) -or
             -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\imported\ambientcg-3dapple001\import-receipt.json')) -or
             -not (Test-Path -LiteralPath (Join-Path $assetImportSmoke 'assets\asset-manifests.json')) -or
@@ -232,7 +266,8 @@ try {
             -not (Test-Path -LiteralPath $roundTripResponse)) {
             throw 'Asset preparation did not preserve Vault sources or produce the governed outputs.'
         }
-        Write-Output 'asset-import-smoke passed.'
+        $workerMode = if ($blenderPath) { "Blender executable: $blenderPath" } else { 'validation-only' }
+        Write-Output "asset-import-smoke passed ($workerMode)."
     } else {
         Write-Output 'asset-import-smoke skipped: external Vault fixtures unavailable.'
     }

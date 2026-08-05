@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import pathlib
 import sys
 
 import bpy
+from mathutils import Vector
+
+
+def _decode_payload(value: str):
+    return json.loads(base64.urlsafe_b64decode(value.encode("ascii")).decode("utf-8"))
 
 
 def _arguments() -> tuple[pathlib.Path, pathlib.Path, list[str], dict]:
@@ -14,7 +20,11 @@ def _arguments() -> tuple[pathlib.Path, pathlib.Path, list[str], dict]:
     values = sys.argv[separator + 1 :]
     if len(values) != 4:
         raise ValueError("Expected source, output, operations and options.")
-    return pathlib.Path(values[0]), pathlib.Path(values[1]), json.loads(values[2]), json.loads(values[3])
+    operations = _decode_payload(values[2])
+    options = _decode_payload(values[3])
+    if not isinstance(operations, list) or not isinstance(options, dict):
+        raise ValueError("Expected typed operations and options payloads.")
+    return pathlib.Path(values[0]), pathlib.Path(values[1]), operations, options
 
 
 def _reset() -> None:
@@ -50,7 +60,7 @@ def _normalize(options: dict) -> None:
     if options["pivot"] == "ground_center":
         meshes = [item for item in bpy.context.scene.objects if item.type == "MESH"]
         if meshes:
-            minimum_z = min((item.matrix_world @ corner).z for item in meshes for corner in item.bound_box)
+            minimum_z = min((item.matrix_world @ Vector(corner)).z for item in meshes for corner in item.bound_box)
             for item in bpy.context.scene.objects:
                 item.location.z -= minimum_z
 

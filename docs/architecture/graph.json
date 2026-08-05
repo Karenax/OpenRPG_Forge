@@ -1951,7 +1951,7 @@
     },
     {
       "evidence": {
-        "line": 166,
+        "line": 168,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1960,7 +1960,7 @@
     },
     {
       "evidence": {
-        "line": 226,
+        "line": 228,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -1969,7 +1969,7 @@
     },
     {
       "evidence": {
-        "line": 81,
+        "line": 82,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -15037,7 +15037,7 @@
     },
     {
       "evidence": {
-        "line": 12,
+        "line": 18,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -15046,7 +15046,16 @@
     },
     {
       "evidence": {
-        "line": 74,
+        "line": 14,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._decode_payload",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 84,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -15055,7 +15064,7 @@
     },
     {
       "evidence": {
-        "line": 58,
+        "line": 68,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -15064,7 +15073,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 35,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -15073,7 +15082,7 @@
     },
     {
       "evidence": {
-        "line": 41,
+        "line": 51,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -15082,7 +15091,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 30,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -15091,7 +15100,7 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 92,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -15100,7 +15109,7 @@
     },
     {
       "evidence": {
-        "line": 37,
+        "line": 38,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -15109,7 +15118,16 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 163,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._encode_bridge_payload",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 52,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -15118,7 +15136,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 60,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -15127,7 +15145,7 @@
     },
     {
       "evidence": {
-        "line": 147,
+        "line": 148,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -15136,7 +15154,7 @@
     },
     {
       "evidence": {
-        "line": 162,
+        "line": 168,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -15145,7 +15163,7 @@
     },
     {
       "evidence": {
-        "line": 227,
+        "line": 236,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -15154,7 +15172,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 67,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -49741,7 +49759,7 @@
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 17,
         "path": "tests/asset_pipeline/test_blender_worker.py"
       },
       "kind": "defined_in",
@@ -56455,7 +56473,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 31,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -57094,7 +57112,7 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:331c87ac19c8c6524a6d4aaad13cc7f4ed3fe3d95958336158dc07917bb31b60",
+    "source_digest": "sha256:ce55e90cabe48ed9aed2a79dcd1b713da660f0abb2c648cb24ab388c97c508a4",
     "source_file_count": 1093
   },
   "nodes": [
@@ -69221,7 +69239,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._arguments",
       "kind": "function",
-      "line": 12,
+      "line": 18,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -69229,9 +69247,19 @@
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._decode_payload",
+      "kind": "function",
+      "line": 14,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_decode_payload",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._generate_collision",
       "kind": "function",
-      "line": 74,
+      "line": 84,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -69241,7 +69269,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._generate_lods",
       "kind": "function",
-      "line": 58,
+      "line": 68,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -69251,7 +69279,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._import_model",
       "kind": "function",
-      "line": 25,
+      "line": 35,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -69261,7 +69289,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._normalize",
       "kind": "function",
-      "line": 41,
+      "line": 51,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -69271,7 +69299,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._reset",
       "kind": "function",
-      "line": 20,
+      "line": 30,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -69281,7 +69309,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry.main",
       "kind": "function",
-      "line": 82,
+      "line": 92,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -69291,7 +69319,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._contained",
       "kind": "function",
-      "line": 37,
+      "line": 38,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -69299,9 +69327,19 @@
       "path": "tools/asset_pipeline/blender_worker.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._encode_bridge_payload",
+      "kind": "function",
+      "line": 163,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_encode_bridge_payload",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._sha256",
       "kind": "function",
-      "line": 51,
+      "line": 52,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -69311,7 +69349,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._validate_hash",
       "kind": "function",
-      "line": 59,
+      "line": 60,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -69321,7 +69359,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._write_json_atomically",
       "kind": "function",
-      "line": 147,
+      "line": 148,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -69331,7 +69369,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.execute",
       "kind": "function",
-      "line": 162,
+      "line": 168,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -69341,7 +69379,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.main",
       "kind": "function",
-      "line": 227,
+      "line": 236,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -69351,7 +69389,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.validate_request",
       "kind": "function",
-      "line": 66,
+      "line": 67,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -77101,7 +77139,7 @@
     {
       "id": "test:tests.asset_pipeline.test_blender_worker.BlenderWorkerTests",
       "kind": "test",
-      "line": 16,
+      "line": 17,
       "metadata": {
         "module": "tests.asset_pipeline.test_blender_worker"
       },
@@ -84418,7 +84456,7 @@
     {
       "id": "type:tools.asset_pipeline.blender_worker.WorkerError",
       "kind": "type",
-      "line": 30,
+      "line": 31,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },

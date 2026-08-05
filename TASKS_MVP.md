@@ -16,7 +16,7 @@
 - [x] `global.json` épingle une version présente — `10.0.302`.
 - [x] Git disponible — `2.55.0.windows.2`.
 - [x] CMake/compilateur natif notés mais non obligatoires au premier build — non détectés dans le `PATH`.
-- [x] Blender noté mais non obligatoire — non détecté dans le `PATH`.
+- [x] Blender noté mais non obligatoire au runtime — LTS `4.5.10` installé et détecté par Forge.
 
 Acceptation : rapport de versions exact, sans installation automatique silencieuse. **Atteinte le 2 août 2026 après autorisation explicite.**
 
@@ -457,6 +457,8 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   résumé, VFX optionnel et historique transactionnel.
 - [x] Configurer un round-trip Blender optionnel par commande transactionnelle, avec requête typée,
   validation confinée, surveillance déclarative et undo/redo dans le Content Browser.
+- [x] Exécuter le round-trip Blender réel sur un OBJ CC0, valider le GLB 2, ses LOD/collisions et
+  l'immutabilité du Vault dans le gate global lorsque le binaire optionnel est disponible.
 - [x] Refuser migrations ou désinstallations de packs sans code hôte de confiance, sauvegarde et
   résolution explicite des dépendants.
 - [ ] Enrichir les manifests avec styles, variantes, dimensions, métriques 3D et compatibilité.

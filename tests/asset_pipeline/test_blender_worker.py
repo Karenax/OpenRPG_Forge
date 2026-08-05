@@ -5,6 +5,7 @@ import pathlib
 import tempfile
 import unittest
 import uuid
+from unittest import mock
 
 
 WORKER_PATH = pathlib.Path(__file__).parents[2] / "tools" / "asset_pipeline" / "blender_worker.py"
@@ -75,6 +76,45 @@ class BlenderWorkerTests(unittest.TestCase):
             worker.execute(normalized, self.root / "missing-blender.exe", self.root / "response.json", False)
         self.assertEqual("asset.worker.blender_missing", context.exception.code)
         self.assertFalse((self.workspace / "assets" / "imported" / "tree" / "model.glb").exists())
+
+    def test_execute_encodes_typed_payloads_for_windows_and_reports_output(self):
+        blender = self.root / "blender.exe"
+        blender.write_bytes(b"stub")
+        normalized = worker.validate_request(self.request(), self.sources, self.workspace)
+        output_path = pathlib.Path(normalized["_outputPath"])
+
+        def run(command, **_kwargs):
+            self.assertNotIn('"', command[-2])
+            self.assertNotIn("{", command[-1])
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_bytes(b"glTFstub")
+            return worker.subprocess.CompletedProcess(command, 0, stdout="Blender quit", stderr="")
+
+        before = self.source.read_bytes()
+        with mock.patch.object(worker.subprocess, "run", side_effect=run):
+            response = worker.execute(normalized, blender, self.root / "response.json", False)
+
+        self.assertTrue(response["executed"])
+        self.assertEqual(8, response["outputBytes"])
+        self.assertEqual(before, self.source.read_bytes())
+
+    def test_execute_surfaces_blender_traceback_even_when_blender_returns_zero(self):
+        blender = self.root / "blender.exe"
+        blender.write_bytes(b"stub")
+        normalized = worker.validate_request(self.request(), self.sources, self.workspace)
+        completed = worker.subprocess.CompletedProcess(
+            [str(blender)],
+            0,
+            stdout="Blender quit",
+            stderr="Traceback: bridge failed",
+        )
+
+        with mock.patch.object(worker.subprocess, "run", return_value=completed):
+            with self.assertRaises(worker.WorkerError) as context:
+                worker.execute(normalized, blender, self.root / "response.json", False)
+
+        self.assertEqual("asset.worker.blender_failed", context.exception.code)
+        self.assertIn("Traceback", str(context.exception))
 
     def test_cli_writes_stable_diagnostic_for_hash_mismatch(self):
         request_path = self.root / "request.json"

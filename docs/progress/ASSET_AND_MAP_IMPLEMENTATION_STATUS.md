@@ -1,6 +1,6 @@
 # État d’implémentation — Asset Vault et carte
 
-Dernière mise à jour : 4 août 2026.
+Dernière mise à jour : 5 août 2026.
 
 ## Terminé
 
@@ -37,13 +37,15 @@ Dernière mise à jour : 4 août 2026.
   visuellement sans mutation du module de démonstration.
 - round-trip externe canonique et persistant, requête Blender typée sans code arbitraire, worker
   confiné, validation croisée C#/Python sur un OBJ réel et analyse sûre migration/désinstallation.
+- production réelle d'un GLB 2 texturé par Blender 4.5.10 depuis `ambientcg:3DApple001`, avec
+  collisions, deux LOD, hash de sortie vérifié, source du Vault immuable et prévisualisation rendue.
 
 ## Partiellement terminé
 
 - catalogue : lecture, recherche et gouvernance disponibles dans le workspace Assets, sans encore
   installation/désinstallation, SQLite ni gestion complète des packs ;
-- normalisation : profils, cache, staging, passage direct des GLB et worker Blender livré ; la preuve
-  d’exécution Blender réelle et la conversion KTX2 restent à appliquer sur une machine équipée ;
+- normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
+  conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
 
 ## Non commencé
@@ -51,11 +53,12 @@ Dernière mise à jour : 4 août 2026.
 - gestionnaire Asset Vault complet avec installation, mise à jour et application physique des
   migrations/désinstallations déjà analysées par le domaine ;
 - génération de miniatures et planches contact ;
-- service de surveillance temps réel et exécution Blender validée avec le binaire optionnel ;
+- service de surveillance temps réel ;
 - packs artistiques curatés ;
 - terrain sculpté, navigation, eau, routes et carte Forgotten Forest finale 512 × 512 m.
 
 ## Prochaine action
 
-Valider visuellement G11-C, puis curater un premier pack forêt cohérent et remplacer les trois slots
-du prototype par des GLB gouvernés sans faire des nœuds générés la source de vérité de la carte.
+Fermer G11-D (signatures, delta et distribution), puis curater un premier pack multi-biome cohérent
+et remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés la
+source de vérité de la carte.

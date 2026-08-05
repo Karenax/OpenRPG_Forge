@@ -28,16 +28,20 @@
 - tests domaine : round-trip, opérations interdites, parité, migration et désinstallation ;
 - tests application : dry-run, application, conflit de révision, undo et redo ;
 - tests ModuleFormat : persistance déterministe et requête worker dépourvue de code exécutable ;
-- tests Python : confinement, allowlist, source immuable, Blender absent et hash invalide ;
+- tests Python : confinement, allowlist, source immuable, transport d'arguments sûr sous Windows,
+  remontée des erreurs `bpy`, Blender absent et hash invalide ;
 - smoke réel sur l’OBJ `ambientcg:3DApple001` : préparation, manifeste, configuration C# puis
   validation de la requête par le worker Python sur le fichier du Vault ;
-- `scripts/Verify.ps1` rejoue ce round-trip en mode validation sans modifier le Vault.
+- Blender LTS 4.5.10 produit réellement un GLB 2 de 1 696 280 octets depuis
+  `ambientcg:3DApple001`, avec collision et deux LOD ; le SHA-256 source reste
+  `500623c45cdd14514fae358b646724c49b78dad7a601be862fbfc3782f040c95` et le GLB produit porte le
+  SHA-256 `776ab45d03c7af52010d02183ff06bab8d94adde3677fd03c32364452a8d8522` ;
+- la prévisualisation Blender du GLB exporté confirme visuellement la géométrie et la texture ;
+- `scripts/Verify.ps1` exécute ce round-trip lorsque Blender est détecté et émet
+  `OPENRPG_FORGE_G11C_BLENDER_SMOKE_PASS` ; sans Blender, il conserve le mode validation confiné.
 
 ## Limites explicites
 
-- Blender n’est pas installé sur la machine de validation : l’invocation headless et le script `bpy`
-  sont livrés, mais la preuve de production d’un nouveau GLB par Blender reste à exécuter dès que le
-  binaire optionnel est disponible ;
 - le watcher de fichiers est configuré canoniquement mais son service temps réel reste à raccorder ;
 - les migrations et désinstallations sont analysées et refusées de manière sûre ; leur application
   physique avec création/restauration de sauvegarde sera livrée avec le gestionnaire de packs ;
@@ -48,3 +52,5 @@
 
 G11-C est fermé lorsque le build, les tests ciblés, le smoke CLI/worker, le smoke Toolset, la revue
 visuelle, le tracker Aurora, le graphe et `scripts/Verify.ps1` sont verts sur le même état Git.
+
+**Critère atteint le 5 août 2026** avec Blender 4.5.10 LTS, le GLB 2 inspecté et le portail global.
