@@ -12,12 +12,14 @@ public static class RuntimeSaveValidator
     public const string HostileInvalidCode = "save.hostile_invalid";
     public const string QuestReferenceInvalidCode = "save.quest_reference_invalid";
     public const string WeatherInvalidCode = "save.weather_invalid";
+    public const string ProgressionInvalidCode = "save.progression_invalid";
 
     public static IReadOnlyList<RuntimeSaveDiagnostic> Validate(RuntimeSaveDocument save)
     {
         ArgumentNullException.ThrowIfNull(save);
         var diagnostics = new List<RuntimeSaveDiagnostic>();
-        if (!string.Equals(save.FormatVersion, RuntimeSaveDocument.CurrentFormatVersion, StringComparison.Ordinal))
+        if (!string.Equals(save.FormatVersion, RuntimeSaveDocument.CurrentFormatVersion, StringComparison.Ordinal) &&
+            !string.Equals(save.FormatVersion, RuntimeSaveDocument.PreRulesFormatVersion, StringComparison.Ordinal))
         {
             diagnostics.Add(new RuntimeSaveDiagnostic(
                 VersionUnsupportedCode,
@@ -96,6 +98,15 @@ public static class RuntimeSaveValidator
                 WeatherInvalidCode,
                 "Weather state requires schema v1, a non-empty state UUID and non-negative runtime counters.",
                 "weather"));
+        }
+
+        if (save.Progression is not null && (save.Progression.SchemaVersion != 1 ||
+            !double.IsFinite(save.Progression.Experience) || save.Progression.Experience < 0 ||
+            save.Progression.Level <= 0))
+        {
+            diagnostics.Add(new RuntimeSaveDiagnostic(ProgressionInvalidCode,
+                "Progression state requires schema v1, non-negative experience and a positive level.",
+                "progression"));
         }
 
         return diagnostics;

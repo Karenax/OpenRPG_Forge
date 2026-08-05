@@ -10,6 +10,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
@@ -38,10 +39,12 @@ public sealed class ForgeProjectAgentService
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
     private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
+    private readonly SetRulesProfilesHandler _rulesProfilesHandler;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredGameplayControlPlan> _gameplayControlPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredRulesProfilePlan> _rulesProfilePlans = new(StringComparer.Ordinal);
     private readonly IClock _clock;
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
@@ -54,6 +57,7 @@ public sealed class ForgeProjectAgentService
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
         _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
+        _rulesProfilesHandler = new SetRulesProfilesHandler(clock);
     }
 
     public string WorkspaceDirectory => _session.RootDirectory;
@@ -447,6 +451,112 @@ public sealed class ForgeProjectAgentService
 
             plan.Reverted = true;
             plan.Audit.Add(new GameplayControlAuditEntry(planId, "revert", undone.State.Revision.Value,
+                _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public RulesProfileResource GetRules(string? areaId = null)
+    {
+        lock (_gate)
+        {
+            var project = _history.State.Project;
+            var area = string.IsNullOrWhiteSpace(areaId)
+                ? project.Areas.Single(item => item.Id == project.Module.EntryAreaId)
+                : project.Areas.Single(item => item.Id == AreaId.Parse(areaId));
+            return new RulesProfileResource(1, _history.State.Revision.Value, area.Id.ToString(),
+                project.Module.RuntimePolicies.Rules, area.RuntimePolicies.Rules);
+        }
+    }
+
+    public RulesProfilePlanResult PlanRules(RulesProfilePlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return RulesProfileFailure(request.BaseRevision, "rules_plan.schema_unsupported",
+                    "Rules plan schema must be 1.");
+            AreaId areaId;
+            try { areaId = AreaId.Parse(request.AreaId); }
+            catch (Exception exception) when (exception is ArgumentException or FormatException)
+            {
+                return RulesProfileFailure(request.BaseRevision, "rules_plan.area_invalid", exception.Message);
+            }
+            var command = new SetRulesProfilesCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), request.Module, areaId, request.Area, true);
+            var preview = _rulesProfilesHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new RulesProfilePlanResult(false, null, request.BaseRevision, preview.Patch,
+                    preview.Inverse, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredRulesProfilePlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new RulesProfileAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _rulesProfilePlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public RulesProfilePlanResult ApplyRulesPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_rulesProfilePlans.TryGetValue(planId, out var plan))
+                return RulesProfileFailure(GetCurrentRevision(), "rules_plan.missing",
+                    $"Rules plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return RulesProfileFailure(plan.Command.BaseRevision.Value, "rules_plan.already_applied",
+                    $"Rules plan '{planId}' is already applied.");
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _rulesProfilesHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new RulesProfileAuditEntry(planId, "apply", _history.State.Revision.Value,
+                    _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new RulesProfileAuditEntry(planId, "apply", plan.AppliedRevision.Value,
+                _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public RulesProfilePlanResult RevertRulesPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_rulesProfilePlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return RulesProfileFailure(GetCurrentRevision(), "rules_plan.not_applied",
+                    $"Rules plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return RulesProfileFailure(plan.Command.BaseRevision.Value, "rules_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return RulesProfileFailure(plan.Command.BaseRevision.Value, "rules_plan.inverse_unavailable",
+                    "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return RulesProfileFailure(plan.Command.BaseRevision.Value, "rules_plan.save_failed",
+                    "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new RulesProfileAuditEntry(planId, "revert", undone.State.Revision.Value,
                 _clock.UtcNow, true));
             return ToResult(plan);
         }
@@ -900,6 +1010,13 @@ public sealed class ForgeProjectAgentService
         plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
         plan.Audit.ToArray());
 
+    private static RulesProfilePlanResult RulesProfileFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static RulesProfilePlanResult ToResult(StoredRulesProfilePlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
+
     private sealed class StoredDialoguePlan(
         string planId,
         DialogueDefinition dialogue,
@@ -972,6 +1089,19 @@ public sealed class ForgeProjectAgentService
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
         public List<GameplayControlAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredRulesProfilePlan(string planId, SetRulesProfilesCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<RulesProfileAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetRulesProfilesCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<RulesProfileAuditEntry> Audit { get; } = audit;
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }

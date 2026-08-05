@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.8.0",
+  "formatVersion": "1.9.0",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -503,6 +503,104 @@
           },
           "provenance": "migration-default"
         },
+        "rules": {
+          "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+          "schemaVersion": 1,
+          "progression": {
+            "id": "9320b55a-bc14-593e-ab07-d15063ba990a",
+            "schemaVersion": 1,
+            "rulesetId": "forge.generic",
+            "curve": [
+              {
+                "level": 1,
+                "requiredExperience": 0
+              },
+              {
+                "level": 2,
+                "requiredExperience": 100
+              },
+              {
+                "level": 3,
+                "requiredExperience": 300
+              },
+              {
+                "level": 4,
+                "requiredExperience": 700
+              },
+              {
+                "level": 5,
+                "requiredExperience": 1500
+              }
+            ],
+            "groupMultiplier": 1,
+            "difficultyMultiplier": 1,
+            "sourceMultipliers": {
+              "combat": 1,
+              "exploration": 0.75,
+              "quest": 1.25
+            },
+            "shareWithParty": true,
+            "provenance": "migration-default"
+          },
+          "difficulties": [
+            {
+              "id": "9ffaddbb-6848-59ec-b4bc-ffc097f0629a",
+              "schemaVersion": 1,
+              "key": "standard",
+              "displayName": "Standard",
+              "playerDamageMultiplier": 1,
+              "incomingDamageMultiplier": 1,
+              "aiIntensityMultiplier": 1,
+              "economyMultiplier": 1,
+              "restRecoveryMultiplier": 1,
+              "saveRestrictions": "unrestricted",
+              "friendlyFire": "disabled",
+              "accessibility": {
+                "pauseAssist": true,
+                "telegraphAssist": true,
+                "timingWindowMultiplier": 1,
+                "perceptionCueMultiplier": 1
+              },
+              "provenance": "migration-default"
+            }
+          ],
+          "activeDifficultyKey": "standard",
+          "mutators": {
+            "id": "0a36545e-9c82-5e9c-908b-2a449e4fbf9f",
+            "schemaVersion": 1,
+            "mutators": [
+              {
+                "id": "b72043f4-a11a-5d10-8596-2048a32d6bea",
+                "key": "scarce-resources",
+                "displayName": "Ressources rares",
+                "enabled": false,
+                "scalarOverrides": {
+                  "economy": 0.7,
+                  "restRecovery": 0.6
+                },
+                "tags": [
+                  "survival"
+                ]
+              },
+              {
+                "id": "597dcc04-18d3-5a09-8c4f-ba59ea545f51",
+                "key": "story-support",
+                "displayName": "Soutien narratif",
+                "enabled": false,
+                "scalarOverrides": {
+                  "incomingDamage": 0.65,
+                  "progression": 1.25
+                },
+                "tags": [
+                  "accessibility",
+                  "story"
+                ]
+              }
+            ],
+            "provenance": "migration-default"
+          },
+          "provenance": "migration-default"
+        },
         "provenance": "migration-default"
       }
     },
@@ -548,7 +646,7 @@
       {
         "id": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
         "slug": "archipel-oublie",
-        "documentPath": "areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-3eef1cf43e47c6e6.json"
+        "documentPath": "areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-f1d4c80919c5d671.json"
       }
     ],
     "dialogues": [],

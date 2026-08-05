@@ -5,6 +5,7 @@ using Forge.Application.Areas;
 using Forge.Application.Gameplay;
 using Forge.Application.Lifecycle;
 using Forge.Application.Sequences;
+using Forge.Application.Rules;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
@@ -17,6 +18,7 @@ using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.EngineAdapter.Spatial;
@@ -111,6 +113,11 @@ public partial class GameRoot : Node3D
     private TimeControlSession _timeControlSession = TimeControlSession.Running;
     private CombatModeProviderDefinition? _activeCombatProvider;
     private RuntimeActionWheel? _actionWheel;
+    private ModuleRulesProfile? _moduleRules;
+    private AreaRulesProfile? _areaRules;
+    private ResolvedDifficulty? _resolvedDifficulty;
+    private double _progressionExperience;
+    private int _progressionLevel = 1;
 
     public override void _Ready()
     {
@@ -970,6 +977,9 @@ public partial class GameRoot : Node3D
         _moduleRuntimePolicies = module ?? throw new ArgumentNullException(nameof(module));
         _areaRuntimePolicies = area ?? throw new ArgumentNullException(nameof(area));
         _gameplayControls = module.Gameplay;
+        _moduleRules = module.Rules;
+        _areaRules = area.Rules;
+        _resolvedDifficulty = RulesRuntimeService.ResolveDifficulty(module.Rules);
         _activeCombatProvider = module.Gameplay.CombatModes.DefaultProvider;
         _timeControlSession = TimeControlSession.Running;
         GD.Print(
@@ -982,6 +992,14 @@ public partial class GameRoot : Node3D
             $"radial={module.Gameplay.RadialMenu.Actions.Count} accessible={module.Gameplay.RadialMenu.ListFallback.ToString().ToLowerInvariant()} " +
             $"pause={module.Gameplay.TimeControl.PauseEnabled.ToString().ToLowerInvariant()} planning={module.Gameplay.TimeControl.PlanningEnabled.ToString().ToLowerInvariant()} " +
             $"combat={_activeCombatProvider.ProviderId} authority={_activeCombatProvider.ServerAuthoritative.ToString().ToLowerInvariant()}");
+        var perception = RulesRuntimeService.ResolvePerception(area.Rules.Perception, "vision", 20, .8,
+            new HashSet<string>(StringComparer.Ordinal));
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_G11M_RULES_PASS progression={module.Rules.Progression.RulesetId} " +
+            $"difficulty={_resolvedDifficulty.Key} mutators={_resolvedDifficulty.EnabledMutators.Count} " +
+            $"perception={area.Rules.Perception.Modifiers.Count}:{perception.Range:0.###} " +
+            $"pvp={area.Rules.Combat.PvpMode.ToString().ToLowerInvariant()} " +
+            $"authority={area.Rules.Combat.ServerAuthoritative.ToString().ToLowerInvariant()}");
     }
 
     private void ConfigureCinematics(ProjectDefinition project, AreaDefinition area)
@@ -1478,7 +1496,8 @@ public partial class GameRoot : Node3D
             _playerCombatant,
             target,
             ability.Id,
-            Time.GetTicksMsec() / 1000d);
+            Time.GetTicksMsec() / 1000d,
+            damageMultiplier: _resolvedDifficulty?.PlayerDamageMultiplier ?? 1);
         var health = target.Health;
         var hostileName = _hostileNames[hostile];
         _message = $"{hostileName} subit {result.Damage} dégât(s) ({health} PV).";
@@ -1511,6 +1530,8 @@ public partial class GameRoot : Node3D
             {
                 _message = $"{hostileName} est vaincue.";
             }
+
+            AwardProgression(hostile == _boss ? 200 : 75, "combat");
         }
 
         UpdateHud();
@@ -1794,6 +1815,32 @@ public partial class GameRoot : Node3D
             _activeCombatProvider?.DisplayName ?? _gameplayControls.CombatModes.DefaultProvider.DisplayName,
             _timeControlSession.PlannedActions.Count, movement, _player?.BreathRemaining ?? 0,
             _player?.StaminaRemaining ?? 0);
+        if (_moduleRules is not null && _areaRules is not null && _resolvedDifficulty is not null)
+        {
+            var next = _moduleRules.Progression.Curve.FirstOrDefault(point => point.Level > _progressionLevel)
+                ?.RequiredExperience;
+            _hud.UpdateRules(_resolvedDifficulty.DisplayName, _progressionLevel, _progressionExperience, next,
+                _areaRules.Combat.PvpMode.ToString(), _areaRules.Perception.Modifiers.Count);
+        }
+    }
+
+    private void AwardProgression(double baseAmount, string sourceId)
+    {
+        if (_moduleRules is null || _resolvedDifficulty is null) return;
+        var previousLevel = _progressionLevel;
+        var result = RulesRuntimeService.ResolveProgression(_moduleRules.Progression, baseAmount, sourceId, 1,
+            _progressionExperience, _resolvedDifficulty.ProgressionMultiplier);
+        _progressionExperience = result.TotalExperience;
+        _progressionLevel = result.Level;
+        if (_progressionLevel > previousLevel)
+        {
+            _gameplayEvents.Publish(new ProgressionChangedEvent(Guid.NewGuid(), "player:local", previousLevel,
+                _progressionLevel, sourceId, EventAuthorityScope.Server, _runtimePolicyRevision++,
+                DateTimeOffset.UtcNow));
+        }
+        _message += $" +{result.AwardedExperience:0} XP · niveau {_progressionLevel}.";
+        GD.Print($"OPENRPG_FORGE_RUNTIME_PROGRESSION source={sourceId} award={result.AwardedExperience:0.###} " +
+                 $"total={result.TotalExperience:0.###} level={result.Level}");
     }
 
     private void UpdateHud()
@@ -1995,7 +2042,8 @@ public partial class GameRoot : Node3D
                     _weatherState.Revision,
                     _weatherState.ServerRevision,
                     _weatherState.ElapsedSeconds)
-                : null);
+                : null,
+            new RuntimeProgressionSave(1, _progressionExperience, _progressionLevel));
         var result = RuntimeSaveStore.Save(path, save);
         if (!result.Succeeded)
         {
@@ -2138,6 +2186,8 @@ public partial class GameRoot : Node3D
         _bossPhaseTwo = save.Progress.BossPhaseTwo;
         _bossDefeated = save.Progress.BossDefeated;
         _escaped = save.Progress.Escaped;
+        _progressionExperience = save.Progression?.Experience ?? 0;
+        _progressionLevel = save.Progression?.Level ?? 1;
         if (_hasKey && _keyItem is not null && GodotObject.IsInstanceValid(_keyItem))
         {
             _keyItem.QueueFree();

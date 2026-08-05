@@ -8,6 +8,7 @@ public partial class RuntimeHud : CanvasLayer
     private Label? _message;
     private Label? _state;
     private Label? _tactical;
+    private Label? _rules;
 
     public string ModuleTitle { get; init; } = "OpenRPG Forge";
 
@@ -41,11 +42,14 @@ public partial class RuntimeHud : CanvasLayer
         _message = new Label { Text = "Explorez la crypte." };
         _state = new Label { Text = "Quête : inactive | Clé : non | Boss : 5/5" };
         _tactical = new Label { Text = "Temps : réel | Combat : temps réel avec pause" };
+        _rules = new Label { Text = "Difficulté : standard | Niveau 1 · 0 XP | PvP désactivé" };
         _tactical.AddThemeColorOverride("font_color", new Color("ffb06f"));
+        _rules.AddThemeColorOverride("font_color", new Color("9bd9bd"));
         content.AddChild(_objective);
         content.AddChild(_message);
         content.AddChild(_state);
         content.AddChild(_tactical);
+        content.AddChild(_rules);
 
         var instructions = new Label
         {
@@ -85,5 +89,15 @@ public partial class RuntimeHud : CanvasLayer
         if (_tactical is null) return;
         _tactical.Text = $"Temps : {timeState} | Combat : {combatMode} | File : {queuedActions} | " +
                          $"Mouvement : {movementCapability} · souffle {breath:0}/{stamina:0} endurance";
+    }
+
+    public void UpdateRules(string difficulty, int level, double experience, double? nextLevel,
+        string pvpMode, int perceptionModifiers)
+    {
+        if (_rules is null) return;
+        var progression = nextLevel is null ? $"Niveau {level} · {experience:0} XP" :
+            $"Niveau {level} · {experience:0}/{nextLevel:0} XP";
+        _rules.Text = $"Difficulté : {difficulty} | {progression} | PvP : {pvpMode} | " +
+                      $"Perception : {perceptionModifiers} modificateur(s)";
     }
 }

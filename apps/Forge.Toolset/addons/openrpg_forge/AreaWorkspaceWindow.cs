@@ -31,6 +31,7 @@ public partial class AreaWorkspaceWindow : Window
     private Action? _openRuntimePolicies;
     private Action? _openCinematics;
     private Action? _openGameplayControls;
+    private Action? _openRules;
     private Action? _openAuthoring;
     private Action<Window>? _brandWindow;
 
@@ -79,6 +80,7 @@ public partial class AreaWorkspaceWindow : Window
         Action openRuntimePolicies,
         Action openCinematics,
         Action openGameplayControls,
+        Action openRules,
         Action openAuthoring,
         Action<Window> brandWindow)
     {
@@ -95,6 +97,7 @@ public partial class AreaWorkspaceWindow : Window
         _openRuntimePolicies = openRuntimePolicies ?? throw new ArgumentNullException(nameof(openRuntimePolicies));
         _openCinematics = openCinematics ?? throw new ArgumentNullException(nameof(openCinematics));
         _openGameplayControls = openGameplayControls ?? throw new ArgumentNullException(nameof(openGameplayControls));
+        _openRules = openRules ?? throw new ArgumentNullException(nameof(openRules));
         _openAuthoring = openAuthoring ?? throw new ArgumentNullException(nameof(openAuthoring));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
 
@@ -350,6 +353,9 @@ public partial class AreaWorkspaceWindow : Window
         var gameplayButton = new Button { Text = "Contrôles, actions & combat…" };
         gameplayButton.Pressed += () => _openGameplayControls?.Invoke();
         validationHeading.AddChild(gameplayButton);
+        var rulesButton = new Button { Text = "Progression, difficulté & règles…" };
+        rulesButton.Pressed += () => _openRules?.Invoke();
+        validationHeading.AddChild(rulesButton);
         var authoringButton = new Button { Text = "Carte, événements & calques…" };
         authoringButton.Pressed += () => _openAuthoring?.Invoke(); validationHeading.AddChild(authoringButton);
         validationRow.AddChild(validationHeading);

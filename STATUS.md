@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-A à G11-L Contenu moderne fermés et G11-M ouvert.**
+fermés ; G11-A à G11-M Contenu moderne fermés et G11-N ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -13,7 +13,7 @@ zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplac
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.8.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.9.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -287,3 +287,16 @@ restauration d'abandon d'une séquence. La fenêtre Rythme, repos & séquences a
 en une transaction ; le runtime avance les timers et accepte `R` selon la règle canonique. Les
 formats zone `1.5.0`, projet `0.6.12` et workspace `1.6.0` sont migrés. G11-K porte maintenant les
 séquences/cutscenes, ancres caméra et transforms interpolés.
+
+**G11-K est fermé** : séquences, flux de démarrage, ancres caméra, overrides et tweens partagent un
+contrat persistant entre studio auteur, runtime et MCP.
+
+**G11-L est fermé** : nage/plongée, escalade, roue d’actions, contrôle tactique du temps et
+fournisseurs de combat sont configurables et consommés par le runtime joueur.
+
+**G11-M est fermé** : progression, difficultés et mutateurs sont configurables au module ;
+perception et combat sont configurables par zone. RPG Kit applique les modificateurs de sens,
+Network Beta décide le PvP sous autorité serveur, ForgeScript lit des snapshots sûrs et le runtime
+sauvegarde expérience et niveau en `.orpsave` 1.2. Les formats zone `1.7.0`, projet `0.6.15` et
+workspace `1.9.0` sont migrés. G11-N porte maintenant audio spatial/événementiel, patrouilles
+inter-zones et chargement.

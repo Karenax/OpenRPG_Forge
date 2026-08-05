@@ -29,6 +29,7 @@ public sealed class RuntimeSaveStoreTests : IDisposable
         Assert.Equal(save.Hostiles, loaded.Save?.Hostiles);
         Assert.Equal(save.Progress, loaded.Save?.Progress);
         Assert.Equal(save.Weather, loaded.Save?.Weather);
+        Assert.Equal(save.Progression, loaded.Save?.Progression);
         Assert.Empty(Directory.EnumerateFiles(_directory, "*.tmp"));
     }
 
@@ -97,5 +98,6 @@ public sealed class RuntimeSaveStoreTests : IDisposable
             "6f550000-0000-4000-8000-000000000002",
             3,
             7,
-            14.5));
+            14.5),
+        new RuntimeProgressionSave(1, 240, 2));
 }

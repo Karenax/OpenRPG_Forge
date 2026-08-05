@@ -1,4 +1,5 @@
 using Forge.Network.World;
+using Forge.Domain.Rules;
 
 namespace Forge.Network.Tests;
 
@@ -42,6 +43,27 @@ public sealed class WorldAuthorityTests
         Assert.Equal("NET_FRIENDLY_FIRE_DISABLED", authority.AuthorizeDamage(leader, ally, true, 5).Code);
         Assert.True(authority.AuthorizeDamage(leader, Guid.NewGuid(), true, 5).Accepted);
         Assert.True(authority.AuthorizeDamage(leader, Guid.NewGuid(), false, 5).Accepted);
+    }
+
+    [Fact]
+    public void Area_combat_requires_server_authority_and_honors_duels_crime_and_environment()
+    {
+        var leader = Guid.NewGuid();
+        var ally = Guid.NewGuid();
+        var parties = new PartyService();
+        var party = parties.Create(leader);
+        parties.Join(party.PartyId, leader, ally, 1);
+        var policy = new AreaCombatPolicy(Guid.NewGuid(), 1, AreaPvpMode.DuelsOnly,
+            FriendlyFireMode.Enabled, true, true, false, true, "test");
+        var authority = new AreaCombatAuthority(parties, policy);
+        Assert.Equal("NET_AREA_DUEL_REQUIRED", authority.AuthorizeDamage(leader, ally, true, 8).Code);
+        Assert.True(authority.AuthorizeDamage(leader, ally, true, 8, duelAuthorized: true).Accepted);
+        Assert.Equal("NET_ENVIRONMENT_DAMAGE_DISABLED", authority.AuthorizeEnvironmentalDamage(8).Code);
+        var localPolicy = new AreaCombatPolicy(policy.Id, 1, policy.PvpMode, policy.FriendlyFire,
+            policy.CrimeEnabled, policy.AggroEnabled, policy.EnvironmentalDamageEnabled, false, "test");
+        var local = new AreaCombatAuthority(parties, localPolicy);
+        Assert.Equal("NET_AREA_COMBAT_AUTHORITY_REQUIRED",
+            local.AuthorizeDamage(leader, Guid.NewGuid(), true, 8, duelAuthorized: true).Code);
     }
 
     [Fact]

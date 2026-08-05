@@ -12,6 +12,9 @@ public static class RuntimePolicyValidator
     public const string RestVolumeBoundsCode = "runtime.rest.volume_out_of_bounds";
     public const string GameplayIdentityCode = "runtime.gameplay.identity";
     public const string CombatEventContractCode = "runtime.gameplay.combat_event_contract";
+    public const string ModuleRulesIdentityCode = "runtime.rules.module_identity";
+    public const string AreaRulesIdentityCode = "runtime.rules.area_identity";
+    public const string RulesProfileIdentityCode = "runtime.rules.profile_identity";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ModuleDefinition module)
     {
@@ -45,6 +48,15 @@ public static class RuntimePolicyValidator
                 "All combat mode providers must expose the same event contracts.",
                 "module/runtimePolicies/gameplay/combatModes/providers"));
         }
+
+        var rules = module.RuntimePolicies.Rules;
+        if (rules.Id != module.Id.Value)
+            diagnostics.Add(new DomainDiagnostic(ModuleRulesIdentityCode,
+                "The module rules profile ID must match the module ID.", "module/runtimePolicies/rules/id"));
+        if (rules.Progression.Id == Guid.Empty || rules.Mutators.Id == Guid.Empty ||
+            rules.Difficulties.Any(item => item.Id == Guid.Empty))
+            diagnostics.Add(new DomainDiagnostic(RulesProfileIdentityCode,
+                "Nested module rule profiles require stable identities.", "module/runtimePolicies/rules"));
 
         return diagnostics;
     }
@@ -80,6 +92,16 @@ public static class RuntimePolicyValidator
                     $"areas/{area.Id}/runtimePolicies/rest/volumes/{volume.Id}"));
             }
         }
+
+        var rules = area.RuntimePolicies.Rules;
+        if (rules.Id != area.Id.Value || rules.Perception.Id != area.Id.Value)
+            diagnostics.Add(new DomainDiagnostic(AreaRulesIdentityCode,
+                "Area rules and perception profile IDs must match the area ID.",
+                $"areas/{area.Id}/runtimePolicies/rules/id"));
+        if (rules.Combat.Id == Guid.Empty || rules.Perception.Modifiers.Any(item => item.Id == Guid.Empty))
+            diagnostics.Add(new DomainDiagnostic(RulesProfileIdentityCode,
+                "Nested area rule profiles require stable identities.",
+                $"areas/{area.Id}/runtimePolicies/rules"));
 
         return diagnostics;
     }

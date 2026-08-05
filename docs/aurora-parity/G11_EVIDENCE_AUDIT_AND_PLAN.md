@@ -120,6 +120,12 @@ contrôle du temps et fournisseurs de combat. La fenêtre auteur, le runtime jou
 la même commande persistante et annulable. La preuve détaillée est dans
 [`tasks/G11-L-GAMEPLAY-CONTROLS-COMBAT.md`](tasks/G11-L-GAMEPLAY-CONTROLS-COMBAT.md).
 
+**G11-M est fermé le 5 août 2026.** Le module porte progression, difficultés et mutateurs ; chaque
+zone porte perception environnementale et autorité de combat. Le Toolset, le runtime, le RPG Kit,
+Network Beta, ForgeScript et MCP consomment les mêmes profils persistants et annulables. La preuve
+détaillée est dans
+[`tasks/G11-M-PROGRESSION-DIFFICULTY-PERCEPTION-PVP.md`](tasks/G11-M-PROGRESSION-DIFFICULTY-PERCEPTION-PVP.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-M** : progression, difficulté, perception et règles de zone.
+Démarrer **G11-N** : audio spatial/événementiel, patrouilles inter-zones et chargement.

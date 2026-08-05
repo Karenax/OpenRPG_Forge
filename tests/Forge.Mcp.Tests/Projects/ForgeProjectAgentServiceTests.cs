@@ -4,6 +4,7 @@ using Forge.Domain.Dialogues;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Projects;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
@@ -199,6 +200,38 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.Equal("turn-based", persisted.CombatModes.DefaultProviderId);
         Assert.Equal(.3f, persisted.TimeControl.SlowMotionScale);
         var reverted = workspace.Project.RevertGameplayControlPlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
+    public void RulesPlanSupportsReadDryRunApplyPersistenceAndRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var resource = workspace.Project.GetRules();
+        var source = resource.Module;
+        var active = source.ActiveDifficulty;
+        var difficulty = new DifficultyProfile(active.Id, 1, active.Key, "Tactique", 1.2, 1.4, 1.15,
+            .9, .8, SaveRestrictionPolicy.CheckpointsOnly, FriendlyFireMode.PartyOnly,
+            active.Accessibility, "mcp-test");
+        var module = new ModuleRulesProfile(source.Id, 1, source.Progression, [difficulty], difficulty.Key,
+            source.Mutators, "mcp-test");
+        var combat = resource.Area.Combat;
+        var area = new AreaRulesProfile(resource.Area.Id, 1, resource.Area.Perception,
+            new AreaCombatPolicy(combat.Id, 1, AreaPvpMode.DuelsOnly, FriendlyFireMode.Disabled,
+                true, true, true, true, "mcp-test"), "mcp-test");
+
+        var planned = workspace.Project.PlanRules(new RulesProfilePlanRequest(1, resource.Revision,
+            resource.AreaId, module, area));
+        Assert.True(planned.Succeeded);
+        Assert.Equal("rules", planned.Diff?.Path);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        var applied = workspace.Project.ApplyRulesPlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        Assert.Equal(1.4, persisted.Module.RuntimePolicies.Rules.ActiveDifficulty.IncomingDamageMultiplier);
+        Assert.Equal(AreaPvpMode.DuelsOnly, persisted.Areas[0].RuntimePolicies.Rules.Combat.PvpMode);
+        var reverted = workspace.Project.RevertRulesPlan(planned.PlanId!);
         Assert.True(reverted.Reverted);
         Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
     }

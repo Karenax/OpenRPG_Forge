@@ -1,19 +1,19 @@
 {
-  "formatVersion": "1.6.0",
+  "formatVersion": "1.7.0",
   "area": {
-    "id": "72e76124-3a4a-5245-c00e-e348ac4cb292",
-    "slug": "parvis-des-astres",
-    "displayName": "Parvis des Astres",
+    "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
+    "slug": "crypt-of-ashes",
+    "displayName": "Crypte des Cendres",
     "schemaVersion": 1,
     "kind": "interior",
     "dimensions": {
       "width": 20,
-      "depth": 20
+      "depth": 28
     },
     "entities": [
       {
-        "id": "5dfe5666-2106-517d-64d8-b467ef37ec4c",
-        "blueprintId": "51219704-11db-8c48-2306-53e578f0fded",
+        "id": "20000000-0000-4000-8000-000000000001",
+        "blueprintId": "10000000-0000-4000-8000-000000000001",
         "transform": {
           "position": {
             "x": 0,
@@ -27,14 +27,13 @@
             "w": 1
           },
           "scale": {
-            "x": 16,
+            "x": 18,
             "y": 1,
-            "z": 16
+            "z": 26
           }
         },
         "tags": [
-          "floor",
-          "solid"
+          "floor"
         ],
         "overrides": {
           "schemaVersion": 1,
@@ -42,13 +41,274 @@
         }
       },
       {
-        "id": "b15da5fa-8cb4-e934-a212-0b111f6d394a",
-        "blueprintId": "cf19c043-a16e-e15c-3712-2e97491eb8eb",
+        "id": "20000000-0000-4000-8000-000000000002",
+        "blueprintId": "10000000-0000-4000-8000-000000000002",
+        "transform": {
+          "position": {
+            "x": -9,
+            "y": 1.5,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1,
+            "y": 4,
+            "z": 26
+          }
+        },
+        "tags": [
+          "wall"
+        ],
+        "overrides": {
+          "schemaVersion": 1,
+          "properties": []
+        }
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000003",
+        "blueprintId": "10000000-0000-4000-8000-000000000002",
+        "transform": {
+          "position": {
+            "x": 9,
+            "y": 1.5,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1,
+            "y": 4,
+            "z": 26
+          }
+        },
+        "tags": [
+          "wall"
+        ],
+        "overrides": {
+          "schemaVersion": 1,
+          "properties": []
+        }
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000004",
+        "blueprintId": "10000000-0000-4000-8000-000000000002",
+        "transform": {
+          "position": {
+            "x": 0,
+            "y": 1.5,
+            "z": 13
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 18,
+            "y": 4,
+            "z": 1
+          }
+        },
+        "tags": [
+          "wall"
+        ],
+        "overrides": {
+          "schemaVersion": 1,
+          "properties": []
+        }
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000005",
+        "blueprintId": "10000000-0000-4000-8000-000000000002",
+        "transform": {
+          "position": {
+            "x": 0,
+            "y": 1.5,
+            "z": -13
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 18,
+            "y": 4,
+            "z": 1
+          }
+        },
+        "tags": [
+          "wall"
+        ],
+        "overrides": {
+          "schemaVersion": 1,
+          "properties": []
+        }
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000006",
+        "blueprintId": "10000000-0000-4000-8000-000000000003",
+        "transform": {
+          "position": {
+            "x": 0,
+            "y": 1.5,
+            "z": -4
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 3.5,
+            "y": 3.5,
+            "z": 0.6
+          }
+        },
+        "tags": [
+          "door",
+          "locked"
+        ],
+        "overrides": {
+          "schemaVersion": 1,
+          "properties": []
+        }
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000007",
+        "blueprintId": "10000000-0000-4000-8000-000000000004",
+        "transform": {
+          "position": {
+            "x": -5,
+            "y": 1,
+            "z": 5
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        "tags": [
+          "npc"
+        ],
+        "overrides": {
+          "schemaVersion": 1,
+          "properties": []
+        }
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000008",
+        "blueprintId": "10000000-0000-4000-8000-000000000005",
+        "transform": {
+          "position": {
+            "x": 4,
+            "y": 1,
+            "z": 1
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        "tags": [
+          "enemy",
+          "hostile"
+        ],
+        "overrides": {
+          "schemaVersion": 1,
+          "properties": []
+        }
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000009",
+        "blueprintId": "10000000-0000-4000-8000-000000000006",
+        "transform": {
+          "position": {
+            "x": 0,
+            "y": 1.4,
+            "z": -9
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          }
+        },
+        "tags": [
+          "boss",
+          "hostile"
+        ],
+        "overrides": {
+          "schemaVersion": 1,
+          "properties": [
+            {
+              "key": "deathScript",
+              "kind": "string",
+              "value": "scripts/ash_warden_death.forge"
+            },
+            {
+              "key": "displayName",
+              "kind": "string",
+              "value": "Gardien des Cendres \u00E9veill\u00E9"
+            },
+            {
+              "key": "hitPoints",
+              "kind": "integer",
+              "value": "180"
+            },
+            {
+              "key": "hostile",
+              "kind": "boolean",
+              "value": "true"
+            },
+            {
+              "key": "phaseTwoScript",
+              "kind": "string",
+              "value": "scripts/ash_warden_phase_two.forge"
+            }
+          ]
+        }
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000010",
+        "blueprintId": "10000000-0000-4000-8000-000000000007",
         "transform": {
           "position": {
             "x": 0,
             "y": 0.8,
-            "z": 0
+            "z": 9
           },
           "rotation": {
             "x": 0,
@@ -71,13 +331,13 @@
         }
       },
       {
-        "id": "a0251de0-e871-09c6-1c8e-99179bce0902",
-        "blueprintId": "2510c9c1-673d-ca5b-3893-b7175308e026",
+        "id": "20000000-0000-4000-8000-000000000011",
+        "blueprintId": "10000000-0000-4000-8000-000000000008",
         "transform": {
           "position": {
-            "x": -2,
-            "y": 0,
-            "z": 0
+            "x": 5,
+            "y": 0.7,
+            "z": 6
           },
           "rotation": {
             "x": 0,
@@ -86,25 +346,28 @@
             "w": 1
           },
           "scale": {
-            "x": 1,
-            "y": 1,
-            "z": 1
+            "x": 0.7,
+            "y": 0.7,
+            "z": 0.7
           }
         },
-        "tags": [],
+        "tags": [
+          "item",
+          "key"
+        ],
         "overrides": {
           "schemaVersion": 1,
           "properties": []
         }
       },
       {
-        "id": "5b19f6f8-5790-a99c-e9d0-e9135b641e44",
-        "blueprintId": "a12bc494-60c9-3063-b38b-8e5b396f855d",
+        "id": "20000000-0000-4000-8000-000000000012",
+        "blueprintId": "10000000-0000-4000-8000-000000000009",
         "transform": {
           "position": {
-            "x": 4,
-            "y": 0,
-            "z": 3
+            "x": 0,
+            "y": 0.1,
+            "z": -11.5
           },
           "rotation": {
             "x": 0,
@@ -113,79 +376,27 @@
             "w": 1
           },
           "scale": {
-            "x": 1,
-            "y": 1,
-            "z": 1
-          }
-        },
-        "tags": [],
-        "overrides": {
-          "schemaVersion": 1,
-          "properties": []
-        }
-      },
-      {
-        "id": "be14f2d6-0d0e-a736-a32c-4b07ca3283fd",
-        "blueprintId": "ad11d1b8-61b7-e5ea-9cc1-712a2aa20b04",
-        "transform": {
-          "position": {
-            "x": 1,
-            "y": 0,
-            "z": -3
-          },
-          "rotation": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 1
-          },
-          "scale": {
-            "x": 1,
-            "y": 1,
-            "z": 1
-          }
-        },
-        "tags": [],
-        "overrides": {
-          "schemaVersion": 1,
-          "properties": []
-        }
-      },
-      {
-        "id": "1905a8d6-1156-ea46-52dd-8e6dae6c1259",
-        "blueprintId": "bd12e519-db6d-fb3d-951a-b7c1886ed842",
-        "transform": {
-          "position": {
-            "x": 0,
-            "y": 0,
+            "x": 3,
+            "y": 0.2,
             "z": 2
-          },
-          "rotation": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 1
-          },
-          "scale": {
-            "x": 1,
-            "y": 1,
-            "z": 1
           }
         },
-        "tags": [],
+        "tags": [
+          "exit"
+        ],
         "overrides": {
           "schemaVersion": 1,
           "properties": []
         }
       },
       {
-        "id": "e3d186a5-3b15-afad-e056-8618385f98be",
-        "blueprintId": "64935de5-bbf4-c164-51f8-ca30ae9b2a19",
+        "id": "20000000-0000-4000-8000-000000000013",
+        "blueprintId": "10000000-0000-4000-8000-000000000010",
         "transform": {
           "position": {
-            "x": 0,
-            "y": 0,
-            "z": 7
+            "x": -5,
+            "y": 1.5,
+            "z": -1
           },
           "rotation": {
             "x": 0,
@@ -194,25 +405,29 @@
             "w": 1
           },
           "scale": {
-            "x": 1,
-            "y": 1,
-            "z": 1
+            "x": 0.9,
+            "y": 3,
+            "z": 0.9
           }
         },
-        "tags": [],
+        "tags": [
+          "architecture",
+          "pillar",
+          "solid"
+        ],
         "overrides": {
           "schemaVersion": 1,
           "properties": []
         }
       },
       {
-        "id": "c0d420aa-d9a4-3700-03b5-0959ead8d7cb",
-        "blueprintId": "18df418c-528f-e329-fc2e-45b8ea371f2b",
+        "id": "20000000-0000-4000-8000-000000000014",
+        "blueprintId": "10000000-0000-4000-8000-000000000010",
         "transform": {
           "position": {
-            "x": 0,
-            "y": 0,
-            "z": 5
+            "x": 5,
+            "y": 1.5,
+            "z": -1
           },
           "rotation": {
             "x": 0,
@@ -221,12 +436,78 @@
             "w": 1
           },
           "scale": {
-            "x": 1,
-            "y": 1,
-            "z": 1
+            "x": 0.9,
+            "y": 3,
+            "z": 0.9
           }
         },
-        "tags": [],
+        "tags": [
+          "architecture",
+          "pillar",
+          "solid"
+        ],
+        "overrides": {
+          "schemaVersion": 1,
+          "properties": []
+        }
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000015",
+        "blueprintId": "10000000-0000-4000-8000-000000000010",
+        "transform": {
+          "position": {
+            "x": -5,
+            "y": 1.5,
+            "z": -8
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.9,
+            "y": 3,
+            "z": 0.9
+          }
+        },
+        "tags": [
+          "architecture",
+          "pillar",
+          "solid"
+        ],
+        "overrides": {
+          "schemaVersion": 1,
+          "properties": []
+        }
+      },
+      {
+        "id": "20000000-0000-4000-8000-000000000016",
+        "blueprintId": "10000000-0000-4000-8000-000000000010",
+        "transform": {
+          "position": {
+            "x": 5,
+            "y": 1.5,
+            "z": -8
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.9,
+            "y": 3,
+            "z": 0.9
+          }
+        },
+        "tags": [
+          "architecture",
+          "pillar",
+          "solid"
+        ],
         "overrides": {
           "schemaVersion": 1,
           "properties": []
@@ -235,12 +516,12 @@
     ],
     "portals": [],
     "navigation": {
-      "id": "0af9a42d-1035-5cb2-8d9f-0859ba8c8b5f",
+      "id": "627f385c-ed28-51dd-b46e-5a24a418900d",
       "schemaVersion": 1,
       "cellSize": 1,
       "agentProfiles": [
         {
-          "id": "5680f68d-d4a9-5ff7-9fed-11be3c10c71b",
+          "id": "e469de5f-d1a1-5682-9b20-94d1ebf51cf3",
           "schemaVersion": 1,
           "name": "Petit",
           "radius": 0.3,
@@ -251,7 +532,7 @@
           "provenance": "migration-default"
         },
         {
-          "id": "9c36aab8-2c78-5b27-a5f6-9d073c4b23ce",
+          "id": "70dff235-6e20-5e94-a5b2-2c1731b3e3a9",
           "schemaVersion": 1,
           "name": "Volant",
           "radius": 0.4,
@@ -262,7 +543,7 @@
           "provenance": "migration-default"
         },
         {
-          "id": "059a1178-41f3-5ad4-8627-bc8c6352f5cf",
+          "id": "394d319a-dd83-5cd2-b35a-c13926de43ce",
           "schemaVersion": 1,
           "name": "Moyen",
           "radius": 0.5,
@@ -273,7 +554,7 @@
           "provenance": "migration-default"
         },
         {
-          "id": "93170809-c588-5e63-9414-d2b29c72fb27",
+          "id": "a572da33-4c97-599a-8201-983e4efc820b",
           "schemaVersion": 1,
           "name": "Grand",
           "radius": 0.9,
@@ -444,14 +725,14 @@
       "layers": []
     },
     "world": {
-      "id": "dfa5f3c3-0b8d-5746-a468-3197ee9ab15c",
+      "id": "847d35b2-73c0-5b5d-85cd-7c280a244ddf",
       "schemaVersion": 1,
       "terrain": {
-        "id": "cbbacd91-7c97-5e7f-b1a1-8625c62e935f",
+        "id": "ba13cf1a-44ef-5399-8422-8c7be3c09246",
         "schemaVersion": 1,
         "provider": "none",
         "width": 20,
-        "depth": 20,
+        "depth": 28,
         "samplesX": 17,
         "samplesZ": 17,
         "chunkSize": 16,
@@ -759,7 +1040,7 @@
       "biomes": [],
       "features": [],
       "volumetricNavigation": {
-        "id": "3431684a-3106-5986-aee9-db5a9c2e0c09",
+        "id": "4bd73f2f-d484-5a2c-8706-310fa8fc58d6",
         "schemaVersion": 1,
         "enabled": false,
         "modes": "none",
@@ -772,7 +1053,7 @@
         "size": {
           "x": 20,
           "y": 24,
-          "z": 20
+          "z": 28
         },
         "avoidanceRadius": 1,
         "obstacles": [],
@@ -782,7 +1063,7 @@
       },
       "flightRoutes": [],
       "loading": {
-        "id": "1b1fb25f-8221-50eb-a6de-316f277c6e00",
+        "id": "43d986f7-ff0e-5b1d-acf4-29779770a28d",
         "schemaVersion": 1,
         "asyncStreaming": true,
         "prefetchDependencies": true,
@@ -797,11 +1078,11 @@
       "provenance": "migration-default"
     },
     "runtimePolicies": {
-      "id": "72e76124-3a4a-5245-c00e-e348ac4cb292",
+      "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
       "schemaVersion": 1,
       "heartbeats": [],
       "rest": {
-        "id": "382a2733-afe7-5be9-ac64-fe111d9eab7d",
+        "id": "bb751690-5844-54d5-a570-5861647f59bf",
         "schemaVersion": 1,
         "mode": "allowed",
         "denialReason": "",
@@ -812,9 +1093,84 @@
         "provenance": "migration-default"
       },
       "cinematics": {
-        "id": "72e76124-3a4a-5245-c00e-e348ac4cb292",
+        "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
         "schemaVersion": 1,
-        "cameraAnchors": [],
+        "cameraAnchors": [
+          {
+            "id": "31000000-0000-4000-8000-000000000003",
+            "name": "Plan d\u0027ouverture",
+            "transform": {
+              "position": {
+                "x": 8,
+                "y": 9,
+                "z": 12
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            "lookAt": {
+              "x": 0,
+              "y": 1,
+              "z": 5
+            },
+            "framing": "wide",
+            "fieldOfViewDegrees": 55,
+            "defaultDurationMilliseconds": 4000,
+            "safeAreaMargin": 0.08,
+            "tags": [
+              "opening",
+              "wide"
+            ],
+            "provenance": "project-author"
+          }
+        ],
+        "provenance": "project-author"
+      },
+      "rules": {
+        "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
+        "schemaVersion": 1,
+        "perception": {
+          "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
+          "schemaVersion": 1,
+          "rulesetId": "forge.generic",
+          "modifiers": [
+            {
+              "id": "f608e4af-7c51-5235-9127-58a6eaa6aab4",
+              "senseId": "hearing",
+              "multiplier": 1,
+              "additiveModifier": 0,
+              "conditionTag": ""
+            },
+            {
+              "id": "7c9cbf53-50af-52d2-b567-bf9ea774e284",
+              "senseId": "vision",
+              "multiplier": 1,
+              "additiveModifier": 0,
+              "conditionTag": ""
+            }
+          ],
+          "provenance": "migration-default"
+        },
+        "combat": {
+          "id": "55a3d4e2-87cf-59ce-a7a3-2e4d54c882c6",
+          "schemaVersion": 1,
+          "pvpMode": "disabled",
+          "friendlyFire": "disabled",
+          "crimeEnabled": true,
+          "aggroEnabled": true,
+          "environmentalDamageEnabled": true,
+          "serverAuthoritative": true,
+          "provenance": "migration-default"
+        },
         "provenance": "migration-default"
       },
       "provenance": "migration-default"

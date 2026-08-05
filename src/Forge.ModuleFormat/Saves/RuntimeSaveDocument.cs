@@ -14,9 +14,11 @@ public sealed record RuntimeSaveDocument(
     string? QuestStateId,
     IReadOnlyList<RuntimeCombatantSave> Hostiles,
     RuntimeProgressFlags Progress,
-    RuntimeWeatherSave? Weather)
+    RuntimeWeatherSave? Weather,
+    RuntimeProgressionSave? Progression = null)
 {
-    public const string CurrentFormatVersion = "1.1.0";
+    public const string CurrentFormatVersion = "1.2.0";
+    public const string PreRulesFormatVersion = "1.1.0";
 }
 
 public sealed record RuntimeVector3(double X, double Y, double Z);
@@ -38,3 +40,5 @@ public sealed record RuntimeProgressFlags(
     bool BossPhaseTwo,
     bool BossDefeated,
     bool Escaped);
+
+public sealed record RuntimeProgressionSave(int SchemaVersion, double Experience, int Level);

@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.8.0",
+  "formatVersion": "1.9.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -594,6 +594,104 @@
           },
           "provenance": "migration-default"
         },
+        "rules": {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "progression": {
+            "id": "5fbdd741-592a-531e-8679-d7d41b1631f7",
+            "schemaVersion": 1,
+            "rulesetId": "forge.generic",
+            "curve": [
+              {
+                "level": 1,
+                "requiredExperience": 0
+              },
+              {
+                "level": 2,
+                "requiredExperience": 100
+              },
+              {
+                "level": 3,
+                "requiredExperience": 300
+              },
+              {
+                "level": 4,
+                "requiredExperience": 700
+              },
+              {
+                "level": 5,
+                "requiredExperience": 1500
+              }
+            ],
+            "groupMultiplier": 1,
+            "difficultyMultiplier": 1,
+            "sourceMultipliers": {
+              "combat": 1,
+              "exploration": 0.75,
+              "quest": 1.25
+            },
+            "shareWithParty": true,
+            "provenance": "migration-default"
+          },
+          "difficulties": [
+            {
+              "id": "f2cb3cfd-ebbb-569a-b324-fead848ba4b1",
+              "schemaVersion": 1,
+              "key": "standard",
+              "displayName": "Standard",
+              "playerDamageMultiplier": 1,
+              "incomingDamageMultiplier": 1,
+              "aiIntensityMultiplier": 1,
+              "economyMultiplier": 1,
+              "restRecoveryMultiplier": 1,
+              "saveRestrictions": "unrestricted",
+              "friendlyFire": "disabled",
+              "accessibility": {
+                "pauseAssist": true,
+                "telegraphAssist": true,
+                "timingWindowMultiplier": 1,
+                "perceptionCueMultiplier": 1
+              },
+              "provenance": "migration-default"
+            }
+          ],
+          "activeDifficultyKey": "standard",
+          "mutators": {
+            "id": "ed983022-e251-57e2-b638-866401654ae2",
+            "schemaVersion": 1,
+            "mutators": [
+              {
+                "id": "9c0be8f6-02d7-5f76-ad1b-fde7678ee9af",
+                "key": "scarce-resources",
+                "displayName": "Ressources rares",
+                "enabled": false,
+                "scalarOverrides": {
+                  "economy": 0.7,
+                  "restRecovery": 0.6
+                },
+                "tags": [
+                  "survival"
+                ]
+              },
+              {
+                "id": "d2468cf9-a79e-5109-bfdb-5ea1e7757174",
+                "key": "story-support",
+                "displayName": "Soutien narratif",
+                "enabled": false,
+                "scalarOverrides": {
+                  "incomingDamage": 0.65,
+                  "progression": 1.25
+                },
+                "tags": [
+                  "accessibility",
+                  "story"
+                ]
+              }
+            ],
+            "provenance": "migration-default"
+          },
+          "provenance": "migration-default"
+        },
         "provenance": "migration-default"
       }
     },
@@ -893,7 +991,7 @@
       {
         "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
         "slug": "crypt-of-ashes",
-        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-46b37f2ed620e31d.json"
+        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-ae7e17cd0a17bad4.json"
       }
     ],
     "dialogues": [

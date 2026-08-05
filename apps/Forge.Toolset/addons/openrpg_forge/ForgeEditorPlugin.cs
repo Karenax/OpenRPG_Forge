@@ -11,6 +11,7 @@ using Forge.Application.Creator;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Gameplay;
+using Forge.Application.Rules;
 using Forge.Application.Localization;
 using Forge.Application.Lifecycle;
 using Forge.Application.Sequences;
@@ -34,6 +35,7 @@ using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
@@ -68,6 +70,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetRuntimePoliciesHandler _setRuntimePoliciesHandler = new(new SystemClock());
     private readonly SetCinematicProfilesHandler _setCinematicProfilesHandler = new(new SystemClock());
     private readonly SetGameplayControlProfileHandler _setGameplayControlProfileHandler = new(new SystemClock());
+    private readonly SetRulesProfilesHandler _setRulesProfilesHandler = new(new SystemClock());
     private readonly SetAreaAuthoringHandler _setAreaAuthoringHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
@@ -190,6 +193,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private RuntimePoliciesWindow? _runtimePoliciesWindow;
     private CinematicStudioWindow? _cinematicStudioWindow;
     private GameplayControlsWindow? _gameplayControlsWindow;
+    private RulesConfigurationWindow? _rulesConfigurationWindow;
     private AreaAuthoringWindow? _areaAuthoringWindow;
     private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
     private NetworkBetaWindow? _networkBetaWindow;
@@ -307,6 +311,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             OpenRuntimePolicies,
             OpenCinematicStudio,
             OpenGameplayControls,
+            OpenRulesConfiguration,
             OpenAreaAuthoring,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
@@ -328,6 +333,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _gameplayControlsWindow.Initialize(() => _history?.State, ApplyGameplayControlProfile,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_gameplayControlsWindow);
+        _rulesConfigurationWindow = new RulesConfigurationWindow();
+        _rulesConfigurationWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
+            ApplyRulesProfiles, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_rulesConfigurationWindow);
         _areaAuthoringWindow = new AreaAuthoringWindow();
         _areaAuthoringWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaAuthoring, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaAuthoringWindow);
@@ -1513,6 +1522,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void OpenGameplayControls() => _gameplayControlsWindow?.Open();
 
+    private void OpenRulesConfiguration() => _rulesConfigurationWindow?.Open();
+
     private void OpenAreaAuthoring() => _areaAuthoringWindow?.Open();
 
     private bool ApplyAreaAuthoring(AreaId areaId, AreaAuthoringProfile profile)
@@ -1577,6 +1588,17 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var command = preview with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
         return ApplyCommand(_setGameplayControlProfileHandler.Handle(_history.State, command),
             "Nage, escalade, roue d’actions, temps tactique et combat mis à jour.", null);
+    }
+
+    private bool ApplyRulesProfiles(ModuleRulesProfile moduleProfile, AreaId areaId, AreaRulesProfile areaProfile)
+    {
+        if (_history is null) return false;
+        var preview = new SetRulesProfilesCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            moduleProfile, areaId, areaProfile, true);
+        if (!_setRulesProfilesHandler.Handle(_history.State, preview).Succeeded) return false;
+        var command = preview with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+        return ApplyCommand(_setRulesProfilesHandler.Handle(_history.State, command),
+            "Progression, difficulté, perception et combat de zone mis à jour.", null);
     }
 
     private void OpenGlobalSearch() => _globalSearch?.Open();
@@ -3948,6 +3970,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunRulesProfilesSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNavigationAndGeometrySmokeTest())
         {
             return;
@@ -5816,13 +5843,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var abort = new SequenceAbortPolicy(originalModule.SequenceAbort.Id, 1, true,
             originalModule.SequenceAbort.Binding, SequenceAbortRestoreFlags.All, 64, "smoke:g11-j");
         var modulePolicies = new ModuleRuntimePolicyProfile(originalModule.Id, 1, [global], rest, abort,
-            "smoke:g11-j");
+            "smoke:g11-j", originalModule.Cinematics, originalModule.Gameplay, originalModule.Rules);
         var danger = new RestPolicyVolume(Guid.Parse("d11a0000-0000-4000-8000-000000000003"),
             "Sanctuaire profané", Vector3Value.Zero, new Vector3Value(4, 4, 4), RestPermissionMode.Forbidden,
             "Le sanctuaire n’est pas sécurisé.", string.Empty, 30, 0, 100, "smoke:g11-j");
         var areaRest = new AreaRestPolicy(originalArea.Rest.Id, 1, RestPermissionMode.Conditional,
             "Installez un camp sécurisé.", "camp.secure == true", 30, 3, [danger], "smoke:g11-j");
-        var areaPolicies = new AreaRuntimePolicyProfile(originalArea.Id, 1, [local], areaRest, "smoke:g11-j");
+        var areaPolicies = new AreaRuntimePolicyProfile(originalArea.Id, 1, [local], areaRest, "smoke:g11-j",
+            originalArea.Cinematics, originalArea.Rules);
         if (!_runtimePoliciesWindow.ConfigureForSmokeTest(modulePolicies, areaPolicies) ||
             !_runtimePoliciesWindow.ApplyForSmokeTest())
         {
@@ -6154,6 +6182,113 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "climb=links-stamina-ik-safety radial=nested-gamepad-keyboard-list-accessible " +
             "time=pause-slow-planning-turns multiplayer=vote-permissions combat=providers-shared-events-authority " +
             "history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunRulesProfilesSmokeTest()
+    {
+        if (_history is null || _rulesConfigurationWindow is null || _activeAreaContext.Current is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11M_RULES_FAILED missing_workspace");
+            return false;
+        }
+
+        var areaId = _activeAreaContext.Current;
+        var projectArea = _history.State.Project.Areas.Single(item => item.Id == areaId);
+        var originalModule = _history.State.Project.Module.RuntimePolicies.Rules;
+        var originalArea = projectArea.RuntimePolicies.Rules;
+        var currentDifficulty = originalModule.ActiveDifficulty;
+        var difficulty = new DifficultyProfile(currentDifficulty.Id, 1, currentDifficulty.Key, "Tactique",
+            1.2, 1.35, 1.15, .9, .8, SaveRestrictionPolicy.CheckpointsOnly,
+            FriendlyFireMode.PartyOnly, currentDifficulty.Accessibility, "smoke:g11-m");
+        var progression = new ProgressionPolicy(originalModule.Progression.Id, 1,
+            originalModule.Progression.RulesetId, originalModule.Progression.Curve, 1.1, 1.2,
+            originalModule.Progression.SourceMultipliers, true, "smoke:g11-m");
+        var mutators = new MutatorSet(originalModule.Mutators.Id, 1,
+            originalModule.Mutators.Mutators.Select(item => item with
+            {
+                Enabled = item.Key == "story-support",
+            }).ToArray(),
+            "smoke:g11-m");
+        var module = new ModuleRulesProfile(originalModule.Id, 1, progression, [difficulty], difficulty.Key,
+            mutators, "smoke:g11-m");
+        var perception = new EnvironmentPerceptionProfile(originalArea.Perception.Id, 1,
+            originalArea.Perception.RulesetId,
+            [new EnvironmentPerceptionModifier(Guid.Parse("d11d0000-0000-4000-8000-000000000001"),
+                "vision", .75, .1, "fog")], "smoke:g11-m");
+        var combat = new AreaCombatPolicy(originalArea.Combat.Id, 1, AreaPvpMode.DuelsOnly,
+            FriendlyFireMode.Disabled, true, true, false, true, "smoke:g11-m");
+        var area = new AreaRulesProfile(originalArea.Id, 1, perception, combat, "smoke:g11-m");
+
+        var resolved = RulesRuntimeService.ResolveDifficulty(module);
+        var award = RulesRuntimeService.ResolveProgression(module.Progression, 100, "quest", 2, 0,
+            resolved.ProgressionMultiplier);
+        var sensed = RulesRuntimeService.ResolvePerception(area.Perception, "vision", 20, .8,
+            new HashSet<string>(["fog"], StringComparer.Ordinal));
+        if (resolved.IncomingDamageMultiplier >= difficulty.IncomingDamageMultiplier || award.Level < 2 ||
+            sensed.Range != 15 || Math.Abs(sensed.Confidence - .7) > .0001)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11M_RULES_FAILED runtime_contract");
+            return false;
+        }
+
+        if (!_rulesConfigurationWindow.ConfigureForSmokeTest(module, areaId, area) ||
+            !_rulesConfigurationWindow.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11M_RULES_FAILED apply");
+            return false;
+        }
+
+        var appliedModule = _history.State.Project.Module.RuntimePolicies.Rules;
+        var appliedArea = _history.State.Project.Areas.Single(item => item.Id == areaId).RuntimePolicies.Rules;
+        if (appliedModule.ActiveDifficulty.SaveRestrictions != SaveRestrictionPolicy.CheckpointsOnly ||
+            appliedModule.Mutators.Mutators.Count(item => item.Enabled) != 1 ||
+            appliedArea.Perception.Modifiers.Count != 1 || appliedArea.Combat.PvpMode != AreaPvpMode.DuelsOnly ||
+            !appliedArea.Combat.ServerAuthoritative)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11M_RULES_FAILED applied_contract");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "rules-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project;
+            if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
+                restored.Module.RuntimePolicies.Rules.ActiveDifficulty.IncomingDamageMultiplier != 1.35 ||
+                restored.Areas.Single(item => item.Id == areaId).RuntimePolicies.Rules.Combat.PvpMode !=
+                    AreaPvpMode.DuelsOnly)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11M_RULES_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            !ReferenceEquals(_history.State.Project.Module.RuntimePolicies.Rules, originalModule) ||
+            !ReferenceEquals(_history.State.Project.Areas.Single(item => item.Id == areaId).RuntimePolicies.Rules,
+                originalArea))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11M_RULES_FAILED history");
+            return false;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print("OPENRPG_FORGE_TOOLSET_G11M_RULES_PASS progression=curve-source-group-difficulty " +
+            "difficulty=damage-ai-economy-rest-save-accessibility mutators=composable " +
+            "perception=sense-ruleset-condition pvp=duel-crime-aggro-environment authority=server " +
+            "mcp=governed history=restored persistence=roundtrip");
         return true;
     }
 

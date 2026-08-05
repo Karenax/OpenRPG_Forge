@@ -82,6 +82,17 @@ public sealed class CombatResolverTests
     }
 
     [Fact]
+    public void Cast_applies_validated_data_driven_damage_multiplier()
+    {
+        var caster = CreateCombatant("hero", "heroes", 10, 5, 4, 1, [CreateStrike()]);
+        var target = CreateCombatant("warden", "hostile", 20, 0, 1, 2);
+        var result = CombatResolver.Cast(caster, target, StrikeId, 0, damageMultiplier: 1.5);
+        Assert.Equal(6, result.Damage);
+        Assert.Throws<ArgumentOutOfRangeException>(() => CombatResolver.Cast(caster, target, StrikeId, 2,
+            damageMultiplier: 0));
+    }
+
+    [Fact]
     public void CombatProfile_RejectsDuplicateAbilities()
     {
         var ability = CreateStrike();

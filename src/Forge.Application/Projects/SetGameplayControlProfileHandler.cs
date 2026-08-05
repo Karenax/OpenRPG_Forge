@@ -22,7 +22,8 @@ public sealed class SetGameplayControlProfileHandler
 
         var previous = state.Project.Module.RuntimePolicies;
         var policies = new ModuleRuntimePolicyProfile(previous.Id, previous.SchemaVersion, previous.Heartbeats,
-            previous.Rest, previous.SequenceAbort, "gameplay-command", previous.Cinematics, command.Profile);
+            previous.Rest, previous.SequenceAbort, "gameplay-command", previous.Cinematics, command.Profile,
+            previous.Rules);
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title,
             state.Project.Module.WithRuntimePolicies(policies), state.Project.Blueprints, state.Project.Areas,
             state.Project.Dialogues, state.Project.Quests);

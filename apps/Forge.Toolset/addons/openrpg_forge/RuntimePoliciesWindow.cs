@@ -276,7 +276,7 @@ public partial class RuntimePoliciesWindow : Window
                 _abortEnabled!.ButtonPressed, _module.SequenceAbort.Binding, flags, (int)_rollbackSteps!.Value,
                 "forge-ui");
             var module = new ModuleRuntimePolicyProfile(_module.Id, _module.SchemaVersion, [global], rest, abort,
-                "forge-ui", _module.Cinematics, _module.Gameplay);
+                "forge-ui", _module.Cinematics, _module.Gameplay, _module.Rules);
             var mode = (RestPermissionMode)_restMode!.Selected;
             var reason = mode == RestPermissionMode.Allowed ? string.Empty : NonEmpty(_denialReason!.Text, "Repos impossible ici.");
             var condition = mode == RestPermissionMode.Conditional ? NonEmpty(_condition!.Text, "camp.secure == true") : string.Empty;
@@ -286,7 +286,7 @@ public partial class RuntimePoliciesWindow : Window
             var areaRest = new AreaRestPolicy(_area.Rest.Id, _area.Rest.SchemaVersion, mode, reason, condition,
                 (int)_cooldown!.Value, (float)_secureRadius!.Value, volumes, "forge-ui");
             var area = new AreaRuntimePolicyProfile(_area.Id, _area.SchemaVersion, [local], areaRest, "forge-ui",
-                _area.Cinematics);
+                _area.Cinematics, _area.Rules);
             var succeeded = _apply?.Invoke(module, areaId, area) == true;
             _status!.Text = succeeded
                 ? "✓ Politiques validées et appliquées par une transaction atomique."

@@ -1,5 +1,6 @@
 using Forge.Domain.Areas;
 using Forge.Domain.Sequences;
+using Forge.Domain.Rules;
 using System.Text.Json.Serialization;
 
 namespace Forge.Domain.RuntimePolicies;
@@ -13,18 +14,19 @@ public sealed record AreaRuntimePolicyProfile
     public IReadOnlyList<HeartbeatScheduleDefinition> Heartbeats { get; }
     public AreaRestPolicy Rest { get; }
     public AreaCinematicProfile Cinematics { get; }
+    public AreaRulesProfile Rules { get; }
     public string Provenance { get; }
 
     public AreaRuntimePolicyProfile(Guid id, int schemaVersion,
         IReadOnlyList<HeartbeatScheduleDefinition> heartbeats, AreaRestPolicy rest, string provenance)
-        : this(id, schemaVersion, heartbeats, rest, provenance, null)
+        : this(id, schemaVersion, heartbeats, rest, provenance, null, null)
     {
     }
 
     [JsonConstructor]
     public AreaRuntimePolicyProfile(Guid id, int schemaVersion,
         IReadOnlyList<HeartbeatScheduleDefinition> heartbeats, AreaRestPolicy rest, string provenance,
-        AreaCinematicProfile? cinematics)
+        AreaCinematicProfile? cinematics, AreaRulesProfile? rules = null)
     {
         ArgumentNullException.ThrowIfNull(heartbeats);
         ArgumentNullException.ThrowIfNull(rest);
@@ -42,6 +44,7 @@ public sealed record AreaRuntimePolicyProfile
         Heartbeats = values;
         Rest = rest;
         Cinematics = cinematics ?? AreaCinematicProfile.CreateDefault(AreaId.From(id));
+        Rules = rules ?? AreaRulesProfile.CreateDefault(AreaId.From(id));
         Provenance = provenance.Trim();
     }
 
@@ -52,7 +55,7 @@ public sealed record AreaRuntimePolicyProfile
             AreaRestPolicy.CurrentSchemaVersion, RestPermissionMode.Allowed, string.Empty, string.Empty, 0, 0, [],
             "migration-default");
         return new AreaRuntimePolicyProfile(areaId.Value, CurrentSchemaVersion, [], rest, "migration-default",
-            AreaCinematicProfile.CreateDefault(areaId));
+            AreaCinematicProfile.CreateDefault(areaId), AreaRulesProfile.CreateDefault(areaId));
     }
 
     public static AreaRuntimePolicyProfile CloneForArea(AreaRuntimePolicyProfile source, AreaId areaId)
@@ -76,7 +79,17 @@ public sealed record AreaRuntimePolicyProfile
             item.SafeAreaMargin, item.Tags, "area-clone")).ToArray();
         var cinematics = new AreaCinematicProfile(areaId.Value, source.Cinematics.SchemaVersion, anchors,
             "area-clone");
+        var perception = new EnvironmentPerceptionProfile(areaId.Value, source.Rules.Perception.SchemaVersion,
+            source.Rules.Perception.RulesetId, source.Rules.Perception.Modifiers.Select((item, index) =>
+                new EnvironmentPerceptionModifier(RuntimePolicyIdFactory.Create(areaId.Value, $"rules:sense:{index}"),
+                    item.SenseId, item.Multiplier, item.AdditiveModifier, item.ConditionTag)).ToArray(), "area-clone");
+        var sourceCombat = source.Rules.Combat;
+        var combat = new AreaCombatPolicy(RuntimePolicyIdFactory.Create(areaId.Value, "rules:combat"),
+            sourceCombat.SchemaVersion, sourceCombat.PvpMode, sourceCombat.FriendlyFire, sourceCombat.CrimeEnabled,
+            sourceCombat.AggroEnabled, sourceCombat.EnvironmentalDamageEnabled, sourceCombat.ServerAuthoritative,
+            "area-clone");
+        var rules = new AreaRulesProfile(areaId.Value, source.Rules.SchemaVersion, perception, combat, "area-clone");
         return new AreaRuntimePolicyProfile(areaId.Value, source.SchemaVersion, heartbeats, rest, "area-clone",
-            cinematics);
+            cinematics, rules);
     }
 }

@@ -7,7 +7,8 @@ public static class CombatResolver
         CombatantState target,
         AbilityId abilityId,
         double elapsedSeconds,
-        double lootRoll = 0)
+        double lootRoll = 0,
+        double damageMultiplier = 1)
     {
         ArgumentNullException.ThrowIfNull(caster);
         ArgumentNullException.ThrowIfNull(target);
@@ -20,6 +21,11 @@ public static class CombatResolver
         if (!double.IsFinite(lootRoll) || lootRoll is < 0 or > 1)
         {
             throw new ArgumentOutOfRangeException(nameof(lootRoll));
+        }
+
+        if (!double.IsFinite(damageMultiplier) || damageMultiplier is <= 0 or > 20)
+        {
+            throw new ArgumentOutOfRangeException(nameof(damageMultiplier));
         }
 
         if (caster.IsDead)
@@ -50,7 +56,10 @@ public static class CombatResolver
             switch (effect.Kind)
             {
                 case AbilityEffectKind.Damage:
-                    damage += target.Damage(Math.Max(1, caster.Profile.Stats.Offense + effect.Magnitude - target.Profile.Stats.Defense));
+                    var rawDamage = Math.Max(1,
+                        caster.Profile.Stats.Offense + effect.Magnitude - target.Profile.Stats.Defense);
+                    damage += target.Damage(Math.Max(1,
+                        (int)Math.Round(rawDamage * damageMultiplier, MidpointRounding.AwayFromZero)));
                     break;
                 case AbilityEffectKind.Heal:
                     healing += target.Heal(effect.Magnitude + caster.Profile.Stats.Offense);
