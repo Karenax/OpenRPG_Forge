@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.7.0",
+  "formatVersion": "1.8.0",
   "area": {
     "id": "72e76124-3a4a-5245-c00e-e348ac4cb292",
     "slug": "parvis-des-astres",
@@ -851,6 +851,34 @@
           "aggroEnabled": true,
           "environmentalDamageEnabled": true,
           "serverAuthoritative": true,
+          "provenance": "migration-default"
+        },
+        "provenance": "migration-default"
+      },
+      "experience": {
+        "id": "72e76124-3a4a-5245-c00e-e348ac4cb292",
+        "schemaVersion": 1,
+        "audioCues": [],
+        "scatterEmitters": [],
+        "voices": [],
+        "patrolRoutes": [],
+        "loading": {
+          "id": "298a7f7b-86c7-5e44-90ea-581ebc7b8571",
+          "title": "Chargement",
+          "imageResource": "",
+          "videoResource": "",
+          "localizedTips": {
+            "fr": [
+              "Pr\u00E9paration de la zone\u2026"
+            ],
+            "en": [
+              "Preparing the area\u2026"
+            ]
+          },
+          "showProgress": true,
+          "accessibleFallback": "Chargement de la zone en cours.",
+          "prefetchRequiredResources": true,
+          "minimumVisibleMilliseconds": 250,
           "provenance": "migration-default"
         },
         "provenance": "migration-default"

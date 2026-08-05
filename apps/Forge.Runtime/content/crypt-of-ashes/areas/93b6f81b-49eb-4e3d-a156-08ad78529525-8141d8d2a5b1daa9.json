@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.7.0",
+  "formatVersion": "1.8.0",
   "area": {
     "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
     "slug": "crypt-of-ashes",
@@ -1169,6 +1169,34 @@
           "aggroEnabled": true,
           "environmentalDamageEnabled": true,
           "serverAuthoritative": true,
+          "provenance": "migration-default"
+        },
+        "provenance": "migration-default"
+      },
+      "experience": {
+        "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
+        "schemaVersion": 1,
+        "audioCues": [],
+        "scatterEmitters": [],
+        "voices": [],
+        "patrolRoutes": [],
+        "loading": {
+          "id": "ac025b50-472b-5a54-9f3a-fe08a0677597",
+          "title": "Chargement",
+          "imageResource": "",
+          "videoResource": "",
+          "localizedTips": {
+            "fr": [
+              "Pr\u00E9paration de la zone\u2026"
+            ],
+            "en": [
+              "Preparing the area\u2026"
+            ]
+          },
+          "showProgress": true,
+          "accessibleFallback": "Chargement de la zone en cours.",
+          "prefetchRequiredResources": true,
+          "minimumVisibleMilliseconds": 250,
           "provenance": "migration-default"
         },
         "provenance": "migration-default"

@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.7.0",
+  "formatVersion": "1.8.0",
   "area": {
     "id": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
     "slug": "archipel-oublie",
@@ -689,6 +689,34 @@
           "aggroEnabled": true,
           "environmentalDamageEnabled": true,
           "serverAuthoritative": true,
+          "provenance": "migration-default"
+        },
+        "provenance": "migration-default"
+      },
+      "experience": {
+        "id": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
+        "schemaVersion": 1,
+        "audioCues": [],
+        "scatterEmitters": [],
+        "voices": [],
+        "patrolRoutes": [],
+        "loading": {
+          "id": "44b1a4cd-a3d6-5932-be15-2f4f7ad02c94",
+          "title": "Chargement",
+          "imageResource": "",
+          "videoResource": "",
+          "localizedTips": {
+            "fr": [
+              "Pr\u00E9paration de la zone\u2026"
+            ],
+            "en": [
+              "Preparing the area\u2026"
+            ]
+          },
+          "showProgress": true,
+          "accessibleFallback": "Chargement de la zone en cours.",
+          "prefetchRequiredResources": true,
+          "minimumVisibleMilliseconds": 250,
           "provenance": "migration-default"
         },
         "provenance": "migration-default"

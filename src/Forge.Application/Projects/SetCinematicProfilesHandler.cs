@@ -35,7 +35,7 @@ public sealed class SetCinematicProfilesHandler
         var previousArea = area.RuntimePolicies;
         var areaPolicies = new AreaRuntimePolicyProfile(previousArea.Id, previousArea.SchemaVersion,
             previousArea.Heartbeats, previousArea.Rest, "cinematic-command", command.AreaProfile,
-            previousArea.Rules);
+            previousArea.Rules, previousArea.Experience);
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title,
             state.Project.Module.WithRuntimePolicies(modulePolicies), state.Project.Blueprints,
             state.Project.Areas.Select(item => item.Id == area.Id ? area.WithRuntimePolicies(areaPolicies) : item)

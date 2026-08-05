@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.9.0",
+  "formatVersion": "1.10.0",
   "project": {
     "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
     "title": "La Veill\u00E9e des \u00C9clats",
@@ -776,7 +776,7 @@
       {
         "id": "72e76124-3a4a-5245-c00e-e348ac4cb292",
         "slug": "parvis-des-astres",
-        "documentPath": "areas/72e76124-3a4a-5245-c00e-e348ac4cb292-e28c4a64f710144c.json"
+        "documentPath": "areas/72e76124-3a4a-5245-c00e-e348ac4cb292-3ec54647d73eb002.json"
       }
     ],
     "dialogues": [

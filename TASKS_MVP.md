@@ -423,7 +423,11 @@ Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dan
 - [x] **G11-H** — vent, météo, eau et réverbération runtime.
 - [x] **G11-I** — terrain multi-biome, features et navigation volumétrique.
 - [x] **G11-J** — timers globaux/locaux, repos conditionnel et abandon sûr d'une séquence.
-- [ ] **G11-K à G11-T** — poursuivre les lots bornés du plan de preuves Aurora.
+- [x] **G11-K** — séquences, cutscenes, ancres caméra et transforms interpolés.
+- [x] **G11-L** — nage, escalade, roue d'actions, temps tactique et modes de combat.
+- [x] **G11-M** — progression, difficultés, perception et règles de zone.
+- [x] **G11-N** — audio spatial, voix, patrouilles inter-zones et chargement accessible.
+- [ ] **G11-O à G11-T** — poursuivre les lots bornés du plan de preuves Aurora.
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest
 

@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-A à G11-M Contenu moderne fermés et G11-N ouvert.**
+fermés ; G11-A à G11-N Contenu moderne fermés et G11-O ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -13,7 +13,7 @@ zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplac
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.9.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.10.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -300,3 +300,10 @@ Network Beta décide le PvP sous autorité serveur, ForgeScript lit des snapshot
 sauvegarde expérience et niveau en `.orpsave` 1.2. Les formats zone `1.7.0`, projet `0.6.15` et
 workspace `1.9.0` sont migrés. G11-N porte maintenant audio spatial/événementiel, patrouilles
 inter-zones et chargement.
+
+**G11-N est fermé** : chaque zone configure cues, scatter spatial déterministe, voix localisées et
+consenties, patrouilles inter-zones ainsi qu'image, vidéo, conseils et progression de chargement.
+Le Creator applique le profil par commande annulable ; ForgeScript et MCP reçoivent des APIs
+gouvernées ; le runtime relie l'overlay au streaming réel et joue les ressources importées en 3D.
+Les formats zone `1.8.0`, projet `0.6.16` et workspace `1.10.0` sont migrés. G11-O porte maintenant
+les règles data-driven, l'UI scriptable et la sérialisation runtime.

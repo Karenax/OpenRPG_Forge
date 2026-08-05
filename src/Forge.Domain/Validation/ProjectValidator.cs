@@ -21,6 +21,7 @@ public static class ProjectValidator
     public const string MissingLocalizationKeyCode = "localization.key.missing";
     public const string ContentWorkspaceIdentityCode = "content.workspace.id_mismatch";
     public const string ArtisticStyleIdentityCode = "art.style.id_mismatch";
+    public const string CrossAreaPatrolReferenceCode = "runtime.experience.patrol_reference";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -135,6 +136,28 @@ public static class ProjectValidator
                         MissingPortalDestinationEntityCode,
                         $"Portal '{portal.Id}' references missing destination entity '{portal.DestinationEntityId}'.",
                         $"{path}/destinationEntityId"));
+                }
+            }
+        }
+
+        foreach (var ownerArea in project.Areas)
+        {
+            foreach (var route in ownerArea.RuntimePolicies.Experience.PatrolRoutes)
+            {
+                foreach (var segment in route.Segments)
+                {
+                    var path = $"areas/{ownerArea.Id}/runtimePolicies/experience/patrolRoutes/{route.Id}/segments/{segment.Id}";
+                    var sourceArea = project.Areas.FirstOrDefault(candidate => candidate.Id == segment.FromAreaId);
+                    var destinationArea = project.Areas.FirstOrDefault(candidate => candidate.Id == segment.ToAreaId);
+                    var portal = sourceArea?.Portals.FirstOrDefault(candidate => candidate.Id == segment.PortalId);
+                    if (sourceArea is null || destinationArea is null || portal is null ||
+                        portal.DestinationAreaId != segment.ToAreaId)
+                    {
+                        diagnostics.Add(new DomainDiagnostic(
+                            CrossAreaPatrolReferenceCode,
+                            "Cross-area patrol segments require existing source and destination areas plus a matching source portal.",
+                            path));
+                    }
                 }
             }
         }

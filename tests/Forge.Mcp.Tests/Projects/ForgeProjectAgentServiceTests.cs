@@ -237,6 +237,30 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void AreaExperiencePlanSupportsReadDryRunApplyPersistenceAndRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var resource = workspace.Project.GetAreaExperience();
+        var source = resource.Profile;
+        var cue = new AudioCueDefinition(Guid.NewGuid(), "ambient.owl", string.Empty, "Ambience", .8f, false,
+            string.Empty, string.Empty, "1.0", "mcp-test");
+        var profile = new AreaExperienceProfile(source.Id, 1, [cue], [], [], [], source.Loading, "mcp-test");
+
+        var planned = workspace.Project.PlanAreaExperience(new AreaExperiencePlanRequest(1, resource.Revision,
+            resource.AreaId, profile));
+        Assert.True(planned.Succeeded);
+        Assert.Contains("experience", planned.Diff?.Path);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        var applied = workspace.Project.ApplyAreaExperiencePlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        Assert.Equal("ambient.owl", Assert.Single(persisted.Areas[0].RuntimePolicies.Experience.AudioCues).CueId);
+        var reverted = workspace.Project.RevertAreaExperiencePlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
     public void DialoguePlanSchemaIsValidJsonSchema()
     {
         using var document = JsonDocument.Parse(DialoguePlanSchema.Json);

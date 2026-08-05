@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.9.0",
+  "formatVersion": "1.10.0",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -646,7 +646,7 @@
       {
         "id": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
         "slug": "archipel-oublie",
-        "documentPath": "areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-f1d4c80919c5d671.json"
+        "documentPath": "areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-edeb5ebc7ea6bc2e.json"
       }
     ],
     "dialogues": [],

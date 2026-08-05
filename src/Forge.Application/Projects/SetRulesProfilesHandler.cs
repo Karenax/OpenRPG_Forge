@@ -29,7 +29,7 @@ public sealed class SetRulesProfilesHandler
         var previousArea = area.RuntimePolicies;
         var areaPolicies = new AreaRuntimePolicyProfile(previousArea.Id, previousArea.SchemaVersion,
             previousArea.Heartbeats, previousArea.Rest, "rules-command", previousArea.Cinematics,
-            command.AreaProfile);
+            command.AreaProfile, previousArea.Experience);
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title,
             state.Project.Module.WithRuntimePolicies(modulePolicies), state.Project.Blueprints,
             state.Project.Areas.Select(item => item.Id == area.Id ? item.WithRuntimePolicies(areaPolicies) : item)

@@ -126,6 +126,11 @@ Network Beta, ForgeScript et MCP consomment les mêmes profils persistants et an
 détaillée est dans
 [`tasks/G11-M-PROGRESSION-DIFFICULTY-PERCEPTION-PVP.md`](tasks/G11-M-PROGRESSION-DIFFICULTY-PERCEPTION-PVP.md).
 
+**G11-N est fermé le 5 août 2026.** Chaque zone porte cues, scatter, voix localisées, routes de
+patrouille inter-zones et présentation de chargement. Le Toolset, le runtime, ForgeScript, MCP et
+Network Beta partagent le même contrat persistant, validé et annulable. La preuve détaillée est dans
+[`tasks/G11-N-AUDIO-PATROL-LOADING.md`](tasks/G11-N-AUDIO-PATROL-LOADING.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-N** : audio spatial/événementiel, patrouilles inter-zones et chargement.
+Démarrer **G11-O** : règles data-driven, UI scriptable et sérialisation runtime.

@@ -14,6 +14,7 @@ using Forge.Application.Gameplay;
 using Forge.Application.Rules;
 using Forge.Application.Localization;
 using Forge.Application.Lifecycle;
+using Forge.Application.Navigation;
 using Forge.Application.Sequences;
 using Forge.Application.Projects;
 using Forge.Application.Quests;
@@ -71,6 +72,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetCinematicProfilesHandler _setCinematicProfilesHandler = new(new SystemClock());
     private readonly SetGameplayControlProfileHandler _setGameplayControlProfileHandler = new(new SystemClock());
     private readonly SetRulesProfilesHandler _setRulesProfilesHandler = new(new SystemClock());
+    private readonly SetAreaExperienceProfileHandler _setAreaExperienceProfileHandler = new(new SystemClock());
     private readonly SetAreaAuthoringHandler _setAreaAuthoringHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
@@ -194,6 +196,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private CinematicStudioWindow? _cinematicStudioWindow;
     private GameplayControlsWindow? _gameplayControlsWindow;
     private RulesConfigurationWindow? _rulesConfigurationWindow;
+    private AreaExperienceWindow? _areaExperienceWindow;
     private AreaAuthoringWindow? _areaAuthoringWindow;
     private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
     private NetworkBetaWindow? _networkBetaWindow;
@@ -312,6 +315,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             OpenCinematicStudio,
             OpenGameplayControls,
             OpenRulesConfiguration,
+            OpenAreaExperience,
             OpenAreaAuthoring,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
@@ -337,6 +341,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _rulesConfigurationWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
             ApplyRulesProfiles, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rulesConfigurationWindow);
+        _areaExperienceWindow = new AreaExperienceWindow();
+        _areaExperienceWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
+            ApplyAreaExperienceProfile, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_areaExperienceWindow);
         _areaAuthoringWindow = new AreaAuthoringWindow();
         _areaAuthoringWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaAuthoring, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaAuthoringWindow);
@@ -1524,6 +1532,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void OpenRulesConfiguration() => _rulesConfigurationWindow?.Open();
 
+    private void OpenAreaExperience() => _areaExperienceWindow?.Open();
+
     private void OpenAreaAuthoring() => _areaAuthoringWindow?.Open();
 
     private bool ApplyAreaAuthoring(AreaId areaId, AreaAuthoringProfile profile)
@@ -1599,6 +1609,17 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var command = preview with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
         return ApplyCommand(_setRulesProfilesHandler.Handle(_history.State, command),
             "Progression, difficulté, perception et combat de zone mis à jour.", null);
+    }
+
+    private bool ApplyAreaExperienceProfile(AreaId areaId, AreaExperienceProfile profile)
+    {
+        if (_history is null) return false;
+        var preview = new SetAreaExperienceProfileCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            areaId, profile, true);
+        if (!_setAreaExperienceProfileHandler.Handle(_history.State, preview).Succeeded) return false;
+        var command = preview with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+        return ApplyCommand(_setAreaExperienceProfileHandler.Handle(_history.State, command),
+            "Audio spatial, voix, patrouilles et chargement mis à jour.", null);
     }
 
     private void OpenGlobalSearch() => _globalSearch?.Open();
@@ -3975,6 +3996,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunAreaExperienceSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNavigationAndGeometrySmokeTest())
         {
             return;
@@ -5850,7 +5876,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var areaRest = new AreaRestPolicy(originalArea.Rest.Id, 1, RestPermissionMode.Conditional,
             "Installez un camp sécurisé.", "camp.secure == true", 30, 3, [danger], "smoke:g11-j");
         var areaPolicies = new AreaRuntimePolicyProfile(originalArea.Id, 1, [local], areaRest, "smoke:g11-j",
-            originalArea.Cinematics, originalArea.Rules);
+            originalArea.Cinematics, originalArea.Rules, originalArea.Experience);
         if (!_runtimePoliciesWindow.ConfigureForSmokeTest(modulePolicies, areaPolicies) ||
             !_runtimePoliciesWindow.ApplyForSmokeTest())
         {
@@ -6288,6 +6314,124 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print("OPENRPG_FORGE_TOOLSET_G11M_RULES_PASS progression=curve-source-group-difficulty " +
             "difficulty=damage-ai-economy-rest-save-accessibility mutators=composable " +
             "perception=sense-ruleset-condition pvp=duel-crime-aggro-environment authority=server " +
+            "mcp=governed history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunAreaExperienceSmokeTest()
+    {
+        if (_history is null || _areaExperienceWindow is null || _activeAreaContext.Current is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_FAILED missing_workspace");
+            return false;
+        }
+
+        var areaId = _activeAreaContext.Current;
+        var original = _history.State.Project.Areas.Single(item => item.Id == areaId).RuntimePolicies.Experience;
+        var cue = new AudioCueDefinition(Guid.Parse("d11e0000-0000-4000-8000-000000000001"),
+            "ambient.embers", string.Empty, "Ambience", .8f, false, string.Empty, string.Empty, "1.0",
+            "smoke:g11-n");
+        var scatter = new SpatialScatterEmitter(Guid.Parse("d11e0000-0000-4000-8000-000000000002"),
+            cue.CueId, Vector3Value.Zero, new Vector3Value(12, 3, 12), true, 2026, 1, 4, .75f, true,
+            ["crypt"], ["safe-room"], "smoke:g11-n");
+        var creature = _history.State.Project.Blueprints.First().Id;
+        var voice = new CreatureVoiceProfile(Guid.Parse("d11e0000-0000-4000-8000-000000000003"), creature,
+            "fr",
+            [
+                new LocalizedVoiceTake("fr", string.Empty, "Les braises nous observent.", string.Empty,
+                    string.Empty, string.Empty),
+                new LocalizedVoiceTake("en", string.Empty, "The embers are watching us.", string.Empty,
+                    string.Empty, string.Empty),
+            ], "tts.local",
+            new VoiceConsentMetadata(true, true, "consent:smoke", "voix synthétique de test"), "smoke:g11-n");
+        var loading = new AreaLoadingPresentation(original.Loading.Id, "Crypte des Cendres", "loading.png",
+            "loading.ogv", new Dictionary<string, IReadOnlyList<string>>
+            {
+                ["fr"] = ["La lumière révèle les passages sûrs."],
+                ["en"] = ["Light reveals safe paths."],
+            }, true, "Préparation de la Crypte des Cendres.", true, 250, "smoke:g11-n");
+        var profile = new AreaExperienceProfile(original.Id, 1, [cue], [scatter], [voice], [], loading,
+            "smoke:g11-n");
+
+        var emission = AreaExperienceRuntimeService.ResolveScatter(profile, scatter.Id, 3,
+            new HashSet<string>(["crypt"], StringComparer.Ordinal), new HashSet<string>(), true);
+        var repeated = AreaExperienceRuntimeService.ResolveScatter(profile, scatter.Id, 3,
+            new HashSet<string>(["crypt"], StringComparer.Ordinal), new HashSet<string>(), true);
+        var started = AreaExperienceRuntimeService.PlayCue(profile, AreaAudioRuntimeState.Empty, cue.CueId,
+            DateTimeOffset.UnixEpoch, () => Guid.Parse("d11e0000-0000-4000-8000-000000000004"));
+        var interrupted = AreaExperienceRuntimeService.Interrupt(started.State, started.Playback.PlaybackId,
+            "area-transition", DateTimeOffset.UnixEpoch,
+            () => Guid.Parse("d11e0000-0000-4000-8000-000000000005"));
+        var resolvedVoice = AreaExperienceRuntimeService.ResolveVoice(voice, "de", "fr");
+        var frame = AreaExperienceRuntimeService.ResolveLoading(loading, "fr", 2, 4, 0, true, true);
+        var from = AreaId.From(Guid.Parse("d11e0000-0000-4000-8000-000000000010"));
+        var destination = AreaId.From(Guid.Parse("d11e0000-0000-4000-8000-000000000011"));
+        var resume = Guid.Parse("d11e0000-0000-4000-8000-000000000012");
+        var patrol = new CrossAreaPatrolRoute(Guid.Parse("d11e0000-0000-4000-8000-000000000013"), "guard",
+            [new CrossAreaPatrolSegment(Guid.Parse("d11e0000-0000-4000-8000-000000000014"), from, destination,
+                PortalId.From(Guid.Parse("d11e0000-0000-4000-8000-000000000015")), resume, true,
+                PatrolOwnershipAuthority.Server)], false, "smoke:g11-n");
+        var cursor = new CrossAreaPatrolCursor(0, from, Guid.Empty, false, false);
+        var waiting = CrossAreaPatrolRuntimeService.Advance(patrol, cursor, true, false);
+        var resumed = CrossAreaPatrolRuntimeService.Advance(patrol, waiting.Cursor, true, true);
+        if (emission is null || emission != repeated ||
+            interrupted.Events.LastOrDefault() is not AudioCueInterrupted || !resolvedVoice.UsesTts ||
+            frame.MediaKind != LoadingMediaKind.Image || frame.Progress != .5 ||
+            !waiting.Cursor.AwaitingStreaming || resumed.Cursor.ResumeWaypointId != resume)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_FAILED runtime_contract");
+            return false;
+        }
+
+        if (!_areaExperienceWindow.ConfigureForSmokeTest(areaId, profile) ||
+            !_areaExperienceWindow.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_FAILED apply");
+            return false;
+        }
+
+        var applied = _history.State.Project.Areas.Single(item => item.Id == areaId).RuntimePolicies.Experience;
+        if (applied.AudioCues.Count != 1 || applied.ScatterEmitters.Count != 1 || applied.Voices.Count != 1 ||
+            applied.Voices[0].Takes.Count != 2 ||
+            !applied.Loading.ShowProgress || !applied.Loading.PrefetchRequiredResources)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_FAILED applied_contract");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "experience-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project.Areas.Single(item => item.Id == areaId)
+                .RuntimePolicies.Experience;
+            if (!saved.Succeeded || !reopened.Succeeded || restored is null || restored.AudioCues.Count != 1 ||
+                restored.Loading.Title != "Crypte des Cendres")
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo(); var redo = _history.Redo(); var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            !ReferenceEquals(_history.State.Project.Areas.Single(item => item.Id == areaId)
+                .RuntimePolicies.Experience, original))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_FAILED history");
+            return false;
+        }
+
+        RebuildPreview(); RefreshEditorControls();
+        GD.Print("OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed " +
+            "voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot " +
+            "patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch " +
             "mcp=governed history=restored persistence=roundtrip");
         return true;
     }

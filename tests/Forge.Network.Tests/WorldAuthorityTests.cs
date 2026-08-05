@@ -1,5 +1,7 @@
 using Forge.Network.World;
+using Forge.Domain.Areas;
 using Forge.Domain.Rules;
+using Forge.Domain.RuntimePolicies;
 
 namespace Forge.Network.Tests;
 
@@ -64,6 +66,24 @@ public sealed class WorldAuthorityTests
         var local = new AreaCombatAuthority(parties, localPolicy);
         Assert.Equal("NET_AREA_COMBAT_AUTHORITY_REQUIRED",
             local.AuthorizeDamage(leader, Guid.NewGuid(), true, 8, duelAuthorized: true).Code);
+    }
+
+    [Fact]
+    public void Cross_area_patrol_transfer_requires_server_owner_lease_and_revision()
+    {
+        var segment = new CrossAreaPatrolSegment(Guid.NewGuid(), AreaId.From(Guid.NewGuid()),
+            AreaId.From(Guid.NewGuid()), PortalId.From(Guid.NewGuid()), Guid.NewGuid(), true,
+            PatrolOwnershipAuthority.Server);
+        var now = new DateTimeOffset(2026, 8, 5, 12, 0, 0, TimeSpan.Zero);
+        var lease = new PatrolOwnershipLease("guard.elyra", "server.eu-1", 4, now.AddMinutes(1));
+        Assert.Equal("NET_PATROL_SERVER_REQUIRED", CrossAreaPatrolAuthority.Authorize(segment, lease,
+            "guard.elyra", "server.eu-1", 4, now, false).Code);
+        Assert.Equal("NET_PATROL_OWNERSHIP_DENIED", CrossAreaPatrolAuthority.Authorize(segment, lease,
+            "guard.elyra", "server.eu-2", 4, now, true).Code);
+        var accepted = CrossAreaPatrolAuthority.Authorize(segment, lease, "guard.elyra", "server.eu-1", 4, now,
+            true);
+        Assert.True(accepted.Allowed);
+        Assert.Equal(5, accepted.Revision);
     }
 
     [Fact]

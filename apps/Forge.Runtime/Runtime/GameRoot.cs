@@ -55,6 +55,8 @@ public partial class GameRoot : Node3D
     private readonly ProjectGameplayEventBus _gameplayEvents = new();
     private readonly Dictionary<Guid, Node3D> _entityNodes = [];
     private readonly Dictionary<Guid, CameraAnchorDefinition> _cameraAnchors = [];
+    private readonly Dictionary<Guid, double> _scatterDueSeconds = [];
+    private readonly Dictionary<Guid, int> _scatterSequences = [];
 
     private PlayerController? _player;
     private CombatantState? _playerCombatant;
@@ -115,11 +117,16 @@ public partial class GameRoot : Node3D
     private RuntimeActionWheel? _actionWheel;
     private ModuleRulesProfile? _moduleRules;
     private AreaRulesProfile? _areaRules;
+    private AreaExperienceProfile? _areaExperience;
+    private AreaAudioRuntimeState _areaAudioState = AreaAudioRuntimeState.Empty;
+    private IReadOnlySet<string> _activeBiomeTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    private string _defaultLocale = "fr";
     private ResolvedDifficulty? _resolvedDifficulty;
     private double _progressionExperience;
     private int _progressionLevel = 1;
+    private bool _initializationComplete;
 
-    public override void _Ready()
+    public override async void _Ready()
     {
         var startupStarted = Stopwatch.GetTimestamp();
         var userArguments = OS.GetCmdlineUserArgs();
@@ -157,11 +164,12 @@ public partial class GameRoot : Node3D
             _blackboard = new ProjectBlackboard(project.Module.Variables, allowUndeclared: true);
             _moduleTitle = project.Module.DisplayName;
             _moduleSlug = project.Module.Slug;
+            _defaultLocale = project.Module.Metadata.DefaultLocale;
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
             _message = $"Explorez {_moduleTitle}.";
             var entryArea = project.Areas.Single(area => area.Id == project.Module.EntryAreaId);
             ConfigureRuntimePolicies(project.Module.RuntimePolicies, entryArea.RuntimePolicies);
-            ConfigureWorld(entryArea.Environment, entryArea.World, _isCryptPrototype);
+            await ConfigureWorldAsync(entryArea.Environment, entryArea.World, _isCryptPrototype);
             var selectedSpawn = BuildProject(project, requestedSpawnId);
             EnsureLifecycle(
                 _lifecycle.EnterInitialArea(
@@ -181,6 +189,7 @@ public partial class GameRoot : Node3D
             ConfigureCinematics(project, entryArea);
             UpdateHud();
             EnsureLifecycle(_lifecycle.StartWorld(lifecycleCause), "world_started");
+            _initializationComplete = true;
             AssertLifecycleStartupContract();
             GD.Print(
                 $"OPENRPG_FORGE_RUNTIME_PERF startup_ms={Stopwatch.GetElapsedTime(startupStarted).TotalMilliseconds:0.###} " +
@@ -231,6 +240,7 @@ public partial class GameRoot : Node3D
 
     public override void _Process(double delta)
     {
+        if (!_initializationComplete) return;
         var simulationDelta = delta * (_timeControlSession.State == RuntimeTimeState.SlowMotion
             ? _timeControlSession.Scale
             : 1);
@@ -238,6 +248,7 @@ public partial class GameRoot : Node3D
         {
             AdvanceClimate(simulationDelta);
             AdvanceRuntimePolicies(simulationDelta);
+            AdvanceAreaExperience(simulationDelta);
             AdvanceCinematics(simulationDelta);
         }
 
@@ -836,7 +847,7 @@ public partial class GameRoot : Node3D
         return root;
     }
 
-    private void ConfigureWorld(AreaEnvironmentProfile environmentProfile, AreaWorldProfile worldProfile,
+    private async Task ConfigureWorldAsync(AreaEnvironmentProfile environmentProfile, AreaWorldProfile worldProfile,
         bool includeCryptAtmosphere)
     {
         ArgumentNullException.ThrowIfNull(environmentProfile);
@@ -892,7 +903,7 @@ public partial class GameRoot : Node3D
         _environmentProfile = environmentProfile;
         _weatherState = WeatherRuntimeStateMachine.CreateInitial(environmentProfile.Weather);
         ApplyClimateEffects(force: true);
-        ConfigureAreaWorld(worldProfile);
+        await ConfigureAreaWorldAsync(worldProfile);
 
         if (includeCryptAtmosphere)
         {
@@ -909,9 +920,11 @@ public partial class GameRoot : Node3D
         _camera.LookAt(Vector3.Zero, Vector3.Up);
     }
 
-    private void ConfigureAreaWorld(AreaWorldProfile profile)
+    private async Task ConfigureAreaWorldAsync(AreaWorldProfile profile)
     {
         var started = Stopwatch.GetTimestamp();
+        _activeBiomeTags = profile.Biomes.SelectMany(item => item.Tags)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var terrain = GodotTerrainAdapter.Build(profile);
         _areaWorldRoot = terrain.Root;
         AddChild(_areaWorldRoot);
@@ -921,6 +934,17 @@ public partial class GameRoot : Node3D
         }
 
         AreaStreamingResult? streaming = null;
+        var presentation = _areaExperience?.Loading ??
+            throw new InvalidOperationException("Area experience must be configured before streaming.");
+        var imageAvailable = LoadingResourceExists(presentation.ImageResource);
+        var videoAvailable = LoadingResourceExists(presentation.VideoResource);
+        var reduceMotion = OS.GetCmdlineUserArgs().Contains("--reduce-motion", StringComparer.Ordinal);
+        var overlay = new RuntimeLoadingOverlay(_moduleContentRoot ?? string.Empty);
+        AddChild(overlay);
+        var loadingFrame = AreaExperienceRuntimeService.ResolveLoading(presentation, _defaultLocale, 0,
+            profile.Loading.RequiredResources.Count, 0, reduceMotion, imageAvailable, videoAvailable);
+        overlay.Apply(loadingFrame);
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         if (profile.Loading.RequiredResources.Count > 0)
         {
             if (string.IsNullOrWhiteSpace(_moduleContentRoot))
@@ -929,8 +953,28 @@ public partial class GameRoot : Node3D
             }
 
             var coordinator = new AreaStreamingCoordinator(new RuntimeAreaChunkLoader(_moduleContentRoot));
-            streaming = coordinator.LoadAsync(profile.Loading).GetAwaiter().GetResult();
+            var progress = new Progress<AreaStreamingProgress>(update =>
+                overlay.Apply(AreaExperienceRuntimeService.ResolveLoading(presentation, _defaultLocale,
+                    update.CompletedResources, Math.Max(update.TotalResources,
+                    profile.Loading.RequiredResources.Count), update.CompletedResources, reduceMotion,
+                    imageAvailable, videoAvailable), update.CurrentResource));
+            streaming = await coordinator.LoadAsync(profile.Loading, progress);
         }
+
+        var loadedResources = streaming?.Resources.Count ?? 0;
+        loadingFrame = AreaExperienceRuntimeService.ResolveLoading(presentation, _defaultLocale,
+            loadedResources, loadedResources, loadedResources, reduceMotion, imageAvailable, videoAvailable);
+        overlay.Apply(loadingFrame);
+
+        var remaining = presentation.MinimumVisibleMilliseconds -
+                        (int)Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+        if (remaining > 0)
+            await ToSignal(GetTree().CreateTimer(remaining / 1000.0), SceneTreeTimer.SignalName.Timeout);
+        overlay.Complete();
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_G11N_LOADING_PASS media={loadingFrame.MediaKind.ToString().ToLowerInvariant()} " +
+            $"progress={loadingFrame.Progress:0.###} accessible={!string.IsNullOrWhiteSpace(loadingFrame.AccessibleText)} " +
+            $"streamed={loadedResources}");
 
         var elapsed = Stopwatch.GetElapsedTime(started);
         GD.Print(
@@ -939,6 +983,82 @@ public partial class GameRoot : Node3D
             $"features={terrain.FeatureSegments} volumes={terrain.DebugVolumes} routes={terrain.FlightRouteSegments} " +
             $"streamed={streaming?.Resources.Count ?? 0} cache_hits={streaming?.CacheHits ?? 0} " +
             $"elapsed_ms={elapsed.TotalMilliseconds:0.###} target_ms={profile.Loading.TargetLoadMilliseconds}");
+    }
+
+    private bool LoadingResourceExists(string resourcePath) => CinematicResourceExists(resourcePath);
+
+    private void AdvanceAreaExperience(double delta)
+    {
+        if (_areaExperience is null || _areaExperience.ScatterEmitters.Count == 0) return;
+        foreach (var emitter in _areaExperience.ScatterEmitters)
+        {
+            var due = _scatterDueSeconds.GetValueOrDefault(emitter.Id) - delta;
+            if (due > 0)
+            {
+                _scatterDueSeconds[emitter.Id] = due;
+                continue;
+            }
+
+            var sequence = _scatterSequences.GetValueOrDefault(emitter.Id);
+            var emission = AreaExperienceRuntimeService.ResolveScatter(_areaExperience, emitter.Id, sequence,
+                _activeBiomeTags, new HashSet<string>(StringComparer.OrdinalIgnoreCase), navigable: true);
+            _scatterSequences[emitter.Id] = sequence + 1;
+            if (emission is null)
+            {
+                _scatterDueSeconds[emitter.Id] = Math.Max(1, emitter.MinimumIntervalSeconds);
+                continue;
+            }
+
+            _scatterDueSeconds[emitter.Id] = Math.Max(.05, emission.DelaySeconds);
+            var result = AreaExperienceRuntimeService.PlayCue(_areaExperience, _areaAudioState, emission.CueId,
+                DateTimeOffset.UtcNow);
+            _areaAudioState = result.State;
+            PlaySpatialCue(result.Playback, emission.Position, emission.Volume);
+        }
+    }
+
+    private void PlaySpatialCue(AudioCuePlayback playback, Vector3Value position, float scatterVolume)
+    {
+        var stream = LoadAudioStream(playback.Resource);
+        if (stream is null)
+        {
+            _areaAudioState = AreaExperienceRuntimeService.Complete(_areaAudioState, playback.PlaybackId,
+                DateTimeOffset.UtcNow);
+            GD.Print($"OPENRPG_FORGE_RUNTIME_AUDIO_CUE cue={playback.CueKey} event=completed resource=unavailable");
+            return;
+        }
+
+        var player = new AudioStreamPlayer3D
+        {
+            Name = $"ForgeAudio_{playback.CueKey.Replace('.', '_')}",
+            Stream = stream,
+            Position = EngineValueConverter.ToEngine(position),
+            VolumeDb = Mathf.LinearToDb(Math.Max(.001f, playback.Volume * scatterVolume)),
+            Bus = AudioServer.GetBusIndex(playback.Bus) >= 0 ? playback.Bus : "Master",
+            Autoplay = true,
+        };
+        player.Finished += () =>
+        {
+            _areaAudioState = AreaExperienceRuntimeService.Complete(_areaAudioState, playback.PlaybackId,
+                DateTimeOffset.UtcNow);
+            player.QueueFree();
+        };
+        AddChild(player);
+        GD.Print($"OPENRPG_FORGE_RUNTIME_AUDIO_CUE cue={playback.CueKey} event=started spatial=true");
+    }
+
+    private AudioStream? LoadAudioStream(string resourcePath)
+    {
+        if (string.IsNullOrWhiteSpace(resourcePath)) return null;
+        var direct = resourcePath.StartsWith("res://", StringComparison.Ordinal)
+            ? resourcePath
+            : _moduleContentRoot is null
+                ? $"res://{resourcePath}"
+                : ProjectSettings.LocalizePath(Path.Combine(_moduleContentRoot,
+                    resourcePath.Replace('/', Path.DirectorySeparatorChar)));
+        return direct.StartsWith("res://", StringComparison.Ordinal) && ResourceLoader.Exists(direct)
+            ? ResourceLoader.Load<AudioStream>(direct)
+            : null;
     }
 
     private void AdvanceClimate(double delta)
@@ -979,6 +1099,10 @@ public partial class GameRoot : Node3D
         _gameplayControls = module.Gameplay;
         _moduleRules = module.Rules;
         _areaRules = area.Rules;
+        _areaExperience = area.Experience;
+        _areaAudioState = AreaAudioRuntimeState.Empty;
+        _scatterDueSeconds.Clear();
+        _scatterSequences.Clear();
         _resolvedDifficulty = RulesRuntimeService.ResolveDifficulty(module.Rules);
         _activeCombatProvider = module.Gameplay.CombatModes.DefaultProvider;
         _timeControlSession = TimeControlSession.Running;
@@ -1000,6 +1124,11 @@ public partial class GameRoot : Node3D
             $"perception={area.Rules.Perception.Modifiers.Count}:{perception.Range:0.###} " +
             $"pvp={area.Rules.Combat.PvpMode.ToString().ToLowerInvariant()} " +
             $"authority={area.Rules.Combat.ServerAuthoritative.ToString().ToLowerInvariant()}");
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_G11N_EXPERIENCE_PASS cues={area.Experience.AudioCues.Count} " +
+            $"scatter={area.Experience.ScatterEmitters.Count} voices={area.Experience.Voices.Count} " +
+            $"patrols={area.Experience.PatrolRoutes.Count} loading=accessible-progress-prefetch " +
+            "audio_api=started-completed-interrupted-music-snapshot patrol_api=streaming-owner-resume");
     }
 
     private void ConfigureCinematics(ProjectDefinition project, AreaDefinition area)

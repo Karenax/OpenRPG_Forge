@@ -15,18 +15,19 @@ public sealed record AreaRuntimePolicyProfile
     public AreaRestPolicy Rest { get; }
     public AreaCinematicProfile Cinematics { get; }
     public AreaRulesProfile Rules { get; }
+    public AreaExperienceProfile Experience { get; }
     public string Provenance { get; }
 
     public AreaRuntimePolicyProfile(Guid id, int schemaVersion,
         IReadOnlyList<HeartbeatScheduleDefinition> heartbeats, AreaRestPolicy rest, string provenance)
-        : this(id, schemaVersion, heartbeats, rest, provenance, null, null)
+        : this(id, schemaVersion, heartbeats, rest, provenance, null, null, null)
     {
     }
 
     [JsonConstructor]
     public AreaRuntimePolicyProfile(Guid id, int schemaVersion,
         IReadOnlyList<HeartbeatScheduleDefinition> heartbeats, AreaRestPolicy rest, string provenance,
-        AreaCinematicProfile? cinematics, AreaRulesProfile? rules = null)
+        AreaCinematicProfile? cinematics, AreaRulesProfile? rules = null, AreaExperienceProfile? experience = null)
     {
         ArgumentNullException.ThrowIfNull(heartbeats);
         ArgumentNullException.ThrowIfNull(rest);
@@ -45,6 +46,7 @@ public sealed record AreaRuntimePolicyProfile
         Rest = rest;
         Cinematics = cinematics ?? AreaCinematicProfile.CreateDefault(AreaId.From(id));
         Rules = rules ?? AreaRulesProfile.CreateDefault(AreaId.From(id));
+        Experience = experience ?? AreaExperienceProfile.CreateDefault(AreaId.From(id));
         Provenance = provenance.Trim();
     }
 
@@ -55,7 +57,8 @@ public sealed record AreaRuntimePolicyProfile
             AreaRestPolicy.CurrentSchemaVersion, RestPermissionMode.Allowed, string.Empty, string.Empty, 0, 0, [],
             "migration-default");
         return new AreaRuntimePolicyProfile(areaId.Value, CurrentSchemaVersion, [], rest, "migration-default",
-            AreaCinematicProfile.CreateDefault(areaId), AreaRulesProfile.CreateDefault(areaId));
+            AreaCinematicProfile.CreateDefault(areaId), AreaRulesProfile.CreateDefault(areaId),
+            AreaExperienceProfile.CreateDefault(areaId));
     }
 
     public static AreaRuntimePolicyProfile CloneForArea(AreaRuntimePolicyProfile source, AreaId areaId)
@@ -89,7 +92,32 @@ public sealed record AreaRuntimePolicyProfile
             sourceCombat.AggroEnabled, sourceCombat.EnvironmentalDamageEnabled, sourceCombat.ServerAuthoritative,
             "area-clone");
         var rules = new AreaRulesProfile(areaId.Value, source.Rules.SchemaVersion, perception, combat, "area-clone");
+        var sourceExperience = source.Experience;
+        var cueMap = sourceExperience.AudioCues.Select((item, index) => (item.Id,
+            NewId: RuntimePolicyIdFactory.Create(areaId.Value, $"experience:cue:{index}")))
+            .ToDictionary(item => item.Id, item => item.NewId);
+        var cues = sourceExperience.AudioCues.Select(item => item with { Id = cueMap[item.Id], Provenance = "area-clone" })
+            .ToArray();
+        var scatter = sourceExperience.ScatterEmitters.Select((item, index) => item with
+        {
+            Id = RuntimePolicyIdFactory.Create(areaId.Value, $"experience:scatter:{index}"),
+            Provenance = "area-clone",
+        }).ToArray();
+        var voices = sourceExperience.Voices.Select((item, index) => item with
+        {
+            Id = RuntimePolicyIdFactory.Create(areaId.Value, $"experience:voice:{index}"),
+            Provenance = "area-clone",
+        }).ToArray();
+        // Cross-area routes are topology-specific: portal and resume-point remapping belongs to
+        // the duplicate-area command, so a standalone policy clone intentionally starts without routes.
+        CrossAreaPatrolRoute[] patrols = [];
+        var experience = new AreaExperienceProfile(areaId.Value, sourceExperience.SchemaVersion, cues, scatter,
+            voices, patrols, sourceExperience.Loading with
+            {
+                Id = RuntimePolicyIdFactory.Create(areaId.Value, "experience:loading"),
+                Provenance = "area-clone",
+            }, "area-clone");
         return new AreaRuntimePolicyProfile(areaId.Value, source.SchemaVersion, heartbeats, rest, "area-clone",
-            cinematics, rules);
+            cinematics, rules, experience);
     }
 }

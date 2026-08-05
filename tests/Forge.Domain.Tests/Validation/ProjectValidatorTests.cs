@@ -4,6 +4,7 @@ using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
+using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 
@@ -132,5 +133,37 @@ public sealed class ProjectValidatorTests
 
         Assert.Equal(ProjectValidator.MissingPortalDestinationAreaCode, diagnostic.Code);
         Assert.Equal($"areas/{area.Id}/portals/0/destinationAreaId", diagnostic.Path);
+    }
+
+    [Fact]
+    public void Validate_ReportsCrossAreaPatrolWithoutMatchingSourcePortal()
+    {
+        var blueprint = new BlueprintDefinition(BlueprintId.From(Guid.NewGuid()), "portal-anchor",
+            "Portal anchor", BlueprintKind.Trigger);
+        var sourceId = AreaId.From(Guid.NewGuid());
+        var destinationId = AreaId.From(Guid.NewGuid());
+        var sourceEntity = new EntityInstance(EntityId.From(Guid.NewGuid()), blueprint.Id, TransformValue.Identity);
+        var destinationEntity = new EntityInstance(EntityId.From(Guid.NewGuid()), blueprint.Id,
+            TransformValue.Identity);
+        var declaredPortal = new PortalLink(PortalId.From(Guid.NewGuid()), "Passage", sourceEntity.Id,
+            destinationId, destinationEntity.Id, false, true);
+        var defaults = AreaRuntimePolicyProfile.CreateDefault(sourceId);
+        var route = new CrossAreaPatrolRoute(Guid.NewGuid(), "guard",
+            [new CrossAreaPatrolSegment(Guid.NewGuid(), sourceId, destinationId, PortalId.From(Guid.NewGuid()),
+                Guid.NewGuid(), true, PatrolOwnershipAuthority.Server)], false, "test");
+        var experience = new AreaExperienceProfile(sourceId.Value, 1, [], [], [], [route],
+            defaults.Experience.Loading, "test");
+        var policies = new AreaRuntimePolicyProfile(defaults.Id, defaults.SchemaVersion, defaults.Heartbeats,
+            defaults.Rest, "test", defaults.Cinematics, defaults.Rules, experience);
+        var source = new AreaDefinition(sourceId, "source", "Source", [sourceEntity], portals: [declaredPortal],
+            runtimePolicies: policies);
+        var destination = new AreaDefinition(destinationId, "destination", "Destination", [destinationEntity]);
+        var project = new ProjectDefinition(ProjectId.From(Guid.NewGuid()), "Test project", [blueprint],
+            [source, destination]);
+
+        var diagnostic = Assert.Single(ProjectValidator.Validate(project), item =>
+            item.Code == ProjectValidator.CrossAreaPatrolReferenceCode);
+
+        Assert.Contains(route.Id.ToString(), diagnostic.Path, StringComparison.Ordinal);
     }
 }

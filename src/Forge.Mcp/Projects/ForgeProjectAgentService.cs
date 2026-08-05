@@ -40,11 +40,13 @@ public sealed class ForgeProjectAgentService
     private readonly SetCinematicProfilesHandler _cinematicHandler;
     private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
     private readonly SetRulesProfilesHandler _rulesProfilesHandler;
+    private readonly SetAreaExperienceProfileHandler _areaExperienceHandler;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredGameplayControlPlan> _gameplayControlPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRulesProfilePlan> _rulesProfilePlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAreaExperiencePlan> _areaExperiencePlans = new(StringComparer.Ordinal);
     private readonly IClock _clock;
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
@@ -58,6 +60,7 @@ public sealed class ForgeProjectAgentService
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
         _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
         _rulesProfilesHandler = new SetRulesProfilesHandler(clock);
+        _areaExperienceHandler = new SetAreaExperienceProfileHandler(clock);
     }
 
     public string WorkspaceDirectory => _session.RootDirectory;
@@ -562,6 +565,118 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public AreaExperienceResource GetAreaExperience(string? areaId = null)
+    {
+        lock (_gate)
+        {
+            var project = _history.State.Project;
+            var area = string.IsNullOrWhiteSpace(areaId)
+                ? project.Areas.Single(item => item.Id == project.Module.EntryAreaId)
+                : project.Areas.Single(item => item.Id == AreaId.Parse(areaId));
+            return new AreaExperienceResource(1, _history.State.Revision.Value, area.Id.ToString(),
+                area.RuntimePolicies.Experience);
+        }
+    }
+
+    public AreaExperiencePlanResult PlanAreaExperience(AreaExperiencePlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return AreaExperienceFailure(request.BaseRevision, "area_experience_plan.schema_unsupported",
+                    "Area experience plan schema must be 1.");
+            AreaId areaId;
+            try { areaId = AreaId.Parse(request.AreaId); }
+            catch (Exception exception) when (exception is ArgumentException or FormatException)
+            {
+                return AreaExperienceFailure(request.BaseRevision, "area_experience_plan.area_invalid",
+                    exception.Message);
+            }
+            var command = new SetAreaExperienceProfileCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), areaId, request.Profile, true);
+            var preview = _areaExperienceHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new AreaExperiencePlanResult(false, null, request.BaseRevision, preview.Patch,
+                    preview.Inverse, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredAreaExperiencePlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new AreaExperienceAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _areaExperiencePlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public AreaExperiencePlanResult ApplyAreaExperiencePlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaExperiencePlans.TryGetValue(planId, out var plan))
+                return AreaExperienceFailure(GetCurrentRevision(), "area_experience_plan.missing",
+                    $"Area experience plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AreaExperienceFailure(plan.Command.BaseRevision.Value, "area_experience_plan.already_applied",
+                    $"Area experience plan '{planId}' is already applied.");
+            var result = _areaExperienceHandler.Handle(_history.State,
+                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new AreaExperienceAuditEntry(planId, "apply", _history.State.Revision.Value,
+                    _clock.UtcNow, false));
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = result.Diagnostics.Select(Map).ToArray(),
+                };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new AreaExperienceAuditEntry(planId, "apply", plan.AppliedRevision.Value,
+                _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AreaExperiencePlanResult RevertAreaExperiencePlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaExperiencePlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AreaExperienceFailure(GetCurrentRevision(), "area_experience_plan.not_applied",
+                    $"Area experience plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return AreaExperienceFailure(plan.Command.BaseRevision.Value,
+                    "area_experience_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return AreaExperienceFailure(plan.Command.BaseRevision.Value,
+                    "area_experience_plan.inverse_unavailable", "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return AreaExperienceFailure(plan.Command.BaseRevision.Value,
+                    "area_experience_plan.save_failed", "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new AreaExperienceAuditEntry(planId, "revert", undone.State.Revision.Value,
+                _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
     public AgentAssetCatalogResult GetAssets(AgentAssetCatalogQuery? query = null)
     {
         query ??= new AgentAssetCatalogQuery();
@@ -1017,6 +1132,13 @@ public sealed class ForgeProjectAgentService
         plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
         plan.Audit.ToArray());
 
+    private static AreaExperiencePlanResult AreaExperienceFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static AreaExperiencePlanResult ToResult(StoredAreaExperiencePlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
+
     private sealed class StoredDialoguePlan(
         string planId,
         DialogueDefinition dialogue,
@@ -1102,6 +1224,19 @@ public sealed class ForgeProjectAgentService
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
         public List<RulesProfileAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAreaExperiencePlan(string planId, SetAreaExperienceProfileCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<AreaExperienceAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetAreaExperienceProfileCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<AreaExperienceAuditEntry> Audit { get; } = audit;
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }

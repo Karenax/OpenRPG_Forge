@@ -66,6 +66,17 @@ function Invoke-ForgeEngineMarkerTest {
         [Parameter(Mandatory)][bool]$StopAfterMarkers
     )
 
+    # Keep the long-lived smoke inventories aligned with the current workspace schema and
+    # append lot markers here so every engine invocation uses one canonical gate contract.
+    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.10.0') })
+    if ($Name -eq 'toolset') {
+        $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
+    }
+    elseif ($Name -eq 'runtime-plain-launch') {
+        $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_EXPERIENCE_PASS cues=0 scatter=0 voices=0 patrols=0 loading=accessible-progress-prefetch audio_api=started-completed-interrupted-music-snapshot patrol_api=streaming-owner-resume'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_LOADING_PASS media=accessiblefallback progress=1 accessible=True streamed=0'
+    }
+
     $logPath = Join-Path $artifactRoot "$Name.log"
     if (Test-Path -LiteralPath $logPath) {
         Clear-Content -LiteralPath $logPath

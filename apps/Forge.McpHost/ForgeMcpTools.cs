@@ -69,6 +69,61 @@ public sealed class ForgeMcpTools
     public CinematicPlanResult RevertCinematicPlan(string planId) => _project.RevertCinematicPlan(planId);
 
     [McpServerTool]
+    [Description("Returns the canonical module gameplay controls without mutating the project.")]
+    public GameplayControlResource GetGameplayControls() => _project.GetGameplayControls();
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a versioned gameplay-control plan.")]
+    public GameplayControlPlanResult PlanGameplayControls(GameplayControlPlanRequest request) =>
+        _project.PlanGameplayControls(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated gameplay-control plan if its base revision still matches.")]
+    public GameplayControlPlanResult ApplyGameplayControlPlan(string planId) =>
+        _project.ApplyGameplayControlPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied gameplay-control plan through its inverse operation.")]
+    public GameplayControlPlanResult RevertGameplayControlPlan(string planId) =>
+        _project.RevertGameplayControlPlan(planId);
+
+    [McpServerTool]
+    [Description("Returns canonical module rules and selected-area rules without mutating the project.")]
+    public RulesProfileResource GetRules(string? areaId = null) => _project.GetRules(areaId);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a versioned rules plan.")]
+    public RulesProfilePlanResult PlanRules(RulesProfilePlanRequest request) => _project.PlanRules(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated rules plan if its base revision still matches.")]
+    public RulesProfilePlanResult ApplyRulesPlan(string planId) => _project.ApplyRulesPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied rules plan through its inverse operation.")]
+    public RulesProfilePlanResult RevertRulesPlan(string planId) => _project.RevertRulesPlan(planId);
+
+    [McpServerTool]
+    [Description("Returns selected-area audio, voice, patrol and loading configuration without mutation.")]
+    public AreaExperienceResource GetAreaExperience(string? areaId = null) =>
+        _project.GetAreaExperience(areaId);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a versioned area-experience plan.")]
+    public AreaExperiencePlanResult PlanAreaExperience(AreaExperiencePlanRequest request) =>
+        _project.PlanAreaExperience(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated area-experience plan if its base revision still matches.")]
+    public AreaExperiencePlanResult ApplyAreaExperiencePlan(string planId) =>
+        _project.ApplyAreaExperiencePlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied area-experience plan through its inverse operation.")]
+    public AreaExperiencePlanResult RevertAreaExperiencePlan(string planId) =>
+        _project.RevertAreaExperiencePlan(planId);
+
+    [McpServerTool]
     [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]
     public AgentAssetCatalogResult GetAssetCatalog(
         string? query = null,
