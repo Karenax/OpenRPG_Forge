@@ -7,7 +7,8 @@ namespace Forge.ModuleFormat.Serialization;
 
 public static class ProjectJsonSerializer
 {
-    public const string CurrentFormatVersion = "0.6.6";
+    public const string CurrentFormatVersion = "0.6.7";
+    public const string PreContentWorkspaceFormatVersion = "0.6.6";
     public const string PreLocalizationFormatVersion = "0.6.5";
     public const string PreNavigationFormatVersion = "0.6.4";
     public const string PreDistributionFormatVersion = "0.6.3";
@@ -45,6 +46,7 @@ public static class ProjectJsonSerializer
         var formatVersion = formatVersionElement.GetString();
         ProjectDefinition project;
         if (string.Equals(formatVersion, CurrentFormatVersion, StringComparison.Ordinal) ||
+            string.Equals(formatVersion, PreContentWorkspaceFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PreLocalizationFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PreNavigationFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PreDistributionFormatVersion, StringComparison.Ordinal) ||
@@ -103,6 +105,10 @@ public static class ProjectJsonSerializer
         options.Converters.Add(new AreaNavigationDefinitionIdJsonConverter());
         options.Converters.Add(new PortalIdJsonConverter());
         options.Converters.Add(new BlueprintIdJsonConverter());
+        options.Converters.Add(new ContentWorkspaceConfigurationIdJsonConverter());
+        options.Converters.Add(new DataColumnIdJsonConverter());
+        options.Converters.Add(new DataRowIdJsonConverter());
+        options.Converters.Add(new DataTableIdJsonConverter());
         options.Converters.Add(new DialogueChoiceIdJsonConverter());
         options.Converters.Add(new DialogueIdJsonConverter());
         options.Converters.Add(new DialogueNodeIdJsonConverter());

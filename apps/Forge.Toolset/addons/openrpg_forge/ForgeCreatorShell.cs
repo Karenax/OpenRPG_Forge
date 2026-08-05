@@ -15,6 +15,7 @@ internal sealed class ForgeCreatorShell
         "Quêtes",
         "Scripts",
         "Assets",
+        "Données",
         "Validation",
         "Playtests",
         "Assistant",

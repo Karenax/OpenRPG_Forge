@@ -41,7 +41,8 @@ public sealed class SetModuleDistributionHandler
             module.Metadata,
             module.Variables,
             command.Distribution,
-            module.Localization);
+            module.Localization,
+            module.Content);
         var updatedProject = new ProjectDefinition(
             state.Project.Id,
             state.Project.Title,

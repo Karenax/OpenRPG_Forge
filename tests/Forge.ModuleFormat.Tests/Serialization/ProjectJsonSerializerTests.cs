@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Content;
 using Forge.Domain.Entities;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
@@ -223,6 +224,65 @@ public sealed class ProjectJsonSerializerTests
         Assert.Equal(ModuleReleaseChannel.Development, first.Module.Distribution.Release.Channel);
         Assert.Equal([ModuleDistributionPlatform.WindowsX64], first.Module.Distribution.Release.Platforms);
         Assert.True(first.Module.Distribution.Release.Delta.AllowRollback);
+    }
+
+    [Fact]
+    public void SerializeAndDeserialize_RoundTripsTypedContentWorkspace()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var table = new DataTableDefinition(
+            DataTableId.From(Guid.Parse("e3000000-0000-4000-8000-000000000001")),
+            "encounters",
+            "Encounters",
+            [new DataColumnDefinition(
+                DataColumnId.From(Guid.Parse("e3000000-0000-4000-8000-000000000002")),
+                "difficulty", "Difficulty", DataColumnKind.Integer, required: true)],
+            [new DataRowDefinition(
+                DataRowId.From(Guid.Parse("e3000000-0000-4000-8000-000000000003")),
+                new Dictionary<string, string> { ["difficulty"] = "4" })],
+            licenseSpdx: "CC0-1.0",
+            contentHash: new string('c', 64));
+        var content = new ContentWorkspaceConfiguration(
+            ContentWorkspaceConfigurationId.From(source.Module.Id.Value),
+            new ContentBatchConfiguration("*.json", [".json"], ContentBatchCollisionPolicy.Replace, "test", "CC0-1.0"),
+            [table],
+            ContentMergePolicy.Manual,
+            "test");
+        var module = new ModuleDefinition(
+            source.Module.Id,
+            source.Module.Slug,
+            source.Module.DisplayName,
+            source.Module.Description,
+            source.Module.EntryAreaId,
+            source.Module.Metadata,
+            source.Module.Variables,
+            source.Module.Distribution,
+            source.Module.Localization,
+            content);
+        var project = new ProjectDefinition(
+            source.Id, source.Title, module, source.Blueprints, source.Areas, source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        Assert.Equal(ContentMergePolicy.Manual, restored.Module.Content.MergePolicy);
+        Assert.Equal(DataColumnKind.Integer, Assert.Single(Assert.Single(restored.Module.Content.DataTables).Columns).Kind);
+    }
+
+    [Fact]
+    public void Deserialize_MigratesPreContentWorkspaceFormatDeterministically()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreContentWorkspaceFormatVersion;
+        document["project"]!["module"]!.AsObject().Remove("content");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Empty(first.Module.Content.DataTables);
+        Assert.Equal(first.Module.Content.Id, second.Module.Content.Id);
+        Assert.Equal(ContentMergePolicy.PreserveBoth, first.Module.Content.MergePolicy);
     }
 
     [Fact]

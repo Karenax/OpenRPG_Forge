@@ -9,7 +9,8 @@ namespace Forge.ModuleFormat.Serialization;
 
 internal static class WorkspaceProjectJsonSerializer
 {
-    internal const string CurrentFormatVersion = "1.0.0";
+    internal const string CurrentFormatVersion = "1.1.0";
+    internal const string PreContentWorkspaceFormatVersion = "1.0.0";
     internal const string PreLocalizationFormatVersion = "0.9.0";
     internal const string IncrementalBuildFormatVersion = "0.8.1";
     internal const string PaletteProvenanceFormatVersion = "0.8.0";
@@ -61,6 +62,7 @@ internal static class WorkspaceProjectJsonSerializer
 
         var version = versionElement.GetString();
         if (!string.Equals(version, CurrentFormatVersion, StringComparison.Ordinal) &&
+            !string.Equals(version, PreContentWorkspaceFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(version, PreLocalizationFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(version, IncrementalBuildFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(version, PaletteProvenanceFormatVersion, StringComparison.Ordinal) &&

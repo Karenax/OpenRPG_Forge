@@ -1,4 +1,5 @@
 using Forge.Domain.Areas;
+using Forge.Domain.Content;
 using Forge.Domain.Localization;
 
 namespace Forge.Domain.Modules;
@@ -23,6 +24,8 @@ public sealed record ModuleDefinition
 
     public LocalizationCatalog Localization { get; }
 
+    public ContentWorkspaceConfiguration Content { get; }
+
     public ModuleDefinition(
         ModuleId id,
         string slug,
@@ -32,7 +35,8 @@ public sealed record ModuleDefinition
         ProjectMetadata? metadata = null,
         IReadOnlyList<ProjectVariableDefinition>? variables = null,
         ModuleDistributionConfiguration? distribution = null,
-        LocalizationCatalog? localization = null)
+        LocalizationCatalog? localization = null,
+        ContentWorkspaceConfiguration? content = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -61,5 +65,6 @@ public sealed record ModuleDefinition
         Variables = materializedVariables.OrderBy(variable => variable.Key, StringComparer.Ordinal).ToArray();
         Distribution = distribution ?? ModuleDistributionConfiguration.CreateDefault(id);
         Localization = localization ?? LocalizationCatalog.CreateEmpty(id.Value, Metadata.DefaultLocale);
+        Content = content ?? ContentWorkspaceConfiguration.CreateDefault(id.Value);
     }
 }

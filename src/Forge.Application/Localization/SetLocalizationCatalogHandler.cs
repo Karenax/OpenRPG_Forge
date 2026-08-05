@@ -33,7 +33,7 @@ public sealed class SetLocalizationCatalogHandler
 
         var updatedModule = new ModuleDefinition(
             module.Id, module.Slug, module.DisplayName, module.Description, module.EntryAreaId,
-            module.Metadata, module.Variables, module.Distribution, command.Catalog);
+            module.Metadata, module.Variables, module.Distribution, command.Catalog, module.Content);
         var updatedProject = new ProjectDefinition(
             state.Project.Id, state.Project.Title, updatedModule, state.Project.Blueprints,
             state.Project.Areas, state.Project.Dialogues, state.Project.Quests);

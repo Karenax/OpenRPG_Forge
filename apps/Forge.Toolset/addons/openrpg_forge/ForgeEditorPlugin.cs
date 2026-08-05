@@ -6,6 +6,7 @@ using Forge.Application.Areas;
 using Forge.Application.Assets;
 using Forge.Application.Blueprints;
 using Forge.Application.Commands;
+using Forge.Application.Content;
 using Forge.Application.Creator;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
@@ -19,6 +20,7 @@ using Forge.Domain.Assets;
 using Forge.Domain.Authoring;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Build;
+using Forge.Domain.Content;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Localization;
@@ -30,6 +32,7 @@ using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Assets;
+using Forge.ModuleFormat.Content;
 using Forge.ModuleFormat.Distribution;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Playtesting;
@@ -67,6 +70,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SafeRenameHandler _safeRenameHandler = new(new SystemClock());
     private readonly SetModuleConfigurationHandler _setModuleConfigurationHandler = new(new SystemClock());
     private readonly SetModuleDistributionHandler _setModuleDistributionHandler = new(new SystemClock());
+    private readonly SetContentWorkspaceHandler _setContentWorkspaceHandler = new(new SystemClock());
     private readonly SetLocalizationCatalogHandler _setLocalizationCatalogHandler = new(new SystemClock());
     private readonly SetAreaNavigationHandler _setAreaNavigationHandler = new(new SystemClock());
     private readonly ApplyDiagnosticQuickFixHandler _diagnosticQuickFixHandler = new(new SystemClock());
@@ -163,6 +167,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AreaWorkspaceWindow? _areaWorkspace;
     private BuildPipelineWindow? _buildPipeline;
     private DistributionProfilesWindow? _distributionProfiles;
+    private ContentWorkflowWindow? _contentWorkflow;
     private NavigationConfigurationWindow? _navigationConfiguration;
     private CreatorWorkspaceWindow? _workspaceWindow;
     private RecoveryWindow? _recoveryWindow;
@@ -336,6 +341,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
             target => _distributionTarget = target,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_distributionProfiles);
+        _contentWorkflow = new ContentWorkflowWindow();
+        _contentWorkflow.Initialize(
+            () => _history?.State,
+            ApplyContentWorkspace,
+            () => _projectSession?.RootDirectory,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_contentWorkflow);
         _projectPreview = new ProjectPreview3D();
         _projectPreview.Initialize(
             () => _history?.State,
@@ -464,6 +476,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areaWorkspace = null;
         _buildPipeline = null;
         _distributionProfiles = null;
+        _contentWorkflow = null;
         _navigationConfiguration = null;
         _workspaceWindow = null;
         _recoveryWindow = null;
@@ -1006,6 +1019,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (string.Equals(workspace, "Assets", StringComparison.Ordinal))
         {
             _assetBrowser?.Open();
+            return;
+        }
+
+        if (string.Equals(workspace, "Données", StringComparison.Ordinal))
+        {
+            _contentWorkflow?.Open();
             return;
         }
 
@@ -1861,6 +1880,31 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _setModuleDistributionHandler.Handle(_history.State, command),
             $"Distribution enregistrée · {distribution.TargetProfiles.Count} cibles · " +
             $"{distribution.Dependencies.Count} dépendance(s).",
+            GetSelectedEntity()?.Id);
+    }
+
+    private bool ApplyContentWorkspace(ContentWorkspaceConfiguration configuration)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new SetContentWorkspaceCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            configuration,
+            DryRun: false);
+        var dryRun = _setContentWorkspaceHandler.Handle(_history.State, command with { DryRun = true });
+        if (!dryRun.Succeeded)
+        {
+            return ApplyCommand(dryRun, string.Empty, selectedEntityId: null);
+        }
+
+        return ApplyCommand(
+            _setContentWorkspaceHandler.Handle(_history.State, command),
+            $"Contenu enregistré · {configuration.DataTables.Count} table(s) · " +
+            $"fusion {configuration.MergePolicy}.",
             GetSelectedEntity()?.Id);
     }
 
@@ -3251,6 +3295,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _globalSearch?.Refresh();
         _moduleConfiguration?.Refresh();
         _distributionProfiles?.Refresh();
+        _contentWorkflow?.Refresh();
         PublishSelectedEntity();
     }
 
@@ -3660,6 +3705,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunContentWorkflowSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNavigationAndGeometrySmokeTest())
         {
             return;
@@ -3817,7 +3867,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         var entity = _history.State.Project.Areas.First().Entities.First();
-        if (_creatorShell.WorkspaceCount != 11 ||
+        if (_creatorShell.WorkspaceCount != 12 ||
             _creatorShell.ExplorerNodeCount <= _history.State.Project.Areas.Sum(area => area.Entities.Count) ||
             !_creatorShell.SelectNodeForSmokeTest($"entity:{entity.Id}") ||
             _selectionContext.Current.Count != 1 ||
@@ -4818,6 +4868,150 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked " +
             "licenses=diagnostic registry=versioned notices=generated channel=preview platforms=2 " +
             "windows=portable-installer history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunContentWorkflowSmokeTest()
+    {
+        if (_contentWorkflow is null || _history is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11E_CONTENT_FAILED missing_window");
+            return false;
+        }
+
+        var original = _history.State.Project.Module.Content;
+        var tableId = DataTableId.From(Guid.Parse("d7150000-0000-4000-8000-000000000001"));
+        var rowId = DataRowId.From(Guid.Parse("d7150000-0000-4000-8000-000000000002"));
+        var column = new DataColumnDefinition(
+            DataColumnId.From(Guid.Parse("d7150000-0000-4000-8000-000000000003")),
+            "difficulty",
+            "Difficulté",
+            DataColumnKind.Integer,
+            required: true);
+        DataTableDefinition Table(string value, string provenance) => new(
+            tableId,
+            "encounters",
+            "Rencontres",
+            [column],
+            [new DataRowDefinition(rowId, new Dictionary<string, string> { ["difficulty"] = value }, provenance)],
+            provenance: provenance,
+            licenseSpdx: "CC0-1.0",
+            contentHash: new string('a', 64));
+        var configured = new ContentWorkspaceConfiguration(
+            original.Id,
+            new ContentBatchConfiguration(
+                "*.json",
+                [".json"],
+                ContentBatchCollisionPolicy.PreserveBoth,
+                "workspace-smoke-test",
+                "CC0-1.0"),
+            [Table("2", "base")],
+            ContentMergePolicy.PreserveBoth,
+            "workspace-smoke-test");
+        if (!_contentWorkflow.ConfigureForSmokeTest(configured) ||
+            _contentWorkflow.DataTableCount != 1 ||
+            !_contentWorkflow.ApplyForSmokeTest() ||
+            _history.State.Project.Module.Content.DataTables.Single().Id != tableId)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11E_CONTENT_FAILED configuration");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "content-workflow-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var source = Path.Combine(smokeRoot, "source");
+            var destination = Path.Combine(smokeRoot, "destination");
+            Directory.CreateDirectory(source);
+            File.WriteAllText(Path.Combine(source, "encounters.json"), "{\"schemaVersion\":1}");
+            var request = new ContentBatchTransferRequest(
+                ContentBatchOperation.Import,
+                source,
+                destination,
+                configured.Batch.Glob,
+                configured.Batch.Extensions,
+                configured.Batch.CollisionPolicy,
+                configured.Batch.Provenance,
+                configured.Batch.LicenseSpdx,
+                dryRun: true);
+            var preview = ContentBatchTransferService.Execute(request);
+            var applied = ContentBatchTransferService.Execute(new ContentBatchTransferRequest(
+                request.Operation,
+                request.SourceRoot,
+                request.DestinationRoot,
+                request.Glob,
+                request.Extensions,
+                request.CollisionPolicy,
+                request.Provenance,
+                request.LicenseSpdx,
+                dryRun: false));
+            var collision = ContentBatchTransferService.Execute(new ContentBatchTransferRequest(
+                request.Operation,
+                request.SourceRoot,
+                request.DestinationRoot,
+                request.Glob,
+                request.Extensions,
+                request.CollisionPolicy,
+                request.Provenance,
+                request.LicenseSpdx,
+                dryRun: false));
+            var blueprintPack = Path.Combine(smokeRoot, "selection.orpblueprints");
+            var blueprint = _history.State.Project.Blueprints.First();
+            var exported = BlueprintExportPackageBuilder.Build(
+                _history.State.Project,
+                [blueprint.Id],
+                blueprintPack);
+            using var archive = ZipFile.OpenRead(blueprintPack);
+            var merged = DataTableThreeWayMerger.Merge(
+                Table("2", "base"),
+                Table("4", "ours"),
+                Table("6", "theirs"),
+                ContentMergePolicy.PreserveBoth);
+            var workspace = Path.Combine(smokeRoot, "workspace");
+            var saved = ProjectSession.Create(workspace, _history.State.Project);
+            var reopened = ProjectSession.Open(workspace);
+            if (!preview.Valid || preview.Entries.Count != 1 || !preview.DryRun ||
+                !applied.Valid || applied.Added != 1 || !File.Exists(applied.Entries.Single().TargetPath) ||
+                !collision.Valid || collision.PreservedBoth != 1 ||
+                exported.BlueprintCount != 1 || exported.PreviewCount != 1 ||
+                archive.GetEntry("manifest.json") is null ||
+                archive.GetEntry("licenses/index.json") is null ||
+                archive.GetEntry("migrations/blueprint-schema-v1.json") is null ||
+                merged.Conflicts.Count != 1 || merged.Merged.Rows.Count != 2 ||
+                !saved.Succeeded || !reopened.Succeeded || reopened.Session is null ||
+                reopened.Session.Project.Module.Content.DataTables.Single().Id != tableId)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11E_CONTENT_FAILED workflows");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            _history.State.Project.Module.Content != original)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11E_CONTENT_FAILED history");
+            return false;
+        }
+
+        RefreshEditorControls();
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G11E_CONTENT_PASS tables=typed batch=dry-run-applied " +
+            "collisions=preserve-both blueprints=transitive-governed merge=three-way-conflicts " +
+            "history=restored persistence=roundtrip");
         return true;
     }
 

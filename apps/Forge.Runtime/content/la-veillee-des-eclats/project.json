@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.0.0",
+  "formatVersion": "1.1.0",
   "project": {
     "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
     "title": "La Veill\u00E9e des \u00C9clats",
@@ -149,6 +149,26 @@
           "fr"
         ],
         "messages": []
+      },
+      "content": {
+        "id": "5e1ecd20-f6be-ee23-a34a-183a68e54d2f",
+        "schemaVersion": 1,
+        "batch": {
+          "glob": "*",
+          "extensions": [
+            ".forge",
+            ".glb",
+            ".json",
+            ".ogg",
+            ".png"
+          ],
+          "collisionPolicy": "fail",
+          "provenance": "project-author",
+          "licenseSpdx": "UNLICENSED"
+        },
+        "dataTables": [],
+        "mergePolicy": "preserveBoth",
+        "provenance": "project-author"
       }
     },
     "blueprints": [

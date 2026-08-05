@@ -61,7 +61,7 @@
     },
     {
       "evidence": {
-        "line": 145,
+        "line": 199,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -70,7 +70,7 @@
     },
     {
       "evidence": {
-        "line": 145,
+        "line": 199,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -79,7 +79,7 @@
     },
     {
       "evidence": {
-        "line": 103,
+        "line": 157,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -88,7 +88,7 @@
     },
     {
       "evidence": {
-        "line": 103,
+        "line": 157,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -124,7 +124,7 @@
     },
     {
       "evidence": {
-        "line": 392,
+        "line": 446,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -133,7 +133,7 @@
     },
     {
       "evidence": {
-        "line": 392,
+        "line": 446,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -142,7 +142,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 72,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -151,7 +151,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 72,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -160,7 +160,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 100,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -169,7 +169,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 100,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -205,7 +205,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 83,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -214,7 +214,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 83,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -277,7 +277,7 @@
     },
     {
       "evidence": {
-        "line": 131,
+        "line": 185,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -286,7 +286,7 @@
     },
     {
       "evidence": {
-        "line": 131,
+        "line": 185,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -295,7 +295,79 @@
     },
     {
       "evidence": {
-        "line": 201,
+        "line": 19,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.ContentWorkspaceConfigurationIdJsonConverter",
+      "target": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.ContentWorkspaceConfigurationIdJsonConverter",
+      "target": "model:Forge.Domain.Content.ContentWorkspaceConfigurationId"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.DataColumnIdJsonConverter",
+      "target": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.DataColumnIdJsonConverter",
+      "target": "model:Forge.Domain.Content.DataColumnId"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.DataRowIdJsonConverter",
+      "target": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.DataRowIdJsonConverter",
+      "target": "model:Forge.Domain.Content.DataRowId"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.DataTableIdJsonConverter",
+      "target": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.DataTableIdJsonConverter",
+      "target": "model:Forge.Domain.Content.DataTableId"
+    },
+    {
+      "evidence": {
+        "line": 255,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -304,7 +376,7 @@
     },
     {
       "evidence": {
-        "line": 201,
+        "line": 255,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -313,7 +385,7 @@
     },
     {
       "evidence": {
-        "line": 173,
+        "line": 227,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -322,7 +394,7 @@
     },
     {
       "evidence": {
-        "line": 173,
+        "line": 227,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -331,7 +403,7 @@
     },
     {
       "evidence": {
-        "line": 187,
+        "line": 241,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -340,7 +412,7 @@
     },
     {
       "evidence": {
-        "line": 187,
+        "line": 241,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -349,7 +421,7 @@
     },
     {
       "evidence": {
-        "line": 89,
+        "line": 143,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -358,7 +430,7 @@
     },
     {
       "evidence": {
-        "line": 89,
+        "line": 143,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -367,7 +439,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 129,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -376,7 +448,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 129,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -430,7 +502,7 @@
     },
     {
       "evidence": {
-        "line": 159,
+        "line": 213,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -439,7 +511,7 @@
     },
     {
       "evidence": {
-        "line": 159,
+        "line": 213,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -448,7 +520,7 @@
     },
     {
       "evidence": {
-        "line": 64,
+        "line": 118,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -457,7 +529,7 @@
     },
     {
       "evidence": {
-        "line": 64,
+        "line": 118,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -466,7 +538,7 @@
     },
     {
       "evidence": {
-        "line": 243,
+        "line": 297,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -475,7 +547,7 @@
     },
     {
       "evidence": {
-        "line": 244,
+        "line": 298,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -484,7 +556,7 @@
     },
     {
       "evidence": {
-        "line": 229,
+        "line": 283,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -493,7 +565,7 @@
     },
     {
       "evidence": {
-        "line": 229,
+        "line": 283,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -502,7 +574,7 @@
     },
     {
       "evidence": {
-        "line": 262,
+        "line": 316,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -511,7 +583,7 @@
     },
     {
       "evidence": {
-        "line": 262,
+        "line": 316,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -520,7 +592,7 @@
     },
     {
       "evidence": {
-        "line": 280,
+        "line": 334,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -529,7 +601,7 @@
     },
     {
       "evidence": {
-        "line": 280,
+        "line": 334,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -538,7 +610,7 @@
     },
     {
       "evidence": {
-        "line": 406,
+        "line": 460,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -547,7 +619,7 @@
     },
     {
       "evidence": {
-        "line": 406,
+        "line": 460,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -556,7 +628,7 @@
     },
     {
       "evidence": {
-        "line": 434,
+        "line": 488,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -565,7 +637,7 @@
     },
     {
       "evidence": {
-        "line": 434,
+        "line": 488,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -574,7 +646,7 @@
     },
     {
       "evidence": {
-        "line": 420,
+        "line": 474,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -583,7 +655,7 @@
     },
     {
       "evidence": {
-        "line": 420,
+        "line": 474,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -592,7 +664,7 @@
     },
     {
       "evidence": {
-        "line": 117,
+        "line": 171,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -601,7 +673,7 @@
     },
     {
       "evidence": {
-        "line": 117,
+        "line": 171,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -610,7 +682,7 @@
     },
     {
       "evidence": {
-        "line": 215,
+        "line": 269,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -619,7 +691,7 @@
     },
     {
       "evidence": {
-        "line": 215,
+        "line": 269,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -637,7 +709,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 26,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -646,7 +718,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 67,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -655,7 +727,7 @@
     },
     {
       "evidence": {
-        "line": 31,
+        "line": 32,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -664,7 +736,7 @@
     },
     {
       "evidence": {
-        "line": 81,
+        "line": 83,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -673,7 +745,7 @@
     },
     {
       "evidence": {
-        "line": 316,
+        "line": 370,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -682,7 +754,7 @@
     },
     {
       "evidence": {
-        "line": 316,
+        "line": 370,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -691,7 +763,7 @@
     },
     {
       "evidence": {
-        "line": 332,
+        "line": 386,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -700,7 +772,7 @@
     },
     {
       "evidence": {
-        "line": 332,
+        "line": 386,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -727,7 +799,7 @@
     },
     {
       "evidence": {
-        "line": 348,
+        "line": 402,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -736,7 +808,7 @@
     },
     {
       "evidence": {
-        "line": 348,
+        "line": 402,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -745,7 +817,7 @@
     },
     {
       "evidence": {
-        "line": 362,
+        "line": 416,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -754,7 +826,7 @@
     },
     {
       "evidence": {
-        "line": 362,
+        "line": 416,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -763,7 +835,7 @@
     },
     {
       "evidence": {
-        "line": 376,
+        "line": 430,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -772,7 +844,7 @@
     },
     {
       "evidence": {
-        "line": 376,
+        "line": 430,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -781,7 +853,7 @@
     },
     {
       "evidence": {
-        "line": 298,
+        "line": 352,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -790,7 +862,7 @@
     },
     {
       "evidence": {
-        "line": 298,
+        "line": 352,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "serializes",
@@ -844,7 +916,7 @@
     },
     {
       "evidence": {
-        "line": 86,
+        "line": 88,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -853,7 +925,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -862,7 +934,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 37,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -871,7 +943,7 @@
     },
     {
       "evidence": {
-        "line": 133,
+        "line": 135,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1150,12 +1222,21 @@
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 46,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
       "source": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+    },
+    {
+      "evidence": {
+        "line": 4941,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "uses_service",
+      "source": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
+      "target": "service:Forge.ModuleFormat.Content.ContentBatchTransferService"
     },
     {
       "evidence": {
@@ -2032,7 +2113,7 @@
     },
     {
       "evidence": {
-        "line": 426,
+        "line": 427,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2041,7 +2122,7 @@
     },
     {
       "evidence": {
-        "line": 432,
+        "line": 433,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2681,6 +2762,69 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs",
+      "target": "namespace:Forge.Domain.Content"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs",
+      "target": "namespace:Forge.ModuleFormat.Content"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
       },
       "kind": "imports",
@@ -2856,7 +3000,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Creator"
+      "target": "namespace:Forge.Application.Content"
     },
     {
       "evidence": {
@@ -2865,7 +3009,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Dialogues"
+      "target": "namespace:Forge.Application.Creator"
     },
     {
       "evidence": {
@@ -2874,7 +3018,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Entities"
+      "target": "namespace:Forge.Application.Dialogues"
     },
     {
       "evidence": {
@@ -2883,7 +3027,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Localization"
+      "target": "namespace:Forge.Application.Entities"
     },
     {
       "evidence": {
@@ -2892,7 +3036,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Projects"
+      "target": "namespace:Forge.Application.Localization"
     },
     {
       "evidence": {
@@ -2901,7 +3045,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Quests"
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
@@ -2910,7 +3054,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Spatial"
+      "target": "namespace:Forge.Application.Quests"
     },
     {
       "evidence": {
@@ -2919,7 +3063,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Time"
+      "target": "namespace:Forge.Application.Spatial"
     },
     {
       "evidence": {
@@ -2928,7 +3072,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Areas"
+      "target": "namespace:Forge.Application.Time"
     },
     {
       "evidence": {
@@ -2937,7 +3081,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Assets"
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -2946,7 +3090,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Authoring"
+      "target": "namespace:Forge.Domain.Assets"
     },
     {
       "evidence": {
@@ -2955,7 +3099,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
@@ -2964,7 +3108,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Build"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -2973,7 +3117,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Build"
     },
     {
       "evidence": {
@@ -2982,7 +3126,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Content"
     },
     {
       "evidence": {
@@ -2991,7 +3135,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Localization"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -3000,7 +3144,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -3009,7 +3153,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -3018,7 +3162,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -3027,7 +3171,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -3036,7 +3180,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -3045,16 +3189,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Validation"
-    },
-    {
-      "evidence": {
-        "line": 32,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -3063,16 +3198,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Build"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 32,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Distribution"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -3081,16 +3216,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Navigation"
+      "target": "namespace:Forge.ModuleFormat.Assets"
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 33,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.ModuleFormat.Build"
     },
     {
       "evidence": {
@@ -3099,11 +3234,47 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.ModuleFormat.Content"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Distribution"
     },
     {
       "evidence": {
         "line": 37,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
+    },
+    {
+      "evidence": {
+        "line": 40,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3514,6 +3685,15 @@
       "kind": "references",
       "source": "file:docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md",
       "target": "file:docs/aurora-parity/tasks/G11-D-SIGNED-DELTA-DISTRIBUTION.md"
+    },
+    {
+      "evidence": {
+        "line": 79,
+        "path": "docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md"
+      },
+      "kind": "references",
+      "source": "file:docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md",
+      "target": "file:docs/aurora-parity/tasks/G11-E-BULK-TABLE-MERGE.md"
     },
     {
       "evidence": {
@@ -4981,6 +5161,87 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Commands/ProjectCommandHistory.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Content/SetContentWorkspaceCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Content/SetContentWorkspaceCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Content/SetContentWorkspaceCommand.cs",
+      "target": "namespace:Forge.Domain.Content"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Content/SetContentWorkspaceHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Content/SetContentWorkspaceHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Content/SetContentWorkspaceHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Content/SetContentWorkspaceHandler.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Content/SetContentWorkspaceHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Content/SetContentWorkspaceHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -7140,6 +7401,15 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Domain/Modules/ModuleDefinition.cs",
+      "target": "namespace:Forge.Domain.Content"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Modules/ModuleDefinition.cs",
       "target": "namespace:Forge.Domain.Localization"
     },
     {
@@ -8143,6 +8413,42 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferRequest.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferRequest.cs",
+      "target": "namespace:Forge.Domain.Content"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.ModuleFormat/Distribution/ModuleDeltaPackageBuilder.cs"
       },
@@ -8589,7 +8895,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Content"
     },
     {
       "evidence": {
@@ -8598,7 +8904,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -8607,7 +8913,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Localization"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -8616,7 +8922,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -8625,7 +8931,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -8634,11 +8940,20 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
         "line": 14,
+        "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 15,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "imports",
@@ -9904,6 +10219,78 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs",
       "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs",
+      "target": "namespace:Forge.Application.Content"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Content"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -11375,6 +11762,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs",
+      "target": "namespace:Forge.Domain.Content"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTestFactory.cs"
       },
       "kind": "imports",
@@ -12364,6 +12760,33 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Content"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Content"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Tests.Serialization"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "tests/Forge.ModuleFormat.Tests/Distribution/ModuleDistributionPipelineTests.cs"
       },
@@ -12855,7 +13278,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Content"
     },
     {
       "evidence": {
@@ -12864,7 +13287,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -12873,7 +13296,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -12882,11 +13305,20 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
         "line": 9,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 10,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "imports",
@@ -14718,7 +15150,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -14727,7 +15159,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Content"
     },
     {
       "evidence": {
@@ -14736,16 +15168,7 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.Domain.Validation"
-    },
-    {
-      "evidence": {
-        "line": 12,
-        "path": "tools/Forge.Cli/Program.cs"
-      },
-      "kind": "imports",
-      "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -14754,16 +15177,16 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Build"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
-        "line": 13,
+        "line": 12,
         "path": "tools/Forge.Cli/Program.cs"
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Distribution"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -14772,7 +15195,16 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Navigation"
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
     },
     {
       "evidence": {
@@ -14781,11 +15213,38 @@
       },
       "kind": "imports",
       "source": "file:tools/Forge.Cli/Program.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.ModuleFormat.Content"
     },
     {
       "evidence": {
         "line": 16,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Distribution"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tools/Forge.Cli/Program.cs"
+      },
+      "kind": "imports",
+      "source": "file:tools/Forge.Cli/Program.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 19,
         "path": "tools/Forge.Cli/Program.cs"
       },
       "kind": "imports",
@@ -17026,6 +17485,96 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "target": "file:src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 99,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 96,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 100,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "target": "model:Forge.Application.Content.SetContentWorkspaceCommand"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "target": "model:Forge.Domain.Modules.ModuleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
         "line": 16,
         "path": "src/Forge.Application/Creator/ApplyDiagnosticQuickFixHandler.cs"
       },
@@ -17314,7 +17863,7 @@
     },
     {
       "evidence": {
-        "line": 223,
+        "line": 224,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -17323,7 +17872,7 @@
     },
     {
       "evidence": {
-        "line": 220,
+        "line": 221,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -17332,7 +17881,7 @@
     },
     {
       "evidence": {
-        "line": 224,
+        "line": 225,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -17386,7 +17935,7 @@
     },
     {
       "evidence": {
-        "line": 170,
+        "line": 171,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -17395,7 +17944,7 @@
     },
     {
       "evidence": {
-        "line": 184,
+        "line": 185,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -17404,7 +17953,7 @@
     },
     {
       "evidence": {
-        "line": 197,
+        "line": 198,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -18583,7 +19132,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 113,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -18592,7 +19141,7 @@
     },
     {
       "evidence": {
-        "line": 109,
+        "line": 110,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -18601,7 +19150,7 @@
     },
     {
       "evidence": {
-        "line": 113,
+        "line": 114,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -18619,7 +19168,7 @@
     },
     {
       "evidence": {
-        "line": 69,
+        "line": 70,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -18655,7 +19204,7 @@
     },
     {
       "evidence": {
-        "line": 55,
+        "line": 56,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "uses_model",
@@ -18682,7 +19231,7 @@
     },
     {
       "evidence": {
-        "line": 103,
+        "line": 104,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -18691,7 +19240,7 @@
     },
     {
       "evidence": {
-        "line": 100,
+        "line": 101,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -18700,7 +19249,7 @@
     },
     {
       "evidence": {
-        "line": 104,
+        "line": 105,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -18718,7 +19267,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 60,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -18754,7 +19303,7 @@
     },
     {
       "evidence": {
-        "line": 45,
+        "line": 46,
         "path": "src/Forge.Application/Projects/SetModuleDistributionHandler.cs"
       },
       "kind": "uses_model",
@@ -19786,6 +20335,24 @@
       "kind": "defined_in",
       "source": "model:Forge.Application.Commands.ProjectPatch",
       "target": "file:src/Forge.Application/Commands/ProjectPatch.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Content.SetContentWorkspaceCommand",
+      "target": "file:src/Forge.Application/Content/SetContentWorkspaceCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Content.SetContentWorkspaceCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
     },
     {
       "evidence": {
@@ -20942,6 +21509,168 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Domain/Content/ContentWorkspaceConfigurationId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Content.ContentWorkspaceConfigurationId",
+      "target": "file:src/Forge.Domain/Content/ContentWorkspaceConfigurationId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/DataColumnDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Content.DataColumnDefinition",
+      "target": "file:src/Forge.Domain/Content/DataColumnDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Content/DataColumnDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Content.DataColumnDefinition",
+      "target": "model:Forge.Domain.Content.DataColumnId"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Domain/Content/DataColumnDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Content.DataColumnDefinition",
+      "target": "model:Forge.Domain.Content.DataColumnKind"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Domain/Content/DataColumnDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Content.DataColumnDefinition",
+      "target": "model:Forge.Domain.Content.DataTableId"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/DataColumnId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Content.DataColumnId",
+      "target": "file:src/Forge.Domain/Content/DataColumnId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/DataColumnKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Content.DataColumnKind",
+      "target": "file:src/Forge.Domain/Content/DataColumnKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/DataRowDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Content.DataRowDefinition",
+      "target": "file:src/Forge.Domain/Content/DataRowDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Content/DataRowDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Content.DataRowDefinition",
+      "target": "model:Forge.Domain.Content.DataRowId"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/DataRowId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Content.DataRowId",
+      "target": "file:src/Forge.Domain/Content/DataRowId.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Content/DataTableDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Content.DataTableDefinition",
+      "target": "file:src/Forge.Domain/Content/DataTableDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Domain/Content/DataTableDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Content.DataTableDefinition",
+      "target": "model:Forge.Domain.Content.DataColumnDefinition"
+    },
+    {
+      "evidence": {
+        "line": 126,
+        "path": "src/Forge.Domain/Content/DataTableDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Content.DataTableDefinition",
+      "target": "model:Forge.Domain.Content.DataColumnKind"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Domain/Content/DataTableDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Content.DataTableDefinition",
+      "target": "model:Forge.Domain.Content.DataRowDefinition"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Domain/Content/DataTableDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Content.DataTableDefinition",
+      "target": "model:Forge.Domain.Content.DataTableId"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/DataTableId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Content.DataTableId",
+      "target": "file:src/Forge.Domain/Content/DataTableId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/DataTableMergeResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Content.DataTableMergeResult",
+      "target": "file:src/Forge.Domain/Content/DataTableMergeResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Content/DataTableMergeResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Content.DataTableMergeResult",
+      "target": "model:Forge.Domain.Content.DataTableDefinition"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Domain/Dialogues/DialogueActionKind.cs"
       },
       "kind": "defined_in",
@@ -21409,7 +22138,7 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 7,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "defined_in",
@@ -21418,7 +22147,7 @@
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 17,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "relationship",
@@ -21427,7 +22156,7 @@
     },
     {
       "evidence": {
-        "line": 8,
+        "line": 9,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "relationship",
@@ -21436,7 +22165,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "relationship",
@@ -22738,6 +23467,24 @@
       "kind": "relationship",
       "source": "model:Forge.ModuleFormat.Build.BuildNodeDocument",
       "target": "model:Forge.Domain.Build.BuildResourceKind"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Content/BlueprintExportResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Content.BlueprintExportResult",
+      "target": "file:src/Forge.ModuleFormat/Content/BlueprintExportResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferEntry.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Content.ContentBatchTransferEntry",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferEntry.cs"
     },
     {
       "evidence": {
@@ -25801,6 +26548,24 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Content",
+      "target": "file:src/Forge.Application/Content/SetContentWorkspaceCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Content",
+      "target": "file:src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Creator/ActiveAreaContext.cs"
       },
@@ -26557,6 +27322,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Content",
+      "target": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs"
       },
@@ -27305,6 +28079,141 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Content/ContentBatchCollisionPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/ContentBatchCollisionPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/ContentBatchConfiguration.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/ContentBatchConfiguration.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/ContentMergePolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/ContentMergePolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/ContentWorkspaceConfiguration.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/ContentWorkspaceConfiguration.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/ContentWorkspaceConfigurationId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/ContentWorkspaceConfigurationId.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/DataColumnDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/DataColumnDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/DataColumnId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/DataColumnId.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/DataColumnKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/DataColumnKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/DataRowDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/DataRowDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/DataRowId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/DataRowId.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Content/DataTableDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/DataTableDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/DataTableId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/DataTableId.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/DataTableMergeConflict.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/DataTableMergeConflict.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Content/DataTableMergeResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/DataTableMergeResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/DataTableThreeWayMerger.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Content",
+      "target": "file:src/Forge.Domain/Content/DataTableThreeWayMerger.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Dialogues/DialogueAction.cs"
       },
       "kind": "defined_in",
@@ -27619,7 +28528,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 4,
         "path": "src/Forge.Domain/Modules/ModuleDefinition.cs"
       },
       "kind": "defined_in",
@@ -28327,6 +29236,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Tests.Combat",
       "target": "file:tests/Forge.Domain.Tests/Combat/CombatResolverTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Content",
+      "target": "file:tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
     },
     {
       "evidence": {
@@ -29123,6 +30041,87 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.ModuleFormat/Content/BlueprintExportManifest.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Content",
+      "target": "file:src/Forge.ModuleFormat/Content/BlueprintExportManifest.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Content",
+      "target": "file:src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.ModuleFormat/Content/BlueprintExportResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Content",
+      "target": "file:src/Forge.ModuleFormat/Content/BlueprintExportResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchEntryStatus.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Content",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchEntryStatus.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchOperation.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Content",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchOperation.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferEntry.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Content",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferEntry.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferReport.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Content",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferReport.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferRequest.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Content",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferRequest.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Content",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferService.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.ModuleFormat/Distribution/ModuleDeltaBuildResult.cs"
       },
       "kind": "defined_in",
@@ -29464,7 +30463,7 @@
     },
     {
       "evidence": {
-        "line": 15,
+        "line": 16,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
       "kind": "defined_in",
@@ -29563,6 +30562,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Content",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "tests/Forge.ModuleFormat.Tests/Distribution/ModuleDistributionPipelineTests.cs"
       },
@@ -29653,7 +30661,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 11,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "defined_in",
@@ -31183,6 +32191,15 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
       },
@@ -31219,7 +32236,7 @@
     },
     {
       "evidence": {
-        "line": 39,
+        "line": 42,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -32458,6 +33475,24 @@
       "kind": "accesses_model",
       "source": "service:Forge.Mcp.Scripts.ForgeScriptInteropService",
       "target": "model:Forge.Mcp.Scripts.ScriptSourceDocument"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.ModuleFormat.Content.ContentBatchTransferService",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferService.cs"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.ModuleFormat.Content.ContentBatchTransferService",
+      "target": "model:Forge.ModuleFormat.Content.ContentBatchTransferEntry"
     },
     {
       "evidence": {
@@ -35797,6 +36832,231 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Commands.ProjectCommandHistoryTests",
       "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "handler:Forge.Application.Content.SetContentWorkspaceHandler"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Application.Content.SetContentWorkspaceCommand"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 60,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Content.ContentWorkspaceConfigurationId"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Content.DataColumnDefinition"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Content.DataColumnId"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Content.DataColumnKind"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Content.DataRowDefinition"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Content.DataRowId"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Content.DataTableDefinition"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Content.DataTableId"
+    },
+    {
+      "evidence": {
+        "line": 61,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Modules.ModuleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 62,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Modules.ModuleId"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "type:Forge.Domain.Content.ContentBatchCollisionPolicy"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "type:Forge.Domain.Content.ContentBatchConfiguration"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "type:Forge.Domain.Content.ContentMergePolicy"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "target": "type:Forge.Domain.Content.ContentWorkspaceConfiguration"
     },
     {
       "evidence": {
@@ -40300,6 +41560,123 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "file:tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "model:Forge.Domain.Content.ContentWorkspaceConfigurationId"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "model:Forge.Domain.Content.DataColumnDefinition"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "model:Forge.Domain.Content.DataColumnId"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "model:Forge.Domain.Content.DataColumnKind"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "model:Forge.Domain.Content.DataRowDefinition"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "model:Forge.Domain.Content.DataRowId"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "model:Forge.Domain.Content.DataTableDefinition"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "model:Forge.Domain.Content.DataTableId"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "type:Forge.Domain.Content.ContentBatchConfiguration"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "type:Forge.Domain.Content.ContentMergePolicy"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "type:Forge.Domain.Content.ContentWorkspaceConfiguration"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "target": "type:Forge.Domain.Content.DataTableThreeWayMerger"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTestFactory.cs"
       },
@@ -43405,6 +44782,69 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Content.ContentWorkflowTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Content.ContentWorkflowTests",
+      "target": "service:Forge.ModuleFormat.Content.ContentBatchTransferService"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Content.ContentWorkflowTests",
+      "target": "type:Forge.Domain.Content.ContentBatchCollisionPolicy"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Content.ContentWorkflowTests",
+      "target": "type:Forge.ModuleFormat.Content.BlueprintExportPackageBuilder"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Content.ContentWorkflowTests",
+      "target": "type:Forge.ModuleFormat.Content.ContentBatchEntryStatus"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Content.ContentWorkflowTests",
+      "target": "type:Forge.ModuleFormat.Content.ContentBatchOperation"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Content.ContentWorkflowTests",
+      "target": "type:Forge.ModuleFormat.Content.ContentBatchTransferRequest"
+    },
+    {
+      "evidence": {
         "line": 113,
         "path": "tests/Forge.ModuleFormat.Tests/Distribution/ModuleDistributionPipelineTests.cs"
       },
@@ -44539,7 +45979,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 19,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44548,7 +45988,7 @@
     },
     {
       "evidence": {
-        "line": 13,
+        "line": 14,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "defined_in",
@@ -44557,7 +45997,7 @@
     },
     {
       "evidence": {
-        "line": 361,
+        "line": 421,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44566,7 +46006,7 @@
     },
     {
       "evidence": {
-        "line": 362,
+        "line": 422,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44575,7 +46015,7 @@
     },
     {
       "evidence": {
-        "line": 367,
+        "line": 427,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44584,7 +46024,79 @@
     },
     {
       "evidence": {
-        "line": 366,
+        "line": 246,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "model:Forge.Domain.Content.ContentWorkspaceConfigurationId"
+    },
+    {
+      "evidence": {
+        "line": 237,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "model:Forge.Domain.Content.DataColumnDefinition"
+    },
+    {
+      "evidence": {
+        "line": 238,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "model:Forge.Domain.Content.DataColumnId"
+    },
+    {
+      "evidence": {
+        "line": 239,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "model:Forge.Domain.Content.DataColumnKind"
+    },
+    {
+      "evidence": {
+        "line": 240,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "model:Forge.Domain.Content.DataRowDefinition"
+    },
+    {
+      "evidence": {
+        "line": 241,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "model:Forge.Domain.Content.DataRowId"
+    },
+    {
+      "evidence": {
+        "line": 233,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "model:Forge.Domain.Content.DataTableDefinition"
+    },
+    {
+      "evidence": {
+        "line": 234,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "model:Forge.Domain.Content.DataTableId"
+    },
+    {
+      "evidence": {
+        "line": 426,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44593,7 +46105,7 @@
     },
     {
       "evidence": {
-        "line": 365,
+        "line": 425,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44602,7 +46114,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 67,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44611,7 +46123,7 @@
     },
     {
       "evidence": {
-        "line": 141,
+        "line": 142,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44620,7 +46132,7 @@
     },
     {
       "evidence": {
-        "line": 45,
+        "line": 46,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44629,7 +46141,7 @@
     },
     {
       "evidence": {
-        "line": 58,
+        "line": 59,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44638,7 +46150,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 60,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44647,7 +46159,7 @@
     },
     {
       "evidence": {
-        "line": 61,
+        "line": 62,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44656,7 +46168,7 @@
     },
     {
       "evidence": {
-        "line": 132,
+        "line": 133,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44665,7 +46177,7 @@
     },
     {
       "evidence": {
-        "line": 74,
+        "line": 75,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44674,7 +46186,7 @@
     },
     {
       "evidence": {
-        "line": 370,
+        "line": 430,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44683,7 +46195,7 @@
     },
     {
       "evidence": {
-        "line": 368,
+        "line": 428,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44692,7 +46204,7 @@
     },
     {
       "evidence": {
-        "line": 243,
+        "line": 303,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44701,7 +46213,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44710,7 +46222,43 @@
     },
     {
       "evidence": {
-        "line": 34,
+        "line": 247,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "type:Forge.Domain.Content.ContentBatchCollisionPolicy"
+    },
+    {
+      "evidence": {
+        "line": 247,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "type:Forge.Domain.Content.ContentBatchConfiguration"
+    },
+    {
+      "evidence": {
+        "line": 249,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "type:Forge.Domain.Content.ContentMergePolicy"
+    },
+    {
+      "evidence": {
+        "line": 245,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "type:Forge.Domain.Content.ContentWorkspaceConfiguration"
+    },
+    {
+      "evidence": {
+        "line": 35,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44719,7 +46267,7 @@
     },
     {
       "evidence": {
-        "line": 148,
+        "line": 149,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44728,7 +46276,7 @@
     },
     {
       "evidence": {
-        "line": 151,
+        "line": 152,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44737,7 +46285,7 @@
     },
     {
       "evidence": {
-        "line": 146,
+        "line": 147,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44746,7 +46294,7 @@
     },
     {
       "evidence": {
-        "line": 145,
+        "line": 146,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44755,7 +46303,7 @@
     },
     {
       "evidence": {
-        "line": 143,
+        "line": 144,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44764,7 +46312,7 @@
     },
     {
       "evidence": {
-        "line": 147,
+        "line": 148,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44773,7 +46321,7 @@
     },
     {
       "evidence": {
-        "line": 147,
+        "line": 148,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44782,7 +46330,7 @@
     },
     {
       "evidence": {
-        "line": 48,
+        "line": 49,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44791,7 +46339,7 @@
     },
     {
       "evidence": {
-        "line": 44,
+        "line": 45,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44800,7 +46348,7 @@
     },
     {
       "evidence": {
-        "line": 62,
+        "line": 63,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44809,7 +46357,7 @@
     },
     {
       "evidence": {
-        "line": 131,
+        "line": 132,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44818,7 +46366,7 @@
     },
     {
       "evidence": {
-        "line": 87,
+        "line": 88,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -44827,7 +46375,7 @@
     },
     {
       "evidence": {
-        "line": 375,
+        "line": 435,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -51884,6 +53432,60 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Domain/Content/ContentBatchCollisionPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Content.ContentBatchCollisionPolicy",
+      "target": "file:src/Forge.Domain/Content/ContentBatchCollisionPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/ContentBatchConfiguration.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Content.ContentBatchConfiguration",
+      "target": "file:src/Forge.Domain/Content/ContentBatchConfiguration.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/ContentMergePolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Content.ContentMergePolicy",
+      "target": "file:src/Forge.Domain/Content/ContentMergePolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/ContentWorkspaceConfiguration.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Content.ContentWorkspaceConfiguration",
+      "target": "file:src/Forge.Domain/Content/ContentWorkspaceConfiguration.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Content/DataTableMergeConflict.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Content.DataTableMergeConflict",
+      "target": "file:src/Forge.Domain/Content/DataTableMergeConflict.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Content/DataTableThreeWayMerger.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Content.DataTableThreeWayMerger",
+      "target": "file:src/Forge.Domain/Content/DataTableThreeWayMerger.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Domain/Dialogues/DialogueAction.cs"
       },
       "kind": "defined_in",
@@ -53383,6 +54985,60 @@
       "kind": "defined_in",
       "source": "type:Forge.ModuleFormat.Build.WorkspaceIncrementalBuildPlanner",
       "target": "file:src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Content/BlueprintExportManifest.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Content.BlueprintExportManifest",
+      "target": "file:src/Forge.ModuleFormat/Content/BlueprintExportManifest.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Content.BlueprintExportPackageBuilder",
+      "target": "file:src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchEntryStatus.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Content.ContentBatchEntryStatus",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchEntryStatus.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchOperation.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Content.ContentBatchOperation",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchOperation.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferReport.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Content.ContentBatchTransferReport",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferReport.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferRequest.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Content.ContentBatchTransferRequest",
+      "target": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferRequest.cs"
     },
     {
       "evidence": {
@@ -57148,6 +58804,24 @@
     },
     {
       "evidence": {
+        "line": 13,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.ContentWorkflowWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 484,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Toolset.Editor.ContentWorkflowWindow",
+      "target": "service:Forge.ModuleFormat.Content.ContentBatchTransferService"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs"
       },
@@ -57247,7 +58921,7 @@
     },
     {
       "evidence": {
-        "line": 5577,
+        "line": 5771,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -57292,7 +58966,7 @@
     },
     {
       "evidence": {
-        "line": 5582,
+        "line": 5776,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -57301,7 +58975,7 @@
     },
     {
       "evidence": {
-        "line": 5587,
+        "line": 5781,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -57742,7 +59416,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 30,
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs"
       },
       "kind": "validates",
@@ -57751,7 +59425,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 30,
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs"
       },
       "kind": "validates",
@@ -57760,7 +59434,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 30,
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs"
       },
       "kind": "validates",
@@ -57778,7 +59452,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 31,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -57787,7 +59461,7 @@
     },
     {
       "evidence": {
-        "line": 69,
+        "line": 78,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -57796,7 +59470,7 @@
     },
     {
       "evidence": {
-        "line": 23,
+        "line": 24,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -57805,7 +59479,7 @@
     },
     {
       "evidence": {
-        "line": 23,
+        "line": 24,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -57985,8 +59659,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:d96e6e83b49a8b1cc75909fa3aa42a97807bde24e0dc6b65a12c30bd458d197b",
-    "source_file_count": 1115
+    "source_digest": "sha256:d869fb9cd28dc13b27762ff89697d5c96cd92047ae7b2be912cb9439116682bb",
+    "source_file_count": 1146
   },
   "nodes": [
     {
@@ -58002,7 +59676,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AbilityIdJsonConverter",
       "kind": "adapter",
-      "line": 145,
+      "line": 199,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58012,7 +59686,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AreaIdJsonConverter",
       "kind": "adapter",
-      "line": 103,
+      "line": 157,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58032,7 +59706,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AreaNavigationDefinitionIdJsonConverter",
       "kind": "adapter",
-      "line": 392,
+      "line": 446,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58042,7 +59716,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AssetCatalogItemIdJsonConverter",
       "kind": "adapter",
-      "line": 18,
+      "line": 72,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58052,7 +59726,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AssetExternalEditIdJsonConverter",
       "kind": "adapter",
-      "line": 46,
+      "line": 100,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58072,7 +59746,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AssetPackageManifestIdJsonConverter",
       "kind": "adapter",
-      "line": 29,
+      "line": 83,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58102,7 +59776,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.BlueprintIdJsonConverter",
       "kind": "adapter",
-      "line": 131,
+      "line": 185,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58110,9 +59784,49 @@
       "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
     },
     {
+      "id": "adapter:Forge.ModuleFormat.Serialization.ContentWorkspaceConfigurationIdJsonConverter",
+      "kind": "adapter",
+      "line": 19,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "ContentWorkspaceConfigurationIdJsonConverter",
+      "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.DataColumnIdJsonConverter",
+      "kind": "adapter",
+      "line": 46,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "DataColumnIdJsonConverter",
+      "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.DataRowIdJsonConverter",
+      "kind": "adapter",
+      "line": 59,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "DataRowIdJsonConverter",
+      "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.DataTableIdJsonConverter",
+      "kind": "adapter",
+      "line": 33,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "DataTableIdJsonConverter",
+      "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueChoiceIdJsonConverter",
       "kind": "adapter",
-      "line": 201,
+      "line": 255,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58122,7 +59836,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueIdJsonConverter",
       "kind": "adapter",
-      "line": 173,
+      "line": 227,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58132,7 +59846,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.DialogueNodeIdJsonConverter",
       "kind": "adapter",
-      "line": 187,
+      "line": 241,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58142,7 +59856,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.EditorCameraBookmarkIdJsonConverter",
       "kind": "adapter",
-      "line": 89,
+      "line": 143,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58152,7 +59866,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.EditorCameraProfileIdJsonConverter",
       "kind": "adapter",
-      "line": 75,
+      "line": 129,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58192,7 +59906,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.EntityIdJsonConverter",
       "kind": "adapter",
-      "line": 159,
+      "line": 213,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58202,7 +59916,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.LocalizationCatalogIdJsonConverter",
       "kind": "adapter",
-      "line": 64,
+      "line": 118,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58212,7 +59926,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ModuleDistributionConfigurationIdJsonConverter",
       "kind": "adapter",
-      "line": 243,
+      "line": 297,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58222,7 +59936,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ModuleIdJsonConverter",
       "kind": "adapter",
-      "line": 229,
+      "line": 283,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58232,7 +59946,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ModuleReleaseConfigurationIdJsonConverter",
       "kind": "adapter",
-      "line": 262,
+      "line": 316,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58242,7 +59956,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ModuleTargetProfileIdJsonConverter",
       "kind": "adapter",
-      "line": 280,
+      "line": 334,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58252,7 +59966,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.NavigationAgentProfileIdJsonConverter",
       "kind": "adapter",
-      "line": 406,
+      "line": 460,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58262,7 +59976,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.NavigationSurfaceIdJsonConverter",
       "kind": "adapter",
-      "line": 434,
+      "line": 488,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58272,7 +59986,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.OffMeshNavigationLinkIdJsonConverter",
       "kind": "adapter",
-      "line": 420,
+      "line": 474,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58282,7 +59996,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.PortalIdJsonConverter",
       "kind": "adapter",
-      "line": 117,
+      "line": 171,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58292,7 +60006,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ProjectIdJsonConverter",
       "kind": "adapter",
-      "line": 215,
+      "line": 269,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58312,7 +60026,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ProjectMetadataIdJsonConverter",
       "kind": "adapter",
-      "line": 316,
+      "line": 370,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58322,7 +60036,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ProjectVariableIdJsonConverter",
       "kind": "adapter",
-      "line": 332,
+      "line": 386,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58342,7 +60056,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestIdJsonConverter",
       "kind": "adapter",
-      "line": 348,
+      "line": 402,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58352,7 +60066,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestStateIdJsonConverter",
       "kind": "adapter",
-      "line": 362,
+      "line": 416,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58362,7 +60076,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.QuestTransitionIdJsonConverter",
       "kind": "adapter",
-      "line": 376,
+      "line": 430,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58372,7 +60086,7 @@
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ThirdPartyDependencyIdJsonConverter",
       "kind": "adapter",
-      "line": 298,
+      "line": 352,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -58712,7 +60426,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 43,
+      "line": 46,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -60040,6 +61754,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentWorkflowWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatorWorkspaceWindow.cs",
       "kind": "file",
       "line": 1,
@@ -60918,6 +62642,16 @@
       },
       "name": "G11-D-SIGNED-DELTA-DISTRIBUTION.md",
       "path": "docs/aurora-parity/tasks/G11-D-SIGNED-DELTA-DISTRIBUTION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G11-E-BULK-TABLE-MERGE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G11-E-BULK-TABLE-MERGE.md",
+      "path": "docs/aurora-parity/tasks/G11-E-BULK-TABLE-MERGE.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -62470,6 +64204,26 @@
       "path": "src/Forge.Application/Commands/ProjectPatch.cs"
     },
     {
+      "id": "file:src/Forge.Application/Content/SetContentWorkspaceCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetContentWorkspaceCommand.cs",
+      "path": "src/Forge.Application/Content/SetContentWorkspaceCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Content/SetContentWorkspaceHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetContentWorkspaceHandler.cs",
+      "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Creator/ActiveAreaContext.cs",
       "kind": "file",
       "line": 1,
@@ -63718,6 +65472,156 @@
       },
       "name": "LootDrop.cs",
       "path": "src/Forge.Domain/Combat/LootDrop.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/ContentBatchCollisionPolicy.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentBatchCollisionPolicy.cs",
+      "path": "src/Forge.Domain/Content/ContentBatchCollisionPolicy.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/ContentBatchConfiguration.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentBatchConfiguration.cs",
+      "path": "src/Forge.Domain/Content/ContentBatchConfiguration.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/ContentMergePolicy.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentMergePolicy.cs",
+      "path": "src/Forge.Domain/Content/ContentMergePolicy.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/ContentWorkspaceConfiguration.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentWorkspaceConfiguration.cs",
+      "path": "src/Forge.Domain/Content/ContentWorkspaceConfiguration.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/ContentWorkspaceConfigurationId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentWorkspaceConfigurationId.cs",
+      "path": "src/Forge.Domain/Content/ContentWorkspaceConfigurationId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/DataColumnDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DataColumnDefinition.cs",
+      "path": "src/Forge.Domain/Content/DataColumnDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/DataColumnId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DataColumnId.cs",
+      "path": "src/Forge.Domain/Content/DataColumnId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/DataColumnKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DataColumnKind.cs",
+      "path": "src/Forge.Domain/Content/DataColumnKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/DataRowDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DataRowDefinition.cs",
+      "path": "src/Forge.Domain/Content/DataRowDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/DataRowId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DataRowId.cs",
+      "path": "src/Forge.Domain/Content/DataRowId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/DataTableDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DataTableDefinition.cs",
+      "path": "src/Forge.Domain/Content/DataTableDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/DataTableId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DataTableId.cs",
+      "path": "src/Forge.Domain/Content/DataTableId.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/DataTableMergeConflict.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DataTableMergeConflict.cs",
+      "path": "src/Forge.Domain/Content/DataTableMergeConflict.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/DataTableMergeResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DataTableMergeResult.cs",
+      "path": "src/Forge.Domain/Content/DataTableMergeResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Content/DataTableThreeWayMerger.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DataTableThreeWayMerger.cs",
+      "path": "src/Forge.Domain/Content/DataTableThreeWayMerger.cs"
     },
     {
       "id": "file:src/Forge.Domain/Dialogues/DialogueAction.cs",
@@ -65388,6 +67292,96 @@
       },
       "name": "WorkspaceIncrementalBuildPlanner.cs",
       "path": "src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Content/BlueprintExportManifest.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintExportManifest.cs",
+      "path": "src/Forge.ModuleFormat/Content/BlueprintExportManifest.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintExportPackageBuilder.cs",
+      "path": "src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Content/BlueprintExportResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BlueprintExportResult.cs",
+      "path": "src/Forge.ModuleFormat/Content/BlueprintExportResult.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Content/ContentBatchEntryStatus.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentBatchEntryStatus.cs",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchEntryStatus.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Content/ContentBatchOperation.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentBatchOperation.cs",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchOperation.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferEntry.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentBatchTransferEntry.cs",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferEntry.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferReport.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentBatchTransferReport.cs",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferReport.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferRequest.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentBatchTransferRequest.cs",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferRequest.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Content/ContentBatchTransferService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentBatchTransferService.cs",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferService.cs"
     },
     {
       "id": "file:src/Forge.ModuleFormat/Distribution/ModuleDeltaBuildResult.cs",
@@ -67110,6 +69104,16 @@
       "path": "tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetContentWorkspaceHandlerTests.cs",
+      "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Creator/ActiveAreaContextTests.cs",
       "kind": "file",
       "line": 1,
@@ -67508,6 +69512,16 @@
       },
       "name": "CombatResolverTests.cs",
       "path": "tests/Forge.Domain.Tests/Combat/CombatResolverTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentWorkspaceTests.cs",
+      "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Dialogues/DialogueTestFactory.cs",
@@ -67948,6 +69962,16 @@
       },
       "name": "WorkspaceBuildGraphTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ContentWorkflowTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Distribution/ModuleDistributionPipelineTests.cs",
@@ -70900,6 +72924,16 @@
       "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Content.SetContentWorkspaceHandler",
+      "kind": "handler",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Content"
+      },
+      "name": "SetContentWorkspaceHandler",
+      "path": "src/Forge.Application/Content/SetContentWorkspaceHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Creator.ApplyDiagnosticQuickFixHandler",
       "kind": "handler",
       "line": 16,
@@ -71438,6 +73472,16 @@
       },
       "name": "ProjectPatch",
       "path": "src/Forge.Application/Commands/ProjectPatch.cs"
+    },
+    {
+      "id": "model:Forge.Application.Content.SetContentWorkspaceCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Content"
+      },
+      "name": "SetContentWorkspaceCommand",
+      "path": "src/Forge.Application/Content/SetContentWorkspaceCommand.cs"
     },
     {
       "id": "model:Forge.Application.Creator.ApplyDiagnosticQuickFixCommand",
@@ -71980,6 +74024,96 @@
       "path": "src/Forge.Domain/Combat/CombatantState.cs"
     },
     {
+      "id": "model:Forge.Domain.Content.ContentWorkspaceConfigurationId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "ContentWorkspaceConfigurationId",
+      "path": "src/Forge.Domain/Content/ContentWorkspaceConfigurationId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Content.DataColumnDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "DataColumnDefinition",
+      "path": "src/Forge.Domain/Content/DataColumnDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Content.DataColumnId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "DataColumnId",
+      "path": "src/Forge.Domain/Content/DataColumnId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Content.DataColumnKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "DataColumnKind",
+      "path": "src/Forge.Domain/Content/DataColumnKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Content.DataRowDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "DataRowDefinition",
+      "path": "src/Forge.Domain/Content/DataRowDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Content.DataRowId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "DataRowId",
+      "path": "src/Forge.Domain/Content/DataRowId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Content.DataTableDefinition",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "DataTableDefinition",
+      "path": "src/Forge.Domain/Content/DataTableDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Content.DataTableId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "DataTableId",
+      "path": "src/Forge.Domain/Content/DataTableId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Content.DataTableMergeResult",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "DataTableMergeResult",
+      "path": "src/Forge.Domain/Content/DataTableMergeResult.cs"
+    },
+    {
       "id": "model:Forge.Domain.Dialogues.DialogueActionKind",
       "kind": "model",
       "line": 3,
@@ -72262,7 +74396,7 @@
     {
       "id": "model:Forge.Domain.Modules.ModuleDefinition",
       "kind": "model",
-      "line": 6,
+      "line": 7,
       "metadata": {
         "namespace": "Forge.Domain.Modules"
       },
@@ -72988,6 +75122,26 @@
       },
       "name": "BuildNodeDocument",
       "path": "src/Forge.ModuleFormat/Build/WorkspaceBuildStateStore.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Content.BlueprintExportResult",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Content"
+      },
+      "name": "BlueprintExportResult",
+      "path": "src/Forge.ModuleFormat/Content/BlueprintExportResult.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Content.ContentBatchTransferEntry",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Content"
+      },
+      "name": "ContentBatchTransferEntry",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferEntry.cs"
     },
     {
       "id": "model:Forge.ModuleFormat.Distribution.ModuleDeltaBuildResult",
@@ -74907,6 +77061,11 @@
       "name": "Forge.Application.Commands"
     },
     {
+      "id": "namespace:Forge.Application.Content",
+      "kind": "namespace",
+      "name": "Forge.Application.Content"
+    },
+    {
       "id": "namespace:Forge.Application.Creator",
       "kind": "namespace",
       "name": "Forge.Application.Creator"
@@ -74975,6 +77134,11 @@
       "id": "namespace:Forge.Application.Tests.Commands",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Commands"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Content",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Content"
     },
     {
       "id": "namespace:Forge.Application.Tests.Creator",
@@ -75062,6 +77226,11 @@
       "name": "Forge.Domain.Combat"
     },
     {
+      "id": "namespace:Forge.Domain.Content",
+      "kind": "namespace",
+      "name": "Forge.Domain.Content"
+    },
+    {
       "id": "namespace:Forge.Domain.Dialogues",
       "kind": "namespace",
       "name": "Forge.Domain.Dialogues"
@@ -75140,6 +77309,11 @@
       "id": "namespace:Forge.Domain.Tests.Combat",
       "kind": "namespace",
       "name": "Forge.Domain.Tests.Combat"
+    },
+    {
+      "id": "namespace:Forge.Domain.Tests.Content",
+      "kind": "namespace",
+      "name": "Forge.Domain.Tests.Content"
     },
     {
       "id": "namespace:Forge.Domain.Tests.Dialogues",
@@ -75367,6 +77541,11 @@
       "name": "Forge.ModuleFormat.Build"
     },
     {
+      "id": "namespace:Forge.ModuleFormat.Content",
+      "kind": "namespace",
+      "name": "Forge.ModuleFormat.Content"
+    },
+    {
       "id": "namespace:Forge.ModuleFormat.Distribution",
       "kind": "namespace",
       "name": "Forge.ModuleFormat.Distribution"
@@ -75405,6 +77584,11 @@
       "id": "namespace:Forge.ModuleFormat.Tests.Build",
       "kind": "namespace",
       "name": "Forge.ModuleFormat.Tests.Build"
+    },
+    {
+      "id": "namespace:Forge.ModuleFormat.Tests.Content",
+      "kind": "namespace",
+      "name": "Forge.ModuleFormat.Tests.Content"
     },
     {
       "id": "namespace:Forge.ModuleFormat.Tests.Distribution",
@@ -76100,6 +78284,16 @@
       "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
     },
     {
+      "id": "service:Forge.ModuleFormat.Content.ContentBatchTransferService",
+      "kind": "service",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Content"
+      },
+      "name": "ContentBatchTransferService",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferService.cs"
+    },
+    {
       "id": "service:Forge.ModuleFormat.Distribution.ModulePackageSignatureService",
       "kind": "service",
       "line": 9,
@@ -76760,6 +78954,16 @@
       "path": "tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Content.SetContentWorkspaceHandlerTests",
+      "kind": "test",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Content"
+      },
+      "name": "SetContentWorkspaceHandlerTests",
+      "path": "tests/Forge.Application.Tests/Content/SetContentWorkspaceHandlerTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Creator.ActiveAreaContextTests",
       "kind": "test",
       "line": 7,
@@ -77170,6 +79374,16 @@
       "path": "tests/Forge.Domain.Tests/Combat/CombatResolverTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Content.ContentWorkspaceTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Content"
+      },
+      "name": "ContentWorkspaceTests",
+      "path": "tests/Forge.Domain.Tests/Content/ContentWorkspaceTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Dialogues.DialogueTestFactory",
       "kind": "test",
       "line": 6,
@@ -77560,6 +79774,16 @@
       "path": "tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs"
     },
     {
+      "id": "test:Forge.ModuleFormat.Tests.Content.ContentWorkflowTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Content"
+      },
+      "name": "ContentWorkflowTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Content/ContentWorkflowTests.cs"
+    },
+    {
       "id": "test:Forge.ModuleFormat.Tests.Distribution.ModuleDistributionPipelineTests",
       "kind": "test",
       "line": 12,
@@ -77672,7 +79896,7 @@
     {
       "id": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
       "kind": "test",
-      "line": 13,
+      "line": 14,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Tests.Serialization"
       },
@@ -79857,6 +82081,66 @@
       "path": "src/Forge.Domain/Combat/LootDrop.cs"
     },
     {
+      "id": "type:Forge.Domain.Content.ContentBatchCollisionPolicy",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "ContentBatchCollisionPolicy",
+      "path": "src/Forge.Domain/Content/ContentBatchCollisionPolicy.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Content.ContentBatchConfiguration",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "ContentBatchConfiguration",
+      "path": "src/Forge.Domain/Content/ContentBatchConfiguration.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Content.ContentMergePolicy",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "ContentMergePolicy",
+      "path": "src/Forge.Domain/Content/ContentMergePolicy.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Content.ContentWorkspaceConfiguration",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "ContentWorkspaceConfiguration",
+      "path": "src/Forge.Domain/Content/ContentWorkspaceConfiguration.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Content.DataTableMergeConflict",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "DataTableMergeConflict",
+      "path": "src/Forge.Domain/Content/DataTableMergeConflict.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Content.DataTableThreeWayMerger",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Content"
+      },
+      "name": "DataTableThreeWayMerger",
+      "path": "src/Forge.Domain/Content/DataTableThreeWayMerger.cs"
+    },
+    {
       "id": "type:Forge.Domain.Dialogues.DialogueAction",
       "kind": "type",
       "line": 3,
@@ -81455,6 +83739,66 @@
       },
       "name": "WorkspaceIncrementalBuildPlanner",
       "path": "src/Forge.ModuleFormat/Build/WorkspaceIncrementalBuildPlanner.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Content.BlueprintExportManifest",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Content"
+      },
+      "name": "BlueprintExportManifest",
+      "path": "src/Forge.ModuleFormat/Content/BlueprintExportManifest.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Content.BlueprintExportPackageBuilder",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Content"
+      },
+      "name": "BlueprintExportPackageBuilder",
+      "path": "src/Forge.ModuleFormat/Content/BlueprintExportPackageBuilder.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Content.ContentBatchEntryStatus",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Content"
+      },
+      "name": "ContentBatchEntryStatus",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchEntryStatus.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Content.ContentBatchOperation",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Content"
+      },
+      "name": "ContentBatchOperation",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchOperation.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Content.ContentBatchTransferReport",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Content"
+      },
+      "name": "ContentBatchTransferReport",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferReport.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Content.ContentBatchTransferRequest",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Content"
+      },
+      "name": "ContentBatchTransferRequest",
+      "path": "src/Forge.ModuleFormat/Content/ContentBatchTransferRequest.cs"
     },
     {
       "id": "type:Forge.ModuleFormat.Distribution.ModuleDeltaChunk",
@@ -85567,6 +87911,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.ContentWorkflowWindow",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "ContentWorkflowWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.CreatorWorkspaceWindow",
       "kind": "type",
       "line": 12,
@@ -85669,7 +88023,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 5577,
+      "line": 5771,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -85719,7 +88073,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 5582,
+      "line": 5776,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -85729,7 +88083,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 5587,
+      "line": 5781,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

@@ -19,6 +19,7 @@ public static class ProjectValidator
     public const string InvalidInstalledBlueprintProvenanceCode = "blueprint.provenance.installed_invalid";
     public const string LocalizationDefaultLocaleMismatchCode = "localization.default_locale.mismatch";
     public const string MissingLocalizationKeyCode = "localization.key.missing";
+    public const string ContentWorkspaceIdentityCode = "content.workspace.id_mismatch";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -28,6 +29,14 @@ public static class ProjectValidator
         var blueprintIds = project.Blueprints.Select(blueprint => blueprint.Id).ToHashSet();
         var areaIds = project.Areas.Select(area => area.Id).ToHashSet();
         var portalIds = new HashSet<PortalId>();
+
+        if (project.Module.Content.Id.Value != project.Module.Id.Value)
+        {
+            diagnostics.Add(new DomainDiagnostic(
+                ContentWorkspaceIdentityCode,
+                "The content workspace configuration ID must match the module ID.",
+                "module/content/id"));
+        }
 
         foreach (var blueprint in project.Blueprints)
         {

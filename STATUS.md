@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-A à G11-D Contenu moderne fermés et G11-E ouvert.**
+fermés ; G11-A à G11-E Contenu moderne fermés et G11-F ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -255,5 +255,9 @@ source est resté inchangé et le rendu de contrôle est valide.
 **G11-D est fermé** : canaux Development/Preview/Stable, matrice Windows/Linux/macOS, signature
 ECDSA avec confiance/révocation, delta content-addressed reprenable et réversible, bundle Windows
 reproductible, installation journalisée et désinstallation isolée. Les exports applicatifs physiques
-Linux/macOS, Authenticode et feeds distants restent explicitement aux adaptateurs de livraison ;
-G11-E porte maintenant les workflows de contenu en masse et de fusion.
+Linux/macOS, Authenticode et feeds distants restent explicitement aux adaptateurs de livraison.
+
+**G11-E est fermé** : l’espace Données persiste des tables typées et gouvernées, prévisualise puis
+exécute les imports/exports en masse, produit des packs de blueprints reproductibles et expose une
+fusion à trois voies qui conserve les deux variantes conflictuelles. G11-F porte maintenant la mise
+à l’échelle de l’interface, les onglets de zone, favoris et profils de compatibilité artistique.

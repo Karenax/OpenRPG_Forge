@@ -16,6 +16,8 @@ public static partial class DistributionComplianceValidator
     public const string StableSignatureRequiredCode = "distribution.release.stable_signature_required";
     public const string StableDeltaPolicyRequiredCode = "distribution.release.stable_delta_policy_required";
     public const string WindowsPackagingSafetyRequiredCode = "distribution.release.windows_packaging_safety_required";
+    public const string DataTableLicenseUnknownCode = "distribution.data_table.license_unknown";
+    public const string DataTableProvenanceUnknownCode = "distribution.data_table.provenance_unknown";
 
     private static readonly HashSet<string> ApprovedLicenseIdentifiers = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -138,6 +140,26 @@ public static partial class DistributionComplianceValidator
                     BlueprintProvenanceUnknownCode,
                     $"Blueprint '{blueprint.DisplayName}' has incomplete source, author or content provenance.",
                     $"blueprints/{index}/provenance"));
+            }
+        }
+
+        for (var index = 0; index < project.Module.Content.DataTables.Count; index++)
+        {
+            var table = project.Module.Content.DataTables[index];
+            if (!IsApprovedLicense(table.LicenseSpdx))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    DataTableLicenseUnknownCode,
+                    $"Data table '{table.DisplayName}' does not declare an approved SPDX license.",
+                    $"module/content/dataTables/{index}/licenseSpdx"));
+            }
+
+            if (IsUnknownProvenance(table.Provenance) || IsUnknownProvenance(table.ContentHash))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    DataTableProvenanceUnknownCode,
+                    $"Data table '{table.DisplayName}' has incomplete provenance or content hash.",
+                    $"module/content/dataTables/{index}/provenance"));
             }
         }
 

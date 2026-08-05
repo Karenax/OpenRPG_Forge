@@ -72,6 +72,12 @@ pour bit puis produit un bundle Windows reproductible dont installation et dési
 testées en répertoire isolé. La preuve détaillée est dans
 [`tasks/G11-D-SIGNED-DELTA-DISTRIBUTION.md`](tasks/G11-D-SIGNED-DELTA-DISTRIBUTION.md).
 
+**G11-E est fermé le 5 août 2026.** Le module persiste une configuration de contenu v1 et des tables
+typées ; le Creator et le CLI prévisualisent puis exécutent des transferts bornés, exportent des packs
+de blueprints gouvernés et exposent les conflits d’une fusion à trois voies sans perte de variante. La
+preuve détaillée est dans
+[`tasks/G11-E-BULK-TABLE-MERGE.md`](tasks/G11-E-BULK-TABLE-MERGE.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-E** : imports/exports en masse, tables de données et fusion assistée.
+Démarrer **G11-F** : UI scalable, onglets de zone, favoris et compatibilité artistique.

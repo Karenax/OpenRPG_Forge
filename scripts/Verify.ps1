@@ -145,7 +145,7 @@ try {
         -Name 'toolset' `
         -ProjectPath $toolsetPath `
         -Arguments @('--headless', '--editor', '--path', $toolsetPath, '--log-file', $toolsetLog, '--', '--workspace-smoke-test') `
-        -Markers @('OPENRPG_FORGE_PLUGIN_LOADED', 'OPENRPG_FORGE_WINDOW_TITLE_PASS title=OpenRPG_Forge', 'OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities=16', 'OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9', 'OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog=10 derived=1 references=1 undo=restored', 'OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored', 'OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas=2 documents=2 transition=valid active=switched history=restored', 'OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone uuids=remapped preview=available history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G707_SEARCH_PASS search=global', 'OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed', 'OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable generated=provenance favorites=filtered temporary=isolated format=1.0.0 history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G710_CAMERA_PASS orbit=mouse pan=mouse zoom=adaptive focus=selection views=orthographic pilot=wasd bookmarks=persisted history=dedicated project=unchanged', 'OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler dependencies=automatic incremental=reused persistence=restored', 'OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked licenses=diagnostic registry=versioned notices=generated channel=preview platforms=2 windows=portable-installer history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_PASS agents=4 geometry=valid reachability=spawn-object doors=states offmesh=linked flight=profiled incremental=partial overlay=visible history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G719_PATHFINDING_PASS algorithm=deterministic-a-star', 'OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_PASS uuid=stable severity=typed path=document property=visible source=validator quickfix=command preview=dry-run navigation=targeted history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=605 sources=3 facets=search-source-category uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed', 'OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_PASS messages=', 'OPENRPG_FORGE_TOOLSET_G718_SCALE_PASS modes=uniform-nonuniform', 'OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=1.0.0 areas=1 documents=1 entities=2', 'OPENRPG_FORGE_TOOLSET_T13_OVERRIDES_PASS schema=1 properties=3', 'OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_PASS nodes=2 choices=3', 'OPENRPG_FORGE_TOOLSET_T43_QUEST_PASS states=3 transitions=2', 'OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_PROJECT_SAVED', 'OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS spawn=20000000-0000-4000-8000-000000000010 snapshot=deleted logs=captured') `
+        -Markers @('OPENRPG_FORGE_PLUGIN_LOADED', 'OPENRPG_FORGE_WINDOW_TITLE_PASS title=OpenRPG_Forge', 'OPENRPG_FORGE_TOOLSET_PROJECT_VALID entities=16', 'OPENRPG_FORGE_TOOLSET_PREVIEW_REBUILD_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9', 'OPENRPG_FORGE_TOOLSET_G703_BLUEPRINT_PASS catalog=10 derived=1 references=1 undo=restored', 'OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored', 'OPENRPG_FORGE_TOOLSET_G705_AREA_PASS areas=2 documents=2 transition=valid active=switched history=restored', 'OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_PASS entities=semantic-copy area=full-clone uuids=remapped preview=available history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G707_SEARCH_PASS search=global', 'OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed', 'OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable generated=provenance favorites=filtered temporary=isolated format=1.1.0 history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G710_CAMERA_PASS orbit=mouse pan=mouse zoom=adaptive focus=selection views=orthographic pilot=wasd bookmarks=persisted history=dedicated project=unchanged', 'OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler dependencies=automatic incremental=reused persistence=restored', 'OPENRPG_FORGE_TOOLSET_G713_DISTRIBUTION_PASS profiles=5 shipping=blocked licenses=diagnostic registry=versioned notices=generated channel=preview platforms=2 windows=portable-installer history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G11E_CONTENT_PASS tables=typed batch=dry-run-applied collisions=preserve-both blueprints=transitive-governed merge=three-way-conflicts history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G714_NAVIGATION_PASS agents=4 geometry=valid reachability=spawn-object doors=states offmesh=linked flight=profiled incremental=partial overlay=visible history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G719_PATHFINDING_PASS algorithm=deterministic-a-star', 'OPENRPG_FORGE_TOOLSET_G715_DIAGNOSTICS_PASS uuid=stable severity=typed path=document property=visible source=validator quickfix=command preview=dry-run navigation=targeted history=restored persistence=roundtrip', 'OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=605 sources=3 facets=search-source-category uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed', 'OPENRPG_FORGE_TOOLSET_G717_LOCALIZATION_PASS messages=', 'OPENRPG_FORGE_TOOLSET_G718_SCALE_PASS modes=uniform-nonuniform', 'OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format=1.1.0 areas=1 documents=1 entities=2', 'OPENRPG_FORGE_TOOLSET_T13_OVERRIDES_PASS schema=1 properties=3', 'OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_PASS nodes=2 choices=3', 'OPENRPG_FORGE_TOOLSET_T43_QUEST_PASS states=3 transitions=2', 'OPENRPG_FORGE_TOOLSET_T23_SMOKE_PASS entities=16', 'OPENRPG_FORGE_TOOLSET_PROJECT_SAVED', 'OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS spawn=20000000-0000-4000-8000-000000000010 snapshot=deleted logs=captured') `
         -StopAfterMarkers $true
     $prototypeHashAfter = (Get-FileHash -LiteralPath $prototypeDataPath -Algorithm SHA256).Hash
     if ($prototypeHashBefore -ne $prototypeHashAfter) {
@@ -232,6 +232,52 @@ try {
         throw 'Windows release uninstaller did not remove the installed module package.'
     }
     Write-Output 'OPENRPG_FORGE_G11D_RELEASE_SMOKE_PASS signature=ecdsa-p256 delta=resume-dedup-rollback windows=install-uninstall channel=development'
+    $contentSmoke = Join-Path $artifactRoot 'content-workflow-smoke'
+    if (Test-Path -LiteralPath $contentSmoke) {
+        Remove-Item -LiteralPath $contentSmoke -Recurse -Force
+    }
+    [System.IO.Directory]::CreateDirectory($contentSmoke) | Out-Null
+    $contentBatchDestination = Join-Path $contentSmoke 'batch'
+    $blueprintPack = Join-Path $contentSmoke 'crypt-blueprints.orpblueprints'
+    $contentSource = Join-Path $repositoryRoot 'docs\aurora-parity\tasks'
+    $contentGlob = 'G11-D-SIGNED-DELTA-DISTRIBUTION.md'
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'content', 'batch', 'export', $contentSource, $contentBatchDestination,
+        '--glob', $contentGlob, '--extensions', '.md', '--collision', 'preserve-both',
+        '--provenance', 'g11e-gate', '--license', 'CC0-1.0', '--dry-run', 'true')
+    if (Test-Path -LiteralPath (Join-Path $contentBatchDestination $contentGlob)) {
+        throw 'Content batch dry-run wrote a destination file.'
+    }
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'content', 'batch', 'export', $contentSource, $contentBatchDestination,
+        '--glob', $contentGlob, '--extensions', '.md', '--collision', 'preserve-both',
+        '--provenance', 'g11e-gate', '--license', 'CC0-1.0', '--dry-run', 'false')
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'content', 'batch', 'export', $contentSource, $contentBatchDestination,
+        '--glob', $contentGlob, '--extensions', '.md', '--collision', 'preserve-both',
+        '--provenance', 'g11e-gate', '--license', 'CC0-1.0', '--dry-run', 'false')
+    $preservedFiles = @(Get-ChildItem -LiteralPath $contentBatchDestination -File)
+    if ($preservedFiles.Count -ne 2 -or -not ($preservedFiles.Name -match '~[0-9a-f]{8}\.md$')) {
+        throw 'Content batch preserve-both collision policy did not retain both files.'
+    }
+    $projectDocument = Get-Content -LiteralPath $prototypeDataPath -Raw | ConvertFrom-Json
+    $blueprintId = $projectDocument.project.blueprints[0].id
+    Invoke-CheckedDotnet @(
+        'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+        'content', 'export-blueprints', $moduleWorkspace, $blueprintPack,
+        '--ids', $blueprintId, '--previews', 'true')
+    $blueprintExtract = Join-Path $contentSmoke 'blueprints'
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($blueprintPack, $blueprintExtract)
+    foreach ($required in @('manifest.json', 'licenses\index.json', 'migrations\blueprint-schema-v1.json')) {
+        if (-not (Test-Path -LiteralPath (Join-Path $blueprintExtract $required))) {
+            throw "Blueprint export is missing '$required'."
+        }
+    }
+    Write-Output 'OPENRPG_FORGE_G11E_CONTENT_SMOKE_PASS batch=dry-run-apply collisions=preserve-both blueprints=governed'
     Invoke-CheckedDotnet @(
         'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
         'assets', 'list', $repositoryRoot, '--query', 'apple', '--source', 'ambientcg')
@@ -333,7 +379,7 @@ try {
         -Name 'runtime-plain-launch' `
         -ProjectPath $runtimePath `
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $plainRuntimeLog, '--quit-after', '60') `
-        -Markers @('OPENRPG_FORGE_RUNTIME_WORKSPACE_LOADED format=1.0.0 slug=crypt-of-ashes', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=16 collisions=10') `
+        -Markers @('OPENRPG_FORGE_RUNTIME_WORKSPACE_LOADED format=1.1.0 slug=crypt-of-ashes', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=16 collisions=10') `
         -StopAfterMarkers $false
     $starterWorkspace = Join-Path $runtimePath 'content\broken-isles-starter'
     $starterArtifact = Join-Path $artifactRoot 'broken-isles-starter.orpmod'

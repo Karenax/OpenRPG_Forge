@@ -417,7 +417,8 @@ Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dan
 - [x] **G11-B** — manifestes d'assets, plateformes, collisions, animations, VFX et LOD.
 - [x] **G11-C** — round-trip externe et Blender réel avec source du Vault immuable.
 - [x] **G11-D** — signatures, deltas, canaux et bundle Windows installable/désinstallable.
-- [ ] **G11-E** — imports/exports en masse, tables de données et fusion assistée.
+- [x] **G11-E** — imports/exports en masse, tables de données et fusion assistée.
+- [ ] **G11-F** — UI scalable, onglets de zone, favoris et compatibilité artistique.
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest
 

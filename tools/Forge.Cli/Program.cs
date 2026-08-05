@@ -5,11 +5,14 @@ using Forge.Application.Commands;
 using Forge.Application.Projects;
 using Forge.Application.Time;
 using Forge.Domain.Assets;
+using Forge.Domain.Blueprints;
+using Forge.Domain.Content;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Assets;
+using Forge.ModuleFormat.Content;
 using Forge.ModuleFormat.Distribution;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Packages;
@@ -31,6 +34,11 @@ static int Run(IReadOnlyList<string> arguments)
             return RunAssets(arguments.Skip(1).ToArray());
         }
 
+        if (arguments.Count >= 1 && arguments[0] == "content")
+        {
+            return RunContent(arguments.Skip(1).ToArray());
+        }
+
         if (arguments.Count == 2 && arguments[0] == "author-original")
         {
             return AuthorOriginalModule(arguments[1]);
@@ -38,7 +46,8 @@ static int Run(IReadOnlyList<string> arguments)
 
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
-            "forge assets <list|prepare|roundtrip> ... | forge author-original <target-directory>");
+            "forge assets <list|prepare|roundtrip> ... | " +
+            "forge content <batch|export-blueprints|merge-table> ... | forge author-original <target-directory>");
         return 2;
     }
     catch (Exception exception)
@@ -47,6 +56,147 @@ static int Run(IReadOnlyList<string> arguments)
         return 1;
     }
 }
+
+static int RunContent(IReadOnlyList<string> arguments)
+{
+    if (arguments.Count >= 4 && arguments[0] == "batch" &&
+        arguments[1] is "import" or "export")
+    {
+        var options = ParseOptions(arguments.Skip(4).ToArray());
+        var operation = arguments[1] == "import" ? ContentBatchOperation.Import : ContentBatchOperation.Export;
+        var request = new ContentBatchTransferRequest(
+            operation,
+            arguments[2],
+            arguments[3],
+            options.GetValueOrDefault("glob") ?? "*",
+            ParseCsv(options.GetValueOrDefault("extensions") ?? ".json,.forge,.glb,.png,.ogg"),
+            ParseCollisionPolicy(options.GetValueOrDefault("collision") ?? "fail"),
+            options.GetValueOrDefault("provenance") ?? "cli-author",
+            options.GetValueOrDefault("license") ?? "UNLICENSED",
+            ParseBoolean(options.GetValueOrDefault("dry-run"), defaultValue: true));
+        var report = ContentBatchTransferService.Execute(request);
+        Console.WriteLine(JsonSerializer.Serialize(report));
+        if (report.Valid)
+        {
+            Console.WriteLine(
+                $"OPENRPG_FORGE_CONTENT_BATCH_PASS operation={operation.ToString().ToLowerInvariant()} " +
+                $"dryrun={report.DryRun.ToString().ToLowerInvariant()} files={report.Entries.Count} " +
+                $"added={report.Added} replaced={report.Replaced} skipped={report.Skipped} preserved={report.PreservedBoth}");
+        }
+
+        return report.Valid ? 0 : 1;
+    }
+
+    if (arguments.Count >= 3 && arguments[0] == "export-blueprints")
+    {
+        var options = ParseOptions(arguments.Skip(3).ToArray());
+        if (!options.TryGetValue("ids", out var idsValue))
+        {
+            throw new ArgumentException("Blueprint export requires --ids <uuid,uuid>.");
+        }
+
+        var opened = ProjectSession.Open(arguments[1]);
+        if (!opened.Succeeded || opened.Session is null)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+            return 1;
+        }
+
+        var ids = ParseCsv(idsValue).Select(BlueprintId.Parse).ToArray();
+        var result = BlueprintExportPackageBuilder.Build(
+            opened.Session.Project,
+            ids,
+            arguments[2],
+            ParseBoolean(options.GetValueOrDefault("previews"), defaultValue: true));
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = true, result }));
+        Console.WriteLine(
+            $"OPENRPG_FORGE_BLUEPRINT_EXPORT_PASS blueprints={result.BlueprintCount} " +
+            $"dependencies={result.DependencyCount} previews={result.PreviewCount} sha256={result.ContentSha256}");
+        return 0;
+    }
+
+    if (arguments.Count >= 5 && arguments[0] == "merge-table")
+    {
+        var options = ParseOptions(arguments.Skip(5).ToArray());
+        var baseProject = OpenProject(arguments[1]);
+        var ourProject = OpenProject(arguments[2]);
+        var theirProject = OpenProject(arguments[3]);
+        var tableId = DataTableId.Parse(arguments[4]);
+        var policy = ParseMergePolicy(options.GetValueOrDefault("policy") ?? "manual");
+        var result = DataTableThreeWayMerger.Merge(
+            baseProject.Module.Content.DataTables.Single(table => table.Id == tableId),
+            ourProject.Module.Content.DataTables.Single(table => table.Id == tableId),
+            theirProject.Module.Content.DataTables.Single(table => table.Id == tableId),
+            policy);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = true,
+            tableId = tableId.ToString(),
+            policy = policy.ToString(),
+            rows = result.Merged.Rows.Count,
+            conflicts = result.Conflicts.Select(conflict => new
+            {
+                id = conflict.ConflictId,
+                rowId = conflict.RowId.ToString(),
+                conflict.Summary,
+                ours = conflict.Ours?.Values,
+                theirs = conflict.Theirs?.Values,
+            }),
+        }));
+        Console.WriteLine(
+            $"OPENRPG_FORGE_CONTENT_MERGE_PASS rows={result.Merged.Rows.Count} " +
+            $"conflicts={result.Conflicts.Count} policy={policy.ToString().ToLowerInvariant()}");
+        return 0;
+    }
+
+    Console.Error.WriteLine(
+        "Usage: forge content batch <import|export> <source> <destination> " +
+        "[--glob <pattern>] [--extensions <.json,.forge>] [--collision <fail|skip|replace|preserve-both>] " +
+        "[--provenance <source>] [--license <spdx>] [--dry-run <true|false>] | " +
+        "forge content export-blueprints <workspace> <output.orpblueprints> --ids <uuid,uuid> [--previews <true|false>] | " +
+        "forge content merge-table <base-workspace> <ours-workspace> <theirs-workspace> <table-uuid> " +
+        "[--policy <manual|ours|theirs|preserve-both>]");
+    return 2;
+}
+
+static Forge.Domain.Projects.ProjectDefinition OpenProject(string workspace)
+{
+    var opened = ProjectSession.Open(workspace);
+    if (!opened.Succeeded || opened.Session is null)
+    {
+        throw new InvalidDataException(
+            $"Content workspace '{workspace}' cannot be opened: {string.Join(", ", opened.Diagnostics.Select(item => item.Message))}");
+    }
+
+    return opened.Session.Project;
+}
+
+static ContentBatchCollisionPolicy ParseCollisionPolicy(string value) => value.Trim().ToLowerInvariant() switch
+{
+    "fail" => ContentBatchCollisionPolicy.Fail,
+    "skip" => ContentBatchCollisionPolicy.Skip,
+    "replace" => ContentBatchCollisionPolicy.Replace,
+    "preserve-both" or "preserveboth" => ContentBatchCollisionPolicy.PreserveBoth,
+    _ => throw new ArgumentException($"Unknown content collision policy '{value}'."),
+};
+
+static ContentMergePolicy ParseMergePolicy(string value) => value.Trim().ToLowerInvariant() switch
+{
+    "manual" => ContentMergePolicy.Manual,
+    "ours" or "prefer-ours" => ContentMergePolicy.PreferOurs,
+    "theirs" or "prefer-theirs" => ContentMergePolicy.PreferTheirs,
+    "preserve-both" or "preserveboth" => ContentMergePolicy.PreserveBoth,
+    _ => throw new ArgumentException($"Unknown content merge policy '{value}'."),
+};
+
+static IReadOnlyList<string> ParseCsv(string value) =>
+    value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+static bool ParseBoolean(string? value, bool defaultValue) => string.IsNullOrWhiteSpace(value)
+    ? defaultValue
+    : bool.TryParse(value, out var parsed)
+        ? parsed
+        : throw new ArgumentException($"'{value}' is not a valid boolean value.");
 
 static int AuthorOriginalModule(string targetDirectory)
 {

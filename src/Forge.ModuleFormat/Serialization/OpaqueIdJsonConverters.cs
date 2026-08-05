@@ -5,6 +5,7 @@ using Forge.Domain.Authoring;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Combat;
+using Forge.Domain.Content;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Localization;
@@ -14,6 +15,59 @@ using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 
 namespace Forge.ModuleFormat.Serialization;
+
+internal sealed class ContentWorkspaceConfigurationIdJsonConverter : JsonConverter<ContentWorkspaceConfigurationId>
+{
+    public override ContentWorkspaceConfigurationId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        ContentWorkspaceConfigurationId.Parse(ReadString(ref reader, "A content workspace configuration ID"));
+
+    public override void Write(Utf8JsonWriter writer, ContentWorkspaceConfigurationId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader, string label) =>
+        reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException($"{label} cannot be null.")
+            : throw new JsonException($"{label} must be a string.");
+}
+
+internal sealed class DataTableIdJsonConverter : JsonConverter<DataTableId>
+{
+    public override DataTableId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        DataTableId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, DataTableId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) => reader.TokenType == JsonTokenType.String
+        ? reader.GetString() ?? throw new JsonException("A data table ID cannot be null.")
+        : throw new JsonException("A data table ID must be a string.");
+}
+
+internal sealed class DataColumnIdJsonConverter : JsonConverter<DataColumnId>
+{
+    public override DataColumnId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        DataColumnId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, DataColumnId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) => reader.TokenType == JsonTokenType.String
+        ? reader.GetString() ?? throw new JsonException("A data column ID cannot be null.")
+        : throw new JsonException("A data column ID must be a string.");
+}
+
+internal sealed class DataRowIdJsonConverter : JsonConverter<DataRowId>
+{
+    public override DataRowId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        DataRowId.Parse(ReadString(ref reader));
+
+    public override void Write(Utf8JsonWriter writer, DataRowId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+
+    private static string ReadString(ref Utf8JsonReader reader) => reader.TokenType == JsonTokenType.String
+        ? reader.GetString() ?? throw new JsonException("A data row ID cannot be null.")
+        : throw new JsonException("A data row ID must be a string.");
+}
 
 internal sealed class AssetCatalogItemIdJsonConverter : JsonConverter<AssetCatalogItemId>
 {
