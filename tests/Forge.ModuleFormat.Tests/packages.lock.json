@@ -113,7 +113,21 @@
         "dependencies": {
           "Forge.Application": "[1.0.0, )",
           "Forge.Domain": "[1.0.0, )",
+          "Forge.Network": "[1.0.0, )",
           "Forge.Scripting": "[1.0.0, )"
+        }
+      },
+      "forge.network": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Domain": "[1.0.0, )",
+          "Forge.RpgKit.Domain": "[1.0.0, )"
+        }
+      },
+      "forge.rpgkit.domain": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Domain": "[1.0.0, )"
         }
       },
       "forge.scripting": {

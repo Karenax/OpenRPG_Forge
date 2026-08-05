@@ -10,6 +10,7 @@
     <ProjectReference Include="..\..\src\Forge.Domain\Forge.Domain.csproj" />
     <ProjectReference Include="..\..\src\Forge.EngineAdapter\Forge.EngineAdapter.csproj" />
     <ProjectReference Include="..\..\src\Forge.ModuleFormat\Forge.ModuleFormat.csproj" />
+    <ProjectReference Include="..\..\src\Forge.Network\Forge.Network.csproj" />
     <ProjectReference Include="..\..\src\Forge.Scripting\Forge.Scripting.csproj" />
   </ItemGroup>
 </Project>

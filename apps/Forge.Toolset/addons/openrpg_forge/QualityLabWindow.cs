@@ -1,6 +1,7 @@
 #if TOOLS
 using Forge.Application.Quality;
 using Forge.Domain.Projects;
+using Forge.Domain.RuntimeExtensions;
 using Forge.ModuleFormat.Quality;
 using Forge.Scripting;
 using Godot;
@@ -10,6 +11,7 @@ namespace Forge.Toolset.Editor;
 public partial class QualityLabWindow : Window
 {
     private readonly WorkspaceQualityLabService _service = new(new NativeForgeScriptRuntime());
+    private readonly WorkspacePerformanceLabService _performanceService = new();
     private Func<ProjectDefinition?>? _project;
     private Func<string?>? _workspaceRoot;
     private Action<Window>? _brand;
@@ -21,9 +23,16 @@ public partial class QualityLabWindow : Window
     private RichTextLabel? _quests;
     private RichTextLabel? _encounters;
     private RichTextLabel? _pseudoLocalization;
+    private RichTextLabel? _network;
+    private RichTextLabel? _visual;
+    private RichTextLabel? _benchmarks;
+    private RichTextLabel? _budgets;
+    private RichTextLabel? _profiler;
     private WorkspaceQualityLabReport? _report;
+    private WorkspacePerformanceLabReport? _performanceReport;
 
     internal WorkspaceQualityLabReport? Report => _report;
+    internal WorkspacePerformanceLabReport? PerformanceReport => _performanceReport;
 
     public void Initialize(
         Func<ProjectDefinition?> project,
@@ -51,7 +60,7 @@ public partial class QualityLabWindow : Window
     internal bool RunForSmokeTest()
     {
         Run(writePseudoLocalizationSnapshot: false);
-        return _report?.Passed == true;
+        return _report?.Passed == true && _performanceReport?.Passed == true;
     }
 
     private void Build()
@@ -115,6 +124,11 @@ public partial class QualityLabWindow : Window
         _quests = Card(grid, "QUÊTES", "Événements, transitions et reprise de sauvegarde");
         _encounters = Card(grid, "RENCONTRES", "Profils, seeds, navigation et nettoyage");
         _pseudoLocalization = Card(grid, "PSEUDO-LOCALISATION", "Aperçu de l’expansion et preuve visuelle SVG");
+        _network = Card(grid, "RÉSEAU HOSTILE", "Latence, perte, reconnexion, contenu et autorité");
+        _visual = Card(grid, "RÉGRESSION VISUELLE", "Résolutions, caméras, niveaux qualité et tolérance pixel");
+        _benchmarks = Card(grid, "BENCHMARKS 3D", "Intérieur, extérieur et stress · charge, frame, mémoire, nav");
+        _budgets = Card(grid, "BUDGETS PLATEFORMES", "Frame, mémoire, textures, draws, lumières, scripts et réseau");
+        _profiler = Card(grid, "PROFILAGE INTÉGRÉ", "Éditeur, runtime et serveur · script, données et réseau");
 
         var footer = new HBoxContainer();
         footer.AddThemeConstantOverride("separation", 8);
@@ -189,6 +203,7 @@ public partial class QualityLabWindow : Window
         if (project is null || string.IsNullOrWhiteSpace(workspaceRoot))
         {
             _report = null;
+            _performanceReport = null;
             _summary!.Text = "Aucun projet Forge ouvert.";
             SetStatus("⚠ Ouvrez un projet avant de lancer le laboratoire.", new Color("e8c36a"));
             ClearCards();
@@ -201,12 +216,15 @@ public partial class QualityLabWindow : Window
             var defaults = WorkspaceQualityLabOptions.Default;
             var options = defaults with { WritePseudoLocalizationSnapshot = writePseudoLocalizationSnapshot };
             _report = _service.Run(workspaceRoot, project, options);
-            Render(_report);
+            _performanceReport = _performanceService.Run(workspaceRoot, project,
+                new WorkspacePerformanceLabOptions(writePseudoLocalizationSnapshot));
+            Render(_report, _performanceReport);
         }
         catch (Exception exception) when (exception is ArgumentException or DirectoryNotFoundException or
             FileNotFoundException or InvalidOperationException or IOException or UnauthorizedAccessException)
         {
             _report = null;
+            _performanceReport = null;
             _summary!.Text = "Le laboratoire n’a pas pu produire de rapport.";
             SetStatus($"✕ {exception.Message}", new Color("ff756d"));
             ClearCards();
@@ -214,13 +232,16 @@ public partial class QualityLabWindow : Window
         }
     }
 
-    private void Render(WorkspaceQualityLabReport report)
+    private void Render(WorkspaceQualityLabReport report, WorkspacePerformanceLabReport performance)
     {
         var warnings = report.Localization.Issues.Count(issue => issue.Severity == LocalizationQualitySeverity.Warning);
         var errors = report.Localization.Issues.Count(issue => issue.Severity == LocalizationQualitySeverity.Error);
-        _summary!.Text = $"{Symbol(report.Passed)} Rapport {Short(report.Fingerprint)} · " +
+        var allPassed = report.Passed && performance.Passed;
+        _summary!.Text = $"{Symbol(allPassed)} Rapports {Short(report.Fingerprint)}/{Short(performance.Fingerprint)} · " +
             $"{report.Localization.Coverage.Count} langue(s) · {report.Scripts.Tests.Count} script(s) · " +
-            $"{report.Dialogues.Count} dialogue(s) · {report.Quests.Count} quête(s) · {report.Encounters.TotalRuns} simulation(s)";
+            $"{report.Dialogues.Count} dialogue(s) · {report.Quests.Count} quête(s) · {report.Encounters.TotalRuns} simulation(s) · " +
+            $"{performance.Network.Scenarios.Count} réseau · {performance.VisualReviews.Cases.Count} visuel · " +
+            $"{performance.Benchmarks.Measurements.Count} benchmark(s)";
 
         _localization!.Text = string.Join("\n", report.Localization.Coverage.Select(locale =>
             $"{Symbol(locale.Ratio >= 0.999)} [b]{Escape(locale.Locale)}[/b] · {locale.Covered}/{locale.Total} ({locale.Ratio:P0})")) +
@@ -263,15 +284,54 @@ public partial class QualityLabWindow : Window
         _pseudoLocalization!.Text = string.Join("\n", pseudoRows) +
             $"\n\nPreuve : {Escape(report.PseudoLocalizationSnapshotPath ?? "aperçu mémoire (smoke test)")}";
 
-        SetStatus(report.Passed
-                ? "✓ Module prêt pour le playtest · les avertissements de couverture restent visibles."
+        _network!.Text = $"{Symbol(performance.Network.Passed)} [b]{performance.Network.Scenarios.Count}[/b] combinaison(s) latence/perte\n" +
+            $"{Symbol(performance.Network.Scenarios.All(item => item.Converged))} convergence multi-client\n" +
+            $"{Symbol(performance.Network.ReconnectPassed)} reconnexion contrôlée\n" +
+            $"{Symbol(performance.Network.ContentMismatchPassed)} contenu incompatible refusé\n" +
+            $"{Symbol(performance.Network.AuthorityAttackPassed)} attaques d’autorité refusées";
+
+        _visual!.Text = $"{Symbol(performance.VisualReviews.Cases.Count > 0)} [b]{performance.VisualReviews.Cases.Count}[/b] fixture(s)\n" +
+            $"Résolutions : {Escape(string.Join(", ", projectQuality().Visual.Resolutions))}\n" +
+            $"Caméras : {Escape(string.Join(", ", projectQuality().Visual.CameraFixtures))}\n" +
+            $"Tolérance pixel : {projectQuality().Visual.PixelTolerance:P1}\n\n" +
+            $"Manifeste : {Escape(performance.VisualManifestPath ?? "plan mémoire (smoke test)")}";
+
+        var kinds = performance.Benchmarks.Measurements.Select(item => item.Kind).Distinct().Order().ToArray();
+        _benchmarks!.Text = $"{Symbol(performance.Benchmarks.Passed)} [b]{performance.Benchmarks.Measurements.Count}[/b] mesure(s)\n" +
+            $"Scénarios : {Escape(string.Join(", ", kinds))}\n" +
+            $"Frame max. : {performance.Benchmarks.Measurements.Max(item => item.EstimatedFrameMilliseconds):F2} ms\n" +
+            $"Mémoire max. : {performance.Benchmarks.Measurements.Max(item => item.EstimatedMemoryMegabytes):F1} Mo\n" +
+            $"Navigation mesurée : {performance.Benchmarks.Measurements.Max(item => item.NavigationRebuildMilliseconds):F2} ms";
+
+        var failedBudgets = performance.Benchmarks.Budgets.Count(item => item.Status == PerformanceBudgetStatus.Failed);
+        var warningBudgets = performance.Benchmarks.Budgets.Count(item => item.Status == PerformanceBudgetStatus.Warning);
+        _budgets!.Text = $"{Symbol(failedBudgets == 0)} [b]{performance.Benchmarks.Budgets.Count}[/b] évaluation(s)\n" +
+            $"{Symbol(failedBudgets == 0)} {failedBudgets} blocage(s)\n" +
+            $"{Symbol(warningBudgets == 0)} {warningBudgets} avertissement(s)\n\n" +
+            string.Join("\n", performance.Benchmarks.Budgets.GroupBy(item => item.Platform)
+                .OrderBy(group => group.Key, StringComparer.Ordinal)
+                .Select(group => $"{Escape(group.Key)} · {group.Max(item => item.Status)}"));
+
+        var surfaces = performance.TraceSpans.Select(item => item.Surface).Distinct().Order().ToArray();
+        var categories = performance.TraceSpans.Select(item => item.Category).Distinct().Order(StringComparer.Ordinal).ToArray();
+        _profiler!.Text = $"{Symbol(performance.TraceSpans.All(item => !item.Failed))} [b]{performance.TraceSpans.Count}[/b] span(s)\n" +
+            $"Surfaces : {Escape(string.Join(", ", surfaces))}\n" +
+            $"Catégories : {Escape(string.Join(", ", categories))}\n" +
+            $"Capture : {Escape(performance.TracePath ?? "mémoire (smoke test)")}";
+
+        SetStatus(allPassed
+                ? "✓ Module prêt pour le playtest · qualité fonctionnelle, réseau et performance validées."
                 : "✕ Des erreurs bloquantes doivent être corrigées avant l’export.",
-            report.Passed ? new Color("79d5ad") : new Color("ff756d"));
+            allPassed ? new Color("79d5ad") : new Color("ff756d"));
+
+        QualityAssuranceProfile projectQuality() => _project!.Invoke()!.Module.RuntimePolicies.Extensions
+            .ModernTooling.QualityAssurance;
     }
 
     private void ClearCards()
     {
-        foreach (var card in new[] { _localization, _scripts, _dialogues, _quests, _encounters, _pseudoLocalization })
+        foreach (var card in new[] { _localization, _scripts, _dialogues, _quests, _encounters,
+                     _pseudoLocalization, _network, _visual, _benchmarks, _budgets, _profiler })
             if (card is not null) card.Text = "Indisponible.";
     }
 

@@ -153,6 +153,11 @@ et MCP couvre localisation, sandbox ForgeScript, branches de dialogue, machines 
 rencontres placées. La preuve détaillée est dans
 [`tasks/G11-R-MODULE-QUALITY-LAB.md`](tasks/G11-R-MODULE-QUALITY-LAB.md).
 
+**G11-S est fermé le 5 août 2026.** Le profil QA persistant, Creator, CLI, runtime et MCP couvrent
+réseau hostile, huit fixtures visuelles réelles, benchmarks de zone, budgets par plateforme et
+traces intégrées. La preuve détaillée est dans
+[`tasks/G11-S-PERFORMANCE-QUALITY-LAB.md`](tasks/G11-S-PERFORMANCE-QUALITY-LAB.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-S** : tests réseau et visuels, benchmarks, budgets par plateforme et profilage intégré.
+Démarrer **G11-T** : accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale.

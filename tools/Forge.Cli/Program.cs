@@ -61,6 +61,11 @@ static int Run(IReadOnlyList<string> arguments)
             return RunQualityLab(arguments[2]);
         }
 
+        if (arguments.Count == 3 && arguments[0] == "performance" && arguments[1] == "run")
+        {
+            return RunPerformanceLab(arguments[2]);
+        }
+
         if (arguments.Count == 3 && arguments[0] == "workspace" && arguments[1] == "migrate")
         {
             return MigrateWorkspace(arguments[2]);
@@ -78,6 +83,7 @@ static int Run(IReadOnlyList<string> arguments)
             "forge docs <generate|check> | " +
             "forge readiness <validate|health|crash|recovery|sync-plan> ... | " +
             "forge quality run <workspace> | " +
+            "forge performance run <workspace> | " +
             "forge workspace migrate <target-directory> | forge author-original <target-directory>");
         return 2;
     }
@@ -86,6 +92,25 @@ static int Run(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(exception.Message);
         return 1;
     }
+}
+
+static int RunPerformanceLab(string workspaceDirectory)
+{
+    var opened = ProjectSession.Open(workspaceDirectory);
+    if (!opened.Succeeded || opened.Session is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+        return 1;
+    }
+    var report = new WorkspacePerformanceLabService()
+        .Run(opened.Session.RootDirectory, opened.Session.Project);
+    Console.WriteLine(JsonSerializer.Serialize(new { valid = report.Passed, report }));
+    if (report.Passed)
+        Console.WriteLine("OPENRPG_FORGE_PERFORMANCE_LAB_PASS " +
+            $"network_scenarios={report.Network.Scenarios.Count} visual_cases={report.VisualReviews.Cases.Count} " +
+            $"benchmarks={report.Benchmarks.Measurements.Count} budgets={report.Benchmarks.Budgets.Count} " +
+            $"spans={report.TraceSpans.Count} artifacts=written fingerprint={report.Fingerprint}");
+    return report.Passed ? 0 : 1;
 }
 
 static int RunQualityLab(string workspaceDirectory)

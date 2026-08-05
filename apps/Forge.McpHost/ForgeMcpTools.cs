@@ -160,6 +160,10 @@ public sealed class ForgeMcpTools
     public WorkspaceQualityLabReport RunProjectQualityLab() => _project.RunQualityLab();
 
     [McpServerTool]
+    [Description("Runs the read-only adverse-network, visual-fixture, benchmark, platform-budget and integrated-profiler laboratory.")]
+    public WorkspacePerformanceLabReport RunProjectPerformanceLab() => _project.RunPerformanceLab();
+
+    [McpServerTool]
     [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]
     public AgentAssetCatalogResult GetAssetCatalog(
         string? query = null,

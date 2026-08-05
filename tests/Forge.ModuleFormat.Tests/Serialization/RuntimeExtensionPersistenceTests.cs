@@ -46,6 +46,8 @@ public sealed class RuntimeExtensionPersistenceTests
         Assert.Contains("blackboard", restored.SnapshotPolicy.Components);
         Assert.Equal("2.0", restored.ModernTooling.UiToolkit.ToolkitVersion);
         Assert.True(restored.ModernTooling.Compiler.Incremental);
+        Assert.Equal(3, restored.ModernTooling.QualityAssurance.PlatformBudgets.Count);
+        Assert.True(restored.ModernTooling.QualityAssurance.Profiler.OneClickCapture);
         Assert.Equal("release-module", Assert.Single(restored.OperationalReadiness.TaskManifests).Key);
         Assert.True(restored.OperationalReadiness.Recovery.QuarantineCorruptFiles);
     }
@@ -102,5 +104,26 @@ public sealed class RuntimeExtensionPersistenceTests
         Assert.Equal(first.TaskManifests.Single().Id, second.TaskManifests.Single().Id);
         Assert.True(first.ContentSynchronization.Resumable);
         Assert.True(first.Recovery.OfferRecoveryOnOpen);
+    }
+
+    [Fact]
+    public void Pre_quality_assurance_project_migrates_to_deterministic_defaults()
+    {
+        var project = TestProjectFactory.CreateValid();
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(project))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreQualityAssuranceFormatVersion;
+        document["project"]!["module"]!["runtimePolicies"]!["extensions"]!["modernTooling"]!
+            .AsObject().Remove("qualityAssurance");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString()).Module.RuntimePolicies.Extensions
+            .ModernTooling.QualityAssurance;
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString()).Module.RuntimePolicies.Extensions
+            .ModernTooling.QualityAssurance;
+
+        Assert.Equal(first.Id, second.Id);
+        Assert.Equal(first.Network.Id, second.Network.Id);
+        Assert.Equal(9, first.Network.LatencyTicks.Count * first.Network.LossPercentages.Count);
+        Assert.Equal(3, first.PlatformBudgets.Count);
+        Assert.True(first.Profiler.OneClickCapture);
     }
 }

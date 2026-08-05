@@ -9,15 +9,25 @@ public sealed class DeterministicNetworkHarness(NetworkFaultProfile profile)
     private readonly Dictionary<string, List<string>> _received = new(StringComparer.Ordinal);
     private long _tick;
     private int _sent;
+    private int _dropped;
+    private int _duplicated;
 
     public long Tick => _tick;
+    public int Sent => _sent;
+    public int Dropped => _dropped;
+    public int Duplicated => _duplicated;
+    public int Pending => _pending.Count;
     public void Send(string from, string to, string payload)
     {
         _sent++;
-        if (profile.DropEvery > 0 && _sent % profile.DropEvery == 0) return;
+        if (profile.DropEvery > 0 && _sent % profile.DropEvery == 0) { _dropped++; return; }
         var id = GuidFromSequence(_sent);
         _pending.Add(new(id, from, to, _tick, _tick + profile.LatencyTicks, payload, 0));
-        if (profile.DuplicateEvery > 0 && _sent % profile.DuplicateEvery == 0) _pending.Add(new(id, from, to, _tick, _tick + profile.LatencyTicks, payload, 1));
+        if (profile.DuplicateEvery > 0 && _sent % profile.DuplicateEvery == 0)
+        {
+            _duplicated++;
+            _pending.Add(new(id, from, to, _tick, _tick + profile.LatencyTicks, payload, 1));
+        }
     }
 
     public void Advance(int ticks = 1)

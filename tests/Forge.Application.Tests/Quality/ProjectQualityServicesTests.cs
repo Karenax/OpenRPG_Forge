@@ -57,6 +57,32 @@ public sealed class ProjectQualityServicesTests
         Assert.All(encountersA.Areas[0].Runs, run => Assert.True(run.NavigationPassed && run.CleanupPassed));
     }
 
+    [Fact]
+    public void Performance_lab_plans_visual_fixtures_and_evaluates_all_budgets_deterministically()
+    {
+        var project = Project();
+        var profile = project.Module.RuntimePolicies.Extensions.ModernTooling.QualityAssurance;
+
+        var first = PerformanceQualityService.Benchmark(project, profile, 1_024_000, 3);
+        var second = PerformanceQualityService.Benchmark(project, profile, 1_024_000, 3);
+        var visual = PerformanceQualityService.PlanVisualReviews(profile.Visual);
+
+        Assert.True(first.Passed);
+        Assert.Equal(9, first.Measurements.Count);
+        Assert.Equal(Enum.GetValues<Forge.Domain.RuntimeExtensions.AreaBenchmarkKind>(),
+            first.Measurements.Select(item => item.Kind).Distinct().Order());
+        Assert.All(first.Measurements, item =>
+        {
+            Assert.Equal(1_024_000, item.PackageBytes);
+            Assert.True(item.NavigationRebuildMilliseconds >= 0);
+        });
+        Assert.Equal(9, first.Budgets.Count);
+        Assert.DoesNotContain(first.Budgets, item => item.Status == PerformanceBudgetStatus.Failed);
+        Assert.Equal(first.Fingerprint, second.Fingerprint);
+        Assert.Equal(8, visual.Cases.Count);
+        Assert.All(visual.Cases, item => Assert.EndsWith(".review.json", item.ReviewPath));
+    }
+
     private static ProjectDefinition Project()
     {
         var spawnBlueprint = BlueprintId.From(Guid.Parse("e1000000-0000-4000-8000-000000000001"));

@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\src\Forge.Application\Forge.Application.csproj" />
     <ProjectReference Include="..\..\src\Forge.Domain\Forge.Domain.csproj" />
     <ProjectReference Include="..\..\src\Forge.ModuleFormat\Forge.ModuleFormat.csproj" />
+    <ProjectReference Include="..\..\src\Forge.Network\Forge.Network.csproj" />
   </ItemGroup>
 
   <ItemGroup>

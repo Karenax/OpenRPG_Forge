@@ -6623,7 +6623,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return false;
         }
 
-        if (!_qualityLabWindow.RunForSmokeTest() || _qualityLabWindow.Report is not { } report)
+        if (!_qualityLabWindow.RunForSmokeTest() || _qualityLabWindow.Report is not { } report ||
+            _qualityLabWindow.PerformanceReport is not { } performance)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11R_QUALITY_FAILED report");
             return false;
@@ -6657,6 +6658,28 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "localization=coverage-placeholders-plurals-overflow-pseudo " +
             "scripts=sandbox-quota-mock-coverage dialogues=branches-conditions-actions " +
             "quests=events-transitions-save-scope encounters=profiles-seeds-nav-cleanup");
+        var performanceCovered = performance.Passed && performance.Network.Passed &&
+            performance.Network.Scenarios.Count == 9 && performance.Network.ReconnectPassed &&
+            performance.Network.ContentMismatchPassed && performance.Network.AuthorityAttackPassed &&
+            performance.VisualReviews.Cases.Count == 8 && performance.Benchmarks.Measurements.Count == 9 &&
+            performance.Benchmarks.Budgets.All(item => item.Status != PerformanceBudgetStatus.Failed) &&
+            Enum.GetValues<QualityTraceSurface>().All(surface =>
+                performance.TraceSpans.Any(span => span.Surface == surface)) &&
+            new[] { "database", "network", "script" }.All(category =>
+                performance.TraceSpans.Any(span => span.Category == category)) &&
+            performance.PerformanceReportPath is null && performance.VisualManifestPath is null &&
+            performance.TracePath is null;
+        if (!performanceCovered)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11S_PERFORMANCE_FAILED coverage");
+            return false;
+        }
+
+        GD.Print("OPENRPG_FORGE_TOOLSET_G11S_PERFORMANCE_PASS " +
+            "network=latency-loss-reconnect-mismatch-authority visual=fixtures-tolerance-quality " +
+            "benchmarks=interior-exterior-stress-load-frame-memory-nav-package " +
+            "budgets=frame-memory-texture-draw-light-script-network " +
+            "profiler=editor-runtime-server-script-database-network");
         return true;
     }
 

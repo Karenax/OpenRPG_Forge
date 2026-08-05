@@ -31,7 +31,8 @@ public partial class RuntimeExtensionsWindow : Window
     internal string Summary => _profile is null ? "unavailable" :
         $"rules={_profile.RuleSchemas.Count};ui={_profile.UiDocuments.Count};json={_profile.JsonDocuments.Count};" +
         $"components={_profile.SnapshotPolicy.Components.Count};toolkit={_profile.ModernTooling.UiToolkit.ToolkitVersion};" +
-        $"tasks={_profile.OperationalReadiness.TaskManifests.Count};sync={_profile.OperationalReadiness.ContentSynchronization.Resumable}";
+        $"tasks={_profile.OperationalReadiness.TaskManifests.Count};sync={_profile.OperationalReadiness.ContentSynchronization.Resumable};" +
+        $"qa-budgets={_profile.ModernTooling.QualityAssurance.PlatformBudgets.Count};qa-profiler={_profile.ModernTooling.QualityAssurance.Profiler.OneClickCapture}";
 
     public void Initialize(Func<ProjectState?> state, Func<ModuleRuntimeExtensionProfile, bool> apply,
         Action<Window> brand)
@@ -108,8 +109,8 @@ public partial class RuntimeExtensionsWindow : Window
         _maxBlackboard = Spin(64, 1_048_576, 65_536, 64); state.AddChild(Row("Blackboard octets", _maxBlackboard));
         _restoreReferences = new CheckBox { Text = "Restaurer les références résolues", ButtonPressed = true };
         state.AddChild(_restoreReferences);
-        state.AddChild(Hint("Politiques modernes : copy, aoe, nui, compiler, docs (lignes tabulées)"));
-        _modernTooling = Editor(210); state.AddChild(_modernTooling);
+        state.AddChild(Hint("Politiques modernes : copy, aoe, nui, compiler, docs, network, visual, benchmark, budget et profiler (lignes tabulées)"));
+        _modernTooling = Editor(360); state.AddChild(_modernTooling);
         state.AddChild(Hint("Les chemins hôte restent inaccessibles. Les JSON sont validés et bornés avant le runtime."));
 
         var readiness = Card(columns, "SANTÉ, REPRISE & SYNCHRONISATION");
@@ -149,7 +150,7 @@ public partial class RuntimeExtensionsWindow : Window
         _maxBlackboard!.Value = _profile.SnapshotPolicy.MaxBlackboardBytes;
         _restoreReferences!.ButtonPressed = _profile.SnapshotPolicy.RestoreReferences;
         var modern = _profile.ModernTooling;
-        _modernTooling!.Text = string.Join("\n", new[]
+        var toolingRows = new List<string>
         {
             Join("copy", modern.RuntimeCopy.MaxCopiesPerTransaction, modern.RuntimeCopy.RequireServerAuthority,
                 modern.RuntimeCopy.CopyOwnership, modern.RuntimeCopy.ReferenceMode, string.Join(',', modern.RuntimeCopy.StateComponents)),
@@ -165,7 +166,34 @@ public partial class RuntimeExtensionsWindow : Window
                 string.Join(',', modern.Compiler.ConformanceSuites)),
             Join("docs", modern.Documentation.OutputDirectory, string.Join(',', modern.Documentation.Catalogs),
                 modern.Documentation.IncludeMcpResources),
-        });
+            Join("network", modern.QualityAssurance.Network.ClientCount,
+                string.Join(',', modern.QualityAssurance.Network.LatencyTicks),
+                string.Join(',', modern.QualityAssurance.Network.LossPercentages),
+                modern.QualityAssurance.Network.TestReconnect, modern.QualityAssurance.Network.TestContentMismatch,
+                modern.QualityAssurance.Network.TestAuthorityAttacks),
+            Join("visual", string.Join(',', modern.QualityAssurance.Visual.Resolutions),
+                string.Join(',', modern.QualityAssurance.Visual.CameraFixtures),
+                string.Join(',', modern.QualityAssurance.Visual.QualityTiers),
+                modern.QualityAssurance.Visual.PixelTolerance.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                modern.QualityAssurance.Visual.ReviewDirectory),
+            Join("benchmark", string.Join(',', modern.QualityAssurance.Benchmarks.Scenarios),
+                modern.QualityAssurance.Benchmarks.Iterations, modern.QualityAssurance.Benchmarks.SampleFrames),
+        };
+        toolingRows.AddRange(modern.QualityAssurance.PlatformBudgets.Select(budget => Join("budget", budget.Platform,
+            budget.MaximumFrameMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            budget.MaximumMemoryMegabytes, budget.MaximumTextureMegabytes, budget.MaximumDrawCalls,
+            budget.MaximumDynamicLights,
+            budget.MaximumScriptMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            budget.MaximumNetworkKilobitsPerSecond,
+            budget.WarningThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture), budget.GateBuild)));
+        toolingRows.Add(Join("profiler", string.Join(',', modern.QualityAssurance.Profiler.Surfaces),
+            modern.QualityAssurance.Profiler.MaximumCaptureSeconds,
+            modern.QualityAssurance.Profiler.IncludeScriptSpans,
+            modern.QualityAssurance.Profiler.IncludeDatabaseSpans,
+            modern.QualityAssurance.Profiler.IncludeNetworkSpans,
+            modern.QualityAssurance.Profiler.OneClickCapture,
+            modern.QualityAssurance.Profiler.OutputDirectory));
+        _modernTooling!.Text = string.Join("\n", toolingRows);
         var readiness = _profile.OperationalReadiness;
         _operationalReadiness!.Text = string.Join("\n", readiness.TaskManifests.Select(task =>
                 Join("task", task.Key, task.Goal, List(task.ScopePaths), List(task.ForbiddenPaths),
@@ -236,7 +264,9 @@ public partial class RuntimeExtensionsWindow : Window
 
     private ModernRuntimeToolingProfile ParseModernTooling()
     {
-        var rows = Lines(_modernTooling!).ToDictionary(parts => Key(parts[0]), StringComparer.Ordinal);
+        var lines = Lines(_modernTooling!).ToArray();
+        var rows = lines.Where(parts => Key(parts[0]) != "budget")
+            .ToDictionary(parts => Key(parts[0]), StringComparer.Ordinal);
         var source = _profile!.ModernTooling;
         string[] Row(string key, int count)
         {
@@ -245,6 +275,32 @@ public partial class RuntimeExtensionsWindow : Window
         }
         var copy = Row("copy", 6); var aoe = Row("aoe", 9); var nui = Row("nui", 9);
         var compiler = Row("compiler", 7); var docs = Row("docs", 4);
+        var network = Row("network", 7); var visual = Row("visual", 6);
+        var benchmark = Row("benchmark", 4); var profiler = Row("profiler", 8);
+        var budgetRows = lines.Where(parts => Key(parts[0]) == "budget").ToArray();
+        if (budgetRows.Length == 0) throw new FormatException("Au moins un budget de plateforme est requis.");
+        foreach (var budget in budgetRows) Require(budget, 11, "budget");
+        var qualitySource = source.QualityAssurance;
+        var budgetIds = qualitySource.PlatformBudgets.ToDictionary(item => item.Platform, item => item.Id,
+            StringComparer.Ordinal);
+        var quality = new QualityAssuranceProfile(qualitySource.Id, 1,
+            new NetworkTestSuiteProfile(qualitySource.Network.Id, 1, Int(network[1]),
+                Csv(network[2]).Select(Int).ToArray(), Csv(network[3]).Select(Int).ToArray(),
+                Bool(network[4]), Bool(network[5]), Bool(network[6]), "forge-ui"),
+            new VisualRegressionProfile(qualitySource.Visual.Id, 1, Csv(visual[1]), Csv(visual[2]),
+                Csv(visual[3]).Select(EnumValue<Forge.Domain.Areas.RenderQualityTier>).ToArray(),
+                Double(visual[4]), visual[5], "forge-ui"),
+            new AreaBenchmarkSuiteProfile(qualitySource.Benchmarks.Id, 1,
+                Csv(benchmark[1]).Select(EnumValue<AreaBenchmarkKind>).ToArray(), Int(benchmark[2]),
+                Int(benchmark[3]), "forge-ui"),
+            budgetRows.Select(budget => new PlatformPerformanceBudget(
+                budgetIds.GetValueOrDefault(Key(budget[1]), Guid.NewGuid()), 1, budget[1], Double(budget[2]),
+                Int(budget[3]), Int(budget[4]), Int(budget[5]), Int(budget[6]), Double(budget[7]),
+                Int(budget[8]), Double(budget[9]), Bool(budget[10]), "forge-ui")).ToArray(),
+            new IntegratedProfilerProfile(qualitySource.Profiler.Id, 1,
+                Csv(profiler[1]).Select(EnumValue<QualityTraceSurface>).ToArray(), Int(profiler[2]),
+                Bool(profiler[3]), Bool(profiler[4]), Bool(profiler[5]), Bool(profiler[6]), profiler[7],
+                "forge-ui"), "forge-ui");
         return new ModernRuntimeToolingProfile(source.Id, 1,
             new RuntimeObjectCopyPolicy(source.RuntimeCopy.Id, 1, Int(copy[1]), Bool(copy[2]), Bool(copy[3]),
                 EnumValue<RuntimeReferenceCopyMode>(copy[4]), Csv(copy[5]), "forge-ui"),
@@ -256,7 +312,7 @@ public partial class RuntimeExtensionsWindow : Window
             new ForgeScriptCompilerProfile(source.Compiler.Id, 1, Bool(compiler[1]), Bool(compiler[2]),
                 Bool(compiler[3]), Int(compiler[4]), Int(compiler[5]), Csv(compiler[6]), "forge-ui"),
             new GeneratedDocumentationProfile(source.Documentation.Id, 1, docs[1], Csv(docs[2]),
-                Bool(docs[3]), "forge-ui"), "forge-ui");
+                Bool(docs[3]), "forge-ui"), "forge-ui", quality);
     }
 
     private OperationalReadinessProfile ParseOperationalReadiness()
@@ -368,6 +424,8 @@ public partial class RuntimeExtensionsWindow : Window
     private static int Int(string value) => int.TryParse(value, out var parsed) ? parsed : throw new FormatException($"Entier invalide : {value}");
     private static long Long(string value) => long.TryParse(value, out var parsed) ? parsed : throw new FormatException($"Entier long invalide : {value}");
     private static float Float(string value) => float.TryParse(value, System.Globalization.NumberStyles.Float,
+        System.Globalization.CultureInfo.InvariantCulture, out var parsed) ? parsed : throw new FormatException($"Nombre invalide : {value}");
+    private static double Double(string value) => double.TryParse(value, System.Globalization.NumberStyles.Float,
         System.Globalization.CultureInfo.InvariantCulture, out var parsed) ? parsed : throw new FormatException($"Nombre invalide : {value}");
     private static IReadOnlyList<string> Csv(string value) => value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     private static IReadOnlyList<string> CsvOptional(string value) => value is "-" or "" ? [] : Csv(value);

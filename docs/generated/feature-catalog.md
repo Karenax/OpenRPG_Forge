@@ -577,12 +577,12 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-QA-011 | Tests de dialogue | P1 | Tested | G11 |
 | ORF-QA-012 | Tests de quête | P1 | Tested | G11 |
 | ORF-QA-013 | Tests de rencontre | P1 | Tested | G11 |
-| ORF-QA-014 | Tests réseau | P1 | Researched | G11 |
+| ORF-QA-014 | Tests réseau | P1 | Tested | G11 |
 | ORF-QA-015 | Tests de sauvegarde | P0 | Implemented | G4 |
-| ORF-QA-016 | Tests visuels | P1 | Researched | G11 |
-| ORF-QA-017 | Benchmarks de zone | P1 | Researched | G11 |
-| ORF-QA-018 | Budgets par plateforme | P1 | Researched | G11 |
-| ORF-QA-019 | Profilage intégré | P1 | Researched | G11 |
+| ORF-QA-016 | Tests visuels | P1 | Tested | G11 |
+| ORF-QA-017 | Benchmarks de zone | P1 | Tested | G11 |
+| ORF-QA-018 | Budgets par plateforme | P1 | Tested | G11 |
+| ORF-QA-019 | Profilage intégré | P1 | Tested | G11 |
 | ORF-QA-020 | Logs structurés | P0 | Implemented | G7 |
 | ORF-QA-021 | Diagnostics cliquables | P0 | Implemented | G7 |
 | ORF-QA-022 | Rapport de santé du projet | P1 | Tested | G11 |

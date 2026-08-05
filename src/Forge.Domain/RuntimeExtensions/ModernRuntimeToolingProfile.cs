@@ -221,18 +221,23 @@ public sealed record ModernRuntimeToolingProfile
     public ScriptableUiToolkitProfile UiToolkit { get; }
     public ForgeScriptCompilerProfile Compiler { get; }
     public GeneratedDocumentationProfile Documentation { get; }
+    public QualityAssuranceProfile QualityAssurance { get; }
     public string Provenance { get; }
 
     public ModernRuntimeToolingProfile(Guid id, int schemaVersion, RuntimeObjectCopyPolicy runtimeCopy,
         AreaEffectIndicatorProfile areaEffectIndicator, ScriptableUiToolkitProfile uiToolkit,
-        ForgeScriptCompilerProfile compiler, GeneratedDocumentationProfile documentation, string provenance)
+        ForgeScriptCompilerProfile compiler, GeneratedDocumentationProfile documentation, string provenance,
+        QualityAssuranceProfile? qualityAssurance = null)
     {
         ArgumentNullException.ThrowIfNull(runtimeCopy);
         ArgumentNullException.ThrowIfNull(areaEffectIndicator);
         ArgumentNullException.ThrowIfNull(uiToolkit);
         ArgumentNullException.ThrowIfNull(compiler);
         ArgumentNullException.ThrowIfNull(documentation);
-        var ids = new[] { id, runtimeCopy.Id, areaEffectIndicator.Id, uiToolkit.Id, compiler.Id, documentation.Id };
+        var quality = qualityAssurance ?? QualityAssuranceProfile.CreateDefault(id);
+        var ids = new[] { id, runtimeCopy.Id, areaEffectIndicator.Id, uiToolkit.Id, compiler.Id, documentation.Id,
+            quality.Id, quality.Network.Id, quality.Visual.Id, quality.Benchmarks.Id, quality.Profiler.Id }
+            .Concat(quality.PlatformBudgets.Select(item => item.Id)).ToArray();
         if (id == Guid.Empty || schemaVersion != CurrentSchemaVersion || ids.Distinct().Count() != ids.Length)
             throw new ArgumentException("Modern runtime tooling requires schema v1 and unique stable UUIDs.");
         Id = id;
@@ -242,6 +247,7 @@ public sealed record ModernRuntimeToolingProfile
         UiToolkit = uiToolkit;
         Compiler = compiler;
         Documentation = documentation;
+        QualityAssurance = quality;
         Provenance = DataDrivenRuleSchema.RequireText(provenance, nameof(provenance));
     }
 

@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.13.0",
+  "formatVersion": "1.14.0",
   "project": {
     "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
     "title": "La Veill\u00E9e des \u00C9clats",
@@ -700,6 +700,124 @@
                 "schemas"
               ],
               "includeMcpResources": true,
+              "provenance": "migration-default"
+            },
+            "qualityAssurance": {
+              "id": "388c7391-5eb5-51c3-bbf6-2357aceba42a",
+              "schemaVersion": 1,
+              "network": {
+                "id": "fe923637-eda4-5c9c-a044-7b4479c97623",
+                "schemaVersion": 1,
+                "clientCount": 3,
+                "latencyTicks": [
+                  0,
+                  3,
+                  8
+                ],
+                "lossPercentages": [
+                  0,
+                  10,
+                  25
+                ],
+                "testReconnect": true,
+                "testContentMismatch": true,
+                "testAuthorityAttacks": true,
+                "provenance": "migration-default"
+              },
+              "visual": {
+                "id": "0ae22f9a-04e9-57f6-898b-80fe1606603a",
+                "schemaVersion": 1,
+                "resolutions": [
+                  "1280x720",
+                  "1600x900"
+                ],
+                "cameraFixtures": [
+                  "overview",
+                  "three-quarter"
+                ],
+                "qualityTiers": [
+                  "medium",
+                  "high"
+                ],
+                "pixelTolerance": 0.02,
+                "reviewDirectory": ".forge/quality/visual-reviews",
+                "provenance": "migration-default"
+              },
+              "benchmarks": {
+                "id": "f2015272-8308-5440-b22b-fbdb52804e49",
+                "schemaVersion": 1,
+                "scenarios": [
+                  "interior",
+                  "exterior",
+                  "stress"
+                ],
+                "iterations": 3,
+                "sampleFrames": 600,
+                "provenance": "migration-default"
+              },
+              "platformBudgets": [
+                {
+                  "id": "cc44d8e0-ad6b-5a22-8319-22e695804694",
+                  "schemaVersion": 1,
+                  "platform": "dedicated-server",
+                  "maximumFrameMilliseconds": 50,
+                  "maximumMemoryMegabytes": 2048,
+                  "maximumTextureMegabytes": 64,
+                  "maximumDrawCalls": 100,
+                  "maximumDynamicLights": 0,
+                  "maximumScriptMilliseconds": 8,
+                  "maximumNetworkKilobitsPerSecond": 16384,
+                  "warningThreshold": 0.8,
+                  "gateBuild": true,
+                  "provenance": "migration-default"
+                },
+                {
+                  "id": "a4be027f-34a9-5ae5-84a0-bc4620b8eee0",
+                  "schemaVersion": 1,
+                  "platform": "desktop",
+                  "maximumFrameMilliseconds": 16.67,
+                  "maximumMemoryMegabytes": 4096,
+                  "maximumTextureMegabytes": 2048,
+                  "maximumDrawCalls": 12000,
+                  "maximumDynamicLights": 32,
+                  "maximumScriptMilliseconds": 4,
+                  "maximumNetworkKilobitsPerSecond": 4096,
+                  "warningThreshold": 0.8,
+                  "gateBuild": true,
+                  "provenance": "migration-default"
+                },
+                {
+                  "id": "9b15da28-473b-5973-a240-f5359d40a8e4",
+                  "schemaVersion": 1,
+                  "platform": "mobile",
+                  "maximumFrameMilliseconds": 33.33,
+                  "maximumMemoryMegabytes": 1536,
+                  "maximumTextureMegabytes": 768,
+                  "maximumDrawCalls": 4000,
+                  "maximumDynamicLights": 8,
+                  "maximumScriptMilliseconds": 3,
+                  "maximumNetworkKilobitsPerSecond": 2048,
+                  "warningThreshold": 0.75,
+                  "gateBuild": false,
+                  "provenance": "migration-default"
+                }
+              ],
+              "profiler": {
+                "id": "e580b4b0-2c6b-5a20-af51-270323b614ac",
+                "schemaVersion": 1,
+                "surfaces": [
+                  "editor",
+                  "runtime",
+                  "server"
+                ],
+                "maximumCaptureSeconds": 60,
+                "includeScriptSpans": true,
+                "includeDatabaseSpans": true,
+                "includeNetworkSpans": true,
+                "oneClickCapture": true,
+                "outputDirectory": ".forge/quality/traces",
+                "provenance": "migration-default"
+              },
               "provenance": "migration-default"
             },
             "provenance": "migration-default"

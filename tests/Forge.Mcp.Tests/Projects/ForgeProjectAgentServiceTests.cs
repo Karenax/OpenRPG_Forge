@@ -71,6 +71,28 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void Performance_lab_is_deterministic_complete_and_read_only()
+    {
+        using var workspace = new TestWorkspace();
+
+        var first = workspace.Project.RunPerformanceLab();
+        var second = workspace.Project.RunPerformanceLab();
+
+        Assert.True(first.Passed);
+        Assert.Equal(first.Fingerprint, second.Fingerprint);
+        Assert.Equal(9, first.Network.Scenarios.Count);
+        Assert.Equal(8, first.VisualReviews.Cases.Count);
+        Assert.Equal(9, first.Benchmarks.Measurements.Count);
+        Assert.Equal(9, first.Benchmarks.Budgets.Count);
+        Assert.NotEmpty(first.TraceSpans);
+        Assert.Null(first.PerformanceReportPath);
+        Assert.Null(first.VisualManifestPath);
+        Assert.Null(first.TracePath);
+        Assert.False(Directory.Exists(Path.Combine(workspace.RootDirectory, ".forge", "quality")));
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
     public void DiagnosticsExposeCanonicalIdentitySourceAndQuickFixes()
     {
         using var workspace = new TestWorkspace();

@@ -8,6 +8,7 @@ using Forge.Application.Lifecycle;
 using Forge.Application.Sequences;
 using Forge.Application.Validation;
 using Forge.Application.Rules;
+using Forge.Application.Quality;
 using Forge.Application.RuntimeExtensions;
 using Forge.Application.Entities;
 using Forge.Application.Combat;
@@ -49,6 +50,7 @@ public partial class GameRoot : Node3D
     private const string SaveFileArgument = "--save-file";
     private const string LoadSaveArgument = "--load-save";
     private const string VisualCaptureArgument = "--visual-capture";
+    private const string VisualRegressionSuiteArgument = "--g11s-visual-suite";
     private const float InteractionDistance = 3.0f;
     private const float AttackDistance = 3.5f;
 
@@ -150,8 +152,9 @@ public partial class GameRoot : Node3D
         var saveSmokeCreate = userArguments.Contains("--save-smoke-create", StringComparer.Ordinal);
         var saveSmokeResume = userArguments.Contains("--save-smoke-resume", StringComparer.Ordinal);
         var visualCapturePath = GetArgumentValue(userArguments, VisualCaptureArgument);
+        var visualRegressionSuitePath = GetArgumentValue(userArguments, VisualRegressionSuiteArgument);
         var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || saveSmokeCreate || saveSmokeResume ||
-            visualCapturePath is not null;
+            visualCapturePath is not null || visualRegressionSuitePath is not null;
 
         try
         {
@@ -205,6 +208,13 @@ public partial class GameRoot : Node3D
             VerifyModernRuntimeTooling(project, entryArea);
             VerifyOperationalReadiness(project);
             VerifyQualityLab(project);
+            VerifyPerformanceLab(project);
+            if (visualRegressionSuitePath is not null)
+            {
+                UpdateHud();
+                await CaptureVisualRegressionSuiteAsync(project, visualRegressionSuitePath);
+                return;
+            }
             if (visualCapturePath is not null)
             {
                 UpdateHud();
@@ -276,6 +286,95 @@ public partial class GameRoot : Node3D
         GD.Print($"OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file={Path.GetFileName(destination)} " +
             $"size={image.GetWidth()}x{image.GetHeight()} nodes={CountTreeNodes(this)} nui=2.0 aoe=visible");
         GetTree().Quit(0);
+    }
+
+    private async Task CaptureVisualRegressionSuiteAsync(ProjectDefinition project, string destinationDirectory)
+    {
+        if (!Path.IsPathFullyQualified(destinationDirectory))
+            throw new ArgumentException("The visual regression destination must be absolute.", nameof(destinationDirectory));
+        var root = Path.GetFullPath(destinationDirectory);
+        Directory.CreateDirectory(root);
+        var profile = project.Module.RuntimePolicies.Extensions.ModernTooling.QualityAssurance.Visual;
+        var plan = PerformanceQualityService.PlanVisualReviews(profile);
+        var reviews = new List<object>();
+        foreach (var visualCase in plan.Cases)
+        {
+            var (width, height) = VisualRegressionProfile.ParseResolution(visualCase.Resolution);
+            GetWindow().Size = new Vector2I(width, height);
+            GetViewport().Scaling3DScale = visualCase.QualityTier == RenderQualityTier.Medium ? .85f : 1f;
+            if (_camera is not null)
+            {
+                _camera.GlobalPosition = visualCase.CameraFixture == "overview"
+                    ? new Vector3(13, 15, 17)
+                    : new Vector3(-10, 10, 14);
+                _camera.Fov = visualCase.CameraFixture == "overview" ? 55 : 50;
+                _camera.LookAt((_player?.GlobalPosition ?? Vector3.Zero) + Vector3.Up * .8f, Vector3.Up);
+            }
+            for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            var reference = GetViewport().GetTexture().GetImage();
+            for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            var candidate = GetViewport().GetTexture().GetImage();
+            var referencePath = Path.Combine(root, $"{visualCase.Id}.reference.png");
+            var candidatePath = Path.Combine(root, $"{visualCase.Id}.candidate.png");
+            var reviewPath = Path.Combine(root, $"{visualCase.Id}.review.json");
+            if (reference.SavePng(referencePath) != Error.Ok || candidate.SavePng(candidatePath) != Error.Ok)
+                throw new IOException($"Visual regression images could not be written for {visualCase.Id}.");
+            var error = MeanPixelError(reference, candidate, 16);
+            var passed = error <= visualCase.PixelTolerance;
+            var review = new
+            {
+                schemaVersion = 1,
+                visualCase.Id,
+                visualCase.Resolution,
+                visualCase.CameraFixture,
+                qualityTier = visualCase.QualityTier.ToString(),
+                expectedWidth = width,
+                expectedHeight = height,
+                actualWidth = candidate.GetWidth(),
+                actualHeight = candidate.GetHeight(),
+                visualCase.PixelTolerance,
+                meanPixelError = error,
+                passed,
+            };
+            File.WriteAllText(reviewPath, JsonSerializer.Serialize(review, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true,
+            }) + System.Environment.NewLine, new UTF8Encoding(false));
+            if (!passed) throw new InvalidOperationException(
+                $"Visual regression {visualCase.Id} exceeded tolerance: {error:0.######} > {visualCase.PixelTolerance:0.######}.");
+            reviews.Add(review);
+        }
+        File.WriteAllText(Path.Combine(root, "visual-suite-report.json"), JsonSerializer.Serialize(new
+        {
+            schemaVersion = 1,
+            passed = true,
+            plan.Fingerprint,
+            cases = reviews,
+        }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true }) +
+            System.Environment.NewLine, new UTF8Encoding(false));
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G11S_VISUAL_PASS cases={plan.Cases.Count} " +
+            $"resolutions={profile.Resolutions.Count} cameras={profile.CameraFixtures.Count} " +
+            $"quality={profile.QualityTiers.Count} tolerance={profile.PixelTolerance:0.###} fingerprint={plan.Fingerprint}");
+        GetTree().Quit(0);
+    }
+
+    private static double MeanPixelError(Image reference, Image candidate, int sampleStep)
+    {
+        if (reference.GetWidth() != candidate.GetWidth() || reference.GetHeight() != candidate.GetHeight())
+            return 1;
+        double error = 0;
+        var samples = 0;
+        for (var y = 0; y < reference.GetHeight(); y += sampleStep)
+            for (var x = 0; x < reference.GetWidth(); x += sampleStep)
+            {
+                var expected = reference.GetPixel(x, y);
+                var actual = candidate.GetPixel(x, y);
+                error += (Math.Abs(expected.R - actual.R) + Math.Abs(expected.G - actual.G) +
+                    Math.Abs(expected.B - actual.B)) / 3d;
+                samples++;
+            }
+        return samples == 0 ? 1 : error / samples;
     }
 
     public override void _Process(double delta)
@@ -1272,6 +1371,24 @@ public partial class GameRoot : Node3D
             $"localization=coverage-placeholders-plurals-overflow-pseudo scripts={report.Scripts.Tests.Count}-sandbox-quota-mock-coverage " +
             $"dialogues={report.Dialogues.Count}-branches-actions quests={report.Quests.Count}-events-save-scope " +
             $"encounters={report.Encounters.TotalRuns}-seeds-nav-cleanup");
+    }
+
+    private void VerifyPerformanceLab(ProjectDefinition project)
+    {
+        if (string.IsNullOrWhiteSpace(_moduleContentRoot) || !Directory.Exists(_moduleContentRoot)) return;
+        var report = new WorkspacePerformanceLabService().Run(_moduleContentRoot, project,
+            new WorkspacePerformanceLabOptions(false));
+        if (!report.Passed || report.Network.Scenarios.Count != 9 || report.VisualReviews.Cases.Count != 8 ||
+            report.Benchmarks.Measurements.Count != 9 || report.Benchmarks.Budgets.Any(item =>
+                item.Status == PerformanceBudgetStatus.Failed) ||
+            !Enum.GetValues<QualityTraceSurface>().All(surface =>
+                report.TraceSpans.Any(span => span.Surface == surface)))
+            throw new InvalidOperationException("G11-S performance laboratory contract failed.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G11S_PERFORMANCE_PASS " +
+            "network=9-latency-loss-reconnect-mismatch-authority visual=8-fixtures-tolerance-quality " +
+            "benchmarks=9-interior-exterior-stress-load-frame-memory-nav-package " +
+            "budgets=3-frame-memory-texture-draw-light-script-network " +
+            "profiler=editor-runtime-server-script-database-network");
     }
 
     private static T AssertSingle<T>(IReadOnlyList<T> values) => values.Count == 1

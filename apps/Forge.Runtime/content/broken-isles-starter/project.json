@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.13.0",
+  "formatVersion": "1.14.0",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -700,6 +700,124 @@
                 "schemas"
               ],
               "includeMcpResources": true,
+              "provenance": "migration-default"
+            },
+            "qualityAssurance": {
+              "id": "12ce7663-1274-5df7-901a-9ef91fa0f98a",
+              "schemaVersion": 1,
+              "network": {
+                "id": "45a4b656-ea69-5021-a28e-78286e136141",
+                "schemaVersion": 1,
+                "clientCount": 3,
+                "latencyTicks": [
+                  0,
+                  3,
+                  8
+                ],
+                "lossPercentages": [
+                  0,
+                  10,
+                  25
+                ],
+                "testReconnect": true,
+                "testContentMismatch": true,
+                "testAuthorityAttacks": true,
+                "provenance": "migration-default"
+              },
+              "visual": {
+                "id": "eee4698d-031c-567b-bbbb-860d5f09fb19",
+                "schemaVersion": 1,
+                "resolutions": [
+                  "1280x720",
+                  "1600x900"
+                ],
+                "cameraFixtures": [
+                  "overview",
+                  "three-quarter"
+                ],
+                "qualityTiers": [
+                  "medium",
+                  "high"
+                ],
+                "pixelTolerance": 0.02,
+                "reviewDirectory": ".forge/quality/visual-reviews",
+                "provenance": "migration-default"
+              },
+              "benchmarks": {
+                "id": "b448528a-2409-5489-851b-7e31958befca",
+                "schemaVersion": 1,
+                "scenarios": [
+                  "interior",
+                  "exterior",
+                  "stress"
+                ],
+                "iterations": 3,
+                "sampleFrames": 600,
+                "provenance": "migration-default"
+              },
+              "platformBudgets": [
+                {
+                  "id": "94ac78b4-6e6c-58be-b8de-4600abd81d22",
+                  "schemaVersion": 1,
+                  "platform": "dedicated-server",
+                  "maximumFrameMilliseconds": 50,
+                  "maximumMemoryMegabytes": 2048,
+                  "maximumTextureMegabytes": 64,
+                  "maximumDrawCalls": 100,
+                  "maximumDynamicLights": 0,
+                  "maximumScriptMilliseconds": 8,
+                  "maximumNetworkKilobitsPerSecond": 16384,
+                  "warningThreshold": 0.8,
+                  "gateBuild": true,
+                  "provenance": "migration-default"
+                },
+                {
+                  "id": "a49c82a1-35b3-5fdd-9fb1-8f2442041e15",
+                  "schemaVersion": 1,
+                  "platform": "desktop",
+                  "maximumFrameMilliseconds": 16.67,
+                  "maximumMemoryMegabytes": 4096,
+                  "maximumTextureMegabytes": 2048,
+                  "maximumDrawCalls": 12000,
+                  "maximumDynamicLights": 32,
+                  "maximumScriptMilliseconds": 4,
+                  "maximumNetworkKilobitsPerSecond": 4096,
+                  "warningThreshold": 0.8,
+                  "gateBuild": true,
+                  "provenance": "migration-default"
+                },
+                {
+                  "id": "a0b1ff64-41d3-513d-a2fa-e5eaaf3a0c79",
+                  "schemaVersion": 1,
+                  "platform": "mobile",
+                  "maximumFrameMilliseconds": 33.33,
+                  "maximumMemoryMegabytes": 1536,
+                  "maximumTextureMegabytes": 768,
+                  "maximumDrawCalls": 4000,
+                  "maximumDynamicLights": 8,
+                  "maximumScriptMilliseconds": 3,
+                  "maximumNetworkKilobitsPerSecond": 2048,
+                  "warningThreshold": 0.75,
+                  "gateBuild": false,
+                  "provenance": "migration-default"
+                }
+              ],
+              "profiler": {
+                "id": "cbbb8dc7-f551-5478-b322-80c09a150203",
+                "schemaVersion": 1,
+                "surfaces": [
+                  "editor",
+                  "runtime",
+                  "server"
+                ],
+                "maximumCaptureSeconds": 60,
+                "includeScriptSpans": true,
+                "includeDatabaseSpans": true,
+                "includeNetworkSpans": true,
+                "oneClickCapture": true,
+                "outputDirectory": ".forge/quality/traces",
+                "provenance": "migration-default"
+              },
               "provenance": "migration-default"
             },
             "provenance": "migration-default"

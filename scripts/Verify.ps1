@@ -86,13 +86,14 @@ function Invoke-ForgeEngineMarkerTest {
 
     # Keep the long-lived smoke inventories aligned with the current workspace schema and
     # append lot markers here so every engine invocation uses one canonical gate contract.
-    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.13.0').Replace('format=1.10.0', 'format=1.13.0').Replace('format=1.11.0', 'format=1.13.0').Replace('format=1.12.0', 'format=1.13.0') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.14.0').Replace('format=1.10.0', 'format=1.14.0').Replace('format=1.11.0', 'format=1.14.0').Replace('format=1.12.0', 'format=1.14.0').Replace('format=1.13.0', 'format=1.14.0') })
     if ($Name -eq 'toolset') {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_PASS rules=class-progression-weapon-vfx-casting ui=declarative-reactive-themed-permission events=typed-focus-input-testable json=schema-quota-safe-api snapshots=components-references-inventory-blackboard history=restored persistence=roundtrip'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11P_MODERN_PASS copy=uuid-owner-references-state-authority aoe=mesh-targets-cover-height-colorblind-confirmation nui=2.0-forms-lists-canvas-accessibility-localization-inspector compiler=incremental-stable-telemetry-conformance docs=metadata-generated-cli-mcp history=restored persistence=roundtrip'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11Q_RESILIENCE_PASS tasks=goal-scope-forbidden-tests-owner-dependencies crash=sanitized-dump-version-fingerprint-reproduction health=domains-tests-performance-licenses-migrations-coverage recovery=journal-reopen-quarantine-compare sync=resume-dedup-hash-trust-storage history=restored persistence=roundtrip'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11R_QUALITY_PASS localization=coverage-placeholders-plurals-overflow-pseudo scripts=sandbox-quota-mock-coverage dialogues=branches-conditions-actions quests=events-transitions-save-scope encounters=profiles-seeds-nav-cleanup'
+        $Markers += 'OPENRPG_FORGE_TOOLSET_G11S_PERFORMANCE_PASS network=latency-loss-reconnect-mismatch-authority visual=fixtures-tolerance-quality benchmarks=interior-exterior-stress-load-frame-memory-nav-package budgets=frame-memory-texture-draw-light-script-network profiler=editor-runtime-server-script-database-network'
     }
     elseif ($Name -eq 'runtime-plain-launch') {
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_EXPERIENCE_PASS cues=0 scatter=0 voices=0 patrols=0 loading=accessible-progress-prefetch audio_api=started-completed-interrupted-music-snapshot patrol_api=streaming-owner-resume'
@@ -101,6 +102,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11P_MODERN_PASS copy=uuid-owner-references-state-authority aoe=mesh-targets-cover-height-colorblind-confirmation nui=2.0-forms-lists-canvas-accessibility-localization-inspector compiler=incremental-stable-telemetry-conformance docs=metadata-generated'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11Q_RESILIENCE_PASS tasks=bounded-machine-readable crash=sanitized-version-fingerprint-reproduction health=6-domains-healthy recovery=journal-reopen-quarantine-compare sync=resume-dedup-hash-trust-storage'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11R_QUALITY_PASS localization=coverage-placeholders-plurals-overflow-pseudo scripts=2-sandbox-quota-mock-coverage dialogues=1-branches-actions quests=1-events-save-scope encounters=9-seeds-nav-cleanup'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_G11S_PERFORMANCE_PASS network=9-latency-loss-reconnect-mismatch-authority visual=8-fixtures-tolerance-quality benchmarks=9-interior-exterior-stress-load-frame-memory-nav-package budgets=3-frame-memory-texture-draw-light-script-network profiler=editor-runtime-server-script-database-network'
     }
 
     $logPath = Join-Path $artifactRoot "$Name.log"
@@ -250,6 +252,10 @@ try {
         -Arguments @('run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
             'quality', 'run', $moduleWorkspace) `
         -Marker 'OPENRPG_FORGE_QUALITY_LAB_PASS locales=2 scripts=2 dialogues=1 quests=1 encounter_runs=9 pseudo=snapshot'
+    Invoke-ForgeCliMarkerTest `
+        -Arguments @('run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+            'performance', 'run', $moduleWorkspace) `
+        -Marker 'OPENRPG_FORGE_PERFORMANCE_LAB_PASS network_scenarios=9 visual_cases=8 benchmarks=9 budgets=9 spans=5 artifacts=written'
     $releaseSmoke = Join-Path $artifactRoot 'distribution-release-smoke'
     if (Test-Path -LiteralPath $releaseSmoke) {
         Remove-Item -LiteralPath $releaseSmoke -Recurse -Force
@@ -462,7 +468,7 @@ try {
     Invoke-CheckedDotnet @(
         'run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
         'readiness', 'crash', $moduleWorkspace, $plainRuntimeLog, $crashArtifactRoot,
-        '--version', '0.6.19', '--package-sha', $moduleFingerprint,
+        '--version', '0.6.20', '--package-sha', $moduleFingerprint,
         '--reproduction-id', 'e0250000-0000-4000-8000-000000000001')
     if (@(Get-ChildItem -LiteralPath $crashArtifactRoot -Filter '*.zip' -File).Count -ne 1) {
         throw 'G11-Q crash artifact was not produced.'
@@ -480,6 +486,25 @@ try {
     if (-not (Test-Path -LiteralPath $runtimeVisualProof) -or
         [System.IO.File]::ReadAllBytes($runtimeVisualProof).Length -lt 8) {
         throw 'G11-P visual proof PNG is missing or empty.'
+    }
+    $runtimeVisualSuiteLog = Join-Path $artifactRoot 'runtime-g11s-visual.log'
+    $runtimeVisualSuite = Join-Path $artifactRoot 'runtime-g11s-visual'
+    if (Test-Path -LiteralPath $runtimeVisualSuite) {
+        Remove-Item -LiteralPath $runtimeVisualSuite -Recurse -Force
+    }
+    Invoke-ForgeEngineMarkerTest `
+        -Name 'runtime-g11s-visual' `
+        -ProjectPath $runtimePath `
+        -Arguments @('--rendering-method', 'gl_compatibility', '--path', $runtimePath, '--log-file',
+            $runtimeVisualSuiteLog, '--', '--g11s-visual-suite', $runtimeVisualSuite) `
+        -Markers @('OPENRPG_FORGE_RUNTIME_G11S_PERFORMANCE_PASS',
+            'OPENRPG_FORGE_RUNTIME_G11S_VISUAL_PASS cases=8 resolutions=2 cameras=2 quality=2') `
+        -StopAfterMarkers $false
+    if (@(Get-ChildItem -LiteralPath $runtimeVisualSuite -Filter '*.reference.png' -File).Count -ne 8 -or
+        @(Get-ChildItem -LiteralPath $runtimeVisualSuite -Filter '*.candidate.png' -File).Count -ne 8 -or
+        @(Get-ChildItem -LiteralPath $runtimeVisualSuite -Filter '*.review.json' -File).Count -ne 8 -or
+        -not (Test-Path -LiteralPath (Join-Path $runtimeVisualSuite 'visual-suite-report.json') -PathType Leaf)) {
+        throw 'G11-S visual regression suite did not produce the complete review artifact set.'
     }
     $runtimeForwardLog = Join-Path $artifactRoot 'runtime-forward-plus.log'
     Invoke-ForgeEngineMarkerTest `

@@ -303,6 +303,10 @@ public sealed record ModuleRuntimeExtensionProfile
             .Concat(JsonDocuments.Select(item => item.Id)).Append(id).Append(snapshotPolicy.Id)
             .Append(modern.Id).Append(modern.RuntimeCopy.Id).Append(modern.AreaEffectIndicator.Id)
             .Append(modern.UiToolkit.Id).Append(modern.Compiler.Id).Append(modern.Documentation.Id)
+            .Append(modern.QualityAssurance.Id).Append(modern.QualityAssurance.Network.Id)
+            .Append(modern.QualityAssurance.Visual.Id).Append(modern.QualityAssurance.Benchmarks.Id)
+            .Append(modern.QualityAssurance.Profiler.Id)
+            .Concat(modern.QualityAssurance.PlatformBudgets.Select(item => item.Id))
             .Append(readiness.Id).Append(readiness.CrashArtifacts.Id).Append(readiness.ProjectHealth.Id)
             .Append(readiness.Recovery.Id).Append(readiness.ContentSynchronization.Id)
             .Concat(readiness.TaskManifests.Select(item => item.Id)).ToArray();

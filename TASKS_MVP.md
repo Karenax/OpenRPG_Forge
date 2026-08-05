@@ -431,7 +431,8 @@ Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dan
 - [x] **G11-P** — copie runtime, indicateurs AOE, NUI 2.0, compilateur et docs générées.
 - [x] **G11-Q** — manifestes de tâches, crash artifacts, santé, récupération et synchronisation.
 - [x] **G11-R** — laboratoire qualité : localisation, ForgeScript, dialogues, quêtes et rencontres.
-- [ ] **G11-S à G11-T** — poursuivre les lots bornés du plan de preuves Aurora.
+- [x] **G11-S** — tests réseau/visuels, benchmarks, budgets et profilage intégré.
+- [ ] **G11-T** — accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale.
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest
 

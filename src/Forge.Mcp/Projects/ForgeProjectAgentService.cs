@@ -155,6 +155,15 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public WorkspacePerformanceLabReport RunPerformanceLab()
+    {
+        lock (_gate)
+        {
+            return new WorkspacePerformanceLabService().Run(_session.RootDirectory, _history.State.Project,
+                new WorkspacePerformanceLabOptions(false));
+        }
+    }
+
     private static string FindRepositoryRoot(string start)
     {
         var directory = new DirectoryInfo(Path.GetFullPath(start));

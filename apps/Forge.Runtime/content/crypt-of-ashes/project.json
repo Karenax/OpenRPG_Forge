@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.13.0",
+  "formatVersion": "1.14.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -965,6 +965,124 @@
                 "schemas"
               ],
               "includeMcpResources": true,
+              "provenance": "migration-default"
+            },
+            "qualityAssurance": {
+              "id": "e645b48a-5df4-5776-b668-c635759f29c3",
+              "schemaVersion": 1,
+              "network": {
+                "id": "e39a990e-05f5-5947-9bfd-d3e783f63f15",
+                "schemaVersion": 1,
+                "clientCount": 3,
+                "latencyTicks": [
+                  0,
+                  3,
+                  8
+                ],
+                "lossPercentages": [
+                  0,
+                  10,
+                  25
+                ],
+                "testReconnect": true,
+                "testContentMismatch": true,
+                "testAuthorityAttacks": true,
+                "provenance": "migration-default"
+              },
+              "visual": {
+                "id": "65a20634-e0b5-53a3-91dc-8a59c9ea8fca",
+                "schemaVersion": 1,
+                "resolutions": [
+                  "1280x720",
+                  "1600x900"
+                ],
+                "cameraFixtures": [
+                  "overview",
+                  "three-quarter"
+                ],
+                "qualityTiers": [
+                  "medium",
+                  "high"
+                ],
+                "pixelTolerance": 0.02,
+                "reviewDirectory": ".forge/quality/visual-reviews",
+                "provenance": "migration-default"
+              },
+              "benchmarks": {
+                "id": "5a16eb74-a69d-520b-9303-3822d028deb5",
+                "schemaVersion": 1,
+                "scenarios": [
+                  "interior",
+                  "exterior",
+                  "stress"
+                ],
+                "iterations": 3,
+                "sampleFrames": 600,
+                "provenance": "migration-default"
+              },
+              "platformBudgets": [
+                {
+                  "id": "0b3d82aa-bf94-5912-b1e9-3f7bcd85700d",
+                  "schemaVersion": 1,
+                  "platform": "dedicated-server",
+                  "maximumFrameMilliseconds": 50,
+                  "maximumMemoryMegabytes": 2048,
+                  "maximumTextureMegabytes": 64,
+                  "maximumDrawCalls": 100,
+                  "maximumDynamicLights": 0,
+                  "maximumScriptMilliseconds": 8,
+                  "maximumNetworkKilobitsPerSecond": 16384,
+                  "warningThreshold": 0.8,
+                  "gateBuild": true,
+                  "provenance": "migration-default"
+                },
+                {
+                  "id": "6170a100-3b11-5889-8367-91dd258e00cb",
+                  "schemaVersion": 1,
+                  "platform": "desktop",
+                  "maximumFrameMilliseconds": 16.67,
+                  "maximumMemoryMegabytes": 4096,
+                  "maximumTextureMegabytes": 2048,
+                  "maximumDrawCalls": 12000,
+                  "maximumDynamicLights": 32,
+                  "maximumScriptMilliseconds": 4,
+                  "maximumNetworkKilobitsPerSecond": 4096,
+                  "warningThreshold": 0.8,
+                  "gateBuild": true,
+                  "provenance": "migration-default"
+                },
+                {
+                  "id": "b98c6227-50bc-542c-99ea-400ad710c101",
+                  "schemaVersion": 1,
+                  "platform": "mobile",
+                  "maximumFrameMilliseconds": 33.33,
+                  "maximumMemoryMegabytes": 1536,
+                  "maximumTextureMegabytes": 768,
+                  "maximumDrawCalls": 4000,
+                  "maximumDynamicLights": 8,
+                  "maximumScriptMilliseconds": 3,
+                  "maximumNetworkKilobitsPerSecond": 2048,
+                  "warningThreshold": 0.75,
+                  "gateBuild": false,
+                  "provenance": "migration-default"
+                }
+              ],
+              "profiler": {
+                "id": "2632b807-e11b-507b-bf5c-a4d09266df68",
+                "schemaVersion": 1,
+                "surfaces": [
+                  "editor",
+                  "runtime",
+                  "server"
+                ],
+                "maximumCaptureSeconds": 60,
+                "includeScriptSpans": true,
+                "includeDatabaseSpans": true,
+                "includeNetworkSpans": true,
+                "oneClickCapture": true,
+                "outputDirectory": ".forge/quality/traces",
+                "provenance": "migration-default"
+              },
               "provenance": "migration-default"
             },
             "provenance": "migration-default"
