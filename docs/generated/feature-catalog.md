@@ -569,14 +569,14 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-QA-003 | Validation de graphes | P0 | Implemented | G7 |
 | ORF-QA-004 | Validation géométrique | P0 | Implemented | G7 |
 | ORF-QA-005 | Validation navigation | P0 | Implemented | G7 |
-| ORF-QA-006 | Validation de localisation | P1 | Researched | G11 |
+| ORF-QA-006 | Validation de localisation | P1 | Tested | G11 |
 | ORF-QA-007 | Validation de licence | P0 | Implemented | G11 |
 | ORF-QA-008 | Tests unitaires du domaine | P0 | Tested | G7 |
-| ORF-QA-009 | Tests ForgeScript | P1 | Researched | G11 |
+| ORF-QA-009 | Tests ForgeScript | P1 | Tested | G11 |
 | ORF-QA-010 | Tests headless runtime | P0 | Tested | G7 |
-| ORF-QA-011 | Tests de dialogue | P1 | Researched | G11 |
-| ORF-QA-012 | Tests de quête | P1 | Researched | G11 |
-| ORF-QA-013 | Tests de rencontre | P1 | Researched | G11 |
+| ORF-QA-011 | Tests de dialogue | P1 | Tested | G11 |
+| ORF-QA-012 | Tests de quête | P1 | Tested | G11 |
+| ORF-QA-013 | Tests de rencontre | P1 | Tested | G11 |
 | ORF-QA-014 | Tests réseau | P1 | Researched | G11 |
 | ORF-QA-015 | Tests de sauvegarde | P0 | Implemented | G4 |
 | ORF-QA-016 | Tests visuels | P1 | Researched | G11 |

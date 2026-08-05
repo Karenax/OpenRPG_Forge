@@ -19,6 +19,8 @@ using Forge.Mcp.Dialogues;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Scripts;
 using Forge.ModuleFormat.Workspaces;
+using Forge.ModuleFormat.Quality;
+using Forge.Scripting;
 using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Documentation;
 
@@ -140,6 +142,16 @@ public sealed class ForgeProjectAgentService
                     "health/tests/mcp", true) }
                 : [];
             return ProjectHealthReportService.Evaluate(_history.State.Project, _clock.UtcNow, evidence);
+        }
+    }
+
+    public WorkspaceQualityLabReport RunQualityLab()
+    {
+        lock (_gate)
+        {
+            var options = WorkspaceQualityLabOptions.Default with { WritePseudoLocalizationSnapshot = false };
+            return new WorkspaceQualityLabService(new NativeForgeScriptRuntime())
+                .Run(_session.RootDirectory, _history.State.Project, options);
         }
     }
 

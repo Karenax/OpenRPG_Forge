@@ -6,6 +6,7 @@ using Forge.Mcp.Dialogues;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
 using Forge.Scripting;
+using Forge.ModuleFormat.Quality;
 using ModelContextProtocol.Server;
 
 namespace Forge.McpHost;
@@ -153,6 +154,10 @@ public sealed class ForgeMcpTools
     [Description("Returns a read-only project health dashboard by domain, severity, tests, performance, licenses, migrations and coverage.")]
     public ProjectHealthReport GetProjectHealth(bool testsPassed = false) =>
         _project.GetProjectHealth(testsPassed);
+
+    [McpServerTool]
+    [Description("Compiles and executes the read-only project quality lab for localization, ForgeScript, dialogues, quests and encounters.")]
+    public WorkspaceQualityLabReport RunProjectQualityLab() => _project.RunQualityLab();
 
     [McpServerTool]
     [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]

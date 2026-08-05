@@ -611,8 +611,8 @@ passer par des commandes transactionnelles, annulables, validables et testables 
 
 ### 9.5 État actuel de l’expérience Creator
 
-Le MVP solo et les gates G7 à G10 sont fermés. **G11-A à G11-Q** sont livrés avec preuves
-automatisées et revues visuelles ciblées ; G11-R est le lot ouvert. L’expérience Creator comprend :
+Le MVP solo et les gates G7 à G10 sont fermés. **G11-A à G11-R** sont livrés avec preuves
+automatisées et revues visuelles ciblées ; G11-S est le lot ouvert. L’expérience Creator comprend :
 
 - le workspace **Blueprints** recherche par nom, slug ou type, crée et édite une définition par
   commandes transactionnelles, dérive un blueprint depuis une instance sans perdre ses overrides
@@ -664,6 +664,9 @@ automatisées et revues visuelles ciblées ; G11-R est le lot ouvert. L’expér
 - le même workspace configure copie runtime, indicateurs AOE, toolkit NUI 2.0, compilateur et
   documentation ; la Crypte affiche formulaires, listes et canvas, tandis que CLI/MCP contrôlent six
   catalogues générés sans édition manuelle.
+- le bouton **Qualité** ouvre un laboratoire à cinq volets partagé avec CLI, runtime et MCP :
+  couverture et pseudo-localisation, scripts natifs sous quotas, branches de dialogue, machines de
+  quête avec reprise et simulations de rencontre sur la navigation canonique.
 
 Les contrats, critères et preuves sont détaillés dans `docs/aurora-parity/tasks/`,
 `docs/UX_AURORA_2026.md` et `STATUS.md`. G11-K a livré séquences/cutscenes, ancres caméra et
@@ -673,8 +676,9 @@ combat par zone ; G11-N a livré audio spatial et événementiel, voix gouverné
 inter-zones et chargement accessible ; G11-O a livré règles extensibles, UI déclarative, événements,
 JSON sûr et snapshots d’entités ; G11-P a livré copie runtime gouvernée, indicateurs AOE, NUI 2.0,
 compilateur incrémental instrumenté et documentation générée ; G11-Q a livré manifestes de tâches,
-crash artifacts, santé par domaines, récupération comparée et synchronisation vérifiée. La prochaine
-tranche est **G11-R — validation de localisation et tests ForgeScript, narration et rencontres**.
+crash artifacts, santé par domaines, récupération comparée et synchronisation vérifiée ; G11-R a
+livré le laboratoire déterministe de localisation, ForgeScript, narration et rencontres. La prochaine
+tranche est **G11-S — tests réseau et visuels, benchmarks, budgets et profilage intégré**.
 
 ---
 
@@ -1453,8 +1457,8 @@ Le résumé doit contenir :
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
 > Le second module original **La Veillée des Éclats** est généré exclusivement par les handlers
 > d'auteur et `ProjectSession`, avec round-trip/export automatisé.
-> G11-A à G11-Q sont fermés. Ferme **G11-R** par la validation de localisation et les tests
-> ForgeScript, narration et rencontres, puis poursuis les lots bornés
+> G11-A à G11-R sont fermés. Ferme **G11-S** par les tests réseau et visuels, benchmarks, budgets
+> par plateforme et profilage intégré, puis poursuis les lots bornés
 > sans modifier les sources originales du Vault.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,

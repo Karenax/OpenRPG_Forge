@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-A à G11-Q Contenu moderne fermés et G11-R ouvert.**
+fermés ; G11-A à G11-R Contenu moderne fermés et G11-S ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -325,5 +325,12 @@ acceptation, propriétaire et dépendances ; les crash artifacts expurgent les s
 version, empreinte et reproduction ID. Le Creator présente six domaines de santé, journalise les
 autosauvegardes et propose une récupération comparée. Le client de contenu reprend, vérifie et
 déduplique sous contrôle de confiance, licence et stockage utilisateur. Les formats projet `0.6.19`
-et workspace `1.13.0` sont migrés. G11-R porte maintenant les validations de localisation et les
-tests ForgeScript, narration et rencontres.
+et workspace `1.13.0` sont migrés.
+
+**G11-R est fermé** : le laboratoire qualité Creator, CLI, runtime et MCP partage une empreinte
+déterministe. Il mesure la couverture par langue, bloque placeholders et pluriels incohérents,
+produit un aperçu pseudo-localisé, compile et exécute les scripts natifs sous quotas, parcourt les
+dialogues et quêtes avec fixtures et simule neuf rencontres par zone peuplée avec navigation et
+nettoyage vérifiés. Les formats projet `0.6.19` et workspace `1.13.0` restent inchangés. Le tracker
+compte maintenant 47 capacités `Tested` ; G11-S porte les tests réseau et visuels, benchmarks,
+budgets par plateforme et profilage intégré.

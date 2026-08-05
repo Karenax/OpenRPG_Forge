@@ -18,6 +18,7 @@ using Forge.Application.Navigation;
 using Forge.Application.Sequences;
 using Forge.Application.Projects;
 using Forge.Application.Quests;
+using Forge.Application.Quality;
 using Forge.Application.Spatial;
 using Forge.Application.Time;
 using Forge.Domain.Areas;
@@ -50,7 +51,9 @@ using Forge.ModuleFormat.Distribution;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Packages;
+using Forge.ModuleFormat.Quality;
 using Forge.ModuleFormat.Workspaces;
+using Forge.Scripting;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -123,6 +126,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _areasButton;
     private Button? _workspaceButton;
     private Button? _recoveryButton;
+    private Button? _qualityButton;
     private Button? _searchButton;
     private Button? _moduleSettingsButton;
     private Button? _reloadButton;
@@ -192,6 +196,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private NavigationConfigurationWindow? _navigationConfiguration;
     private CreatorWorkspaceWindow? _workspaceWindow;
     private RecoveryWindow? _recoveryWindow;
+    private QualityLabWindow? _qualityLabWindow;
     private AreaEnvironmentWindow? _areaEnvironmentWindow;
     private TerrainStudioWindow? _terrainStudioWindow;
     private RuntimePoliciesWindow? _runtimePoliciesWindow;
@@ -387,6 +392,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _recoveryWindow.Initialize(ListRecoverySnapshots, RestoreRecoverySnapshot, CaptureRecoverySnapshot,
             ClearRecoverySnapshots, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_recoveryWindow);
+        _qualityLabWindow = new QualityLabWindow();
+        _qualityLabWindow.Initialize(() => _history?.State.Project, () => _projectSession?.RootDirectory,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_qualityLabWindow);
         _navigationConfiguration = new NavigationConfigurationWindow();
         _navigationConfiguration.Initialize(
             () => _history?.State,
@@ -477,6 +486,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areasButton = null;
         _workspaceButton = null;
         _recoveryButton = null;
+        _qualityButton = null;
         _searchButton = null;
         _moduleSettingsButton = null;
         _reloadButton = null;
@@ -546,6 +556,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _navigationConfiguration = null;
         _workspaceWindow = null;
         _recoveryWindow = null;
+        _qualityLabWindow = null;
         _areaEnvironmentWindow = null;
         _runtimePoliciesWindow = null;
         _cinematicStudioWindow = null;
@@ -632,6 +643,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areasButton = GetControl<Button>("Margin/Content/Actions/AreasButton");
         _workspaceButton = GetControl<Button>("Margin/Content/Actions/WorkspaceButton");
         _recoveryButton = GetControl<Button>("Margin/Content/Actions/RecoveryButton");
+        _qualityButton = GetControl<Button>("Margin/Content/Actions/QualityButton");
         _searchButton = GetControl<Button>("Margin/Content/Actions/SearchButton");
         _moduleSettingsButton = GetControl<Button>("Margin/Content/Actions/ModuleSettingsButton");
         _reloadButton = GetControl<Button>("Margin/Content/Actions/ValidateButton");
@@ -957,6 +969,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areasButton!.Pressed += OpenAreaWorkspace;
         _workspaceButton!.Pressed += OpenCreatorWorkspace;
         _recoveryButton!.Pressed += OpenRecoveryWindow;
+        _qualityButton!.Pressed += OpenQualityLab;
         _searchButton!.Pressed += OpenGlobalSearch;
         _moduleSettingsButton!.Pressed += OpenModuleConfiguration;
         _reloadButton!.Pressed += ReloadProject;
@@ -1013,6 +1026,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_areasButton is not null) _areasButton.Pressed -= OpenAreaWorkspace;
         if (_workspaceButton is not null) _workspaceButton.Pressed -= OpenCreatorWorkspace;
         if (_recoveryButton is not null) _recoveryButton.Pressed -= OpenRecoveryWindow;
+        if (_qualityButton is not null) _qualityButton.Pressed -= OpenQualityLab;
         if (_searchButton is not null) _searchButton.Pressed -= OpenGlobalSearch;
         if (_moduleSettingsButton is not null) _moduleSettingsButton.Pressed -= OpenModuleConfiguration;
         if (_reloadButton is not null) _reloadButton.Pressed -= ReloadProject;
@@ -1381,6 +1395,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private void OpenCreatorWorkspace() => _workspaceWindow?.Open();
 
     private void OpenRecoveryWindow() => _recoveryWindow?.Open();
+
+    private void OpenQualityLab() => _qualityLabWindow?.Open();
 
     private IReadOnlyList<RecoverySnapshotInfo> ListRecoverySnapshots()
     {
@@ -3628,6 +3644,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areasButton!.Disabled = !enabled;
         _workspaceButton!.Disabled = !enabled;
         _recoveryButton!.Disabled = !enabled;
+        _qualityButton!.Disabled = !enabled;
         _searchButton!.Disabled = !enabled;
         _moduleSettingsButton!.Disabled = !enabled;
         _exportButton!.Disabled = !enabled;
@@ -4050,6 +4067,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunRuntimeExtensionsSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunQualityLabSmokeTest())
         {
             return;
         }
@@ -6590,6 +6612,51 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print("OPENRPG_FORGE_TOOLSET_G11Q_RESILIENCE_PASS tasks=goal-scope-forbidden-tests-owner-dependencies " +
             "crash=sanitized-dump-version-fingerprint-reproduction health=domains-tests-performance-licenses-migrations-coverage " +
             "recovery=journal-reopen-quarantine-compare sync=resume-dedup-hash-trust-storage history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunQualityLabSmokeTest()
+    {
+        if (_qualityLabWindow is null || _history is null || _projectSession is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11R_QUALITY_FAILED missing_context");
+            return false;
+        }
+
+        if (!_qualityLabWindow.RunForSmokeTest() || _qualityLabWindow.Report is not { } report)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11R_QUALITY_FAILED report");
+            return false;
+        }
+
+        var localizationCovered = report.Localization.Coverage.Count >= 2 &&
+            report.Localization.PseudoSnapshots.Count > 0 &&
+            report.Localization.Issues.All(issue => issue.Severity != LocalizationQualitySeverity.Error);
+        var scriptsCovered = report.Scripts.Tests.Count > 0 && report.Scripts.Tests.All(test =>
+            test.Compiled && test.Passed && test.Status == ForgeScriptExecutionStatus.Completed &&
+            test.EventCoverage >= 1 && test.Failures.Count == 0);
+        var dialoguesCovered = report.Dialogues.Count > 0 && report.Dialogues.All(dialogue =>
+            dialogue.Passed && dialogue.CoveredNodes == dialogue.TotalNodes &&
+            dialogue.CoveredChoices == dialogue.TotalChoices && dialogue.Paths.SelectMany(path => path.Actions).Any());
+        var questsCovered = report.Quests.Count > 0 && report.Quests.All(quest =>
+            quest.Passed && quest.CoveredStates == quest.TotalStates &&
+            quest.CoveredTransitions == quest.TotalTransitions &&
+            quest.CoveredScopes.Count == Enum.GetValues<NarrativeFixtureScope>().Length &&
+            quest.Paths.All(path => path.SaveResumeEqual));
+        var encountersCovered = report.Encounters.TotalRuns >= 9 && report.Encounters.Areas.Count > 0 &&
+            report.Encounters.Areas.All(area => area.CreatureCount == area.ReachableCreatures &&
+                area.Runs.All(run => run.NavigationPassed && run.CleanupPassed));
+        if (!localizationCovered || !scriptsCovered || !dialoguesCovered || !questsCovered || !encountersCovered ||
+            report.PseudoLocalizationSnapshotPath is not null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11R_QUALITY_FAILED coverage");
+            return false;
+        }
+
+        GD.Print("OPENRPG_FORGE_TOOLSET_G11R_QUALITY_PASS " +
+            "localization=coverage-placeholders-plurals-overflow-pseudo " +
+            "scripts=sandbox-quota-mock-coverage dialogues=branches-conditions-actions " +
+            "quests=events-transitions-save-scope encounters=profiles-seeds-nav-cleanup");
         return true;
     }
 

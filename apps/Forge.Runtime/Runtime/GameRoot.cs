@@ -32,6 +32,7 @@ using Forge.EngineAdapter.Rendering;
 using Forge.EngineAdapter.World;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Packages;
+using Forge.ModuleFormat.Quality;
 using Forge.ModuleFormat.Saves;
 using Forge.ModuleFormat.Workspaces;
 using Forge.Scripting;
@@ -203,6 +204,7 @@ public partial class GameRoot : Node3D
             CreateHud();
             VerifyModernRuntimeTooling(project, entryArea);
             VerifyOperationalReadiness(project);
+            VerifyQualityLab(project);
             if (visualCapturePath is not null)
             {
                 UpdateHud();
@@ -1257,6 +1259,19 @@ public partial class GameRoot : Node3D
             "tasks=bounded-machine-readable crash=sanitized-version-fingerprint-reproduction " +
             $"health={health.Domains.Count}-domains-healthy recovery=journal-reopen-quarantine-compare " +
             "sync=resume-dedup-hash-trust-storage");
+    }
+
+    private void VerifyQualityLab(ProjectDefinition project)
+    {
+        if (string.IsNullOrWhiteSpace(_moduleContentRoot) || !Directory.Exists(_moduleContentRoot)) return;
+        var options = WorkspaceQualityLabOptions.Default with { WritePseudoLocalizationSnapshot = false };
+        var report = new WorkspaceQualityLabService(_forgeScriptRuntime).Run(_moduleContentRoot, project, options);
+        if (!report.Passed)
+            throw new InvalidOperationException("G11-R quality lab contract failed.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G11R_QUALITY_PASS " +
+            $"localization=coverage-placeholders-plurals-overflow-pseudo scripts={report.Scripts.Tests.Count}-sandbox-quota-mock-coverage " +
+            $"dialogues={report.Dialogues.Count}-branches-actions quests={report.Quests.Count}-events-save-scope " +
+            $"encounters={report.Encounters.TotalRuns}-seeds-nav-cleanup");
     }
 
     private static T AssertSingle<T>(IReadOnlyList<T> values) => values.Count == 1

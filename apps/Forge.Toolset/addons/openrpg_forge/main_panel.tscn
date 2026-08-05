@@ -158,6 +158,12 @@ layout_mode = 2
 disabled = true
 text = "Récupération"
 
+[node name="QualityButton" type="Button" parent="Margin/Content/Actions"]
+custom_minimum_size = Vector2(110, 42)
+layout_mode = 2
+disabled = true
+text = "Qualité"
+
 [node name="SearchButton" type="Button" parent="Margin/Content/Actions"]
 custom_minimum_size = Vector2(145, 42)
 layout_mode = 2

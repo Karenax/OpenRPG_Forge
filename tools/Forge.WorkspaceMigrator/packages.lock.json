@@ -2,12 +2,19 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
+      "forge.application": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Domain": "[1.0.0, )"
+        }
+      },
       "forge.domain": {
         "type": "Project"
       },
       "forge.moduleformat": {
         "type": "Project",
         "dependencies": {
+          "Forge.Application": "[1.0.0, )",
           "Forge.Domain": "[1.0.0, )",
           "Forge.Scripting": "[1.0.0, )"
         }

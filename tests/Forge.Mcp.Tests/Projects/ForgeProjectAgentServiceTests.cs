@@ -49,6 +49,28 @@ public sealed class ForgeProjectAgentServiceTests
     }
 
     [Fact]
+    public void Quality_lab_is_deterministic_complete_and_read_only()
+    {
+        using var workspace = new TestWorkspace();
+
+        var first = workspace.Project.RunQualityLab();
+        var second = workspace.Project.RunQualityLab();
+
+        Assert.True(first.Passed);
+        Assert.Equal(first.Fingerprint, second.Fingerprint);
+        Assert.Equal(64, first.Fingerprint.Length);
+        Assert.NotEmpty(first.Localization.Coverage);
+        Assert.NotEmpty(first.Localization.PseudoSnapshots);
+        Assert.NotEmpty(first.Dialogues);
+        Assert.NotEmpty(first.Quests);
+        Assert.True(first.Encounters.TotalRuns >= 9);
+        Assert.True(first.Scripts.Passed);
+        Assert.Null(first.PseudoLocalizationSnapshotPath);
+        Assert.False(File.Exists(Path.Combine(workspace.RootDirectory, ".forge", "quality", "pseudo-localization.svg")));
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
     public void DiagnosticsExposeCanonicalIdentitySourceAndQuickFixes()
     {
         using var workspace = new TestWorkspace();

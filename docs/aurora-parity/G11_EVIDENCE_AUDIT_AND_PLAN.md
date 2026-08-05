@@ -148,6 +148,11 @@ UUID et schémas. Le journal propose une récupération comparée sans mutation 
 de contenu reprend, vérifie et déduplique sous contrôle utilisateur. La preuve détaillée est dans
 [`tasks/G11-Q-OPERATIONAL-READINESS.md`](tasks/G11-Q-OPERATIONAL-READINESS.md).
 
+**G11-R est fermé le 5 août 2026.** Un laboratoire déterministe partagé par Creator, CLI, runtime
+et MCP couvre localisation, sandbox ForgeScript, branches de dialogue, machines de quête et
+rencontres placées. La preuve détaillée est dans
+[`tasks/G11-R-MODULE-QUALITY-LAB.md`](tasks/G11-R-MODULE-QUALITY-LAB.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-R** : validation de localisation et tests ForgeScript, narration et rencontres.
+Démarrer **G11-S** : tests réseau et visuels, benchmarks, budgets par plateforme et profilage intégré.
