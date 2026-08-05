@@ -1,7 +1,9 @@
 using Forge.Application.Blueprints;
 using Forge.Application.Commands;
+using Forge.Application.Creator;
 using Forge.Application.Tests.Entities;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Authoring;
 
 namespace Forge.Application.Tests.Blueprints;
 
@@ -132,6 +134,20 @@ public sealed class BlueprintCatalogTests
         var searched = Assert.Single(catalog.Filter(BlueprintPaletteView.All, "CC0"));
         Assert.Equal("generator://creator/smoke", searched.Provenance.Source);
         Assert.False(searched.IsReadOnly);
+    }
+
+    [Fact]
+    public void PaletteCatalogCombinesPersonalFavoritesAndOrdersRecents()
+    {
+        var context = new EntityMutationTestContext();
+        var profile = EditorWorkspaceProfile.CreateDefault(Forge.Domain.Authoring.EditorRole.Artist);
+        profile = EditorWorkspaceProfilePlanner.TogglePersonalFavorite(profile, context.BlueprintId);
+        profile = EditorWorkspaceProfilePlanner.RecordRecent(profile, context.BlueprintId);
+
+        var catalog = BlueprintPaletteCatalog.Build(context.State.Project, profile);
+
+        Assert.Equal(context.BlueprintId, Assert.Single(catalog.Filter(BlueprintPaletteView.Favorites)).BlueprintId);
+        Assert.Equal(context.BlueprintId, Assert.Single(catalog.Filter(BlueprintPaletteView.Recent)).BlueprintId);
     }
 
     [Fact]

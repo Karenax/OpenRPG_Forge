@@ -17,6 +17,8 @@ public sealed class EditorWorkspaceProfileTests
         Assert.All(profiles, profile => Assert.Equal(area, profile.ActiveAreaId));
         Assert.True(profiles.Single(profile => profile.Role == EditorRole.Beginner).ContextualHelpEnabled);
         Assert.True(profiles.Single(profile => profile.Role == EditorRole.Artist).RepeatPlacement);
+        Assert.All(profiles, profile => Assert.Equal(EditorWorkspaceProfile.CurrentSchemaVersion, profile.SchemaVersion));
+        Assert.All(profiles, profile => Assert.Equal("Noto Sans", profile.PrimaryFontFamily));
     }
 
     [Fact]
@@ -39,5 +41,27 @@ public sealed class EditorWorkspaceProfileTests
         Assert.Equal(2, profile.OpenAreaTabs.Count);
         Assert.Throws<ArgumentException>(() => new EditorWorkspaceProfile(
             profile.Id, profile.Name, profile.Role, filter, false, [area], other, null, true, "test"));
+    }
+
+    [Fact]
+    public void Profile_ValidatesScalesFontsAndBoundedPersonalCollections()
+    {
+        var profile = EditorWorkspaceProfile.CreateDefault(EditorRole.Artist);
+        var ids = Enumerable.Range(1, 80)
+            .Select(value => BlueprintId.From(new Guid(value, 0, 0, new byte[8])))
+            .ToArray();
+        var configured = new EditorWorkspaceProfile(
+            profile.Id, profile.Name, profile.Role, profile.DisplayFilter, profile.RepeatPlacement,
+            [], null, null, profile.ContextualHelpEnabled, "test", uiScale: 1.25, textScale: 1.4,
+            primaryFontFamily: "Atkinson Hyperlegible", fallbackFontFamilies: ["Noto Sans", "Arial"],
+            personalFavoriteBlueprintIds: ids, recentBlueprintIds: ids);
+
+        Assert.Equal(1.25, configured.UiScale);
+        Assert.Equal(1.4, configured.TextScale);
+        Assert.Equal(64, configured.PersonalFavoriteBlueprintIds.Count);
+        Assert.Equal(24, configured.RecentBlueprintIds.Count);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new EditorWorkspaceProfile(
+            profile.Id, profile.Name, profile.Role, profile.DisplayFilter, false, [], null, null, true, "test",
+            uiScale: 3));
     }
 }

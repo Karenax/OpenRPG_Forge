@@ -475,7 +475,8 @@ public partial class DistributionProfilesWindow : Window
                 module.Variables,
                 _approvedConfiguration,
                 module.Localization,
-                module.Content);
+                module.Content,
+                module.ArtisticStyle);
             var candidate = new ProjectDefinition(
                 state.Project.Id,
                 state.Project.Title,

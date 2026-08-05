@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Forge.Domain.Authoring;
 
@@ -17,7 +18,20 @@ public static class EditorWorkspaceProfileJsonSerializer
     public static EditorWorkspaceProfile Deserialize(string json)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
-        return JsonSerializer.Deserialize<EditorWorkspaceProfile>(json, Options) ??
+        var root = JsonNode.Parse(json)?.AsObject() ?? throw new InvalidDataException("Editor workspace profile is empty.");
+        var version = root["schemaVersion"]?.GetValue<int>() ?? 1;
+        if (version == 1)
+        {
+            root["schemaVersion"] = EditorWorkspaceProfile.CurrentSchemaVersion;
+            root["uiScale"] = 1;
+            root["textScale"] = 1;
+            root["primaryFontFamily"] = "Noto Sans";
+            root["fallbackFontFamilies"] = new JsonArray("Segoe UI", "Arial");
+            root["personalFavoriteBlueprintIds"] = new JsonArray();
+            root["recentBlueprintIds"] = new JsonArray();
+        }
+
+        return JsonSerializer.Deserialize<EditorWorkspaceProfile>(root.ToJsonString(), Options) ??
             throw new InvalidDataException("Editor workspace profile is empty.");
     }
 
@@ -31,6 +45,7 @@ public static class EditorWorkspaceProfileJsonSerializer
         options.Converters.Add(new JsonStringEnumConverter());
         options.Converters.Add(new EditorWorkspaceProfileIdConverter());
         options.Converters.Add(new AreaIdJsonConverter());
+        options.Converters.Add(new BlueprintIdJsonConverter());
         return options;
     }
 

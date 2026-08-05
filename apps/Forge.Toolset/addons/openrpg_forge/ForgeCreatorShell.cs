@@ -1,5 +1,8 @@
 #if TOOLS
 using Forge.Application.Creator;
+using Forge.Domain.Areas;
+using Forge.Domain.Authoring;
+using Forge.Domain.Projects;
 using Forge.Domain.Validation;
 using Godot;
 
@@ -37,8 +40,11 @@ internal sealed class ForgeCreatorShell
     private readonly Dictionary<string, CreatorExplorerNode> _nodesByKey = new(StringComparer.Ordinal);
     private readonly Dictionary<string, TreeItem> _treeItemsByKey = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Button> _workspaceButtons = new(StringComparer.Ordinal);
+    private readonly HBoxContainer _areaTabBar;
     private CreatorDiagnostic[] _diagnostics = [];
     private bool _suppressTreeSelection;
+
+    internal int AreaTabCount => _areaTabBar.GetChildCount();
 
     internal event Action<CreatorExplorerNode>? ExplorerSelectionRequested;
 
@@ -49,6 +55,10 @@ internal sealed class ForgeCreatorShell
     internal event Action<string>? WorkspaceRequested;
 
     internal event Action<bool>? SelectionLockRequested;
+
+    internal event Action<AreaId>? AreaTabRequested;
+
+    internal event Action<AreaId>? AreaTabCloseRequested;
 
     internal ForgeCreatorShell(Control mainPanel)
     {
@@ -65,6 +75,11 @@ internal sealed class ForgeCreatorShell
         var workspaceBar = CreateWorkspaceBar();
         content.AddChild(workspaceBar);
         content.MoveChild(workspaceBar, 1);
+
+        _areaTabBar = new HBoxContainer { Name = "AreaTabs" };
+        _areaTabBar.AddThemeConstantOverride("separation", 4);
+        content.AddChild(_areaTabBar);
+        content.MoveChild(_areaTabBar, 2);
 
         var shellBody = new HSplitContainer
         {
@@ -227,6 +242,51 @@ internal sealed class ForgeCreatorShell
         CompactEditingControls(mainPanel);
         SetWorkspace("Monde");
         SetDiagnostics([]);
+    }
+
+    internal void SetAreaTabs(ProjectDefinition project, EditorWorkspaceProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        ArgumentNullException.ThrowIfNull(profile);
+        foreach (var child in _areaTabBar.GetChildren())
+        {
+            _areaTabBar.RemoveChild(child);
+            child.QueueFree();
+        }
+
+        foreach (var areaId in profile.OpenAreaTabs)
+        {
+            var area = project.Areas.FirstOrDefault(candidate => candidate.Id == areaId);
+            if (area is null) continue;
+            var tab = new HBoxContainer();
+            var activate = new Button
+            {
+                Text = $"{(profile.ActiveAreaId == area.Id ? "◆" : "◇")} {area.DisplayName}",
+                ToggleMode = true,
+                ButtonPressed = profile.ActiveAreaId == area.Id,
+                TooltipText = $"Zone {area.Id} · {area.Entities.Count} entité(s)",
+                CustomMinimumSize = new Vector2(150, 32),
+            };
+            activate.Pressed += () => AreaTabRequested?.Invoke(area.Id);
+            tab.AddChild(activate);
+            var close = new Button
+            {
+                Text = "×",
+                TooltipText = $"Fermer l'onglet {area.DisplayName}",
+                Disabled = profile.OpenAreaTabs.Count <= 1,
+                CustomMinimumSize = new Vector2(32, 32),
+            };
+            close.Pressed += () => AreaTabCloseRequested?.Invoke(area.Id);
+            tab.AddChild(close);
+            _areaTabBar.AddChild(tab);
+        }
+
+        if (_areaTabBar.GetChildCount() == 0)
+        {
+            var empty = new Label { Text = "Aucun onglet de zone · ouvrez Zones & transitions" };
+            empty.AddThemeColorOverride("font_color", new Color("9f92b8"));
+            _areaTabBar.AddChild(empty);
+        }
     }
 
     internal int WorkspaceCount => _workspaceButtons.Count;

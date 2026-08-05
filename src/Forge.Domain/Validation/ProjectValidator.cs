@@ -20,6 +20,7 @@ public static class ProjectValidator
     public const string LocalizationDefaultLocaleMismatchCode = "localization.default_locale.mismatch";
     public const string MissingLocalizationKeyCode = "localization.key.missing";
     public const string ContentWorkspaceIdentityCode = "content.workspace.id_mismatch";
+    public const string ArtisticStyleIdentityCode = "art.style.id_mismatch";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -37,6 +38,16 @@ public static class ProjectValidator
                 "The content workspace configuration ID must match the module ID.",
                 "module/content/id"));
         }
+
+        if (project.Module.ArtisticStyle.Id.Value != project.Module.Id.Value)
+        {
+            diagnostics.Add(new DomainDiagnostic(
+                ArtisticStyleIdentityCode,
+                "The artistic style profile ID must match the module ID.",
+                "module/artisticStyle/id"));
+        }
+
+        diagnostics.AddRange(ArtisticCompatibilityValidator.ValidateReferences(project));
 
         foreach (var blueprint in project.Blueprints)
         {

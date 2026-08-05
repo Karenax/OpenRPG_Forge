@@ -1,4 +1,5 @@
 using Forge.Domain.Areas;
+using Forge.Domain.Assets;
 using Forge.Domain.Content;
 using Forge.Domain.Localization;
 
@@ -26,6 +27,8 @@ public sealed record ModuleDefinition
 
     public ContentWorkspaceConfiguration Content { get; }
 
+    public ArtisticStyleProfile ArtisticStyle { get; }
+
     public ModuleDefinition(
         ModuleId id,
         string slug,
@@ -36,7 +39,8 @@ public sealed record ModuleDefinition
         IReadOnlyList<ProjectVariableDefinition>? variables = null,
         ModuleDistributionConfiguration? distribution = null,
         LocalizationCatalog? localization = null,
-        ContentWorkspaceConfiguration? content = null)
+        ContentWorkspaceConfiguration? content = null,
+        ArtisticStyleProfile? artisticStyle = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -66,5 +70,6 @@ public sealed record ModuleDefinition
         Distribution = distribution ?? ModuleDistributionConfiguration.CreateDefault(id);
         Localization = localization ?? LocalizationCatalog.CreateEmpty(id.Value, Metadata.DefaultLocale);
         Content = content ?? ContentWorkspaceConfiguration.CreateDefault(id.Value);
+        ArtisticStyle = artisticStyle ?? ArtisticStyleProfile.CreateDefault(id.Value);
     }
 }

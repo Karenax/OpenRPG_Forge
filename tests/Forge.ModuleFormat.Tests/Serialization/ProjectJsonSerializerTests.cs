@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Forge.Domain.Areas;
+using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Content;
 using Forge.Domain.Entities;
@@ -283,6 +284,48 @@ public sealed class ProjectJsonSerializerTests
         Assert.Empty(first.Module.Content.DataTables);
         Assert.Equal(first.Module.Content.Id, second.Module.Content.Id);
         Assert.Equal(ContentMergePolicy.PreserveBoth, first.Module.Content.MergePolicy);
+    }
+
+    [Fact]
+    public void SerializeAndDeserialize_RoundTripsArtisticCompatibilityProfile()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var asset = new ArtisticAssetStyle(
+            source.Blueprints.Single().Id, 1, 512, "pbr-metallic-roughness", "original-fantasy",
+            ArtisticRealism.StylizedRealism, ["earth", "stone"], "test");
+        var style = new ArtisticStyleProfile(
+            ArtisticStyleProfileId.From(source.Module.Id.Value), 1, 512, 20, 50,
+            "pbr-metallic-roughness", "original-fantasy", ArtisticRealism.StylizedRealism,
+            ["earth", "stone"], [asset], "test");
+        var module = new ModuleDefinition(
+            source.Module.Id, source.Module.Slug, source.Module.DisplayName, source.Module.Description,
+            source.Module.EntryAreaId, source.Module.Metadata, source.Module.Variables, source.Module.Distribution,
+            source.Module.Localization, source.Module.Content, style);
+        var project = new ProjectDefinition(
+            source.Id, source.Title, module, source.Blueprints, source.Areas, source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        Assert.Equal(ArtisticRealism.StylizedRealism, restored.Module.ArtisticStyle.Realism);
+        Assert.Equal(512, restored.Module.ArtisticStyle.TargetTexelDensity);
+        Assert.Equal(source.Blueprints.Single().Id, Assert.Single(restored.Module.ArtisticStyle.Assets).BlueprintId);
+    }
+
+    [Fact]
+    public void Deserialize_MigratesPreArtisticStyleFormatDeterministically()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreArtisticStyleFormatVersion;
+        document["project"]!["module"]!.AsObject().Remove("artisticStyle");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Equal(first.Module.ArtisticStyle.Id, second.Module.ArtisticStyle.Id);
+        Assert.Equal(ArtisticRealism.StylizedRealism, first.Module.ArtisticStyle.Realism);
+        Assert.Empty(first.Module.ArtisticStyle.Assets);
     }
 
     [Fact]

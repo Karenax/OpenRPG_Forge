@@ -46,7 +46,8 @@ public sealed class SetContentWorkspaceHandler
             module.Variables,
             module.Distribution,
             module.Localization,
-            command.Configuration);
+            command.Configuration,
+            module.ArtisticStyle);
         var updatedProject = new ProjectDefinition(
             state.Project.Id,
             state.Project.Title,

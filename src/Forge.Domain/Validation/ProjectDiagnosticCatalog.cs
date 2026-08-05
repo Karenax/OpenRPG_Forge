@@ -42,6 +42,9 @@ public static class ProjectDiagnosticCatalog
             }
         }
 
+        diagnostics.AddRange(ArtisticCompatibilityValidator.Analyze(project)
+            .Select(item => Map(project, item, "ArtisticCompatibilityValidator")));
+
         return diagnostics
             .GroupBy(diagnostic => diagnostic.Id)
             .Select(group => group.First())
@@ -196,6 +199,12 @@ public static class ProjectDiagnosticCatalog
         AreaGeometryValidator.CollisionOverlapCode or
         AreaGeometryValidator.SocketMismatchCode or
         AreaNavigationValidator.UnreachableEntityCode => DiagnosticSeverity.Warning,
+        ArtisticCompatibilityValidator.ScaleMismatchCode or
+        ArtisticCompatibilityValidator.TexelMismatchCode or
+        ArtisticCompatibilityValidator.ShaderMismatchCode or
+        ArtisticCompatibilityValidator.EraMismatchCode or
+        ArtisticCompatibilityValidator.RealismMismatchCode or
+        ArtisticCompatibilityValidator.PaletteMismatchCode => DiagnosticSeverity.Warning,
         _ => DiagnosticSeverity.Error,
     };
 

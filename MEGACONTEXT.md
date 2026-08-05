@@ -611,8 +611,8 @@ passer par des commandes transactionnelles, annulables, validables et testables 
 
 ### 9.5 État actuel de l’expérience Creator
 
-Le MVP solo est fermé et le gate **Creator Core G7** est ouvert. Les incréments G7-03 à G7-17 sont
-livrés avec preuves automatisées et revues visuelles ciblées :
+Le MVP solo et les gates G7 à G10 sont fermés. **G11-A à G11-F** sont livrés avec preuves
+automatisées et revues visuelles ciblées ; G11-G est le lot ouvert. L’expérience Creator comprend :
 
 - le workspace **Blueprints** recherche par nom, slug ou type, crée et édite une définition par
   commandes transactionnelles, dérive un blueprint depuis une instance sans perdre ses overrides
@@ -637,10 +637,15 @@ livrés avec preuves automatisées et revues visuelles ciblées :
   validation géométrique et commande atomique multi-entités.
 - la navigation calcule des routes A* déterministes avec coûts, obstacles dynamiques, récupération,
   budget borné et invalidation incrémentale depuis ses surfaces canoniques.
+- le profil éditeur v2 applique échelle UI/texte et chaîne de polices système, conserve jusqu’à huit
+  onglets de zones, une comparaison protégée, les favoris personnels et les récents sans polluer le
+  module exporté ;
+- le module possède un profil artistique transactionnel qui cible échelle métrique, densité texel,
+  shader, époque, réalisme et palette, puis expose les divergences comme avertissements structurés.
 
 Les contrats, critères et preuves sont détaillés dans `docs/aurora-parity/tasks/`,
-`docs/UX_AURORA_2026.md` et `STATUS.md`. La prochaine tranche Creator est **G7-20 — productivité de
-la coque Creator** pour les exigences Shell P1 restantes hors autosauvegarde.
+`docs/UX_AURORA_2026.md` et `STATUS.md`. La prochaine tranche est **G11-G — PBR, HDR, éclairage et
+ciel de référence**, suivie de l’environnement puis du terrain générique multi-biome.
 
 ---
 
@@ -1419,7 +1424,9 @@ Le résumé doit contenir :
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
 > Le second module original **La Veillée des Éclats** est généré exclusivement par les handlers
 > d'auteur et `ProjectSession`, avec round-trip/export automatisé.
-> Ferme **G11-A** par la persistance canonique et la commande d'auteur des profils textures/modèles, puis exécute un traitement reproductible sur une texture et un modèle du Vault sans modifier les sources originales.
+> G11-A à G11-F sont fermés. Ferme **G11-G** par un profil de rendu canonique PBR/HDR, un éclairage
+> et un ciel de référence testables, puis poursuis vers l’environnement et le terrain multi-biome
+> sans modifier les sources originales du Vault.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
 > régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.

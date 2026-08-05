@@ -3,6 +3,7 @@ using Forge.Application.Blueprints;
 using Forge.Application.Creator;
 using Forge.Application.Projects;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Authoring;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -18,6 +19,9 @@ public partial class BlueprintCatalogWindow : Window
     private Func<BlueprintId, string, string, BlueprintKind, bool>? _upsertBlueprint;
     private Func<BlueprintId, string, string, bool>? _createFromSelection;
     private Func<BlueprintId, BlueprintPaletteOrigin, bool, BlueprintProvenance, bool>? _configurePalette;
+    private Func<EditorWorkspaceProfile>? _getWorkspaceProfile;
+    private Action<BlueprintId>? _recordRecent;
+    private Func<BlueprintId, bool>? _togglePersonalFavorite;
     private Action<CreatorSelection>? _publishSelection;
     private Action<Window>? _brandWindow;
     private BlueprintId? _draftBlueprintId;
@@ -39,6 +43,7 @@ public partial class BlueprintCatalogWindow : Window
     private Button? _saveDefinitionButton;
     private OptionButton? _paletteOrigin;
     private CheckButton? _favorite;
+    private CheckButton? _personalFavorite;
     private LineEdit? _provenanceSource;
     private LineEdit? _provenanceAuthor;
     private LineEdit? _provenanceLicense;
@@ -58,6 +63,9 @@ public partial class BlueprintCatalogWindow : Window
         Func<BlueprintId, string, string, BlueprintKind, bool> upsertBlueprint,
         Func<BlueprintId, string, string, bool> createFromSelection,
         Func<BlueprintId, BlueprintPaletteOrigin, bool, BlueprintProvenance, bool> configurePalette,
+        Func<EditorWorkspaceProfile> getWorkspaceProfile,
+        Action<BlueprintId> recordRecent,
+        Func<BlueprintId, bool> togglePersonalFavorite,
         Action<CreatorSelection> publishSelection,
         Action<Window> brandWindow)
     {
@@ -71,6 +79,9 @@ public partial class BlueprintCatalogWindow : Window
         _upsertBlueprint = upsertBlueprint;
         _createFromSelection = createFromSelection;
         _configurePalette = configurePalette;
+        _getWorkspaceProfile = getWorkspaceProfile;
+        _recordRecent = recordRecent;
+        _togglePersonalFavorite = togglePersonalFavorite;
         _publishSelection = publishSelection;
         _brandWindow = brandWindow;
 
@@ -108,7 +119,7 @@ public partial class BlueprintCatalogWindow : Window
             : _paletteViews[Math.Clamp(_paletteView.Selected, 0, _paletteViews.Length - 1)];
         _visibleBlueprintIds.Clear();
         _blueprintList.Clear();
-        var catalog = BlueprintPaletteCatalog.Build(state.Project);
+        var catalog = BlueprintPaletteCatalog.Build(state.Project, _getWorkspaceProfile?.Invoke());
         foreach (var item in catalog.Filter(view, query))
         {
             _visibleBlueprintIds.Add(item.BlueprintId);
@@ -152,7 +163,14 @@ public partial class BlueprintCatalogWindow : Window
             return false;
         }
 
-        SelectBlueprint(index);
+        var state = _getState?.Invoke();
+        if (state is null)
+        {
+            return false;
+        }
+
+        _blueprintList!.Select(index);
+        LoadBlueprint(state, blueprintId);
         return true;
     }
 
@@ -312,6 +330,9 @@ public partial class BlueprintCatalogWindow : Window
         provenanceCard.AddChild(_paletteOrigin);
         _favorite = new CheckButton { Text = "★ Ajouter aux favoris" };
         provenanceCard.AddChild(_favorite);
+        _personalFavorite = new CheckButton { Text = "☆ Favori personnel (non exporté)" };
+        _personalFavorite.Toggled += TogglePersonalFavorite;
+        provenanceCard.AddChild(_personalFavorite);
         provenanceCard.AddChild(new Label { Text = "Source canonique" });
         _provenanceSource = new LineEdit { PlaceholderText = "project://… ou pack://…" };
         provenanceCard.AddChild(_provenanceSource);
@@ -424,6 +445,7 @@ public partial class BlueprintCatalogWindow : Window
         }
 
         LoadBlueprint(state, _visibleBlueprintIds[(int)index]);
+        _recordRecent?.Invoke(_visibleBlueprintIds[(int)index]);
     }
 
     private void LoadBlueprint(ProjectState state, BlueprintId blueprintId)
@@ -436,6 +458,8 @@ public partial class BlueprintCatalogWindow : Window
         _kind!.Selected = Array.IndexOf(_kinds, blueprint.Kind);
         _paletteOrigin!.Selected = Array.IndexOf(_paletteOrigins, blueprint.PaletteOrigin);
         _favorite!.ButtonPressed = blueprint.IsFavorite;
+        _personalFavorite!.SetPressedNoSignal(
+            _getWorkspaceProfile?.Invoke().PersonalFavoriteBlueprintIds.Contains(blueprint.Id) == true);
         _provenanceSource!.Text = blueprint.Provenance.Source;
         _provenanceAuthor!.Text = blueprint.Provenance.Author;
         _provenanceLicense!.Text = blueprint.Provenance.LicenseSpdx;
@@ -476,12 +500,14 @@ public partial class BlueprintCatalogWindow : Window
         _kind!.Selected = 0;
         _paletteOrigin!.Selected = Array.IndexOf(_paletteOrigins, BlueprintPaletteOrigin.ProjectContent);
         _favorite!.ButtonPressed = false;
+        _personalFavorite!.SetPressedNoSignal(false);
         _provenanceSource!.Text = $"project://blueprints/{_draftBlueprintId}/{_slug.Text}";
         _provenanceAuthor!.Text = "Project author";
         _provenanceLicense!.Text = "UNLICENSED";
         _provenanceHash!.Text = "unverified";
         _aiGenerated!.ButtonPressed = false;
         _modifications!.Text = string.Empty;
+        _personalFavorite!.SetPressedNoSignal(false);
         SetReadOnlyState(false);
         _referenceList!.Clear();
         _referenceSummary!.Text = "Aucun usage";
@@ -614,6 +640,18 @@ public partial class BlueprintCatalogWindow : Window
             new Color(readOnly ? "ffb07c" : "9ee6b3"));
     }
 
+    private void TogglePersonalFavorite(bool enabled)
+    {
+        if (_draftBlueprintId is null || _togglePersonalFavorite is null)
+        {
+            return;
+        }
+
+        var isFavorite = _togglePersonalFavorite(_draftBlueprintId);
+        _personalFavorite!.SetPressedNoSignal(isFavorite);
+        SetStatus(isFavorite ? "Ajouté aux favoris personnels." : "Retiré des favoris personnels.", false);
+    }
+
     private bool ValidateDraft(out string displayName, out string slug, out BlueprintKind kind)
     {
         displayName = _displayName!.Text.Trim();
@@ -667,6 +705,7 @@ public partial class BlueprintCatalogWindow : Window
         BlueprintPaletteView.ProjectContent => "Custom · projet",
         BlueprintPaletteView.Generated => "Généré",
         BlueprintPaletteView.Favorites => "★ Favoris",
+        BlueprintPaletteView.Recent => "Récents",
         BlueprintPaletteView.Temporary => "Temporaire",
         _ => view.ToString(),
     };

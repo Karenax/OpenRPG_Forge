@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.1.0",
+  "formatVersion": "1.2.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -210,6 +210,25 @@
         "dataTables": [],
         "mergePolicy": "preserveBoth",
         "provenance": "project-author"
+      },
+      "artisticStyle": {
+        "id": "30000000-0000-4000-8000-000000000001",
+        "schemaVersion": 1,
+        "metersPerUnit": 1,
+        "targetTexelDensity": 512,
+        "scaleTolerancePercent": 20,
+        "texelTolerancePercent": 50,
+        "shaderFamily": "pbr-metallic-roughness",
+        "era": "original-fantasy",
+        "realism": "stylizedRealism",
+        "palette": [
+          "earth",
+          "ember",
+          "stone",
+          "vegetation"
+        ],
+        "assets": [],
+        "provenance": "openrpg-forge-default"
       }
     },
     "blueprints": [

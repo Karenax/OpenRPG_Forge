@@ -7,7 +7,8 @@ namespace Forge.ModuleFormat.Serialization;
 
 public static class ProjectJsonSerializer
 {
-    public const string CurrentFormatVersion = "0.6.7";
+    public const string CurrentFormatVersion = "0.6.8";
+    public const string PreArtisticStyleFormatVersion = "0.6.7";
     public const string PreContentWorkspaceFormatVersion = "0.6.6";
     public const string PreLocalizationFormatVersion = "0.6.5";
     public const string PreNavigationFormatVersion = "0.6.4";
@@ -46,6 +47,7 @@ public static class ProjectJsonSerializer
         var formatVersion = formatVersionElement.GetString();
         ProjectDefinition project;
         if (string.Equals(formatVersion, CurrentFormatVersion, StringComparison.Ordinal) ||
+            string.Equals(formatVersion, PreArtisticStyleFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PreContentWorkspaceFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PreLocalizationFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PreNavigationFormatVersion, StringComparison.Ordinal) ||
@@ -101,6 +103,7 @@ public static class ProjectJsonSerializer
         options.Converters.Add(new AssetCatalogItemIdJsonConverter());
         options.Converters.Add(new AssetPackageManifestIdJsonConverter());
         options.Converters.Add(new AssetExternalEditIdJsonConverter());
+        options.Converters.Add(new ArtisticStyleProfileIdJsonConverter());
         options.Converters.Add(new AreaIdJsonConverter());
         options.Converters.Add(new AreaNavigationDefinitionIdJsonConverter());
         options.Converters.Add(new PortalIdJsonConverter());

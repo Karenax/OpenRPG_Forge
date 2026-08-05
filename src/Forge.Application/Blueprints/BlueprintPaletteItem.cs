@@ -9,5 +9,7 @@ public sealed record BlueprintPaletteItem(
     BlueprintKind Kind,
     BlueprintPaletteOrigin Origin,
     bool IsFavorite,
+    bool IsRecent,
+    int RecentRank,
     bool IsReadOnly,
     BlueprintProvenance Provenance);

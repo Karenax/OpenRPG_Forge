@@ -1,12 +1,21 @@
 using System.Security.Cryptography;
 using System.Text;
 using Forge.Domain.Areas;
+using Forge.Domain.Blueprints;
 
 namespace Forge.Domain.Authoring;
 
 public sealed record EditorWorkspaceProfile
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
+
+    public const double MinimumUiScale = 0.75;
+
+    public const double MaximumUiScale = 2.0;
+
+    public const double MinimumTextScale = 0.8;
+
+    public const double MaximumTextScale = 2.0;
 
     public EditorWorkspaceProfileId Id { get; }
 
@@ -30,6 +39,18 @@ public sealed record EditorWorkspaceProfile
 
     public string Provenance { get; }
 
+    public double UiScale { get; }
+
+    public double TextScale { get; }
+
+    public string PrimaryFontFamily { get; }
+
+    public IReadOnlyList<string> FallbackFontFamilies { get; }
+
+    public IReadOnlyList<BlueprintId> PersonalFavoriteBlueprintIds { get; }
+
+    public IReadOnlyList<BlueprintId> RecentBlueprintIds { get; }
+
     public EditorWorkspaceProfile(
         EditorWorkspaceProfileId id,
         string name,
@@ -41,7 +62,13 @@ public sealed record EditorWorkspaceProfile
         AreaId? comparisonAreaId,
         bool contextualHelpEnabled,
         string provenance,
-        int schemaVersion = CurrentSchemaVersion)
+        int schemaVersion = CurrentSchemaVersion,
+        double uiScale = 1,
+        double textScale = 1,
+        string primaryFontFamily = "Noto Sans",
+        IReadOnlyList<string>? fallbackFontFamilies = null,
+        IReadOnlyList<BlueprintId>? personalFavoriteBlueprintIds = null,
+        IReadOnlyList<BlueprintId>? recentBlueprintIds = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -49,7 +76,15 @@ public sealed record EditorWorkspaceProfile
         ArgumentNullException.ThrowIfNull(openAreaTabs);
         ArgumentException.ThrowIfNullOrWhiteSpace(provenance);
         if (schemaVersion != CurrentSchemaVersion) throw new ArgumentOutOfRangeException(nameof(schemaVersion));
+        if (uiScale is < MinimumUiScale or > MaximumUiScale) throw new ArgumentOutOfRangeException(nameof(uiScale));
+        if (textScale is < MinimumTextScale or > MaximumTextScale) throw new ArgumentOutOfRangeException(nameof(textScale));
+        ArgumentException.ThrowIfNullOrWhiteSpace(primaryFontFamily);
         var tabs = openAreaTabs.Distinct().ToArray();
+        if (tabs.Length > 8)
+        {
+            throw new ArgumentException("An editor profile cannot keep more than eight area tabs open.", nameof(openAreaTabs));
+        }
+
         if (activeAreaId is not null && !tabs.Contains(activeAreaId))
         {
             throw new ArgumentException("The active area must be present in the open tabs.", nameof(activeAreaId));
@@ -59,6 +94,15 @@ public sealed record EditorWorkspaceProfile
         {
             throw new ArgumentException("The comparison area must be a different open tab.", nameof(comparisonAreaId));
         }
+
+        var fallbacks = (fallbackFontFamilies ?? ["Noto Sans", "Segoe UI", "Arial"])
+            .Select(family => family.Trim())
+            .Where(family => family.Length > 0 && !string.Equals(family, primaryFontFamily.Trim(), StringComparison.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(4)
+            .ToArray();
+        var favorites = (personalFavoriteBlueprintIds ?? []).Distinct().Take(64).ToArray();
+        var recents = (recentBlueprintIds ?? []).Distinct().Take(24).ToArray();
 
         Id = id;
         SchemaVersion = schemaVersion;
@@ -71,6 +115,12 @@ public sealed record EditorWorkspaceProfile
         ComparisonAreaId = comparisonAreaId;
         ContextualHelpEnabled = contextualHelpEnabled;
         Provenance = provenance.Trim();
+        UiScale = uiScale;
+        TextScale = textScale;
+        PrimaryFontFamily = primaryFontFamily.Trim();
+        FallbackFontFamilies = fallbacks;
+        PersonalFavoriteBlueprintIds = favorites;
+        RecentBlueprintIds = recents;
     }
 
     public static EditorWorkspaceProfile CreateDefault(EditorRole role, AreaId? areaId = null)
@@ -95,6 +145,10 @@ public sealed record EditorWorkspaceProfile
             areaId,
             null,
             contextualHelpEnabled: role is EditorRole.Beginner or EditorRole.Builder,
-            "openrpg-forge-default");
+            "openrpg-forge-default",
+            uiScale: 1,
+            textScale: 1,
+            primaryFontFamily: "Noto Sans",
+            fallbackFontFamilies: ["Segoe UI", "Arial"]);
     }
 }

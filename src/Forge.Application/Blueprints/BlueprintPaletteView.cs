@@ -7,5 +7,6 @@ public enum BlueprintPaletteView
     ProjectContent,
     Generated,
     Favorites,
+    Recent,
     Temporary,
 }

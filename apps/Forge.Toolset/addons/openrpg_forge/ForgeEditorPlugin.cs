@@ -71,6 +71,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetModuleConfigurationHandler _setModuleConfigurationHandler = new(new SystemClock());
     private readonly SetModuleDistributionHandler _setModuleDistributionHandler = new(new SystemClock());
     private readonly SetContentWorkspaceHandler _setContentWorkspaceHandler = new(new SystemClock());
+    private readonly SetArtisticStyleProfileHandler _setArtisticStyleProfileHandler = new(new SystemClock());
     private readonly SetLocalizationCatalogHandler _setLocalizationCatalogHandler = new(new SystemClock());
     private readonly SetAreaNavigationHandler _setAreaNavigationHandler = new(new SystemClock());
     private readonly ApplyDiagnosticQuickFixHandler _diagnosticQuickFixHandler = new(new SystemClock());
@@ -231,6 +232,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
             UpsertBlueprint,
             CreateBlueprintFromSelectedEntity,
             ConfigureBlueprintPalette,
+            LoadWorkspaceProfile,
+            RecordRecentBlueprint,
+            TogglePersonalFavorite,
             selection => { _selectionContext.Replace(selection); },
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_blueprintCatalog);
@@ -312,6 +316,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _history?.State,
             LoadWorkspaceProfile,
             SaveWorkspaceProfile,
+            () => _history?.State.Project.Module.ArtisticStyle ??
+                  ArtisticStyleProfile.CreateDefault(Guid.Parse("10000000-0000-4000-8000-000000000001")),
+            ApplyArtisticStyleProfile,
             ActivateArea,
             ApplyWorkspaceFilter,
             PlaceRepeatedSeries,
@@ -930,6 +937,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _creatorShell.DiagnosticQuickFixRequested += HandleDiagnosticQuickFix;
         _creatorShell.WorkspaceRequested += HandleWorkspaceRequest;
         _creatorShell.SelectionLockRequested += HandleSelectionLockRequest;
+        _creatorShell.AreaTabRequested += HandleAreaTabRequested;
+        _creatorShell.AreaTabCloseRequested += HandleAreaTabCloseRequested;
     }
 
     private void DisconnectSignals()
@@ -986,7 +995,26 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _creatorShell.DiagnosticQuickFixRequested -= HandleDiagnosticQuickFix;
             _creatorShell.WorkspaceRequested -= HandleWorkspaceRequest;
             _creatorShell.SelectionLockRequested -= HandleSelectionLockRequest;
+            _creatorShell.AreaTabRequested -= HandleAreaTabRequested;
+            _creatorShell.AreaTabCloseRequested -= HandleAreaTabCloseRequested;
         }
+    }
+
+    private void HandleAreaTabRequested(AreaId areaId)
+    {
+        var profile = EditorWorkspaceProfilePlanner.OpenArea(LoadWorkspaceProfile(), areaId);
+        SaveWorkspaceProfile(profile);
+    }
+
+    private void HandleAreaTabCloseRequested(AreaId areaId)
+    {
+        var profile = LoadWorkspaceProfile();
+        if (profile.OpenAreaTabs.Count <= 1)
+        {
+            return;
+        }
+
+        SaveWorkspaceProfile(EditorWorkspaceProfilePlanner.CloseArea(profile, areaId));
     }
 
     private void HandleWorkspaceRequest(string workspace)
@@ -1350,7 +1378,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
     {
         var areaId = _activeAreaContext.Current;
         if (_projectSession is null) return EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, areaId);
-        try { return EditorWorkspaceProfileStore.TryLoad(_projectSession.RootDirectory) ?? EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, areaId); }
+        try
+        {
+            var loaded = EditorWorkspaceProfileStore.TryLoad(_projectSession.RootDirectory) ??
+                         EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, areaId);
+            var availableAreas = _history?.State.Project.Areas.Select(area => area.Id).ToArray() ?? [];
+            return EditorWorkspaceProfilePlanner.ReconcileAreas(loaded, availableAreas, areaId);
+        }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
             GD.PrintErr($"OPENRPG_FORGE_WORKSPACE_PROFILE_LOAD_FAILED {exception.Message}");
@@ -1363,7 +1397,49 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_projectSession is null) return;
         EditorWorkspaceProfileStore.Save(_projectSession.RootDirectory, profile);
         _projectPreview?.SetDisplayFilter(profile.DisplayFilter);
+        ApplyEditorExperience(profile);
         GD.Print("OPENRPG_FORGE_WORKSPACE_PROFILE_SAVED");
+    }
+
+    private void RecordRecentBlueprint(BlueprintId blueprintId)
+    {
+        if (_projectSession is null) return;
+        SaveWorkspaceProfile(EditorWorkspaceProfilePlanner.RecordRecent(LoadWorkspaceProfile(), blueprintId));
+    }
+
+    private bool TogglePersonalFavorite(BlueprintId blueprintId)
+    {
+        if (_projectSession is null) return false;
+        var updated = EditorWorkspaceProfilePlanner.TogglePersonalFavorite(LoadWorkspaceProfile(), blueprintId);
+        SaveWorkspaceProfile(updated);
+        return updated.PersonalFavoriteBlueprintIds.Contains(blueprintId);
+    }
+
+    private void ApplyEditorExperience(EditorWorkspaceProfile profile)
+    {
+        if (_mainPanel is null || _history is null)
+        {
+            return;
+        }
+
+        var theme = new Theme
+        {
+            DefaultBaseScale = (float)profile.UiScale,
+            DefaultFontSize = Math.Max(11, (int)Math.Round(14 * profile.TextScale)),
+        };
+        var font = new SystemFont
+        {
+            FontNames = new[] { profile.PrimaryFontFamily }.Concat(profile.FallbackFontFamilies).ToArray(),
+        };
+        theme.DefaultFont = font;
+        _mainPanel.Theme = theme;
+        _creatorShell?.SetAreaTabs(_history.State.Project, profile);
+        if (profile.ActiveAreaId is not null)
+        {
+            ActivateArea(profile.ActiveAreaId);
+        }
+
+        GD.Print($"OPENRPG_FORGE_EDITOR_EXPERIENCE_APPLIED ui={profile.UiScale:0.##} text={profile.TextScale:0.##} font={profile.PrimaryFontFamily} tabs={profile.OpenAreaTabs.Count}");
     }
 
     private bool PlaceRepeatedSeries(int count, float spacing, PlacementDistribution distribution, int seed)
@@ -1423,6 +1499,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _detailsLabel!.Text =
             $"{area.Dimensions.Width} × {area.Dimensions.Depth} · {area.Entities.Count} entité(s) · " +
             $"{area.Portals.Count} transition(s)";
+        if (_projectSession is not null)
+        {
+            SaveWorkspaceProfile(EditorWorkspaceProfilePlanner.OpenArea(LoadWorkspaceProfile(), areaId));
+        }
+
         return true;
     }
 
@@ -1905,6 +1986,31 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _setContentWorkspaceHandler.Handle(_history.State, command),
             $"Contenu enregistré · {configuration.DataTables.Count} table(s) · " +
             $"fusion {configuration.MergePolicy}.",
+            GetSelectedEntity()?.Id);
+    }
+
+    private bool ApplyArtisticStyleProfile(ArtisticStyleProfile profile)
+    {
+        if (_history is null)
+        {
+            return false;
+        }
+
+        var command = new SetArtisticStyleProfileCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            profile,
+            DryRun: false);
+        var dryRun = _setArtisticStyleProfileHandler.Handle(_history.State, command with { DryRun = true });
+        if (!dryRun.Succeeded)
+        {
+            return ApplyCommand(dryRun, string.Empty, selectedEntityId: null);
+        }
+
+        return ApplyCommand(
+            _setArtisticStyleProfileHandler.Handle(_history.State, command),
+            $"Style artistique enregistré · {profile.Assets.Count} blueprint(s) profilé(s) · " +
+            $"{ArtisticCompatibilityValidator.Analyze(profile).Count} avertissement(s).",
             GetSelectedEntity()?.Id);
     }
 
@@ -2460,6 +2566,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _projectSession.Project.Id);
         _projectPreview?.SetCameraProfile(cameraProfile.Profile, PersistEditorCameraProfile);
         _activeAreaContext.Reset(_projectSession.Project);
+        ApplyEditorExperience(LoadWorkspaceProfile());
         RebuildPreview();
         RefreshEditorControls();
         var project = _history.State.Project;
@@ -3706,6 +3813,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunContentWorkflowSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunScalableEditorExperienceSmokeTest())
         {
             return;
         }
@@ -5012,6 +5124,171 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G11E_CONTENT_PASS tables=typed batch=dry-run-applied " +
             "collisions=preserve-both blueprints=transitive-governed merge=three-way-conflicts " +
             "history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunScalableEditorExperienceSmokeTest()
+    {
+        if (_history is null || _projectSession is null || _mainPanel is null || _creatorShell is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11F_EXPERIENCE_FAILED missing_workspace");
+            return false;
+        }
+
+        var originalProfile = LoadWorkspaceProfile();
+        var originalArea = GetActiveArea();
+        var originalAreaCount = _history.State.Project.Areas.Count;
+        var originalStyle = _history.State.Project.Module.ArtisticStyle;
+        var blueprintId = _history.State.Project.Blueprints.First().Id;
+        AreaId? createdAreaId = null;
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "editor-experience-smoke",
+            Guid.NewGuid().ToString("N"));
+        string? failure = null;
+        try
+        {
+            createdAreaId = CreateArea(
+                "Atelier comparatif G11F",
+                AreaKind.Interior,
+                new AreaDimensions(32, 32),
+                AreaTemplateKind.Empty);
+            if (createdAreaId is null)
+            {
+                failure = "area_creation";
+            }
+            else
+            {
+                var configuredProfile = new EditorWorkspaceProfile(
+                    originalProfile.Id,
+                    originalProfile.Name,
+                    originalProfile.Role,
+                    originalProfile.DisplayFilter,
+                    originalProfile.RepeatPlacement,
+                    [originalArea.Id, createdAreaId],
+                    createdAreaId,
+                    originalArea.Id,
+                    originalProfile.ContextualHelpEnabled,
+                    "toolset-g11f-smoke",
+                    EditorWorkspaceProfile.CurrentSchemaVersion,
+                    uiScale: 1.25,
+                    textScale: 1.35,
+                    primaryFontFamily: "Atkinson Hyperlegible",
+                    fallbackFontFamilies: ["Noto Sans", "Segoe UI"],
+                    personalFavoriteBlueprintIds: [blueprintId],
+                    recentBlueprintIds: [blueprintId]);
+                SaveWorkspaceProfile(configuredProfile);
+                var persistedProfile = EditorWorkspaceProfileStore.TryLoad(_projectSession.RootDirectory);
+                var fontNames = (_mainPanel.Theme?.DefaultFont as SystemFont)?.FontNames ?? [];
+                var palette = BlueprintPaletteCatalog.Build(_history.State.Project, configuredProfile);
+                if (persistedProfile is null || persistedProfile.SchemaVersion != EditorWorkspaceProfile.CurrentSchemaVersion ||
+                    Math.Abs(persistedProfile.UiScale - 1.25) > 0.001 ||
+                    Math.Abs(persistedProfile.TextScale - 1.35) > 0.001 ||
+                    persistedProfile.ActiveAreaId != createdAreaId ||
+                    persistedProfile.ComparisonAreaId != originalArea.Id ||
+                    _creatorShell.AreaTabCount != 2 ||
+                    Math.Abs((_mainPanel.Theme?.DefaultBaseScale ?? 0) - 1.25f) > 0.001f ||
+                    _mainPanel.Theme?.DefaultFontSize != 19 ||
+                    fontNames.Length < 3 || fontNames[0] != "Atkinson Hyperlegible" ||
+                    palette.Filter(BlueprintPaletteView.Favorites).All(item => item.BlueprintId != blueprintId) ||
+                    palette.Filter(BlueprintPaletteView.Recent).FirstOrDefault()?.BlueprintId != blueprintId)
+                {
+                    failure = "profile_ui_palette";
+                }
+
+                var style = new ArtisticStyleProfile(
+                    originalStyle.Id,
+                    metersPerUnit: 1,
+                    targetTexelDensity: 512,
+                    scaleTolerancePercent: 20,
+                    texelTolerancePercent: 50,
+                    shaderFamily: "pbr-metallic-roughness",
+                    era: "original-fantasy",
+                    ArtisticRealism.StylizedRealism,
+                    ["earth", "ember", "stone"],
+                    [new ArtisticAssetStyle(
+                        blueprintId,
+                        metersPerUnit: 1,
+                        texelDensity: 512,
+                        shaderFamily: "pbr-metallic-roughness",
+                        era: "original-fantasy",
+                        ArtisticRealism.StylizedRealism,
+                        ["earth", "stone"],
+                        "toolset-g11f-smoke")],
+                    "toolset-g11f-smoke");
+                if (failure is null &&
+                    (!ApplyArtisticStyleProfile(style) ||
+                     ArtisticCompatibilityValidator.Analyze(_history.State.Project).Count != 0))
+                {
+                    failure = "artistic_profile";
+                }
+
+                if (failure is null)
+                {
+                    var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+                    var reopened = ProjectSession.Open(smokeRoot);
+                    if (!saved.Succeeded || !reopened.Succeeded || reopened.Session is null ||
+                        reopened.Session.Project.Module.ArtisticStyle.Assets.Single().BlueprintId != blueprintId ||
+                        !File.ReadAllText(Path.Combine(smokeRoot, ProjectSession.DefaultProjectFileName))
+                            .Contains($"\"formatVersion\": \"{ProjectSession.CurrentProjectFormatVersion}\"", StringComparison.Ordinal))
+                    {
+                        failure = "persistence";
+                    }
+                }
+
+                if (failure is null)
+                {
+                    var undoArt = _history.Undo();
+                    var redoArt = _history.Redo();
+                    var cleanupArt = _history.Undo();
+                    if (!undoArt.Succeeded || !redoArt.Succeeded || !cleanupArt.Succeeded ||
+                        !ReferenceEquals(_history.State.Project.Module.ArtisticStyle, originalStyle))
+                    {
+                        failure = "artistic_history";
+                    }
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            failure = $"exception_{exception.GetType().Name}";
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot))
+            {
+                Directory.Delete(smokeRoot, recursive: true);
+            }
+
+            while (_history.CanUndo &&
+                   ((createdAreaId is not null && _history.State.Project.Areas.Any(area => area.Id == createdAreaId)) ||
+                    !ReferenceEquals(_history.State.Project.Module.ArtisticStyle, originalStyle)))
+            {
+                _history.Undo();
+            }
+
+            _activeAreaContext.EnsureValid(_history.State.Project);
+            ActivateArea(originalArea.Id);
+            SaveWorkspaceProfile(EditorWorkspaceProfilePlanner.ReconcileAreas(
+                originalProfile,
+                _history.State.Project.Areas.Select(area => area.Id).ToArray(),
+                originalArea.Id));
+            RebuildPreview();
+            RefreshEditorControls();
+        }
+
+        if (failure is not null || _history.State.Project.Areas.Count != originalAreaCount ||
+            !ReferenceEquals(_history.State.Project.Module.ArtisticStyle, originalStyle))
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_G11F_EXPERIENCE_FAILED {failure ?? "cleanup"}");
+            return false;
+        }
+
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G11F_EXPERIENCE_PASS ui=scalable font=truetype-fallback " +
+            "tabs=multi-area comparison=readonly favorites=project-personal recents=ordered " +
+            "art=profiled-warnings history=restored persistence=roundtrip");
         return true;
     }
 

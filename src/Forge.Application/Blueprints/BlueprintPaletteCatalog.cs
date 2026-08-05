@@ -1,4 +1,5 @@
 using Forge.Domain.Blueprints;
+using Forge.Domain.Authoring;
 using Forge.Domain.Projects;
 
 namespace Forge.Application.Blueprints;
@@ -14,9 +15,13 @@ public sealed class BlueprintPaletteCatalog
 
     public IReadOnlyList<BlueprintPaletteItem> Items => _items;
 
-    public static BlueprintPaletteCatalog Build(ProjectDefinition project)
+    public static BlueprintPaletteCatalog Build(ProjectDefinition project, EditorWorkspaceProfile? profile = null)
     {
         ArgumentNullException.ThrowIfNull(project);
+        var personalFavorites = (profile?.PersonalFavoriteBlueprintIds ?? []).ToHashSet();
+        var recentRanks = (profile?.RecentBlueprintIds ?? [])
+            .Select((id, rank) => (id, rank))
+            .ToDictionary(item => item.id, item => item.rank);
         return new BlueprintPaletteCatalog(project.Blueprints
             .Select(blueprint => new BlueprintPaletteItem(
                 blueprint.Id,
@@ -24,7 +29,9 @@ public sealed class BlueprintPaletteCatalog
                 blueprint.DisplayName,
                 blueprint.Kind,
                 blueprint.PaletteOrigin,
-                blueprint.IsFavorite,
+                blueprint.IsFavorite || personalFavorites.Contains(blueprint.Id),
+                recentRanks.ContainsKey(blueprint.Id),
+                recentRanks.GetValueOrDefault(blueprint.Id, int.MaxValue),
                 blueprint.IsReadOnly(),
                 blueprint.Provenance))
             .OrderBy(item => item.Origin)
@@ -37,9 +44,12 @@ public sealed class BlueprintPaletteCatalog
         string? query = null)
     {
         var normalizedQuery = query?.Trim() ?? string.Empty;
-        return _items
+        var filtered = _items
             .Where(item => MatchesView(item, view))
-            .Where(item => MatchesQuery(item, normalizedQuery))
+            .Where(item => MatchesQuery(item, normalizedQuery));
+        return (view == BlueprintPaletteView.Recent
+                ? filtered.OrderBy(item => item.RecentRank)
+                : filtered)
             .ToArray();
     }
 
@@ -50,6 +60,7 @@ public sealed class BlueprintPaletteCatalog
         BlueprintPaletteView.ProjectContent => item.Origin == BlueprintPaletteOrigin.ProjectContent,
         BlueprintPaletteView.Generated => item.Origin == BlueprintPaletteOrigin.Generated,
         BlueprintPaletteView.Favorites => item.IsFavorite,
+        BlueprintPaletteView.Recent => item.IsRecent,
         BlueprintPaletteView.Temporary => item.Origin == BlueprintPaletteOrigin.Temporary,
         _ => false,
     };

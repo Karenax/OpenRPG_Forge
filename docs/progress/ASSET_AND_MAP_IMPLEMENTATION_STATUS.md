@@ -39,6 +39,9 @@ Dernière mise à jour : 5 août 2026.
   confiné, validation croisée C#/Python sur un OBJ réel et analyse sûre migration/désinstallation.
 - production réelle d'un GLB 2 texturé par Blender 4.5.10 depuis `ambientcg:3DApple001`, avec
   collisions, deux LOD, hash de sortie vérifié, source du Vault immuable et prévisualisation rendue.
+- profil artistique canonique avec cible métrique, densité texel, shader, époque, réalisme et palette,
+  avertissements par blueprint, édition transactionnelle et persistance versionnée ;
+- profil éditeur v2 avec échelle UI/texte, replis de polices, onglets de zones et favoris/récents.
 
 ## Partiellement terminé
 
@@ -59,6 +62,6 @@ Dernière mise à jour : 5 août 2026.
 
 ## Prochaine action
 
-Livrer G11-F (interface scalable et compatibilité artistique), puis curater un premier pack multi-biome cohérent et
-remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés la source
-de vérité de la carte.
+Livrer G11-G (PBR, HDR, éclairage et ciel de référence), puis curater un premier pack multi-biome
+cohérent et remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés
+la source de vérité de la carte.

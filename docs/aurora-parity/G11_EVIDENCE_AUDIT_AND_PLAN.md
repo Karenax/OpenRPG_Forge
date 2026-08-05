@@ -78,6 +78,13 @@ de blueprints gouvernés et exposent les conflits d’une fusion à trois voies 
 preuve détaillée est dans
 [`tasks/G11-E-BULK-TABLE-MERGE.md`](tasks/G11-E-BULK-TABLE-MERGE.md).
 
+**G11-F est fermé le 5 août 2026.** Le profil éditeur v2 applique mise à l’échelle, taille de texte
+et chaîne de polices système ; plusieurs zones restent ouvertes avec une comparaison protégée. Les
+favoris personnels et récents complètent les favoris du projet. Le module persiste en parallèle un
+profil artistique transactionnel et des avertissements de cohérence non bloquants. La preuve
+détaillée est dans
+[`tasks/G11-F-SCALABLE-EDITOR-ARTISTIC-COMPATIBILITY.md`](tasks/G11-F-SCALABLE-EDITOR-ARTISTIC-COMPATIBILITY.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-F** : UI scalable, onglets de zone, favoris et compatibilité artistique.
+Démarrer **G11-G** : rendu PBR, HDR, éclairage et ciel de référence.

@@ -16,6 +16,17 @@ using Forge.Domain.Quests;
 
 namespace Forge.ModuleFormat.Serialization;
 
+internal sealed class ArtisticStyleProfileIdJsonConverter : JsonConverter<ArtisticStyleProfileId>
+{
+    public override ArtisticStyleProfileId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        ArtisticStyleProfileId.Parse(reader.TokenType == JsonTokenType.String
+            ? reader.GetString() ?? throw new JsonException("An artistic style profile ID cannot be null.")
+            : throw new JsonException("An artistic style profile ID must be a string."));
+
+    public override void Write(Utf8JsonWriter writer, ArtisticStyleProfileId value, JsonSerializerOptions options) =>
+        writer.WriteStringValue(value.ToString());
+}
+
 internal sealed class ContentWorkspaceConfigurationIdJsonConverter : JsonConverter<ContentWorkspaceConfigurationId>
 {
     public override ContentWorkspaceConfigurationId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>

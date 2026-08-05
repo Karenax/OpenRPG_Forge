@@ -1,6 +1,8 @@
+using System.Text.Json.Nodes;
 using Forge.Domain.Areas;
 using Forge.Domain.Authoring;
 using Forge.Domain.Blueprints;
+using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.ModuleFormat.Tests.Workspaces;
@@ -27,11 +29,38 @@ public sealed class EditorWorkspaceProfileStoreTests
             Assert.Equal(profile.Id, restored.Id);
             Assert.Equal(profile.DisplayFilter.RequiredTags, restored.DisplayFilter.RequiredTags);
             Assert.True(restored.RepeatPlacement);
+            Assert.Equal(EditorWorkspaceProfile.CurrentSchemaVersion, restored.SchemaVersion);
+            Assert.Equal(1, restored.UiScale);
             Assert.True(File.Exists(Path.Combine(root, EditorWorkspaceProfileStore.RelativePath)));
         }
         finally
         {
             if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
         }
+    }
+
+    [Fact]
+    public void Deserialize_MigratesSchemaOneToScalableDefaults()
+    {
+        var area = AreaId.From(Guid.Parse("529a5fb8-a263-45fd-9ae7-2da595bf3a35"));
+        var current = EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, area);
+        var legacy = JsonNode.Parse(EditorWorkspaceProfileJsonSerializer.Serialize(current))!.AsObject();
+        legacy["schemaVersion"] = 1;
+        legacy.Remove("uiScale");
+        legacy.Remove("textScale");
+        legacy.Remove("primaryFontFamily");
+        legacy.Remove("fallbackFontFamilies");
+        legacy.Remove("personalFavoriteBlueprintIds");
+        legacy.Remove("recentBlueprintIds");
+
+        var migrated = EditorWorkspaceProfileJsonSerializer.Deserialize(legacy.ToJsonString());
+
+        Assert.Equal(EditorWorkspaceProfile.CurrentSchemaVersion, migrated.SchemaVersion);
+        Assert.Equal(1, migrated.UiScale);
+        Assert.Equal(1, migrated.TextScale);
+        Assert.Equal("Noto Sans", migrated.PrimaryFontFamily);
+        Assert.Equal(["Segoe UI", "Arial"], migrated.FallbackFontFamilies);
+        Assert.Empty(migrated.PersonalFavoriteBlueprintIds);
+        Assert.Empty(migrated.RecentBlueprintIds);
     }
 }

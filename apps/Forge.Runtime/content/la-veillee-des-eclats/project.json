@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.1.0",
+  "formatVersion": "1.2.0",
   "project": {
     "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
     "title": "La Veill\u00E9e des \u00C9clats",
@@ -169,6 +169,25 @@
         "dataTables": [],
         "mergePolicy": "preserveBoth",
         "provenance": "project-author"
+      },
+      "artisticStyle": {
+        "id": "5e1ecd20-f6be-ee23-a34a-183a68e54d2f",
+        "schemaVersion": 1,
+        "metersPerUnit": 1,
+        "targetTexelDensity": 512,
+        "scaleTolerancePercent": 20,
+        "texelTolerancePercent": 50,
+        "shaderFamily": "pbr-metallic-roughness",
+        "era": "original-fantasy",
+        "realism": "stylizedRealism",
+        "palette": [
+          "earth",
+          "ember",
+          "stone",
+          "vegetation"
+        ],
+        "assets": [],
+        "provenance": "openrpg-forge-default"
       }
     },
     "blueprints": [

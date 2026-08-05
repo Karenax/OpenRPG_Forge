@@ -181,6 +181,14 @@ G7-19 enrichit l’analyse Navigation sans ajouter une seconde carte : le résum
 longueur d’une route représentative, le nombre de cellules visitées ou la cause d’échec. Obstacles
 dynamiques, coûts et récupération restent des paramètres du Core ; l’overlay demeure une vue dérivée.
 
+G11-F rend la coque adaptable sans casser sa hiérarchie : le profil local règle l’échelle générale,
+la taille du texte et une chaîne de polices système avec replis. Une barre d’onglets de zones reste
+sous les workspaces ; la zone active est marquée, la fermeture de la dernière zone est interdite et
+une seconde zone peut servir de comparaison en lecture seule. Le catalogue distingue désormais
+favori projet, favori personnel non exporté et récents ordonnés. La même surface de préférences
+prévisualise le profil artistique du module et présente les écarts d’échelle, densité texel, shader,
+époque, réalisme et palette comme avertissements actionnables, jamais comme verdict esthétique opaque.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
