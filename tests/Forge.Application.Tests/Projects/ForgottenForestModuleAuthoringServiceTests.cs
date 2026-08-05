@@ -21,7 +21,10 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         Assert.True(area.World.Terrain.Enabled);
         Assert.Equal(33 * 33, area.World.Terrain.Heights.Count);
         Assert.Equal(4, area.World.Biomes.Count);
-        Assert.Equal(2, area.World.Features.Count);
+        Assert.Equal(3, area.World.Features.Count);
+        Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.River);
+        Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.Bridge);
+        Assert.Single(area.Navigation.OffMeshLinks);
         Assert.True(area.Entities.Count >= 18);
         Assert.Contains(project.Blueprints, blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn && blueprint.Combat is not null);
         Assert.Contains(area.Entities, entity => entity.Tags.Contains("boss", StringComparer.Ordinal));

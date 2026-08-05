@@ -747,8 +747,28 @@
           "provenance": "migration-default"
         }
       ],
-      "offMeshLinks": [],
-      "provenance": "migration-default"
+      "offMeshLinks": [
+        {
+          "id": "1868ccae-40b7-8f53-ada5-5adbffe74279",
+          "schemaVersion": 1,
+          "name": "Travers\u00E9e du pont du gu\u00E9",
+          "kind": "jump",
+          "start": {
+            "x": -2,
+            "y": 0.7461395,
+            "z": -3
+          },
+          "end": {
+            "x": 6,
+            "y": 1.7103146,
+            "z": 6
+          },
+          "bidirectional": true,
+          "maximumAgentRadius": 0.9,
+          "provenance": "authored:forgotten-forest@1"
+        }
+      ],
+      "provenance": "authored:forgotten-forest@1"
     },
     "environment": {
       "schemaVersion": 3,
@@ -2161,6 +2181,33 @@
         }
       ],
       "features": [
+        {
+          "id": "35cf2532-5dd3-3d58-9804-9d4898c4bac5",
+          "schemaVersion": 1,
+          "name": "Pont du gu\u00E9",
+          "kind": "bridge",
+          "controlPoints": [
+            {
+              "x": -2,
+              "y": 0.6661395,
+              "z": -3
+            },
+            {
+              "x": 6,
+              "y": 1.6303147,
+              "z": 6
+            }
+          ],
+          "width": 4.2,
+          "height": 0.22,
+          "bankDegrees": 0,
+          "crossingPolicy": "allow",
+          "compatibleBiomeTags": [
+            "forest"
+          ],
+          "materialResource": "",
+          "provenance": "authored:forgotten-forest@1"
+        },
         {
           "id": "79a26534-fdf5-9c58-8fbc-87fcc4e1306f",
           "schemaVersion": 1,

@@ -18,7 +18,10 @@ Forgotten Forest reconstruit une zone extérieure canonique 128 × 128 m : relie
 ruisseau, quatre recettes de biome, 357 instances MultiMesh, camp, pont, tour et sanctuaire. Les 22
 modèles Kenney Mini Forest sont importés individuellement depuis le Vault sous licence CC0-1.0 avec
 hash, manifestes, palette externe, crédits et provenance. Le runtime offre une caméra orbitale et un
-déplacement relatif à la caméra ; son smoke termine dialogue, collecte, passage, boss et quête.
+déplacement relatif à la caméra. Quatre segments d’eau animés exposent nage et courant ; un
+`NavigationRegion3D` de 1 990 polygones bloque 58 triangles de rivière hors traversée et relie le
+camp au sanctuaire par un chemin réel de 72 points. Le smoke termine dialogue, collecte, passage,
+boss et quête.
 
 Le lancement interactif direct est validé sur le workspace scindé `1.15.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
@@ -359,11 +362,14 @@ projet `0.6.21` et workspace `1.15.0` sont migrés. Le prochain incrément est l
 artistiquement revue demandée pour le prototype final. Le tracker compte désormais 56 capacités
 `Tested`.
 
-**AV4B — première tranche jouable livrée** : le module `forgotten-forest` est authorisé depuis le
+**AV4B — tranche jouable navigable livrée** : le module `forgotten-forest` est authorisé depuis le
 domaine et persisté comme workspace scindé. Son pack curaté copie 22 GLB et leur palette externe sans
 modifier le Vault, écrit profils, reçus, 44 chunks de manifeste et crédits. Le runtime charge un
 workspace externe ou un `.orpmod`, reconstruit relief, collisions, features et scatter déterministe,
 puis instancie les modèles réels. Les tests couvrent l’authoring, l’idempotence de l’import et le
 scénario jouable complet ; une capture Forward+ 1280 × 720 a été inspectée après correction du
-culling, des échelles, du cadrage et du HUD. La suite AV4B porte le bake de navigation, l’eau et la
-finition audiovisuelle, puis l’intégration de ces outils dans le Creator Aurora.
+culling, des échelles, du cadrage et du HUD. Le bake runtime dérive maintenant 1 990 polygones du
+terrain canonique, applique pente et politiques de traversée, crée le lien du pont et prouve un
+chemin moteur de 72 points. Le ruisseau emploie quatre surfaces shader animées, quatre volumes de
+nage et un courant directionnel. La suite AV4B porte la finition audiovisuelle, puis l’intégration de
+ces outils dans le Creator Aurora.

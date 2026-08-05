@@ -7,7 +7,7 @@ extérieure Forgotten Forest. La solution C# compilable fournit
 domaine versionné, application de création **Forge**, runtime 3D jouable, ForgeScript natif, archives
 `.orpmod`, sauvegarde/reprise et host MCP transactionnel. La commande `scripts/Verify.ps1` valide
 l’ensemble localement. Forgotten Forest ajoute terrain canonique, caméra orbitale, 357 instances de
-biome, 22 modèles GLB CC0 gouvernés, quête, combat et export autonome. Les espaces auteur avancés
+biome, 22 modèles GLB CC0 gouvernés, rivière animée, navigation de surface, quête, combat et export autonome. Les espaces auteur avancés
 décrits dans la cible Aurora 2026 restent la phase suivante du produit.
 
 Le lancement utilise un splash **OpenRPG_Forge** dédié, commun au runtime et à l’application de
@@ -65,8 +65,9 @@ Le lanceur régénère de façon idempotente le module et ses crédits depuis le
 runtime puis ouvre la carte en Forward+. Le Vault original reste inchangé. Forgotten Forest permet
 de se déplacer sur un terrain 128 × 128 m, d’orbiter et zoomer la caméra, de suivre le sentier,
 parler à Maëlys, trouver la Graine de lune, ouvrir le Passage des Ronces et affronter le Gardien des
-Racines. Commandes caméra : clic droit ou milieu pour orbiter, molette pour zoomer, `Début`/`Fin`
-pour tourner au clavier.
+Racines. Le ruisseau est animé, ses quatre volumes appliquent nage et courant, et le chemin de
+navigation relie le camp au sanctuaire en respectant la traversée du pont. Commandes caméra : clic
+droit ou milieu pour orbiter, molette pour zoomer, `Début`/`Fin` pour tourner au clavier.
 
 ## Ouvrir le toolset
 

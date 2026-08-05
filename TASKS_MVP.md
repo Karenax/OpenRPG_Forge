@@ -525,7 +525,8 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   CC0 avec identité, hash, manifeste, palette externe et crédits.
 - [x] Intégrer la fondation de terrain AV4A, végétation MultiMesh, bâtiments, ruisseau stylisé,
   éclairage, caméra orbitale et landmarks.
-- [ ] Finaliser le bake de navigation, une eau simulée et les traversées avant la carte de production.
+- [x] Finaliser le bake de navigation, une eau simulée et les traversées : 1 990 polygones runtime,
+  58 triangles de rivière bloqués, pont lié, chemin moteur camp-sanctuaire et quatre volumes animés.
 - [x] Réutiliser les briques existantes de dialogue, quête, combat, transition et sauvegarde.
 - [x] Ajouter profil Forward+, validation automatisée, playtest headless, capture visuelle et métriques
   de reconstruction.

@@ -6,6 +6,7 @@ namespace Forge.EngineAdapter.World;
 
 public sealed record GodotTerrainResult(Node3D Root, int Vertices, int Triangles, int CollisionShapes,
     int FeatureSegments, int DebugVolumes, int FlightRouteSegments, int ScatterLayers, int ScatterInstances,
+    int WaterSurfaces, int WaterVolumes,
     IReadOnlyList<DomainDiagnostic> Diagnostics);
 
 public static class GodotTerrainAdapter
@@ -27,13 +28,29 @@ public static class GodotTerrainAdapter
         }
 
         var featureSegments = 0;
+        var waterSurfaces = 0;
+        var waterVolumes = 0;
         var featureRoot = new Node3D { Name = "TerrainFeatures" };
         foreach (var feature in plan.Features)
         {
             for (var index = 0; index < feature.ControlPoints.Count - 1; index++)
             {
-                featureRoot.AddChild(BuildSegment(feature.ControlPoints[index], feature.ControlPoints[index + 1],
-                    feature.Width, Math.Max(feature.Height, .08f), FeatureColor(feature.Kind), $"{feature.Kind}_{feature.Id:N}_{index}"));
+                if (feature.Kind == TerrainFeatureKind.River)
+                {
+                    featureRoot.AddChild(BuildRiverSegment(
+                        feature.ControlPoints[index],
+                        feature.ControlPoints[index + 1],
+                        feature.Width,
+                        $"{feature.Kind}_{feature.Id:N}_{index}"));
+                    waterSurfaces++;
+                    waterVolumes++;
+                }
+                else
+                {
+                    featureRoot.AddChild(BuildSegment(feature.ControlPoints[index], feature.ControlPoints[index + 1],
+                        feature.Width, Math.Max(feature.Height, .08f), FeatureColor(feature.Kind),
+                        $"{feature.Kind}_{feature.Id:N}_{index}"));
+                }
                 featureSegments++;
             }
         }
@@ -79,7 +96,8 @@ public static class GodotTerrainAdapter
         collisionShapes += scatter.CollisionShapes;
 
         return new GodotTerrainResult(root, plan.Vertices.Count, plan.TriangleCount, collisionShapes,
-            featureSegments, debugVolumes, routeSegments, scatter.Layers, scatter.Instances, plan.Diagnostics);
+            featureSegments, debugVolumes, routeSegments, scatter.Layers, scatter.Instances,
+            waterSurfaces, waterVolumes, plan.Diagnostics);
     }
 
     private static ArrayMesh BuildTerrainMesh(TerrainBuildPlan plan)
@@ -129,6 +147,87 @@ public static class GodotTerrainAdapter
             },
         };
         return node;
+    }
+
+    private static Node3D BuildRiverSegment(
+        Forge.Domain.Spatial.Vector3Value start,
+        Forge.Domain.Spatial.Vector3Value end,
+        float width,
+        string name)
+    {
+        var startValue = new Vector3(start.X, start.Y, start.Z);
+        var endValue = new Vector3(end.X, end.Y, end.Z);
+        var delta = endValue - startValue;
+        var length = Math.Max(delta.Length(), .01f);
+        var horizontalDirection = new Vector3(delta.X, 0, delta.Z).Normalized();
+        var root = new Node3D
+        {
+            Name = name,
+            Position = ((startValue + endValue) / 2) + new Vector3(0, .045f, 0),
+            Rotation = new Vector3(0, MathF.Atan2(delta.X, delta.Z), 0),
+        };
+        var shader = new Shader
+        {
+            Code = """
+                shader_type spatial;
+                render_mode blend_mix, depth_prepass_alpha, cull_disabled;
+
+                uniform vec4 deep_color : source_color = vec4(0.025, 0.20, 0.30, 0.78);
+                uniform vec4 crest_color : source_color = vec4(0.22, 0.72, 0.82, 0.58);
+                uniform vec2 flow_direction = vec2(0.0, 1.0);
+                uniform float flow_speed = 1.2;
+
+                void vertex() {
+                    float ripple = sin((VERTEX.x * 0.9) + (VERTEX.z * 0.55) + (TIME * flow_speed)) * 0.035;
+                    VERTEX.y += ripple;
+                }
+
+                void fragment() {
+                    float phase = dot(UV, flow_direction) * 28.0 - TIME * flow_speed * 2.0;
+                    float bands = 0.5 + 0.5 * sin(phase);
+                    ALBEDO = mix(deep_color.rgb, crest_color.rgb, bands * 0.28);
+                    ALPHA = mix(deep_color.a, crest_color.a, bands);
+                    ROUGHNESS = 0.16;
+                    METALLIC = 0.20;
+                }
+                """,
+        };
+        var material = new ShaderMaterial { Shader = shader };
+        material.SetShaderParameter("flow_direction", new Vector2(horizontalDirection.X, horizontalDirection.Z));
+        material.SetShaderParameter("flow_speed", 1.2f);
+        root.AddChild(new MeshInstance3D
+        {
+            Name = "AnimatedSurface",
+            Mesh = new PlaneMesh
+            {
+                Size = new Vector2(width, length),
+                SubdivideWidth = Math.Clamp((int)MathF.Ceiling(width), 1, 12),
+                SubdivideDepth = Math.Clamp((int)MathF.Ceiling(length / 2f), 1, 64),
+                Material = material,
+            },
+        });
+
+        var volume = new Area3D
+        {
+            Name = "SwimmableCurrent",
+            Monitoring = true,
+            Monitorable = true,
+            CollisionLayer = 0,
+            CollisionMask = 1,
+        };
+        volume.AddToGroup("forge_water_volume");
+        volume.SetMeta("forge_swimming_enabled", true);
+        volume.SetMeta("forge_buoyancy", 1.15f);
+        volume.SetMeta("forge_navigation_cost", 2.5f);
+        volume.SetMeta("forge_flow_direction", horizontalDirection);
+        volume.SetMeta("forge_flow_speed", .65f);
+        volume.AddChild(new CollisionShape3D
+        {
+            Position = new Vector3(0, -.65f, 0),
+            Shape = new BoxShape3D { Size = new Vector3(width, 1.4f, length) },
+        });
+        root.AddChild(volume);
+        return root;
     }
 
     private static MeshInstance3D BuildVolume(Forge.Domain.Spatial.Vector3Value center,

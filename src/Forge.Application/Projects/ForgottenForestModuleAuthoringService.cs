@@ -8,6 +8,7 @@ using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Localization;
 using Forge.Domain.Modules;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.Spatial;
@@ -28,6 +29,7 @@ public static class ForgottenForestModuleAuthoringService
         var areaId = Ids.Area("forgotten-forest");
         var dimensions = new AreaDimensions(128, 128);
         var world = CreateWorld(areaId, dimensions);
+        var navigation = CreateNavigation(areaId, world);
         var environment = CreateEnvironment();
         var strike = new AbilityDefinition(
             Ids.Ability("forest-strike"),
@@ -154,6 +156,7 @@ public static class ForgottenForestModuleAuthoringService
             AreaKind.Exterior,
             dimensions,
             environment: environment,
+            navigation: navigation,
             world: world);
         var module = new ModuleDefinition(
             Ids.Module("forgotten-forest"),
@@ -324,6 +327,11 @@ public static class ForgottenForestModuleAuthoringService
                 [Point(-50, 18, 0.02f), Point(-27, 10, 0.02f), Point(2, 1, 0.02f), Point(26, -8, 0.02f), Point(53, -19, 0.02f)],
                 3.2f, 0.12f, 0, TerrainFeatureCrossingPolicy.RequiresBridge, ["forest"], string.Empty,
                 "authored:forgotten-forest@1"),
+            new TerrainFeatureDefinition(Stable("feature:bridge"), TerrainFeatureDefinition.CurrentSchemaVersion,
+                "Pont du gué", TerrainFeatureKind.Bridge,
+                [Point(-2, -3, 0.34f), Point(6, 6, 0.34f)],
+                4.2f, 0.22f, 0, TerrainFeatureCrossingPolicy.Allow, ["forest"], string.Empty,
+                "authored:forgotten-forest@1"),
         };
         return new AreaWorldProfile(
             Stable("world"),
@@ -334,6 +342,27 @@ public static class ForgottenForestModuleAuthoringService
             defaults.VolumetricNavigation,
             defaults.FlightRoutes,
             defaults.Loading,
+            "authored:forgotten-forest@1");
+    }
+
+    private static AreaNavigationDefinition CreateNavigation(AreaId areaId, AreaWorldProfile world)
+    {
+        var defaults = AreaNavigationDefinition.CreateDefault(areaId);
+        Vector3Value Point(float x, float z) => new(x, world.Terrain.HeightAt(x, z) + .42f, z);
+        var crossing = new OffMeshNavigationLink(
+            OffMeshNavigationLinkId.From(Stable("navigation:bridge-crossing")),
+            "Traversée du pont du gué",
+            NavigationLinkKind.Jump,
+            Point(-2, -3),
+            Point(6, 6),
+            true,
+            .9f,
+            "authored:forgotten-forest@1");
+        return new AreaNavigationDefinition(
+            defaults.Id,
+            defaults.CellSize,
+            defaults.AgentProfiles,
+            [crossing],
             "authored:forgotten-forest@1");
     }
 

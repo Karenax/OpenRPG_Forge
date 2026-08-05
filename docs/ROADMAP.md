@@ -206,6 +206,9 @@ traçable : politique CC0 pour le noyau artistique, catalogue local, packs insta
 acquisition contrôlée, normalisation GLB, optimisation, miniatures, déduplication, crédits et
 interface intégrée au toolset. Utiliser ce pipeline pour livrer **Forgotten Forest**, carte extérieure
 jouable servant de démonstration publique, benchmark, exemple créateur et test de non-régression.
+La tranche 128 × 128 m charge maintenant ses 22 GLB gouvernés, son scatter, son eau animée et son
+maillage de navigation avec traversée de pont ; la prochaine étape expose ces outils dans le Creator
+puis ajoute la finition audiovisuelle et le profilage de la carte de production.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;
@@ -217,4 +220,6 @@ licence du dépôt.
 
 Runtime 3D headless autoritaire, intentions, réplication, coopération, persistance et outils de maître de jeu.
 
-Chaque phase doit laisser un produit exécutable et testable. La cible de démonstration reste la tranche verticale **Crypte des Cendres** décrite dans `MEGACONTEXT.md` et `TASKS_MVP.md`.
+Chaque phase doit laisser un produit exécutable et testable. Les cibles de démonstration sont la
+tranche verticale **Crypte des Cendres** et la carte extérieure **Forgotten Forest** décrites dans
+`MEGACONTEXT.md` et `TASKS_MVP.md`.

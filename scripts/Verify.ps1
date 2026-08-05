@@ -599,7 +599,7 @@ try {
             'OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests=22 chunks=44 platform=Windows',
             'OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider=heightmap vertices=1089 triangles=2048',
             'OPENRPG_FORGE_RUNTIME_MODELS_PASS manifests=22 instances=18',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain=1089 scatter_layers=3') `
+            'OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain=1089 scatter_layers=3 scatter_instances=357 water_surfaces=4 water_volumes=4 nav_regions=1 nav_polygons=1990 nav_blocked=58 nav_links=1 nav_path_points=72') `
         -StopAfterMarkers $false
 
     $mcpHostProject = Join-Path $repositoryRoot 'apps\Forge.McpHost\Forge.McpHost.csproj'

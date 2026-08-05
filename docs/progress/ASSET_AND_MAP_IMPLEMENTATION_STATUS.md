@@ -54,6 +54,10 @@ Dernière mise à jour : 5 août 2026.
   sanctuaire ;
 - caméra orbitale et déplacement relatif à la caméra, HUD compact, terrain double face et échelles
   cohérentes des modèles ;
+- navigation de surface construite depuis le terrain canonique : une région, 1 990 polygones,
+  58 triangles de rivière exclus, un lien de pont et un chemin moteur camp-sanctuaire de 72 points ;
+- ruisseau en quatre surfaces shader animées et quatre volumes physiques avec nage, flottabilité et
+  courant directionnel ;
 - dialogue, collecte, passage, deux éclaireurs, boss scripté, loot, quête et sortie reconstruits par
   le runtime ;
 - export `.orpmod` de 75 fichiers, validation sans diagnostic et smoke depuis le cache du package ;
@@ -66,8 +70,8 @@ Dernière mise à jour : 5 août 2026.
 - normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
   conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
-- Forgotten Forest : première tranche jouable et revue disponible ; navigation avancée, eau
-  simulée, animations, audio, VFX et extension 512 × 512 restent des finitions de production.
+- Forgotten Forest : tranche jouable, navigable et revue disponible ; animations, audio, VFX et
+  extension 512 × 512 restent des finitions de production.
 
 ## Non commencé
 
@@ -75,12 +79,12 @@ Dernière mise à jour : 5 août 2026.
   migrations/désinstallations déjà analysées par le domaine ;
 - génération de miniatures et planches contact ;
 - service de surveillance temps réel ;
-- sculpture interactive, navigation de surface et carte Forgotten Forest finale
-  512 × 512 m ; la fondation terrain générique, ses routes et une eau de référence fonctionnelle sont
-  disponibles avant shader et composition de production.
+- sculpture interactive et carte Forgotten Forest finale 512 × 512 m ; la fondation terrain
+  générique, ses routes, son bake de navigation et son eau animée sont disponibles avant composition
+  de production.
 
 ## Prochaine action
 
-Ajouter le bake de navigation et l’eau simulée à la tranche jouable, puis exposer dans le Creator
-Aurora l’authoring de terrain, les recettes de biome et l’installation du pack curaté sans faire des
-nœuds générés la source de vérité de la carte.
+Exposer dans le Creator Aurora l’authoring de terrain, les recettes de biome et l’installation du
+pack curaté sans faire des nœuds générés la source de vérité de la carte, puis enrichir la tranche
+avec animations, ambiance audio et VFX gouvernés.

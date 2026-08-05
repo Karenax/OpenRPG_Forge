@@ -160,7 +160,34 @@
     },
     {
       "evidence": {
-        "line": 11,
+        "line": 16,
+        "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.EngineAdapter.World.GodotSurfaceNavigationAdapter",
+      "target": "file:src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.EngineAdapter.World.GodotSurfaceNavigationAdapter",
+      "target": "model:Forge.Domain.Navigation.AreaNavigationDefinition"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.EngineAdapter.World.GodotSurfaceNavigationAdapter",
+      "target": "model:Forge.EngineAdapter.World.GodotSurfaceNavigationResult"
+    },
+    {
+      "evidence": {
+        "line": 12,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
       "kind": "defined_in",
@@ -169,7 +196,7 @@
     },
     {
       "evidence": {
-        "line": 151,
+        "line": 38,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
       "kind": "serializes",
@@ -178,7 +205,7 @@
     },
     {
       "evidence": {
-        "line": 13,
+        "line": 14,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
       "kind": "serializes",
@@ -1978,7 +2005,7 @@
     },
     {
       "evidence": {
-        "line": 108,
+        "line": 109,
         "path": "README.md"
       },
       "kind": "references",
@@ -1987,7 +2014,7 @@
     },
     {
       "evidence": {
-        "line": 106,
+        "line": 107,
         "path": "README.md"
       },
       "kind": "references",
@@ -1996,7 +2023,7 @@
     },
     {
       "evidence": {
-        "line": 130,
+        "line": 131,
         "path": "README.md"
       },
       "kind": "references",
@@ -2005,7 +2032,7 @@
     },
     {
       "evidence": {
-        "line": 94,
+        "line": 95,
         "path": "README.md"
       },
       "kind": "references",
@@ -2275,7 +2302,7 @@
     },
     {
       "evidence": {
-        "line": 177,
+        "line": 180,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2284,7 +2311,7 @@
     },
     {
       "evidence": {
-        "line": 239,
+        "line": 242,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2293,7 +2320,7 @@
     },
     {
       "evidence": {
-        "line": 91,
+        "line": 94,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2676,7 +2703,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -2685,25 +2712,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Quests"
-    },
-    {
-      "evidence": {
-        "line": 28,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Rules"
-    },
-    {
-      "evidence": {
-        "line": 27,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.RuntimeExtensions"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -2712,7 +2721,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.RuntimePolicies"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -2721,7 +2730,25 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Sequences"
+      "target": "namespace:Forge.Domain.Rules"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.Domain.RuntimeExtensions"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -2730,16 +2757,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Spatial"
-    },
-    {
-      "evidence": {
-        "line": 32,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.EngineAdapter.Rendering"
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
@@ -2748,7 +2766,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.EngineAdapter.Spatial"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -2757,34 +2775,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.EngineAdapter.World"
+      "target": "namespace:Forge.EngineAdapter.Rendering"
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 32,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
-    },
-    {
-      "evidence": {
-        "line": 36,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Quality"
-    },
-    {
-      "evidence": {
-        "line": 37,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Saves"
+      "target": "namespace:Forge.EngineAdapter.Spatial"
     },
     {
       "evidence": {
@@ -2793,7 +2793,25 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Serialization"
+      "target": "namespace:Forge.EngineAdapter.World"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Quality"
     },
     {
       "evidence": {
@@ -2802,11 +2820,29 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Workspaces"
+      "target": "namespace:Forge.ModuleFormat.Saves"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
       "evidence": {
         "line": 39,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 40,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "imports",
@@ -4660,7 +4696,7 @@
     },
     {
       "evidence": {
-        "line": 211,
+        "line": 214,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -8364,7 +8400,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -8373,11 +8409,20 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
         "line": 13,
+        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs",
+      "target": "namespace:Forge.Domain.Quests"
+    },
+    {
+      "evidence": {
+        "line": 14,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "imports",
@@ -11168,6 +11213,33 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs",
+      "target": "namespace:Forge.Domain.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
       "kind": "imports",
@@ -11191,6 +11263,69 @@
       "kind": "imports",
       "source": "file:src/Forge.EngineAdapter/World/ITerrainProvider.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs",
+      "target": "namespace:Forge.Domain.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs",
+      "target": "namespace:Forge.Domain.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs",
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -17590,6 +17725,42 @@
       "kind": "imports",
       "source": "file:tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs",
       "target": "namespace:Forge.EngineAdapter.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs",
+      "target": "namespace:Forge.Domain.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs",
+      "target": "namespace:Forge.EngineAdapter.World"
     },
     {
       "evidence": {
@@ -30724,6 +30895,24 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.EngineAdapter.World.GodotSurfaceNavigationResult",
+      "target": "file:src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.EngineAdapter.World.GodotSurfaceNavigationResult",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
@@ -30733,7 +30922,7 @@
     },
     {
       "evidence": {
-        "line": 9,
+        "line": 10,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
       "kind": "relationship",
@@ -34036,7 +34225,7 @@
     },
     {
       "evidence": {
-        "line": 3180,
+        "line": 3229,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -35755,7 +35944,7 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 15,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -39697,6 +39886,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.Tests.World",
+      "target": "file:tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
       },
@@ -39724,6 +39922,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
@@ -39739,6 +39946,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.EngineAdapter.World",
       "target": "file:src/Forge.EngineAdapter/World/ITerrainProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs"
     },
     {
       "evidence": {
@@ -42460,7 +42685,7 @@
     },
     {
       "evidence": {
-        "line": 41,
+        "line": 42,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -43945,7 +44170,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 22,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -43954,7 +44179,7 @@
     },
     {
       "evidence": {
-        "line": 179,
+        "line": 182,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -43963,7 +44188,7 @@
     },
     {
       "evidence": {
-        "line": 149,
+        "line": 151,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -43972,7 +44197,7 @@
     },
     {
       "evidence": {
-        "line": 255,
+        "line": 258,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -43981,7 +44206,7 @@
     },
     {
       "evidence": {
-        "line": 154,
+        "line": 156,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -43990,7 +44215,7 @@
     },
     {
       "evidence": {
-        "line": 301,
+        "line": 304,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -43999,7 +44224,7 @@
     },
     {
       "evidence": {
-        "line": 277,
+        "line": 280,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44008,7 +44233,7 @@
     },
     {
       "evidence": {
-        "line": 317,
+        "line": 320,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44017,7 +44242,7 @@
     },
     {
       "evidence": {
-        "line": 318,
+        "line": 321,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44026,7 +44251,7 @@
     },
     {
       "evidence": {
-        "line": 280,
+        "line": 283,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44035,7 +44260,7 @@
     },
     {
       "evidence": {
-        "line": 182,
+        "line": 185,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44044,7 +44269,7 @@
     },
     {
       "evidence": {
-        "line": 184,
+        "line": 187,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44053,7 +44278,7 @@
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 55,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44062,7 +44287,7 @@
     },
     {
       "evidence": {
-        "line": 32,
+        "line": 34,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44071,7 +44296,7 @@
     },
     {
       "evidence": {
-        "line": 39,
+        "line": 41,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44080,7 +44305,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 100,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44089,7 +44314,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 68,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44098,7 +44323,7 @@
     },
     {
       "evidence": {
-        "line": 224,
+        "line": 227,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44107,7 +44332,7 @@
     },
     {
       "evidence": {
-        "line": 158,
+        "line": 161,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44116,7 +44341,34 @@
     },
     {
       "evidence": {
-        "line": 164,
+        "line": 348,
+        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
+      "target": "model:Forge.Domain.Navigation.AreaNavigationDefinition"
+    },
+    {
+      "evidence": {
+        "line": 355,
+        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
+      "target": "model:Forge.Domain.Navigation.NavigationLinkKind"
+    },
+    {
+      "evidence": {
+        "line": 353,
+        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
+      "target": "model:Forge.Domain.Navigation.OffMeshNavigationLinkId"
+    },
+    {
+      "evidence": {
+        "line": 167,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44125,7 +44377,7 @@
     },
     {
       "evidence": {
-        "line": 145,
+        "line": 147,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44134,7 +44386,7 @@
     },
     {
       "evidence": {
-        "line": 144,
+        "line": 146,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44143,7 +44395,7 @@
     },
     {
       "evidence": {
-        "line": 133,
+        "line": 135,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44152,7 +44404,7 @@
     },
     {
       "evidence": {
-        "line": 133,
+        "line": 135,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44161,7 +44413,7 @@
     },
     {
       "evidence": {
-        "line": 231,
+        "line": 234,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44170,7 +44422,7 @@
     },
     {
       "evidence": {
-        "line": 201,
+        "line": 204,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -44179,7 +44431,7 @@
     },
     {
       "evidence": {
-        "line": 123,
+        "line": 125,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -53143,7 +53395,16 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 25,
+        "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.ForgottenForestModuleAuthoringServiceTests",
+      "target": "model:Forge.Domain.Areas.TerrainFeatureKind"
+    },
+    {
+      "evidence": {
+        "line": 36,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -53152,7 +53413,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 29,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -53179,7 +53440,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 39,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -60025,6 +60286,114 @@
       "kind": "tests",
       "source": "test:Forge.EngineAdapter.Tests.Spatial.EngineValueConverterTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "file:tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.TerrainFeatureDefinition"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.TerrainFeatureKind"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "model:Forge.Domain.Navigation.AreaNavigationDefinition"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "model:Forge.Domain.Navigation.NavigationLinkKind"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "model:Forge.Domain.Navigation.OffMeshNavigationLinkId"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "type:Forge.Domain.Areas.AreaWorldProfile"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "type:Forge.Domain.Areas.TerrainFeatureCrossingPolicy"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "type:Forge.Domain.Navigation.OffMeshNavigationLink"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "target": "type:Forge.EngineAdapter.World.SurfaceNavigationPlanBuilder"
     },
     {
       "evidence": {
@@ -71440,7 +71809,7 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 18,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -71476,7 +71845,7 @@
     },
     {
       "evidence": {
-        "line": 342,
+        "line": 371,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -74614,6 +74983,42 @@
       "kind": "defined_in",
       "source": "type:Forge.EngineAdapter.World.StableRandom",
       "target": "file:src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.SurfaceNavigationLinkPlan",
+      "target": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.SurfaceNavigationPlan",
+      "target": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.SurfaceNavigationPlanBuilder",
+      "target": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.SurfaceNavigationTriangle",
+      "target": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
     },
     {
       "evidence": {
@@ -79216,7 +79621,7 @@
     },
     {
       "evidence": {
-        "line": 44,
+        "line": 45,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -79225,7 +79630,7 @@
     },
     {
       "evidence": {
-        "line": 1175,
+        "line": 1204,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79234,7 +79639,7 @@
     },
     {
       "evidence": {
-        "line": 1404,
+        "line": 1436,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79243,7 +79648,7 @@
     },
     {
       "evidence": {
-        "line": 1391,
+        "line": 1423,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79252,7 +79657,7 @@
     },
     {
       "evidence": {
-        "line": 325,
+        "line": 338,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79261,7 +79666,7 @@
     },
     {
       "evidence": {
-        "line": 1353,
+        "line": 1385,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79270,7 +79675,7 @@
     },
     {
       "evidence": {
-        "line": 1336,
+        "line": 1368,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79279,7 +79684,7 @@
     },
     {
       "evidence": {
-        "line": 1443,
+        "line": 1475,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79288,7 +79693,7 @@
     },
     {
       "evidence": {
-        "line": 1490,
+        "line": 1522,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79297,7 +79702,7 @@
     },
     {
       "evidence": {
-        "line": 1472,
+        "line": 1504,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79306,7 +79711,7 @@
     },
     {
       "evidence": {
-        "line": 1460,
+        "line": 1492,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79315,7 +79720,7 @@
     },
     {
       "evidence": {
-        "line": 1416,
+        "line": 1448,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79324,7 +79729,7 @@
     },
     {
       "evidence": {
-        "line": 73,
+        "line": 74,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79333,7 +79738,7 @@
     },
     {
       "evidence": {
-        "line": 74,
+        "line": 75,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -79351,7 +79756,7 @@
     },
     {
       "evidence": {
-        "line": 3109,
+        "line": 3158,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -79378,7 +79783,7 @@
     },
     {
       "evidence": {
-        "line": 3148,
+        "line": 3197,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -79438,6 +79843,15 @@
       "kind": "defined_in",
       "source": "type:Forge.Runtime.RuntimeModelLibrary",
       "target": "file:apps/Forge.Runtime/Runtime/RuntimeModelLibrary.cs"
+    },
+    {
+      "evidence": {
+        "line": 114,
+        "path": "apps/Forge.Runtime/Runtime/PlayerController.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Runtime.WaterContact",
+      "target": "file:apps/Forge.Runtime/Runtime/PlayerController.cs"
     },
     {
       "evidence": {
@@ -81097,8 +81511,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:6395597d36e6f4be39c16fe90a1ae8e70528ef351359b98d65a9ff81da3c59cd",
-    "source_file_count": 1466
+    "source_digest": "sha256:28c902e18ff009e506ee8e91c83e771b352622ffc5ba08fc7b5d2c1e31d32977",
+    "source_file_count": 1470
   },
   "nodes": [
     {
@@ -81142,9 +81556,19 @@
       "path": "src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
     },
     {
+      "id": "adapter:Forge.EngineAdapter.World.GodotSurfaceNavigationAdapter",
+      "kind": "adapter",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "GodotSurfaceNavigationAdapter",
+      "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+    },
+    {
       "id": "adapter:Forge.EngineAdapter.World.GodotTerrainAdapter",
       "kind": "adapter",
-      "line": 11,
+      "line": 12,
       "metadata": {
         "namespace": "Forge.EngineAdapter.World"
       },
@@ -83102,14 +83526,14 @@
       "path": "apps/Forge.Runtime/content/forgotten-forest/.forge/build-graph.json"
     },
     {
-      "id": "file:apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-7ce76878716c4596.json",
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-14b2001b517c452f.json",
       "kind": "configuration",
       "line": 1,
       "metadata": {
         "language": "configuration"
       },
-      "name": "a56d51fe-089a-995f-a4c9-59c349b0f1d8-7ce76878716c4596.json",
-      "path": "apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-7ce76878716c4596.json"
+      "name": "a56d51fe-089a-995f-a4c9-59c349b0f1d8-14b2001b517c452f.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-14b2001b517c452f.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/CREDITS_ASSETS.md",
@@ -90682,6 +91106,16 @@
       "path": "src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
     },
     {
+      "id": "file:src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "GodotSurfaceNavigationAdapter.cs",
+      "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+    },
+    {
       "id": "file:src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs",
       "kind": "file",
       "line": 1,
@@ -90700,6 +91134,26 @@
       },
       "name": "ITerrainProvider.cs",
       "path": "src/Forge.EngineAdapter/World/ITerrainProvider.cs"
+    },
+    {
+      "id": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SurfaceNavigationPlan.cs",
+      "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+    },
+    {
+      "id": "file:src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SurfaceNavigationPlanBuilder.cs",
+      "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs"
     },
     {
       "id": "file:src/Forge.EngineAdapter/World/TerrainBuildPlan.cs",
@@ -94270,6 +94724,16 @@
       },
       "name": "EngineValueConverterTests.cs",
       "path": "tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SurfaceNavigationPlanBuilderTests.cs",
+      "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
     },
     {
       "id": "file:tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs",
@@ -100352,6 +100816,16 @@
       "path": "src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
     },
     {
+      "id": "model:Forge.EngineAdapter.World.GodotSurfaceNavigationResult",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "GodotSurfaceNavigationResult",
+      "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
+    },
+    {
       "id": "model:Forge.EngineAdapter.World.GodotTerrainResult",
       "kind": "model",
       "line": 7,
@@ -102584,7 +103058,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 3180,
+      "line": 3229,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -104111,7 +104585,7 @@
     {
       "id": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
       "kind": "service",
-      "line": 21,
+      "line": 22,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -106267,6 +106741,16 @@
       },
       "name": "EngineValueConverterTests",
       "path": "tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs"
+    },
+    {
+      "id": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.Tests.World"
+      },
+      "name": "SurfaceNavigationPlanBuilderTests",
+      "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
     },
     {
       "id": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
@@ -108498,7 +108982,7 @@
     {
       "id": "type:Forge.Application.Projects.ForgottenForestAuthoredModule",
       "kind": "type",
-      "line": 17,
+      "line": 18,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -108538,7 +109022,7 @@
     {
       "id": "type:Forge.Application.Projects.StableIds",
       "kind": "type",
-      "line": 342,
+      "line": 371,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -112024,6 +112508,46 @@
       },
       "name": "StableRandom",
       "path": "src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
+    },
+    {
+      "id": "type:Forge.EngineAdapter.World.SurfaceNavigationLinkPlan",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "SurfaceNavigationLinkPlan",
+      "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+    },
+    {
+      "id": "type:Forge.EngineAdapter.World.SurfaceNavigationPlan",
+      "kind": "type",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "SurfaceNavigationPlan",
+      "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
+    },
+    {
+      "id": "type:Forge.EngineAdapter.World.SurfaceNavigationPlanBuilder",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "SurfaceNavigationPlanBuilder",
+      "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlanBuilder.cs"
+    },
+    {
+      "id": "type:Forge.EngineAdapter.World.SurfaceNavigationTriangle",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "SurfaceNavigationTriangle",
+      "path": "src/Forge.EngineAdapter/World/SurfaceNavigationPlan.cs"
     },
     {
       "id": "type:Forge.EngineAdapter.World.TerrainBuildPlan",
@@ -116978,7 +117502,7 @@
     {
       "id": "type:Forge.Runtime.GameRoot",
       "kind": "type",
-      "line": 44,
+      "line": 45,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -116998,7 +117522,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeAreaChunkLoader",
       "kind": "type",
-      "line": 3109,
+      "line": 3158,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -117028,7 +117552,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 3148,
+      "line": 3197,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -117074,6 +117598,16 @@
       },
       "name": "RuntimeModelLibrary",
       "path": "apps/Forge.Runtime/Runtime/RuntimeModelLibrary.cs"
+    },
+    {
+      "id": "type:Forge.Runtime.WaterContact",
+      "kind": "type",
+      "line": 114,
+      "metadata": {
+        "namespace": "Forge.Runtime"
+      },
+      "name": "WaterContact",
+      "path": "apps/Forge.Runtime/Runtime/PlayerController.cs"
     },
     {
       "id": "type:Forge.Scripting.ApiRegistration",

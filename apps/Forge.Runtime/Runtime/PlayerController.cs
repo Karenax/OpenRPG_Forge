@@ -42,16 +42,16 @@ public partial class PlayerController : CharacterBody3D
         var input = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
         var direction = ResolveMovementDirection(input);
         var velocity = Velocity;
-        var inWater = IsInsideWater();
+        var water = ResolveWaterContact();
         var climb = IsOnAuthoredClimbSurface();
         var decision = MovementCapabilityRuntime.Resolve(_profile,
-            new MovementCapabilityContext(inWater, Input.IsActionPressed("dive"), climb,
+            new MovementCapabilityContext(water.InWater, Input.IsActionPressed("dive"), climb,
                 Input.IsActionPressed("climb"), _breath, _stamina), scaledDelta);
         CurrentCapability = decision.Kind;
         _breath = decision.BreathRemaining;
         _stamina = decision.StaminaRemaining;
-        velocity.X = direction.X * decision.Speed * SimulationScale;
-        velocity.Z = direction.Z * decision.Speed * SimulationScale;
+        velocity.X = (direction.X * decision.Speed * SimulationScale) + water.Current.X;
+        velocity.Z = (direction.Z * decision.Speed * SimulationScale) + water.Current.Z;
         velocity.Y = decision.Kind switch
         {
             MovementCapabilityKind.Swimming => Mathf.MoveToward(velocity.Y, decision.VerticalAcceleration,
@@ -83,15 +83,20 @@ public partial class PlayerController : CharacterBody3D
         return ((right * input.X) - (forward * input.Y)).Normalized();
     }
 
-    private bool IsInsideWater()
+    private WaterContact ResolveWaterContact()
     {
         foreach (var node in GetTree().GetNodesInGroup("forge_water_volume"))
         {
             if (node is Area3D area && area.GetMeta("forge_swimming_enabled", true).AsBool() &&
-                area.GetOverlappingBodies().Any(body => body == this)) return true;
+                area.GetOverlappingBodies().Any(body => body == this))
+            {
+                var direction = area.GetMeta("forge_flow_direction", Vector3.Zero).AsVector3();
+                var speed = area.GetMeta("forge_flow_speed", 0).AsSingle();
+                return new(true, direction.Normalized() * speed);
+            }
         }
 
-        return false;
+        return new(false, Vector3.Zero);
     }
 
     private bool IsOnAuthoredClimbSurface()
@@ -105,4 +110,6 @@ public partial class PlayerController : CharacterBody3D
         if (hit.Count == 0 || !hit.TryGetValue("collider", out var collider)) return false;
         return collider.AsGodotObject() is Node node && node.GetMeta("forge_climb", false).AsBool();
     }
+
+    private readonly record struct WaterContact(bool InWater, Vector3 Current);
 }

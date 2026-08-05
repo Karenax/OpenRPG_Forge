@@ -21,6 +21,7 @@ using Forge.Domain.Entities;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.RuntimePolicies;
@@ -155,6 +156,12 @@ public partial class GameRoot : Node3D
     private int _terrainVertices;
     private int _terrainScatterLayers;
     private int _terrainScatterInstances;
+    private int _terrainWaterSurfaces;
+    private int _terrainWaterVolumes;
+    private int _surfaceNavigationRegions;
+    private int _surfaceNavigationPolygons;
+    private int _surfaceNavigationBlockedTriangles;
+    private int _surfaceNavigationLinks;
 
     public override async void _Ready()
     {
@@ -206,7 +213,7 @@ public partial class GameRoot : Node3D
             _message = $"Explorez {_moduleTitle}.";
             var entryArea = project.Areas.Single(area => area.Id == project.Module.EntryAreaId);
             ConfigureRuntimePolicies(project.Module.RuntimePolicies, entryArea.RuntimePolicies);
-            await ConfigureWorldAsync(entryArea.Environment, entryArea.World, _isCryptPrototype);
+            await ConfigureWorldAsync(entryArea.Environment, entryArea.World, entryArea.Navigation, _isCryptPrototype);
             var selectedSpawn = BuildProject(project, requestedSpawnId);
             if (_camera is not null && _player is not null)
             {
@@ -305,6 +312,12 @@ public partial class GameRoot : Node3D
         if (!Path.IsPathFullyQualified(destination) || !string.Equals(Path.GetExtension(destination), ".png",
             StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("The visual proof destination must be an absolute PNG path.", nameof(destination));
+        if (_isForgottenForestPrototype && _camera is not null)
+        {
+            var bridge = new Vector3(2, 0, 1);
+            _camera.GlobalPosition = bridge + new Vector3(14, 12, 14);
+            _camera.LookAt(bridge + (Vector3.Up * .4f), Vector3.Up);
+        }
         for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var image = GetViewport().GetTexture().GetImage();
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
@@ -1073,11 +1086,15 @@ public partial class GameRoot : Node3D
         return root;
     }
 
-    private async Task ConfigureWorldAsync(AreaEnvironmentProfile environmentProfile, AreaWorldProfile worldProfile,
+    private async Task ConfigureWorldAsync(
+        AreaEnvironmentProfile environmentProfile,
+        AreaWorldProfile worldProfile,
+        AreaNavigationDefinition navigation,
         bool includeCryptAtmosphere)
     {
         ArgumentNullException.ThrowIfNull(environmentProfile);
         ArgumentNullException.ThrowIfNull(worldProfile);
+        ArgumentNullException.ThrowIfNull(navigation);
         var dynamicLights = includeCryptAtmosphere ? 8 : 2;
         var shadowLights = 2;
         _renderPlan = AreaRenderPlanBuilder.Build(
@@ -1129,7 +1146,7 @@ public partial class GameRoot : Node3D
         _environmentProfile = environmentProfile;
         _weatherState = WeatherRuntimeStateMachine.CreateInitial(environmentProfile.Weather);
         ApplyClimateEffects(force: true);
-        await ConfigureAreaWorldAsync(worldProfile);
+        await ConfigureAreaWorldAsync(worldProfile, navigation);
 
         if (includeCryptAtmosphere)
         {
@@ -1146,7 +1163,7 @@ public partial class GameRoot : Node3D
         _camera.LookAt(Vector3.Zero, Vector3.Up);
     }
 
-    private async Task ConfigureAreaWorldAsync(AreaWorldProfile profile)
+    private async Task ConfigureAreaWorldAsync(AreaWorldProfile profile, AreaNavigationDefinition navigation)
     {
         var started = Stopwatch.GetTimestamp();
         _activeBiomeTags = profile.Biomes.SelectMany(item => item.Tags)
@@ -1157,11 +1174,23 @@ public partial class GameRoot : Node3D
         _terrainVertices = terrain.Vertices;
         _terrainScatterLayers = terrain.ScatterLayers;
         _terrainScatterInstances = terrain.ScatterInstances;
+        _terrainWaterSurfaces = terrain.WaterSurfaces;
+        _terrainWaterVolumes = terrain.WaterVolumes;
+        var surfaceNavigation = GodotSurfaceNavigationAdapter.Build(profile, navigation);
+        _surfaceNavigationRegions = surfaceNavigation.Regions;
+        _surfaceNavigationPolygons = surfaceNavigation.Polygons;
+        _surfaceNavigationBlockedTriangles = surfaceNavigation.BlockedTriangles;
+        _surfaceNavigationLinks = surfaceNavigation.Links;
         _areaWorldRoot = terrain.Root;
+        _areaWorldRoot.AddChild(surfaceNavigation.Root);
         AddChild(_areaWorldRoot);
         foreach (var diagnostic in terrain.Diagnostics)
         {
             GD.Print($"OPENRPG_FORGE_RUNTIME_TERRAIN_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        }
+        foreach (var diagnostic in surfaceNavigation.Diagnostics)
+        {
+            GD.Print($"OPENRPG_FORGE_RUNTIME_NAVIGATION_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
         }
 
         AreaStreamingResult? streaming = null;
@@ -1213,6 +1242,9 @@ public partial class GameRoot : Node3D
             $"vertices={terrain.Vertices} triangles={terrain.Triangles} collisions={terrain.CollisionShapes} " +
             $"features={terrain.FeatureSegments} volumes={terrain.DebugVolumes} routes={terrain.FlightRouteSegments} " +
             $"scatter_layers={terrain.ScatterLayers} scatter_instances={terrain.ScatterInstances} " +
+            $"water_surfaces={terrain.WaterSurfaces} water_volumes={terrain.WaterVolumes} " +
+            $"nav_regions={surfaceNavigation.Regions} nav_polygons={surfaceNavigation.Polygons} " +
+            $"nav_blocked={surfaceNavigation.BlockedTriangles} nav_links={surfaceNavigation.Links} " +
             $"streamed={streaming?.Resources.Count ?? 0} cache_hits={streaming?.CacheHits ?? 0} " +
             $"elapsed_ms={elapsed.TotalMilliseconds:0.###} target_ms={profile.Loading.TargetLoadMilliseconds}");
     }
@@ -2950,6 +2982,12 @@ public partial class GameRoot : Node3D
         AssertSmoke(_terrainVertices == 33 * 33, "The authored 33 x 33 terrain grid was not reconstructed.");
         AssertSmoke(_terrainScatterLayers >= 3, "The biome scatter did not reconstruct enough visual layers.");
         AssertSmoke(_terrainScatterInstances >= 300, "The forest is too sparse for the playable slice.");
+        AssertSmoke(_terrainWaterSurfaces == 4 && _terrainWaterVolumes == 4,
+            "Forgotten Forest must reconstruct all four animated river segments and swim volumes.");
+        AssertSmoke(_surfaceNavigationRegions == 1 && _surfaceNavigationPolygons > 0,
+            "Forgotten Forest did not reconstruct its playable surface navigation region.");
+        AssertSmoke(_surfaceNavigationBlockedTriangles > 0 && _surfaceNavigationLinks == 1,
+            "River crossing policy or the authored bridge traversal is missing from surface navigation.");
         AssertSmoke(_modelLibrary?.Count == 22, "All 22 governed Mini Forest models must be available.");
         AssertSmoke(_runtimeModelInstances >= 18, "Authored entities did not use their governed 3D models.");
         AssertSmoke(_player is not null && _npc is not null && _keyItem is not null && _door is not null &&
@@ -2957,6 +2995,13 @@ public partial class GameRoot : Node3D
         AssertSmoke(_hostiles.Count == 3, "Forgotten Forest must reconstruct two scouts and its boss.");
         AssertSmoke(project.Dialogues.Count == 1 && project.Quests.Count == 1,
             "Forgotten Forest dialogue or quest data is missing.");
+        var navigationPath = NavigationServer3D.MapGetPath(
+            GetWorld3D().NavigationMap,
+            _player!.GlobalPosition,
+            _exit!.GlobalPosition,
+            optimize: true);
+        AssertSmoke(navigationPath.Length >= 2,
+            "Godot surface navigation could not find a path from the forest spawn to the sanctuary.");
 
         InteractWith(_npc!);
         AssertSmoke(_questMachine?.CurrentState.DisplayName == "La Graine de lune",
@@ -2979,6 +3024,10 @@ public partial class GameRoot : Node3D
         GD.Print(
             $"OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain={_terrainVertices} " +
             $"scatter_layers={_terrainScatterLayers} scatter_instances={_terrainScatterInstances} " +
+            $"water_surfaces={_terrainWaterSurfaces} water_volumes={_terrainWaterVolumes} " +
+            $"nav_regions={_surfaceNavigationRegions} nav_polygons={_surfaceNavigationPolygons} " +
+            $"nav_blocked={_surfaceNavigationBlockedTriangles} nav_links={_surfaceNavigationLinks} " +
+            $"nav_path_points={navigationPath.Length} " +
             $"manifests={_modelLibrary!.Count} model_instances={_runtimeModelInstances} " +
             $"entities={_builtEntityCount} quest=completed boss=defeated camera=orbit");
         GetTree().Quit(0);

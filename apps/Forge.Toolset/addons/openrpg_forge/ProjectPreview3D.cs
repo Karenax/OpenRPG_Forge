@@ -207,7 +207,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         _dragPalette.SetBlueprints(project.Blueprints);
         _areaRoot = new Node3D { Name = "AreaPreview" };
         _world.AddChild(_areaRoot);
-        ApplyAreaWorld(area.World);
+        ApplyAreaWorld(area.World, area.Navigation);
 
         foreach (var entity in area.Entities)
         {
@@ -1249,9 +1249,11 @@ public partial class ProjectPreview3D : SubViewportContainer
             $"water={_waterSurfaces} reverb={_reverbPreset}");
     }
 
-    private void ApplyAreaWorld(AreaWorldProfile profile)
+    private void ApplyAreaWorld(AreaWorldProfile profile, AreaNavigationDefinition navigation)
     {
         var result = GodotTerrainAdapter.Build(profile);
+        var surfaceNavigation = GodotSurfaceNavigationAdapter.Build(profile, navigation);
+        result.Root.AddChild(surfaceNavigation.Root);
         _areaRoot!.AddChild(result.Root);
         _terrainVertices = result.Vertices;
         _terrainTriangles = result.Triangles;
@@ -1263,11 +1265,18 @@ public partial class ProjectPreview3D : SubViewportContainer
         {
             GD.Print($"OPENRPG_FORGE_TOOLSET_TERRAIN_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
         }
+        foreach (var diagnostic in surfaceNavigation.Diagnostics)
+        {
+            GD.Print($"OPENRPG_FORGE_TOOLSET_NAVIGATION_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        }
 
         GD.Print(
             $"OPENRPG_FORGE_TOOLSET_TERRAIN_APPLIED provider={profile.Terrain.Provider.ToString().ToLowerInvariant()} " +
             $"vertices={result.Vertices} triangles={result.Triangles} collisions={result.CollisionShapes} " +
-            $"features={result.FeatureSegments} volumes={result.DebugVolumes} routes={result.FlightRouteSegments}");
+            $"features={result.FeatureSegments} volumes={result.DebugVolumes} routes={result.FlightRouteSegments} " +
+            $"water_surfaces={result.WaterSurfaces} water_volumes={result.WaterVolumes} " +
+            $"nav_regions={surfaceNavigation.Regions} nav_polygons={surfaceNavigation.Polygons} " +
+            $"nav_blocked={surfaceNavigation.BlockedTriangles} nav_links={surfaceNavigation.Links}");
     }
 
     private void ApplyPbrMaterials(Node node)

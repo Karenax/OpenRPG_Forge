@@ -239,10 +239,12 @@ collisions, navigation et profils de qualité. Elle est détaillée dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md).
 
 L’état visible actuel reste double : la Crypte utilise des primitives procédurales originales pour
-prouver les workflows, tandis que le prototype Forgotten Forest prouve le scatter par chunks et la
-peinture d’un masque RGBA sur 128 × 128 m. G11-I apporte désormais la fondation de relief générique,
-les biomes, trous, features, volumes et collisions partagés avec le runtime. Sa capture
-[`forge-forest-map-demo.png`](assets/screenshots/forge-forest-map-demo.png) est une preuve
-fonctionnelle intermédiaire, pas une validation artistique finale. La sculpture interactive, la
-curation des assets, la composition, l’eau de production, la navigation de surface de la carte et le
-profilage restent nécessaires avant d’en faire la référence graphique d’OpenRPG Forge.
+prouver les workflows, tandis que Forgotten Forest assemble 22 modèles GLB CC0 gouvernés, 357
+instances MultiMesh et un relief 33 × 33 sur 128 × 128 m. G11-I apporte la fondation de relief
+générique, les biomes, trous, features, volumes et collisions partagés avec le runtime. AV4B y ajoute
+une rivière shader animée, quatre volumes de nage/courant et une navigation de surface réelle de
+1 990 polygones avec traversée de pont. La capture Forward+ dans
+`artifacts/verification/forgotten-forest-water-navigation-forward-plus.png` valide ce palier visuel
+local ; elle ne constitue pas encore la direction artistique finale. Sculpture interactive,
+animations, ambiance audio, VFX, composition 512 × 512 et profilage restent nécessaires avant d’en
+faire la référence graphique d’OpenRPG Forge.
