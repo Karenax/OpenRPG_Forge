@@ -44,6 +44,9 @@ Dernière mise à jour : 5 août 2026.
 - profil éditeur v2 avec échelle UI/texte, replis de polices, onglets de zones et favoris/récents.
 - profil de rendu de zone PBR/HDR avec tone mapping, éclairage par pixel, budgets de lumières et ciel
   physique/procédural/panorama, appliqué de façon identique au Creator et au runtime.
+- profil de monde de zone avec terrain `Heightmap`/`Flat`, matériaux, biomes, trous, features,
+  volumes de navigation, routes aériennes, collisions et streaming asynchrone partagé par Creator et
+  runtime.
 
 ## Partiellement terminé
 
@@ -60,11 +63,12 @@ Dernière mise à jour : 5 août 2026.
 - génération de miniatures et planches contact ;
 - service de surveillance temps réel ;
 - packs artistiques curatés ;
-- terrain sculpté, navigation, routes et carte Forgotten Forest finale 512 × 512 m ; une eau de
-  référence fonctionnelle est disponible, avant shader et composition de production.
+- sculpture interactive, navigation de surface, composition et carte Forgotten Forest finale
+  512 × 512 m ; la fondation terrain générique, ses routes et une eau de référence fonctionnelle sont
+  disponibles avant shader et composition de production.
 
 ## Prochaine action
 
-Livrer G11-I (terrain multi-biome, features et navigation volumétrique), curater un premier pack
-multi-biome cohérent et remplacer les trois slots du prototype par des GLB gouvernés sans faire des
+Curater un premier pack multi-biome cohérent, remplacer les trois slots du prototype par des GLB
+gouvernés et composer une première carte extérieure jouable depuis `AreaWorldProfile`, sans faire des
 nœuds générés la source de vérité de la carte.

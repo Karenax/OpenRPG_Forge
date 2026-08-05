@@ -162,7 +162,7 @@ public sealed record WeatherStateProfile
         TransitionSeconds = transitionSeconds;
     }
 
-    internal static string NormalizeOptionalResource(string value)
+    public static string NormalizeOptionalResource(string value)
     {
         var normalized = value.Trim().Replace('\\', '/');
         if (string.IsNullOrEmpty(normalized)) return string.Empty;

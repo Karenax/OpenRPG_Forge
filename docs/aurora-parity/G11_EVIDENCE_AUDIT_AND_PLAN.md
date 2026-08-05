@@ -98,6 +98,12 @@ surfaces/volumes et reverb ; la machine météo autoritaire possède un snapshot
 `.orpsave` 1.1. La preuve détaillée est dans
 [`tasks/G11-H-CLIMATE-WATER-REVERB.md`](tasks/G11-H-CLIMATE-WATER-REVERB.md).
 
+**G11-I est fermé le 5 août 2026.** Le profil de monde par zone porte terrain générique, couches de
+matériau, biomes, trous, features, volumes de navigation, routes aériennes et budgets de chargement.
+Le viewport Creator et le runtime partagent le même plan de mesh/collision ; la navigation A* 3D et
+le streaming asynchrone borné sont testés hors moteur. La preuve détaillée est dans
+[`tasks/G11-I-GENERIC-TERRAIN-WORLD.md`](tasks/G11-I-GENERIC-TERRAIN-WORLD.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-I** : terrain générique multi-biome, features et navigation volumétrique.
+Démarrer **G11-J** : événements de repos/heartbeat, interdictions et abandon contrôlé.

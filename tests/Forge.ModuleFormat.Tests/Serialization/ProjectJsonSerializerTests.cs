@@ -374,6 +374,23 @@ public sealed class ProjectJsonSerializerTests
     }
 
     [Fact]
+    public void Deserialize_MigratesPreWorldProfileWithStableAreaDefaults()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreWorldProfileFormatVersion;
+        document["project"]!["areas"]!.AsArray()[0]!.AsObject().Remove("world");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Equal(first.Areas[0].World.Id, second.Areas[0].World.Id);
+        Assert.Equal(first.Areas[0].World.Terrain.Id, second.Areas[0].World.Terrain.Id);
+        Assert.Equal(TerrainProviderKind.None, first.Areas[0].World.Terrain.Provider);
+        Assert.Contains($"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(first), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Deserialize_MigratesPaletteProvenanceFormatWithProjectDefaults()
     {
         var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();

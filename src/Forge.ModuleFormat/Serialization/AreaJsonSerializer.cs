@@ -5,7 +5,8 @@ namespace Forge.ModuleFormat.Serialization;
 
 public static class AreaJsonSerializer
 {
-    public const string CurrentFormatVersion = "1.3.0";
+    public const string CurrentFormatVersion = "1.4.0";
+    public const string PreWorldProfileFormatVersion = "1.3.0";
     public const string PreClimateProfileFormatVersion = "1.2.0";
     public const string PreRenderingProfileFormatVersion = "1.1.0";
     public const string PreNavigationFormatVersion = "1.0.0";
@@ -24,6 +25,7 @@ public static class AreaJsonSerializer
         var document = JsonSerializer.Deserialize<AreaDocument>(json, Options)
             ?? throw new JsonException("The area document is empty.");
         if (!string.Equals(document.FormatVersion, CurrentFormatVersion, StringComparison.Ordinal) &&
+            !string.Equals(document.FormatVersion, PreWorldProfileFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(document.FormatVersion, PreClimateProfileFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(document.FormatVersion, PreRenderingProfileFormatVersion, StringComparison.Ordinal) &&
             !string.Equals(document.FormatVersion, PreNavigationFormatVersion, StringComparison.Ordinal))

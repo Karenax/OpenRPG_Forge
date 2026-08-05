@@ -203,6 +203,13 @@ flottabilité, qualité et fondu audio avant une application atomique. Le viewpo
 la précipitation, la surface d'eau et le preset acoustique sélectionnés. Les collections avancées de
 zones conservent leur modèle canonique et recevront un éditeur de liste dédié.
 
+G11-I ajoute **Terrain & volumes** depuis le workspace Monde. Quatre onglets séparent le relief et
+les biomes, les routes/features, la navigation 3D et les budgets de chargement. Les contrôles
+emploient le vocabulaire de la carte — hauteur, pente, densité, vol, nage, cache — sans exposer les
+nœuds du moteur. Une seule action braise applique le profil complet par transaction ; le viewport
+reconstruit immédiatement terrain, collisions et overlays. Les providers non encore rendus
+nativement restent identifiés comme replis, jamais présentés comme une réussite silencieuse.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
@@ -212,8 +219,9 @@ collisions, navigation et profils de qualité. Elle est détaillée dans
 
 L’état visible actuel reste double : la Crypte utilise des primitives procédurales originales pour
 prouver les workflows, tandis que le prototype Forgotten Forest prouve le scatter par chunks et la
-peinture d’un masque RGBA sur 128 × 128 m. Sa capture
+peinture d’un masque RGBA sur 128 × 128 m. G11-I apporte désormais la fondation de relief générique,
+les biomes, trous, features, volumes et collisions partagés avec le runtime. Sa capture
 [`forge-forest-map-demo.png`](assets/screenshots/forge-forest-map-demo.png) est une preuve
-fonctionnelle intermédiaire, pas une validation artistique finale. La curation des assets, les
-matériaux normalisés, le relief, la composition, l’eau, l’éclairage, la navigation et le profilage
-restent nécessaires avant d’en faire la référence graphique d’OpenRPG Forge.
+fonctionnelle intermédiaire, pas une validation artistique finale. La sculpture interactive, la
+curation des assets, la composition, l’eau de production, la navigation de surface de la carte et le
+profilage restent nécessaires avant d’en faire la référence graphique d’OpenRPG Forge.

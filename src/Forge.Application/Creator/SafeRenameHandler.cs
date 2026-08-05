@@ -178,7 +178,10 @@ public sealed class SafeRenameHandler
                     area.Dimensions,
                     area.Portals,
                     area.SchemaVersion,
-                    area.Navigation)
+                    area.Navigation,
+                    area.Environment,
+                    area.Authoring,
+                    area.World)
                 : area).ToArray()
             : project.Areas;
         var blueprints = kind == CreatorContentKind.Blueprint

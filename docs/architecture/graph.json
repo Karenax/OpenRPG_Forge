@@ -124,6 +124,33 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.EngineAdapter.World.GodotTerrainAdapter",
+      "target": "file:src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+    },
+    {
+      "evidence": {
+        "line": 145,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.EngineAdapter.World.GodotTerrainAdapter",
+      "target": "model:Forge.Domain.Areas.TerrainFeatureKind"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.EngineAdapter.World.GodotTerrainAdapter",
+      "target": "model:Forge.EngineAdapter.World.GodotTerrainResult"
+    },
+    {
+      "evidence": {
         "line": 210,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
@@ -169,7 +196,7 @@
     },
     {
       "evidence": {
-        "line": 15,
+        "line": 16,
         "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -178,7 +205,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 19,
         "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -790,7 +817,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 30,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -799,7 +826,7 @@
     },
     {
       "evidence": {
-        "line": 73,
+        "line": 75,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -808,7 +835,7 @@
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 36,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -817,7 +844,7 @@
     },
     {
       "evidence": {
-        "line": 89,
+        "line": 91,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -997,7 +1024,7 @@
     },
     {
       "evidence": {
-        "line": 94,
+        "line": 96,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1006,7 +1033,7 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 25,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1015,7 +1042,7 @@
     },
     {
       "evidence": {
-        "line": 40,
+        "line": 41,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1024,7 +1051,7 @@
     },
     {
       "evidence": {
-        "line": 141,
+        "line": 143,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1303,7 +1330,7 @@
     },
     {
       "evidence": {
-        "line": 47,
+        "line": 48,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1312,7 +1339,7 @@
     },
     {
       "evidence": {
-        "line": 5064,
+        "line": 5086,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1546,7 +1573,7 @@
     },
     {
       "evidence": {
-        "line": 1363,
+        "line": 1367,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1555,7 +1582,7 @@
     },
     {
       "evidence": {
-        "line": 1428,
+        "line": 1432,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1564,7 +1591,7 @@
     },
     {
       "evidence": {
-        "line": 1728,
+        "line": 1732,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1573,7 +1600,7 @@
     },
     {
       "evidence": {
-        "line": 1428,
+        "line": 1432,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1582,7 +1609,7 @@
     },
     {
       "evidence": {
-        "line": 1477,
+        "line": 1481,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1591,7 +1618,7 @@
     },
     {
       "evidence": {
-        "line": 1681,
+        "line": 1685,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1609,7 +1636,7 @@
     },
     {
       "evidence": {
-        "line": 652,
+        "line": 656,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1618,7 +1645,7 @@
     },
     {
       "evidence": {
-        "line": 1428,
+        "line": 1432,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1627,7 +1654,7 @@
     },
     {
       "evidence": {
-        "line": 1478,
+        "line": 1482,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1636,7 +1663,7 @@
     },
     {
       "evidence": {
-        "line": 1530,
+        "line": 1534,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1645,7 +1672,7 @@
     },
     {
       "evidence": {
-        "line": 1622,
+        "line": 1626,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1663,7 +1690,7 @@
     },
     {
       "evidence": {
-        "line": 1333,
+        "line": 1337,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1672,7 +1699,7 @@
     },
     {
       "evidence": {
-        "line": 1428,
+        "line": 1432,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1681,7 +1708,7 @@
     },
     {
       "evidence": {
-        "line": 1479,
+        "line": 1483,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1690,7 +1717,7 @@
     },
     {
       "evidence": {
-        "line": 1530,
+        "line": 1534,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1699,7 +1726,7 @@
     },
     {
       "evidence": {
-        "line": 1697,
+        "line": 1701,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1735,7 +1762,7 @@
     },
     {
       "evidence": {
-        "line": 652,
+        "line": 656,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1762,7 +1789,7 @@
     },
     {
       "evidence": {
-        "line": 1334,
+        "line": 1338,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1780,7 +1807,7 @@
     },
     {
       "evidence": {
-        "line": 1714,
+        "line": 1718,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2446,12 +2473,12 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 17,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.EngineAdapter.World"
     },
     {
       "evidence": {
@@ -2460,16 +2487,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Saves"
-    },
-    {
-      "evidence": {
-        "line": 17,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Serialization"
+      "target": "namespace:Forge.ModuleFormat.Packages"
     },
     {
       "evidence": {
@@ -2478,11 +2496,29 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Workspaces"
+      "target": "namespace:Forge.ModuleFormat.Saves"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
       "evidence": {
         "line": 21,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 22,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "imports",
@@ -3382,21 +3418,12 @@
     },
     {
       "evidence": {
-        "line": 35,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
-    },
-    {
-      "evidence": {
         "line": 34,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Build"
+      "target": "namespace:Forge.EngineAdapter.World"
     },
     {
       "evidence": {
@@ -3405,7 +3432,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Content"
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
     },
     {
       "evidence": {
@@ -3414,7 +3450,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Distribution"
+      "target": "namespace:Forge.ModuleFormat.Content"
     },
     {
       "evidence": {
@@ -3423,16 +3459,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Navigation"
-    },
-    {
-      "evidence": {
-        "line": 40,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.ModuleFormat.Distribution"
     },
     {
       "evidence": {
@@ -3441,11 +3468,29 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.ModuleFormat.Navigation"
     },
     {
       "evidence": {
         "line": 41,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
+    },
+    {
+      "evidence": {
+        "line": 42,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3733,6 +3778,15 @@
     },
     {
       "evidence": {
+        "line": 17,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs",
+      "target": "namespace:Forge.EngineAdapter.World"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/RecoveryWindow.cs"
       },
@@ -3766,6 +3820,33 @@
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs",
       "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -3823,7 +3904,7 @@
     },
     {
       "evidence": {
-        "line": 211,
+        "line": 218,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -3901,6 +3982,15 @@
       "kind": "references",
       "source": "file:docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md",
       "target": "file:docs/aurora-parity/tasks/G11-H-CLIMATE-WATER-REVERB.md"
+    },
+    {
+      "evidence": {
+        "line": 105,
+        "path": "docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md"
+      },
+      "kind": "references",
+      "source": "file:docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md",
+      "target": "file:docs/aurora-parity/tasks/G11-I-GENERIC-TERRAIN-WORLD.md"
     },
     {
       "evidence": {
@@ -4048,6 +4138,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/AreaStreamingCoordinator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/AreaStreamingCoordinator.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Application/Areas/CreateAreaCommand.cs"
       },
@@ -4557,6 +4656,78 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Areas/SetAreaNavigationHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs",
       "target": "namespace:Forge.Domain.Validation"
     },
     {
@@ -7495,12 +7666,66 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/AreaWorldProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Areas/AreaWorldProfile.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/FlightRouteNode.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Areas/FlightRouteNode.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/NavigationVolumeDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Areas/NavigationVolumeDefinition.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Domain/Areas/PortalLink.cs"
       },
       "kind": "imports",
       "source": "file:src/Forge.Domain/Areas/PortalLink.cs",
       "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/TerrainDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Areas/TerrainDefinition.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/TerrainFeatureDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Areas/TerrainFeatureDefinition.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/VolumetricNavigationProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Areas/VolumetricNavigationProfile.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -7874,6 +8099,51 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraph.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Navigation/VolumetricNavigationGraph.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Navigation/VolumetricNavigationPathfinder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Navigation/VolumetricNavigationPathfinder.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Navigation/VolumetricPathResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Navigation/VolumetricPathResult.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
       },
       "kind": "imports",
@@ -8014,6 +8284,24 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/Validation/AreaNavigationValidator.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Validation/AreaWorldValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/AreaWorldValidator.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Validation/AreaWorldValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/AreaWorldValidator.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -8247,6 +8535,96 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.EngineAdapter/Spatial/EngineValueConverter.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.EngineAdapter/World/ITerrainProvider.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/ITerrainProvider.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildPlan.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/TerrainBuildPlan.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildPlan.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/TerrainBuildPlan.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildVertex.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/TerrainBuildVertex.cs",
       "target": "namespace:Forge.Domain.Spatial"
     },
     {
@@ -10232,6 +10610,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs",
+      "target": "namespace:Forge.Application.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
       },
       "kind": "imports",
@@ -10453,6 +10849,42 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Areas/SetAreaNavigationHandlerTests.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs",
+      "target": "namespace:Forge.Application.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -12274,6 +12706,33 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "tests/Forge.Domain.Tests/Assets/ArtisticStyleProfileTests.cs"
       },
@@ -12671,6 +13130,33 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs",
+      "target": "namespace:Forge.Domain.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Quests/QuestStateMachineTests.cs"
       },
       "kind": "imports",
@@ -12919,6 +13405,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs",
       "target": "namespace:Forge.EngineAdapter.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs",
+      "target": "namespace:Forge.EngineAdapter.World"
     },
     {
       "evidence": {
@@ -13759,7 +14263,7 @@
     },
     {
       "evidence": {
-        "line": 1,
+        "line": 2,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "imports",
@@ -13768,7 +14272,7 @@
     },
     {
       "evidence": {
-        "line": 2,
+        "line": 3,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "imports",
@@ -13777,7 +14281,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 4,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "imports",
@@ -13786,7 +14290,7 @@
     },
     {
       "evidence": {
-        "line": 4,
+        "line": 5,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "imports",
@@ -13795,7 +14299,7 @@
     },
     {
       "evidence": {
-        "line": 5,
+        "line": 6,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "imports",
@@ -16972,7 +17476,7 @@
     },
     {
       "evidence": {
-        "line": 212,
+        "line": 215,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -16981,7 +17485,7 @@
     },
     {
       "evidence": {
-        "line": 209,
+        "line": 212,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -16990,7 +17494,7 @@
     },
     {
       "evidence": {
-        "line": 213,
+        "line": 216,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17008,7 +17512,7 @@
     },
     {
       "evidence": {
-        "line": 118,
+        "line": 121,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17035,7 +17539,7 @@
     },
     {
       "evidence": {
-        "line": 145,
+        "line": 148,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17053,7 +17557,7 @@
     },
     {
       "evidence": {
-        "line": 144,
+        "line": 147,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17080,7 +17584,7 @@
     },
     {
       "evidence": {
-        "line": 102,
+        "line": 105,
         "path": "src/Forge.Application/Areas/DuplicateAreaHandler.cs"
       },
       "kind": "uses_model",
@@ -17116,7 +17620,7 @@
     },
     {
       "evidence": {
-        "line": 38,
+        "line": 42,
         "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
       },
       "kind": "uses_model",
@@ -17125,7 +17629,7 @@
     },
     {
       "evidence": {
-        "line": 45,
+        "line": 49,
         "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
       },
       "kind": "uses_model",
@@ -17134,7 +17638,7 @@
     },
     {
       "evidence": {
-        "line": 38,
+        "line": 42,
         "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
       },
       "kind": "uses_model",
@@ -17152,7 +17656,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 40,
         "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
       },
       "kind": "uses_model",
@@ -17170,7 +17674,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 32,
         "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
       },
       "kind": "uses_model",
@@ -17197,7 +17701,7 @@
     },
     {
       "evidence": {
-        "line": 31,
+        "line": 35,
         "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
       },
       "kind": "uses_model",
@@ -17482,6 +17986,96 @@
       "kind": "uses_model",
       "source": "handler:Forge.Application.Areas.SetAreaNavigationHandler",
       "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "target": "file:src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "target": "model:Forge.Application.Areas.SetAreaWorldProfileCommand"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
     },
     {
       "evidence": {
@@ -18700,7 +19294,7 @@
     },
     {
       "evidence": {
-        "line": 225,
+        "line": 228,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -18709,7 +19303,7 @@
     },
     {
       "evidence": {
-        "line": 222,
+        "line": 225,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -18718,7 +19312,7 @@
     },
     {
       "evidence": {
-        "line": 226,
+        "line": 229,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -18781,7 +19375,7 @@
     },
     {
       "evidence": {
-        "line": 186,
+        "line": 189,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -18790,7 +19384,7 @@
     },
     {
       "evidence": {
-        "line": 199,
+        "line": 202,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -20284,6 +20878,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.EngineAdapter/World/ITerrainProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "interface:Forge.EngineAdapter.World.ITerrainProvider",
+      "target": "file:src/Forge.EngineAdapter/World/ITerrainProvider.cs"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
       },
@@ -20330,11 +20933,29 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Application/Areas/AreaStreamingResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.AreaStreamingResult",
+      "target": "file:src/Forge.Application/Areas/AreaStreamingResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Application/Areas/AreaTemplateKind.cs"
       },
       "kind": "defined_in",
       "source": "model:Forge.Application.Areas.AreaTemplateKind",
       "target": "file:src/Forge.Application/Areas/AreaTemplateKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 158,
+        "path": "src/Forge.Application/Areas/AreaStreamingCoordinator.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.CacheEntry",
+      "target": "file:src/Forge.Application/Areas/AreaStreamingCoordinator.cs"
     },
     {
       "evidence": {
@@ -20551,6 +21172,33 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Areas.SetAreaNavigationCommand",
       "target": "model:Forge.Domain.Navigation.AreaNavigationDefinition"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Areas.SetAreaWorldProfileCommand",
+      "target": "file:src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.SetAreaWorldProfileCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Areas.SetAreaWorldProfileCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
     },
     {
       "evidence": {
@@ -22093,6 +22741,24 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/BiomeLayerDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.BiomeLayerDefinition",
+      "target": "file:src/Forge.Domain/Areas/BiomeLayerDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/FlightRouteDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.FlightRouteDefinition",
+      "target": "file:src/Forge.Domain/Areas/FlightRouteDefinition.cs"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
       },
@@ -22120,12 +22786,93 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Areas/NavigationVolumeDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.NavigationVolumeDefinition",
+      "target": "file:src/Forge.Domain/Areas/NavigationVolumeDefinition.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Areas/PortalId.cs"
       },
       "kind": "defined_in",
       "source": "model:Forge.Domain.Areas.PortalId",
       "target": "file:src/Forge.Domain/Areas/PortalId.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Areas/TerrainDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.TerrainDefinition",
+      "target": "file:src/Forge.Domain/Areas/TerrainDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "src/Forge.Domain/Areas/TerrainDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Areas.TerrainDefinition",
+      "target": "model:Forge.Domain.Areas.TerrainHoleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Domain/Areas/TerrainDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Areas.TerrainDefinition",
+      "target": "model:Forge.Domain.Areas.TerrainProviderKind"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Areas/TerrainFeatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.TerrainFeatureDefinition",
+      "target": "file:src/Forge.Domain/Areas/TerrainFeatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Domain/Areas/TerrainFeatureDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Areas.TerrainFeatureDefinition",
+      "target": "model:Forge.Domain.Areas.TerrainFeatureKind"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/TerrainFeatureKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.TerrainFeatureKind",
+      "target": "file:src/Forge.Domain/Areas/TerrainFeatureKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/TerrainHoleDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.TerrainHoleDefinition",
+      "target": "file:src/Forge.Domain/Areas/TerrainHoleDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/TerrainProviderKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Areas.TerrainProviderKind",
+      "target": "file:src/Forge.Domain/Areas/TerrainProviderKind.cs"
     },
     {
       "evidence": {
@@ -23290,6 +24037,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Navigation/VolumetricPathResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Navigation.VolumetricPathResult",
+      "target": "file:src/Forge.Domain/Navigation/VolumetricPathResult.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.Domain/Projects/ProjectDefinition.cs"
       },
@@ -23673,6 +24429,24 @@
       },
       "kind": "relationship",
       "source": "model:Forge.EngineAdapter.Rendering.GodotEnvironmentResult",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.EngineAdapter.World.GodotTerrainResult",
+      "target": "file:src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.EngineAdapter.World.GodotTerrainResult",
       "target": "model:Forge.Domain.Validation.DomainDiagnostic"
     },
     {
@@ -26602,7 +27376,7 @@
     },
     {
       "evidence": {
-        "line": 1874,
+        "line": 1950,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -26891,6 +27665,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Areas/AreaChunkPayload.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/AreaChunkPayload.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Areas/AreaCloneMode.cs"
       },
       "kind": "defined_in",
@@ -26932,6 +27715,33 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Areas",
       "target": "file:src/Forge.Application/Areas/AreaPerformanceAnalyzer.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/AreaStreamingCoordinator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/AreaStreamingCoordinator.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/AreaStreamingProgress.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/AreaStreamingProgress.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/AreaStreamingResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/AreaStreamingResult.cs"
     },
     {
       "evidence": {
@@ -26998,6 +27808,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Areas/IAreaChunkLoader.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/IAreaChunkLoader.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.Application/Areas/SetAreaAuthoringCommand.cs"
       },
@@ -27049,6 +27868,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Areas",
       "target": "file:src/Forge.Application/Areas/SetAreaNavigationHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Areas",
+      "target": "file:src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
     },
     {
       "evidence": {
@@ -28186,6 +29023,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Areas",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
       },
@@ -28219,6 +29065,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Areas",
       "target": "file:tests/Forge.Application.Tests/Areas/SetAreaNavigationHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Areas",
+      "target": "file:tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
     },
     {
       "evidence": {
@@ -28655,11 +29510,83 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Areas/AreaLoadingProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/AreaLoadingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Areas/AreaRenderingProfile.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Areas",
       "target": "file:src/Forge.Domain/Areas/AreaRenderingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Areas/AreaWorldProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/AreaWorldProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/BiomeLayerDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/BiomeLayerDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/FlightObstaclePolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/FlightObstaclePolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/FlightRouteCurve.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/FlightRouteCurve.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/FlightRouteDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/FlightRouteDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Areas/FlightRouteNode.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/FlightRouteNode.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Areas/NavigationVolumeDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/NavigationVolumeDefinition.cs"
     },
     {
       "evidence": {
@@ -28678,6 +29605,87 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Areas",
       "target": "file:src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Areas/TerrainDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/TerrainDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/TerrainFeatureCrossingPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/TerrainFeatureCrossingPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Areas/TerrainFeatureDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/TerrainFeatureDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/TerrainFeatureKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/TerrainFeatureKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/TerrainHoleDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/TerrainHoleDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/TerrainMaterialLayer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/TerrainMaterialLayer.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/TerrainProviderKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/TerrainProviderKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/VolumetricNavigationMode.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/VolumetricNavigationMode.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Areas/VolumetricNavigationProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/VolumetricNavigationProfile.cs"
     },
     {
       "evidence": {
@@ -30004,6 +31012,51 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Navigation/VolumetricCell.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/VolumetricCell.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraph.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/VolumetricNavigationGraph.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Navigation/VolumetricNavigationPathfinder.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/VolumetricNavigationPathfinder.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Navigation/VolumetricPathResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Navigation",
+      "target": "file:src/Forge.Domain/Navigation/VolumetricPathResult.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
       },
@@ -30220,6 +31273,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Areas",
+      "target": "file:tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.Domain.Tests/Assets/ArtisticStyleProfileTests.cs"
       },
@@ -30427,6 +31489,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Navigation",
+      "target": "file:tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "tests/Forge.Domain.Tests/Quests/QuestStateMachineTests.cs"
       },
@@ -30496,6 +31567,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Validation",
       "target": "file:src/Forge.Domain/Validation/AreaNavigationValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Validation/AreaWorldValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Validation",
+      "target": "file:src/Forge.Domain/Validation/AreaWorldValidator.cs"
     },
     {
       "evidence": {
@@ -30658,6 +31738,69 @@
       "kind": "defined_in",
       "source": "namespace:Forge.EngineAdapter.Tests.Spatial",
       "target": "file:tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.Tests.World",
+      "target": "file:tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/ITerrainProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/ITerrainProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildPlan.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/TerrainBuildPlan.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildVertex.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/TerrainBuildVertex.cs"
     },
     {
       "evidence": {
@@ -31759,7 +32902,7 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 7,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "defined_in",
@@ -33055,7 +34198,7 @@
     },
     {
       "evidence": {
-        "line": 23,
+        "line": 24,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -33370,7 +34513,7 @@
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 44,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -33442,7 +34585,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 19,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "defined_in",
@@ -33466,6 +34609,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Toolset.Editor",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
     },
     {
       "evidence": {
@@ -36601,6 +37753,51 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Areas.AreaStreamingCoordinatorTests",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaStreamingCoordinatorTests",
+      "target": "type:Forge.Application.Areas.AreaChunkPayload"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaStreamingCoordinatorTests",
+      "target": "type:Forge.Application.Areas.AreaStreamingCoordinator"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaStreamingCoordinatorTests",
+      "target": "type:Forge.Application.Areas.AreaStreamingProgress"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.AreaStreamingCoordinatorTests",
+      "target": "type:Forge.Domain.Areas.AreaLoadingProfile"
+    },
+    {
+      "evidence": {
         "line": 13,
         "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
       },
@@ -36832,6 +38029,78 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
       "target": "validator:Forge.Domain.Validation.ProjectValidator"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Areas.BlockingLoader",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.BlockingLoader",
+      "target": "type:Forge.Application.Areas.AreaChunkPayload"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.BlockingLoader",
+      "target": "type:Forge.Application.Areas.IAreaChunkLoader"
+    },
+    {
+      "evidence": {
+        "line": 85,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Areas.InlineProgress",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 85,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.InlineProgress",
+      "target": "type:Forge.Application.Areas.AreaStreamingProgress"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Areas.RecordingLoader",
+      "target": "file:tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.RecordingLoader",
+      "target": "type:Forge.Application.Areas.AreaChunkPayload"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.RecordingLoader",
+      "target": "type:Forge.Application.Areas.IAreaChunkLoader"
     },
     {
       "evidence": {
@@ -37165,6 +38434,96 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Areas.SetAreaNavigationHandlerTests",
       "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "target": "file:tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "target": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "target": "model:Forge.Application.Areas.SetAreaWorldProfileCommand"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "target": "type:Forge.Domain.Areas.AreaLoadingProfile"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "target": "type:Forge.Domain.Areas.AreaWorldProfile"
     },
     {
       "evidence": {
@@ -42325,6 +43684,15 @@
     },
     {
       "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaDefinitionTests",
+      "target": "model:Forge.Domain.Areas.TerrainProviderKind"
+    },
+    {
+      "evidence": {
         "line": 14,
         "path": "tests/Forge.Domain.Tests/Areas/AreaDefinitionTests.cs"
       },
@@ -42448,6 +43816,150 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Areas.AreaRenderingProfileTests",
       "target": "type:Forge.Domain.Areas.ToneMappingProfile"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "file:tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "model:Forge.Domain.Areas.BiomeLayerDefinition"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "model:Forge.Domain.Areas.TerrainDefinition"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "model:Forge.Domain.Areas.TerrainFeatureDefinition"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "model:Forge.Domain.Areas.TerrainFeatureKind"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "model:Forge.Domain.Areas.TerrainHoleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "model:Forge.Domain.Areas.TerrainProviderKind"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "type:Forge.Domain.Areas.AreaWorldProfile"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "type:Forge.Domain.Areas.TerrainFeatureCrossingPolicy"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "type:Forge.Domain.Areas.TerrainMaterialLayer"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "type:Forge.Domain.Areas.VolumetricNavigationMode"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "target": "validator:Forge.Domain.Validation.AreaWorldValidator"
     },
     {
       "evidence": {
@@ -44476,6 +45988,60 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Navigation.VolumetricNavigationTests",
+      "target": "file:tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.VolumetricNavigationTests",
+      "target": "model:Forge.Domain.Areas.NavigationVolumeDefinition"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.VolumetricNavigationTests",
+      "target": "type:Forge.Domain.Areas.VolumetricNavigationMode"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.VolumetricNavigationTests",
+      "target": "type:Forge.Domain.Areas.VolumetricNavigationProfile"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.VolumetricNavigationTests",
+      "target": "type:Forge.Domain.Navigation.VolumetricNavigationGraphBuilder"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Navigation.VolumetricNavigationTests",
+      "target": "type:Forge.Domain.Navigation.VolumetricNavigationPathfinder"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Domain.Tests/Quests/QuestStateMachineTests.cs"
       },
@@ -45373,6 +46939,78 @@
       "kind": "tests",
       "source": "test:Forge.EngineAdapter.Tests.Spatial.EngineValueConverterTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
+      "target": "file:tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.TerrainDefinition"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.TerrainHoleDefinition"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
+      "target": "type:Forge.Domain.Areas.AreaWorldProfile"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
+      "target": "type:Forge.EngineAdapter.World.TerrainBuildPlanBuilder"
     },
     {
       "evidence": {
@@ -47446,7 +49084,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 37,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -47455,7 +49093,7 @@
     },
     {
       "evidence": {
-        "line": 9,
+        "line": 10,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "defined_in",
@@ -47464,7 +49102,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -47473,7 +49111,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 22,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -47482,7 +49120,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 26,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -47491,7 +49129,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 29,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -47500,21 +49138,12 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 44,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
-      "target": "model:Forge.Domain.Blueprints.BlueprintId"
-    },
-    {
-      "evidence": {
-        "line": 16,
-        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
-      "target": "model:Forge.Domain.Entities.EntityId"
+      "target": "model:Forge.Domain.Areas.TerrainProviderKind"
     },
     {
       "evidence": {
@@ -47523,11 +49152,29 @@
       },
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
       "target": "model:Forge.Domain.Entities.EntityInstance"
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 19,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -47536,7 +49183,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -47545,7 +49192,7 @@
     },
     {
       "evidence": {
-        "line": 27,
+        "line": 28,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -47860,7 +49507,7 @@
     },
     {
       "evidence": {
-        "line": 509,
+        "line": 526,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -47869,12 +49516,21 @@
     },
     {
       "evidence": {
-        "line": 510,
+        "line": 527,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
       "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 388,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "model:Forge.Domain.Areas.TerrainProviderKind"
     },
     {
       "evidence": {
@@ -47968,7 +49624,7 @@
     },
     {
       "evidence": {
-        "line": 514,
+        "line": 531,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -47977,7 +49633,7 @@
     },
     {
       "evidence": {
-        "line": 513,
+        "line": 530,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -48058,7 +49714,7 @@
     },
     {
       "evidence": {
-        "line": 518,
+        "line": 535,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -48067,7 +49723,7 @@
     },
     {
       "evidence": {
-        "line": 516,
+        "line": 533,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -48148,7 +49804,7 @@
     },
     {
       "evidence": {
-        "line": 391,
+        "line": 408,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -48319,7 +49975,7 @@
     },
     {
       "evidence": {
-        "line": 523,
+        "line": 540,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -49120,7 +50776,7 @@
     },
     {
       "evidence": {
-        "line": 268,
+        "line": 296,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
       "kind": "tests",
@@ -49135,6 +50791,15 @@
       "kind": "defined_in",
       "source": "test:Forge.ModuleFormat.Tests.Workspaces.ProjectSessionTests",
       "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 245,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.ProjectSessionTests",
+      "target": "model:Forge.Domain.Areas.TerrainProviderKind"
     },
     {
       "evidence": {
@@ -49219,7 +50884,7 @@
     },
     {
       "evidence": {
-        "line": 273,
+        "line": 301,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
       "kind": "tests",
@@ -54116,6 +55781,15 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.Application/Areas/AreaChunkPayload.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.AreaChunkPayload",
+      "target": "file:src/Forge.Application/Areas/AreaChunkPayload.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.Application/Areas/AreaCloneMode.cs"
       },
       "kind": "defined_in",
@@ -54187,6 +55861,24 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Areas/AreaStreamingCoordinator.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.AreaStreamingCoordinator",
+      "target": "file:src/Forge.Application/Areas/AreaStreamingCoordinator.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/AreaStreamingProgress.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.AreaStreamingProgress",
+      "target": "file:src/Forge.Application/Areas/AreaStreamingProgress.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.Application/Areas/AreaAudioMixer.cs"
       },
@@ -54211,6 +55903,15 @@
       "kind": "defined_in",
       "source": "type:Forge.Application.Areas.ExternalPortalPolicy",
       "target": "file:src/Forge.Application/Areas/AreaCloneMode.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Areas/IAreaChunkLoader.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Areas.IAreaChunkLoader",
+      "target": "file:src/Forge.Application/Areas/IAreaChunkLoader.cs"
     },
     {
       "evidence": {
@@ -54853,6 +56554,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/AreaLoadingProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaLoadingProfile",
+      "target": "file:src/Forge.Domain/Areas/AreaLoadingProfile.cs"
+    },
+    {
+      "evidence": {
         "line": 18,
         "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
       },
@@ -54895,6 +56605,15 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Areas.AreaSoundMode",
       "target": "file:src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Areas/AreaWorldProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.AreaWorldProfile",
+      "target": "file:src/Forge.Domain/Areas/AreaWorldProfile.cs"
     },
     {
       "evidence": {
@@ -54967,6 +56686,33 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Areas.DynamicLightBudgetProfile",
       "target": "file:src/Forge.Domain/Areas/AreaRenderingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/FlightObstaclePolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.FlightObstaclePolicy",
+      "target": "file:src/Forge.Domain/Areas/FlightObstaclePolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/FlightRouteCurve.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.FlightRouteCurve",
+      "target": "file:src/Forge.Domain/Areas/FlightRouteCurve.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Areas/FlightRouteNode.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.FlightRouteNode",
+      "target": "file:src/Forge.Domain/Areas/FlightRouteNode.cs"
     },
     {
       "evidence": {
@@ -55051,12 +56797,48 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/TerrainFeatureCrossingPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.TerrainFeatureCrossingPolicy",
+      "target": "file:src/Forge.Domain/Areas/TerrainFeatureCrossingPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/TerrainMaterialLayer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.TerrainMaterialLayer",
+      "target": "file:src/Forge.Domain/Areas/TerrainMaterialLayer.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.Domain/Areas/AreaRenderingProfile.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Domain.Areas.ToneMappingProfile",
       "target": "file:src/Forge.Domain/Areas/AreaRenderingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Areas/VolumetricNavigationMode.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.VolumetricNavigationMode",
+      "target": "file:src/Forge.Domain/Areas/VolumetricNavigationMode.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Areas/VolumetricNavigationProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.VolumetricNavigationProfile",
+      "target": "file:src/Forge.Domain/Areas/VolumetricNavigationProfile.cs"
     },
     {
       "evidence": {
@@ -56464,6 +58246,42 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Navigation/VolumetricCell.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.VolumetricCell",
+      "target": "file:src/Forge.Domain/Navigation/VolumetricCell.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraph.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.VolumetricNavigationGraph",
+      "target": "file:src/Forge.Domain/Navigation/VolumetricNavigationGraph.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.VolumetricNavigationGraphBuilder",
+      "target": "file:src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Navigation/VolumetricNavigationPathfinder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Navigation.VolumetricNavigationPathfinder",
+      "target": "file:src/Forge.Domain/Navigation/VolumetricNavigationPathfinder.cs"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
       },
@@ -56578,6 +58396,42 @@
       "kind": "defined_in",
       "source": "type:Forge.EngineAdapter.Rendering.AreaRenderPlanBuilder",
       "target": "file:src/Forge.EngineAdapter/Rendering/AreaRenderPlanBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.CanonicalTerrainProvider",
+      "target": "file:src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildPlan.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.TerrainBuildPlan",
+      "target": "file:src/Forge.EngineAdapter/World/TerrainBuildPlan.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.TerrainBuildPlanBuilder",
+      "target": "file:src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.EngineAdapter/World/TerrainBuildVertex.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.TerrainBuildVertex",
+      "target": "file:src/Forge.EngineAdapter/World/TerrainBuildVertex.cs"
     },
     {
       "evidence": {
@@ -60658,7 +62512,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -60667,7 +62521,16 @@
     },
     {
       "evidence": {
-        "line": 1842,
+        "line": 1879,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Runtime.RuntimeAreaChunkLoader",
+      "target": "file:apps/Forge.Runtime/Runtime/GameRoot.cs"
+    },
+    {
+      "evidence": {
+        "line": 1918,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -61171,7 +63034,7 @@
     },
     {
       "evidence": {
-        "line": 6299,
+        "line": 6457,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -61189,7 +63052,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 23,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ProjectPreview3D.cs"
       },
       "kind": "defined_in",
@@ -61216,7 +63079,7 @@
     },
     {
       "evidence": {
-        "line": 6304,
+        "line": 6462,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -61225,12 +63088,21 @@
     },
     {
       "evidence": {
-        "line": 6309,
+        "line": 6467,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.TerrainStudioWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
     },
     {
       "evidence": {
@@ -61658,6 +63530,51 @@
     {
       "evidence": {
         "line": 6,
+        "path": "src/Forge.Domain/Validation/AreaWorldValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Validation.AreaWorldValidator",
+      "target": "file:src/Forge.Domain/Validation/AreaWorldValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Domain/Validation/AreaWorldValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.AreaWorldValidator",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 89,
+        "path": "src/Forge.Domain/Validation/AreaWorldValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.AreaWorldValidator",
+      "target": "model:Forge.Domain.Areas.TerrainFeatureDefinition"
+    },
+    {
+      "evidence": {
+        "line": 53,
+        "path": "src/Forge.Domain/Validation/AreaWorldValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.AreaWorldValidator",
+      "target": "model:Forge.Domain.Areas.TerrainFeatureKind"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Domain/Validation/AreaWorldValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.AreaWorldValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "src/Forge.Domain/Validation/ArtisticCompatibilityValidator.cs"
       },
       "kind": "defined_in",
@@ -61747,7 +63664,7 @@
     },
     {
       "evidence": {
-        "line": 89,
+        "line": 91,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -61945,8 +63862,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:ac41d483f18c2674ad51ddad327924ffb2afd8c9317ddaf2330c915a983df1a6",
-    "source_file_count": 1173
+    "source_digest": "sha256:867d3862f816ce0ea567cc905741fcd574cb7a1757e467e18e38e323ea7a4dd7",
+    "source_file_count": 1219
   },
   "nodes": [
     {
@@ -61978,6 +63895,16 @@
       },
       "name": "EngineValueConverter",
       "path": "src/Forge.EngineAdapter/Spatial/EngineValueConverter.cs"
+    },
+    {
+      "id": "adapter:Forge.EngineAdapter.World.GodotTerrainAdapter",
+      "kind": "adapter",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "GodotTerrainAdapter",
+      "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
     },
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.AbilityIdJsonConverter",
@@ -62742,7 +64669,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 47,
+      "line": 48,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -63720,6 +65647,16 @@
       "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-e469de5f-d1a1-5682-9b20-94d1ebf51cf3.json"
     },
     {
+      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-786a48666b2b673f.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-786a48666b2b673f.json",
+      "path": "apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-786a48666b2b673f.json"
+    },
+    {
       "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-e17ce25f89dba288.json",
       "kind": "configuration",
       "line": 1,
@@ -63758,6 +65695,16 @@
       },
       "name": "build-graph.json",
       "path": "apps/Forge.Runtime/content/la-veillee-des-eclats/.forge/build-graph.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-1c42fccde1f067b3.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "72e76124-3a4a-5245-c00e-e348ac4cb292-1c42fccde1f067b3.json",
+      "path": "apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-1c42fccde1f067b3.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-7aa979b46173d7b8.json",
@@ -64240,6 +66187,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/RpgKitAuthoringWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainStudioWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/main_panel.tscn",
       "kind": "configuration",
       "line": 1,
@@ -64528,6 +66485,16 @@
       },
       "name": "ADR-0022-live-director-authority.md",
       "path": "docs/ADR/ADR-0022-live-director-authority.md"
+    },
+    {
+      "id": "file:docs/ADR/ADR-0023-generic-terrain-world-profile.md",
+      "kind": "decision",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "ADR-0023-generic-terrain-world-profile.md",
+      "path": "docs/ADR/ADR-0023-generic-terrain-world-profile.md"
     },
     {
       "id": "file:docs/ARCHITECTURE.md",
@@ -65008,6 +66975,16 @@
       },
       "name": "G11-H-CLIMATE-WATER-REVERB.md",
       "path": "docs/aurora-parity/tasks/G11-H-CLIMATE-WATER-REVERB.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G11-I-GENERIC-TERRAIN-WORLD.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G11-I-GENERIC-TERRAIN-WORLD.md",
+      "path": "docs/aurora-parity/tasks/G11-I-GENERIC-TERRAIN-WORLD.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -65910,6 +67887,16 @@
       "path": "src/Forge.Application/Areas/AreaAudioSequencePlanner.cs"
     },
     {
+      "id": "file:src/Forge.Application/Areas/AreaChunkPayload.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaChunkPayload.cs",
+      "path": "src/Forge.Application/Areas/AreaChunkPayload.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Areas/AreaCloneMode.cs",
       "kind": "file",
       "line": 1,
@@ -65958,6 +67945,36 @@
       },
       "name": "AreaPerformanceAnalyzer.cs",
       "path": "src/Forge.Application/Areas/AreaPerformanceAnalyzer.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/AreaStreamingCoordinator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaStreamingCoordinator.cs",
+      "path": "src/Forge.Application/Areas/AreaStreamingCoordinator.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/AreaStreamingProgress.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaStreamingProgress.cs",
+      "path": "src/Forge.Application/Areas/AreaStreamingProgress.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/AreaStreamingResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaStreamingResult.cs",
+      "path": "src/Forge.Application/Areas/AreaStreamingResult.cs"
     },
     {
       "id": "file:src/Forge.Application/Areas/AreaTemplateKind.cs",
@@ -66030,6 +68047,16 @@
       "path": "src/Forge.Application/Areas/EditAreaGeometryHandler.cs"
     },
     {
+      "id": "file:src/Forge.Application/Areas/IAreaChunkLoader.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "IAreaChunkLoader.cs",
+      "path": "src/Forge.Application/Areas/IAreaChunkLoader.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Areas/SetAreaAuthoringCommand.cs",
       "kind": "file",
       "line": 1,
@@ -66088,6 +68115,26 @@
       },
       "name": "SetAreaNavigationHandler.cs",
       "path": "src/Forge.Application/Areas/SetAreaNavigationHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaWorldProfileCommand.cs",
+      "path": "src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaWorldProfileHandler.cs",
+      "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Areas/UpsertPortalLinkCommand.cs",
@@ -67410,6 +69457,16 @@
       "path": "src/Forge.Domain/Areas/AreaKind.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Areas/AreaLoadingProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaLoadingProfile.cs",
+      "path": "src/Forge.Domain/Areas/AreaLoadingProfile.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Areas/AreaRenderingProfile.cs",
       "kind": "file",
       "line": 1,
@@ -67418,6 +69475,76 @@
       },
       "name": "AreaRenderingProfile.cs",
       "path": "src/Forge.Domain/Areas/AreaRenderingProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/AreaWorldProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaWorldProfile.cs",
+      "path": "src/Forge.Domain/Areas/AreaWorldProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/BiomeLayerDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BiomeLayerDefinition.cs",
+      "path": "src/Forge.Domain/Areas/BiomeLayerDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/FlightObstaclePolicy.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "FlightObstaclePolicy.cs",
+      "path": "src/Forge.Domain/Areas/FlightObstaclePolicy.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/FlightRouteCurve.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "FlightRouteCurve.cs",
+      "path": "src/Forge.Domain/Areas/FlightRouteCurve.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/FlightRouteDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "FlightRouteDefinition.cs",
+      "path": "src/Forge.Domain/Areas/FlightRouteDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/FlightRouteNode.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "FlightRouteNode.cs",
+      "path": "src/Forge.Domain/Areas/FlightRouteNode.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/NavigationVolumeDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "NavigationVolumeDefinition.cs",
+      "path": "src/Forge.Domain/Areas/NavigationVolumeDefinition.cs"
     },
     {
       "id": "file:src/Forge.Domain/Areas/PortalId.cs",
@@ -67438,6 +69565,96 @@
       },
       "name": "PortalLink.cs",
       "path": "src/Forge.Domain/Areas/PortalLink.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/TerrainDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainDefinition.cs",
+      "path": "src/Forge.Domain/Areas/TerrainDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/TerrainFeatureCrossingPolicy.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainFeatureCrossingPolicy.cs",
+      "path": "src/Forge.Domain/Areas/TerrainFeatureCrossingPolicy.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/TerrainFeatureDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainFeatureDefinition.cs",
+      "path": "src/Forge.Domain/Areas/TerrainFeatureDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/TerrainFeatureKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainFeatureKind.cs",
+      "path": "src/Forge.Domain/Areas/TerrainFeatureKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/TerrainHoleDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainHoleDefinition.cs",
+      "path": "src/Forge.Domain/Areas/TerrainHoleDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/TerrainMaterialLayer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainMaterialLayer.cs",
+      "path": "src/Forge.Domain/Areas/TerrainMaterialLayer.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/TerrainProviderKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainProviderKind.cs",
+      "path": "src/Forge.Domain/Areas/TerrainProviderKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/VolumetricNavigationMode.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "VolumetricNavigationMode.cs",
+      "path": "src/Forge.Domain/Areas/VolumetricNavigationMode.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/VolumetricNavigationProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "VolumetricNavigationProfile.cs",
+      "path": "src/Forge.Domain/Areas/VolumetricNavigationProfile.cs"
     },
     {
       "id": "file:src/Forge.Domain/Assets/ArtisticAssetStyle.cs",
@@ -68920,6 +71137,56 @@
       "path": "src/Forge.Domain/Navigation/OffMeshNavigationLinkId.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Navigation/VolumetricCell.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "VolumetricCell.cs",
+      "path": "src/Forge.Domain/Navigation/VolumetricCell.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Navigation/VolumetricNavigationGraph.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "VolumetricNavigationGraph.cs",
+      "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraph.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "VolumetricNavigationGraphBuilder.cs",
+      "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Navigation/VolumetricNavigationPathfinder.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "VolumetricNavigationPathfinder.cs",
+      "path": "src/Forge.Domain/Navigation/VolumetricNavigationPathfinder.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Navigation/VolumetricPathResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "VolumetricPathResult.cs",
+      "path": "src/Forge.Domain/Navigation/VolumetricPathResult.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Navigation/WaypointProfiles.cs",
       "kind": "file",
       "line": 1,
@@ -69160,6 +71427,16 @@
       "path": "src/Forge.Domain/Validation/AreaNavigationValidator.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Validation/AreaWorldValidator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaWorldValidator.cs",
+      "path": "src/Forge.Domain/Validation/AreaWorldValidator.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Validation/ArtisticCompatibilityValidator.cs",
       "kind": "file",
       "line": 1,
@@ -69328,6 +71605,66 @@
       },
       "name": "EngineValueConverter.cs",
       "path": "src/Forge.EngineAdapter/Spatial/EngineValueConverter.cs"
+    },
+    {
+      "id": "file:src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CanonicalTerrainProvider.cs",
+      "path": "src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs"
+    },
+    {
+      "id": "file:src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "GodotTerrainAdapter.cs",
+      "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+    },
+    {
+      "id": "file:src/Forge.EngineAdapter/World/ITerrainProvider.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ITerrainProvider.cs",
+      "path": "src/Forge.EngineAdapter/World/ITerrainProvider.cs"
+    },
+    {
+      "id": "file:src/Forge.EngineAdapter/World/TerrainBuildPlan.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainBuildPlan.cs",
+      "path": "src/Forge.EngineAdapter/World/TerrainBuildPlan.cs"
+    },
+    {
+      "id": "file:src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainBuildPlanBuilder.cs",
+      "path": "src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs"
+    },
+    {
+      "id": "file:src/Forge.EngineAdapter/World/TerrainBuildVertex.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainBuildVertex.cs",
+      "path": "src/Forge.EngineAdapter/World/TerrainBuildVertex.cs"
     },
     {
       "id": "file:src/Forge.EngineAdapter/packages.lock.json",
@@ -71500,6 +73837,16 @@
       "path": "tests/Forge.Application.Tests/Areas/AreaPerformanceAnalyzerTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaStreamingCoordinatorTests.cs",
+      "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs",
       "kind": "file",
       "line": 1,
@@ -71538,6 +73885,16 @@
       },
       "name": "SetAreaNavigationHandlerTests.cs",
       "path": "tests/Forge.Application.Tests/Areas/SetAreaNavigationHandlerTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAreaWorldProfileHandlerTests.cs",
+      "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Areas/WeatherRuntimeStateMachineTests.cs",
@@ -71980,6 +74337,16 @@
       "path": "tests/Forge.Domain.Tests/Areas/AreaRenderingProfileTests.cs"
     },
     {
+      "id": "file:tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaWorldProfileTests.cs",
+      "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Domain.Tests/Assets/ArtisticStyleProfileTests.cs",
       "kind": "file",
       "line": 1,
@@ -72220,6 +74587,16 @@
       "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
     },
     {
+      "id": "file:tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "VolumetricNavigationTests.cs",
+      "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Domain.Tests/Quests/QuestStateMachineTests.cs",
       "kind": "file",
       "line": 1,
@@ -72318,6 +74695,16 @@
       },
       "name": "EngineValueConverterTests.cs",
       "path": "tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainBuildPlanBuilderTests.cs",
+      "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
     },
     {
       "id": "file:tests/Forge.EngineAdapter.Tests/packages.lock.json",
@@ -75430,6 +77817,16 @@
       "path": "src/Forge.Application/Areas/SetAreaNavigationHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Areas.SetAreaWorldProfileHandler",
+      "kind": "handler",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "SetAreaWorldProfileHandler",
+      "path": "src/Forge.Application/Areas/SetAreaWorldProfileHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Areas.UpsertPortalLinkHandler",
       "kind": "handler",
       "line": 10,
@@ -75710,6 +78107,16 @@
       "path": "apps/Forge.Runtime/Runtime/PlayerController.cs"
     },
     {
+      "id": "interface:Forge.EngineAdapter.World.ITerrainProvider",
+      "kind": "interface",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "ITerrainProvider",
+      "path": "src/Forge.EngineAdapter/World/ITerrainProvider.cs"
+    },
+    {
       "id": "interface:Forge.RpgKit.Application.Items.InventoryAuthoringService",
       "kind": "interface",
       "line": 11,
@@ -75760,6 +78167,16 @@
       "path": "src/Forge.Scripting/IForgeScriptRuntime.cs"
     },
     {
+      "id": "model:Forge.Application.Areas.AreaStreamingResult",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaStreamingResult",
+      "path": "src/Forge.Application/Areas/AreaStreamingResult.cs"
+    },
+    {
       "id": "model:Forge.Application.Areas.AreaTemplateKind",
       "kind": "model",
       "line": 3,
@@ -75768,6 +78185,16 @@
       },
       "name": "AreaTemplateKind",
       "path": "src/Forge.Application/Areas/AreaTemplateKind.cs"
+    },
+    {
+      "id": "model:Forge.Application.Areas.CacheEntry",
+      "kind": "model",
+      "line": 158,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "CacheEntry",
+      "path": "src/Forge.Application/Areas/AreaStreamingCoordinator.cs"
     },
     {
       "id": "model:Forge.Application.Areas.CreateAreaCommand",
@@ -75828,6 +78255,16 @@
       },
       "name": "SetAreaNavigationCommand",
       "path": "src/Forge.Application/Areas/SetAreaNavigationCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Areas.SetAreaWorldProfileCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "SetAreaWorldProfileCommand",
+      "path": "src/Forge.Application/Areas/SetAreaWorldProfileCommand.cs"
     },
     {
       "id": "model:Forge.Application.Areas.UpsertPortalLinkCommand",
@@ -76440,6 +78877,26 @@
       "path": "src/Forge.Domain/Areas/AreaAuthoringProfile.cs"
     },
     {
+      "id": "model:Forge.Domain.Areas.BiomeLayerDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "BiomeLayerDefinition",
+      "path": "src/Forge.Domain/Areas/BiomeLayerDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Areas.FlightRouteDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "FlightRouteDefinition",
+      "path": "src/Forge.Domain/Areas/FlightRouteDefinition.cs"
+    },
+    {
       "id": "model:Forge.Domain.Areas.MusicState",
       "kind": "model",
       "line": 10,
@@ -76460,6 +78917,16 @@
       "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
     },
     {
+      "id": "model:Forge.Domain.Areas.NavigationVolumeDefinition",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "NavigationVolumeDefinition",
+      "path": "src/Forge.Domain/Areas/NavigationVolumeDefinition.cs"
+    },
+    {
       "id": "model:Forge.Domain.Areas.PortalId",
       "kind": "model",
       "line": 3,
@@ -76468,6 +78935,56 @@
       },
       "name": "PortalId",
       "path": "src/Forge.Domain/Areas/PortalId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Areas.TerrainDefinition",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "TerrainDefinition",
+      "path": "src/Forge.Domain/Areas/TerrainDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Areas.TerrainFeatureDefinition",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "TerrainFeatureDefinition",
+      "path": "src/Forge.Domain/Areas/TerrainFeatureDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Areas.TerrainFeatureKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "TerrainFeatureKind",
+      "path": "src/Forge.Domain/Areas/TerrainFeatureKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Areas.TerrainHoleDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "TerrainHoleDefinition",
+      "path": "src/Forge.Domain/Areas/TerrainHoleDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Areas.TerrainProviderKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "TerrainProviderKind",
+      "path": "src/Forge.Domain/Areas/TerrainProviderKind.cs"
     },
     {
       "id": "model:Forge.Domain.Areas.WaterBodyKind",
@@ -77240,6 +79757,16 @@
       "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
     },
     {
+      "id": "model:Forge.Domain.Navigation.VolumetricPathResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "VolumetricPathResult",
+      "path": "src/Forge.Domain/Navigation/VolumetricPathResult.cs"
+    },
+    {
       "id": "model:Forge.Domain.Projects.ProjectDefinition",
       "kind": "model",
       "line": 9,
@@ -77458,6 +79985,16 @@
       },
       "name": "GodotEnvironmentResult",
       "path": "src/Forge.EngineAdapter/Rendering/GodotEnvironmentAdapter.cs"
+    },
+    {
+      "id": "model:Forge.EngineAdapter.World.GodotTerrainResult",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "GodotTerrainResult",
+      "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
     },
     {
       "id": "model:Forge.LiveDirector.Audit.Entry",
@@ -79482,7 +82019,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 1874,
+      "line": 1950,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -80050,6 +82587,16 @@
       "id": "namespace:Forge.EngineAdapter.Tests.Spatial",
       "kind": "namespace",
       "name": "Forge.EngineAdapter.Tests.Spatial"
+    },
+    {
+      "id": "namespace:Forge.EngineAdapter.Tests.World",
+      "kind": "namespace",
+      "name": "Forge.EngineAdapter.Tests.World"
+    },
+    {
+      "id": "namespace:Forge.EngineAdapter.World",
+      "kind": "namespace",
+      "name": "Forge.EngineAdapter.World"
     },
     {
       "id": "namespace:Forge.LiveDirector.Audit",
@@ -81520,6 +84067,16 @@
       "path": "tests/Forge.Application.Tests/Areas/AreaPerformanceAnalyzerTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Areas.AreaStreamingCoordinatorTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Areas"
+      },
+      "name": "AreaStreamingCoordinatorTests",
+      "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Areas.AreaWorkflowTests",
       "kind": "test",
       "line": 13,
@@ -81528,6 +84085,36 @@
       },
       "name": "AreaWorkflowTests",
       "path": "tests/Forge.Application.Tests/Areas/AreaWorkflowTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Areas.BlockingLoader",
+      "kind": "test",
+      "line": 66,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Areas"
+      },
+      "name": "BlockingLoader",
+      "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Areas.InlineProgress",
+      "kind": "test",
+      "line": 85,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Areas"
+      },
+      "name": "InlineProgress",
+      "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Areas.RecordingLoader",
+      "kind": "test",
+      "line": 54,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Areas"
+      },
+      "name": "RecordingLoader",
+      "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Areas.SetAreaAuthoringHandlerTests",
@@ -81558,6 +84145,16 @@
       },
       "name": "SetAreaNavigationHandlerTests",
       "path": "tests/Forge.Application.Tests/Areas/SetAreaNavigationHandlerTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Areas.SetAreaWorldProfileHandlerTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Areas"
+      },
+      "name": "SetAreaWorldProfileHandlerTests",
+      "path": "tests/Forge.Application.Tests/Areas/SetAreaWorldProfileHandlerTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Areas.WeatherRuntimeStateMachineTests",
@@ -82010,6 +84607,16 @@
       "path": "tests/Forge.Domain.Tests/Areas/AreaRenderingProfileTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Areas.AreaWorldProfileTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Areas"
+      },
+      "name": "AreaWorldProfileTests",
+      "path": "tests/Forge.Domain.Tests/Areas/AreaWorldProfileTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Assets.ArtisticStyleProfileTests",
       "kind": "test",
       "line": 10,
@@ -82260,6 +84867,16 @@
       "path": "tests/Forge.Domain.Tests/Navigation/NavigationPathfinderTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Navigation.VolumetricNavigationTests",
+      "kind": "test",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Navigation"
+      },
+      "name": "VolumetricNavigationTests",
+      "path": "tests/Forge.Domain.Tests/Navigation/VolumetricNavigationTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Quests.QuestStateMachineTests",
       "kind": "test",
       "line": 5,
@@ -82348,6 +84965,16 @@
       },
       "name": "EngineValueConverterTests",
       "path": "tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs"
+    },
+    {
+      "id": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.Tests.World"
+      },
+      "name": "TerrainBuildPlanBuilderTests",
+      "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
     },
     {
       "id": "test:Forge.LiveDirector.Tests.LiveDirectorControlTests",
@@ -82602,7 +85229,7 @@
     {
       "id": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
       "kind": "test",
-      "line": 9,
+      "line": 10,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Tests.Serialization"
       },
@@ -83377,6 +86004,16 @@
       "path": "src/Forge.Application/Areas/AreaAudioSequencePlanner.cs"
     },
     {
+      "id": "type:Forge.Application.Areas.AreaChunkPayload",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaChunkPayload",
+      "path": "src/Forge.Application/Areas/AreaChunkPayload.cs"
+    },
+    {
       "id": "type:Forge.Application.Areas.AreaCloneMode",
       "kind": "type",
       "line": 3,
@@ -83457,6 +86094,26 @@
       "path": "src/Forge.Application/Areas/AreaGeometryPlanner.cs"
     },
     {
+      "id": "type:Forge.Application.Areas.AreaStreamingCoordinator",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaStreamingCoordinator",
+      "path": "src/Forge.Application/Areas/AreaStreamingCoordinator.cs"
+    },
+    {
+      "id": "type:Forge.Application.Areas.AreaStreamingProgress",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "AreaStreamingProgress",
+      "path": "src/Forge.Application/Areas/AreaStreamingProgress.cs"
+    },
+    {
       "id": "type:Forge.Application.Areas.AudioListenerContext",
       "kind": "type",
       "line": 4,
@@ -83485,6 +86142,16 @@
       },
       "name": "ExternalPortalPolicy",
       "path": "src/Forge.Application/Areas/AreaCloneMode.cs"
+    },
+    {
+      "id": "type:Forge.Application.Areas.IAreaChunkLoader",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Areas"
+      },
+      "name": "IAreaChunkLoader",
+      "path": "src/Forge.Application/Areas/IAreaChunkLoader.cs"
     },
     {
       "id": "type:Forge.Application.Areas.MusicTransition",
@@ -84197,6 +86864,16 @@
       "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
     },
     {
+      "id": "type:Forge.Domain.Areas.AreaLoadingProfile",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaLoadingProfile",
+      "path": "src/Forge.Domain/Areas/AreaLoadingProfile.cs"
+    },
+    {
       "id": "type:Forge.Domain.Areas.AreaMapPin",
       "kind": "type",
       "line": 18,
@@ -84245,6 +86922,16 @@
       },
       "name": "AreaSoundMode",
       "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.AreaWorldProfile",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "AreaWorldProfile",
+      "path": "src/Forge.Domain/Areas/AreaWorldProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Areas.AudioAuthority",
@@ -84325,6 +87012,36 @@
       },
       "name": "DynamicLightBudgetProfile",
       "path": "src/Forge.Domain/Areas/AreaRenderingProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.FlightObstaclePolicy",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "FlightObstaclePolicy",
+      "path": "src/Forge.Domain/Areas/FlightObstaclePolicy.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.FlightRouteCurve",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "FlightRouteCurve",
+      "path": "src/Forge.Domain/Areas/FlightRouteCurve.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.FlightRouteNode",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "FlightRouteNode",
+      "path": "src/Forge.Domain/Areas/FlightRouteNode.cs"
     },
     {
       "id": "type:Forge.Domain.Areas.FogMode",
@@ -84417,6 +87134,26 @@
       "path": "src/Forge.Domain/Areas/AreaEnvironmentProfile.cs"
     },
     {
+      "id": "type:Forge.Domain.Areas.TerrainFeatureCrossingPolicy",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "TerrainFeatureCrossingPolicy",
+      "path": "src/Forge.Domain/Areas/TerrainFeatureCrossingPolicy.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.TerrainMaterialLayer",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "TerrainMaterialLayer",
+      "path": "src/Forge.Domain/Areas/TerrainMaterialLayer.cs"
+    },
+    {
       "id": "type:Forge.Domain.Areas.ToneMappingProfile",
       "kind": "type",
       "line": 8,
@@ -84425,6 +87162,26 @@
       },
       "name": "ToneMappingProfile",
       "path": "src/Forge.Domain/Areas/AreaRenderingProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.VolumetricNavigationMode",
+      "kind": "type",
+      "line": 4,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "VolumetricNavigationMode",
+      "path": "src/Forge.Domain/Areas/VolumetricNavigationMode.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Areas.VolumetricNavigationProfile",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "VolumetricNavigationProfile",
+      "path": "src/Forge.Domain/Areas/VolumetricNavigationProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Areas.WaterBodyProfile",
@@ -85987,6 +88744,46 @@
       "path": "src/Forge.Domain/Navigation/WaypointProfiles.cs"
     },
     {
+      "id": "type:Forge.Domain.Navigation.VolumetricCell",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "VolumetricCell",
+      "path": "src/Forge.Domain/Navigation/VolumetricCell.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.VolumetricNavigationGraph",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "VolumetricNavigationGraph",
+      "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraph.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.VolumetricNavigationGraphBuilder",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "VolumetricNavigationGraphBuilder",
+      "path": "src/Forge.Domain/Navigation/VolumetricNavigationGraphBuilder.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Navigation.VolumetricNavigationPathfinder",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Navigation"
+      },
+      "name": "VolumetricNavigationPathfinder",
+      "path": "src/Forge.Domain/Navigation/VolumetricNavigationPathfinder.cs"
+    },
+    {
       "id": "type:Forge.Domain.Navigation.WaypointEditorAppearance",
       "kind": "type",
       "line": 11,
@@ -86115,6 +88912,46 @@
       },
       "name": "AreaRenderPlanBuilder",
       "path": "src/Forge.EngineAdapter/Rendering/AreaRenderPlanBuilder.cs"
+    },
+    {
+      "id": "type:Forge.EngineAdapter.World.CanonicalTerrainProvider",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "CanonicalTerrainProvider",
+      "path": "src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs"
+    },
+    {
+      "id": "type:Forge.EngineAdapter.World.TerrainBuildPlan",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "TerrainBuildPlan",
+      "path": "src/Forge.EngineAdapter/World/TerrainBuildPlan.cs"
+    },
+    {
+      "id": "type:Forge.EngineAdapter.World.TerrainBuildPlanBuilder",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "TerrainBuildPlanBuilder",
+      "path": "src/Forge.EngineAdapter/World/TerrainBuildPlanBuilder.cs"
+    },
+    {
+      "id": "type:Forge.EngineAdapter.World.TerrainBuildVertex",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "TerrainBuildVertex",
+      "path": "src/Forge.EngineAdapter/World/TerrainBuildVertex.cs"
     },
     {
       "id": "type:Forge.LiveDirector.Audit.LiveAuditJournal",
@@ -90509,7 +93346,7 @@
     {
       "id": "type:Forge.Runtime.GameRoot",
       "kind": "type",
-      "line": 26,
+      "line": 27,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -90517,9 +93354,19 @@
       "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
     },
     {
+      "id": "type:Forge.Runtime.RuntimeAreaChunkLoader",
+      "kind": "type",
+      "line": 1879,
+      "metadata": {
+        "namespace": "Forge.Runtime"
+      },
+      "name": "RuntimeAreaChunkLoader",
+      "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+    },
+    {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 1842,
+      "line": 1918,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -91059,7 +93906,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 6299,
+      "line": 6457,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -91079,7 +93926,7 @@
     {
       "id": "type:Forge.Toolset.Editor.ProjectPreview3D",
       "kind": "type",
-      "line": 22,
+      "line": 23,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -91109,7 +93956,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 6304,
+      "line": 6462,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -91119,12 +93966,22 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 6309,
+      "line": 6467,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
       "name": "SmokeQuestConditionEvaluator",
       "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+    },
+    {
+      "id": "type:Forge.Toolset.Editor.TerrainStudioWindow",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "TerrainStudioWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
     },
     {
       "id": "type:scripts.architecture_graph.CSharpType",
@@ -91275,6 +94132,16 @@
       },
       "name": "AreaNavigationValidator",
       "path": "src/Forge.Domain/Validation/AreaNavigationValidator.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Validation.AreaWorldValidator",
+      "kind": "validator",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Validation"
+      },
+      "name": "AreaWorldValidator",
+      "path": "src/Forge.Domain/Validation/AreaWorldValidator.cs"
     },
     {
       "id": "validator:Forge.Domain.Validation.ArtisticCompatibilityValidator",

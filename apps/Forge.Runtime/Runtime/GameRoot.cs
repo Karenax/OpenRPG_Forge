@@ -14,6 +14,7 @@ using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.EngineAdapter.Spatial;
 using Forge.EngineAdapter.Rendering;
+using Forge.EngineAdapter.World;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Saves;
@@ -84,6 +85,7 @@ public partial class GameRoot : Node3D
     private Node3D? _climateEffects;
     private string? _climateSignature;
     private double _climateProbeElapsed;
+    private Node3D? _areaWorldRoot;
 
     public override void _Ready()
     {
@@ -126,7 +128,7 @@ public partial class GameRoot : Node3D
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
             _message = $"Explorez {_moduleTitle}.";
             var entryArea = project.Areas.Single(area => area.Id == project.Module.EntryAreaId);
-            ConfigureWorld(entryArea.Environment, _isCryptPrototype);
+            ConfigureWorld(entryArea.Environment, entryArea.World, _isCryptPrototype);
             var selectedSpawn = BuildProject(project, requestedSpawnId);
             EnsureLifecycle(
                 _lifecycle.EnterInitialArea(
@@ -742,9 +744,11 @@ public partial class GameRoot : Node3D
         return root;
     }
 
-    private void ConfigureWorld(AreaEnvironmentProfile environmentProfile, bool includeCryptAtmosphere)
+    private void ConfigureWorld(AreaEnvironmentProfile environmentProfile, AreaWorldProfile worldProfile,
+        bool includeCryptAtmosphere)
     {
         ArgumentNullException.ThrowIfNull(environmentProfile);
+        ArgumentNullException.ThrowIfNull(worldProfile);
         var dynamicLights = includeCryptAtmosphere ? 8 : 2;
         var shadowLights = 2;
         _renderPlan = AreaRenderPlanBuilder.Build(
@@ -796,6 +800,7 @@ public partial class GameRoot : Node3D
         _environmentProfile = environmentProfile;
         _weatherState = WeatherRuntimeStateMachine.CreateInitial(environmentProfile.Weather);
         ApplyClimateEffects(force: true);
+        ConfigureAreaWorld(worldProfile);
 
         if (includeCryptAtmosphere)
         {
@@ -810,6 +815,38 @@ public partial class GameRoot : Node3D
         };
         AddChild(_camera);
         _camera.LookAt(Vector3.Zero, Vector3.Up);
+    }
+
+    private void ConfigureAreaWorld(AreaWorldProfile profile)
+    {
+        var started = Stopwatch.GetTimestamp();
+        var terrain = GodotTerrainAdapter.Build(profile);
+        _areaWorldRoot = terrain.Root;
+        AddChild(_areaWorldRoot);
+        foreach (var diagnostic in terrain.Diagnostics)
+        {
+            GD.Print($"OPENRPG_FORGE_RUNTIME_TERRAIN_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        }
+
+        AreaStreamingResult? streaming = null;
+        if (profile.Loading.RequiredResources.Count > 0)
+        {
+            if (string.IsNullOrWhiteSpace(_moduleContentRoot))
+            {
+                throw new InvalidOperationException("Area streaming resources require a module content root.");
+            }
+
+            var coordinator = new AreaStreamingCoordinator(new RuntimeAreaChunkLoader(_moduleContentRoot));
+            streaming = coordinator.LoadAsync(profile.Loading).GetAwaiter().GetResult();
+        }
+
+        var elapsed = Stopwatch.GetElapsedTime(started);
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider={profile.Terrain.Provider.ToString().ToLowerInvariant()} " +
+            $"vertices={terrain.Vertices} triangles={terrain.Triangles} collisions={terrain.CollisionShapes} " +
+            $"features={terrain.FeatureSegments} volumes={terrain.DebugVolumes} routes={terrain.FlightRouteSegments} " +
+            $"streamed={streaming?.Resources.Count ?? 0} cache_hits={streaming?.CacheHits ?? 0} " +
+            $"elapsed_ms={elapsed.TotalMilliseconds:0.###} target_ms={profile.Loading.TargetLoadMilliseconds}");
     }
 
     private void AdvanceClimate(double delta)
@@ -1836,6 +1873,45 @@ public partial class GameRoot : Node3D
             {
                 InputMap.ActionAddEvent(action, inputEvent);
             }
+        }
+    }
+
+    private sealed class RuntimeAreaChunkLoader : IAreaChunkLoader
+    {
+        private readonly string _root;
+        private readonly string _rootPrefix;
+
+        internal RuntimeAreaChunkLoader(string root)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(root);
+            _root = Path.GetFullPath(root);
+            _rootPrefix = _root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        }
+
+        public async Task<AreaChunkPayload> LoadAsync(string resourcePath, CancellationToken cancellationToken)
+        {
+            var normalized = WeatherStateProfile.NormalizeOptionalResource(resourcePath);
+            if (normalized.Length == 0)
+            {
+                throw new InvalidDataException("Area streaming resource path cannot be empty.");
+            }
+
+            var fullPath = Path.GetFullPath(Path.Combine(_root, normalized.Replace('/', Path.DirectorySeparatorChar)));
+            if (!fullPath.StartsWith(_rootPrefix, StringComparison.OrdinalIgnoreCase) || !File.Exists(fullPath))
+            {
+                throw new FileNotFoundException($"Required area resource '{normalized}' is unavailable inside the module.", fullPath);
+            }
+
+            var content = await File.ReadAllBytesAsync(fullPath, cancellationToken).ConfigureAwait(false);
+            var dependencyFile = fullPath + ".deps";
+            IReadOnlyList<string> dependencies = File.Exists(dependencyFile)
+                ? (await File.ReadAllLinesAsync(dependencyFile, cancellationToken).ConfigureAwait(false))
+                    .Select(line => line.Trim())
+                    .Where(line => line.Length > 0 && !line.StartsWith('#'))
+                    .Select(WeatherStateProfile.NormalizeOptionalResource)
+                    .ToArray()
+                : [];
+            return new AreaChunkPayload(normalized, content, dependencies);
         }
     }
 

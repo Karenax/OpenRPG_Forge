@@ -40,6 +40,12 @@ public sealed class AreaGeometryPlannerTests
         Assert.False(preview.Audit.Applied);
         var applied = handler.Handle(context.State, command with { DryRun = false });
         Assert.True(applied.Succeeded);
-        Assert.Equal(12, applied.State.Project.Areas.Single().Dimensions.Width);
+        var resized = applied.State.Project.Areas.Single();
+        Assert.Equal(12, resized.Dimensions.Width);
+        Assert.Equal(area.Environment, resized.Environment);
+        Assert.Equal(area.Authoring, resized.Authoring);
+        Assert.Equal(area.World.Id, resized.World.Id);
+        Assert.Equal(12, resized.World.Terrain.Width);
+        Assert.Equal(area.World.Terrain.Heights, resized.World.Terrain.Heights);
     }
 }

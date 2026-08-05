@@ -27,6 +27,7 @@ public partial class AreaWorkspaceWindow : Window
     private Func<AreaId, AreaDimensions, AreaResizeAnchor, bool>? _resizeArea;
     private Action? _openNavigation;
     private Action? _openEnvironment;
+    private Action? _openTerrain;
     private Action? _openAuthoring;
     private Action<Window>? _brandWindow;
 
@@ -71,6 +72,7 @@ public partial class AreaWorkspaceWindow : Window
         Func<AreaId, AreaDimensions, AreaResizeAnchor, bool> resizeArea,
         Action openNavigation,
         Action openEnvironment,
+        Action openTerrain,
         Action openAuthoring,
         Action<Window> brandWindow)
     {
@@ -83,6 +85,7 @@ public partial class AreaWorkspaceWindow : Window
         _resizeArea = resizeArea ?? throw new ArgumentNullException(nameof(resizeArea));
         _openNavigation = openNavigation ?? throw new ArgumentNullException(nameof(openNavigation));
         _openEnvironment = openEnvironment ?? throw new ArgumentNullException(nameof(openEnvironment));
+        _openTerrain = openTerrain ?? throw new ArgumentNullException(nameof(openTerrain));
         _openAuthoring = openAuthoring ?? throw new ArgumentNullException(nameof(openAuthoring));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
 
@@ -326,6 +329,9 @@ public partial class AreaWorkspaceWindow : Window
         var environmentButton = new Button { Text = "Environnement…" };
         environmentButton.Pressed += () => _openEnvironment?.Invoke();
         validationHeading.AddChild(environmentButton);
+        var terrainButton = new Button { Text = "Terrain & volumes…" };
+        terrainButton.Pressed += () => _openTerrain?.Invoke();
+        validationHeading.AddChild(terrainButton);
         var authoringButton = new Button { Text = "Carte, événements & calques…" };
         authoringButton.Pressed += () => _openAuthoring?.Invoke(); validationHeading.AddChild(authoringButton);
         validationRow.AddChild(validationHeading);

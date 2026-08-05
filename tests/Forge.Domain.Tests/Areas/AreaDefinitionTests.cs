@@ -51,6 +51,8 @@ public sealed class AreaDefinitionTests
         Assert.Equal(new AreaDimensions(128, 96), area.Dimensions);
         Assert.Equal(portal, Assert.Single(area.Portals));
         Assert.Equal(area.Portals, area.WithEntities([]).Portals);
+        Assert.Equal(TerrainProviderKind.Heightmap, area.World.Terrain.Provider);
+        Assert.Equal(area.World, area.WithEntities([]).World);
     }
 
     [Fact]

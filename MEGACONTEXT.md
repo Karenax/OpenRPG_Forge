@@ -611,8 +611,8 @@ passer par des commandes transactionnelles, annulables, validables et testables 
 
 ### 9.5 État actuel de l’expérience Creator
 
-Le MVP solo et les gates G7 à G10 sont fermés. **G11-A à G11-H** sont livrés avec preuves
-automatisées et revues visuelles ciblées ; G11-I est le lot ouvert. L’expérience Creator comprend :
+Le MVP solo et les gates G7 à G10 sont fermés. **G11-A à G11-I** sont livrés avec preuves
+automatisées et revues visuelles ciblées ; G11-J est le lot ouvert. L’expérience Creator comprend :
 
 - le workspace **Blueprints** recherche par nom, slug ou type, crée et édite une définition par
   commandes transactionnelles, dérive un blueprint depuis une instance sans perdre ses overrides
@@ -647,10 +647,14 @@ automatisées et revues visuelles ciblées ; G11-I est le lot ouvert. L’expér
 - l'onglet **Climat & eau** configure vent, état météo initial, plan ou volume d'eau et zone de
   réverbération par la même commande ; pluie, eau et réverbération sont reconstruites dans le
   viewport et le runtime, et le snapshot météo rejoint les sauvegardes `.orpsave` 1.1.
+- la fenêtre **Terrain & volumes** configure relief générique, matériaux, biomes, trous,
+  routes/rivières/ponts, volumes de vol/nage/espace, routes aériennes et chargement asynchrone ; le
+  Creator et le runtime reconstruisent le même mesh, ses collisions et overlays depuis le profil de
+  zone `1.4.0`, sans persister de nœud moteur.
 
 Les contrats, critères et preuves sont détaillés dans `docs/aurora-parity/tasks/`,
-`docs/UX_AURORA_2026.md` et `STATUS.md`. La prochaine tranche est **G11-I — terrain générique
-multi-biome, features et navigation volumétrique**.
+`docs/UX_AURORA_2026.md` et `STATUS.md`. La prochaine tranche est **G11-J — événements de
+repos/heartbeat, interdictions et abandon contrôlé**.
 
 ---
 
@@ -1429,8 +1433,8 @@ Le résumé doit contenir :
 > applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
 > Le second module original **La Veillée des Éclats** est généré exclusivement par les handlers
 > d'auteur et `ProjectSession`, avec round-trip/export automatisé.
-> G11-A à G11-H sont fermés. Ferme **G11-I** par un terrain générique multi-biome, ses features et
-> sa navigation volumétrique testables, puis poursuis les lots bornés
+> G11-A à G11-I sont fermés. Ferme **G11-J** par les événements de repos/heartbeat, les
+> interdictions et l'abandon contrôlé, puis poursuis les lots bornés
 > sans modifier les sources originales du Vault.
 > Conserve le modèle de
 > domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,

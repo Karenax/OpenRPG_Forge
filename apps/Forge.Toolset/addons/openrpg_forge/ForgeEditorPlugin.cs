@@ -31,6 +31,7 @@ using Forge.Domain.Quests;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Forge.EngineAdapter.Rendering;
+using Forge.EngineAdapter.World;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Content;
@@ -56,6 +57,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly DuplicateAreaHandler _duplicateAreaHandler = new(new SystemClock());
     private readonly EditAreaGeometryHandler _editAreaGeometryHandler = new(new SystemClock());
     private readonly SetAreaEnvironmentHandler _setAreaEnvironmentHandler = new(new SystemClock());
+    private readonly SetAreaWorldProfileHandler _setAreaWorldProfileHandler = new(new SystemClock());
     private readonly SetAreaAuthoringHandler _setAreaAuthoringHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
@@ -174,6 +176,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private CreatorWorkspaceWindow? _workspaceWindow;
     private RecoveryWindow? _recoveryWindow;
     private AreaEnvironmentWindow? _areaEnvironmentWindow;
+    private TerrainStudioWindow? _terrainStudioWindow;
     private AreaAuthoringWindow? _areaAuthoringWindow;
     private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
     private NetworkBetaWindow? _networkBetaWindow;
@@ -287,12 +290,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ResizeArea,
             OpenNavigationConfiguration,
             OpenAreaEnvironment,
+            OpenTerrainStudio,
             OpenAreaAuthoring,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
         _areaEnvironmentWindow = new AreaEnvironmentWindow();
         _areaEnvironmentWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaEnvironment, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaEnvironmentWindow);
+        _terrainStudioWindow = new TerrainStudioWindow();
+        _terrainStudioWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaWorldProfile, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_terrainStudioWindow);
         _areaAuthoringWindow = new AreaAuthoringWindow();
         _areaAuthoringWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaAuthoring, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaAuthoringWindow);
@@ -1467,6 +1474,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void OpenAreaEnvironment() => _areaEnvironmentWindow?.Open();
 
+    private void OpenTerrainStudio() => _terrainStudioWindow?.Open();
+
     private void OpenAreaAuthoring() => _areaAuthoringWindow?.Open();
 
     private bool ApplyAreaAuthoring(AreaId areaId, AreaAuthoringProfile profile)
@@ -1482,6 +1491,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_history is null) return false;
         var command = new SetAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, areaId, profile, false);
         return ApplyCommand(_setAreaEnvironmentHandler.Handle(_history.State, command), "Environnement de zone mis à jour.", null);
+    }
+
+    private bool ApplyAreaWorldProfile(AreaId areaId, AreaWorldProfile profile)
+    {
+        if (_history is null) return false;
+        var command = new SetAreaWorldProfileCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, areaId, profile, false);
+        return ApplyCommand(_setAreaWorldProfileHandler.Handle(_history.State, command),
+            "Terrain, biomes, features et volumes mis à jour.", null);
     }
 
     private void OpenGlobalSearch() => _globalSearch?.Open();
@@ -3833,6 +3850,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunTerrainWorldSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNavigationAndGeometrySmokeTest())
         {
             return;
@@ -5540,6 +5562,142 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_PASS wind=global-local weather=state-machine " +
             "particles=rain water=plane-volume reverb=zone authority=server save=portable " +
             "replication=ready history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunTerrainWorldSmokeTest()
+    {
+        if (_history is null || _terrainStudioWindow is null || _projectPreview is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_FAILED missing_workspace");
+            return false;
+        }
+
+        var area = GetActiveArea();
+        var original = area.World;
+        var soil = new TerrainMaterialLayer(
+            Guid.Parse("d1190000-0000-4000-8000-000000000001"), "Terre", "#70533a", string.Empty, 4);
+        var grass = new TerrainMaterialLayer(
+            Guid.Parse("d1190000-0000-4000-8000-000000000002"), "Prairie", "#5f8345", string.Empty, 5);
+        var rock = new TerrainMaterialLayer(
+            Guid.Parse("d1190000-0000-4000-8000-000000000003"), "Roche", "#777b82", string.Empty, 3);
+        const int samples = 9;
+        var heights = Enumerable.Range(0, samples * samples)
+            .Select(index =>
+            {
+                var x = (index % samples) / (samples - 1f) - .5f;
+                var z = (index / samples) / (samples - 1f) - .5f;
+                return Math.Clamp((MathF.Sin(x * 5.2f) + MathF.Cos(z * 4.3f)) * .12f, -1, 1);
+            })
+            .ToArray();
+        var terrain = new TerrainDefinition(
+            Guid.Parse("d1190000-0000-4000-8000-000000000004"), 1, TerrainProviderKind.Heightmap,
+            area.Dimensions.Width, area.Dimensions.Depth, samples, samples, 8, 2026, 5, heights,
+            [soil, grass, rock],
+            [new TerrainHoleDefinition(Guid.Parse("d1190000-0000-4000-8000-000000000005"),
+                "Entrée de grotte", 2, 3, 1, 1, "smoke:g11-i")],
+            string.Empty, string.Empty, string.Empty, "smoke:g11-i");
+        IReadOnlyList<BiomeLayerDefinition> biomes =
+        [
+            new(Guid.Parse("d1190000-0000-4000-8000-000000000006"), "Prairie", grass.Id,
+                -512, 512, 0, 32, 0, 1, .45f, string.Empty, ["meadow", "temperate"], ["water", "road"], 20,
+                "smoke:g11-i"),
+            new(Guid.Parse("d1190000-0000-4000-8000-000000000007"), "Roche", rock.Id,
+                -512, 512, 28, 90, 0, 1, .08f, string.Empty, ["rock", "cliff"], ["water"], 30,
+                "smoke:g11-i"),
+        ];
+        var road = new TerrainFeatureDefinition(
+            Guid.Parse("d1190000-0000-4000-8000-000000000008"), 1, "Route", TerrainFeatureKind.Road,
+            [new Vector3Value(-8, .05f, 0), new Vector3Value(8, .05f, 0)], 2.5f, .08f, 0,
+            TerrainFeatureCrossingPolicy.RequiresBridge, [], string.Empty, "smoke:g11-i");
+        var river = new TerrainFeatureDefinition(
+            Guid.Parse("d1190000-0000-4000-8000-000000000009"), 1, "Rivière", TerrainFeatureKind.River,
+            [new Vector3Value(0, 0, -8), new Vector3Value(0, 0, 8)], 3.5f, .06f, 0,
+            TerrainFeatureCrossingPolicy.RequiresBridge, [], string.Empty, "smoke:g11-i");
+        var bridge = new TerrainFeatureDefinition(
+            Guid.Parse("d1190000-0000-4000-8000-000000000010"), 1, "Pont", TerrainFeatureKind.Bridge,
+            [new Vector3Value(-2, .2f, -2), new Vector3Value(2, .2f, 2)], 3, .35f, 0,
+            TerrainFeatureCrossingPolicy.Allow, [], string.Empty, "smoke:g11-i");
+        var obstacle = new NavigationVolumeDefinition(
+            Guid.Parse("d1190000-0000-4000-8000-000000000011"), "Tour", new Vector3Value(0, 5, 0),
+            new Vector3Value(2, 6, 2), 1, "smoke:g11-i");
+        var headwind = new NavigationVolumeDefinition(
+            Guid.Parse("d1190000-0000-4000-8000-000000000012"), "Vent contraire", new Vector3Value(5, 5, 0),
+            new Vector3Value(3, 8, 8), 3, "smoke:g11-i");
+        var volume = new VolumetricNavigationProfile(
+            Guid.Parse("d1190000-0000-4000-8000-000000000013"), 1, true, VolumetricNavigationMode.Flight,
+            2, new Vector3Value(0, 5, 0), new Vector3Value(area.Dimensions.Width, 10, area.Dimensions.Depth), 1,
+            [obstacle], [headwind], true, "smoke:g11-i");
+        var route = new FlightRouteDefinition(
+            Guid.Parse("d1190000-0000-4000-8000-000000000014"), 1, "Route aérienne",
+            [
+                new(Guid.Parse("d1190000-0000-4000-8000-000000000015"), "Entrée", new Vector3Value(-8, 8, -8), 12, 14),
+                new(Guid.Parse("d1190000-0000-4000-8000-000000000016"), "Sortie", new Vector3Value(8, 8, 8), 12, -14),
+            ], FlightRouteCurve.CatmullRom, FlightObstaclePolicy.Avoid, false, true, "smoke:g11-i");
+        var loading = new AreaLoadingProfile(
+            Guid.Parse("d1190000-0000-4000-8000-000000000017"), 1, true, true, true, 768, 3, 2, 1800,
+            [], "smoke:g11-i");
+        var configured = new AreaWorldProfile(
+            Guid.Parse("d1190000-0000-4000-8000-000000000018"), 1, terrain, biomes, [road, river, bridge],
+            volume, [route], loading, "smoke:g11-i");
+        if (!_terrainStudioWindow.ConfigureForSmokeTest(configured) || !_terrainStudioWindow.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_FAILED apply");
+            return false;
+        }
+
+        var applied = _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).World;
+        var terrainPlan = TerrainBuildPlanBuilder.Build(applied);
+        var graph = VolumetricNavigationGraphBuilder.Build(applied.VolumetricNavigation);
+        var path = VolumetricNavigationPathfinder.FindPath(graph, new Vector3Value(-8, 8, -8), new Vector3Value(8, 8, 8));
+        if (!path.Succeeded || terrainPlan.Vertices.Count != 81 || terrainPlan.TriangleCount != 126 ||
+            applied.Biomes.Count != 2 || applied.Features.Count != 3 || applied.FlightRoutes.Count != 1 ||
+            applied.Loading.CacheBudgetMegabytes != 768 ||
+            _projectPreview.TerrainVertexCount != 81 || _projectPreview.TerrainTriangleCount != 126 ||
+            _projectPreview.TerrainCollisionShapeCount != 1 || _projectPreview.TerrainFeatureSegmentCount != 3 ||
+            _projectPreview.VolumetricDebugVolumeCount != 3 || _projectPreview.FlightRouteSegmentCount != 1)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_FAILED preview_plan");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "terrain-world-smoke", Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project.Areas.Single(candidate => candidate.Id == area.Id).World;
+            if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
+                restored.Terrain.Provider != TerrainProviderKind.Heightmap || restored.Terrain.Holes.Count != 1 ||
+                restored.Biomes.Count != 2 || restored.Features.Count != 3 ||
+                restored.VolumetricNavigation.Obstacles.Count != 1 || restored.FlightRoutes.Count != 1 ||
+                restored.Loading.CacheBudgetMegabytes != 768)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            !ReferenceEquals(_history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).World, original))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_FAILED history");
+            return false;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_PASS provider=heightmap vertices=81 triangles=126 " +
+            $"holes=1 biomes=2 features=3 volumes=3 flight_path={path.Points.Count} streaming=async-cache-cancel " +
+            "history=restored persistence=roundtrip");
         return true;
     }
 

@@ -218,6 +218,34 @@ public sealed class ProjectSessionTests : IDisposable
     }
 
     [Fact]
+    public void Open_MigratesPreWorldWorkspaceAndAreaDocumentsDeterministically()
+    {
+        var created = ProjectSession.Create(
+            Path.Combine(_temporaryRoot, "pre-world"),
+            TestProjectFactory.CreateValid());
+        var session = Assert.IsType<ProjectSession>(created.Session);
+        var projectDocument = JsonNode.Parse(File.ReadAllText(session.ProjectFilePath))!.AsObject();
+        projectDocument["formatVersion"] = "1.4.0";
+        File.WriteAllText(session.ProjectFilePath, projectDocument.ToJsonString());
+        var areaPath = Assert.Single(Directory.EnumerateFiles(Path.Combine(session.RootDirectory, "areas"), "*.json"));
+        var areaDocument = JsonNode.Parse(File.ReadAllText(areaPath))!.AsObject();
+        areaDocument["formatVersion"] = AreaJsonSerializer.PreWorldProfileFormatVersion;
+        areaDocument["area"]!.AsObject().Remove("world");
+        File.WriteAllText(areaPath, areaDocument.ToJsonString());
+
+        var first = ProjectSession.Open(session.RootDirectory);
+        var second = ProjectSession.Open(session.RootDirectory);
+        var firstWorld = Assert.Single(Assert.IsType<ProjectSession>(first.Session).Project.Areas).World;
+        var secondWorld = Assert.Single(Assert.IsType<ProjectSession>(second.Session).Project.Areas).World;
+
+        Assert.True(first.Succeeded);
+        Assert.True(second.Succeeded);
+        Assert.Equal(firstWorld.Id, secondWorld.Id);
+        Assert.Equal(firstWorld.Terrain.Id, secondWorld.Terrain.Id);
+        Assert.Equal(TerrainProviderKind.None, firstWorld.Terrain.Provider);
+    }
+
+    [Fact]
     public void Open_ReturnsLocalizedDiagnosticWhenAreaDocumentIsMissing()
     {
         var created = ProjectSession.Create(

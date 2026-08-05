@@ -14,6 +14,7 @@ using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.EngineAdapter.Spatial;
 using Forge.EngineAdapter.Rendering;
+using Forge.EngineAdapter.World;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -60,6 +61,12 @@ public partial class ProjectPreview3D : SubViewportContainer
     private int _precipitationEmitters;
     private int _waterSurfaces;
     private string _reverbPreset = "unavailable";
+    private int _terrainVertices;
+    private int _terrainTriangles;
+    private int _terrainCollisionShapes;
+    private int _terrainFeatureSegments;
+    private int _volumetricDebugVolumes;
+    private int _flightRouteSegments;
 
     public int EntityCount { get; private set; }
 
@@ -86,6 +93,18 @@ public partial class ProjectPreview3D : SubViewportContainer
     public int PrecipitationEmitterCount => _precipitationEmitters;
 
     public int WaterSurfaceCount => _waterSurfaces;
+
+    public int TerrainVertexCount => _terrainVertices;
+
+    public int TerrainTriangleCount => _terrainTriangles;
+
+    public int TerrainCollisionShapeCount => _terrainCollisionShapes;
+
+    public int TerrainFeatureSegmentCount => _terrainFeatureSegments;
+
+    public int VolumetricDebugVolumeCount => _volumetricDebugVolumes;
+
+    public int FlightRouteSegmentCount => _flightRouteSegments;
 
     public ProjectPreview3D()
     {
@@ -188,6 +207,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         _dragPalette.SetBlueprints(project.Blueprints);
         _areaRoot = new Node3D { Name = "AreaPreview" };
         _world.AddChild(_areaRoot);
+        ApplyAreaWorld(area.World);
 
         foreach (var entity in area.Entities)
         {
@@ -253,6 +273,12 @@ public partial class ProjectPreview3D : SubViewportContainer
     {
         ClearNavigationOverlay();
         EntityCount = 0;
+        _terrainVertices = 0;
+        _terrainTriangles = 0;
+        _terrainCollisionShapes = 0;
+        _terrainFeatureSegments = 0;
+        _volumetricDebugVolumes = 0;
+        _flightRouteSegments = 0;
         _entityNodes.Clear();
         _gizmo?.Hide();
         _ghost?.Hide();
@@ -1221,6 +1247,27 @@ public partial class ProjectPreview3D : SubViewportContainer
             $"OPENRPG_FORGE_TOOLSET_CLIMATE_APPLIED wind={effectiveWindSpeed:0.###} " +
             $"weather={_climatePlan.Weather.Kind.ToString().ToLowerInvariant()} particles={_precipitationEmitters} " +
             $"water={_waterSurfaces} reverb={_reverbPreset}");
+    }
+
+    private void ApplyAreaWorld(AreaWorldProfile profile)
+    {
+        var result = GodotTerrainAdapter.Build(profile);
+        _areaRoot!.AddChild(result.Root);
+        _terrainVertices = result.Vertices;
+        _terrainTriangles = result.Triangles;
+        _terrainCollisionShapes = result.CollisionShapes;
+        _terrainFeatureSegments = result.FeatureSegments;
+        _volumetricDebugVolumes = result.DebugVolumes;
+        _flightRouteSegments = result.FlightRouteSegments;
+        foreach (var diagnostic in result.Diagnostics)
+        {
+            GD.Print($"OPENRPG_FORGE_TOOLSET_TERRAIN_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        }
+
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_TERRAIN_APPLIED provider={profile.Terrain.Provider.ToString().ToLowerInvariant()} " +
+            $"vertices={result.Vertices} triangles={result.Triangles} collisions={result.CollisionShapes} " +
+            $"features={result.FeatureSegments} volumes={result.DebugVolumes} routes={result.FlightRouteSegments}");
     }
 
     private void ApplyPbrMaterials(Node node)

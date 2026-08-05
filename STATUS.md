@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-A à G11-H Contenu moderne fermés et G11-I ouvert.**
+fermés ; G11-A à G11-I Contenu moderne fermés et G11-J ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -13,7 +13,7 @@ zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplac
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.4.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.5.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -274,5 +274,11 @@ l'aperçu Creator et le runtime.
 
 **G11-H est fermé** : vent global/local, états météo autoritaires, pluie/neige procédurales, eau,
 zones de réverbération et sauvegarde météo 1.1 partagent un modèle canonique, la commande auteur et
-les adapters Creator/runtime. G11-I porte maintenant le terrain générique multi-biome, ses features
-et la navigation volumétrique.
+les adapters Creator/runtime.
+
+**G11-I est fermé** : chaque zone peut porter un terrain générique versionné, des matériaux et
+biomes indépendants, des trous, routes/rivières/ponts, des volumes de vol/nage/espace, des routes
+aériennes et un profil de chargement asynchrone. Le Creator et le runtime reconstruisent le même mesh,
+ses collisions et overlays ; l'auteur applique le profil par commande transactionnelle et les formats
+zone `1.4.0`, projet `0.6.11` et workspace `1.5.0` migrent les données absentes. G11-J porte maintenant
+les événements de repos/heartbeat, les interdictions et l'abandon contrôlé.

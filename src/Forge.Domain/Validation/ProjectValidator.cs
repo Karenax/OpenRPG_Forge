@@ -83,6 +83,8 @@ public static class ProjectValidator
 
         foreach (var area in project.Areas)
         {
+            diagnostics.AddRange(AreaWorldValidator.Validate(area, area.World));
+
             for (var index = 0; index < area.Entities.Count; index++)
             {
                 var entity = area.Entities[index];
