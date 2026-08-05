@@ -19,6 +19,7 @@ public sealed record TerrainDefinition
     public IReadOnlyList<float> Heights { get; }
     public IReadOnlyList<TerrainMaterialLayer> MaterialLayers { get; }
     public IReadOnlyList<TerrainHoleDefinition> Holes { get; }
+    public IReadOnlyList<TerrainMaterialPaintCell> MaterialPaint { get; }
     public string HeightmapResource { get; }
     public string VoxelResource { get; }
     public string MeshResource { get; }
@@ -43,7 +44,8 @@ public sealed record TerrainDefinition
         string heightmapResource,
         string voxelResource,
         string meshResource,
-        string provenance)
+        string provenance,
+        IReadOnlyList<TerrainMaterialPaintCell>? materialPaint = null)
     {
         ArgumentNullException.ThrowIfNull(heights);
         ArgumentNullException.ThrowIfNull(materialLayers);
@@ -82,6 +84,16 @@ public sealed record TerrainDefinition
             throw new ArgumentException("Terrain holes require unique IDs and must remain inside the sample grid.", nameof(holes));
         }
 
+        var paintValues = (materialPaint ?? []).OrderBy(cell => cell.Z).ThenBy(cell => cell.X).ToArray();
+        var materialIds = layers.Select(layer => layer.Id).ToHashSet();
+        if (paintValues.Select(cell => (cell.X, cell.Z)).Distinct().Count() != paintValues.Length ||
+            paintValues.Any(cell => cell.X >= samplesX - 1 || cell.Z >= samplesZ - 1 ||
+                                    !materialIds.Contains(cell.MaterialLayerId)))
+        {
+            throw new ArgumentException("Terrain material paint cells must be unique, in bounds and reference a material layer.",
+                nameof(materialPaint));
+        }
+
         Id = id;
         SchemaVersion = schemaVersion;
         Provider = provider;
@@ -95,6 +107,7 @@ public sealed record TerrainDefinition
         Heights = heightValues;
         MaterialLayers = layers;
         Holes = holeValues;
+        MaterialPaint = paintValues;
         HeightmapResource = WeatherStateProfile.NormalizeOptionalResource(heightmapResource);
         VoxelResource = WeatherStateProfile.NormalizeOptionalResource(voxelResource);
         MeshResource = WeatherStateProfile.NormalizeOptionalResource(meshResource);

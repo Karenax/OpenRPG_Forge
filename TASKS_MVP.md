@@ -504,7 +504,7 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   inspectable et indépendant de toute scène ou ressource Godot.
 - [x] Concevoir les commandes transactionnelles de sculpture : lever/abaisser, aplanir, lisser et
   ouvrir/fermer un trou, avec prévisualisation, persistance et Undo/Redo par trait.
-- [ ] Ajouter le masque canonique et les brosses de peinture locale des matériaux, sans stocker cet
+- [x] Ajouter le masque canonique et les brosses de peinture locale des matériaux, sans stocker cet
   état dans une ressource ou une scène propre au moteur.
 - [x] Évaluer Terrain3D face à un adapter interne, vérifier licence et compatibilité, puis épingler la
   solution retenue sans faire de ses nœuds la source de vérité.

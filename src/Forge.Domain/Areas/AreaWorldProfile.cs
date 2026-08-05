@@ -130,7 +130,9 @@ public sealed record AreaWorldProfile
                 materialMap[layer.Id], layer.Name, layer.AlbedoColor, layer.MaterialResource, layer.UvScale)).ToArray(),
             source.Terrain.Holes.Select((hole, index) => new TerrainHoleDefinition(
                 StableGuid(destinationAreaId, $"terrain:hole:{index}"), hole.Name, hole.StartX, hole.StartZ, hole.Width, hole.Depth, "area-clone")).ToArray(),
-            source.Terrain.HeightmapResource, source.Terrain.VoxelResource, source.Terrain.MeshResource, "area-clone");
+            source.Terrain.HeightmapResource, source.Terrain.VoxelResource, source.Terrain.MeshResource, "area-clone",
+            source.Terrain.MaterialPaint.Select(cell => new TerrainMaterialPaintCell(
+                cell.X, cell.Z, materialMap[cell.MaterialLayerId])).ToArray());
         var biomes = source.Biomes.Select((biome, index) => new BiomeLayerDefinition(
             StableGuid(destinationAreaId, $"biome:{index}"), biome.Name, materialMap[biome.MaterialLayerId],
             biome.MinimumAltitude, biome.MaximumAltitude, biome.MinimumSlopeDegrees, biome.MaximumSlopeDegrees,
@@ -170,7 +172,7 @@ public sealed record AreaWorldProfile
             dimensions.Width, dimensions.Depth, source.Terrain.SamplesX, source.Terrain.SamplesZ,
             source.Terrain.ChunkSize, source.Terrain.Seed, source.Terrain.HeightScale, source.Terrain.Heights,
             source.Terrain.MaterialLayers, source.Terrain.Holes, source.Terrain.HeightmapResource,
-            source.Terrain.VoxelResource, source.Terrain.MeshResource, "area-resize");
+            source.Terrain.VoxelResource, source.Terrain.MeshResource, "area-resize", source.Terrain.MaterialPaint);
         var volume = new VolumetricNavigationProfile(source.VolumetricNavigation.Id,
             source.VolumetricNavigation.SchemaVersion, source.VolumetricNavigation.Enabled,
             source.VolumetricNavigation.Modes, source.VolumetricNavigation.CellSize,

@@ -114,7 +114,7 @@ function Invoke-ForgeEngineMarkerTest {
 
     # Keep the long-lived smoke inventories aligned with the current workspace schema and
     # append lot markers here so every engine invocation uses one canonical gate contract.
-    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.15.0').Replace('format=1.10.0', 'format=1.15.0').Replace('format=1.11.0', 'format=1.15.0').Replace('format=1.12.0', 'format=1.15.0').Replace('format=1.13.0', 'format=1.15.0').Replace('format=1.14.0', 'format=1.15.0') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.16.0').Replace('format=1.10.0', 'format=1.16.0').Replace('format=1.11.0', 'format=1.16.0').Replace('format=1.12.0', 'format=1.16.0').Replace('format=1.13.0', 'format=1.16.0').Replace('format=1.14.0', 'format=1.16.0').Replace('format=1.15.0', 'format=1.16.0') })
     if ($Name -eq 'toolset') {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_PASS rules=class-progression-weapon-vfx-casting ui=declarative-reactive-themed-permission events=typed-focus-input-testable json=schema-quota-safe-api snapshots=components-references-inventory-blackboard history=restored persistence=roundtrip'
@@ -124,6 +124,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11S_PERFORMANCE_PASS network=latency-loss-reconnect-mismatch-authority visual=fixtures-tolerance-quality benchmarks=interior-exterior-stress-load-frame-memory-nav-package budgets=frame-memory-texture-draw-light-script-network profiler=editor-runtime-server-script-database-network'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11T_GOVERNANCE_PASS editor=keyboard-labels-scale-contrast-shortcuts runtime=subtitles-captions-color-input-motion-difficulty fuzz=112-cases-7-boundaries-no-crash-no-escape dependencies=approval-risk-review-audit-lifecycle'
         $Markers += 'streaming=async-cache-cancel sculpt=raise-'
+        $Markers += 'paint=material-'
         $Markers += 'brush_history=restored history=restored persistence=roundtrip'
     }
     elseif ($Name -eq 'runtime-plain-launch') {

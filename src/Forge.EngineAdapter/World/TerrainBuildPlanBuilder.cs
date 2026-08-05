@@ -27,6 +27,7 @@ public static class TerrainBuildPlanBuilder
         }
 
         ITerrainProvider provider = new CanonicalTerrainProvider(terrain);
+        var materialPaint = terrain.MaterialPaint.ToDictionary(cell => (cell.X, cell.Z), cell => cell.MaterialLayerId);
         var vertices = new List<TerrainBuildVertex>(terrain.SamplesX * terrain.SamplesZ);
         for (var z = 0; z < terrain.SamplesZ; z++)
         {
@@ -34,7 +35,7 @@ public static class TerrainBuildPlanBuilder
             {
                 var position = provider.PositionOf(x, z);
                 var slope = SlopeDegrees(provider, terrain, x, z);
-                var color = SelectColor(world, position.Y, slope);
+                var color = SelectColor(world, materialPaint, x, z, position.Y, slope);
                 vertices.Add(new TerrainBuildVertex(position, x / (float)(terrain.SamplesX - 1),
                     z / (float)(terrain.SamplesZ - 1), color));
             }
@@ -82,8 +83,15 @@ public static class TerrainBuildPlanBuilder
         return MathF.Atan(MathF.Sqrt((gradientX * gradientX) + (gradientZ * gradientZ))) * (180 / MathF.PI);
     }
 
-    private static string SelectColor(AreaWorldProfile world, float altitude, float slope)
+    private static string SelectColor(AreaWorldProfile world, IReadOnlyDictionary<(int X, int Z), Guid> materialPaint,
+        int sampleX, int sampleZ, float altitude, float slope)
     {
+        var cell = (Math.Min(sampleX, world.Terrain.SamplesX - 2), Math.Min(sampleZ, world.Terrain.SamplesZ - 2));
+        if (materialPaint.TryGetValue(cell, out var paintedMaterialId))
+        {
+            return world.Terrain.MaterialLayers.First(layer => layer.Id == paintedMaterialId).AlbedoColor;
+        }
+
         var biome = world.Biomes.FirstOrDefault(candidate => altitude >= candidate.MinimumAltitude &&
             altitude <= candidate.MaximumAltitude && slope >= candidate.MinimumSlopeDegrees &&
             slope <= candidate.MaximumSlopeDegrees && .5f >= candidate.MinimumMoisture && .5f <= candidate.MaximumMoisture);

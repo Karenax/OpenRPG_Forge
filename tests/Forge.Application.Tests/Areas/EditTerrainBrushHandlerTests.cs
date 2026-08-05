@@ -58,6 +58,24 @@ public sealed class EditTerrainBrushHandlerTests
     }
 
     [Fact]
+    public void MaterialBrushPaintsAndClearsSparseCanonicalCells()
+    {
+        var source = ExteriorState().Project.Areas.Single().World.Terrain;
+        var material = source.MaterialLayers.Last();
+        var painted = TerrainBrushEditor.Apply(source,
+            new TerrainBrushStroke(TerrainBrushOperation.PaintMaterial, 0, 0, 6, 1,
+                MaterialLayerId: material.Id), RaiseId);
+        var cleared = TerrainBrushEditor.Apply(painted.Terrain,
+            new TerrainBrushStroke(TerrainBrushOperation.PaintMaterial, 0, 0, 6, 1,
+                MaterialLayerId: Guid.Empty), Guid.Parse("d1400000-0000-4000-8000-000000000003"));
+
+        Assert.True(painted.ChangedMaterialCells > 0);
+        Assert.All(painted.Terrain.MaterialPaint, cell => Assert.Equal(material.Id, cell.MaterialLayerId));
+        Assert.Equal(painted.ChangedMaterialCells, cleared.ChangedMaterialCells);
+        Assert.Empty(cleared.Terrain.MaterialPaint);
+    }
+
+    [Fact]
     public void CommandSupportsDryRunHistoryAndUndoRedo()
     {
         var state = ExteriorState();

@@ -5928,14 +5928,22 @@ public partial class ForgeEditorPlugin : EditorPlugin
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_FAILED sculpt");
             return false;
         }
+        if (!_terrainStudioWindow.ApplyBrushForSmokeTest(TerrainBrushOperation.PaintMaterial, 0, 0, 8, 1,
+                materialLayerId: rock.Id))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_FAILED paint");
+            return false;
+        }
 
         var applied = _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).World;
         var sculptedSamples = applied.Terrain.Heights.Zip(terrain.Heights)
             .Count(pair => Math.Abs(pair.First - pair.Second) > .000001f);
+        var paintedCells = applied.Terrain.MaterialPaint.Count;
         var terrainPlan = TerrainBuildPlanBuilder.Build(applied);
         var graph = VolumetricNavigationGraphBuilder.Build(applied.VolumetricNavigation);
         var path = VolumetricNavigationPathfinder.FindPath(graph, new Vector3Value(-8, 8, -8), new Vector3Value(8, 8, 8));
-        if (!path.Succeeded || sculptedSamples == 0 || terrainPlan.Vertices.Count != 81 || terrainPlan.TriangleCount != 126 ||
+        if (!path.Succeeded || sculptedSamples == 0 || paintedCells == 0 ||
+            terrainPlan.Vertices.Count != 81 || terrainPlan.TriangleCount != 126 ||
             applied.Biomes.Count != 2 || applied.Features.Count != 3 || applied.FlightRoutes.Count != 1 ||
             applied.Loading.CacheBudgetMegabytes != 768 ||
             _projectPreview.TerrainVertexCount != 81 || _projectPreview.TerrainTriangleCount != 126 ||
@@ -5955,6 +5963,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
                 restored.Terrain.Provider != TerrainProviderKind.Heightmap || restored.Terrain.Holes.Count != 1 ||
                 !restored.Terrain.Heights.SequenceEqual(applied.Terrain.Heights) ||
+                !restored.Terrain.MaterialPaint.SequenceEqual(applied.Terrain.MaterialPaint) ||
                 restored.Biomes.Count != 2 || restored.Features.Count != 3 ||
                 restored.VolumetricNavigation.Obstacles.Count != 1 || restored.FlightRoutes.Count != 1 ||
                 restored.Loading.CacheBudgetMegabytes != 768)
@@ -5966,6 +5975,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
         finally
         {
             if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var paintUndo = _history.Undo();
+        var paintRedo = _history.Redo();
+        var paintCleanup = _history.Undo();
+        if (!paintUndo.Succeeded || !paintRedo.Succeeded || !paintCleanup.Succeeded ||
+            _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).World.Terrain.MaterialPaint.Count != 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_FAILED paint_history");
+            return false;
         }
 
         var brushUndo = _history.Undo();
@@ -5993,7 +6012,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             $"OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_PASS provider=heightmap vertices=81 triangles=126 " +
             $"holes=1 biomes=2 features=3 volumes=3 flight_path={path.Points.Count} streaming=async-cache-cancel " +
-            $"sculpt=raise-{sculptedSamples} brush_history=restored history=restored persistence=roundtrip");
+            $"sculpt=raise-{sculptedSamples} paint=material-{paintedCells} brush_history=restored " +
+            "history=restored persistence=roundtrip");
         return true;
     }
 

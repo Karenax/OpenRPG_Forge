@@ -6,6 +6,7 @@ public enum TerrainBrushOperation
     Lower,
     Flatten,
     Smooth,
+    PaintMaterial,
     OpenHole,
     CloseHole,
 }

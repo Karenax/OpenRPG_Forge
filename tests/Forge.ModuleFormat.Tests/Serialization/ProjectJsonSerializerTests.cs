@@ -391,6 +391,20 @@ public sealed class ProjectJsonSerializerTests
     }
 
     [Fact]
+    public void Deserialize_MigratesPreTerrainPaintWithEmptySparseMask()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreTerrainPaintFormatVersion;
+        document["project"]!["areas"]!.AsArray()[0]!["world"]!["terrain"]!.AsObject().Remove("materialPaint");
+
+        var restored = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Empty(restored.Areas[0].World.Terrain.MaterialPaint);
+        Assert.Contains($"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(restored), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Deserialize_MigratesPreRuntimePoliciesWithStableInactiveDefaults()
     {
         var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();

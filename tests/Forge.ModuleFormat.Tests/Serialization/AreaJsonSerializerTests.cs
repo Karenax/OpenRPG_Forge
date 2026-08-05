@@ -34,6 +34,17 @@ public sealed class AreaJsonSerializerTests
                 destination,
                 true,
                 true)]);
+        var paintedMaterial = area.World.Terrain.MaterialLayers.Last();
+        var sourceTerrain = area.World.Terrain;
+        var paintedTerrain = new TerrainDefinition(sourceTerrain.Id, sourceTerrain.SchemaVersion,
+            sourceTerrain.Provider, sourceTerrain.Width, sourceTerrain.Depth, sourceTerrain.SamplesX,
+            sourceTerrain.SamplesZ, sourceTerrain.ChunkSize, sourceTerrain.Seed, sourceTerrain.HeightScale,
+            sourceTerrain.Heights, sourceTerrain.MaterialLayers, sourceTerrain.Holes,
+            sourceTerrain.HeightmapResource, sourceTerrain.VoxelResource, sourceTerrain.MeshResource, "test",
+            [new TerrainMaterialPaintCell(2, 3, paintedMaterial.Id)]);
+        area = area.WithWorld(new AreaWorldProfile(area.World.Id, area.World.SchemaVersion, paintedTerrain,
+            area.World.Biomes, area.World.Features, area.World.VolumetricNavigation, area.World.FlightRoutes,
+            area.World.Loading, "test"));
 
         var json = AreaJsonSerializer.Serialize(area);
         var restored = AreaJsonSerializer.Deserialize(json);
@@ -46,9 +57,26 @@ public sealed class AreaJsonSerializerTests
         Assert.Equal(area.World.Id, restored.World.Id);
         Assert.Equal(area.World.Terrain.Id, restored.World.Terrain.Id);
         Assert.Equal(area.World.Terrain.Heights, restored.World.Terrain.Heights);
+        Assert.Equal(area.World.Terrain.MaterialPaint, restored.World.Terrain.MaterialPaint);
         Assert.Equal(area.World.Biomes.Select(item => item.Id), restored.World.Biomes.Select(item => item.Id));
         Assert.Equal(area.RuntimePolicies.Id, restored.RuntimePolicies.Id);
         Assert.Equal(RestPermissionMode.Allowed, restored.RuntimePolicies.Rest.Mode);
+    }
+
+    [Fact]
+    public void Deserialize_MigratesPreTerrainPaintDocumentWithEmptySparseMask()
+    {
+        var area = new AreaDefinition(AreaId.From(Guid.Parse("210a9e3e-230f-46cc-a915-8d2d83069f29")),
+            "forest-edge", "Forest edge", [], AreaKind.Exterior, new AreaDimensions(128, 96));
+        var document = JsonNode.Parse(AreaJsonSerializer.Serialize(area))!.AsObject();
+        document["formatVersion"] = AreaJsonSerializer.PreTerrainPaintFormatVersion;
+        document["area"]!["world"]!["terrain"]!.AsObject().Remove("materialPaint");
+
+        var restored = AreaJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Empty(restored.World.Terrain.MaterialPaint);
+        Assert.Contains($"\"formatVersion\": \"{AreaJsonSerializer.CurrentFormatVersion}\"",
+            AreaJsonSerializer.Serialize(restored), StringComparison.Ordinal);
     }
 
     [Fact]

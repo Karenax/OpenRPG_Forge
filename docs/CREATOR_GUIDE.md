@@ -6,7 +6,7 @@ Lancer l'application de création, ouvrir l'écran **Forge**, puis choisir **+ N
 un titre, une description et le nom de la première zone. Choisir **Intérieur** pour une pièce ou un
 donjon compact, ou **Extérieur** pour un terrain sculptable ; la sélection propose respectivement
 32 × 32 m ou 128 × 128 m, mais la largeur et la profondeur restent modifiables avant la création.
-Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.15.0` contenant :
+Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.16.0` contenant :
 
 ```text
 mon-module/
@@ -26,10 +26,12 @@ Les propriétés locales servent à spécialiser une instance sans dupliquer son
 ForgeScript sont des chemins relatifs `.forge` tels que `scripts/interaction.forge`.
 
 Pour une zone extérieure, ouvrir **Zones & transitions**, puis **Terrain & volumes…** et l’onglet
-**Sculpture**. Choisir lever, abaisser, aplanir, lisser, ouvrir ou refermer, régler le centre X/Z, le
-rayon et l’intensité, puis prévisualiser le nombre d’échantillons touchés. **Appliquer le trait** crée
+**Sculpture**. Choisir lever, abaisser, aplanir, lisser, peindre un matériau, ouvrir ou refermer,
+régler le centre X/Z, le rayon et l’intensité, puis prévisualiser le nombre d’échantillons ou cellules
+touchés. Le matériau « Automatique » rend la cellule aux recettes de biome. **Appliquer le trait** crée
 une commande indépendante : les boutons Annuler/Rétablir restaurent le heightmap et ses trous, et le
-viewport, les collisions et la navigation sont reconstruits depuis ce même document canonique.
+viewport, les couleurs de matériau, les collisions et la navigation sont reconstruits depuis ce même
+document canonique.
 
 Le kit Crypte (sol, mur, porte, pilier, personnages et triggers) reste disponible dans le module de
 démonstration ; Forgotten Forest fournit le premier kit extérieur CC0 jouable.

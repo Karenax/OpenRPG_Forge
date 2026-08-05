@@ -16,6 +16,7 @@ public partial class TerrainStudioWindow : Window
     private Func<AreaId, TerrainBrushStroke, bool>? _brush;
     private Action<Window>? _brand;
     private AreaWorldProfile? _current;
+    private readonly List<Guid> _brushMaterialIds = [];
 
     private OptionButton? _provider;
     private OptionButton? _samples;
@@ -32,6 +33,7 @@ public partial class TerrainStudioWindow : Window
     private SpinBox? _brushRadius;
     private SpinBox? _brushStrength;
     private SpinBox? _brushTargetHeight;
+    private OptionButton? _brushMaterial;
     private Label? _brushPreview;
     private CheckBox? _road;
     private CheckBox? _river;
@@ -96,7 +98,7 @@ public partial class TerrainStudioWindow : Window
     internal bool ApplyForSmokeTest() => Save();
 
     internal bool ApplyBrushForSmokeTest(TerrainBrushOperation operation, float worldX, float worldZ,
-        float radius, float strength, float targetHeight = 0)
+        float radius, float strength, float targetHeight = 0, Guid materialLayerId = default)
     {
         _brushOperation!.Selected = (int)operation;
         _brushX!.Value = worldX;
@@ -104,6 +106,8 @@ public partial class TerrainStudioWindow : Window
         _brushRadius!.Value = radius;
         _brushStrength!.Value = strength;
         _brushTargetHeight!.Value = targetHeight;
+        var materialIndex = _brushMaterialIds.IndexOf(materialLayerId);
+        _brushMaterial!.Selected = materialIndex < 0 ? 0 : materialIndex;
         return ApplyBrush();
     }
 
@@ -158,6 +162,7 @@ public partial class TerrainStudioWindow : Window
         _brushOperation.AddItem("Abaisser", (int)TerrainBrushOperation.Lower);
         _brushOperation.AddItem("Aplanir vers Y", (int)TerrainBrushOperation.Flatten);
         _brushOperation.AddItem("Lisser", (int)TerrainBrushOperation.Smooth);
+        _brushOperation.AddItem("Peindre un matériau", (int)TerrainBrushOperation.PaintMaterial);
         _brushOperation.AddItem("Ouvrir un trou", (int)TerrainBrushOperation.OpenHole);
         _brushOperation.AddItem("Refermer un trou", (int)TerrainBrushOperation.CloseHole);
         brush.AddChild(FieldRow("Opération", _brushOperation));
@@ -170,9 +175,11 @@ public partial class TerrainStudioWindow : Window
         _brushRadius = Spin(.25, 4096, 8, .25);
         _brushStrength = Spin(.01, 1, .15, .01);
         _brushTargetHeight = Spin(-512, 512, 0, .25);
+        _brushMaterial = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         influence.AddChild(FieldRow("Rayon (m)", _brushRadius));
         influence.AddChild(FieldRow("Intensité", _brushStrength));
         influence.AddChild(FieldRow("Cible Y", _brushTargetHeight));
+        influence.AddChild(FieldRow("Matériau", _brushMaterial));
         influence.AddChild(new Label
         {
             Text = "Le relief utilise un falloff radial. Les trous modifient les cellules canoniques et peuvent accueillir une grotte ou un surplomb séparé.",
@@ -264,7 +271,7 @@ public partial class TerrainStudioWindow : Window
             var stroke = BuildBrushStroke();
             var preview = TerrainBrushEditor.Apply(_current.Terrain, stroke,
                 Guid.Parse("d1400000-0000-4000-8000-000000000000"));
-            if (preview.ChangedSamples == 0 && preview.ChangedHoleCells == 0)
+            if (preview.ChangedSamples == 0 && preview.ChangedHoleCells == 0 && preview.ChangedMaterialCells == 0)
             {
                 _brushPreview.Text = "✕ La brosse ne touche aucun échantillon ou cellule modifiable.";
                 return false;
@@ -296,10 +303,12 @@ public partial class TerrainStudioWindow : Window
         (float)_brushZ!.Value,
         (float)_brushRadius!.Value,
         (float)_brushStrength!.Value,
-        (float)_brushTargetHeight!.Value);
+        (float)_brushTargetHeight!.Value,
+        _brushMaterialIds.Count == 0 ? Guid.Empty : _brushMaterialIds[_brushMaterial!.Selected]);
 
     private static string BrushSummary(TerrainBrushEditResult result) =>
-        $"Prévisualisation · {result.ChangedSamples} échantillon(s) · {result.ChangedHoleCells} cellule(s) de trou";
+        $"Prévisualisation · {result.ChangedSamples} échantillon(s) · {result.ChangedHoleCells} cellule(s) de trou · " +
+        $"{result.ChangedMaterialCells} cellule(s) de matériau";
 
     private void BuildFeatureTab(TabContainer tabs)
     {
@@ -402,6 +411,15 @@ public partial class TerrainStudioWindow : Window
         _soilColor!.Text = profile.Terrain.MaterialLayers.ElementAtOrDefault(0)?.AlbedoColor ?? "#70533a";
         _grassColor!.Text = profile.Terrain.MaterialLayers.ElementAtOrDefault(1)?.AlbedoColor ?? "#5f8345";
         _rockColor!.Text = profile.Terrain.MaterialLayers.ElementAtOrDefault(2)?.AlbedoColor ?? "#777b82";
+        _brushMaterial!.Clear();
+        _brushMaterialIds.Clear();
+        _brushMaterial.AddItem("Automatique · recettes de biome");
+        _brushMaterialIds.Add(Guid.Empty);
+        foreach (var material in profile.Terrain.MaterialLayers)
+        {
+            _brushMaterial.AddItem(material.Name);
+            _brushMaterialIds.Add(material.Id);
+        }
         _meadowDensity!.Value = profile.Biomes.FirstOrDefault(item => item.Tags.Contains("meadow"))?.ScatterDensity ?? .45;
         _rockSlope!.Value = profile.Biomes.FirstOrDefault(item => item.Tags.Contains("rock"))?.MinimumSlopeDegrees ?? 32;
         _road!.ButtonPressed = profile.Features.Any(item => item.Kind == TerrainFeatureKind.Road);
@@ -452,11 +470,14 @@ public partial class TerrainStudioWindow : Window
                 ColorValue(_rockColor!.Text, "#777b82"), oldMaterials.ElementAtOrDefault(2)?.MaterialResource ?? string.Empty, 3);
             IReadOnlyList<TerrainMaterialLayer> materials = provider == TerrainProviderKind.None ? [] : [soil, grass, rock];
             var holes = _current.Terrain.SamplesX == samples ? _current.Terrain.Holes : [];
+            var materialPaint = _current.Terrain.SamplesX == samples && _current.Terrain.SamplesZ == samples
+                ? _current.Terrain.MaterialPaint
+                : [];
             var terrain = new TerrainDefinition(_current.Terrain.Id, TerrainDefinition.CurrentSchemaVersion,
                 provider, area.Dimensions.Width, area.Dimensions.Depth, samples, samples, Math.Min(32, samples - 1),
                 seed, provider == TerrainProviderKind.Flat || provider == TerrainProviderKind.None ? 0 : heightScale,
                 heights, materials, holes, _current.Terrain.HeightmapResource, _current.Terrain.VoxelResource,
-                _current.Terrain.MeshResource, "toolset:terrain-studio");
+                _current.Terrain.MeshResource, "toolset:terrain-studio", materialPaint);
             IReadOnlyList<BiomeLayerDefinition> biomes = provider == TerrainProviderKind.None
                 ? []
                 :

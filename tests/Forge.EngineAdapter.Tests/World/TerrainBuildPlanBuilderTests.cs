@@ -43,4 +43,24 @@ public sealed class TerrainBuildPlanBuilderTests
         Assert.Empty(plan.Indices);
         Assert.Equal(0, plan.ChunkCount);
     }
+
+    [Fact]
+    public void SparseMaterialPaintOverridesBiomeColorForPaintedCell()
+    {
+        var areaId = AreaId.From(Guid.Parse("a1190000-0000-4000-8000-000000000003"));
+        var source = AreaWorldProfile.CreateDefault(areaId, AreaKind.Exterior, new AreaDimensions(64, 64));
+        var material = source.Terrain.MaterialLayers.Last();
+        var terrain = new TerrainDefinition(source.Terrain.Id, 1, source.Terrain.Provider,
+            source.Terrain.Width, source.Terrain.Depth, source.Terrain.SamplesX, source.Terrain.SamplesZ,
+            source.Terrain.ChunkSize, source.Terrain.Seed, source.Terrain.HeightScale, source.Terrain.Heights,
+            source.Terrain.MaterialLayers, source.Terrain.Holes, string.Empty, string.Empty, string.Empty, "test",
+            [new TerrainMaterialPaintCell(0, 0, material.Id)]);
+        var world = new AreaWorldProfile(source.Id, 1, terrain, source.Biomes, [], source.VolumetricNavigation,
+            [], source.Loading, "test");
+
+        var plan = TerrainBuildPlanBuilder.Build(world);
+
+        Assert.Equal(material.AlbedoColor, plan.Vertices[0].AlbedoColor);
+        Assert.NotEqual(material.AlbedoColor, plan.Vertices[1].AlbedoColor);
+    }
 }

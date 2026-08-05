@@ -36,7 +36,7 @@ public sealed class EditTerrainBrushHandler
             return Fail(state, command, "area.terrain.brush_invalid", exception.Message);
         }
 
-        if (edit.ChangedSamples == 0 && edit.ChangedHoleCells == 0)
+        if (edit.ChangedSamples == 0 && edit.ChangedHoleCells == 0 && edit.ChangedMaterialCells == 0)
         {
             return Fail(state, command, "area.terrain.brush_no_change", "Terrain brush does not touch an editable sample or cell.");
         }
@@ -52,7 +52,8 @@ public sealed class EditTerrainBrushHandler
                 new AuditEntry(command.CommandId, "edit_terrain_brush", _clock.UtcNow, false));
         }
 
-        var description = $"{command.Stroke.Operation} terrain brush changed {edit.ChangedSamples} samples and {edit.ChangedHoleCells} hole cells.";
+        var description = $"{command.Stroke.Operation} terrain brush changed {edit.ChangedSamples} samples, " +
+                          $"{edit.ChangedHoleCells} hole cells and {edit.ChangedMaterialCells} material cells.";
         var patch = new ProjectPatch("replace", $"areas/{area.Id}/world/terrain", description);
         var inverse = new ProjectPatch("replace", $"areas/{area.Id}/world/terrain", "Restore previous canonical terrain.");
         var audit = new AuditEntry(command.CommandId, "edit_terrain_brush", _clock.UtcNow, !command.DryRun);

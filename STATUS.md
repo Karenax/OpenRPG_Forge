@@ -23,7 +23,7 @@ déplacement relatif à la caméra. Quatre segments d’eau animés exposent nag
 camp au sanctuaire par un chemin réel de 72 points. Le smoke termine dialogue, collecte, passage,
 boss et quête.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.15.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.16.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -103,7 +103,7 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
   icônes des fenêtres Forge personnalisées puis contrôlées par le smoke test et une capture ciblée ;
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
 - assistant Nouveau module validé : choix Intérieur/Extérieur, dimensions 2D, agrégat module, zone
-  d’entrée, sol, spawn et workspace atomique indexé au format `1.15.0` ; le gabarit extérieur active
+  d’entrée, sol, spawn et workspace atomique indexé au format `1.16.0` ; le gabarit extérieur active
   son heightmap canonique (smoke dédié 96 × 80), avec lecture/migration testée des agrégats
   `0.6.8` à `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
@@ -294,8 +294,11 @@ biomes indépendants, des trous, routes/rivières/ponts, des volumes de vol/nage
 aériennes et un profil de chargement asynchrone. Le Creator et le runtime reconstruisent le même mesh,
 ses collisions et overlays ; l'auteur applique le profil par commande transactionnelle et les formats
 zone `1.4.0`, projet `0.6.11` et workspace `1.5.0` migrent les données absentes.
-L’onglet Sculpture ajoute désormais six opérations canoniques — lever, abaisser, aplanir, lisser,
-ouvrir et refermer — avec prévisualisation, dry-run, persistance et Undo/Redo par trait.
+L’onglet Sculpture ajoute désormais sept opérations canoniques — lever, abaisser, aplanir, lisser,
+peindre un matériau, ouvrir et refermer — avec prévisualisation, dry-run, persistance et Undo/Redo
+par trait. La peinture est un masque sparse versionné consommé par le même adapter de rendu.
+Les formats courants sont désormais zone `1.9.0`, projet agrégé `0.6.22` et workspace scindé `1.16.0` ;
+les documents antérieurs migrent vers un masque vide qui conserve le rendu par recettes de biome.
 
 **G11-J est fermé** : le module et chaque zone portent des timers bornés, les règles de repos et la
 restauration d'abandon d'une séquence. La fenêtre Rythme, repos & séquences applique module et zone
@@ -361,8 +364,8 @@ accessibilité/fuzzing sans éditer les fichiers générés. Le runtime applique
 contraste, sous-titres et descriptions sonores ; 112 cas déterministes couvrent sept frontières avec
 zéro crash inattendu et zéro évasion de chemin. Le registre tiers impose risque, état, deux rôles de
 revue et audit sécurité, puis projette ces preuves dans le manifeste `.orpmod` 1.2. Les formats
-projet `0.6.21` et workspace `1.15.0` sont migrés. Le prochain incrément est la carte 3D jouable et
-artistiquement revue demandée pour le prototype final. Le tracker compte désormais 56 capacités
+projet `0.6.22` et workspace `1.16.0` sont migrés. Forgotten Forest fournit maintenant la carte 3D
+jouable ; les prochains incréments portent sa finition artistique et les workflows de packs. Le tracker compte désormais 56 capacités
 `Tested`.
 
 **AV4B — tranche jouable navigable livrée** : le module `forgotten-forest` est authorisé depuis le

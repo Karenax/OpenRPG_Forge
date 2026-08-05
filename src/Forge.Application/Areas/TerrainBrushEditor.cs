@@ -26,9 +26,12 @@ public static class TerrainBrushEditor
             throw new ArgumentOutOfRangeException(nameof(stroke), "Terrain brush values are invalid.");
         }
 
-        return stroke.Operation is TerrainBrushOperation.OpenHole or TerrainBrushOperation.CloseHole
-            ? EditHoles(source, stroke, strokeId)
-            : EditHeights(source, stroke);
+        return stroke.Operation switch
+        {
+            TerrainBrushOperation.OpenHole or TerrainBrushOperation.CloseHole => EditHoles(source, stroke, strokeId),
+            TerrainBrushOperation.PaintMaterial => EditMaterials(source, stroke),
+            _ => EditHeights(source, stroke),
+        };
     }
 
     private static TerrainBrushEditResult EditHeights(TerrainDefinition source, TerrainBrushStroke stroke)
@@ -63,7 +66,7 @@ public static class TerrainBrushEditor
             }
         }
 
-        return new TerrainBrushEditResult(Copy(source, edited, source.Holes, "terrain-brush:sculpt"), changed, 0);
+        return new TerrainBrushEditResult(Copy(source, edited, source.Holes, "terrain-brush:sculpt"), changed, 0, 0);
     }
 
     private static TerrainBrushEditResult EditHoles(TerrainDefinition source, TerrainBrushStroke stroke, Guid strokeId)
@@ -91,7 +94,36 @@ public static class TerrainBrushEditor
                 1,
                 "terrain-brush:hole"))
             .ToArray();
-        return new TerrainBrushEditResult(Copy(source, source.Heights, holes, "terrain-brush:hole"), 0, changed);
+        return new TerrainBrushEditResult(Copy(source, source.Heights, holes, "terrain-brush:hole"), 0, changed, 0);
+    }
+
+    private static TerrainBrushEditResult EditMaterials(TerrainDefinition source, TerrainBrushStroke stroke)
+    {
+        if (stroke.MaterialLayerId != Guid.Empty &&
+            source.MaterialLayers.All(layer => layer.Id != stroke.MaterialLayerId))
+        {
+            throw new ArgumentException("Terrain paint material does not belong to this terrain.", nameof(stroke));
+        }
+
+        var paint = source.MaterialPaint.ToDictionary(cell => (cell.X, cell.Z));
+        var changed = 0;
+        for (var z = 0; z < source.SamplesZ - 1; z++)
+        {
+            for (var x = 0; x < source.SamplesX - 1; x++)
+            {
+                if (Falloff(source, stroke, x, z, cellCenter: true) <= 0) continue;
+                paint.TryGetValue((x, z), out var existing);
+                var previous = existing?.MaterialLayerId ?? Guid.Empty;
+                if (previous == stroke.MaterialLayerId) continue;
+                changed++;
+                if (stroke.MaterialLayerId == Guid.Empty) paint.Remove((x, z));
+                else paint[(x, z)] = new TerrainMaterialPaintCell(x, z, stroke.MaterialLayerId);
+            }
+        }
+
+        var edited = paint.Values.OrderBy(cell => cell.Z).ThenBy(cell => cell.X).ToArray();
+        return new TerrainBrushEditResult(
+            Copy(source, source.Heights, source.Holes, "terrain-brush:material", edited), 0, 0, changed);
     }
 
     private static HashSet<(int X, int Z)> ExpandHoleCells(TerrainDefinition source)
@@ -139,10 +171,12 @@ public static class TerrainBrushEditor
     }
 
     private static TerrainDefinition Copy(TerrainDefinition source, IReadOnlyList<float> heights,
-        IReadOnlyList<TerrainHoleDefinition> holes, string provenance) =>
+        IReadOnlyList<TerrainHoleDefinition> holes, string provenance,
+        IReadOnlyList<TerrainMaterialPaintCell>? materialPaint = null) =>
         new(source.Id, source.SchemaVersion, source.Provider, source.Width, source.Depth, source.SamplesX,
             source.SamplesZ, source.ChunkSize, source.Seed, source.HeightScale, heights, source.MaterialLayers, holes,
-            source.HeightmapResource, source.VoxelResource, source.MeshResource, provenance);
+            source.HeightmapResource, source.VoxelResource, source.MeshResource, provenance,
+            materialPaint ?? source.MaterialPaint);
 
     private static Guid StableGuid(Guid strokeId, int x, int z)
     {

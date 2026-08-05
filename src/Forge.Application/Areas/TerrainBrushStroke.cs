@@ -6,9 +6,11 @@ public sealed record TerrainBrushStroke(
     float WorldZ,
     float Radius,
     float Strength,
-    float TargetHeight = 0);
+    float TargetHeight = 0,
+    Guid MaterialLayerId = default);
 
 public sealed record TerrainBrushEditResult(
     Forge.Domain.Areas.TerrainDefinition Terrain,
     int ChangedSamples,
-    int ChangedHoleCells);
+    int ChangedHoleCells,
+    int ChangedMaterialCells);

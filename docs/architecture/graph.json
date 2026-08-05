@@ -268,7 +268,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -277,7 +277,7 @@
     },
     {
       "evidence": {
-        "line": 23,
+        "line": 24,
         "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -889,7 +889,7 @@
     },
     {
       "evidence": {
-        "line": 40,
+        "line": 41,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -898,7 +898,7 @@
     },
     {
       "evidence": {
-        "line": 95,
+        "line": 97,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -907,7 +907,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 47,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -916,7 +916,7 @@
     },
     {
       "evidence": {
-        "line": 111,
+        "line": 113,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1096,7 +1096,7 @@
     },
     {
       "evidence": {
-        "line": 116,
+        "line": 118,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1105,7 +1105,7 @@
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 36,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1114,7 +1114,7 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 52,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1123,7 +1123,7 @@
     },
     {
       "evidence": {
-        "line": 163,
+        "line": 165,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1447,7 +1447,7 @@
     },
     {
       "evidence": {
-        "line": 6506,
+        "line": 6526,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1456,7 +1456,7 @@
     },
     {
       "evidence": {
-        "line": 6525,
+        "line": 6545,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1465,7 +1465,7 @@
     },
     {
       "evidence": {
-        "line": 6399,
+        "line": 6419,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -2005,7 +2005,7 @@
     },
     {
       "evidence": {
-        "line": 114,
+        "line": 115,
         "path": "README.md"
       },
       "kind": "references",
@@ -2014,7 +2014,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 113,
         "path": "README.md"
       },
       "kind": "references",
@@ -2023,7 +2023,7 @@
     },
     {
       "evidence": {
-        "line": 136,
+        "line": 137,
         "path": "README.md"
       },
       "kind": "references",
@@ -2032,7 +2032,7 @@
     },
     {
       "evidence": {
-        "line": 100,
+        "line": 101,
         "path": "README.md"
       },
       "kind": "references",
@@ -4714,7 +4714,7 @@
     },
     {
       "evidence": {
-        "line": 246,
+        "line": 247,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -22849,7 +22849,7 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 57,
         "path": "src/Forge.Application/Areas/EditTerrainBrushHandler.cs"
       },
       "kind": "uses_model",
@@ -22876,7 +22876,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 66,
         "path": "src/Forge.Application/Areas/EditTerrainBrushHandler.cs"
       },
       "kind": "uses_model",
@@ -27160,7 +27160,7 @@
     },
     {
       "evidence": {
-        "line": 11,
+        "line": 12,
         "path": "src/Forge.Application/Areas/TerrainBrushStroke.cs"
       },
       "kind": "defined_in",
@@ -27169,7 +27169,7 @@
     },
     {
       "evidence": {
-        "line": 12,
+        "line": 13,
         "path": "src/Forge.Application/Areas/TerrainBrushStroke.cs"
       },
       "kind": "relationship",
@@ -37597,6 +37597,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Areas",
       "target": "file:src/Forge.Domain/Areas/TerrainMaterialLayer.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Areas/TerrainMaterialPaintCell.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Areas",
+      "target": "file:src/Forge.Domain/Areas/TerrainMaterialPaintCell.cs"
     },
     {
       "evidence": {
@@ -48616,7 +48625,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 83,
         "path": "tests/Forge.Application.Tests/Areas/EditTerrainBrushHandlerTests.cs"
       },
       "kind": "tests",
@@ -48625,7 +48634,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 84,
         "path": "tests/Forge.Application.Tests/Areas/EditTerrainBrushHandlerTests.cs"
       },
       "kind": "tests",
@@ -48634,7 +48643,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 84,
         "path": "tests/Forge.Application.Tests/Areas/EditTerrainBrushHandlerTests.cs"
       },
       "kind": "tests",
@@ -48643,7 +48652,7 @@
     },
     {
       "evidence": {
-        "line": 101,
+        "line": 119,
         "path": "tests/Forge.Application.Tests/Areas/EditTerrainBrushHandlerTests.cs"
       },
       "kind": "tests",
@@ -48652,7 +48661,7 @@
     },
     {
       "evidence": {
-        "line": 105,
+        "line": 123,
         "path": "tests/Forge.Application.Tests/Areas/EditTerrainBrushHandlerTests.cs"
       },
       "kind": "tests",
@@ -48661,7 +48670,7 @@
     },
     {
       "evidence": {
-        "line": 94,
+        "line": 112,
         "path": "tests/Forge.Application.Tests/Areas/EditTerrainBrushHandlerTests.cs"
       },
       "kind": "tests",
@@ -48670,7 +48679,7 @@
     },
     {
       "evidence": {
-        "line": 105,
+        "line": 123,
         "path": "tests/Forge.Application.Tests/Areas/EditTerrainBrushHandlerTests.cs"
       },
       "kind": "tests",
@@ -48679,7 +48688,7 @@
     },
     {
       "evidence": {
-        "line": 109,
+        "line": 127,
         "path": "tests/Forge.Application.Tests/Areas/EditTerrainBrushHandlerTests.cs"
       },
       "kind": "tests",
@@ -48715,7 +48724,7 @@
     },
     {
       "evidence": {
-        "line": 76,
+        "line": 94,
         "path": "tests/Forge.Application.Tests/Areas/EditTerrainBrushHandlerTests.cs"
       },
       "kind": "tests",
@@ -48724,7 +48733,7 @@
     },
     {
       "evidence": {
-        "line": 107,
+        "line": 125,
         "path": "tests/Forge.Application.Tests/Areas/EditTerrainBrushHandlerTests.cs"
       },
       "kind": "tests",
@@ -60937,6 +60946,15 @@
     },
     {
       "evidence": {
+        "line": 57,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
+      "target": "type:Forge.Domain.Areas.TerrainMaterialPaintCell"
+    },
+    {
+      "evidence": {
         "line": 21,
         "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
       },
@@ -63682,7 +63700,7 @@
     },
     {
       "evidence": {
-        "line": 38,
+        "line": 49,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -63736,7 +63754,16 @@
     },
     {
       "evidence": {
-        "line": 45,
+        "line": 39,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "model:Forge.Domain.Areas.TerrainDefinition"
+    },
+    {
+      "evidence": {
+        "line": 56,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -63790,6 +63817,15 @@
     },
     {
       "evidence": {
+        "line": 45,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "type:Forge.Domain.Areas.AreaWorldProfile"
+    },
+    {
+      "evidence": {
         "line": 29,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
@@ -63799,7 +63835,16 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 44,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.AreaJsonSerializerTests",
+      "target": "type:Forge.Domain.Areas.TerrainMaterialPaintCell"
+    },
+    {
+      "evidence": {
+        "line": 63,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/AreaJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -64393,7 +64438,7 @@
     },
     {
       "evidence": {
-        "line": 546,
+        "line": 560,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -64402,7 +64447,7 @@
     },
     {
       "evidence": {
-        "line": 547,
+        "line": 561,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -64510,7 +64555,7 @@
     },
     {
       "evidence": {
-        "line": 551,
+        "line": 565,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -64519,7 +64564,7 @@
     },
     {
       "evidence": {
-        "line": 550,
+        "line": 564,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -64600,7 +64645,7 @@
     },
     {
       "evidence": {
-        "line": 555,
+        "line": 569,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -64609,7 +64654,7 @@
     },
     {
       "evidence": {
-        "line": 553,
+        "line": 567,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -64690,7 +64735,7 @@
     },
     {
       "evidence": {
-        "line": 428,
+        "line": 442,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -64861,7 +64906,7 @@
     },
     {
       "evidence": {
-        "line": 560,
+        "line": 574,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -73177,6 +73222,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Areas/TerrainMaterialPaintCell.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Areas.TerrainMaterialPaintCell",
+      "target": "file:src/Forge.Domain/Areas/TerrainMaterialPaintCell.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.Domain/Areas/AreaRenderingProfile.cs"
       },
@@ -80989,7 +81043,7 @@
     },
     {
       "evidence": {
-        "line": 7556,
+        "line": 7576,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -81106,7 +81160,7 @@
     },
     {
       "evidence": {
-        "line": 7561,
+        "line": 7581,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -81115,7 +81169,7 @@
     },
     {
       "evidence": {
-        "line": 7566,
+        "line": 7586,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -82015,8 +82069,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:0005cfdec4bc0790aec2cc40966d0bcd5222ef5e0c25de1f5ed4e5128d88af9e",
-    "source_file_count": 1476
+    "source_digest": "sha256:72a6b17a1dfa0c63de253a22c7462738f4a52fb1e518e487006ec937e940f149",
+    "source_file_count": 1477
   },
   "nodes": [
     {
@@ -83990,14 +84044,14 @@
       "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/quality/visual-reviews/visual-review-manifest.json"
     },
     {
-      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-8141d8d2a5b1daa9.json",
+      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-4a34115af9ab6cfe.json",
       "kind": "configuration",
       "line": 1,
       "metadata": {
         "language": "configuration"
       },
-      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-8141d8d2a5b1daa9.json",
-      "path": "apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-8141d8d2a5b1daa9.json"
+      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-4a34115af9ab6cfe.json",
+      "path": "apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-4a34115af9ab6cfe.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/forge.project.json",
@@ -89118,6 +89172,16 @@
       },
       "name": "TerrainMaterialLayer.cs",
       "path": "src/Forge.Domain/Areas/TerrainMaterialLayer.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Areas/TerrainMaterialPaintCell.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainMaterialPaintCell.cs",
+      "path": "src/Forge.Domain/Areas/TerrainMaterialPaintCell.cs"
     },
     {
       "id": "file:src/Forge.Domain/Areas/TerrainProviderKind.cs",
@@ -99192,7 +99256,7 @@
     {
       "id": "model:Forge.Application.Areas.TerrainBrushEditResult",
       "kind": "model",
-      "line": 11,
+      "line": 12,
       "metadata": {
         "namespace": "Forge.Application.Areas"
       },
@@ -110574,6 +110638,16 @@
       "path": "src/Forge.Domain/Areas/TerrainMaterialLayer.cs"
     },
     {
+      "id": "type:Forge.Domain.Areas.TerrainMaterialPaintCell",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Areas"
+      },
+      "name": "TerrainMaterialPaintCell",
+      "path": "src/Forge.Domain/Areas/TerrainMaterialPaintCell.cs"
+    },
+    {
       "id": "type:Forge.Domain.Areas.ToneMappingProfile",
       "kind": "type",
       "line": 8,
@@ -118926,7 +119000,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 7556,
+      "line": 7576,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -119016,7 +119090,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 7561,
+      "line": 7581,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -119026,7 +119100,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 7566,
+      "line": 7586,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
