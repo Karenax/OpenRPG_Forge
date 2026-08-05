@@ -92,6 +92,12 @@ procédural ou panorama. Les formats projet, workspace et zone migrent les profi
 détaillée est dans
 [`tasks/G11-G-REFERENCE-RENDERING-AND-SKY.md`](tasks/G11-G-REFERENCE-RENDERING-AND-SKY.md).
 
+**G11-H est fermé le 5 août 2026.** Le profil de zone porte vent global/local, états météo, eau et
+zones de réverbération. Le viewport Creator et le runtime partagent les adapters de particules,
+surfaces/volumes et reverb ; la machine météo autoritaire possède un snapshot persistant dans
+`.orpsave` 1.1. La preuve détaillée est dans
+[`tasks/G11-H-CLIMATE-WATER-REVERB.md`](tasks/G11-H-CLIMATE-WATER-REVERB.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-H** : vent, météo, eau et réverbération runtime.
+Démarrer **G11-I** : terrain générique multi-biome, features et navigation volumétrique.

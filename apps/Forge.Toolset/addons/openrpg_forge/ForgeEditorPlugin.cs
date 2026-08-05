@@ -3828,6 +3828,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunClimateWaterReverbSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNavigationAndGeometrySmokeTest())
         {
             return;
@@ -5409,6 +5414,132 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G11G_RENDER_PASS pbr=metallic-roughness materials=instances " +
             "tone=aces hdr=true lighting=per-pixel forward=plus sky=procedural lights=48 shadows=12 " +
             "history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunClimateWaterReverbSmokeTest()
+    {
+        if (_history is null || _areaEnvironmentWindow is null || _projectPreview is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_FAILED missing_workspace");
+            return false;
+        }
+
+        var area = GetActiveArea();
+        var original = area.Environment;
+        var clearId = Guid.Parse("d1180000-0000-4000-8000-000000000001");
+        var rainId = Guid.Parse("d1180000-0000-4000-8000-000000000002");
+        var rain = new WeatherStateProfile(
+            rainId, "Pluie de validation", WeatherKind.Rain, .72f, .9f, .8f, true,
+            string.Empty, "weather.rain", "surface.wet", 0, 1, 2);
+        var clear = new WeatherStateProfile(
+            clearId, "Éclaircie", WeatherKind.Clear, 0, .35f, .1f, false,
+            string.Empty, string.Empty, string.Empty, 4, 8, 3);
+        var weather = new WeatherProfile(
+            WeatherProfile.CurrentSchemaVersion, rainId, [rain, clear], true, 2026, true, true);
+        var windZone = new WindZoneProfile(
+            Guid.Parse("d1180000-0000-4000-8000-000000000003"),
+            Vector3Value.Zero, 8, -1, 0, 11, 1.6f);
+        var wind = new WindProfile(
+            WindProfile.CurrentSchemaVersion, .8f, .3f, 6.5f, .55f, 5, true, true,
+            "wind.gust", 2, [windZone]);
+        var waterBody = new WaterBodyProfile(
+            Guid.Parse("d1180000-0000-4000-8000-000000000004"),
+            "Bassin de validation", WaterBodyKind.Volume, Vector3Value.Zero, new(18, 2, 12), 2,
+            1, 0, .4f, 1.2f, 2.5f, true, WaterQualityTier.High, string.Empty, "water.lake");
+        var reverbZone = new ReverbZoneProfile(
+            Guid.Parse("d1180000-0000-4000-8000-000000000005"),
+            "Caverne de validation", Vector3Value.Zero, new(10, 5, 10), "cave", .7f, 1, 1.5f,
+            string.Empty, string.Empty, string.Empty, string.Empty);
+        var configured = new AreaEnvironmentProfile(
+            AreaEnvironmentProfile.CurrentSchemaVersion,
+            original.Classification,
+            original.Tags,
+            original.Lighting,
+            original.Fog,
+            original.Audio,
+            original.Rendering,
+            original.Sky,
+            wind,
+            weather,
+            new(WaterProfile.CurrentSchemaVersion, [waterBody]),
+            new(AreaReverbProfile.CurrentSchemaVersion, "cave", [reverbZone]));
+        if (!_areaEnvironmentWindow.ConfigureRenderForSmokeTest(configured) ||
+            !_areaEnvironmentWindow.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_FAILED apply");
+            return false;
+        }
+
+        var applied = _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).Environment;
+        var plan = AreaClimatePlanBuilder.Build(applied, applied.Weather.InitialStateId, Vector3Value.Zero, "mobile");
+        if (applied.Wind.Speed != 6.5f || applied.Wind.LocalZones.Single().Speed != 11 ||
+            applied.Weather.States.Single(item => item.Id == applied.Weather.InitialStateId).Kind != WeatherKind.Rain ||
+            applied.Water.Bodies.Single().Kind != WaterBodyKind.Volume ||
+            applied.Reverb.Zones.Single().Preset != "cave" ||
+            plan.ActiveWindZone?.Id != windZone.Id || plan.ActiveReverbZone?.Id != reverbZone.Id ||
+            plan.EffectiveWaterQuality != WaterQualityTier.Medium ||
+            !plan.Diagnostics.Any(item => item.Code == AreaClimatePlanBuilder.WaterQualityDowngradedCode) ||
+            _projectPreview.PrecipitationEmitterCount != 1 || _projectPreview.WaterSurfaceCount != 1 ||
+            !_projectPreview.ClimateProfileSummary.StartsWith("Rain:", StringComparison.Ordinal) ||
+            !_projectPreview.ClimateProfileSummary.EndsWith(":1:cave", StringComparison.Ordinal))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_FAILED preview_plan");
+            return false;
+        }
+
+        var initial = WeatherRuntimeStateMachine.CreateInitial(applied.Weather);
+        var denied = WeatherRuntimeStateMachine.Advance(applied.Weather, initial, 2, hasAuthority: false);
+        var advanced = WeatherRuntimeStateMachine.Advance(applied.Weather, initial, 2, hasAuthority: true);
+        if (!denied.AuthorityDenied || denied.Transition is not null || advanced.Transition is null ||
+            advanced.State.StateId == initial.StateId || !advanced.Transition.Persist || !advanced.Transition.Replicate)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_FAILED weather_runtime");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "climate-water-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project.Areas.Single(candidate => candidate.Id == area.Id).Environment;
+            if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
+                restored.Wind.Speed != 6.5f || restored.Weather.InitialStateId != rainId ||
+                restored.Water.Bodies.Single().Quality != WaterQualityTier.High ||
+                restored.Reverb.Zones.Single().Wet != .7f)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            !ReferenceEquals(
+                _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).Environment,
+                original))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_FAILED history");
+            return false;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G11H_ENVIRONMENT_PASS wind=global-local weather=state-machine " +
+            "particles=rain water=plane-volume reverb=zone authority=server save=portable " +
+            "replication=ready history=restored persistence=roundtrip");
         return true;
     }
 

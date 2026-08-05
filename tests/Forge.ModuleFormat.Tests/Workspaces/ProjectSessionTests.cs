@@ -183,6 +183,41 @@ public sealed class ProjectSessionTests : IDisposable
     }
 
     [Fact]
+    public void Open_MigratesPreClimateWorkspaceAndAreaDocuments()
+    {
+        var created = ProjectSession.Create(
+            Path.Combine(_temporaryRoot, "pre-climate"),
+            TestProjectFactory.CreateValid());
+        var session = Assert.IsType<ProjectSession>(created.Session);
+        var projectDocument = JsonNode.Parse(File.ReadAllText(session.ProjectFilePath))!.AsObject();
+        projectDocument["formatVersion"] = "1.3.0";
+        File.WriteAllText(session.ProjectFilePath, projectDocument.ToJsonString());
+        var areaPath = Assert.Single(Directory.EnumerateFiles(
+            Path.Combine(session.RootDirectory, "areas"),
+            "*.json"));
+        var areaDocument = JsonNode.Parse(File.ReadAllText(areaPath))!.AsObject();
+        areaDocument["formatVersion"] = AreaJsonSerializer.PreClimateProfileFormatVersion;
+        var environment = areaDocument["area"]!["environment"]!.AsObject();
+        environment["schemaVersion"] = 2;
+        environment.Remove("wind");
+        environment.Remove("weather");
+        environment.Remove("water");
+        environment.Remove("reverb");
+        File.WriteAllText(areaPath, areaDocument.ToJsonString());
+
+        var reopened = ProjectSession.Open(session.RootDirectory);
+        var migrated = Assert.IsType<ProjectSession>(reopened.Session);
+        var restored = Assert.Single(migrated.Project.Areas).Environment;
+
+        Assert.True(reopened.Succeeded);
+        Assert.Equal(AreaEnvironmentProfile.CurrentSchemaVersion, restored.SchemaVersion);
+        Assert.Equal(WindProfile.CurrentSchemaVersion, restored.Wind.SchemaVersion);
+        Assert.Equal(WeatherProfile.CurrentSchemaVersion, restored.Weather.SchemaVersion);
+        Assert.Empty(restored.Water.Bodies);
+        Assert.Empty(restored.Reverb.Zones);
+    }
+
+    [Fact]
     public void Open_ReturnsLocalizedDiagnosticWhenAreaDocumentIsMissing()
     {
         var created = ProjectSession.Create(

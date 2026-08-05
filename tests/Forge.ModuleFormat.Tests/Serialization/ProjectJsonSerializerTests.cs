@@ -352,6 +352,28 @@ public sealed class ProjectJsonSerializerTests
     }
 
     [Fact]
+    public void Deserialize_MigratesPreClimateProfileFormatWithCanonicalDefaults()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreClimateProfileFormatVersion;
+        var environment = document["project"]!["areas"]!.AsArray()[0]!["environment"]!.AsObject();
+        environment["schemaVersion"] = 2;
+        environment.Remove("wind");
+        environment.Remove("weather");
+        environment.Remove("water");
+        environment.Remove("reverb");
+
+        var migrated = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var restored = Assert.Single(migrated.Areas).Environment;
+
+        Assert.Equal(AreaEnvironmentProfile.CurrentSchemaVersion, restored.SchemaVersion);
+        Assert.Equal(WindProfile.CurrentSchemaVersion, restored.Wind.SchemaVersion);
+        Assert.Equal(WeatherProfile.CurrentSchemaVersion, restored.Weather.SchemaVersion);
+        Assert.Empty(restored.Water.Bodies);
+        Assert.Equal(restored.Audio.ReverbPreset, restored.Reverb.DefaultPreset);
+    }
+
+    [Fact]
     public void Deserialize_MigratesPaletteProvenanceFormatWithProjectDefaults()
     {
         var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();

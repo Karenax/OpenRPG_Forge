@@ -11,6 +11,7 @@ public static class RuntimeSaveValidator
     public const string VariableInvalidCode = "save.variable_invalid";
     public const string HostileInvalidCode = "save.hostile_invalid";
     public const string QuestReferenceInvalidCode = "save.quest_reference_invalid";
+    public const string WeatherInvalidCode = "save.weather_invalid";
 
     public static IReadOnlyList<RuntimeSaveDiagnostic> Validate(RuntimeSaveDocument save)
     {
@@ -83,6 +84,18 @@ public static class RuntimeSaveValidator
                 QuestReferenceInvalidCode,
                 "Quest ID and state ID must both be absent or valid UUIDs.",
                 "questStateId"));
+        }
+
+        if (save.Weather is not null &&
+            (save.Weather.SchemaVersion != 1 ||
+             !Guid.TryParse(save.Weather.StateId, out var weatherStateId) || weatherStateId == Guid.Empty ||
+             save.Weather.Revision < 0 || save.Weather.ServerRevision < 0 ||
+             save.Weather.ElapsedSeconds < 0 || !double.IsFinite(save.Weather.ElapsedSeconds)))
+        {
+            diagnostics.Add(new RuntimeSaveDiagnostic(
+                WeatherInvalidCode,
+                "Weather state requires schema v1, a non-empty state UUID and non-negative runtime counters.",
+                "weather"));
         }
 
         return diagnostics;

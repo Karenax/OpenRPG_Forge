@@ -1,6 +1,7 @@
 #if TOOLS
 using Forge.Application.Projects;
 using Forge.Domain.Areas;
+using Forge.Domain.Spatial;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -45,6 +46,49 @@ public partial class AreaEnvironmentWindow : Window
     private SpinBox? _fogDensity;
     private SpinBox? _fogStart;
     private SpinBox? _fogEnd;
+    private SpinBox? _windDirectionX;
+    private SpinBox? _windDirectionZ;
+    private SpinBox? _windSpeed;
+    private SpinBox? _windGust;
+    private SpinBox? _windInterval;
+    private CheckBox? _windVegetation;
+    private CheckBox? _windParticles;
+    private LineEdit? _windAudio;
+    private OptionButton? _weatherKind;
+    private SpinBox? _weatherIntensity;
+    private SpinBox? _weatherHumidity;
+    private SpinBox? _weatherWetness;
+    private CheckBox? _weatherLightning;
+    private SpinBox? _weatherMinimumDuration;
+    private SpinBox? _weatherMaximumDuration;
+    private SpinBox? _weatherTransition;
+    private LineEdit? _weatherAudio;
+    private LineEdit? _weatherGameplay;
+    private CheckBox? _weatherAuthority;
+    private CheckBox? _weatherPersist;
+    private CheckBox? _weatherReplicate;
+    private CheckBox? _waterEnabled;
+    private OptionButton? _waterKind;
+    private SpinBox? _waterCenterX;
+    private SpinBox? _waterCenterY;
+    private SpinBox? _waterCenterZ;
+    private SpinBox? _waterSizeX;
+    private SpinBox? _waterSizeY;
+    private SpinBox? _waterSizeZ;
+    private SpinBox? _waterDepth;
+    private SpinBox? _waterFlow;
+    private SpinBox? _waterBuoyancy;
+    private SpinBox? _waterNavigationCost;
+    private CheckBox? _waterSwimming;
+    private OptionButton? _waterQuality;
+    private LineEdit? _waterAudio;
+    private CheckBox? _reverbZoneEnabled;
+    private SpinBox? _reverbWet;
+    private SpinBox? _reverbDry;
+    private SpinBox? _reverbBlend;
+    private SpinBox? _reverbSizeX;
+    private SpinBox? _reverbSizeY;
+    private SpinBox? _reverbSizeZ;
     private LineEdit? _dayMusic;
     private LineEdit? _nightMusic;
     private LineEdit? _combatMusic;
@@ -126,13 +170,14 @@ public partial class AreaEnvironmentWindow : Window
         root.AddChild(header);
         root.AddChild(new Label
         {
-            Text = "Rendu PBR/HDR, ciel, lumière, brouillard et audio restent dans un profil canonique annulable.",
+            Text = "Rendu, ciel, vent, météo, eau et audio restent dans un profil canonique annulable.",
         });
 
         var tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         root.AddChild(tabs);
         BuildRenderingTab(tabs);
         BuildFogTab(tabs);
+        BuildClimateTab(tabs);
         BuildAudioTab(tabs);
 
         _status = new Label { Text = "Prêt · prévisualisez les budgets avant application." };
@@ -234,6 +279,106 @@ public partial class AreaEnvironmentWindow : Window
         card.AddChild(FieldRow("Fin", _fogEnd));
     }
 
+    private void BuildClimateTab(TabContainer tabs)
+    {
+        var scroll = Tab(tabs, "Climat & eau");
+        var columns = new HBoxContainer();
+        columns.AddThemeConstantOverride("separation", 14);
+        scroll.AddChild(columns);
+
+        var wind = Card(columns, "VENT GLOBAL");
+        _windDirectionX = Spin(-1, 1, .8, .05);
+        _windDirectionZ = Spin(-1, 1, .3, .05);
+        _windSpeed = Spin(0, 100, 3, .25);
+        _windGust = Spin(0, 8, .35, .05);
+        _windInterval = Spin(.1, 3600, 8, .5);
+        wind.AddChild(FieldRow("Direction X", _windDirectionX));
+        wind.AddChild(FieldRow("Direction Z", _windDirectionZ));
+        wind.AddChild(FieldRow("Vitesse", _windSpeed));
+        wind.AddChild(FieldRow("Rafales", _windGust));
+        wind.AddChild(FieldRow("Intervalle", _windInterval));
+        _windVegetation = Check("Influence la végétation", true);
+        _windParticles = Check("Influence les particules", true);
+        _windAudio = Field("Cue audio · wind.light");
+        wind.AddChild(_windVegetation);
+        wind.AddChild(_windParticles);
+        wind.AddChild(_windAudio);
+
+        var weather = Card(columns, "MÉTÉO RUNTIME");
+        _weatherKind = EnumOption<WeatherKind>();
+        weather.AddChild(FieldRow("État initial", _weatherKind));
+        _weatherIntensity = Spin(0, 1, 0, .05);
+        _weatherHumidity = Spin(0, 1, .35, .05);
+        _weatherWetness = Spin(0, 1, 0, .05);
+        weather.AddChild(FieldRow("Intensité", _weatherIntensity));
+        weather.AddChild(FieldRow("Humidité", _weatherHumidity));
+        weather.AddChild(FieldRow("Sol humide", _weatherWetness));
+        _weatherLightning = Check("Éclairs", false);
+        weather.AddChild(_weatherLightning);
+        _weatherMinimumDuration = Spin(0, 86400, 180, 5);
+        _weatherMaximumDuration = Spin(0, 86400, 420, 5);
+        _weatherTransition = Spin(0, 3600, 12, .5);
+        weather.AddChild(FieldRow("Durée min", _weatherMinimumDuration));
+        weather.AddChild(FieldRow("Durée max", _weatherMaximumDuration));
+        weather.AddChild(FieldRow("Transition", _weatherTransition));
+        _weatherAudio = Field("Cue audio · weather.rain");
+        _weatherGameplay = Field("Effet gameplay · surface.wet");
+        weather.AddChild(_weatherAudio);
+        weather.AddChild(_weatherGameplay);
+        _weatherAuthority = Check("Autorité serveur", true);
+        _weatherPersist = Check("Persister dans la sauvegarde", true);
+        _weatherReplicate = Check("Répliquer en réseau", true);
+        weather.AddChild(_weatherAuthority);
+        weather.AddChild(_weatherPersist);
+        weather.AddChild(_weatherReplicate);
+
+        var water = Card(columns, "EAU & RÉVERBÉRATION");
+        _waterEnabled = Check("Plan d’eau actif", false);
+        water.AddChild(_waterEnabled);
+        _waterKind = EnumOption<WaterBodyKind>();
+        water.AddChild(FieldRow("Type", _waterKind));
+        _waterCenterX = Spin(-4096, 4096, 0, .5);
+        _waterCenterY = Spin(-4096, 4096, 0, .25);
+        _waterCenterZ = Spin(-4096, 4096, 0, .5);
+        water.AddChild(FieldRow("Centre X", _waterCenterX));
+        water.AddChild(FieldRow("Hauteur Y", _waterCenterY));
+        water.AddChild(FieldRow("Centre Z", _waterCenterZ));
+        _waterSizeX = Spin(.1, 4096, 20, .5);
+        _waterSizeY = Spin(.1, 4096, 2, .25);
+        _waterSizeZ = Spin(.1, 4096, 15, .5);
+        water.AddChild(FieldRow("Largeur", _waterSizeX));
+        water.AddChild(FieldRow("Volume Y", _waterSizeY));
+        water.AddChild(FieldRow("Profondeur Z", _waterSizeZ));
+        _waterDepth = Spin(.1, 4096, 2, .25);
+        _waterFlow = Spin(0, 100, 0, .1);
+        _waterBuoyancy = Spin(0, 10, 1, .1);
+        _waterNavigationCost = Spin(.1, 100, 2, .1);
+        water.AddChild(FieldRow("Profondeur", _waterDepth));
+        water.AddChild(FieldRow("Courant", _waterFlow));
+        water.AddChild(FieldRow("Flottabilité", _waterBuoyancy));
+        water.AddChild(FieldRow("Coût navigation", _waterNavigationCost));
+        _waterSwimming = Check("Nage autorisée", true);
+        water.AddChild(_waterSwimming);
+        _waterQuality = EnumOption<WaterQualityTier>();
+        water.AddChild(FieldRow("Qualité", _waterQuality));
+        _waterAudio = Field("Cue audio · water.lake");
+        water.AddChild(_waterAudio);
+        _reverbZoneEnabled = Check("Zone de réverbération", false);
+        water.AddChild(_reverbZoneEnabled);
+        _reverbWet = Spin(0, 1, .55, .05);
+        _reverbDry = Spin(0, 1, 1, .05);
+        _reverbBlend = Spin(0, 60, 1, .1);
+        _reverbSizeX = Spin(.1, 4096, 12, .5);
+        _reverbSizeY = Spin(.1, 4096, 6, .5);
+        _reverbSizeZ = Spin(.1, 4096, 12, .5);
+        water.AddChild(FieldRow("Réverb humide", _reverbWet));
+        water.AddChild(FieldRow("Réverb sec", _reverbDry));
+        water.AddChild(FieldRow("Fondu réverb", _reverbBlend));
+        water.AddChild(FieldRow("Zone X", _reverbSizeX));
+        water.AddChild(FieldRow("Zone Y", _reverbSizeY));
+        water.AddChild(FieldRow("Zone Z", _reverbSizeZ));
+    }
+
     private void BuildAudioTab(TabContainer tabs)
     {
         var scroll = Tab(tabs, "Audio");
@@ -330,11 +475,57 @@ public partial class AreaEnvironmentWindow : Window
         _fogDensity!.Value = profile.Fog.Density;
         _fogStart!.Value = profile.Fog.StartDistance;
         _fogEnd!.Value = profile.Fog.EndDistance;
+        _windDirectionX!.Value = profile.Wind.DirectionX;
+        _windDirectionZ!.Value = profile.Wind.DirectionZ;
+        _windSpeed!.Value = profile.Wind.Speed;
+        _windGust!.Value = profile.Wind.GustStrength;
+        _windInterval!.Value = profile.Wind.GustIntervalSeconds;
+        _windVegetation!.ButtonPressed = profile.Wind.InfluencesVegetation;
+        _windParticles!.ButtonPressed = profile.Wind.InfluencesParticles;
+        _windAudio!.Text = profile.Wind.AudioCue;
+        var weather = profile.Weather.States.Single(item => item.Id == profile.Weather.InitialStateId);
+        _weatherKind!.Selected = (int)weather.Kind;
+        _weatherIntensity!.Value = weather.Intensity;
+        _weatherHumidity!.Value = weather.Humidity;
+        _weatherWetness!.Value = weather.SurfaceWetness;
+        _weatherLightning!.ButtonPressed = weather.Lightning;
+        _weatherMinimumDuration!.Value = weather.MinimumDurationSeconds;
+        _weatherMaximumDuration!.Value = weather.MaximumDurationSeconds;
+        _weatherTransition!.Value = weather.TransitionSeconds;
+        _weatherAudio!.Text = weather.AudioCue;
+        _weatherGameplay!.Text = weather.GameplayEffect;
+        _weatherAuthority!.ButtonPressed = profile.Weather.ServerAuthoritative;
+        _weatherPersist!.ButtonPressed = profile.Weather.PersistState;
+        _weatherReplicate!.ButtonPressed = profile.Weather.ReplicateState;
+        var water = profile.Water.Bodies.FirstOrDefault();
+        _waterEnabled!.ButtonPressed = water is not null;
+        _waterKind!.Selected = (int)(water?.Kind ?? WaterBodyKind.Plane);
+        _waterCenterX!.Value = water?.Center.X ?? 0;
+        _waterCenterY!.Value = water?.Center.Y ?? 0;
+        _waterCenterZ!.Value = water?.Center.Z ?? 0;
+        _waterSizeX!.Value = water?.Size.X ?? 20;
+        _waterSizeY!.Value = water?.Size.Y ?? 2;
+        _waterSizeZ!.Value = water?.Size.Z ?? 15;
+        _waterDepth!.Value = water?.MaximumDepth ?? 2;
+        _waterFlow!.Value = water?.FlowSpeed ?? 0;
+        _waterBuoyancy!.Value = water?.Buoyancy ?? 1;
+        _waterNavigationCost!.Value = water?.NavigationCost ?? 2;
+        _waterSwimming!.ButtonPressed = water?.SwimmingEnabled ?? true;
+        _waterQuality!.Selected = (int)(water?.Quality ?? WaterQualityTier.High);
+        _waterAudio!.Text = water?.AudioCue ?? string.Empty;
+        var reverbZone = profile.Reverb.Zones.FirstOrDefault();
+        _reverbZoneEnabled!.ButtonPressed = reverbZone is not null;
+        _reverbWet!.Value = reverbZone?.Wet ?? .55;
+        _reverbDry!.Value = reverbZone?.Dry ?? 1;
+        _reverbBlend!.Value = reverbZone?.BlendSeconds ?? 1;
+        _reverbSizeX!.Value = reverbZone?.Size.X ?? 12;
+        _reverbSizeY!.Value = reverbZone?.Size.Y ?? 6;
+        _reverbSizeZ!.Value = reverbZone?.Size.Z ?? 12;
         _dayMusic!.Text = profile.Audio.DayMusic;
         _nightMusic!.Text = profile.Audio.NightMusic;
         _combatMusic!.Text = profile.Audio.CombatMusic;
         _ambience!.Text = profile.Audio.Ambience;
-        _reverb!.Text = profile.Audio.ReverbPreset;
+        _reverb!.Text = profile.Reverb.DefaultPreset;
         _playlist!.Text = string.Join(", ", profile.Audio.Playlist);
         _audioOrder!.Selected = (int)profile.Audio.OrderMode;
         _audioInterval!.Value = profile.Audio.IntervalSeconds;
@@ -386,6 +577,92 @@ public partial class AreaEnvironmentWindow : Window
                 _moon!.Value,
                 _skyEnergy!.Value,
                 _skyTransition!.Value);
+            var wind = new WindProfile(
+                WindProfile.CurrentSchemaVersion,
+                (float)_windDirectionX!.Value,
+                (float)_windDirectionZ!.Value,
+                (float)_windSpeed!.Value,
+                (float)_windGust!.Value,
+                (float)_windInterval!.Value,
+                _windVegetation!.ButtonPressed,
+                _windParticles!.ButtonPressed,
+                _windAudio!.Text,
+                _current.Wind.GameplayForce,
+                _current.Wind.LocalZones);
+            var previousWeather = _current.Weather.States.Single(item => item.Id == _current.Weather.InitialStateId);
+            var initialWeather = new WeatherStateProfile(
+                previousWeather.Id,
+                ((WeatherKind)_weatherKind!.Selected).ToString(),
+                (WeatherKind)_weatherKind.Selected,
+                (float)_weatherIntensity!.Value,
+                (float)_weatherHumidity!.Value,
+                (float)_weatherWetness!.Value,
+                _weatherLightning!.ButtonPressed,
+                previousWeather.PrecipitationResource,
+                _weatherAudio!.Text,
+                _weatherGameplay!.Text,
+                (float)_weatherMinimumDuration!.Value,
+                (float)_weatherMaximumDuration!.Value,
+                (float)_weatherTransition!.Value);
+            var weather = new WeatherProfile(
+                WeatherProfile.CurrentSchemaVersion,
+                initialWeather.Id,
+                _current.Weather.States.Where(item => item.Id != initialWeather.Id).Append(initialWeather).ToArray(),
+                _weatherAuthority!.ButtonPressed,
+                _current.Weather.DeterministicSeed,
+                _weatherPersist!.ButtonPressed,
+                _weatherReplicate!.ButtonPressed);
+            var previousWater = _current.Water.Bodies.FirstOrDefault();
+            var waterBodies = _current.Water.Bodies
+                .Where(item => previousWater is null || item.Id != previousWater.Id)
+                .ToList();
+            if (_waterEnabled!.ButtonPressed)
+            {
+                waterBodies.Add(new WaterBodyProfile(
+                    previousWater?.Id ?? Guid.NewGuid(),
+                    previousWater?.Name ?? "Plan d'eau principal",
+                    (WaterBodyKind)_waterKind!.Selected,
+                    new Vector3Value((float)_waterCenterX!.Value, (float)_waterCenterY!.Value, (float)_waterCenterZ!.Value),
+                    new Vector3Value((float)_waterSizeX!.Value, (float)_waterSizeY!.Value, (float)_waterSizeZ!.Value),
+                    (float)_waterDepth!.Value,
+                    previousWater?.FlowDirectionX ?? 1,
+                    previousWater?.FlowDirectionZ ?? 0,
+                    (float)_waterFlow!.Value,
+                    (float)_waterBuoyancy!.Value,
+                    (float)_waterNavigationCost!.Value,
+                    _waterSwimming!.ButtonPressed,
+                    (WaterQualityTier)_waterQuality!.Selected,
+                    previousWater?.MaterialResource ?? string.Empty,
+                    _waterAudio!.Text));
+            }
+
+            var water = new WaterProfile(WaterProfile.CurrentSchemaVersion, waterBodies);
+            var previousReverb = _current.Reverb.Zones.FirstOrDefault();
+            var reverbZones = _current.Reverb.Zones
+                .Where(item => previousReverb is null || item.Id != previousReverb.Id)
+                .ToList();
+            var reverbPreset = string.IsNullOrWhiteSpace(_reverb!.Text) ? "neutral" : _reverb.Text;
+            if (_reverbZoneEnabled!.ButtonPressed)
+            {
+                reverbZones.Add(new ReverbZoneProfile(
+                    previousReverb?.Id ?? Guid.NewGuid(),
+                    previousReverb?.Name ?? "Zone de réverbération principale",
+                    previousReverb?.Center ?? new Vector3Value(0, 0, 0),
+                    new Vector3Value((float)_reverbSizeX!.Value, (float)_reverbSizeY!.Value, (float)_reverbSizeZ!.Value),
+                    reverbPreset,
+                    (float)_reverbWet!.Value,
+                    (float)_reverbDry!.Value,
+                    (float)_reverbBlend!.Value,
+                    previousReverb?.ImpulseResource ?? string.Empty,
+                    previousReverb?.LicenseSpdx ?? string.Empty,
+                    previousReverb?.ContentSha256 ?? string.Empty,
+                    previousReverb?.Provenance ?? string.Empty));
+            }
+
+            var reverb = new AreaReverbProfile(
+                AreaReverbProfile.CurrentSchemaVersion,
+                reverbPreset,
+                reverbZones);
             IReadOnlyList<AdaptiveAmbienceLayer> layers = string.IsNullOrWhiteSpace(_adaptiveResource!.Text)
                 ? []
                 : [new(_adaptiveResource.Text.Trim(), 18, 6, _adaptiveWeather!.Text.Trim(), _adaptiveTag!.Text.Trim(), 0, false, 1)];
@@ -429,7 +706,11 @@ public partial class AreaEnvironmentWindow : Window
                 new((FogMode)_fogMode!.Selected, (float)_fogDensity!.Value, (float)_fogStart!.Value, (float)_fogEnd!.Value, 0),
                 audio,
                 rendering,
-                sky);
+                sky,
+                wind,
+                weather,
+                water,
+                reverb);
             var applied = _apply?.Invoke(id, profile) == true;
             if (applied) _current = profile;
             _status!.Text = applied

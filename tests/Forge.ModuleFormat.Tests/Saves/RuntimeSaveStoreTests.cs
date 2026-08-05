@@ -28,6 +28,7 @@ public sealed class RuntimeSaveStoreTests : IDisposable
         Assert.Equal(save.Variables, loaded.Save?.Variables);
         Assert.Equal(save.Hostiles, loaded.Save?.Hostiles);
         Assert.Equal(save.Progress, loaded.Save?.Progress);
+        Assert.Equal(save.Weather, loaded.Save?.Weather);
         Assert.Empty(Directory.EnumerateFiles(_directory, "*.tmp"));
     }
 
@@ -51,10 +52,21 @@ public sealed class RuntimeSaveStoreTests : IDisposable
     public void SaveRejectsDuplicateStateAndUnsafeExtension()
     {
         var invalid = CreateSave() with { Inventory = ["ash-key", "ash-key"] };
+        var invalidWeather = CreateSave() with
+        {
+            Weather = new RuntimeWeatherSave(
+                2,
+                "6f550000-0000-4000-8000-000000000002",
+                0,
+                0,
+                0),
+        };
         var duplicate = RuntimeSaveStore.Save(Path.Combine(_directory, "invalid.orpsave"), invalid);
+        var weather = RuntimeSaveStore.Save(Path.Combine(_directory, "invalid-weather.orpsave"), invalidWeather);
         var extension = RuntimeSaveStore.Save(Path.Combine(_directory, "invalid.json"), CreateSave());
 
         Assert.Equal(RuntimeSaveValidator.InventoryDuplicateCode, Assert.Single(duplicate.Diagnostics).Code);
+        Assert.Equal(RuntimeSaveValidator.WeatherInvalidCode, Assert.Single(weather.Diagnostics).Code);
         Assert.Equal(RuntimeSaveStore.SaveFailedCode, Assert.Single(extension.Diagnostics).Code);
     }
 
@@ -79,5 +91,11 @@ public sealed class RuntimeSaveStoreTests : IDisposable
         "50000000-0000-4000-8000-000000000001",
         "51000000-0000-4000-8000-000000000003",
         [new RuntimeCombatantSave("20000000-0000-4000-8000-000000000009", 3, 6)],
-        new RuntimeProgressFlags(true, true, true, false, false));
+        new RuntimeProgressFlags(true, true, true, false, false),
+        new RuntimeWeatherSave(
+            1,
+            "6f550000-0000-4000-8000-000000000002",
+            3,
+            7,
+            14.5));
 }

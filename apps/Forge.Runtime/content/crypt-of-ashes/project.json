@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.3.0",
+  "formatVersion": "1.4.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -527,7 +527,7 @@
       {
         "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
         "slug": "crypt-of-ashes",
-        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-f2320e50f061f608.json"
+        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-e17ce25f89dba288.json"
       }
     ],
     "dialogues": [

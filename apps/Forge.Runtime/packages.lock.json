@@ -23,6 +23,12 @@
           "GodotSharp": "4.7.1"
         }
       },
+      "forge.application": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Domain": "[1.0.0, )"
+        }
+      },
       "forge.domain": {
         "type": "Project"
       },

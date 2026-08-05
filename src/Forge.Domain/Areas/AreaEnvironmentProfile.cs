@@ -121,7 +121,7 @@ public sealed record AreaAudioProfile
 
 public sealed record AreaEnvironmentProfile
 {
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 3;
     public int SchemaVersion { get; }
     public AreaEnvironmentClass Classification { get; }
     public IReadOnlyList<string> Tags { get; }
@@ -130,17 +130,26 @@ public sealed record AreaEnvironmentProfile
     public AreaAudioProfile Audio { get; }
     public AreaRenderingProfile Rendering { get; }
     public SkyProfile Sky { get; }
+    public WindProfile Wind { get; }
+    public WeatherProfile Weather { get; }
+    public WaterProfile Water { get; }
+    public AreaReverbProfile Reverb { get; }
     public AreaEnvironmentProfile(int schemaVersion, AreaEnvironmentClass classification, IReadOnlyList<string> tags,
         AreaLightingProfile lighting, AreaFogProfile fog, AreaAudioProfile audio,
-        AreaRenderingProfile? rendering = null, SkyProfile? sky = null)
+        AreaRenderingProfile? rendering = null, SkyProfile? sky = null, WindProfile? wind = null,
+        WeatherProfile? weather = null, WaterProfile? water = null, AreaReverbProfile? reverb = null)
     {
-        if (schemaVersion is not 1 and not CurrentSchemaVersion) throw new ArgumentOutOfRangeException(nameof(schemaVersion));
+        if (schemaVersion is < 1 or > CurrentSchemaVersion) throw new ArgumentOutOfRangeException(nameof(schemaVersion));
         ArgumentNullException.ThrowIfNull(tags); ArgumentNullException.ThrowIfNull(lighting); ArgumentNullException.ThrowIfNull(fog); ArgumentNullException.ThrowIfNull(audio);
         SchemaVersion = CurrentSchemaVersion; Classification = classification; Tags = tags.Where(tag => !string.IsNullOrWhiteSpace(tag))
             .Select(tag => tag.Trim().ToLowerInvariant()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         Lighting = lighting; Fog = fog; Audio = audio;
         Rendering = rendering ?? AreaRenderingProfile.CreateDefault();
         Sky = sky ?? SkyProfile.CreateDefault(classification);
+        Wind = wind ?? WindProfile.CreateDefault(classification);
+        Weather = weather ?? WeatherProfile.CreateDefault(classification);
+        Water = water ?? WaterProfile.Empty;
+        Reverb = reverb ?? AreaReverbProfile.CreateDefault(audio.ReverbPreset);
     }
     public static AreaEnvironmentProfile CreateDefault(AreaKind kind) => new(CurrentSchemaVersion,
         kind == AreaKind.Interior ? AreaEnvironmentClass.Interior : AreaEnvironmentClass.Exterior,

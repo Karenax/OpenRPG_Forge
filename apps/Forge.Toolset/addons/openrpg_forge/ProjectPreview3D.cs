@@ -55,6 +55,11 @@ public partial class ProjectPreview3D : SubViewportContainer
     private DirectionalLight3D? _referenceSun;
     private OmniLight3D? _referenceFill;
     private AreaRenderPlan? _renderPlan;
+    private AreaClimatePlan? _climatePlan;
+    private Node3D? _climateEffects;
+    private int _precipitationEmitters;
+    private int _waterSurfaces;
+    private string _reverbPreset = "unavailable";
 
     public int EntityCount { get; private set; }
 
@@ -73,6 +78,14 @@ public partial class ProjectPreview3D : SubViewportContainer
         : $"{_renderPlan.Rendering.MaterialWorkflow}:{_renderPlan.Rendering.ToneMapping}:{_renderPlan.Sky.Mode}";
 
     public int RenderDiagnosticCount => _renderPlan?.Diagnostics.Count ?? 0;
+
+    public string ClimateProfileSummary => _climatePlan is null
+        ? "unavailable"
+        : $"{_climatePlan.Weather.Kind}:{(_climatePlan.ActiveWindZone?.Speed ?? _climatePlan.Wind.Speed):0.###}:{_waterSurfaces}:{_reverbPreset}";
+
+    public int PrecipitationEmitterCount => _precipitationEmitters;
+
+    public int WaterSurfaceCount => _waterSurfaces;
 
     public ProjectPreview3D()
     {
@@ -1181,6 +1194,33 @@ public partial class ProjectPreview3D : SubViewportContainer
         GD.Print(
             $"OPENRPG_FORGE_TOOLSET_RENDER_BACKEND method={RenderingServer.GetCurrentRenderingMethod()} " +
             $"driver={RenderingServer.GetCurrentRenderingDriverName()}");
+        _climatePlan = AreaClimatePlanBuilder.Build(
+            profile,
+            profile.Weather.InitialStateId,
+            Vector3Value.Zero,
+            "desktop");
+        if (_climateEffects is not null)
+        {
+            _world.RemoveChild(_climateEffects);
+            _climateEffects.QueueFree();
+        }
+
+        var climate = GodotClimateAdapter.Build(_climatePlan, configureRuntimeAudio: false);
+        _climateEffects = climate.Root;
+        _precipitationEmitters = climate.PrecipitationEmitters;
+        _waterSurfaces = climate.WaterSurfaces;
+        _reverbPreset = climate.ReverbPreset;
+        _world.AddChild(_climateEffects);
+        foreach (var diagnostic in climate.Diagnostics)
+        {
+            GD.Print($"OPENRPG_FORGE_TOOLSET_CLIMATE_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        }
+
+        var effectiveWindSpeed = _climatePlan.ActiveWindZone?.Speed ?? _climatePlan.Wind.Speed;
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_CLIMATE_APPLIED wind={effectiveWindSpeed:0.###} " +
+            $"weather={_climatePlan.Weather.Kind.ToString().ToLowerInvariant()} particles={_precipitationEmitters} " +
+            $"water={_waterSurfaces} reverb={_reverbPreset}");
     }
 
     private void ApplyPbrMaterials(Node node)

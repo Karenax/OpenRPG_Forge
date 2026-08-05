@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using Forge.Application.Areas;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
@@ -78,6 +79,11 @@ public partial class GameRoot : Node3D
     private RuntimeLifecycleCoordinator? _lifecycle;
     private ForgeScriptArtifactCache? _forgeScriptCache;
     private AreaRenderPlan? _renderPlan;
+    private AreaEnvironmentProfile? _environmentProfile;
+    private WeatherRuntimeSnapshot? _weatherState;
+    private Node3D? _climateEffects;
+    private string? _climateSignature;
+    private double _climateProbeElapsed;
 
     public override void _Ready()
     {
@@ -189,7 +195,7 @@ public partial class GameRoot : Node3D
 
     public override void _Process(double delta)
     {
-        _ = delta;
+        AdvanceClimate(delta);
 
         if (_player is null)
         {
@@ -787,6 +793,9 @@ public partial class GameRoot : Node3D
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method={RenderingServer.GetCurrentRenderingMethod()} " +
             $"driver={RenderingServer.GetCurrentRenderingDriverName()}");
+        _environmentProfile = environmentProfile;
+        _weatherState = WeatherRuntimeStateMachine.CreateInitial(environmentProfile.Weather);
+        ApplyClimateEffects(force: true);
 
         if (includeCryptAtmosphere)
         {
@@ -801,6 +810,90 @@ public partial class GameRoot : Node3D
         };
         AddChild(_camera);
         _camera.LookAt(Vector3.Zero, Vector3.Up);
+    }
+
+    private void AdvanceClimate(double delta)
+    {
+        if (_environmentProfile is null || _weatherState is null)
+        {
+            return;
+        }
+
+        var result = WeatherRuntimeStateMachine.Advance(
+            _environmentProfile.Weather,
+            _weatherState,
+            delta,
+            hasAuthority: true);
+        _weatherState = result.State;
+        if (result.Transition is not null)
+        {
+            GD.Print(
+                $"OPENRPG_FORGE_RUNTIME_WEATHER_TRANSITION revision={result.State.Revision} " +
+                $"state={result.State.StateId} blend={result.Transition.BlendSeconds:0.###} " +
+                $"effect={result.Transition.GameplayEffect} replicate={result.Transition.Replicate.ToString().ToLowerInvariant()} " +
+                $"persist={result.Transition.Persist.ToString().ToLowerInvariant()}");
+            ApplyClimateEffects(force: true);
+        }
+
+        _climateProbeElapsed += delta;
+        if (_climateProbeElapsed >= .5)
+        {
+            _climateProbeElapsed = 0;
+            ApplyClimateEffects(force: false);
+        }
+    }
+
+    private void ApplyClimateEffects(bool force)
+    {
+        if (_environmentProfile is null || _weatherState is null)
+        {
+            return;
+        }
+
+        var listener = _player?.GlobalPosition ?? Vector3.Zero;
+        var plan = AreaClimatePlanBuilder.Build(
+            _environmentProfile,
+            _weatherState.StateId,
+            new(listener.X, listener.Y, listener.Z),
+            OS.HasFeature("mobile") ? "mobile" : "desktop");
+        if (_climateEffects?.GetChildren().OfType<GpuParticles3D>().FirstOrDefault() is { } precipitation)
+        {
+            precipitation.GlobalPosition = listener + (Vector3.Up * 18);
+        }
+
+        var signature = $"{plan.Weather.Id}:{plan.ActiveWindZone?.Id}:{plan.ActiveReverbZone?.Id}";
+        if (!force && string.Equals(signature, _climateSignature, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (_climateEffects is not null)
+        {
+            RemoveChild(_climateEffects);
+            _climateEffects.QueueFree();
+        }
+
+        var result = GodotClimateAdapter.Build(plan, configureRuntimeAudio: true);
+        _climateEffects = result.Root;
+        _climateSignature = signature;
+        AddChild(_climateEffects);
+        if (_climateEffects.GetChildren().OfType<GpuParticles3D>().FirstOrDefault() is { } createdPrecipitation)
+        {
+            createdPrecipitation.GlobalPosition = listener + (Vector3.Up * 18);
+        }
+        foreach (var diagnostic in result.Diagnostics)
+        {
+            GD.Print($"OPENRPG_FORGE_RUNTIME_CLIMATE_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        }
+
+        var effectiveWindSpeed = plan.ActiveWindZone?.Speed ?? plan.Wind.Speed;
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_G11H_ENVIRONMENT_PASS wind={effectiveWindSpeed:0.###} " +
+            $"weather={plan.Weather.Kind.ToString().ToLowerInvariant()} revision={_weatherState.Revision} " +
+            $"particles={result.PrecipitationEmitters} water={result.WaterSurfaces} reverb={result.ReverbPreset} " +
+            $"authority={_environmentProfile.Weather.ServerAuthoritative.ToString().ToLowerInvariant()} " +
+            $"save={_environmentProfile.Weather.PersistState.ToString().ToLowerInvariant()} " +
+            $"replicate={_environmentProfile.Weather.ReplicateState.ToString().ToLowerInvariant()}");
     }
 
     private void CreateFinalCryptAtmosphere()
@@ -1364,7 +1457,15 @@ public partial class GameRoot : Node3D
                 _doorUnlocked,
                 _bossPhaseTwo,
                 _bossDefeated,
-                _escaped));
+                _escaped),
+            _environmentProfile?.Weather.PersistState == true && _weatherState is not null
+                ? new RuntimeWeatherSave(
+                    _weatherState.SchemaVersion,
+                    _weatherState.StateId.ToString(),
+                    _weatherState.Revision,
+                    _weatherState.ServerRevision,
+                    _weatherState.ElapsedSeconds)
+                : null);
         var result = RuntimeSaveStore.Save(path, save);
         if (!result.Succeeded)
         {
@@ -1462,6 +1563,24 @@ public partial class GameRoot : Node3D
                 : _questMachine.CurrentState.Id == _questDefinition.InitialStateId
                     ? PrototypeQuestState.NotStarted
                     : PrototypeQuestState.Active;
+        }
+
+        if (save.Weather is not null)
+        {
+            if (_environmentProfile is null ||
+                !_environmentProfile.Weather.States.Any(state =>
+                    string.Equals(state.Id.ToString(), save.Weather.StateId, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException("The saved weather state is unavailable in the current area.");
+            }
+
+            _weatherState = new WeatherRuntimeSnapshot(
+                save.Weather.SchemaVersion,
+                Guid.Parse(save.Weather.StateId),
+                save.Weather.Revision,
+                save.Weather.ServerRevision,
+                save.Weather.ElapsedSeconds);
+            ApplyClimateEffects(force: true);
         }
 
         var hostileSaves = save.Hostiles.ToDictionary(item => item.EntityId, StringComparer.OrdinalIgnoreCase);

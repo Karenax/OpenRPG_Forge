@@ -39,6 +39,11 @@ static int Run(IReadOnlyList<string> arguments)
             return RunContent(arguments.Skip(1).ToArray());
         }
 
+        if (arguments.Count == 3 && arguments[0] == "workspace" && arguments[1] == "migrate")
+        {
+            return MigrateWorkspace(arguments[2]);
+        }
+
         if (arguments.Count == 2 && arguments[0] == "author-original")
         {
             return AuthorOriginalModule(arguments[1]);
@@ -47,7 +52,8 @@ static int Run(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
             "forge assets <list|prepare|roundtrip> ... | " +
-            "forge content <batch|export-blueprints|merge-table> ... | forge author-original <target-directory>");
+            "forge content <batch|export-blueprints|merge-table> ... | " +
+            "forge workspace migrate <target-directory> | forge author-original <target-directory>");
         return 2;
     }
     catch (Exception exception)
@@ -55,6 +61,33 @@ static int Run(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(exception.Message);
         return 1;
     }
+}
+
+static int MigrateWorkspace(string targetDirectory)
+{
+    var opened = ProjectSession.Open(targetDirectory);
+    if (!opened.Succeeded || opened.Session is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+        return 1;
+    }
+
+    var saved = opened.Session.Save(opened.Session.Project);
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = saved.Succeeded,
+        format = ProjectSession.CurrentProjectFormatVersion,
+        areas = opened.Session.Project.Areas.Count,
+        diagnostics = saved.Diagnostics,
+    }));
+    if (saved.Succeeded)
+    {
+        Console.WriteLine(
+            $"OPENRPG_FORGE_WORKSPACE_MIGRATED format={ProjectSession.CurrentProjectFormatVersion} " +
+            $"areas={opened.Session.Project.Areas.Count}");
+    }
+
+    return saved.Succeeded ? 0 : 1;
 }
 
 static int RunContent(IReadOnlyList<string> arguments)

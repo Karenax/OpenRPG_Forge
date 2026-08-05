@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.2.0",
+  "formatVersion": "1.3.0",
   "area": {
     "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
     "slug": "crypt-of-ashes",
@@ -569,7 +569,7 @@
       "provenance": "migration-default"
     },
     "environment": {
-      "schemaVersion": 2,
+      "schemaVersion": 3,
       "classification": "interior",
       "tags": [],
       "lighting": {
@@ -663,6 +663,53 @@
         "moonIntensity": 0,
         "energyMultiplier": 0.35,
         "transitionSeconds": 1
+      },
+      "wind": {
+        "schemaVersion": 1,
+        "directionX": 0,
+        "directionZ": 0,
+        "speed": 0,
+        "gustStrength": 0,
+        "gustIntervalSeconds": 8,
+        "influencesVegetation": false,
+        "influencesParticles": false,
+        "audioCue": "",
+        "gameplayForce": 0,
+        "localZones": []
+      },
+      "weather": {
+        "schemaVersion": 1,
+        "initialStateId": "6f550000-0000-4000-8000-000000000001",
+        "states": [
+          {
+            "id": "6f550000-0000-4000-8000-000000000001",
+            "name": "Clair",
+            "kind": "clear",
+            "intensity": 0,
+            "humidity": 0.35,
+            "surfaceWetness": 0,
+            "lightning": false,
+            "precipitationResource": "",
+            "audioCue": "",
+            "gameplayEffect": "",
+            "minimumDurationSeconds": 600,
+            "maximumDurationSeconds": 1200,
+            "transitionSeconds": 8
+          }
+        ],
+        "serverAuthoritative": true,
+        "deterministicSeed": 2026,
+        "persistState": true,
+        "replicateState": true
+      },
+      "water": {
+        "schemaVersion": 1,
+        "bodies": []
+      },
+      "reverb": {
+        "schemaVersion": 1,
+        "defaultPreset": "neutral",
+        "zones": []
       }
     },
     "authoring": {

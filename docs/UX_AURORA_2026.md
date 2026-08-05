@@ -196,6 +196,13 @@ et ciel physique, procédural ou panorama sans noyer l'auteur dans les propriét
 3D et le jeu consomment le même profil canonique ; un budget approché ou dépassé reste visible comme
 diagnostic, et l'action braise applique l'ensemble par la commande transactionnelle existante.
 
+G11-H ajoute un quatrième onglet **Climat & eau** en trois cartes lisibles : vent global, météo
+runtime, puis eau et réverbération. Les valeurs principales restent visibles sans exposer les nœuds
+du moteur ; l'auteur règle direction, rafales, intensité, humidité, transitions, profondeur,
+flottabilité, qualité et fondu audio avant une application atomique. Le viewport montre réellement
+la précipitation, la surface d'eau et le preset acoustique sélectionnés. Les collections avancées de
+zones conservent leur modèle canonique et recevront un éditeur de liste dédié.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

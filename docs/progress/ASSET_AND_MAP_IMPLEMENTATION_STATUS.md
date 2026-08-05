@@ -60,10 +60,11 @@ Dernière mise à jour : 5 août 2026.
 - génération de miniatures et planches contact ;
 - service de surveillance temps réel ;
 - packs artistiques curatés ;
-- terrain sculpté, navigation, eau, routes et carte Forgotten Forest finale 512 × 512 m.
+- terrain sculpté, navigation, routes et carte Forgotten Forest finale 512 × 512 m ; une eau de
+  référence fonctionnelle est disponible, avant shader et composition de production.
 
 ## Prochaine action
 
-Livrer G11-H (vent, météo, eau et réverbération), puis curater un premier pack multi-biome cohérent
-et remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés la
-source de vérité de la carte.
+Livrer G11-I (terrain multi-biome, features et navigation volumétrique), curater un premier pack
+multi-biome cohérent et remplacer les trois slots du prototype par des GLB gouvernés sans faire des
+nœuds générés la source de vérité de la carte.
