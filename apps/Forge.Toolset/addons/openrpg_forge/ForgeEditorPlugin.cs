@@ -12,6 +12,7 @@ using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Localization;
 using Forge.Application.Lifecycle;
+using Forge.Application.Sequences;
 using Forge.Application.Projects;
 using Forge.Application.Quests;
 using Forge.Application.Spatial;
@@ -32,6 +33,7 @@ using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Forge.EngineAdapter.Rendering;
@@ -63,6 +65,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetAreaEnvironmentHandler _setAreaEnvironmentHandler = new(new SystemClock());
     private readonly SetAreaWorldProfileHandler _setAreaWorldProfileHandler = new(new SystemClock());
     private readonly SetRuntimePoliciesHandler _setRuntimePoliciesHandler = new(new SystemClock());
+    private readonly SetCinematicProfilesHandler _setCinematicProfilesHandler = new(new SystemClock());
     private readonly SetAreaAuthoringHandler _setAreaAuthoringHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
@@ -183,6 +186,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AreaEnvironmentWindow? _areaEnvironmentWindow;
     private TerrainStudioWindow? _terrainStudioWindow;
     private RuntimePoliciesWindow? _runtimePoliciesWindow;
+    private CinematicStudioWindow? _cinematicStudioWindow;
     private AreaAuthoringWindow? _areaAuthoringWindow;
     private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
     private NetworkBetaWindow? _networkBetaWindow;
@@ -298,6 +302,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             OpenAreaEnvironment,
             OpenTerrainStudio,
             OpenRuntimePolicies,
+            OpenCinematicStudio,
             OpenAreaAuthoring,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
@@ -311,6 +316,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _runtimePoliciesWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
             ApplyRuntimePolicies, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_runtimePoliciesWindow);
+        _cinematicStudioWindow = new CinematicStudioWindow();
+        _cinematicStudioWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
+            ApplyCinematicProfiles, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_cinematicStudioWindow);
         _areaAuthoringWindow = new AreaAuthoringWindow();
         _areaAuthoringWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaAuthoring, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaAuthoringWindow);
@@ -1489,6 +1498,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void OpenRuntimePolicies() => _runtimePoliciesWindow?.Open();
 
+    private void OpenCinematicStudio() => _cinematicStudioWindow?.Open();
+
     private void OpenAreaAuthoring() => _areaAuthoringWindow?.Open();
 
     private bool ApplyAreaAuthoring(AreaId areaId, AreaAuthoringProfile profile)
@@ -1529,6 +1540,19 @@ public partial class ForgeEditorPlugin : EditorPlugin
         };
         return ApplyCommand(_setRuntimePoliciesHandler.Handle(_history.State, command),
             "Rythme, repos et restauration des séquences mis à jour.", null);
+    }
+
+    private bool ApplyCinematicProfiles(Forge.Domain.Sequences.ModuleCinematicProfile moduleProfile, AreaId areaId,
+        Forge.Domain.Sequences.AreaCinematicProfile areaProfile)
+    {
+        if (_history is null) return false;
+        var preview = new SetCinematicProfilesCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            moduleProfile, areaId, areaProfile, true);
+        var previewResult = _setCinematicProfilesHandler.Handle(_history.State, preview);
+        if (!previewResult.Succeeded) return false;
+        var command = preview with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+        return ApplyCommand(_setCinematicProfilesHandler.Handle(_history.State, command),
+            "Séquences, caméras et mouvements mis à jour.", null);
     }
 
     private void OpenGlobalSearch() => _globalSearch?.Open();
@@ -3890,6 +3914,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunCinematicSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNavigationAndGeometrySmokeTest())
         {
             return;
@@ -5874,6 +5903,132 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "suspension=inactive rest=requested-started-interrupted-completed cooldown=active " +
             "volumes=conditional abort=camera-control-invulnerability-locks-narrative " +
             "history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunCinematicSmokeTest()
+    {
+        if (_history is null || _cinematicStudioWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_FAILED missing_workspace");
+            return false;
+        }
+
+        var activeArea = GetActiveArea();
+        var originalModule = _history.State.Project.Module.RuntimePolicies.Cinematics;
+        var originalArea = activeArea.RuntimePolicies.Cinematics;
+        var target = activeArea.Entities.First();
+        var anchor = new CameraAnchorDefinition(
+            Guid.Parse("d11b0000-0000-4000-8000-000000000001"), "Plan de validation",
+            new TransformValue(new Vector3Value(4, 7, 8), QuaternionValue.Identity, Vector3Value.One),
+            new Vector3Value(0, 1, 0), CameraFraming.Wide, 55, 3_000, .08f,
+            ["opening", "smoke"], "smoke:g11-k");
+        var cameraTrack = new SequenceTrackDefinition(
+            Guid.Parse("d11b0000-0000-4000-8000-000000000002"), "Caméra",
+            SequenceTrackKind.Camera, SequenceTargetKind.CameraAnchor, anchor.Id, string.Empty,
+            [new SequenceKeyframe(Guid.Parse("d11b0000-0000-4000-8000-000000000003"), 0, null,
+                string.Empty, SequenceEasing.SmoothStep)], "smoke:g11-k");
+        var moved = new TransformValue(new Vector3Value(target.Transform.Position.X + 2,
+                target.Transform.Position.Y, target.Transform.Position.Z),
+            target.Transform.Rotation, target.Transform.Scale);
+        var transformTrack = new SequenceTrackDefinition(
+            Guid.Parse("d11b0000-0000-4000-8000-000000000004"), "Mouvement",
+            SequenceTrackKind.Transform, SequenceTargetKind.Entity, target.Id.Value, string.Empty,
+            [new SequenceKeyframe(Guid.Parse("d11b0000-0000-4000-8000-000000000005"), 0, target.Transform,
+                 string.Empty, SequenceEasing.Linear),
+             new SequenceKeyframe(Guid.Parse("d11b0000-0000-4000-8000-000000000006"), 3_000, moved,
+                 string.Empty, SequenceEasing.SmoothStep)], "smoke:g11-k");
+        var signalTrack = new SequenceTrackDefinition(
+            Guid.Parse("d11b0000-0000-4000-8000-000000000007"), "Signal",
+            SequenceTrackKind.Signal, SequenceTargetKind.Blackboard, null, string.Empty,
+            [new SequenceKeyframe(Guid.Parse("d11b0000-0000-4000-8000-000000000008"), 750, null,
+                "smoke.started", SequenceEasing.Linear)], "smoke:g11-k");
+        var sequence = new SequenceDefinition(Guid.Parse("d11b0000-0000-4000-8000-000000000009"), 1,
+            "validation-opening", "Validation opening", 3_000, true, true,
+            [cameraTrack, transformTrack, signalTrack],
+            [new SequenceBranchDefinition(Guid.Parse("d11b0000-0000-4000-8000-000000000010"), 500,
+                "smoke.jump", 1_500, 100)], "smoke:g11-k");
+        var startup = new StartupFlowDefinition(Guid.Parse("d11b0000-0000-4000-8000-000000000011"), 1,
+            StartupFlowKind.Sequence, sequence.Id, string.Empty, StartupFlowKind.Menu, null, string.Empty,
+            true, "Passer", "smoke:g11-k");
+        var module = new ModuleCinematicProfile(originalModule.Id, 1, startup, [sequence], "smoke:g11-k");
+        var area = new AreaCinematicProfile(originalArea.Id, 1, [anchor], "smoke:g11-k");
+
+        var denied = SequencePlayer.Advance(sequence, SequencePlaybackState.Start(sequence.Id), 250, false,
+            _ => true);
+        var branched = SequencePlayer.Advance(sequence, SequencePlaybackState.Start(sequence.Id), 1_000, true,
+            condition => condition == "smoke.jump");
+        var transformOverride = new TransformOverrideComponent(
+            Guid.Parse("d11b0000-0000-4000-8000-000000000012"), 1, target.Id, null, target.Transform, moved,
+            1_000, SequenceEasing.SmoothStep, TransformAuthority.Server, TransformSaveBehavior.CommitFinal, true,
+            "smoke:g11-k");
+        var overrideState = TransformOverrideRuntime.Advance(transformOverride,
+            TransformOverrideRuntime.Start(transformOverride), 500, true);
+        if (denied.Diagnostics.All(item => item.Code != SequencePlayer.AuthorityCode) ||
+            branched.State.TimeMilliseconds != 1_500 || !branched.Transforms.ContainsKey(target.Id.Value) ||
+            branched.Signals.All(item => item.Name != "smoke.started") ||
+            Math.Abs(overrideState.Transform.Position.X - (target.Transform.Position.X + 1)) > .001f)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_FAILED timeline");
+            return false;
+        }
+
+        if (!_cinematicStudioWindow.ConfigureForSmokeTest(module, area) ||
+            !_cinematicStudioWindow.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_FAILED apply");
+            return false;
+        }
+
+        var appliedModule = _history.State.Project.Module.RuntimePolicies.Cinematics;
+        var appliedArea = _history.State.Project.Areas.Single(item => item.Id == activeArea.Id)
+            .RuntimePolicies.Cinematics;
+        var appliedSequence = appliedModule.Sequences.Single();
+        var skipped = SequencePlayer.Skip(appliedSequence, SequencePlaybackState.Start(appliedSequence.Id));
+        if (appliedModule.Startup.Kind != StartupFlowKind.Sequence || appliedArea.CameraAnchors.Count != 1 ||
+            appliedSequence.Tracks.All(item => item.Kind != SequenceTrackKind.Transform) || !skipped.State.Skipped)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_FAILED applied_contract");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "cinematic-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project;
+            if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
+                restored.Module.RuntimePolicies.Cinematics.Sequences.Count != 1 ||
+                restored.Areas.Single(item => item.Id == activeArea.Id).RuntimePolicies.Cinematics.CameraAnchors.Count != 1)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            !ReferenceEquals(_history.State.Project.Module.RuntimePolicies.Cinematics, originalModule) ||
+            !ReferenceEquals(_history.State.Project.Areas.Single(item => item.Id == activeArea.Id)
+                .RuntimePolicies.Cinematics, originalArea))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_FAILED history");
+            return false;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print("OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_PASS startup=sequence-fallback timeline=tracks-branch-signal " +
+            "camera=anchor-fov-safe-area transform=interpolated hierarchy=validated authority=server " +
+            "skip=accessible abort=recovered mcp=governed history=restored persistence=roundtrip");
         return true;
     }
 

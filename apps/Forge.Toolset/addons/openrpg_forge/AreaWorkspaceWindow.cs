@@ -29,6 +29,7 @@ public partial class AreaWorkspaceWindow : Window
     private Action? _openEnvironment;
     private Action? _openTerrain;
     private Action? _openRuntimePolicies;
+    private Action? _openCinematics;
     private Action? _openAuthoring;
     private Action<Window>? _brandWindow;
 
@@ -75,6 +76,7 @@ public partial class AreaWorkspaceWindow : Window
         Action openEnvironment,
         Action openTerrain,
         Action openRuntimePolicies,
+        Action openCinematics,
         Action openAuthoring,
         Action<Window> brandWindow)
     {
@@ -89,6 +91,7 @@ public partial class AreaWorkspaceWindow : Window
         _openEnvironment = openEnvironment ?? throw new ArgumentNullException(nameof(openEnvironment));
         _openTerrain = openTerrain ?? throw new ArgumentNullException(nameof(openTerrain));
         _openRuntimePolicies = openRuntimePolicies ?? throw new ArgumentNullException(nameof(openRuntimePolicies));
+        _openCinematics = openCinematics ?? throw new ArgumentNullException(nameof(openCinematics));
         _openAuthoring = openAuthoring ?? throw new ArgumentNullException(nameof(openAuthoring));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
 
@@ -338,6 +341,9 @@ public partial class AreaWorkspaceWindow : Window
         var runtimePoliciesButton = new Button { Text = "Rythme, repos & séquences…" };
         runtimePoliciesButton.Pressed += () => _openRuntimePolicies?.Invoke();
         validationHeading.AddChild(runtimePoliciesButton);
+        var cinematicButton = new Button { Text = "Séquences & caméras…" };
+        cinematicButton.Pressed += () => _openCinematics?.Invoke();
+        validationHeading.AddChild(cinematicButton);
         var authoringButton = new Button { Text = "Carte, événements & calques…" };
         authoringButton.Pressed += () => _openAuthoring?.Invoke(); validationHeading.AddChild(authoringButton);
         validationRow.AddChild(validationHeading);

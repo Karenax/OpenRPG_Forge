@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Forge.Application.Areas;
 using Forge.Application.Lifecycle;
+using Forge.Application.Sequences;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
@@ -14,6 +15,7 @@ using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.EngineAdapter.Spatial;
 using Forge.EngineAdapter.Rendering;
@@ -47,6 +49,8 @@ public partial class GameRoot : Node3D
     private readonly HeartbeatScheduler _heartbeatScheduler = new();
     private readonly RestRuntimeCoordinator _restRuntime = new();
     private readonly ProjectGameplayEventBus _gameplayEvents = new();
+    private readonly Dictionary<Guid, Node3D> _entityNodes = [];
+    private readonly Dictionary<Guid, CameraAnchorDefinition> _cameraAnchors = [];
 
     private PlayerController? _player;
     private CombatantState? _playerCombatant;
@@ -96,6 +100,11 @@ public partial class GameRoot : Node3D
     private AreaRuntimePolicyProfile? _areaRuntimePolicies;
     private RestSession? _restSession;
     private long _runtimePolicyRevision;
+    private SequenceDefinition? _activeSequence;
+    private SequencePlaybackState? _sequenceState;
+    private Transform3D _explorationCameraTransform;
+    private float _explorationCameraFov;
+    private bool _sequenceOwnsCamera;
 
     public override void _Ready()
     {
@@ -156,6 +165,7 @@ public partial class GameRoot : Node3D
             }
 
             CreateHud();
+            ConfigureCinematics(project, entryArea);
             UpdateHud();
             EnsureLifecycle(_lifecycle.StartWorld(lifecycleCause), "world_started");
             AssertLifecycleStartupContract();
@@ -210,13 +220,14 @@ public partial class GameRoot : Node3D
     {
         AdvanceClimate(delta);
         AdvanceRuntimePolicies(delta);
+        AdvanceCinematics(delta);
 
         if (_player is null)
         {
             return;
         }
 
-        if (_camera is not null)
+        if (_camera is not null && !_sequenceOwnsCamera)
         {
             _camera.GlobalPosition = _player.GlobalPosition + new Vector3(13, 15, 17);
             _camera.LookAt(_player.GlobalPosition + (Vector3.Up * 0.8f), Vector3.Up);
@@ -246,6 +257,18 @@ public partial class GameRoot : Node3D
         if (Input.IsActionJustPressed("rest"))
         {
             RequestPlayerRest();
+        }
+
+        if (Input.IsActionJustPressed("skip_sequence") && _activeSequence is not null && _sequenceState is not null)
+        {
+            if (_activeSequence.Skippable)
+            {
+                CompleteSequence(SequencePlayer.Skip(_activeSequence, _sequenceState), "skipped");
+            }
+            else
+            {
+                AbortActiveSequence();
+            }
         }
 
         if (_isCryptPrototype && !_escaped && _bossDefeated && IsNear(_exit, 2.5f))
@@ -422,7 +445,12 @@ public partial class GameRoot : Node3D
                 continue;
             }
 
+            var previousChildCount = GetChildCount();
             BuildEntity(entity, blueprint);
+            if (GetChildCount() > previousChildCount && GetChild(previousChildCount) is Node3D node)
+            {
+                _entityNodes[entity.Id.Value] = node;
+            }
             _builtEntityCount++;
         }
 
@@ -905,6 +933,167 @@ public partial class GameRoot : Node3D
             $"OPENRPG_FORGE_RUNTIME_G11J_POLICY_PASS global={module.Heartbeats.Count} area={area.Heartbeats.Count} " +
             $"rest={module.Rest.Enabled.ToString().ToLowerInvariant()} volumes={area.Rest.Volumes.Count} " +
             $"abort={module.SequenceAbort.Enabled.ToString().ToLowerInvariant()} restore={module.SequenceAbort.Restore}");
+    }
+
+    private void ConfigureCinematics(ProjectDefinition project, AreaDefinition area)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        ArgumentNullException.ThrowIfNull(area);
+        _cameraAnchors.Clear();
+        foreach (var anchor in area.RuntimePolicies.Cinematics.CameraAnchors)
+        {
+            _cameraAnchors.Add(anchor.Id, anchor);
+        }
+
+        var profile = project.Module.RuntimePolicies.Cinematics;
+        var resolution = StartupFlowResolver.Resolve(profile, CinematicResourceExists);
+        foreach (var diagnostic in resolution.Diagnostics)
+        {
+            GD.Print($"OPENRPG_FORGE_RUNTIME_CINEMATIC_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        }
+
+        if (resolution.Kind == StartupFlowKind.Sequence && resolution.ReferenceId is not null)
+        {
+            StartSequence(profile.Sequences.Single(item => item.Id == resolution.ReferenceId));
+        }
+        else if (resolution.Kind == StartupFlowKind.Dialogue && resolution.ReferenceId is not null)
+        {
+            var dialogue = project.Dialogues.SingleOrDefault(item => item.Id.Value == resolution.ReferenceId);
+            _message = dialogue is null ? _message : $"Dialogue d’introduction · {dialogue.DisplayName}";
+        }
+        else if (resolution.Kind is StartupFlowKind.Video or StartupFlowKind.Scene)
+        {
+            StartResourceFlow(resolution.Kind, resolution.ResourcePath);
+        }
+
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_G11K_CINEMATIC_PASS startup={resolution.Kind.ToString().ToLowerInvariant()} " +
+            $"fallback={resolution.UsedFallback.ToString().ToLowerInvariant()} sequences={profile.Sequences.Count} " +
+            $"anchors={_cameraAnchors.Count} skip={resolution.Skippable.ToString().ToLowerInvariant()} " +
+            "timeline=branch-signal-transform authority=governed recovery=enabled");
+    }
+
+    private void StartSequence(SequenceDefinition sequence)
+    {
+        _activeSequence = sequence ?? throw new ArgumentNullException(nameof(sequence));
+        _sequenceState = SequencePlaybackState.Start(sequence.Id);
+        if (_camera is not null)
+        {
+            _explorationCameraTransform = _camera.GlobalTransform;
+            _explorationCameraFov = _camera.Fov;
+        }
+        _sequenceOwnsCamera = sequence.Tracks.Any(item => item.Kind == SequenceTrackKind.Camera);
+        if (_player is not null) _player.ProcessMode = ProcessModeEnum.Disabled;
+        ApplySequenceEvaluation(SequencePlayer.Advance(sequence, _sequenceState, 0, true, EvaluateSequenceCondition));
+        GD.Print($"OPENRPG_FORGE_RUNTIME_SEQUENCE_STARTED id={sequence.Id:D} duration_ms={sequence.DurationMilliseconds}");
+    }
+
+    private void AdvanceCinematics(double delta)
+    {
+        if (_activeSequence is null || _sequenceState is null || !_sequenceState.Active) return;
+        var milliseconds = Math.Max(0, (int)Math.Round(delta * 1000));
+        var evaluation = SequencePlayer.Advance(_activeSequence, _sequenceState, milliseconds, true,
+            EvaluateSequenceCondition);
+        ApplySequenceEvaluation(evaluation);
+        if (evaluation.State.Completed) CompleteSequence(evaluation, "completed");
+    }
+
+    private void ApplySequenceEvaluation(SequenceEvaluation evaluation)
+    {
+        _sequenceState = evaluation.State;
+        if (evaluation.CameraAnchorId is not null && _camera is not null &&
+            _cameraAnchors.TryGetValue(evaluation.CameraAnchorId.Value, out var anchor))
+        {
+            _camera.GlobalPosition = EngineValueConverter.ToEngine(anchor.Transform.Position);
+            _camera.Fov = anchor.FieldOfViewDegrees;
+            _camera.LookAt(EngineValueConverter.ToEngine(anchor.LookAt), Vector3.Up);
+        }
+
+        foreach (var transform in evaluation.Transforms)
+        {
+            if (_entityNodes.TryGetValue(transform.Key, out var node))
+                node.Transform = EngineValueConverter.ToEngine(transform.Value);
+        }
+        foreach (var signal in evaluation.Signals)
+            GD.Print($"OPENRPG_FORGE_RUNTIME_SEQUENCE_SIGNAL name={signal.Name} at_ms={signal.TimeMilliseconds}");
+        foreach (var resource in evaluation.AudioResources) PlaySequenceAudio(resource);
+        foreach (var diagnostic in evaluation.Diagnostics)
+            GD.Print($"OPENRPG_FORGE_RUNTIME_SEQUENCE_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+    }
+
+    private void CompleteSequence(SequenceEvaluation evaluation, string reason)
+    {
+        ApplySequenceEvaluation(evaluation);
+        if (_player is not null) _player.ProcessMode = ProcessModeEnum.Inherit;
+        if (_camera is not null && _sequenceOwnsCamera)
+        {
+            _camera.GlobalTransform = _explorationCameraTransform;
+            _camera.Fov = _explorationCameraFov;
+        }
+        GD.Print($"OPENRPG_FORGE_RUNTIME_SEQUENCE_FINISHED id={_activeSequence!.Id:D} reason={reason}");
+        _activeSequence = null;
+        _sequenceState = null;
+        _sequenceOwnsCamera = false;
+    }
+
+    private void AbortActiveSequence()
+    {
+        if (_activeSequence is null || _sequenceState is null || _moduleRuntimePolicies is null) return;
+        var policy = _moduleRuntimePolicies.SequenceAbort;
+        var snapshot = new SequenceRuntimeState("camera.exploration", [], new HashSet<string>(),
+            new HashSet<string>(), 0, null, false);
+        var current = snapshot with { CameraId = "camera.cinematic", SequenceActive = true };
+        var result = SequenceAbortCoordinator.Abort(policy, current, snapshot);
+        if (!result.Accepted)
+        {
+            GD.Print($"OPENRPG_FORGE_RUNTIME_SEQUENCE_ABORT_REFUSED code={result.DiagnosticCode}");
+            return;
+        }
+        var aborted = _sequenceState with { Active = false, Completed = false, Skipped = false };
+        CompleteSequence(new SequenceEvaluation(aborted, null, new Dictionary<Guid, TransformValue>(), [], [], []),
+            "aborted");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_SEQUENCE_ABORTED handler={result.EventHandler} camera_restored={result.CameraRestored.ToString().ToLowerInvariant()}");
+    }
+
+    private bool EvaluateSequenceCondition(string condition) => condition switch
+    {
+        "boss.defeated" => _bossDefeated,
+        "door.unlocked" => _doorUnlocked,
+        "key.acquired" => _hasKey,
+        _ => _blackboard.TryGetValue(condition, out var value) && bool.TryParse(value, out var parsed) && parsed,
+    };
+
+    private bool CinematicResourceExists(string resourcePath)
+    {
+        if (string.IsNullOrWhiteSpace(resourcePath)) return false;
+        var uri = resourcePath.StartsWith("res://", StringComparison.Ordinal) ? resourcePath : $"res://{resourcePath}";
+        if (ResourceLoader.Exists(uri)) return true;
+        return _moduleContentRoot is not null && File.Exists(Path.Combine(_moduleContentRoot,
+            resourcePath.Replace('/', Path.DirectorySeparatorChar)));
+    }
+
+    private void StartResourceFlow(StartupFlowKind kind, string resourcePath)
+    {
+        var uri = resourcePath.StartsWith("res://", StringComparison.Ordinal) ? resourcePath : $"res://{resourcePath}";
+        if (kind == StartupFlowKind.Scene && ResourceLoader.Load<PackedScene>(uri) is { } scene)
+        {
+            AddChild(scene.Instantiate());
+        }
+        else if (kind == StartupFlowKind.Video && ResourceLoader.Load<VideoStream>(uri) is { } stream)
+        {
+            var player = new VideoStreamPlayer { Stream = stream, Autoplay = true };
+            player.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+            AddChild(player);
+        }
+    }
+
+    private void PlaySequenceAudio(string resourcePath)
+    {
+        var uri = resourcePath.StartsWith("res://", StringComparison.Ordinal) ? resourcePath : $"res://{resourcePath}";
+        if (ResourceLoader.Load<AudioStream>(uri) is not { } stream) return;
+        var player = new AudioStreamPlayer { Stream = stream, Autoplay = true };
+        player.Finished += player.QueueFree;
+        AddChild(player);
     }
 
     private void AdvanceRuntimePolicies(double delta)
@@ -1967,6 +2156,7 @@ public partial class GameRoot : Node3D
         RegisterKeyAction("quick_save", Key.F5);
         RegisterKeyAction("quick_load", Key.F9);
         RegisterKeyAction("rest", Key.R);
+        RegisterKeyAction("skip_sequence", Key.Escape);
     }
 
     private static void RegisterKeyAction(StringName action, params Key[] keys)

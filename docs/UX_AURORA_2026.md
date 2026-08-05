@@ -217,6 +217,13 @@ présente explicitement caméra, contrôle, invulnérabilité, verrous et transa
 seule action valide en dry-run puis applique module et zone par une transaction annulable. Le
 runtime utilise `R` pour demander un repos et ne masque jamais un refus de règle.
 
+G11-K ajoute **Séquences & caméras** depuis le workspace Zones. Deux cartes séparent le déroulé
+narratif et la caméra : flux au lancement, durée, skip accessible, synchronisation, audio, signal,
+mouvement d'entité, position, look-at, FOV et marge sûre. Une timeline scrubbable décrit à tout
+instant caméra active, transforms et signaux. Le cadre d'aperçu matérialise la safe area ; la même
+commande atomique applique module et zone. Dans le jeu, Échap passe la séquence lorsqu'elle est
+skippable et la restauration rend systématiquement caméra et contrôle au joueur.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

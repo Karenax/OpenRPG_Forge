@@ -3,6 +3,8 @@ using Forge.Domain.Areas;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Projects;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Sequences;
+using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Assets;
@@ -138,6 +140,37 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(reverted.Reverted);
         Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
         Assert.Equal(2, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void CinematicPlanSupportsReadDryRunApplyPersistenceAndRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var resource = workspace.Project.GetCinematics();
+        var anchor = new CameraAnchorDefinition(Guid.NewGuid(), "MCP shot",
+            new TransformValue(new Vector3Value(1, 4, 5), QuaternionValue.Identity, Vector3Value.One),
+            Vector3Value.Zero, CameraFraming.Wide, 55, 2_000, .08f, ["mcp"], "mcp-test");
+        var area = new AreaCinematicProfile(resource.Area.Id, 1, [anchor], "mcp-test");
+        var sequence = new SequenceDefinition(Guid.NewGuid(), 1, "mcp-shot", "MCP shot", 2_000, true, false,
+            [new SequenceTrackDefinition(Guid.NewGuid(), "Camera", SequenceTrackKind.Camera,
+                SequenceTargetKind.CameraAnchor, anchor.Id, string.Empty,
+                [new SequenceKeyframe(Guid.NewGuid(), 0, null, string.Empty, SequenceEasing.Linear)], "mcp-test")],
+            [], "mcp-test");
+        var startup = new StartupFlowDefinition(resource.Module.Startup.Id, 1, StartupFlowKind.Sequence,
+            sequence.Id, string.Empty, StartupFlowKind.None, null, string.Empty, true, "Passer", "mcp-test");
+        var module = new ModuleCinematicProfile(resource.Module.Id, 1, startup, [sequence], "mcp-test");
+        var planned = workspace.Project.PlanCinematics(new CinematicPlanRequest(1, resource.Revision,
+            resource.AreaId, module, area));
+
+        Assert.True(planned.Succeeded);
+        Assert.Equal("runtimePolicies/cinematics", planned.Diff?.Path);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        var applied = workspace.Project.ApplyCinematicPlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        Assert.Single(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Module.RuntimePolicies.Cinematics.Sequences);
+        var reverted = workspace.Project.RevertCinematicPlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
     }
 
     [Fact]

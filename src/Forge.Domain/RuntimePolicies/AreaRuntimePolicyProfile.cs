@@ -1,4 +1,6 @@
 using Forge.Domain.Areas;
+using Forge.Domain.Sequences;
+using System.Text.Json.Serialization;
 
 namespace Forge.Domain.RuntimePolicies;
 
@@ -10,10 +12,19 @@ public sealed record AreaRuntimePolicyProfile
     public int SchemaVersion { get; }
     public IReadOnlyList<HeartbeatScheduleDefinition> Heartbeats { get; }
     public AreaRestPolicy Rest { get; }
+    public AreaCinematicProfile Cinematics { get; }
     public string Provenance { get; }
 
     public AreaRuntimePolicyProfile(Guid id, int schemaVersion,
         IReadOnlyList<HeartbeatScheduleDefinition> heartbeats, AreaRestPolicy rest, string provenance)
+        : this(id, schemaVersion, heartbeats, rest, provenance, null)
+    {
+    }
+
+    [JsonConstructor]
+    public AreaRuntimePolicyProfile(Guid id, int schemaVersion,
+        IReadOnlyList<HeartbeatScheduleDefinition> heartbeats, AreaRestPolicy rest, string provenance,
+        AreaCinematicProfile? cinematics)
     {
         ArgumentNullException.ThrowIfNull(heartbeats);
         ArgumentNullException.ThrowIfNull(rest);
@@ -30,6 +41,7 @@ public sealed record AreaRuntimePolicyProfile
         SchemaVersion = schemaVersion;
         Heartbeats = values;
         Rest = rest;
+        Cinematics = cinematics ?? AreaCinematicProfile.CreateDefault(AreaId.From(id));
         Provenance = provenance.Trim();
     }
 
@@ -39,7 +51,8 @@ public sealed record AreaRuntimePolicyProfile
         var rest = new AreaRestPolicy(RuntimePolicyIdFactory.Create(areaId.Value, "rest"),
             AreaRestPolicy.CurrentSchemaVersion, RestPermissionMode.Allowed, string.Empty, string.Empty, 0, 0, [],
             "migration-default");
-        return new AreaRuntimePolicyProfile(areaId.Value, CurrentSchemaVersion, [], rest, "migration-default");
+        return new AreaRuntimePolicyProfile(areaId.Value, CurrentSchemaVersion, [], rest, "migration-default",
+            AreaCinematicProfile.CreateDefault(areaId));
     }
 
     public static AreaRuntimePolicyProfile CloneForArea(AreaRuntimePolicyProfile source, AreaId areaId)
@@ -57,6 +70,13 @@ public sealed record AreaRuntimePolicyProfile
         var rest = new AreaRestPolicy(RuntimePolicyIdFactory.Create(areaId.Value, "rest"), source.Rest.SchemaVersion,
             source.Rest.Mode, source.Rest.DenialReason, source.Rest.Condition, source.Rest.CooldownSeconds,
             source.Rest.RequiredSecureRadius, volumes, "area-clone");
-        return new AreaRuntimePolicyProfile(areaId.Value, source.SchemaVersion, heartbeats, rest, "area-clone");
+        var anchors = source.Cinematics.CameraAnchors.Select((item, index) => new CameraAnchorDefinition(
+            RuntimePolicyIdFactory.Create(areaId.Value, $"camera-anchor:{index}"), item.Name, item.Transform,
+            item.LookAt, item.Framing, item.FieldOfViewDegrees, item.DefaultDurationMilliseconds,
+            item.SafeAreaMargin, item.Tags, "area-clone")).ToArray();
+        var cinematics = new AreaCinematicProfile(areaId.Value, source.Cinematics.SchemaVersion, anchors,
+            "area-clone");
+        return new AreaRuntimePolicyProfile(areaId.Value, source.SchemaVersion, heartbeats, rest, "area-clone",
+            cinematics);
     }
 }

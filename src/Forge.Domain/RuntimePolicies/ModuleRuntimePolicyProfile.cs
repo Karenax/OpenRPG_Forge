@@ -1,5 +1,6 @@
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
+using Forge.Domain.Sequences;
 
 namespace Forge.Domain.RuntimePolicies;
 
@@ -12,11 +13,12 @@ public sealed record ModuleRuntimePolicyProfile
     public IReadOnlyList<HeartbeatScheduleDefinition> Heartbeats { get; }
     public RestLifecycleProfile Rest { get; }
     public SequenceAbortPolicy SequenceAbort { get; }
+    public ModuleCinematicProfile Cinematics { get; }
     public string Provenance { get; }
 
     public ModuleRuntimePolicyProfile(Guid id, int schemaVersion,
         IReadOnlyList<HeartbeatScheduleDefinition> heartbeats, RestLifecycleProfile rest,
-        SequenceAbortPolicy sequenceAbort, string provenance)
+        SequenceAbortPolicy sequenceAbort, string provenance, ModuleCinematicProfile? cinematics = null)
     {
         ArgumentNullException.ThrowIfNull(heartbeats);
         ArgumentNullException.ThrowIfNull(rest);
@@ -35,6 +37,7 @@ public sealed record ModuleRuntimePolicyProfile
         Heartbeats = schedules;
         Rest = rest;
         SequenceAbort = sequenceAbort;
+        Cinematics = cinematics ?? ModuleCinematicProfile.CreateDefault(ModuleId.From(id));
         Provenance = provenance.Trim();
     }
 
@@ -53,7 +56,7 @@ public sealed record ModuleRuntimePolicyProfile
             SequenceAbortPolicy.CurrentSchemaVersion, true, abortBinding, SequenceAbortRestoreFlags.All, 64,
             "migration-default");
         return new ModuleRuntimePolicyProfile(moduleId.Value, CurrentSchemaVersion, [], rest, abort,
-            "migration-default");
+            "migration-default", ModuleCinematicProfile.CreateDefault(moduleId));
     }
 
     private static string HandlerName(string eventName) => eventName switch

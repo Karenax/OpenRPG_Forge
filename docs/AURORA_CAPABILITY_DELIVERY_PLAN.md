@@ -296,8 +296,8 @@ autorisée, validée, attribuée et consultable dans l’audit.
 
 ### G11 — Contenu moderne et qualité de distribution
 
-**État.** G11-A à G11-J sont fermés le 5 août 2026. Les politiques canoniques de rythme, repos et
-abandon contrôlé sont disponibles ; G11-K est le prochain lot borné.
+**État.** G11-A à G11-K sont fermés le 5 août 2026. Les séquences, Camera Anchors, overrides et
+tweens sont disponibles dans le Creator et le runtime ; G11-L est le prochain lot borné.
 
 **Domaines.** Reste de `CONTENT` P0/P1, `EE` P0/P1, `BUILD`, `QA`, `AREA`, `AUDIO` et `GAMEPLAY`.
 

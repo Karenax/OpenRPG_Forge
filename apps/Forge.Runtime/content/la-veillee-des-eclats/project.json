@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.6.0",
+  "formatVersion": "1.7.0",
   "project": {
     "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
     "title": "La Veill\u00E9e des \u00C9clats",
@@ -256,6 +256,27 @@
           "maximumNarrativeRollbackSteps": 64,
           "provenance": "migration-default"
         },
+        "cinematics": {
+          "id": "5e1ecd20-f6be-ee23-a34a-183a68e54d2f",
+          "schemaVersion": 1,
+          "startup": {
+            "id": "72559ffc-a460-566c-a7d2-1a400a2597b2",
+            "schemaVersion": 1,
+            "kind": "none",
+            "referenceId": null,
+            "resourcePath": "",
+            "fallbackKind": "none",
+            "fallbackReferenceId": null,
+            "fallbackResourcePath": "",
+            "skippable": true,
+            "skipLabel": "Passer",
+            "provenance": "migration-default"
+          },
+          "sequences": [],
+          "transformOverrides": [],
+          "tweens": [],
+          "provenance": "migration-default"
+        },
         "provenance": "migration-default"
       }
     },
@@ -431,7 +452,7 @@
       {
         "id": "72e76124-3a4a-5245-c00e-e348ac4cb292",
         "slug": "parvis-des-astres",
-        "documentPath": "areas/72e76124-3a4a-5245-c00e-e348ac4cb292-1d2b297eb7319fc3.json"
+        "documentPath": "areas/72e76124-3a4a-5245-c00e-e348ac4cb292-78e79729b2179238.json"
       }
     ],
     "dialogues": [

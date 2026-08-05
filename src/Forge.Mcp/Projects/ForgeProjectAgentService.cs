@@ -10,6 +10,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Sequences;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Assets;
@@ -35,8 +36,10 @@ public sealed class ForgeProjectAgentService
     private readonly SetDialogueHandler _dialogueHandler;
     private readonly SetEntityOverridesHandler _overridesHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
+    private readonly SetCinematicProfilesHandler _cinematicHandler;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
     private readonly IClock _clock;
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
@@ -47,6 +50,7 @@ public sealed class ForgeProjectAgentService
         _dialogueHandler = new SetDialogueHandler(clock);
         _overridesHandler = new SetEntityOverridesHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
+        _cinematicHandler = new SetCinematicProfilesHandler(clock);
     }
 
     public string WorkspaceDirectory => _session.RootDirectory;
@@ -236,6 +240,112 @@ public sealed class ForgeProjectAgentService
             plan.Reverted = true;
             plan.Audit.Add(new RuntimePolicyAuditEntry(planId, "revert", undone.State.Revision.Value,
                 _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public CinematicResource GetCinematics(string? areaId = null)
+    {
+        lock (_gate)
+        {
+            var project = _history.State.Project;
+            var selected = string.IsNullOrWhiteSpace(areaId)
+                ? project.Areas.Single(item => item.Id == project.Module.EntryAreaId)
+                : project.Areas.Single(item => item.Id.Value == Guid.Parse(areaId));
+            return new CinematicResource(1, _history.State.Revision.Value, selected.Id.ToString(),
+                project.Module.RuntimePolicies.Cinematics, selected.RuntimePolicies.Cinematics);
+        }
+    }
+
+    public CinematicPlanResult PlanCinematics(CinematicPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return CinematicFailure(request.BaseRevision, "cinematic_plan.schema_unsupported",
+                    "Cinematic plan schema must be 1.");
+            SetCinematicProfilesCommand command;
+            try
+            {
+                command = new SetCinematicProfilesCommand(CommandId.From(Guid.NewGuid()),
+                    new ProjectRevision(request.BaseRevision), request.Module, AreaId.From(Guid.Parse(request.AreaId)),
+                    request.Area, true);
+            }
+            catch (Exception exception) when (exception is ArgumentException or FormatException)
+            {
+                return CinematicFailure(request.BaseRevision, "cinematic_plan.invalid", exception.Message);
+            }
+
+            var preview = _cinematicHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new CinematicPlanResult(false, null, request.BaseRevision, preview.Patch, preview.Inverse,
+                    preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredCinematicPlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new CinematicAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _cinematicPlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public CinematicPlanResult ApplyCinematicPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_cinematicPlans.TryGetValue(planId, out var plan))
+                return CinematicFailure(GetCurrentRevision(), "cinematic_plan.missing", $"Cinematic plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return CinematicFailure(plan.Command.BaseRevision.Value, "cinematic_plan.already_applied",
+                    $"Cinematic plan '{planId}' is already applied.");
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _cinematicHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new CinematicAuditEntry(planId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray()
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new CinematicAuditEntry(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public CinematicPlanResult RevertCinematicPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_cinematicPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return CinematicFailure(GetCurrentRevision(), "cinematic_plan.not_applied",
+                    $"Cinematic plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return CinematicFailure(plan.Command.BaseRevision.Value, "cinematic_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return CinematicFailure(plan.Command.BaseRevision.Value, "cinematic_plan.inverse_unavailable",
+                    "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return CinematicFailure(plan.Command.BaseRevision.Value, "cinematic_plan.save_failed",
+                    "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new CinematicAuditEntry(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
             return ToResult(plan);
         }
     }
@@ -675,6 +785,12 @@ public sealed class ForgeProjectAgentService
         plan.Reverted,
         plan.Audit.ToArray());
 
+    private static CinematicPlanResult CinematicFailure(long revision, string code, string message) => new(
+        false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static CinematicPlanResult ToResult(StoredCinematicPlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted, plan.Audit.ToArray());
+
     private sealed class StoredDialoguePlan(
         string planId,
         DialogueDefinition dialogue,
@@ -723,6 +839,19 @@ public sealed class ForgeProjectAgentService
 
         public bool Reverted { get; set; }
 
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredCinematicPlan(string planId, SetCinematicProfilesCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<CinematicAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetCinematicProfilesCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<CinematicAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }
     }
 }

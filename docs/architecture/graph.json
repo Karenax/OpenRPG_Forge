@@ -196,7 +196,7 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 18,
         "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -205,7 +205,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "src/Forge.ModuleFormat/Serialization/AreaJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -817,7 +817,7 @@
     },
     {
       "evidence": {
-        "line": 31,
+        "line": 32,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -826,7 +826,7 @@
     },
     {
       "evidence": {
-        "line": 77,
+        "line": 79,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -835,7 +835,7 @@
     },
     {
       "evidence": {
-        "line": 37,
+        "line": 38,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -844,7 +844,7 @@
     },
     {
       "evidence": {
-        "line": 93,
+        "line": 95,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1024,7 +1024,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 100,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1033,7 +1033,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1042,7 +1042,7 @@
     },
     {
       "evidence": {
-        "line": 42,
+        "line": 43,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1051,7 +1051,7 @@
     },
     {
       "evidence": {
-        "line": 145,
+        "line": 147,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1129,6 +1129,15 @@
       "kind": "defined_in",
       "source": "component:Forge.Domain.Authoring.EditorCameraView",
       "target": "file:src/Forge.Domain/Authoring/EditorCameraView.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Spatial/TransformOverrideComponent.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.Domain.Spatial.TransformOverrideComponent",
+      "target": "file:src/Forge.Domain/Spatial/TransformOverrideComponent.cs"
     },
     {
       "evidence": {
@@ -1330,7 +1339,7 @@
     },
     {
       "evidence": {
-        "line": 52,
+        "line": 54,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1339,12 +1348,21 @@
     },
     {
       "evidence": {
-        "line": 5121,
+        "line": 5150,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
       "source": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "target": "service:Forge.ModuleFormat.Content.ContentBatchTransferService"
+    },
+    {
+      "evidence": {
+        "line": 388,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.Toolset.Editor.SafeAreaPreview",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
     },
     {
       "evidence": {
@@ -2379,7 +2397,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Areas"
+      "target": "namespace:Forge.Application.Sequences"
     },
     {
       "evidence": {
@@ -2388,7 +2406,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Assets"
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -2397,7 +2415,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Assets"
     },
     {
       "evidence": {
@@ -2406,7 +2424,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Combat"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -2415,7 +2433,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Combat"
     },
     {
       "evidence": {
@@ -2424,7 +2442,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -2433,7 +2451,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Lifecycle"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -2442,7 +2460,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Lifecycle"
     },
     {
       "evidence": {
@@ -2451,7 +2469,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -2460,7 +2478,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -2469,7 +2487,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.RuntimePolicies"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -2478,16 +2496,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.Domain.Spatial"
-    },
-    {
-      "evidence": {
-        "line": 19,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.EngineAdapter.Rendering"
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -2496,34 +2505,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.EngineAdapter.Spatial"
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 19,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.EngineAdapter.World"
-    },
-    {
-      "evidence": {
-        "line": 22,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
-    },
-    {
-      "evidence": {
-        "line": 23,
-        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Saves"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -2532,7 +2523,25 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Serialization"
+      "target": "namespace:Forge.EngineAdapter.Rendering"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.EngineAdapter.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.EngineAdapter.World"
     },
     {
       "evidence": {
@@ -2541,11 +2550,38 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
-      "target": "namespace:Forge.ModuleFormat.Workspaces"
+      "target": "namespace:Forge.ModuleFormat.Packages"
     },
     {
       "evidence": {
         "line": 25,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Saves"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Runtime/Runtime/GameRoot.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 27,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "imports",
@@ -2942,6 +2978,60 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs",
+      "target": "namespace:Forge.Application.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
       },
       "kind": "imports",
@@ -3274,7 +3364,7 @@
     },
     {
       "evidence": {
-        "line": 15,
+        "line": 16,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3283,7 +3373,7 @@
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 17,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3292,12 +3382,12 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 15,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Spatial"
+      "target": "namespace:Forge.Application.Sequences"
     },
     {
       "evidence": {
@@ -3306,7 +3396,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Time"
+      "target": "namespace:Forge.Application.Spatial"
     },
     {
       "evidence": {
@@ -3315,7 +3405,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Areas"
+      "target": "namespace:Forge.Application.Time"
     },
     {
       "evidence": {
@@ -3324,7 +3414,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Assets"
+      "target": "namespace:Forge.Domain.Areas"
     },
     {
       "evidence": {
@@ -3333,7 +3423,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Authoring"
+      "target": "namespace:Forge.Domain.Assets"
     },
     {
       "evidence": {
@@ -3342,7 +3432,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
@@ -3351,7 +3441,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Build"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -3360,7 +3450,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Content"
+      "target": "namespace:Forge.Domain.Build"
     },
     {
       "evidence": {
@@ -3369,7 +3459,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Content"
     },
     {
       "evidence": {
@@ -3378,7 +3468,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -3387,16 +3477,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Gameplay"
-    },
-    {
-      "evidence": {
-        "line": 29,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Lifecycle"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -3405,7 +3486,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Localization"
+      "target": "namespace:Forge.Domain.Gameplay"
     },
     {
       "evidence": {
@@ -3414,7 +3495,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -3423,7 +3513,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -3432,7 +3522,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -3441,7 +3531,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -3450,7 +3540,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.RuntimePolicies"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -3459,7 +3549,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -3468,7 +3558,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Validation"
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
@@ -3477,7 +3567,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.EngineAdapter.Rendering"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -3486,16 +3576,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.EngineAdapter.World"
-    },
-    {
-      "evidence": {
-        "line": 40,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -3504,16 +3585,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Build"
+      "target": "namespace:Forge.EngineAdapter.Rendering"
     },
     {
       "evidence": {
-        "line": 41,
+        "line": 40,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Content"
+      "target": "namespace:Forge.EngineAdapter.World"
     },
     {
       "evidence": {
@@ -3522,7 +3603,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Distribution"
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
     },
     {
       "evidence": {
@@ -3531,16 +3621,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Navigation"
-    },
-    {
-      "evidence": {
-        "line": 45,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.ModuleFormat.Content"
     },
     {
       "evidence": {
@@ -3549,11 +3630,38 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.ModuleFormat.Distribution"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Packages"
     },
     {
       "evidence": {
         "line": 46,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
+    },
+    {
+      "evidence": {
+        "line": 48,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -4003,7 +4111,7 @@
     },
     {
       "evidence": {
-        "line": 225,
+        "line": 232,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -4099,6 +4207,15 @@
       "kind": "references",
       "source": "file:docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md",
       "target": "file:docs/aurora-parity/tasks/G11-J-RUNTIME-POLICIES.md"
+    },
+    {
+      "evidence": {
+        "line": 116,
+        "path": "docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md"
+      },
+      "kind": "references",
+      "source": "file:docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md",
+      "target": "file:docs/aurora-parity/tasks/G11-K-CINEMATICS-CAMERA-TWEENS.md"
     },
     {
       "evidence": {
@@ -7685,6 +7802,78 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetCinematicProfilesCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetCinematicProfilesCommand.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetCinematicProfilesCommand.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetCinematicProfilesHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetCinematicProfilesHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetCinematicProfilesHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetCinematicProfilesHandler.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Projects/SetCinematicProfilesHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationCommand.cs"
       },
       "kind": "imports",
@@ -8005,6 +8194,123 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Quests/SetQuestHandler.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Sequences/AnimationTweenRuntime.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/AnimationTweenRuntime.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Sequences/AnimationTweenState.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/AnimationTweenState.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Sequences/SequenceEvaluation.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/SequenceEvaluation.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Sequences/SequenceEvaluation.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/SequenceEvaluation.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Sequences/SequencePlayer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/SequencePlayer.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Sequences/SequencePlayer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/SequencePlayer.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Sequences/SequencePlayer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/SequencePlayer.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Sequences/StartupFlowResolver.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/StartupFlowResolver.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Sequences/StartupFlowResolver.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/StartupFlowResolver.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Sequences/TransformInterpolator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/TransformInterpolator.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Sequences/TransformInterpolator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/TransformInterpolator.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Sequences/TransformOverrideRuntime.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/TransformOverrideRuntime.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Sequences/TransformOverrideState.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Sequences/TransformOverrideState.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -8692,6 +8998,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
       },
@@ -8707,6 +9022,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs",
       "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs",
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
@@ -8734,6 +9058,87 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/RuntimePolicies/SequenceAbortPolicy.cs",
       "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/AreaCinematicProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Sequences/AreaCinematicProfile.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/CameraAnchorDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Sequences/CameraAnchorDefinition.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/ModuleCinematicProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Sequences/ModuleCinematicProfile.cs",
+      "target": "namespace:Forge.Domain.Modules"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Sequences/ModuleCinematicProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Sequences/ModuleCinematicProfile.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/SequenceKeyframe.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Sequences/SequenceKeyframe.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Spatial/AnimationTweenDefinition.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Spatial/AnimationTweenDefinition.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Spatial/TransformOverrideComponent.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Spatial/TransformOverrideComponent.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Spatial/TransformOverrideComponent.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Spatial/TransformOverrideComponent.cs",
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
@@ -8851,6 +9256,24 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/Validation/ArtisticCompatibilityValidator.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Validation/CinematicValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/CinematicValidator.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Validation/CinematicValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Validation/CinematicValidator.cs",
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
@@ -9511,6 +9934,24 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/CinematicContracts.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/CinematicContracts.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
@@ -9624,16 +10065,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Validation"
-    },
-    {
-      "evidence": {
-        "line": 15,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Assets"
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
@@ -9642,7 +10074,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -9651,11 +10083,29 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Assets"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
       "target": "namespace:Forge.Mcp.Scripts"
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 19,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -9664,7 +10114,7 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 18,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -13094,6 +13544,60 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Application.Tests/Projects/SetModuleConfigurationHandlerTests.cs"
       },
       "kind": "imports",
@@ -13306,6 +13810,42 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs",
       "target": "namespace:Forge.Domain.Quests"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs",
+      "target": "namespace:Forge.Application.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -13922,6 +14462,78 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs",
+      "target": "namespace:Forge.Domain.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs"
       },
       "kind": "imports",
@@ -14502,16 +15114,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Validation"
-    },
-    {
-      "evidence": {
-        "line": 8,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "imports",
-      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Assets"
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
@@ -14520,16 +15123,16 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
-        "line": 9,
+        "line": 8,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Projects"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -14538,11 +15141,38 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Scripts"
+      "target": "namespace:Forge.Mcp.Assets"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
     },
     {
       "evidence": {
         "line": 11,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Projects"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Scripts"
+    },
+    {
+      "evidence": {
+        "line": 13,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
@@ -15178,6 +15808,51 @@
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/BrokenIslesStarterTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs",
+      "target": "namespace:Forge.Domain.Sequences"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
       "evidence": {
@@ -21419,6 +22094,96 @@
     {
       "evidence": {
         "line": 9,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "target": "file:src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 53,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 53,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "target": "model:Forge.Application.Projects.SetCinematicProfilesCommand"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 9,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationHandler.cs"
       },
       "kind": "defined_in",
@@ -23749,6 +24514,33 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Projects.SetCinematicProfilesCommand",
+      "target": "file:src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Projects.SetCinematicProfilesCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Projects.SetCinematicProfilesCommand",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationCommand.cs"
       },
@@ -23854,6 +24646,60 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Quests.SetQuestCommand",
       "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Sequences/AnimationTweenState.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Sequences.AnimationTweenState",
+      "target": "file:src/Forge.Application/Sequences/AnimationTweenState.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Sequences/AnimationTweenState.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Sequences.AnimationTweenState",
+      "target": "model:Forge.Domain.Spatial.AnimationTweenValue"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Sequences/AnimationTweenState.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Sequences.AnimationTweenState",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Sequences/SequencePlaybackState.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Sequences.SequencePlaybackState",
+      "target": "file:src/Forge.Application/Sequences/SequencePlaybackState.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Sequences/TransformOverrideState.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Sequences.TransformOverrideState",
+      "target": "file:src/Forge.Application/Sequences/TransformOverrideState.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Sequences/TransformOverrideState.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Sequences.TransformOverrideState",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
     },
     {
       "evidence": {
@@ -25486,6 +26332,195 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Sequences/CameraAnchorDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Sequences.CameraAnchorDefinition",
+      "target": "file:src/Forge.Domain/Sequences/CameraAnchorDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Domain/Sequences/CameraAnchorDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Sequences.CameraAnchorDefinition",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Sequences/SequenceBranchDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Sequences.SequenceBranchDefinition",
+      "target": "file:src/Forge.Domain/Sequences/SequenceBranchDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Sequences/SequenceDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Sequences.SequenceDefinition",
+      "target": "file:src/Forge.Domain/Sequences/SequenceDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Domain/Sequences/SequenceDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Sequences.SequenceDefinition",
+      "target": "model:Forge.Domain.Sequences.SequenceBranchDefinition"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Domain/Sequences/SequenceDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Sequences.SequenceDefinition",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackDefinition"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Sequences/SequenceTargetKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Sequences.SequenceTargetKind",
+      "target": "file:src/Forge.Domain/Sequences/SequenceTargetKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Sequences/SequenceTrackDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Sequences.SequenceTrackDefinition",
+      "target": "file:src/Forge.Domain/Sequences/SequenceTrackDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Domain/Sequences/SequenceTrackDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Sequences.SequenceTrackDefinition",
+      "target": "model:Forge.Domain.Sequences.SequenceTargetKind"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Sequences/SequenceTrackDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Sequences.SequenceTrackDefinition",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackKind"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Sequences/SequenceTrackKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Sequences.SequenceTrackKind",
+      "target": "file:src/Forge.Domain/Sequences/SequenceTrackKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Sequences/StartupFlowDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Sequences.StartupFlowDefinition",
+      "target": "file:src/Forge.Domain/Sequences/StartupFlowDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Domain/Sequences/StartupFlowDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Sequences.StartupFlowDefinition",
+      "target": "model:Forge.Domain.Sequences.StartupFlowKind"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Sequences/StartupFlowKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Sequences.StartupFlowKind",
+      "target": "file:src/Forge.Domain/Sequences/StartupFlowKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Spatial/AnimationChannelKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Spatial.AnimationChannelKind",
+      "target": "file:src/Forge.Domain/Spatial/AnimationChannelKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Spatial.AnimationTweenDefinition",
+      "target": "file:src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Spatial.AnimationTweenDefinition",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Spatial.AnimationTweenDefinition",
+      "target": "model:Forge.Domain.Spatial.AnimationChannelKind"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Spatial.AnimationTweenDefinition",
+      "target": "model:Forge.Domain.Spatial.AnimationTweenValue"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Spatial.AnimationTweenDefinition",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Spatial/AnimationTweenValue.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Spatial.AnimationTweenValue",
+      "target": "file:src/Forge.Domain/Spatial/AnimationTweenValue.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Spatial/QuaternionValue.cs"
       },
@@ -26170,7 +27205,52 @@
     },
     {
       "evidence": {
-        "line": 730,
+        "line": 16,
+        "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Projects.CinematicAuditEntry",
+      "target": "file:src/Forge.Mcp/Projects/CinematicContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Projects.CinematicPlanResult",
+      "target": "file:src/Forge.Mcp/Projects/CinematicContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Projects.CinematicPlanResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Projects.CinematicPlanResult",
+      "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Projects.CinematicPlanResult",
+      "target": "model:Forge.Mcp.Projects.CinematicAuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 859,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -26179,7 +27259,7 @@
     },
     {
       "evidence": {
-        "line": 732,
+        "line": 861,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "relationship",
@@ -28654,7 +29734,7 @@
     },
     {
       "evidence": {
-        "line": 2060,
+        "line": 2250,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -30265,6 +31345,24 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Projects",
+      "target": "file:src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Projects",
+      "target": "file:src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Projects/SetModuleConfigurationCommand.cs"
       },
@@ -30361,6 +31459,96 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Quests",
       "target": "file:src/Forge.Application/Quests/SetQuestHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Sequences/AnimationTweenRuntime.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Sequences",
+      "target": "file:src/Forge.Application/Sequences/AnimationTweenRuntime.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Sequences/AnimationTweenState.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Sequences",
+      "target": "file:src/Forge.Application/Sequences/AnimationTweenState.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Sequences/SequenceEvaluation.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Sequences",
+      "target": "file:src/Forge.Application/Sequences/SequenceEvaluation.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Sequences/SequencePlaybackState.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Sequences",
+      "target": "file:src/Forge.Application/Sequences/SequencePlaybackState.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Sequences/SequencePlayer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Sequences",
+      "target": "file:src/Forge.Application/Sequences/SequencePlayer.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Sequences/SequenceSignal.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Sequences",
+      "target": "file:src/Forge.Application/Sequences/SequenceSignal.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Sequences/StartupFlowResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Sequences",
+      "target": "file:src/Forge.Application/Sequences/StartupFlowResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Sequences/TransformInterpolator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Sequences",
+      "target": "file:src/Forge.Application/Sequences/TransformInterpolator.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Sequences/TransformOverrideRuntime.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Sequences",
+      "target": "file:src/Forge.Application/Sequences/TransformOverrideRuntime.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Sequences/TransformOverrideState.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Sequences",
+      "target": "file:src/Forge.Application/Sequences/TransformOverrideState.cs"
     },
     {
       "evidence": {
@@ -30815,6 +32003,15 @@
     {
       "evidence": {
         "line": 7,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Projects",
+      "target": "file:tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
         "path": "tests/Forge.Application.Tests/Projects/SetModuleConfigurationHandlerTests.cs"
       },
       "kind": "defined_in",
@@ -30847,6 +32044,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Quests",
       "target": "file:tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Sequences",
+      "target": "file:tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
     },
     {
       "evidence": {
@@ -32677,7 +33883,7 @@
     },
     {
       "evidence": {
-        "line": 2,
+        "line": 4,
         "path": "src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs"
       },
       "kind": "defined_in",
@@ -32704,7 +33910,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 4,
         "path": "src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
       },
       "kind": "defined_in",
@@ -32776,12 +33982,183 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Sequences/AreaCinematicProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/AreaCinematicProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Sequences/CameraAnchorDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/CameraAnchorDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/CameraFraming.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/CameraFraming.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Sequences/ModuleCinematicProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/ModuleCinematicProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/SequenceBranchDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/SequenceBranchDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/SequenceDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/SequenceDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/SequenceEasing.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/SequenceEasing.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Sequences/SequenceKeyframe.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/SequenceKeyframe.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/SequenceTargetKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/SequenceTargetKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/SequenceTrackDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/SequenceTrackDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/SequenceTrackKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/SequenceTrackKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/StartupFlowDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/StartupFlowDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Sequences/StartupFlowKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Sequences",
+      "target": "file:src/Forge.Domain/Sequences/StartupFlowKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Spatial/AnimationChannelKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Spatial",
+      "target": "file:src/Forge.Domain/Spatial/AnimationChannelKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Spatial",
+      "target": "file:src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Spatial/AnimationTweenValue.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Spatial",
+      "target": "file:src/Forge.Domain/Spatial/AnimationTweenValue.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Domain/Spatial/QuaternionValue.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Spatial",
       "target": "file:src/Forge.Domain/Spatial/QuaternionValue.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Spatial/TransformAuthority.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Spatial",
+      "target": "file:src/Forge.Domain/Spatial/TransformAuthority.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Spatial/TransformOverrideComponent.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Spatial",
+      "target": "file:src/Forge.Domain/Spatial/TransformOverrideComponent.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Spatial/TransformSaveBehavior.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Spatial",
+      "target": "file:src/Forge.Domain/Spatial/TransformSaveBehavior.cs"
     },
     {
       "evidence": {
@@ -33073,6 +34450,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Sequences",
+      "target": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs"
       },
@@ -33151,6 +34537,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Validation",
       "target": "file:src/Forge.Domain/Validation/ArtisticCompatibilityValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Validation/CinematicValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Validation",
+      "target": "file:src/Forge.Domain/Validation/CinematicValidator.cs"
     },
     {
       "evidence": {
@@ -33703,7 +35098,16 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 3,
+        "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Mcp.Projects",
+      "target": "file:src/Forge.Mcp/Projects/CinematicContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 20,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -33784,7 +35188,7 @@
     },
     {
       "evidence": {
-        "line": 12,
+        "line": 14,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -34501,6 +35905,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Tests.Serialization",
       "target": "file:tests/Forge.ModuleFormat.Tests/Serialization/BrokenIslesStarterTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Serialization",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
     },
     {
       "evidence": {
@@ -35782,7 +37195,7 @@
     },
     {
       "evidence": {
-        "line": 27,
+        "line": 29,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -36052,6 +37465,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
       },
@@ -36097,7 +37519,7 @@
     },
     {
       "evidence": {
-        "line": 48,
+        "line": 50,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -37096,7 +38518,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 23,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -37105,7 +38527,7 @@
     },
     {
       "evidence": {
-        "line": 575,
+        "line": 685,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37114,7 +38536,7 @@
     },
     {
       "evidence": {
-        "line": 132,
+        "line": 136,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37123,7 +38545,7 @@
     },
     {
       "evidence": {
-        "line": 341,
+        "line": 451,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37132,7 +38554,7 @@
     },
     {
       "evidence": {
-        "line": 503,
+        "line": 613,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37141,7 +38563,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 49,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37150,12 +38572,12 @@
     },
     {
       "evidence": {
-        "line": 129,
+        "line": 268,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
       "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
-      "target": "model:Forge.Application.Projects.SetRuntimePoliciesCommand"
+      "target": "model:Forge.Application.Projects.SetCinematicProfilesCommand"
     },
     {
       "evidence": {
@@ -37164,11 +38586,20 @@
       },
       "kind": "accesses_model",
       "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Application.Projects.SetRuntimePoliciesCommand"
+    },
+    {
+      "evidence": {
+        "line": 137,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "target": "model:Forge.Domain.Areas.AreaId"
     },
     {
       "evidence": {
-        "line": 538,
+        "line": 648,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37177,7 +38608,7 @@
     },
     {
       "evidence": {
-        "line": 544,
+        "line": 654,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37186,7 +38617,7 @@
     },
     {
       "evidence": {
-        "line": 553,
+        "line": 663,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37195,7 +38626,7 @@
     },
     {
       "evidence": {
-        "line": 330,
+        "line": 440,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37204,7 +38635,7 @@
     },
     {
       "evidence": {
-        "line": 528,
+        "line": 638,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37213,7 +38644,7 @@
     },
     {
       "evidence": {
-        "line": 531,
+        "line": 641,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37222,7 +38653,7 @@
     },
     {
       "evidence": {
-        "line": 491,
+        "line": 601,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37231,7 +38662,7 @@
     },
     {
       "evidence": {
-        "line": 500,
+        "line": 610,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37240,7 +38671,7 @@
     },
     {
       "evidence": {
-        "line": 592,
+        "line": 702,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37249,7 +38680,7 @@
     },
     {
       "evidence": {
-        "line": 169,
+        "line": 173,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37258,7 +38689,7 @@
     },
     {
       "evidence": {
-        "line": 60,
+        "line": 64,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37267,7 +38698,7 @@
     },
     {
       "evidence": {
-        "line": 243,
+        "line": 353,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37276,7 +38707,7 @@
     },
     {
       "evidence": {
-        "line": 317,
+        "line": 427,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37285,7 +38716,7 @@
     },
     {
       "evidence": {
-        "line": 362,
+        "line": 472,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37294,7 +38725,25 @@
     },
     {
       "evidence": {
-        "line": 54,
+        "line": 286,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Projects.CinematicAuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 260,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Projects.CinematicPlanResult"
+    },
+    {
+      "evidence": {
+        "line": 58,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37303,7 +38752,7 @@
     },
     {
       "evidence": {
-        "line": 150,
+        "line": 154,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37312,7 +38761,7 @@
     },
     {
       "evidence": {
-        "line": 118,
+        "line": 122,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -37321,7 +38770,7 @@
     },
     {
       "evidence": {
-        "line": 462,
+        "line": 572,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -44756,6 +46205,177 @@
     {
       "evidence": {
         "line": 10,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "file:tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "handler:Forge.Application.Projects.SetCinematicProfilesHandler"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Application.Projects.SetCinematicProfilesCommand"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Domain.Sequences.CameraAnchorDefinition"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Domain.Sequences.SequenceDefinition"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTargetKind"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackDefinition"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackKind"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Domain.Sequences.StartupFlowDefinition"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Domain.Sequences.StartupFlowKind"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "type:Forge.Domain.Sequences.AreaCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "type:Forge.Domain.Sequences.CameraFraming"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "type:Forge.Domain.Sequences.ModuleCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "type:Forge.Domain.Sequences.SequenceEasing"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "target": "type:Forge.Domain.Sequences.SequenceKeyframe"
+    },
+    {
+      "evidence": {
+        "line": 10,
         "path": "tests/Forge.Application.Tests/Projects/SetModuleConfigurationHandlerTests.cs"
       },
       "kind": "defined_in",
@@ -45382,6 +47002,231 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Quests.SetQuestHandlerTests",
       "target": "validator:Forge.Domain.Quests.QuestValidator"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "component:Forge.Domain.Spatial.TransformOverrideComponent"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "file:tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Application.Sequences.SequencePlaybackState"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Sequences.SequenceDefinition"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTargetKind"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackDefinition"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackKind"
+    },
+    {
+      "evidence": {
+        "line": 86,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Sequences.StartupFlowDefinition"
+    },
+    {
+      "evidence": {
+        "line": 86,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Sequences.StartupFlowKind"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Spatial.AnimationChannelKind"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Spatial.AnimationTweenDefinition"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Spatial.AnimationTweenValue"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "type:Forge.Application.Sequences.AnimationTweenRuntime"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "type:Forge.Application.Sequences.SequencePlayer"
+    },
+    {
+      "evidence": {
+        "line": 89,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "type:Forge.Application.Sequences.StartupFlowResolver"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "type:Forge.Application.Sequences.TransformInterpolator"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "type:Forge.Application.Sequences.TransformOverrideRuntime"
+    },
+    {
+      "evidence": {
+        "line": 88,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "type:Forge.Domain.Sequences.ModuleCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "type:Forge.Domain.Sequences.SequenceEasing"
+    },
+    {
+      "evidence": {
+        "line": 97,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "type:Forge.Domain.Sequences.SequenceKeyframe"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "type:Forge.Domain.Spatial.TransformAuthority"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "target": "type:Forge.Domain.Spatial.TransformSaveBehavior"
     },
     {
       "evidence": {
@@ -48247,6 +50092,294 @@
     },
     {
       "evidence": {
+        "line": 85,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "component:Forge.Domain.Spatial.TransformOverrideComponent"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 53,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Entities.EntityInstance"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 74,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Sequences.CameraAnchorDefinition"
+    },
+    {
+      "evidence": {
+        "line": 78,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Sequences.SequenceDefinition"
+    },
+    {
+      "evidence": {
+        "line": 81,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTargetKind"
+    },
+    {
+      "evidence": {
+        "line": 80,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackDefinition"
+    },
+    {
+      "evidence": {
+        "line": 80,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackKind"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Sequences.StartupFlowDefinition"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Sequences.StartupFlowKind"
+    },
+    {
+      "evidence": {
+        "line": 75,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "type:Forge.Domain.RuntimePolicies.AreaRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "type:Forge.Domain.Sequences.AreaCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "type:Forge.Domain.Sequences.CameraFraming"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "type:Forge.Domain.Sequences.ModuleCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "type:Forge.Domain.Sequences.SequenceEasing"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "type:Forge.Domain.Sequences.SequenceKeyframe"
+    },
+    {
+      "evidence": {
+        "line": 87,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "type:Forge.Domain.Spatial.TransformAuthority"
+    },
+    {
+      "evidence": {
+        "line": 87,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "type:Forge.Domain.Spatial.TransformSaveBehavior"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "validator:Forge.Domain.Validation.CinematicValidator"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "target": "validator:Forge.Domain.Validation.ProjectValidator"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs"
       },
@@ -49705,7 +51838,7 @@
     },
     {
       "evidence": {
-        "line": 15,
+        "line": 17,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -49714,7 +51847,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 38,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49723,7 +51856,7 @@
     },
     {
       "evidence": {
-        "line": 37,
+        "line": 39,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49732,7 +51865,7 @@
     },
     {
       "evidence": {
-        "line": 176,
+        "line": 209,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49741,7 +51874,7 @@
     },
     {
       "evidence": {
-        "line": 41,
+        "line": 43,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49750,7 +51883,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 114,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49759,7 +51892,88 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 150,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Sequences.CameraAnchorDefinition"
+    },
+    {
+      "evidence": {
+        "line": 154,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Sequences.SequenceDefinition"
+    },
+    {
+      "evidence": {
+        "line": 156,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTargetKind"
+    },
+    {
+      "evidence": {
+        "line": 155,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackDefinition"
+    },
+    {
+      "evidence": {
+        "line": 155,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackKind"
+    },
+    {
+      "evidence": {
+        "line": 159,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Sequences.StartupFlowDefinition"
+    },
+    {
+      "evidence": {
+        "line": 159,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Sequences.StartupFlowKind"
+    },
+    {
+      "evidence": {
+        "line": 151,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 151,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 53,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49768,7 +51982,7 @@
     },
     {
       "evidence": {
-        "line": 118,
+        "line": 120,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49777,7 +51991,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 114,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49786,7 +52000,7 @@
     },
     {
       "evidence": {
-        "line": 116,
+        "line": 118,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49795,7 +52009,52 @@
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 153,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Sequences.AreaCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 152,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Sequences.CameraFraming"
+    },
+    {
+      "evidence": {
+        "line": 161,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Sequences.ModuleCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 157,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Sequences.SequenceEasing"
+    },
+    {
+      "evidence": {
+        "line": 157,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Sequences.SequenceKeyframe"
+    },
+    {
+      "evidence": {
+        "line": 37,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49804,7 +52063,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 74,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49813,7 +52072,7 @@
     },
     {
       "evidence": {
-        "line": 199,
+        "line": 232,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49822,7 +52081,7 @@
     },
     {
       "evidence": {
-        "line": 235,
+        "line": 268,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49831,7 +52090,7 @@
     },
     {
       "evidence": {
-        "line": 146,
+        "line": 179,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49840,7 +52099,16 @@
     },
     {
       "evidence": {
-        "line": 119,
+        "line": 162,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.CinematicPlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 121,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49849,7 +52117,7 @@
     },
     {
       "evidence": {
-        "line": 217,
+        "line": 250,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49858,7 +52126,7 @@
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 37,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49867,7 +52135,7 @@
     },
     {
       "evidence": {
-        "line": 206,
+        "line": 239,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -49876,7 +52144,7 @@
     },
     {
       "evidence": {
-        "line": 54,
+        "line": 56,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -51475,6 +53743,231 @@
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Serialization.BrokenIslesStarterTests",
       "target": "validator:Forge.ModuleFormat.Packages.ModulePackageValidator"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "adapter:Forge.ModuleFormat.Serialization.ProjectJsonSerializer"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "component:Forge.Domain.Spatial.TransformOverrideComponent"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Sequences.CameraAnchorDefinition"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Sequences.SequenceDefinition"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTargetKind"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackDefinition"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Sequences.SequenceTrackKind"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Sequences.StartupFlowDefinition"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Sequences.StartupFlowKind"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Spatial.AnimationChannelKind"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Spatial.AnimationTweenDefinition"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Spatial.AnimationTweenValue"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "model:Forge.Domain.Spatial.TransformValue"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "type:Forge.Domain.RuntimePolicies.AreaRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 75,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "type:Forge.Domain.Sequences.AreaCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "type:Forge.Domain.Sequences.CameraFraming"
+    },
+    {
+      "evidence": {
+        "line": 61,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "type:Forge.Domain.Sequences.ModuleCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "type:Forge.Domain.Sequences.SequenceEasing"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "type:Forge.Domain.Sequences.SequenceKeyframe"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "type:Forge.Domain.Spatial.TransformAuthority"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "target": "type:Forge.Domain.Spatial.TransformSaveBehavior"
     },
     {
       "evidence": {
@@ -58597,6 +61090,78 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Sequences/AnimationTweenRuntime.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Sequences.AnimationTweenRuntime",
+      "target": "file:src/Forge.Application/Sequences/AnimationTweenRuntime.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Sequences/SequenceEvaluation.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Sequences.SequenceEvaluation",
+      "target": "file:src/Forge.Application/Sequences/SequenceEvaluation.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Sequences/SequencePlayer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Sequences.SequencePlayer",
+      "target": "file:src/Forge.Application/Sequences/SequencePlayer.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Sequences/SequenceSignal.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Sequences.SequenceSignal",
+      "target": "file:src/Forge.Application/Sequences/SequenceSignal.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Sequences/StartupFlowResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Sequences.StartupFlowResolution",
+      "target": "file:src/Forge.Application/Sequences/StartupFlowResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Sequences/StartupFlowResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Sequences.StartupFlowResolver",
+      "target": "file:src/Forge.Application/Sequences/StartupFlowResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Sequences/TransformInterpolator.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Sequences.TransformInterpolator",
+      "target": "file:src/Forge.Application/Sequences/TransformInterpolator.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Sequences/TransformOverrideRuntime.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Sequences.TransformOverrideRuntime",
+      "target": "file:src/Forge.Application/Sequences/TransformOverrideRuntime.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "src/Forge.Application/Spatial/PlacementValidationRequest.cs"
       },
@@ -60523,7 +63088,7 @@
     },
     {
       "evidence": {
-        "line": 5,
+        "line": 7,
         "path": "src/Forge.Domain/RuntimePolicies/AreaRuntimePolicyProfile.cs"
       },
       "kind": "defined_in",
@@ -60541,7 +63106,7 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 7,
         "path": "src/Forge.Domain/RuntimePolicies/ModuleRuntimePolicyProfile.cs"
       },
       "kind": "defined_in",
@@ -60610,6 +63175,69 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.RuntimePolicies.SequenceAbortRestoreFlags",
       "target": "file:src/Forge.Domain/RuntimePolicies/SequenceAbortRestoreFlags.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Sequences/AreaCinematicProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Sequences.AreaCinematicProfile",
+      "target": "file:src/Forge.Domain/Sequences/AreaCinematicProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Sequences/CameraFraming.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Sequences.CameraFraming",
+      "target": "file:src/Forge.Domain/Sequences/CameraFraming.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Sequences/ModuleCinematicProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Sequences.ModuleCinematicProfile",
+      "target": "file:src/Forge.Domain/Sequences/ModuleCinematicProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Sequences/SequenceEasing.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Sequences.SequenceEasing",
+      "target": "file:src/Forge.Domain/Sequences/SequenceEasing.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Sequences/SequenceKeyframe.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Sequences.SequenceKeyframe",
+      "target": "file:src/Forge.Domain/Sequences/SequenceKeyframe.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Spatial/TransformAuthority.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Spatial.TransformAuthority",
+      "target": "file:src/Forge.Domain/Spatial/TransformAuthority.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Spatial/TransformSaveBehavior.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Spatial.TransformSaveBehavior",
+      "target": "file:src/Forge.Domain/Spatial/TransformSaveBehavior.cs"
     },
     {
       "evidence": {
@@ -61108,6 +63736,24 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.CinematicPlanRequest",
+      "target": "file:src/Forge.Mcp/Projects/CinematicContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.CinematicResource",
+      "target": "file:src/Forge.Mcp/Projects/CinematicContracts.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Mcp/Projects/ForgeProjectSummary.cs"
       },
@@ -61135,7 +63781,16 @@
     },
     {
       "evidence": {
-        "line": 678,
+        "line": 845,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.StoredCinematicPlan",
+      "target": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
+      "evidence": {
+        "line": 794,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -61144,7 +63799,7 @@
     },
     {
       "evidence": {
-        "line": 705,
+        "line": 821,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -64807,7 +67462,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 32,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -64816,7 +67471,7 @@
     },
     {
       "evidence": {
-        "line": 1989,
+        "line": 2179,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -64825,7 +67480,7 @@
     },
     {
       "evidence": {
-        "line": 2028,
+        "line": 2218,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -65212,6 +67867,15 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.CinematicStudioWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 13,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs"
       },
@@ -65329,7 +67993,7 @@
     },
     {
       "evidence": {
-        "line": 6633,
+        "line": 6788,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -65383,7 +68047,7 @@
     },
     {
       "evidence": {
-        "line": 6638,
+        "line": 6793,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -65392,7 +68056,7 @@
     },
     {
       "evidence": {
-        "line": 6643,
+        "line": 6798,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -65914,6 +68578,51 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Validation/CinematicValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Validation.CinematicValidator",
+      "target": "file:src/Forge.Domain/Validation/CinematicValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 90,
+        "path": "src/Forge.Domain/Validation/CinematicValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.CinematicValidator",
+      "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Domain/Validation/CinematicValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.CinematicValidator",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "src/Forge.Domain/Validation/CinematicValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.CinematicValidator",
+      "target": "model:Forge.Domain.Sequences.SequenceTargetKind"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "src/Forge.Domain/Validation/CinematicValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Validation.CinematicValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Domain/Validation/DistributionComplianceValidator.cs"
       },
@@ -66202,8 +68911,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:e8b4f94bfdd955a470856e15f30b4aad000211293604d99775cc3f6483cf76c2",
-    "source_file_count": 1259
+    "source_digest": "sha256:900ad5066227f567d8edafcc5aa2b7898ae0f2a26d4b01c2fb9533cf57743ecd",
+    "source_file_count": 1302
   },
   "nodes": [
     {
@@ -66787,6 +69496,16 @@
       "path": "src/Forge.Domain/Authoring/EditorCameraView.cs"
     },
     {
+      "id": "component:Forge.Domain.Spatial.TransformOverrideComponent",
+      "kind": "component",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Spatial"
+      },
+      "name": "TransformOverrideComponent",
+      "path": "src/Forge.Domain/Spatial/TransformOverrideComponent.cs"
+    },
+    {
       "id": "component:Forge.LiveDirector.Search.Page",
       "kind": "component",
       "line": 9,
@@ -67009,12 +69728,22 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 52,
+      "line": 54,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
       "name": "ForgeEditorPlugin",
       "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+    },
+    {
+      "id": "component:Forge.Toolset.Editor.SafeAreaPreview",
+      "kind": "component",
+      "line": 388,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "SafeAreaPreview",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
     },
     {
       "id": "file:.github/workflows/architecture-graph.yml",
@@ -67907,6 +70636,16 @@
       "path": "apps/Forge.Runtime/content/broken-isles-starter/.forge/build-graph.json"
     },
     {
+      "id": "file:apps/Forge.Runtime/content/broken-isles-starter/areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-3eef1cf43e47c6e6.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a-3eef1cf43e47c6e6.json",
+      "path": "apps/Forge.Runtime/content/broken-isles-starter/areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-3eef1cf43e47c6e6.json"
+    },
+    {
       "id": "file:apps/Forge.Runtime/content/broken-isles-starter/areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-7705e01c7c4464a3.json",
       "kind": "configuration",
       "line": 1,
@@ -67997,6 +70736,16 @@
       "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-e469de5f-d1a1-5682-9b20-94d1ebf51cf3.json"
     },
     {
+      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-46b37f2ed620e31d.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-46b37f2ed620e31d.json",
+      "path": "apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-46b37f2ed620e31d.json"
+    },
+    {
       "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-50a75ec31f63d5fb.json",
       "kind": "configuration",
       "line": 1,
@@ -68075,6 +70824,16 @@
       },
       "name": "72e76124-3a4a-5245-c00e-e348ac4cb292-1d2b297eb7319fc3.json",
       "path": "apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-1d2b297eb7319fc3.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-78e79729b2179238.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "72e76124-3a4a-5245-c00e-e348ac4cb292-78e79729b2179238.json",
+      "path": "apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-78e79729b2179238.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/la-veillee-des-eclats/areas/72e76124-3a4a-5245-c00e-e348ac4cb292-7aa979b46173d7b8.json",
@@ -68395,6 +71154,16 @@
       },
       "name": "BuildPipelineWindow.cs",
       "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
+    },
+    {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CinematicStudioWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
     },
     {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/ContentWorkflowWindow.cs",
@@ -68885,6 +71654,16 @@
       },
       "name": "ADR-0024-runtime-policy-profiles.md",
       "path": "docs/ADR/ADR-0024-runtime-policy-profiles.md"
+    },
+    {
+      "id": "file:docs/ADR/ADR-0025-cinematic-profiles-and-runtime-tweens.md",
+      "kind": "decision",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "ADR-0025-cinematic-profiles-and-runtime-tweens.md",
+      "path": "docs/ADR/ADR-0025-cinematic-profiles-and-runtime-tweens.md"
     },
     {
       "id": "file:docs/ARCHITECTURE.md",
@@ -69385,6 +72164,16 @@
       },
       "name": "G11-J-RUNTIME-POLICIES.md",
       "path": "docs/aurora-parity/tasks/G11-J-RUNTIME-POLICIES.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G11-K-CINEMATICS-CAMERA-TWEENS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G11-K-CINEMATICS-CAMERA-TWEENS.md",
+      "path": "docs/aurora-parity/tasks/G11-K-CINEMATICS-CAMERA-TWEENS.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -71767,6 +74556,26 @@
       "path": "src/Forge.Application/Projects/ProjectState.cs"
     },
     {
+      "id": "file:src/Forge.Application/Projects/SetCinematicProfilesCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetCinematicProfilesCommand.cs",
+      "path": "src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Projects/SetCinematicProfilesHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetCinematicProfilesHandler.cs",
+      "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Projects/SetModuleConfigurationCommand.cs",
       "kind": "file",
       "line": 1,
@@ -71875,6 +74684,106 @@
       },
       "name": "SetQuestHandler.cs",
       "path": "src/Forge.Application/Quests/SetQuestHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Sequences/AnimationTweenRuntime.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AnimationTweenRuntime.cs",
+      "path": "src/Forge.Application/Sequences/AnimationTweenRuntime.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Sequences/AnimationTweenState.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AnimationTweenState.cs",
+      "path": "src/Forge.Application/Sequences/AnimationTweenState.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Sequences/SequenceEvaluation.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceEvaluation.cs",
+      "path": "src/Forge.Application/Sequences/SequenceEvaluation.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Sequences/SequencePlaybackState.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequencePlaybackState.cs",
+      "path": "src/Forge.Application/Sequences/SequencePlaybackState.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Sequences/SequencePlayer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequencePlayer.cs",
+      "path": "src/Forge.Application/Sequences/SequencePlayer.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Sequences/SequenceSignal.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceSignal.cs",
+      "path": "src/Forge.Application/Sequences/SequenceSignal.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Sequences/StartupFlowResolver.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "StartupFlowResolver.cs",
+      "path": "src/Forge.Application/Sequences/StartupFlowResolver.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Sequences/TransformInterpolator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TransformInterpolator.cs",
+      "path": "src/Forge.Application/Sequences/TransformInterpolator.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Sequences/TransformOverrideRuntime.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TransformOverrideRuntime.cs",
+      "path": "src/Forge.Application/Sequences/TransformOverrideRuntime.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Sequences/TransformOverrideState.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TransformOverrideState.cs",
+      "path": "src/Forge.Application/Sequences/TransformOverrideState.cs"
     },
     {
       "id": "file:src/Forge.Application/Spatial/PlacementValidationRequest.cs",
@@ -74057,6 +76966,166 @@
       "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortRestoreFlags.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Sequences/AreaCinematicProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AreaCinematicProfile.cs",
+      "path": "src/Forge.Domain/Sequences/AreaCinematicProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/CameraAnchorDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CameraAnchorDefinition.cs",
+      "path": "src/Forge.Domain/Sequences/CameraAnchorDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/CameraFraming.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CameraFraming.cs",
+      "path": "src/Forge.Domain/Sequences/CameraFraming.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/ModuleCinematicProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ModuleCinematicProfile.cs",
+      "path": "src/Forge.Domain/Sequences/ModuleCinematicProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/SequenceBranchDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceBranchDefinition.cs",
+      "path": "src/Forge.Domain/Sequences/SequenceBranchDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/SequenceDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceDefinition.cs",
+      "path": "src/Forge.Domain/Sequences/SequenceDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/SequenceEasing.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceEasing.cs",
+      "path": "src/Forge.Domain/Sequences/SequenceEasing.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/SequenceKeyframe.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceKeyframe.cs",
+      "path": "src/Forge.Domain/Sequences/SequenceKeyframe.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/SequenceTargetKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceTargetKind.cs",
+      "path": "src/Forge.Domain/Sequences/SequenceTargetKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/SequenceTrackDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceTrackDefinition.cs",
+      "path": "src/Forge.Domain/Sequences/SequenceTrackDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/SequenceTrackKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequenceTrackKind.cs",
+      "path": "src/Forge.Domain/Sequences/SequenceTrackKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/StartupFlowDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "StartupFlowDefinition.cs",
+      "path": "src/Forge.Domain/Sequences/StartupFlowDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Sequences/StartupFlowKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "StartupFlowKind.cs",
+      "path": "src/Forge.Domain/Sequences/StartupFlowKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Spatial/AnimationChannelKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AnimationChannelKind.cs",
+      "path": "src/Forge.Domain/Spatial/AnimationChannelKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Spatial/AnimationTweenDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AnimationTweenDefinition.cs",
+      "path": "src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Spatial/AnimationTweenValue.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AnimationTweenValue.cs",
+      "path": "src/Forge.Domain/Spatial/AnimationTweenValue.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Spatial/QuaternionValue.cs",
       "kind": "file",
       "line": 1,
@@ -74065,6 +77134,36 @@
       },
       "name": "QuaternionValue.cs",
       "path": "src/Forge.Domain/Spatial/QuaternionValue.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Spatial/TransformAuthority.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TransformAuthority.cs",
+      "path": "src/Forge.Domain/Spatial/TransformAuthority.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Spatial/TransformOverrideComponent.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TransformOverrideComponent.cs",
+      "path": "src/Forge.Domain/Spatial/TransformOverrideComponent.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Spatial/TransformSaveBehavior.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TransformSaveBehavior.cs",
+      "path": "src/Forge.Domain/Spatial/TransformSaveBehavior.cs"
     },
     {
       "id": "file:src/Forge.Domain/Spatial/TransformValue.cs",
@@ -74135,6 +77234,16 @@
       },
       "name": "ArtisticCompatibilityValidator.cs",
       "path": "src/Forge.Domain/Validation/ArtisticCompatibilityValidator.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Validation/CinematicValidator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CinematicValidator.cs",
+      "path": "src/Forge.Domain/Validation/CinematicValidator.cs"
     },
     {
       "id": "file:src/Forge.Domain/Validation/DiagnosticId.cs",
@@ -74685,6 +77794,16 @@
       },
       "name": "Forge.Mcp.csproj",
       "path": "src/Forge.Mcp/Forge.Mcp.csproj"
+    },
+    {
+      "id": "file:src/Forge.Mcp/Projects/CinematicContracts.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CinematicContracts.cs",
+      "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
     },
     {
       "id": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
@@ -76977,6 +80096,16 @@
       "path": "tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetCinematicProfilesHandlerTests.cs",
+      "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Projects/SetModuleConfigurationHandlerTests.cs",
       "kind": "file",
       "line": 1,
@@ -77015,6 +80144,16 @@
       },
       "name": "SetQuestHandlerTests.cs",
       "path": "tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SequencePlayerTests.cs",
+      "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Spatial/PlacementValidatorTests.cs",
@@ -77345,6 +80484,16 @@
       },
       "name": "RuntimePolicyProfileTests.cs",
       "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CinematicProfileTests.cs",
+      "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Spatial/TransformValueTests.cs",
@@ -77775,6 +80924,16 @@
       },
       "name": "BrokenIslesStarterTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Serialization/BrokenIslesStarterTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CinematicPersistenceTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Serialization/CryptOfAshesSampleTests.cs",
@@ -80797,6 +83956,16 @@
       "path": "src/Forge.Application/Projects/NewModuleHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Projects.SetCinematicProfilesHandler",
+      "kind": "handler",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "SetCinematicProfilesHandler",
+      "path": "src/Forge.Application/Projects/SetCinematicProfilesHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Projects.SetModuleConfigurationHandler",
       "kind": "handler",
       "line": 9,
@@ -81627,6 +84796,16 @@
       "path": "src/Forge.Application/Projects/ProjectState.cs"
     },
     {
+      "id": "model:Forge.Application.Projects.SetCinematicProfilesCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "SetCinematicProfilesCommand",
+      "path": "src/Forge.Application/Projects/SetCinematicProfilesCommand.cs"
+    },
+    {
       "id": "model:Forge.Application.Projects.SetModuleConfigurationCommand",
       "kind": "model",
       "line": 6,
@@ -81675,6 +84854,36 @@
       },
       "name": "SetQuestCommand",
       "path": "src/Forge.Application/Quests/SetQuestCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Sequences.AnimationTweenState",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "AnimationTweenState",
+      "path": "src/Forge.Application/Sequences/AnimationTweenState.cs"
+    },
+    {
+      "id": "model:Forge.Application.Sequences.SequencePlaybackState",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "SequencePlaybackState",
+      "path": "src/Forge.Application/Sequences/SequencePlaybackState.cs"
+    },
+    {
+      "id": "model:Forge.Application.Sequences.TransformOverrideState",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "TransformOverrideState",
+      "path": "src/Forge.Application/Sequences/TransformOverrideState.cs"
     },
     {
       "id": "model:Forge.Application.Spatial.PlacementValidationResult",
@@ -82747,6 +85956,116 @@
       "path": "src/Forge.Domain/RuntimePolicies/HeartbeatScheduleDefinition.cs"
     },
     {
+      "id": "model:Forge.Domain.Sequences.CameraAnchorDefinition",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "CameraAnchorDefinition",
+      "path": "src/Forge.Domain/Sequences/CameraAnchorDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Sequences.SequenceBranchDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "SequenceBranchDefinition",
+      "path": "src/Forge.Domain/Sequences/SequenceBranchDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Sequences.SequenceDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "SequenceDefinition",
+      "path": "src/Forge.Domain/Sequences/SequenceDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Sequences.SequenceTargetKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "SequenceTargetKind",
+      "path": "src/Forge.Domain/Sequences/SequenceTargetKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Sequences.SequenceTrackDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "SequenceTrackDefinition",
+      "path": "src/Forge.Domain/Sequences/SequenceTrackDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Sequences.SequenceTrackKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "SequenceTrackKind",
+      "path": "src/Forge.Domain/Sequences/SequenceTrackKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Sequences.StartupFlowDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "StartupFlowDefinition",
+      "path": "src/Forge.Domain/Sequences/StartupFlowDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Sequences.StartupFlowKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "StartupFlowKind",
+      "path": "src/Forge.Domain/Sequences/StartupFlowKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Spatial.AnimationChannelKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Spatial"
+      },
+      "name": "AnimationChannelKind",
+      "path": "src/Forge.Domain/Spatial/AnimationChannelKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Spatial.AnimationTweenDefinition",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Spatial"
+      },
+      "name": "AnimationTweenDefinition",
+      "path": "src/Forge.Domain/Spatial/AnimationTweenDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Spatial.AnimationTweenValue",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Spatial"
+      },
+      "name": "AnimationTweenValue",
+      "path": "src/Forge.Domain/Spatial/AnimationTweenValue.cs"
+    },
+    {
       "id": "model:Forge.Domain.Spatial.QuaternionValue",
       "kind": "model",
       "line": 3,
@@ -83067,9 +86386,29 @@
       "path": "src/Forge.Mcp/Dialogues/DialoguePlanContracts.cs"
     },
     {
+      "id": "model:Forge.Mcp.Projects.CinematicAuditEntry",
+      "kind": "model",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "CinematicAuditEntry",
+      "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+    },
+    {
+      "id": "model:Forge.Mcp.Projects.CinematicPlanResult",
+      "kind": "model",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "CinematicPlanResult",
+      "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+    },
+    {
       "id": "model:Forge.Mcp.Projects.ForgeProjectAgentOpenResult",
       "kind": "model",
-      "line": 730,
+      "line": 859,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -84909,7 +88248,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 2060,
+      "line": 2250,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -85204,6 +88543,11 @@
       "name": "Forge.Application.Quests"
     },
     {
+      "id": "namespace:Forge.Application.Sequences",
+      "kind": "namespace",
+      "name": "Forge.Application.Sequences"
+    },
+    {
       "id": "namespace:Forge.Application.Spatial",
       "kind": "namespace",
       "name": "Forge.Application.Spatial"
@@ -85277,6 +88621,11 @@
       "id": "namespace:Forge.Application.Tests.Quests",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Quests"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Sequences",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Sequences"
     },
     {
       "id": "namespace:Forge.Application.Tests.Spatial",
@@ -85374,6 +88723,11 @@
       "name": "Forge.Domain.RuntimePolicies"
     },
     {
+      "id": "namespace:Forge.Domain.Sequences",
+      "kind": "namespace",
+      "name": "Forge.Domain.Sequences"
+    },
+    {
       "id": "namespace:Forge.Domain.Spatial",
       "kind": "namespace",
       "name": "Forge.Domain.Spatial"
@@ -85452,6 +88806,11 @@
       "id": "namespace:Forge.Domain.Tests.RuntimePolicies",
       "kind": "namespace",
       "name": "Forge.Domain.Tests.RuntimePolicies"
+    },
+    {
+      "id": "namespace:Forge.Domain.Tests.Sequences",
+      "kind": "namespace",
+      "name": "Forge.Domain.Tests.Sequences"
     },
     {
       "id": "namespace:Forge.Domain.Tests.Spatial",
@@ -86379,7 +89738,7 @@
     {
       "id": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "kind": "service",
-      "line": 22,
+      "line": 23,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -87447,6 +90806,16 @@
       "path": "tests/Forge.Application.Tests/Projects/OriginalModuleAuthoringServiceTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Projects.SetCinematicProfilesHandlerTests",
+      "kind": "test",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Projects"
+      },
+      "name": "SetCinematicProfilesHandlerTests",
+      "path": "tests/Forge.Application.Tests/Projects/SetCinematicProfilesHandlerTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Projects.SetModuleConfigurationHandlerTests",
       "kind": "test",
       "line": 10,
@@ -87485,6 +90854,16 @@
       },
       "name": "SetQuestHandlerTests",
       "path": "tests/Forge.Application.Tests/Quests/SetQuestHandlerTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Sequences.SequencePlayerTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Sequences"
+      },
+      "name": "SequencePlayerTests",
+      "path": "tests/Forge.Application.Tests/Sequences/SequencePlayerTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Spatial.PlacementValidatorTests",
@@ -87827,6 +91206,16 @@
       "path": "tests/Forge.Domain.Tests/RuntimePolicies/RuntimePolicyProfileTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Sequences.CinematicProfileTests",
+      "kind": "test",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Sequences"
+      },
+      "name": "CinematicProfileTests",
+      "path": "tests/Forge.Domain.Tests/Sequences/CinematicProfileTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Spatial.TransformValueTests",
       "kind": "test",
       "line": 5,
@@ -87999,7 +91388,7 @@
     {
       "id": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
       "kind": "test",
-      "line": 15,
+      "line": 17,
       "metadata": {
         "namespace": "Forge.Mcp.Tests.Projects"
       },
@@ -88175,6 +91564,16 @@
       },
       "name": "BrokenIslesStarterTests",
       "path": "tests/Forge.ModuleFormat.Tests/Serialization/BrokenIslesStarterTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Serialization.CinematicPersistenceTests",
+      "kind": "test",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Serialization"
+      },
+      "name": "CinematicPersistenceTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Serialization/CinematicPersistenceTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Serialization.CryptOfAshesSampleTests",
@@ -89702,6 +93101,86 @@
       },
       "name": "SlugGenerator",
       "path": "src/Forge.Application/Projects/SlugGenerator.cs"
+    },
+    {
+      "id": "type:Forge.Application.Sequences.AnimationTweenRuntime",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "AnimationTweenRuntime",
+      "path": "src/Forge.Application/Sequences/AnimationTweenRuntime.cs"
+    },
+    {
+      "id": "type:Forge.Application.Sequences.SequenceEvaluation",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "SequenceEvaluation",
+      "path": "src/Forge.Application/Sequences/SequenceEvaluation.cs"
+    },
+    {
+      "id": "type:Forge.Application.Sequences.SequencePlayer",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "SequencePlayer",
+      "path": "src/Forge.Application/Sequences/SequencePlayer.cs"
+    },
+    {
+      "id": "type:Forge.Application.Sequences.SequenceSignal",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "SequenceSignal",
+      "path": "src/Forge.Application/Sequences/SequenceSignal.cs"
+    },
+    {
+      "id": "type:Forge.Application.Sequences.StartupFlowResolution",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "StartupFlowResolution",
+      "path": "src/Forge.Application/Sequences/StartupFlowResolver.cs"
+    },
+    {
+      "id": "type:Forge.Application.Sequences.StartupFlowResolver",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "StartupFlowResolver",
+      "path": "src/Forge.Application/Sequences/StartupFlowResolver.cs"
+    },
+    {
+      "id": "type:Forge.Application.Sequences.TransformInterpolator",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "TransformInterpolator",
+      "path": "src/Forge.Application/Sequences/TransformInterpolator.cs"
+    },
+    {
+      "id": "type:Forge.Application.Sequences.TransformOverrideRuntime",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Sequences"
+      },
+      "name": "TransformOverrideRuntime",
+      "path": "src/Forge.Application/Sequences/TransformOverrideRuntime.cs"
     },
     {
       "id": "type:Forge.Application.Spatial.PlacementValidationRequest",
@@ -91846,7 +95325,7 @@
     {
       "id": "type:Forge.Domain.RuntimePolicies.AreaRuntimePolicyProfile",
       "kind": "type",
-      "line": 5,
+      "line": 7,
       "metadata": {
         "namespace": "Forge.Domain.RuntimePolicies"
       },
@@ -91866,7 +95345,7 @@
     {
       "id": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile",
       "kind": "type",
-      "line": 6,
+      "line": 7,
       "metadata": {
         "namespace": "Forge.Domain.RuntimePolicies"
       },
@@ -91942,6 +95421,76 @@
       },
       "name": "SequenceAbortRestoreFlags",
       "path": "src/Forge.Domain/RuntimePolicies/SequenceAbortRestoreFlags.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Sequences.AreaCinematicProfile",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "AreaCinematicProfile",
+      "path": "src/Forge.Domain/Sequences/AreaCinematicProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Sequences.CameraFraming",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "CameraFraming",
+      "path": "src/Forge.Domain/Sequences/CameraFraming.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Sequences.ModuleCinematicProfile",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "ModuleCinematicProfile",
+      "path": "src/Forge.Domain/Sequences/ModuleCinematicProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Sequences.SequenceEasing",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "SequenceEasing",
+      "path": "src/Forge.Domain/Sequences/SequenceEasing.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Sequences.SequenceKeyframe",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Sequences"
+      },
+      "name": "SequenceKeyframe",
+      "path": "src/Forge.Domain/Sequences/SequenceKeyframe.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Spatial.TransformAuthority",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Spatial"
+      },
+      "name": "TransformAuthority",
+      "path": "src/Forge.Domain/Spatial/TransformAuthority.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Spatial.TransformSaveBehavior",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Spatial"
+      },
+      "name": "TransformSaveBehavior",
+      "path": "src/Forge.Domain/Spatial/TransformSaveBehavior.cs"
     },
     {
       "id": "type:Forge.Domain.Validation.DiagnosticSeverity",
@@ -92444,6 +95993,26 @@
       "path": "src/Forge.Mcp/Dialogues/DialoguePlanSchema.cs"
     },
     {
+      "id": "type:Forge.Mcp.Projects.CinematicPlanRequest",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "CinematicPlanRequest",
+      "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Projects.CinematicResource",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "CinematicResource",
+      "path": "src/Forge.Mcp/Projects/CinematicContracts.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Projects.ForgeProjectSummary",
       "kind": "type",
       "line": 3,
@@ -92474,9 +96043,19 @@
       "path": "src/Forge.Mcp/Projects/RuntimePolicyContracts.cs"
     },
     {
+      "id": "type:Forge.Mcp.Projects.StoredCinematicPlan",
+      "kind": "type",
+      "line": 845,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "StoredCinematicPlan",
+      "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Projects.StoredDialoguePlan",
       "kind": "type",
-      "line": 678,
+      "line": 794,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -92486,7 +96065,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimePolicyPlan",
       "kind": "type",
-      "line": 705,
+      "line": 821,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -96466,7 +100045,7 @@
     {
       "id": "type:Forge.Runtime.GameRoot",
       "kind": "type",
-      "line": 30,
+      "line": 32,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -96476,7 +100055,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeAreaChunkLoader",
       "kind": "type",
-      "line": 1989,
+      "line": 2179,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -96486,7 +100065,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 2028,
+      "line": 2218,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -96914,6 +100493,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/BuildPipelineWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.CinematicStudioWindow",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "CinematicStudioWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/CinematicStudioWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.ContentWorkflowWindow",
       "kind": "type",
       "line": 13,
@@ -97026,7 +100615,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 6633,
+      "line": 6788,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -97086,7 +100675,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 6638,
+      "line": 6793,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -97096,7 +100685,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 6643,
+      "line": 6798,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -97282,6 +100871,16 @@
       },
       "name": "ArtisticCompatibilityValidator",
       "path": "src/Forge.Domain/Validation/ArtisticCompatibilityValidator.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Validation.CinematicValidator",
+      "kind": "validator",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Validation"
+      },
+      "name": "CinematicValidator",
+      "path": "src/Forge.Domain/Validation/CinematicValidator.cs"
     },
     {
       "id": "validator:Forge.Domain.Validation.DistributionComplianceValidator",

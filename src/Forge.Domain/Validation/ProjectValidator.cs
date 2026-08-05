@@ -184,6 +184,8 @@ public static class ProjectValidator
             }
         }
 
+        diagnostics.AddRange(CinematicValidator.Validate(project));
+
         return diagnostics;
     }
 }

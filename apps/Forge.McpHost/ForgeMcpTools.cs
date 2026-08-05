@@ -53,6 +53,22 @@ public sealed class ForgeMcpTools
         _project.RevertRuntimePolicyPlan(planId);
 
     [McpServerTool]
+    [Description("Returns startup flows, sequences and selected-area camera anchors without mutating the project.")]
+    public CinematicResource GetCinematics(string? areaId = null) => _project.GetCinematics(areaId);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a versioned cinematic plan. It returns a diff and inverse without applying changes.")]
+    public CinematicPlanResult PlanCinematics(CinematicPlanRequest request) => _project.PlanCinematics(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated cinematic plan if its base revision still matches.")]
+    public CinematicPlanResult ApplyCinematicPlan(string planId) => _project.ApplyCinematicPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied cinematic plan through its inverse operation.")]
+    public CinematicPlanResult RevertCinematicPlan(string planId) => _project.RevertCinematicPlan(planId);
+
+    [McpServerTool]
     [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]
     public AgentAssetCatalogResult GetAssetCatalog(
         string? query = null,

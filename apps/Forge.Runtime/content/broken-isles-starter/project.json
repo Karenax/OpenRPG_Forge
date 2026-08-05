@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.6.0",
+  "formatVersion": "1.7.0",
   "project": {
     "id": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
     "title": "Les \u00CEles Bris\u00E9es",
@@ -256,6 +256,27 @@
           "maximumNarrativeRollbackSteps": 64,
           "provenance": "migration-default"
         },
+        "cinematics": {
+          "id": "0a8d1557-b84b-424b-8857-e8f0a7ac2765",
+          "schemaVersion": 1,
+          "startup": {
+            "id": "b5a6dded-9449-555b-93d3-5b7c2bc923cb",
+            "schemaVersion": 1,
+            "kind": "none",
+            "referenceId": null,
+            "resourcePath": "",
+            "fallbackKind": "none",
+            "fallbackReferenceId": null,
+            "fallbackResourcePath": "",
+            "skippable": true,
+            "skipLabel": "Passer",
+            "provenance": "migration-default"
+          },
+          "sequences": [],
+          "transformOverrides": [],
+          "tweens": [],
+          "provenance": "migration-default"
+        },
         "provenance": "migration-default"
       }
     },
@@ -301,7 +322,7 @@
       {
         "id": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
         "slug": "archipel-oublie",
-        "documentPath": "areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-7705e01c7c4464a3.json"
+        "documentPath": "areas/ea40d07f-3e30-46a5-a39d-f4f14a25d23a-3eef1cf43e47c6e6.json"
       }
     ],
     "dialogues": [],

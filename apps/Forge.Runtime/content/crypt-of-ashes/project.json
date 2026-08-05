@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.6.0",
+  "formatVersion": "1.7.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -296,6 +296,77 @@
           "restore": "all",
           "maximumNarrativeRollbackSteps": 64,
           "provenance": "migration-default"
+        },
+        "cinematics": {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "startup": {
+            "id": "31000000-0000-4000-8000-000000000002",
+            "schemaVersion": 1,
+            "kind": "sequence",
+            "referenceId": "31000000-0000-4000-8000-000000000001",
+            "resourcePath": "",
+            "fallbackKind": "none",
+            "fallbackReferenceId": null,
+            "fallbackResourcePath": "",
+            "skippable": true,
+            "skipLabel": "Passer",
+            "provenance": "project-author"
+          },
+          "sequences": [
+            {
+              "id": "31000000-0000-4000-8000-000000000001",
+              "schemaVersion": 1,
+              "slug": "opening-crypt",
+              "displayName": "Ouverture de la Crypte",
+              "durationMilliseconds": 4000,
+              "skippable": true,
+              "multiplayerSynchronized": false,
+              "tracks": [
+                {
+                  "id": "31000000-0000-4000-8000-000000000004",
+                  "name": "Plan d\u0027ouverture",
+                  "kind": "camera",
+                  "targetKind": "cameraAnchor",
+                  "targetId": "31000000-0000-4000-8000-000000000003",
+                  "resourcePath": "",
+                  "keyframes": [
+                    {
+                      "id": "31000000-0000-4000-8000-000000000005",
+                      "timeMilliseconds": 0,
+                      "transform": null,
+                      "value": "",
+                      "easing": "smoothStep"
+                    }
+                  ],
+                  "provenance": "project-author"
+                },
+                {
+                  "id": "31000000-0000-4000-8000-000000000006",
+                  "name": "D\u00E9but de l\u0027introduction",
+                  "kind": "signal",
+                  "targetKind": "blackboard",
+                  "targetId": null,
+                  "resourcePath": "",
+                  "keyframes": [
+                    {
+                      "id": "31000000-0000-4000-8000-000000000007",
+                      "timeMilliseconds": 100,
+                      "transform": null,
+                      "value": "intro.started",
+                      "easing": "linear"
+                    }
+                  ],
+                  "provenance": "project-author"
+                }
+              ],
+              "branches": [],
+              "provenance": "project-author"
+            }
+          ],
+          "transformOverrides": [],
+          "tweens": [],
+          "provenance": "project-author"
         },
         "provenance": "migration-default"
       }
@@ -596,7 +667,7 @@
       {
         "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
         "slug": "crypt-of-ashes",
-        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-50a75ec31f63d5fb.json"
+        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-46b37f2ed620e31d.json"
       }
     ],
     "dialogues": [

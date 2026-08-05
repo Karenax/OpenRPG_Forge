@@ -110,6 +110,11 @@ séquence. Le Toolset, le runtime et MCP partagent la même source canonique et 
 annulable. La preuve détaillée est dans
 [`tasks/G11-J-RUNTIME-POLICIES.md`](tasks/G11-J-RUNTIME-POLICIES.md).
 
+**G11-K est fermé le 5 août 2026.** Le module porte flux de démarrage, séquences, branches,
+overrides et tweens ; les zones portent des ancres caméra cadrées. Le studio auteur, le runtime de la
+Crypte et MCP consomment le même contrat persistant, validé et annulable. La preuve détaillée est
+dans [`tasks/G11-K-CINEMATICS-CAMERA-TWEENS.md`](tasks/G11-K-CINEMATICS-CAMERA-TWEENS.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-K** : séquences/cutscenes, ancres caméra et transforms interpolés.
+Démarrer **G11-L** : déplacements, menu radial, pause tactique et modes de combat.
