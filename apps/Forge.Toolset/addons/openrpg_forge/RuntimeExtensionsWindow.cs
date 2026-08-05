@@ -21,12 +21,13 @@ public partial class RuntimeExtensionsWindow : Window
     private SpinBox? _maxInventory;
     private SpinBox? _maxBlackboard;
     private CheckBox? _restoreReferences;
+    private TextEdit? _modernTooling;
     private Label? _summary;
     private Label? _status;
 
     internal string Summary => _profile is null ? "unavailable" :
         $"rules={_profile.RuleSchemas.Count};ui={_profile.UiDocuments.Count};json={_profile.JsonDocuments.Count};" +
-        $"components={_profile.SnapshotPolicy.Components.Count}";
+        $"components={_profile.SnapshotPolicy.Components.Count};toolkit={_profile.ModernTooling.UiToolkit.ToolkitVersion}";
 
     public void Initialize(Func<ProjectState?> state, Func<ModuleRuntimeExtensionProfile, bool> apply,
         Action<Window> brand)
@@ -103,6 +104,8 @@ public partial class RuntimeExtensionsWindow : Window
         _maxBlackboard = Spin(64, 1_048_576, 65_536, 64); state.AddChild(Row("Blackboard octets", _maxBlackboard));
         _restoreReferences = new CheckBox { Text = "Restaurer les références résolues", ButtonPressed = true };
         state.AddChild(_restoreReferences);
+        state.AddChild(Hint("Politiques modernes : copy, aoe, nui, compiler, docs (lignes tabulées)"));
+        _modernTooling = Editor(210); state.AddChild(_modernTooling);
         state.AddChild(Hint("Les chemins hôte restent inaccessibles. Les JSON sont validés et bornés avant le runtime."));
 
         var footer = new HBoxContainer();
@@ -134,6 +137,24 @@ public partial class RuntimeExtensionsWindow : Window
         _maxInventory!.Value = _profile.SnapshotPolicy.MaxInventoryItems;
         _maxBlackboard!.Value = _profile.SnapshotPolicy.MaxBlackboardBytes;
         _restoreReferences!.ButtonPressed = _profile.SnapshotPolicy.RestoreReferences;
+        var modern = _profile.ModernTooling;
+        _modernTooling!.Text = string.Join("\n", new[]
+        {
+            Join("copy", modern.RuntimeCopy.MaxCopiesPerTransaction, modern.RuntimeCopy.RequireServerAuthority,
+                modern.RuntimeCopy.CopyOwnership, modern.RuntimeCopy.ReferenceMode, string.Join(',', modern.RuntimeCopy.StateComponents)),
+            Join("aoe", string.Join(',', modern.AreaEffectIndicator.Shapes), modern.AreaEffectIndicator.MaxRange,
+                modern.AreaEffectIndicator.MaxHeightDelta, modern.AreaEffectIndicator.EvaluateCover,
+                modern.AreaEffectIndicator.RequireServerConfirmation, modern.AreaEffectIndicator.ColorMode,
+                modern.AreaEffectIndicator.ValidColor, modern.AreaEffectIndicator.InvalidColor),
+            Join("nui", modern.UiToolkit.ToolkitVersion, modern.UiToolkit.ResponsiveLayout, modern.UiToolkit.Forms,
+                modern.UiToolkit.Lists, modern.UiToolkit.Canvas, modern.UiToolkit.Accessibility,
+                modern.UiToolkit.Localization, modern.UiToolkit.DeveloperInspector),
+            Join("compiler", modern.Compiler.Incremental, modern.Compiler.StableDiagnostics,
+                modern.Compiler.PerformanceTelemetry, modern.Compiler.MaxParallelism, modern.Compiler.MaxSourceBytes,
+                string.Join(',', modern.Compiler.ConformanceSuites)),
+            Join("docs", modern.Documentation.OutputDirectory, string.Join(',', modern.Documentation.Catalogs),
+                modern.Documentation.IncludeMcpResources),
+        });
         _summary!.Text = $"Schéma v{_profile.SchemaVersion} · {Summary} · API ForgeScript 1.0";
         _status!.Text = "Prêt · documents canoniques chargés.";
     }
@@ -151,7 +172,8 @@ public partial class RuntimeExtensionsWindow : Window
             var snapshot = new EntityStateSnapshotPolicy(source.Id, 1, components,
                 (int)_maxReferences!.Value, (int)_maxInventory!.Value, (int)_maxBlackboard!.Value,
                 _restoreReferences!.ButtonPressed, "forge-ui");
-            var profile = new ModuleRuntimeExtensionProfile(_profile.Id, 1, rules, ui, json, snapshot, "forge-ui");
+            var profile = new ModuleRuntimeExtensionProfile(_profile.Id, 1, rules, ui, json, snapshot, "forge-ui",
+                ParseModernTooling());
             var succeeded = _apply?.Invoke(profile) == true;
             _status!.Text = succeeded ? "✓ Extensions validées, persistantes et annulables." :
                 "✕ Application refusée · consultez les diagnostics.";
@@ -163,6 +185,31 @@ public partial class RuntimeExtensionsWindow : Window
             _status!.Text = $"✕ {exception.Message}";
             return false;
         }
+    }
+
+    private ModernRuntimeToolingProfile ParseModernTooling()
+    {
+        var rows = Lines(_modernTooling!).ToDictionary(parts => Key(parts[0]), StringComparer.Ordinal);
+        var source = _profile!.ModernTooling;
+        string[] Row(string key, int count)
+        {
+            if (!rows.TryGetValue(key, out var row)) throw new FormatException($"Politique '{key}' absente.");
+            Require(row, count, key); return row;
+        }
+        var copy = Row("copy", 6); var aoe = Row("aoe", 9); var nui = Row("nui", 9);
+        var compiler = Row("compiler", 7); var docs = Row("docs", 4);
+        return new ModernRuntimeToolingProfile(source.Id, 1,
+            new RuntimeObjectCopyPolicy(source.RuntimeCopy.Id, 1, Int(copy[1]), Bool(copy[2]), Bool(copy[3]),
+                EnumValue<RuntimeReferenceCopyMode>(copy[4]), Csv(copy[5]), "forge-ui"),
+            new AreaEffectIndicatorProfile(source.AreaEffectIndicator.Id, 1,
+                Csv(aoe[1]).Select(EnumValue<AreaEffectShape>).ToArray(), Float(aoe[2]), Float(aoe[3]),
+                Bool(aoe[4]), Bool(aoe[5]), EnumValue<TargetIndicatorColorMode>(aoe[6]), aoe[7], aoe[8], "forge-ui"),
+            new ScriptableUiToolkitProfile(source.UiToolkit.Id, 1, nui[1], Bool(nui[2]), Bool(nui[3]),
+                Bool(nui[4]), Bool(nui[5]), Bool(nui[6]), Bool(nui[7]), Bool(nui[8]), "forge-ui"),
+            new ForgeScriptCompilerProfile(source.Compiler.Id, 1, Bool(compiler[1]), Bool(compiler[2]),
+                Bool(compiler[3]), Int(compiler[4]), Int(compiler[5]), Csv(compiler[6]), "forge-ui"),
+            new GeneratedDocumentationProfile(source.Documentation.Id, 1, docs[1], Csv(docs[2]),
+                Bool(docs[3]), "forge-ui"), "forge-ui");
     }
 
     private IReadOnlyList<DataDrivenRuleSchema> ParseRules()
@@ -234,6 +281,9 @@ public partial class RuntimeExtensionsWindow : Window
     private static bool Bool(string value) => value.Trim().ToLowerInvariant() switch
     { "true" or "oui" or "yes" or "1" => true, "false" or "non" or "no" or "0" => false, _ => throw new FormatException($"Booléen invalide : {value}") };
     private static int Int(string value) => int.TryParse(value, out var parsed) ? parsed : throw new FormatException($"Entier invalide : {value}");
+    private static float Float(string value) => float.TryParse(value, System.Globalization.NumberStyles.Float,
+        System.Globalization.CultureInfo.InvariantCulture, out var parsed) ? parsed : throw new FormatException($"Nombre invalide : {value}");
+    private static IReadOnlyList<string> Csv(string value) => value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     private static string Key(string value) => value.Trim().ToLowerInvariant();
     private static string? Optional(string value) => value is "-" or "" ? null : value;
     private static string Join(params object?[] values) => string.Join('\t', values.Select(value => value?.ToString() ?? "-"));

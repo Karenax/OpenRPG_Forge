@@ -68,15 +68,17 @@ function Invoke-ForgeEngineMarkerTest {
 
     # Keep the long-lived smoke inventories aligned with the current workspace schema and
     # append lot markers here so every engine invocation uses one canonical gate contract.
-    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.11.0').Replace('format=1.10.0', 'format=1.11.0') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.12.0').Replace('format=1.10.0', 'format=1.12.0').Replace('format=1.11.0', 'format=1.12.0') })
     if ($Name -eq 'toolset') {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_PASS rules=class-progression-weapon-vfx-casting ui=declarative-reactive-themed-permission events=typed-focus-input-testable json=schema-quota-safe-api snapshots=components-references-inventory-blackboard history=restored persistence=roundtrip'
+        $Markers += 'OPENRPG_FORGE_TOOLSET_G11P_MODERN_PASS copy=uuid-owner-references-state-authority aoe=mesh-targets-cover-height-colorblind-confirmation nui=2.0-forms-lists-canvas-accessibility-localization-inspector compiler=incremental-stable-telemetry-conformance docs=metadata-generated-cli-mcp history=restored persistence=roundtrip'
     }
     elseif ($Name -eq 'runtime-plain-launch') {
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_EXPERIENCE_PASS cues=0 scatter=0 voices=0 patrols=0 loading=accessible-progress-prefetch audio_api=started-completed-interrupted-music-snapshot patrol_api=streaming-owner-resume'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11N_LOADING_PASS media=accessiblefallback progress=1 accessible=True streamed=0'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11O_EXTENSIONS_PASS rules=4 ui=1 json=1 snapshot=4 api=1.0 quotas=bounded'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_G11P_MODERN_PASS copy=uuid-owner-references-state-authority aoe=mesh-targets-cover-height-colorblind-confirmation nui=2.0-forms-lists-canvas-accessibility-localization-inspector compiler=incremental-stable-telemetry-conformance docs=metadata-generated'
     }
 
     $logPath = Join-Path $artifactRoot "$Name.log"
@@ -153,6 +155,9 @@ try {
         '--configuration', 'Debug', '--no-restore')
     Invoke-CheckedDotnet @('build', (Join-Path $repositoryRoot 'apps\Forge.Runtime\Forge.Runtime.csproj'),
         '--configuration', 'Debug', '--no-restore')
+    $documentationCliProject = Join-Path $repositoryRoot 'tools\Forge.Cli\Forge.Cli.csproj'
+    Invoke-CheckedDotnet @('run', '--project', $documentationCliProject, '--configuration', 'Release',
+        '--no-build', '--', 'docs', 'check')
     & (Join-Path $repositoryRoot 'scripts\Update-AuroraParityTracker.ps1') -Check
     if ($LASTEXITCODE -ne 0) {
         throw "Aurora parity tracker freshness check failed with exit code $LASTEXITCODE."
@@ -414,6 +419,20 @@ try {
         -Arguments @('--headless', '--path', $runtimePath, '--log-file', $plainRuntimeLog, '--quit-after', '60') `
         -Markers @('OPENRPG_FORGE_RUNTIME_WORKSPACE_LOADED format=1.9.0 slug=crypt-of-ashes', 'OPENRPG_FORGE_RUNTIME_RENDER_PROFILE_PASS pbr=metallicroughness tone=agx hdr=true perpixel=true sky=procedural lights=8/32 shadows=2/8', 'OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method=gl_compatibility', 'OPENRPG_FORGE_RUNTIME_G11H_ENVIRONMENT_PASS', 'OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS', 'OPENRPG_FORGE_RUNTIME_G11J_POLICY_PASS', 'OPENRPG_FORGE_RUNTIME_G11K_CINEMATIC_PASS startup=sequence', 'OPENRPG_FORGE_RUNTIME_G11L_GAMEPLAY_PASS swim=true climb=true radial=6 accessible=true pause=true planning=true combat=realtime-pause authority=true', 'OPENRPG_FORGE_RUNTIME_G11M_RULES_PASS progression=forge.generic difficulty=standard mutators=0 perception=2:20 pvp=disabled authority=true', 'OPENRPG_FORGE_RUNTIME_PROJECT_LOADED entities=16 collisions=10') `
         -StopAfterMarkers $false
+    $runtimeVisualLog = Join-Path $artifactRoot 'runtime-g11p-visual.log'
+    $runtimeVisualProof = Join-Path $artifactRoot 'runtime-g11p-visual.png'
+    Invoke-ForgeEngineMarkerTest `
+        -Name 'runtime-g11p-visual' `
+        -ProjectPath $runtimePath `
+        -Arguments @('--rendering-method', 'gl_compatibility', '--path', $runtimePath, '--log-file',
+            $runtimeVisualLog, '--', '--visual-capture', $runtimeVisualProof) `
+        -Markers @('OPENRPG_FORGE_RUNTIME_G11P_MODERN_PASS',
+            'OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file=runtime-g11p-visual.png size=1280x720') `
+        -StopAfterMarkers $false
+    if (-not (Test-Path -LiteralPath $runtimeVisualProof) -or
+        [System.IO.File]::ReadAllBytes($runtimeVisualProof).Length -lt 8) {
+        throw 'G11-P visual proof PNG is missing or empty.'
+    }
     $runtimeForwardLog = Join-Path $artifactRoot 'runtime-forward-plus.log'
     Invoke-ForgeEngineMarkerTest `
         -Name 'runtime-forward-plus' `

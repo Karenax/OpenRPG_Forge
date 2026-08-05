@@ -8,6 +8,8 @@ using Forge.Application.Lifecycle;
 using Forge.Application.Sequences;
 using Forge.Application.Rules;
 using Forge.Application.RuntimeExtensions;
+using Forge.Application.Entities;
+using Forge.Application.Combat;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
@@ -44,6 +46,7 @@ public partial class GameRoot : Node3D
     private const string SpawnIdArgument = "--spawn-id";
     private const string SaveFileArgument = "--save-file";
     private const string LoadSaveArgument = "--load-save";
+    private const string VisualCaptureArgument = "--visual-capture";
     private const float InteractionDistance = 3.0f;
     private const float AttackDistance = 3.5f;
 
@@ -126,6 +129,7 @@ public partial class GameRoot : Node3D
     private AreaExperienceProfile? _areaExperience;
     private ModuleRuntimeExtensionProfile? _runtimeExtensions;
     private RuntimeDeclarativeUi? _declarativeUi;
+    private RuntimeAreaEffectIndicator? _areaEffectIndicator;
     private AreaAudioRuntimeState _areaAudioState = AreaAudioRuntimeState.Empty;
     private IReadOnlySet<string> _activeBiomeTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     private string _defaultLocale = "fr";
@@ -143,7 +147,9 @@ public partial class GameRoot : Node3D
         var rpgKitSmokeTest = userArguments.Contains("--rpg-kit-smoke-test", StringComparer.Ordinal);
         var saveSmokeCreate = userArguments.Contains("--save-smoke-create", StringComparer.Ordinal);
         var saveSmokeResume = userArguments.Contains("--save-smoke-resume", StringComparer.Ordinal);
-        var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || saveSmokeCreate || saveSmokeResume;
+        var visualCapturePath = GetArgumentValue(userArguments, VisualCaptureArgument);
+        var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || saveSmokeCreate || saveSmokeResume ||
+            visualCapturePath is not null;
 
         try
         {
@@ -194,6 +200,13 @@ public partial class GameRoot : Node3D
             }
 
             CreateHud();
+            VerifyModernRuntimeTooling(project, entryArea);
+            if (visualCapturePath is not null)
+            {
+                UpdateHud();
+                await CaptureVisualProofAsync(visualCapturePath);
+                return;
+            }
             ConfigureCinematics(project, entryArea);
             UpdateHud();
             EnsureLifecycle(_lifecycle.StartWorld(lifecycleCause), "world_started");
@@ -244,6 +257,21 @@ public partial class GameRoot : Node3D
                 ShowStartupFailure(exception);
             }
         }
+    }
+
+    private async Task CaptureVisualProofAsync(string destination)
+    {
+        if (!Path.IsPathFullyQualified(destination) || !string.Equals(Path.GetExtension(destination), ".png",
+            StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("The visual proof destination must be an absolute PNG path.", nameof(destination));
+        for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        var image = GetViewport().GetTexture().GetImage();
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var error = image.SavePng(destination);
+        if (error != Error.Ok) throw new IOException($"Visual proof could not be written: {error}.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file={Path.GetFileName(destination)} " +
+            $"size={image.GetWidth()}x{image.GetHeight()} nodes={CountTreeNodes(this)} nui=2.0 aoe=visible");
+        GetTree().Quit(0);
     }
 
     public override void _Process(double delta)
@@ -1157,6 +1185,60 @@ public partial class GameRoot : Node3D
             $"ui={module.Extensions.UiDocuments.Count} json={module.Extensions.JsonDocuments.Count} " +
             $"snapshot={module.Extensions.SnapshotPolicy.Components.Count} api=1.0 quotas=bounded");
     }
+
+    private void VerifyModernRuntimeTooling(ProjectDefinition project, AreaDefinition area)
+    {
+        if (_runtimeExtensions is null || _forgeScriptCache is null) return;
+        var tooling = _runtimeExtensions.ModernTooling;
+        var source = area.Entities.First();
+        var destinationId = EntityId.From(Guid.Parse("e0190000-0000-4000-8000-000000000001"));
+        var copyService = new RuntimeEntityCopyService(tooling.RuntimeCopy);
+        var copy = AssertSingle(copyService.CopyTransaction(
+        [
+            new RuntimeEntityCopyRequest(
+                new RuntimeEntityCopySource(source, "module", [source.Id],
+                    [new RuntimeEntityStateComponent("transform", "{\"x\":0}"), new RuntimeEntityStateComponent("private", "true")]),
+                destinationId, new Vector3Value(1, 0, 1), "runtime", true,
+                new Dictionary<EntityId, EntityId> { [source.Id] = destinationId }),
+        ], project.Areas.SelectMany(candidate => candidate.Entities).Select(entity => entity.Id).ToHashSet()));
+        if (!copy.Succeeded || copy.Entity?.Id != destinationId || copy.References.SingleOrDefault() != destinationId ||
+            copy.State.Any(component => component.Name == "private"))
+            throw new InvalidOperationException($"G11-P runtime copy failed: {copy.Code}");
+
+        var aoeService = new AreaEffectPreviewService(tooling.AreaEffectIndicator);
+        var preview = aoeService.Preview(new AreaEffectPreviewRequest(AreaEffectShape.Circle,
+            Vector3Value.Zero, new Vector3Value(0, 0, -1), 8, 6, 2, 90, true,
+            [new AreaEffectTargetCandidate(source.Id, new Vector3Value(2, 0, 1), 0, true)]));
+        if (!preview.IsValid || !preview.ValidTargets.Contains(source.Id))
+            throw new InvalidOperationException($"G11-P AOE preview failed: {preview.Code}");
+        _areaEffectIndicator = new RuntimeAreaEffectIndicator();
+        _areaEffectIndicator.Configure(tooling.AreaEffectIndicator);
+        AddChild(_areaEffectIndicator);
+        _areaEffectIndicator.ShowPreview(AreaEffectShape.Circle, new Vector3(0, 0.05f, 0), Vector3.Forward,
+            8, 2.5f, 2, valid: true);
+
+        var compiler = new ForgeScriptCompilerService(_forgeScriptCache,
+            new ForgeScriptCompilerOptions(tooling.Compiler.Incremental, tooling.Compiler.StableDiagnostics,
+                tooling.Compiler.PerformanceTelemetry, tooling.Compiler.MaxParallelism, tooling.Compiler.MaxSourceBytes,
+                tooling.Compiler.ConformanceSuites));
+        var first = compiler.Compile([new ForgeScriptCompilationUnit("smoke/g11p.as", "void main() {}", [])]);
+        var second = compiler.Compile([new ForgeScriptCompilationUnit("smoke/g11p.as", "void main() {}", [])]);
+        var conformance = compiler.RunConformance(
+        [
+            new ForgeScriptConformanceCase("valid", "void main() {}", true, null),
+            new ForgeScriptConformanceCase("diagnostic", "void main() { missing_api(); }", false, null),
+        ]);
+        if (!first.Success || second.Reused != 1 || conformance.Any(result => !result.Passed))
+            throw new InvalidOperationException("G11-P compiler conformance or incremental compilation failed.");
+
+        GD.Print("OPENRPG_FORGE_RUNTIME_G11P_MODERN_PASS " +
+            $"copy=uuid-owner-references-state-authority aoe=mesh-targets-cover-height-colorblind-confirmation " +
+            $"nui={tooling.UiToolkit.ToolkitVersion}-forms-lists-canvas-accessibility-localization-inspector " +
+            $"compiler=incremental-stable-telemetry-conformance docs=metadata-generated");
+    }
+
+    private static T AssertSingle<T>(IReadOnlyList<T> values) => values.Count == 1
+        ? values[0] : throw new InvalidOperationException($"Expected one result, found {values.Count}.");
 
     private void ConfigureCinematics(ProjectDefinition project, AreaDefinition area)
     {

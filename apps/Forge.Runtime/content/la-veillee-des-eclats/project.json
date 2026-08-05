@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.11.0",
+  "formatVersion": "1.12.0",
   "project": {
     "id": "fd90efce-fdba-15f7-1924-2a1bc5917b7a",
     "title": "La Veill\u00E9e des \u00C9clats",
@@ -620,6 +620,88 @@
             "maxInventoryItems": 512,
             "maxBlackboardBytes": 65536,
             "restoreReferences": true,
+            "provenance": "migration-default"
+          },
+          "modernTooling": {
+            "id": "7faaf8f2-da3f-584e-ada7-6e3f6792a258",
+            "schemaVersion": 1,
+            "runtimeCopy": {
+              "id": "d5c7581a-392b-5dad-aa09-a35d89d9b7be",
+              "schemaVersion": 1,
+              "maxCopiesPerTransaction": 32,
+              "requireServerAuthority": true,
+              "copyOwnership": true,
+              "referenceMode": "remapInternal",
+              "stateComponents": [
+                "blackboard",
+                "combat",
+                "inventory",
+                "transform"
+              ],
+              "provenance": "migration-default"
+            },
+            "areaEffectIndicator": {
+              "id": "094098c1-484f-5523-bf7a-92fb6854f5d5",
+              "schemaVersion": 1,
+              "shapes": [
+                "circle",
+                "cone",
+                "rectangle",
+                "line"
+              ],
+              "maxRange": 60,
+              "maxHeightDelta": 12,
+              "evaluateCover": true,
+              "requireServerConfirmation": true,
+              "colorMode": "deuteranopia",
+              "validColor": "4dd6a8a0",
+              "invalidColor": "ff8a5ba0",
+              "provenance": "migration-default"
+            },
+            "uiToolkit": {
+              "id": "3e0a85b7-29aa-5ff8-85b5-bfa80209a29c",
+              "schemaVersion": 1,
+              "toolkitVersion": "2.0",
+              "responsiveLayout": true,
+              "forms": true,
+              "lists": true,
+              "canvas": true,
+              "accessibility": true,
+              "localization": true,
+              "developerInspector": true,
+              "provenance": "migration-default"
+            },
+            "compiler": {
+              "id": "f1428c3b-bec0-5cf0-8185-766481dc9c63",
+              "schemaVersion": 1,
+              "incremental": true,
+              "stableDiagnostics": true,
+              "performanceTelemetry": true,
+              "maxParallelism": 4,
+              "maxSourceBytes": 524288,
+              "conformanceSuites": [
+                "diagnostics",
+                "incremental",
+                "sandbox",
+                "syntax"
+              ],
+              "provenance": "migration-default"
+            },
+            "documentation": {
+              "id": "4ddf1b33-b00e-5187-8626-164b540dd45c",
+              "schemaVersion": 1,
+              "outputDirectory": "docs/generated",
+              "catalogs": [
+                "cli",
+                "coverage",
+                "features",
+                "forgescript-api",
+                "packages",
+                "schemas"
+              ],
+              "includeMcpResources": true,
+              "provenance": "migration-default"
+            },
             "provenance": "migration-default"
           },
           "provenance": "migration-default"

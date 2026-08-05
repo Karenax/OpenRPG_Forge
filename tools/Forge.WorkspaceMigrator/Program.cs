@@ -37,8 +37,7 @@ return 0;
 
 static ProjectDefinition AddRuntimeExtensionSample(ProjectDefinition project)
 {
-    if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal) ||
-        project.Module.RuntimePolicies.Extensions.UiDocuments.Count > 0)
+    if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal))
         return project;
     var source = project.Module.RuntimePolicies.Extensions;
     var schemas = new[]
@@ -59,7 +58,7 @@ static ProjectDefinition AddRuntimeExtensionSample(ProjectDefinition project)
     var runtimeJson = new RuntimeJsonDocumentDefinition(
         Guid.Parse("e0150000-0000-4000-8000-000000000001"), 1, "adventure-state",
         "{\"type\":\"object\",\"required\":[\"chapter\",\"status\",\"progress\"]}",
-        "{\"chapter\":\"Crypte des Cendres\",\"status\":\"Explorez la crypte\",\"progress\":0}",
+        "{\"chapter\":\"Crypte des Cendres\",\"status\":\"Explorez la crypte\",\"progress\":0,\"objectives\":[\"Trouver Elyra\",\"Ouvrir la porte\"],\"autoTrack\":true}",
         4096, 8, true, "1.0", "sample:g11-o");
     var widgets = new[]
     {
@@ -71,11 +70,21 @@ static ProjectDefinition AddRuntimeExtensionSample(ProjectDefinition project)
             ScriptableUiWidgetKind.Progress, null, "Progression", "adventure-state:/progress", false, 2, "player"),
         new ScriptableUiWidget(Guid.Parse("e0120000-0000-4000-8000-000000000004"), "journal",
             ScriptableUiWidgetKind.Button, null, "Ouvrir le journal", null, true, 3, "player"),
+        new ScriptableUiWidget(Guid.Parse("e0120000-0000-4000-8000-000000000005"), "adventure-form",
+            ScriptableUiWidgetKind.Form, null, "Suivi", null, false, 4, "player"),
+        new ScriptableUiWidget(Guid.Parse("e0120000-0000-4000-8000-000000000006"), "objectives",
+            ScriptableUiWidgetKind.List, "adventure-form", "Objectifs", "adventure-state:/objectives", false, 5, "player"),
+        new ScriptableUiWidget(Guid.Parse("e0120000-0000-4000-8000-000000000007"), "tactical-map",
+            ScriptableUiWidgetKind.Canvas, "adventure-form", "Carte tactique", null, false, 6, "player"),
+        new ScriptableUiWidget(Guid.Parse("e0120000-0000-4000-8000-000000000008"), "auto-track",
+            ScriptableUiWidgetKind.CheckBox, "adventure-form", "Suivi automatique", "adventure-state:/autoTrack", true, 7, "player"),
     };
     var ui = new ScriptableUiDocument(Guid.Parse("e0120000-0000-4000-8000-000000000010"), 1,
         "adventure-hud", "État de l’aventure", "forge-dark", true, widgets,
         [new ScriptableUiEventBinding(Guid.Parse("e0130000-0000-4000-8000-000000000001"), "journal",
-            ScriptableUiEventKind.Pressed, "ToggleJournal", "1.0", "gameplay", "player")], "sample:g11-o");
+            ScriptableUiEventKind.Pressed, "ToggleJournal", "1.0", "gameplay", "player"),
+         new ScriptableUiEventBinding(Guid.Parse("e0130000-0000-4000-8000-000000000002"), "auto-track",
+            ScriptableUiEventKind.Toggled, "SetAutoTrack", "1.0", "gameplay", "player")], "sample:g11-p");
     var extensions = new ModuleRuntimeExtensionProfile(source.Id, 1, schemas, [ui], [runtimeJson],
         source.SnapshotPolicy, "sample:g11-o");
     var policy = project.Module.RuntimePolicies;

@@ -136,6 +136,12 @@ Network Beta partagent le même contrat persistant, validé et annulable. La pre
 et MCP partagent le même contrat versionné, borné et annulable. La preuve détaillée est dans
 [`tasks/G11-O-RUNTIME-EXTENSIONS.md`](tasks/G11-O-RUNTIME-EXTENSIONS.md).
 
+**G11-P est fermé le 5 août 2026.** Le profil moderne couvre copie runtime sous autorité,
+indicateurs AOE, toolkit NUI 2.0, compilation incrémentale instrumentée et six catalogues générés.
+Creator, runtime, ForgeScript, CLI et MCP consomment les mêmes contrats persistants. La preuve
+détaillée est dans
+[`tasks/G11-P-MODERN-RUNTIME-TOOLING.md`](tasks/G11-P-MODERN-RUNTIME-TOOLING.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-P** : copie runtime, indicateurs, NUI, compilateur et documentation générée.
+Démarrer **G11-Q** : manifeste de tâches, artefacts de crash, santé, récupération et synchronisation.

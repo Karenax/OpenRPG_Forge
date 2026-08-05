@@ -14,6 +14,7 @@ using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Content;
 using Forge.ModuleFormat.Distribution;
+using Forge.ModuleFormat.Documentation;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Workspaces;
@@ -39,6 +40,11 @@ static int Run(IReadOnlyList<string> arguments)
             return RunContent(arguments.Skip(1).ToArray());
         }
 
+        if (arguments.Count == 2 && arguments[0] == "docs" && arguments[1] is "generate" or "check")
+        {
+            return RunDocumentation(arguments[1] == "check");
+        }
+
         if (arguments.Count == 3 && arguments[0] == "workspace" && arguments[1] == "migrate")
         {
             return MigrateWorkspace(arguments[2]);
@@ -53,6 +59,7 @@ static int Run(IReadOnlyList<string> arguments)
             "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
             "forge assets <list|prepare|roundtrip> ... | " +
             "forge content <batch|export-blueprints|merge-table> ... | " +
+            "forge docs <generate|check> | " +
             "forge workspace migrate <target-directory> | forge author-original <target-directory>");
         return 2;
     }
@@ -61,6 +68,33 @@ static int Run(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(exception.Message);
         return 1;
     }
+}
+
+static int RunDocumentation(bool checkOnly)
+{
+    var repositoryRoot = FindRepositoryRoot(Environment.CurrentDirectory);
+    var result = ForgeDocumentationGenerator.Generate(repositoryRoot, "docs/generated", checkOnly);
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = !checkOnly || result.Current,
+        mode = checkOnly ? "check" : "generate",
+        files = result.Files.Select(file => file.RelativePath),
+        changed = result.ChangedFiles,
+    }));
+    if (checkOnly && !result.Current) return 1;
+    Console.WriteLine($"OPENRPG_FORGE_DOCUMENTATION_PASS mode={(checkOnly ? "check" : "generate")} files={result.Files.Count} source=metadata-deterministic");
+    return 0;
+}
+
+static string FindRepositoryRoot(string start)
+{
+    var directory = new DirectoryInfo(Path.GetFullPath(start));
+    while (directory is not null)
+    {
+        if (File.Exists(Path.Combine(directory.FullName, "OpenRPGForge.sln"))) return directory.FullName;
+        directory = directory.Parent;
+    }
+    throw new DirectoryNotFoundException("OpenRPG Forge repository root was not found.");
 }
 
 static int MigrateWorkspace(string targetDirectory)

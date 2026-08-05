@@ -4,30 +4,24 @@ namespace Forge.Mcp.Scripts;
 
 public sealed class ForgeScriptAgentService
 {
-    private static readonly IReadOnlyList<string> Signatures =
-    [
-        "int health(EntityRef)",
-        "void variable(const string &in, const string &in)",
-        "void say(const string &in)",
-        "void cast_ability(EntityRef, const string &in)",
-        "EntityRef spawn(const string &in)",
-        "void quest(const string &in)",
-        "void unlock(EntityRef)",
-    ];
-
     private readonly IForgeScriptRuntime _runtime;
+    private readonly ForgeScriptCompilerService _compiler;
 
     public ForgeScriptAgentService(IForgeScriptRuntime runtime)
     {
         ArgumentNullException.ThrowIfNull(runtime);
         _runtime = runtime;
+        var cacheRoot = Path.Combine(Path.GetTempPath(), "openrpg-forge", "mcp-script-cache");
+        _compiler = new ForgeScriptCompilerService(new ForgeScriptArtifactCache(runtime, cacheRoot),
+            new ForgeScriptCompilerOptions(true, true, true, 4, 524_288,
+                ["syntax", "diagnostics", "sandbox", "incremental"]));
     }
 
     public ForgeScriptApiDescription GetApi() => new(
         _runtime.VirtualMachineVersion,
         _runtime.ApiVersion,
         "EntityRef is an opaque 64-bit entity handle. Scripts expose void main().",
-        Signatures);
+        ForgeScriptApiCatalog.Signatures);
 
     public ForgeScriptCompileResponse Compile(string source)
     {
@@ -39,6 +33,15 @@ public sealed class ForgeScriptAgentService
             result.Artifact?.ApiVersion ?? _runtime.ApiVersion,
             result.Diagnostics.Select(Map).ToArray());
     }
+
+    public ForgeScriptCompilationReport CompileBatch(IReadOnlyList<ForgeScriptCompilationUnit> units) =>
+        _compiler.Compile(units);
+
+    public IReadOnlyList<ForgeScriptConformanceResult> RunCompilerConformance() => _compiler.RunConformance(
+    [
+        new ForgeScriptConformanceCase("empty-main", "void main() {}", true, null),
+        new ForgeScriptConformanceCase("unknown-api", "void main() { missing_api(); }", false, null),
+    ]);
 
     public ForgeScriptSandboxResponse TestInSandbox(
         string source,

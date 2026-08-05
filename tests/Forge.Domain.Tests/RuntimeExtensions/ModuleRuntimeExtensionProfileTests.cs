@@ -43,4 +43,21 @@ public sealed class ModuleRuntimeExtensionProfileTests
         Assert.Throws<ArgumentOutOfRangeException>(() => new RuntimeJsonDocumentDefinition(Guid.NewGuid(), 1,
             "huge", "{}", "{}", 16, 8, true, "1.0", "test"));
     }
+
+    [Fact]
+    public void Modern_tooling_defaults_cover_copy_aoe_nui_compiler_and_generated_docs()
+    {
+        var profile = ModuleRuntimeExtensionProfile.CreateDefault(ModuleId.From(Guid.NewGuid())).ModernTooling;
+
+        Assert.True(profile.RuntimeCopy.RequireServerAuthority);
+        Assert.Contains("inventory", profile.RuntimeCopy.StateComponents);
+        Assert.Equal(Enum.GetValues<AreaEffectShape>(), profile.AreaEffectIndicator.Shapes);
+        Assert.Equal(TargetIndicatorColorMode.Deuteranopia, profile.AreaEffectIndicator.ColorMode);
+        Assert.Equal("2.0", profile.UiToolkit.ToolkitVersion);
+        Assert.True(profile.UiToolkit.Accessibility);
+        Assert.True(profile.Compiler.Incremental);
+        Assert.Equal(6, profile.Documentation.Catalogs.Count);
+        Assert.Throws<ArgumentException>(() => new GeneratedDocumentationProfile(Guid.NewGuid(), 1,
+            "../outside", ["features"], true, "test"));
+    }
 }

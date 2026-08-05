@@ -37,6 +37,8 @@ public sealed class RuntimeExtensionPersistenceTests
         Assert.Equal("hud", Assert.Single(restored.UiDocuments).Key);
         Assert.Equal("campaign", Assert.Single(restored.JsonDocuments).Key);
         Assert.Contains("blackboard", restored.SnapshotPolicy.Components);
+        Assert.Equal("2.0", restored.ModernTooling.UiToolkit.ToolkitVersion);
+        Assert.True(restored.ModernTooling.Compiler.Incremental);
     }
 
     [Fact]
@@ -55,5 +57,21 @@ public sealed class RuntimeExtensionPersistenceTests
         Assert.Empty(first.UiDocuments);
         Assert.Empty(first.JsonDocuments);
         Assert.Equal(first.SnapshotPolicy.Id, second.SnapshotPolicy.Id);
+    }
+
+    [Fact]
+    public void Pre_modern_tooling_project_migrates_to_deterministic_defaults()
+    {
+        var project = TestProjectFactory.CreateValid();
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(project))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreModernToolingFormatVersion;
+        document["project"]!["module"]!["runtimePolicies"]!["extensions"]!.AsObject().Remove("modernTooling");
+
+        var first = ProjectJsonSerializer.Deserialize(document.ToJsonString()).Module.RuntimePolicies.Extensions.ModernTooling;
+        var second = ProjectJsonSerializer.Deserialize(document.ToJsonString()).Module.RuntimePolicies.Extensions.ModernTooling;
+
+        Assert.Equal(first.Id, second.Id);
+        Assert.Equal("2.0", first.UiToolkit.ToolkitVersion);
+        Assert.Equal("docs/generated", first.Documentation.OutputDirectory);
     }
 }

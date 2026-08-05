@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.11.0",
+  "formatVersion": "1.12.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -789,9 +789,62 @@
                   "interactive": true,
                   "focusOrder": 3,
                   "permission": "player"
+                },
+                {
+                  "id": "e0120000-0000-4000-8000-000000000005",
+                  "key": "adventure-form",
+                  "kind": "form",
+                  "parentKey": null,
+                  "text": "Suivi",
+                  "bindingKey": null,
+                  "interactive": false,
+                  "focusOrder": 4,
+                  "permission": "player"
+                },
+                {
+                  "id": "e0120000-0000-4000-8000-000000000006",
+                  "key": "objectives",
+                  "kind": "list",
+                  "parentKey": "adventure-form",
+                  "text": "Objectifs",
+                  "bindingKey": "adventure-state:/objectives",
+                  "interactive": false,
+                  "focusOrder": 5,
+                  "permission": "player"
+                },
+                {
+                  "id": "e0120000-0000-4000-8000-000000000007",
+                  "key": "tactical-map",
+                  "kind": "canvas",
+                  "parentKey": "adventure-form",
+                  "text": "Carte tactique",
+                  "bindingKey": null,
+                  "interactive": false,
+                  "focusOrder": 6,
+                  "permission": "player"
+                },
+                {
+                  "id": "e0120000-0000-4000-8000-000000000008",
+                  "key": "auto-track",
+                  "kind": "checkBox",
+                  "parentKey": "adventure-form",
+                  "text": "Suivi automatique",
+                  "bindingKey": "adventure-state:/autoTrack",
+                  "interactive": true,
+                  "focusOrder": 7,
+                  "permission": "player"
                 }
               ],
               "eventBindings": [
+                {
+                  "id": "e0130000-0000-4000-8000-000000000002",
+                  "widgetKey": "auto-track",
+                  "event": "toggled",
+                  "command": "SetAutoTrack",
+                  "forgeScriptApiVersion": "1.0",
+                  "inputContext": "gameplay",
+                  "permission": "player"
+                },
                 {
                   "id": "e0130000-0000-4000-8000-000000000001",
                   "widgetKey": "journal",
@@ -802,7 +855,7 @@
                   "permission": "player"
                 }
               ],
-              "provenance": "sample:g11-o"
+              "provenance": "sample:g11-p"
             }
           ],
           "jsonDocuments": [
@@ -811,7 +864,7 @@
               "schemaVersion": 1,
               "key": "adventure-state",
               "jsonSchema": "{\u0022type\u0022:\u0022object\u0022,\u0022required\u0022:[\u0022chapter\u0022,\u0022status\u0022,\u0022progress\u0022]}",
-              "initialValue": "{\u0022chapter\u0022:\u0022Crypte des Cendres\u0022,\u0022status\u0022:\u0022Explorez la crypte\u0022,\u0022progress\u0022:0}",
+              "initialValue": "{\u0022chapter\u0022:\u0022Crypte des Cendres\u0022,\u0022status\u0022:\u0022Explorez la crypte\u0022,\u0022progress\u0022:0,\u0022objectives\u0022:[\u0022Trouver Elyra\u0022,\u0022Ouvrir la porte\u0022],\u0022autoTrack\u0022:true}",
               "maxBytes": 4096,
               "maxDepth": 8,
               "mutable": true,
@@ -832,6 +885,88 @@
             "maxInventoryItems": 512,
             "maxBlackboardBytes": 65536,
             "restoreReferences": true,
+            "provenance": "migration-default"
+          },
+          "modernTooling": {
+            "id": "4bcce823-b6c0-5511-9158-a1aca336cb16",
+            "schemaVersion": 1,
+            "runtimeCopy": {
+              "id": "89fdc8e0-99c6-55fc-9eab-d0ff4de71684",
+              "schemaVersion": 1,
+              "maxCopiesPerTransaction": 32,
+              "requireServerAuthority": true,
+              "copyOwnership": true,
+              "referenceMode": "remapInternal",
+              "stateComponents": [
+                "blackboard",
+                "combat",
+                "inventory",
+                "transform"
+              ],
+              "provenance": "migration-default"
+            },
+            "areaEffectIndicator": {
+              "id": "92a64e07-739a-5770-8c4c-fa6e0b3dd9df",
+              "schemaVersion": 1,
+              "shapes": [
+                "circle",
+                "cone",
+                "rectangle",
+                "line"
+              ],
+              "maxRange": 60,
+              "maxHeightDelta": 12,
+              "evaluateCover": true,
+              "requireServerConfirmation": true,
+              "colorMode": "deuteranopia",
+              "validColor": "4dd6a8a0",
+              "invalidColor": "ff8a5ba0",
+              "provenance": "migration-default"
+            },
+            "uiToolkit": {
+              "id": "7c057040-43ec-5683-8801-d9e02cc824aa",
+              "schemaVersion": 1,
+              "toolkitVersion": "2.0",
+              "responsiveLayout": true,
+              "forms": true,
+              "lists": true,
+              "canvas": true,
+              "accessibility": true,
+              "localization": true,
+              "developerInspector": true,
+              "provenance": "migration-default"
+            },
+            "compiler": {
+              "id": "00b39beb-393b-59e0-9755-9a85e9941cfa",
+              "schemaVersion": 1,
+              "incremental": true,
+              "stableDiagnostics": true,
+              "performanceTelemetry": true,
+              "maxParallelism": 4,
+              "maxSourceBytes": 524288,
+              "conformanceSuites": [
+                "diagnostics",
+                "incremental",
+                "sandbox",
+                "syntax"
+              ],
+              "provenance": "migration-default"
+            },
+            "documentation": {
+              "id": "95025066-0dfe-56bf-b2a5-58a62e7b9fce",
+              "schemaVersion": 1,
+              "outputDirectory": "docs/generated",
+              "catalogs": [
+                "cli",
+                "coverage",
+                "features",
+                "forgescript-api",
+                "packages",
+                "schemas"
+              ],
+              "includeMcpResources": true,
+              "provenance": "migration-default"
+            },
             "provenance": "migration-default"
           },
           "provenance": "sample:g11-o"

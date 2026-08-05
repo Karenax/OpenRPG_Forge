@@ -16,11 +16,15 @@ public enum RuleSchemaKind
 public enum ScriptableUiWidgetKind
 {
     Panel,
+    Form,
     Label,
     Button,
+    CheckBox,
+    Slider,
     Progress,
     TextInput,
     List,
+    Canvas,
 }
 
 public enum ScriptableUiEventKind
@@ -30,6 +34,7 @@ public enum ScriptableUiEventKind
     Submitted,
     FocusEntered,
     FocusExited,
+    Toggled,
 }
 
 public sealed record DataDrivenRuleSchema
@@ -274,11 +279,12 @@ public sealed record ModuleRuntimeExtensionProfile
     public IReadOnlyList<ScriptableUiDocument> UiDocuments { get; }
     public IReadOnlyList<RuntimeJsonDocumentDefinition> JsonDocuments { get; }
     public EntityStateSnapshotPolicy SnapshotPolicy { get; }
+    public ModernRuntimeToolingProfile ModernTooling { get; }
     public string Provenance { get; }
 
     public ModuleRuntimeExtensionProfile(Guid id, int schemaVersion, IReadOnlyList<DataDrivenRuleSchema> ruleSchemas,
         IReadOnlyList<ScriptableUiDocument> uiDocuments, IReadOnlyList<RuntimeJsonDocumentDefinition> jsonDocuments,
-        EntityStateSnapshotPolicy snapshotPolicy, string provenance)
+        EntityStateSnapshotPolicy snapshotPolicy, string provenance, ModernRuntimeToolingProfile? modernTooling = null)
     {
         ArgumentNullException.ThrowIfNull(ruleSchemas);
         ArgumentNullException.ThrowIfNull(uiDocuments);
@@ -296,6 +302,7 @@ public sealed record ModuleRuntimeExtensionProfile
         Id = id;
         SchemaVersion = schemaVersion;
         SnapshotPolicy = snapshotPolicy;
+        ModernTooling = modernTooling ?? ModernRuntimeToolingProfile.CreateDefault(id);
         Provenance = DataDrivenRuleSchema.RequireText(provenance, nameof(provenance));
     }
 

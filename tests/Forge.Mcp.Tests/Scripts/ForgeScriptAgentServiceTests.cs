@@ -15,7 +15,7 @@ public sealed class ForgeScriptAgentServiceTests
 
         Assert.Equal("2.38.0", api.VirtualMachineVersion);
         Assert.Equal("1.0.0", api.ApiVersion);
-        Assert.Contains("void say(const string &in)", api.Signatures);
+        Assert.Contains(api.Signatures, signature => signature.StartsWith("void say(const string &in", StringComparison.Ordinal));
         Assert.True(result.Succeeded);
         Assert.True(result.BytecodeSize > 0);
         Assert.Empty(result.Diagnostics);
@@ -32,5 +32,25 @@ public sealed class ForgeScriptAgentServiceTests
         Assert.True(sandbox.Succeeded);
         Assert.Contains(sandbox.Events, item => item.Kind == "say" && item.Value == "hello");
         Assert.Contains(sandbox.Events, item => item.Kind == "spawn");
+    }
+
+    [Fact]
+    public void BatchCompilerAndConformanceAreAvailableWithoutShellAccess()
+    {
+        var first = _agent.CompileBatch(
+        [
+            new ForgeScriptCompilationUnit("shared.as", "void main() {}", []),
+            new ForgeScriptCompilationUnit("main.as", "void main() {}", ["shared.as"]),
+        ]);
+        var second = _agent.CompileBatch(
+        [
+            new ForgeScriptCompilationUnit("shared.as", "void main() {}", []),
+            new ForgeScriptCompilationUnit("main.as", "void main() {}", ["shared.as"]),
+        ]);
+        var conformance = _agent.RunCompilerConformance();
+
+        Assert.True(first.Success);
+        Assert.Equal(2, second.Reused);
+        Assert.All(conformance, result => Assert.True(result.Passed));
     }
 }

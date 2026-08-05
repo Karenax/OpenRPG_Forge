@@ -4,6 +4,7 @@ using Forge.Mcp.Assets;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
+using Forge.Scripting;
 using ModelContextProtocol.Server;
 
 namespace Forge.McpHost;
@@ -143,6 +144,11 @@ public sealed class ForgeMcpTools
         _project.RevertRuntimeExtensionPlan(planId);
 
     [McpServerTool]
+    [Description("Checks deterministic generated documentation freshness without mutating source files.")]
+    public GeneratedDocumentationResource CheckGeneratedDocumentation() =>
+        _project.CheckGeneratedDocumentation();
+
+    [McpServerTool]
     [Description("Searches the versioned local Asset Vault catalog by text, source, category, license and availability.")]
     public AgentAssetCatalogResult GetAssetCatalog(
         string? query = null,
@@ -182,6 +188,16 @@ public sealed class ForgeMcpTools
     [McpServerTool]
     [Description("Compiles ForgeScript source and returns bytecode metadata plus structured diagnostics.")]
     public ForgeScriptCompileResponse CompileForgeScript(string source) => _scripts.Compile(source);
+
+    [McpServerTool]
+    [Description("Incrementally compiles a dependency-ordered ForgeScript batch with stable diagnostics and telemetry.")]
+    public ForgeScriptCompilationReport CompileForgeScriptBatch(IReadOnlyList<ForgeScriptCompilationUnit> units) =>
+        _scripts.CompileBatch(units);
+
+    [McpServerTool]
+    [Description("Runs the built-in ForgeScript compiler conformance cases.")]
+    public IReadOnlyList<ForgeScriptConformanceResult> RunForgeScriptCompilerConformance() =>
+        _scripts.RunCompilerConformance();
 
     [McpServerTool]
     [Description("Compiles and executes ForgeScript source inside the quota-limited sandbox.")]

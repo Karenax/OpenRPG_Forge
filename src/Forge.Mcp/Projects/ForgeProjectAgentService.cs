@@ -19,6 +19,7 @@ using Forge.Mcp.Assets;
 using Forge.Mcp.Scripts;
 using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Assets;
+using Forge.ModuleFormat.Documentation;
 
 namespace Forge.Mcp.Projects;
 
@@ -118,6 +119,25 @@ public sealed class ForgeProjectAgentService
                 .Select(Map)
                 .ToArray();
         }
+    }
+
+    public GeneratedDocumentationResource CheckGeneratedDocumentation()
+    {
+        var repositoryRoot = FindRepositoryRoot(_session.RootDirectory);
+        var result = ForgeDocumentationGenerator.Generate(repositoryRoot, "docs/generated", checkOnly: true);
+        return new GeneratedDocumentationResource(1, result.Current,
+            result.Files.Select(file => $"docs/generated/{file.RelativePath}").ToArray(), result.ChangedFiles);
+    }
+
+    private static string FindRepositoryRoot(string start)
+    {
+        var directory = new DirectoryInfo(Path.GetFullPath(start));
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "OpenRPGForge.sln"))) return directory.FullName;
+            directory = directory.Parent;
+        }
+        throw new DirectoryNotFoundException("OpenRPG Forge repository root was not found.");
     }
 
     public RuntimePolicyResource GetRuntimePolicies(string? areaId = null)

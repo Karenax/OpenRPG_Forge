@@ -6497,7 +6497,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var applied = _history.State.Project.Module.RuntimePolicies.Extensions;
         if (applied.RuleSchemas.Single().Kind != RuleSchemaKind.Class ||
             applied.UiDocuments.Single().EventBindings.Single().Command != "ContinueAdventure" ||
-            applied.JsonDocuments.Single().MaxDepth != 8 || applied.SnapshotPolicy.MaxInventoryItems != 256)
+            applied.JsonDocuments.Single().MaxDepth != 8 || applied.SnapshotPolicy.MaxInventoryItems != 256 ||
+            applied.ModernTooling.RuntimeCopy.MaxCopiesPerTransaction != 32 ||
+            applied.ModernTooling.AreaEffectIndicator.Shapes.Count != 4 ||
+            applied.ModernTooling.UiToolkit.ToolkitVersion != "2.0" ||
+            !applied.ModernTooling.Compiler.Incremental || applied.ModernTooling.Documentation.Catalogs.Count != 6)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_FAILED canonical_contract");
             return false;
@@ -6511,9 +6515,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var reopened = ProjectSession.Open(smokeRoot);
             var restored = reopened.Session?.Project.Module.RuntimePolicies.Extensions;
             if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
-                restored.RuleSchemas.Single().Key != "class.ember-warden" ||
-                restored.UiDocuments.Single().Widgets.Count != 2 ||
-                restored.JsonDocuments.Single().InitialValue != "{\"chapter\":1,\"status\":\"Prêt\"}")
+                 restored.RuleSchemas.Single().Key != "class.ember-warden" ||
+                 restored.UiDocuments.Single().Widgets.Count != 2 ||
+                 restored.JsonDocuments.Single().InitialValue != "{\"chapter\":1,\"status\":\"Prêt\"}" ||
+                 !restored.ModernTooling.UiToolkit.Accessibility ||
+                 restored.ModernTooling.Documentation.OutputDirectory != "docs/generated")
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_FAILED persistence");
                 return false;
@@ -6540,6 +6546,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "ui=declarative-reactive-themed-permission events=typed-focus-input-testable " +
             "json=schema-quota-safe-api snapshots=components-references-inventory-blackboard " +
             "history=restored persistence=roundtrip");
+        GD.Print("OPENRPG_FORGE_TOOLSET_G11P_MODERN_PASS copy=uuid-owner-references-state-authority " +
+            "aoe=mesh-targets-cover-height-colorblind-confirmation nui=2.0-forms-lists-canvas-accessibility-localization-inspector " +
+            "compiler=incremental-stable-telemetry-conformance docs=metadata-generated-cli-mcp history=restored persistence=roundtrip");
         return true;
     }
 
