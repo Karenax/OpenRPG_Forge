@@ -10,6 +10,8 @@ public static class RuntimePolicyValidator
     public const string AreaIdentityCode = "runtime.policy.area_identity";
     public const string HeartbeatNameCode = "runtime.heartbeat.name_duplicate";
     public const string RestVolumeBoundsCode = "runtime.rest.volume_out_of_bounds";
+    public const string GameplayIdentityCode = "runtime.gameplay.identity";
+    public const string CombatEventContractCode = "runtime.gameplay.combat_event_contract";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ModuleDefinition module)
     {
@@ -26,6 +28,22 @@ public static class RuntimePolicyValidator
         {
             diagnostics.Add(new DomainDiagnostic(HeartbeatNameCode,
                 "Module heartbeat schedule names must be unique.", "module/runtimePolicies/heartbeats"));
+        }
+
+        if (module.RuntimePolicies.Gameplay.Id != module.Id.Value)
+        {
+            diagnostics.Add(new DomainDiagnostic(GameplayIdentityCode,
+                "The gameplay control profile ID must match the module ID.",
+                "module/runtimePolicies/gameplay/id"));
+        }
+
+        var providers = module.RuntimePolicies.Gameplay.CombatModes.Providers;
+        var baseline = providers.FirstOrDefault()?.EventContracts.ToHashSet(StringComparer.Ordinal) ?? [];
+        if (providers.Any(provider => !baseline.SetEquals(provider.EventContracts)))
+        {
+            diagnostics.Add(new DomainDiagnostic(CombatEventContractCode,
+                "All combat mode providers must expose the same event contracts.",
+                "module/runtimePolicies/gameplay/combatModes/providers"));
         }
 
         return diagnostics;

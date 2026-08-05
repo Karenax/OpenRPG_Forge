@@ -37,9 +37,11 @@ public sealed class ForgeProjectAgentService
     private readonly SetEntityOverridesHandler _overridesHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
+    private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredGameplayControlPlan> _gameplayControlPlans = new(StringComparer.Ordinal);
     private readonly IClock _clock;
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
@@ -51,6 +53,7 @@ public sealed class ForgeProjectAgentService
         _overridesHandler = new SetEntityOverridesHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
+        _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
     }
 
     public string WorkspaceDirectory => _session.RootDirectory;
@@ -346,6 +349,105 @@ public sealed class ForgeProjectAgentService
             }
             plan.Reverted = true;
             plan.Audit.Add(new CinematicAuditEntry(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public GameplayControlResource GetGameplayControls()
+    {
+        lock (_gate)
+        {
+            return new GameplayControlResource(1, _history.State.Revision.Value,
+                _history.State.Project.Module.RuntimePolicies.Gameplay);
+        }
+    }
+
+    public GameplayControlPlanResult PlanGameplayControls(GameplayControlPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return GameplayControlFailure(request.BaseRevision, "gameplay_control_plan.schema_unsupported",
+                    "Gameplay control plan schema must be 1.");
+            var command = new SetGameplayControlProfileCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), request.Profile, true);
+            var preview = _gameplayControlHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new GameplayControlPlanResult(false, null, request.BaseRevision, preview.Patch,
+                    preview.Inverse, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredGameplayControlPlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new GameplayControlAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _gameplayControlPlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public GameplayControlPlanResult ApplyGameplayControlPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_gameplayControlPlans.TryGetValue(planId, out var plan))
+                return GameplayControlFailure(GetCurrentRevision(), "gameplay_control_plan.missing",
+                    $"Gameplay control plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return GameplayControlFailure(plan.Command.BaseRevision.Value,
+                    "gameplay_control_plan.already_applied", $"Gameplay control plan '{planId}' is already applied.");
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _gameplayControlHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new GameplayControlAuditEntry(planId, "apply", _history.State.Revision.Value,
+                    _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new GameplayControlAuditEntry(planId, "apply", plan.AppliedRevision.Value,
+                _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public GameplayControlPlanResult RevertGameplayControlPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_gameplayControlPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return GameplayControlFailure(GetCurrentRevision(), "gameplay_control_plan.not_applied",
+                    $"Gameplay control plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return GameplayControlFailure(plan.Command.BaseRevision.Value,
+                    "gameplay_control_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return GameplayControlFailure(plan.Command.BaseRevision.Value,
+                    "gameplay_control_plan.inverse_unavailable", "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return GameplayControlFailure(plan.Command.BaseRevision.Value, "gameplay_control_plan.save_failed",
+                    "The reverted project could not be saved.");
+            }
+
+            plan.Reverted = true;
+            plan.Audit.Add(new GameplayControlAuditEntry(planId, "revert", undone.State.Revision.Value,
+                _clock.UtcNow, true));
             return ToResult(plan);
         }
     }
@@ -791,6 +893,13 @@ public sealed class ForgeProjectAgentService
     private static CinematicPlanResult ToResult(StoredCinematicPlan plan) => new(true, plan.PlanId,
         plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted, plan.Audit.ToArray());
 
+    private static GameplayControlPlanResult GameplayControlFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static GameplayControlPlanResult ToResult(StoredGameplayControlPlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
+
     private sealed class StoredDialoguePlan(
         string planId,
         DialogueDefinition dialogue,
@@ -850,6 +959,19 @@ public sealed class ForgeProjectAgentService
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
         public List<CinematicAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredGameplayControlPlan(string planId, SetGameplayControlProfileCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<GameplayControlAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetGameplayControlProfileCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<GameplayControlAuditEntry> Audit { get; } = audit;
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }

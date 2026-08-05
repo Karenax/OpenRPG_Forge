@@ -7,6 +7,7 @@ public partial class RuntimeHud : CanvasLayer
     private Label? _objective;
     private Label? _message;
     private Label? _state;
+    private Label? _tactical;
 
     public string ModuleTitle { get; init; } = "OpenRPG Forge";
 
@@ -39,14 +40,17 @@ public partial class RuntimeHud : CanvasLayer
         _objective = new Label { Text = "Objectif : parler à Elyra [E]" };
         _message = new Label { Text = "Explorez la crypte." };
         _state = new Label { Text = "Quête : inactive | Clé : non | Boss : 5/5" };
+        _tactical = new Label { Text = "Temps : réel | Combat : temps réel avec pause" };
+        _tactical.AddThemeColorOverride("font_color", new Color("ffb06f"));
         content.AddChild(_objective);
         content.AddChild(_message);
         content.AddChild(_state);
+        content.AddChild(_tactical);
 
         var instructions = new Label
         {
             Text = CombatEnabled
-                ? "ZQSD / flèches : déplacement   E : interagir   ESPACE : attaquer   F5/F9 : sauver/reprendre"
+                ? "ZQSD : bouger · E : interagir · ESPACE : attaquer · TAB : roue · P : pause tactique · T : ralenti · M : mode combat · F5/F9 : sauver/reprendre"
                 : "ZQSD / flèches : déplacement   E : interagir",
             HorizontalAlignment = HorizontalAlignment.Center,
             AnchorLeft = 0.15f,
@@ -73,5 +77,13 @@ public partial class RuntimeHud : CanvasLayer
         {
             _state.Text = state;
         }
+    }
+
+    public void UpdateTactical(string timeState, string combatMode, int queuedActions,
+        string movementCapability, float breath, float stamina)
+    {
+        if (_tactical is null) return;
+        _tactical.Text = $"Temps : {timeState} | Combat : {combatMode} | File : {queuedActions} | " +
+                         $"Mouvement : {movementCapability} · souffle {breath:0}/{stamina:0} endurance";
     }
 }

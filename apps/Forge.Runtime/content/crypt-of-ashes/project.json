@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.7.0",
+  "formatVersion": "1.8.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -367,6 +367,232 @@
           "transformOverrides": [],
           "tweens": [],
           "provenance": "project-author"
+        },
+        "gameplay": {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "swimming": {
+            "id": "7d8a4057-ec1e-5214-8550-07616dcc7d61",
+            "schemaVersion": 1,
+            "enabled": true,
+            "required": false,
+            "buoyancy": 8,
+            "surfaceSnapDistance": 0.75,
+            "surfaceSpeed": 4.5,
+            "diveSpeed": 3,
+            "currentInfluence": 0.65,
+            "breathSeconds": 45,
+            "waterVolumeTags": [
+              "swimmable",
+              "water"
+            ],
+            "surfaceAnimation": "swim.surface",
+            "diveAnimation": "swim.dive",
+            "idleAnimation": "swim.idle",
+            "provenance": "migration-default"
+          },
+          "climbing": {
+            "id": "2129ea25-b38b-58bb-8d57-768506de2265",
+            "schemaVersion": 1,
+            "enabled": true,
+            "required": false,
+            "climbSpeed": 3,
+            "staminaCapacity": 100,
+            "staminaDrainPerSecond": 12,
+            "ledgeReach": 1.5,
+            "inverseKinematics": true,
+            "requireAuthoredLinks": true,
+            "preventUnsafeDrop": true,
+            "surfaceTags": [
+              "climb",
+              "ladder",
+              "ledge"
+            ],
+            "climbAnimation": "climb.loop",
+            "ledgeAnimation": "climb.ledge",
+            "provenance": "migration-default"
+          },
+          "radialMenu": {
+            "id": "71b1d4a9-3bb7-5539-8abc-f85ac06968dd",
+            "schemaVersion": 1,
+            "enabled": true,
+            "inputAction": "action_wheel",
+            "deadZone": 0.2,
+            "maximumDepth": 3,
+            "gamepadEnabled": true,
+            "keyboardNavigation": true,
+            "listFallback": true,
+            "screenReaderLabels": true,
+            "actions": [
+              {
+                "id": "d99dd9f5-65c2-589c-ad32-4d4b4eb06e36",
+                "key": "interact",
+                "label": "Interagir",
+                "accessibleLabel": "Interagir avec la cible",
+                "kind": "verb",
+                "command": "interact",
+                "parentKey": "",
+                "order": 0,
+                "requiresTarget": true,
+                "tags": [
+                  "world"
+                ]
+              },
+              {
+                "id": "ccb0e53d-9d94-52a4-b949-f57c2b282d03",
+                "key": "combat",
+                "label": "Combat",
+                "accessibleLabel": "Actions de combat",
+                "kind": "navigation",
+                "command": "open:combat",
+                "parentKey": "",
+                "order": 1,
+                "requiresTarget": false,
+                "tags": [
+                  "combat"
+                ]
+              },
+              {
+                "id": "0ce9d6ef-101d-5160-82b6-c0333c990782",
+                "key": "rest",
+                "label": "Se reposer",
+                "accessibleLabel": "Commencer un repos",
+                "kind": "verb",
+                "command": "rest",
+                "parentKey": "",
+                "order": 2,
+                "requiresTarget": false,
+                "tags": [
+                  "recovery"
+                ]
+              },
+              {
+                "id": "2c2e6616-03ec-5da1-819d-ebd4f9d71869",
+                "key": "system",
+                "label": "Syst\u00E8me",
+                "accessibleLabel": "Actions syst\u00E8me",
+                "kind": "navigation",
+                "command": "open:system",
+                "parentKey": "",
+                "order": 3,
+                "requiresTarget": false,
+                "tags": [
+                  "system"
+                ]
+              },
+              {
+                "id": "a1066d47-cc0d-5fb4-84bb-5be5c53e2f4c",
+                "key": "attack",
+                "label": "Attaquer",
+                "accessibleLabel": "Attaquer la cible",
+                "kind": "ability",
+                "command": "attack",
+                "parentKey": "combat",
+                "order": 0,
+                "requiresTarget": true,
+                "tags": [
+                  "combat"
+                ]
+              },
+              {
+                "id": "5cb9d071-38db-57f6-8351-efc9b087ef01",
+                "key": "save",
+                "label": "Sauvegarde rapide",
+                "accessibleLabel": "Sauvegarder la partie",
+                "kind": "system",
+                "command": "quick_save",
+                "parentKey": "system",
+                "order": 0,
+                "requiresTarget": false,
+                "tags": [
+                  "system"
+                ]
+              }
+            ],
+            "provenance": "migration-default"
+          },
+          "timeControl": {
+            "id": "ea9e00a3-b3f5-54b3-9d5a-0446c80f83e4",
+            "schemaVersion": 1,
+            "pauseEnabled": true,
+            "slowMotionEnabled": true,
+            "slowMotionScale": 0.2,
+            "planningEnabled": true,
+            "maximumPlannedActions": 8,
+            "turnModeEnabled": true,
+            "multiplayerPolicy": "hostOnly",
+            "requiredVoteFraction": 0.5,
+            "pausePermissions": [
+              "session.host",
+              "session.moderator"
+            ],
+            "provenance": "migration-default"
+          },
+          "combatModes": {
+            "id": "2f76e451-4c31-5b35-ba38-0b4a4aa9e277",
+            "schemaVersion": 1,
+            "defaultProviderId": "realtime-pause",
+            "providers": [
+              {
+                "id": "9ec6464b-3242-5d99-b4b9-144e8d1b795a",
+                "providerId": "realtime",
+                "displayName": "Temps r\u00E9el",
+                "kind": "realTime",
+                "customProvider": "",
+                "eventContracts": [
+                  "combat.action.requested",
+                  "combat.action.resolved",
+                  "combat.ended",
+                  "combat.started"
+                ],
+                "serverAuthoritative": true
+              },
+              {
+                "id": "7ebaf750-4b36-5143-91f6-055b20512a98",
+                "providerId": "realtime-pause",
+                "displayName": "Temps r\u00E9el avec pause",
+                "kind": "realTimeWithPause",
+                "customProvider": "",
+                "eventContracts": [
+                  "combat.action.requested",
+                  "combat.action.resolved",
+                  "combat.ended",
+                  "combat.started"
+                ],
+                "serverAuthoritative": true
+              },
+              {
+                "id": "9a2c3ede-7186-574f-9068-d6689570b231",
+                "providerId": "turn-based",
+                "displayName": "Tour par tour",
+                "kind": "turnBased",
+                "customProvider": "",
+                "eventContracts": [
+                  "combat.action.requested",
+                  "combat.action.resolved",
+                  "combat.ended",
+                  "combat.started"
+                ],
+                "serverAuthoritative": true
+              }
+            ],
+            "provenance": "migration-default",
+            "defaultProvider": {
+              "id": "7ebaf750-4b36-5143-91f6-055b20512a98",
+              "providerId": "realtime-pause",
+              "displayName": "Temps r\u00E9el avec pause",
+              "kind": "realTimeWithPause",
+              "customProvider": "",
+              "eventContracts": [
+                "combat.action.requested",
+                "combat.action.resolved",
+                "combat.ended",
+                "combat.started"
+              ],
+              "serverAuthoritative": true
+            }
+          },
+          "provenance": "migration-default"
         },
         "provenance": "migration-default"
       }

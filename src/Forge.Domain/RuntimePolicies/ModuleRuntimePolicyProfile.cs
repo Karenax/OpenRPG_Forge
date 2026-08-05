@@ -1,4 +1,5 @@
 using Forge.Domain.Lifecycle;
+using Forge.Domain.Gameplay;
 using Forge.Domain.Modules;
 using Forge.Domain.Sequences;
 
@@ -14,11 +15,13 @@ public sealed record ModuleRuntimePolicyProfile
     public RestLifecycleProfile Rest { get; }
     public SequenceAbortPolicy SequenceAbort { get; }
     public ModuleCinematicProfile Cinematics { get; }
+    public ModuleGameplayControlProfile Gameplay { get; }
     public string Provenance { get; }
 
     public ModuleRuntimePolicyProfile(Guid id, int schemaVersion,
         IReadOnlyList<HeartbeatScheduleDefinition> heartbeats, RestLifecycleProfile rest,
-        SequenceAbortPolicy sequenceAbort, string provenance, ModuleCinematicProfile? cinematics = null)
+        SequenceAbortPolicy sequenceAbort, string provenance, ModuleCinematicProfile? cinematics = null,
+        ModuleGameplayControlProfile? gameplay = null)
     {
         ArgumentNullException.ThrowIfNull(heartbeats);
         ArgumentNullException.ThrowIfNull(rest);
@@ -38,6 +41,7 @@ public sealed record ModuleRuntimePolicyProfile
         Rest = rest;
         SequenceAbort = sequenceAbort;
         Cinematics = cinematics ?? ModuleCinematicProfile.CreateDefault(ModuleId.From(id));
+        Gameplay = gameplay ?? ModuleGameplayControlProfile.CreateDefault(ModuleId.From(id));
         Provenance = provenance.Trim();
     }
 
@@ -56,7 +60,8 @@ public sealed record ModuleRuntimePolicyProfile
             SequenceAbortPolicy.CurrentSchemaVersion, true, abortBinding, SequenceAbortRestoreFlags.All, 64,
             "migration-default");
         return new ModuleRuntimePolicyProfile(moduleId.Value, CurrentSchemaVersion, [], rest, abort,
-            "migration-default", ModuleCinematicProfile.CreateDefault(moduleId));
+            "migration-default", ModuleCinematicProfile.CreateDefault(moduleId),
+            ModuleGameplayControlProfile.CreateDefault(moduleId));
     }
 
     private static string HandlerName(string eventName) => eventName switch

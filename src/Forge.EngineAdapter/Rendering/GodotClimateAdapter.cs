@@ -129,7 +129,9 @@ public static class GodotClimateAdapter
             Mesh = new PlaneMesh { Size = new Vector2(body.Size.X, body.Size.Z), Material = material },
         });
         var volume = new Area3D { Name = "WaterVolume", Monitoring = true, Monitorable = true };
+        volume.AddToGroup("forge_water_volume");
         volume.SetMeta("forge_water_id", body.Id.ToString());
+        volume.SetMeta("forge_swimming_enabled", body.SwimmingEnabled);
         volume.SetMeta("forge_buoyancy", body.Buoyancy);
         volume.SetMeta("forge_navigation_cost", body.NavigationCost);
         volume.AddChild(new CollisionShape3D

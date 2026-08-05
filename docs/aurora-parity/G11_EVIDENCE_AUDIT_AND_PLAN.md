@@ -115,6 +115,11 @@ overrides et tweens ; les zones portent des ancres caméra cadrées. Le studio a
 Crypte et MCP consomment le même contrat persistant, validé et annulable. La preuve détaillée est
 dans [`tasks/G11-K-CINEMATICS-CAMERA-TWEENS.md`](tasks/G11-K-CINEMATICS-CAMERA-TWEENS.md).
 
+**G11-L est fermé le 5 août 2026.** Le module porte nage/plongée, escalade, roue d’actions,
+contrôle du temps et fournisseurs de combat. La fenêtre auteur, le runtime joueur et MCP partagent
+la même commande persistante et annulable. La preuve détaillée est dans
+[`tasks/G11-L-GAMEPLAY-CONTROLS-COMBAT.md`](tasks/G11-L-GAMEPLAY-CONTROLS-COMBAT.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-L** : déplacements, menu radial, pause tactique et modes de combat.
+Démarrer **G11-M** : progression, difficulté, perception et règles de zone.

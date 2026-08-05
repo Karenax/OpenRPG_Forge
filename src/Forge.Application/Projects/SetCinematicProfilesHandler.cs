@@ -31,7 +31,7 @@ public sealed class SetCinematicProfilesHandler
         var previousModule = state.Project.Module.RuntimePolicies;
         var modulePolicies = new ModuleRuntimePolicyProfile(previousModule.Id, previousModule.SchemaVersion,
             previousModule.Heartbeats, previousModule.Rest, previousModule.SequenceAbort, "cinematic-command",
-            command.ModuleProfile);
+            command.ModuleProfile, previousModule.Gameplay);
         var previousArea = area.RuntimePolicies;
         var areaPolicies = new AreaRuntimePolicyProfile(previousArea.Id, previousArea.SchemaVersion,
             previousArea.Heartbeats, previousArea.Rest, "cinematic-command", command.AreaProfile);

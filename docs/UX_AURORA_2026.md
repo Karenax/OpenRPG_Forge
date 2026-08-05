@@ -224,6 +224,13 @@ instant caméra active, transforms et signaux. Le cadre d'aperçu matérialise l
 commande atomique applique module et zone. Dans le jeu, Échap passe la séquence lorsqu'elle est
 skippable et la restauration rend systématiquement caméra et contrôle au joueur.
 
+G11-L ajoute **Contrôles, actions & combat** depuis le workspace Zones. Trois cartes séparent les
+déplacements étendus, la roue et le temps tactique : nage/plongée, flottabilité, souffle, escalade,
+endurance, liens sûrs, actions imbriquées, manette, clavier, liste accessible, pause, ralenti,
+planification, permissions multijoueur et fournisseur de combat. Dans le jeu, `Tab` ouvre la roue,
+`P` gèle puis rejoue la file planifiée, `T` active le ralenti et `M` change de fournisseur. Le HUD
+expose toujours l’état du temps, du combat, de la file, du mouvement, du souffle et de l’endurance.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

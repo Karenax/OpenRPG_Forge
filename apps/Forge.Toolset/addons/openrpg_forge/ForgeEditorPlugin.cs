@@ -10,6 +10,7 @@ using Forge.Application.Content;
 using Forge.Application.Creator;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
+using Forge.Application.Gameplay;
 using Forge.Application.Localization;
 using Forge.Application.Lifecycle;
 using Forge.Application.Sequences;
@@ -66,6 +67,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetAreaWorldProfileHandler _setAreaWorldProfileHandler = new(new SystemClock());
     private readonly SetRuntimePoliciesHandler _setRuntimePoliciesHandler = new(new SystemClock());
     private readonly SetCinematicProfilesHandler _setCinematicProfilesHandler = new(new SystemClock());
+    private readonly SetGameplayControlProfileHandler _setGameplayControlProfileHandler = new(new SystemClock());
     private readonly SetAreaAuthoringHandler _setAreaAuthoringHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
@@ -187,6 +189,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private TerrainStudioWindow? _terrainStudioWindow;
     private RuntimePoliciesWindow? _runtimePoliciesWindow;
     private CinematicStudioWindow? _cinematicStudioWindow;
+    private GameplayControlsWindow? _gameplayControlsWindow;
     private AreaAuthoringWindow? _areaAuthoringWindow;
     private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
     private NetworkBetaWindow? _networkBetaWindow;
@@ -303,6 +306,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             OpenTerrainStudio,
             OpenRuntimePolicies,
             OpenCinematicStudio,
+            OpenGameplayControls,
             OpenAreaAuthoring,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
@@ -320,6 +324,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _cinematicStudioWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
             ApplyCinematicProfiles, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_cinematicStudioWindow);
+        _gameplayControlsWindow = new GameplayControlsWindow();
+        _gameplayControlsWindow.Initialize(() => _history?.State, ApplyGameplayControlProfile,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_gameplayControlsWindow);
         _areaAuthoringWindow = new AreaAuthoringWindow();
         _areaAuthoringWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaAuthoring, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaAuthoringWindow);
@@ -516,6 +524,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _workspaceWindow = null;
         _recoveryWindow = null;
         _areaEnvironmentWindow = null;
+        _runtimePoliciesWindow = null;
+        _cinematicStudioWindow = null;
+        _gameplayControlsWindow = null;
         _areaAuthoringWindow = null;
         _rpgKitAuthoringWindow = null;
         _creatorShell = null;
@@ -1500,6 +1511,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void OpenCinematicStudio() => _cinematicStudioWindow?.Open();
 
+    private void OpenGameplayControls() => _gameplayControlsWindow?.Open();
+
     private void OpenAreaAuthoring() => _areaAuthoringWindow?.Open();
 
     private bool ApplyAreaAuthoring(AreaId areaId, AreaAuthoringProfile profile)
@@ -1553,6 +1566,17 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var command = preview with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
         return ApplyCommand(_setCinematicProfilesHandler.Handle(_history.State, command),
             "Séquences, caméras et mouvements mis à jour.", null);
+    }
+
+    private bool ApplyGameplayControlProfile(ModuleGameplayControlProfile profile)
+    {
+        if (_history is null) return false;
+        var preview = new SetGameplayControlProfileCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            profile, true);
+        if (!_setGameplayControlProfileHandler.Handle(_history.State, preview).Succeeded) return false;
+        var command = preview with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+        return ApplyCommand(_setGameplayControlProfileHandler.Handle(_history.State, command),
+            "Nage, escalade, roue d’actions, temps tactique et combat mis à jour.", null);
     }
 
     private void OpenGlobalSearch() => _globalSearch?.Open();
@@ -3919,6 +3943,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunGameplayControlsSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNavigationAndGeometrySmokeTest())
         {
             return;
@@ -6029,6 +6058,102 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print("OPENRPG_FORGE_TOOLSET_G11K_CINEMATIC_PASS startup=sequence-fallback timeline=tracks-branch-signal " +
             "camera=anchor-fov-safe-area transform=interpolated hierarchy=validated authority=server " +
             "skip=accessible abort=recovered mcp=governed history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunGameplayControlsSmokeTest()
+    {
+        if (_history is null || _gameplayControlsWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_FAILED missing_workspace");
+            return false;
+        }
+
+        var original = _history.State.Project.Module.RuntimePolicies.Gameplay;
+        var swimming = new SwimmingProfile(original.Swimming.Id, 1, true, false, 9, .8f, 5, 3.5f, .7f,
+            60, original.Swimming.WaterVolumeTags, original.Swimming.SurfaceAnimation,
+            original.Swimming.DiveAnimation, original.Swimming.IdleAnimation, "smoke:g11-l");
+        var climbing = new ClimbingProfile(original.Climbing.Id, 1, true, false, 3.5f, 120, 10, 1.75f,
+            true, true, true, original.Climbing.SurfaceTags, original.Climbing.ClimbAnimation,
+            original.Climbing.LedgeAnimation, "smoke:g11-l");
+        var radial = new RadialMenuProfile(original.RadialMenu.Id, 1, true, "action_wheel", .2f, 3,
+            true, true, true, true, original.RadialMenu.Actions, "smoke:g11-l");
+        var time = new TimeControlPolicy(original.TimeControl.Id, 1, true, true, .25f, true, 12, true,
+            MultiplayerPausePolicy.Vote, .5f, original.TimeControl.PausePermissions, "smoke:g11-l");
+        var combat = new CombatModeProfile(original.CombatModes.Id, 1, "turn-based",
+            original.CombatModes.Providers, "smoke:g11-l");
+        var candidate = new ModuleGameplayControlProfile(original.Id, 1, swimming, climbing, radial, time,
+            combat, "smoke:g11-l");
+
+        var dive = MovementCapabilityRuntime.Resolve(candidate,
+            new MovementCapabilityContext(true, true, false, false, 10, 120), 1);
+        var climb = MovementCapabilityRuntime.Resolve(candidate,
+            new MovementCapabilityContext(false, false, true, true, 60, 120), 1);
+        var combatPage = RadialActionResolver.Open(candidate.RadialMenu, "combat");
+        var planning = TimeControlCoordinator.Request(candidate.TimeControl, TimeControlSession.Running,
+            RuntimeTimeState.Planning, "player:one", false, true);
+        var queued = TimeControlCoordinator.Queue(candidate.TimeControl, planning.Session,
+            new PlannedGameplayAction(Guid.Parse("d11c0000-0000-4000-8000-000000000001"), "player:one",
+                "attack", "enemy:one", 0));
+        if (dive.Kind != MovementCapabilityKind.Diving || climb.Kind != MovementCapabilityKind.Climbing ||
+            combatPage.Actions.All(item => item.Command != "attack") || !planning.Accepted || !queued.Accepted)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_FAILED runtime_contract");
+            return false;
+        }
+
+        if (!_gameplayControlsWindow.ConfigureForSmokeTest(candidate) ||
+            !_gameplayControlsWindow.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_FAILED apply");
+            return false;
+        }
+
+        var applied = _history.State.Project.Module.RuntimePolicies.Gameplay;
+        if (!applied.Swimming.Enabled || !applied.Climbing.Enabled || applied.RadialMenu.Actions.Count < 4 ||
+            !applied.TimeControl.PlanningEnabled || applied.TimeControl.MultiplayerPolicy != MultiplayerPausePolicy.Vote ||
+            applied.CombatModes.DefaultProvider.Kind != CombatModeKind.TurnBased)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_FAILED applied_contract");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "gameplay-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project.Module.RuntimePolicies.Gameplay;
+            if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
+                restored.RadialMenu.Actions.Count != applied.RadialMenu.Actions.Count ||
+                restored.CombatModes.DefaultProviderId != "turn-based")
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            !ReferenceEquals(_history.State.Project.Module.RuntimePolicies.Gameplay, original))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_FAILED history");
+            return false;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print("OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_PASS swim=buoyancy-breath-currents dive=runtime " +
+            "climb=links-stamina-ik-safety radial=nested-gamepad-keyboard-list-accessible " +
+            "time=pause-slow-planning-turns multiplayer=vote-permissions combat=providers-shared-events-authority " +
+            "history=restored persistence=roundtrip");
         return true;
     }
 

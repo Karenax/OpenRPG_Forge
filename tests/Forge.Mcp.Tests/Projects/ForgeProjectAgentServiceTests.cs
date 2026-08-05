@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Forge.Domain.Areas;
 using Forge.Domain.Dialogues;
+using Forge.Domain.Gameplay;
 using Forge.Domain.Projects;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Sequences;
@@ -169,6 +170,35 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(applied.Applied);
         Assert.Single(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Module.RuntimePolicies.Cinematics.Sequences);
         var reverted = workspace.Project.RevertCinematicPlan(planned.PlanId!);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
+    public void GameplayControlPlanSupportsReadDryRunApplyPersistenceAndRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var resource = workspace.Project.GetGameplayControls();
+        var source = resource.Profile;
+        var time = new TimeControlPolicy(source.TimeControl.Id, 1, true, true, .3f, true, 16, true,
+            MultiplayerPausePolicy.Vote, .5f, ["session.player"], "mcp-test");
+        var combat = new CombatModeProfile(source.CombatModes.Id, 1, "turn-based",
+            source.CombatModes.Providers, "mcp-test");
+        var profile = new ModuleGameplayControlProfile(source.Id, 1, source.Swimming, source.Climbing,
+            source.RadialMenu, time, combat, "mcp-test");
+
+        var planned = workspace.Project.PlanGameplayControls(
+            new GameplayControlPlanRequest(1, resource.Revision, profile));
+
+        Assert.True(planned.Succeeded);
+        Assert.Equal("module/runtimePolicies/gameplay", planned.Diff?.Path);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        var applied = workspace.Project.ApplyGameplayControlPlan(planned.PlanId!);
+        Assert.True(applied.Applied);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Module.RuntimePolicies.Gameplay;
+        Assert.Equal("turn-based", persisted.CombatModes.DefaultProviderId);
+        Assert.Equal(.3f, persisted.TimeControl.SlowMotionScale);
+        var reverted = workspace.Project.RevertGameplayControlPlan(planned.PlanId!);
         Assert.True(reverted.Reverted);
         Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
     }

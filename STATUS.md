@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-A à G11-J Contenu moderne fermés et G11-K ouvert.**
+fermés ; G11-A à G11-L Contenu moderne fermés et G11-M ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -13,7 +13,7 @@ zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplac
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.6.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.8.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -84,7 +84,7 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
 - solution de 24 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 562 tests .NET, 24 tests Python généraux et 11 tests Python du pipeline d'assets réussis ;
+- 612 tests .NET, 24 tests Python généraux et 11 tests Python du pipeline d'assets réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et

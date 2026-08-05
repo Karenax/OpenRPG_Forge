@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using Forge.Application.Areas;
+using Forge.Application.Gameplay;
 using Forge.Application.Lifecycle;
 using Forge.Application.Sequences;
 using Forge.Domain.Areas;
@@ -10,6 +11,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Combat;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.Gameplay;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
@@ -105,6 +107,10 @@ public partial class GameRoot : Node3D
     private Transform3D _explorationCameraTransform;
     private float _explorationCameraFov;
     private bool _sequenceOwnsCamera;
+    private ModuleGameplayControlProfile? _gameplayControls;
+    private TimeControlSession _timeControlSession = TimeControlSession.Running;
+    private CombatModeProviderDefinition? _activeCombatProvider;
+    private RuntimeActionWheel? _actionWheel;
 
     public override void _Ready()
     {
@@ -218,9 +224,15 @@ public partial class GameRoot : Node3D
 
     public override void _Process(double delta)
     {
-        AdvanceClimate(delta);
-        AdvanceRuntimePolicies(delta);
-        AdvanceCinematics(delta);
+        var simulationDelta = delta * (_timeControlSession.State == RuntimeTimeState.SlowMotion
+            ? _timeControlSession.Scale
+            : 1);
+        if (!IsTimeFrozen())
+        {
+            AdvanceClimate(simulationDelta);
+            AdvanceRuntimePolicies(simulationDelta);
+            AdvanceCinematics(simulationDelta);
+        }
 
         if (_player is null)
         {
@@ -233,14 +245,34 @@ public partial class GameRoot : Node3D
             _camera.LookAt(_player.GlobalPosition + (Vector3.Up * 0.8f), Vector3.Up);
         }
 
-        if (Input.IsActionJustPressed("interact"))
+        if (Input.IsActionJustPressed("action_wheel"))
         {
-            InteractWithNearest();
+            _actionWheel?.Toggle();
         }
 
-        if (Input.IsActionJustPressed("attack"))
+        if (Input.IsActionJustPressed("tactical_pause"))
         {
-            AttackNearestHostile();
+            ToggleTacticalPause();
+        }
+
+        if (Input.IsActionJustPressed("slow_time"))
+        {
+            ToggleSlowMotion();
+        }
+
+        if (Input.IsActionJustPressed("combat_mode"))
+        {
+            CycleCombatProvider();
+        }
+
+        if (Input.IsActionJustPressed("interact") && _actionWheel?.IsOpen != true)
+        {
+            RequestGameplayCommand("interact");
+        }
+
+        if (Input.IsActionJustPressed("attack") && _actionWheel?.IsOpen != true)
+        {
+            RequestGameplayCommand("attack");
         }
 
         if (Input.IsActionJustPressed("quick_save"))
@@ -256,7 +288,7 @@ public partial class GameRoot : Node3D
 
         if (Input.IsActionJustPressed("rest"))
         {
-            RequestPlayerRest();
+            RequestGameplayCommand("rest");
         }
 
         if (Input.IsActionJustPressed("skip_sequence") && _activeSequence is not null && _sequenceState is not null)
@@ -278,6 +310,8 @@ public partial class GameRoot : Node3D
             UpdateHud();
             GD.Print("OPENRPG_FORGE_PROTOTYPE_COMPLETED");
         }
+
+        UpdateTacticalHud();
     }
 
     private ProjectDefinition LoadProject(string? snapshotPath, string? modulePackagePath)
@@ -675,6 +709,7 @@ public partial class GameRoot : Node3D
         var player = new PlayerController { Name = "Player" };
         AddChild(player);
         player.GlobalPosition = EngineValueConverter.ToEngine(entity.Transform.Position);
+        if (_gameplayControls is not null) player.Configure(_gameplayControls);
 
         var mesh = new MeshInstance3D
         {
@@ -701,6 +736,11 @@ public partial class GameRoot : Node3D
         AddChild(root);
 
         var body = new StaticBody3D();
+        if (_gameplayControls?.Climbing.Enabled == true && entity.Tags.Any(tag =>
+                _gameplayControls.Climbing.SurfaceTags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
+        {
+            body.SetMeta("forge_climb", true);
+        }
         root.AddChild(body);
         body.AddChild(new MeshInstance3D
         {
@@ -929,10 +969,19 @@ public partial class GameRoot : Node3D
     {
         _moduleRuntimePolicies = module ?? throw new ArgumentNullException(nameof(module));
         _areaRuntimePolicies = area ?? throw new ArgumentNullException(nameof(area));
+        _gameplayControls = module.Gameplay;
+        _activeCombatProvider = module.Gameplay.CombatModes.DefaultProvider;
+        _timeControlSession = TimeControlSession.Running;
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_G11J_POLICY_PASS global={module.Heartbeats.Count} area={area.Heartbeats.Count} " +
             $"rest={module.Rest.Enabled.ToString().ToLowerInvariant()} volumes={area.Rest.Volumes.Count} " +
             $"abort={module.SequenceAbort.Enabled.ToString().ToLowerInvariant()} restore={module.SequenceAbort.Restore}");
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_G11L_GAMEPLAY_PASS swim={module.Gameplay.Swimming.Enabled.ToString().ToLowerInvariant()} " +
+            $"climb={module.Gameplay.Climbing.Enabled.ToString().ToLowerInvariant()} " +
+            $"radial={module.Gameplay.RadialMenu.Actions.Count} accessible={module.Gameplay.RadialMenu.ListFallback.ToString().ToLowerInvariant()} " +
+            $"pause={module.Gameplay.TimeControl.PauseEnabled.ToString().ToLowerInvariant()} planning={module.Gameplay.TimeControl.PlanningEnabled.ToString().ToLowerInvariant()} " +
+            $"combat={_activeCombatProvider.ProviderId} authority={_activeCombatProvider.ServerAuthoritative.ToString().ToLowerInvariant()}");
     }
 
     private void ConfigureCinematics(ProjectDefinition project, AreaDefinition area)
@@ -1296,6 +1345,11 @@ public partial class GameRoot : Node3D
     {
         _hud = new RuntimeHud { ModuleTitle = _moduleTitle, CombatEnabled = _playerCombatant is not null };
         AddChild(_hud);
+        _actionWheel = new RuntimeActionWheel();
+        if (_gameplayControls is not null) _actionWheel.Configure(_gameplayControls);
+        _actionWheel.CommandRequested += RequestGameplayCommand;
+        AddChild(_actionWheel);
+        UpdateTacticalHud();
     }
 
     private void InteractWithNearest()
@@ -1603,12 +1657,153 @@ public partial class GameRoot : Node3D
         GD.Print($"OPENRPG_FORGE_SCRIPT_EXECUTED events={result.Events.Count}");
     }
 
+    private bool IsTimeFrozen() => _timeControlSession.State is RuntimeTimeState.Paused or
+        RuntimeTimeState.Planning or RuntimeTimeState.TurnBased;
+
+    private void ToggleTacticalPause()
+    {
+        if (_gameplayControls is null) return;
+        if (IsTimeFrozen())
+        {
+            var planned = _timeControlSession.PlannedActions.ToArray();
+            var resumed = TimeControlCoordinator.Request(_gameplayControls.TimeControl, _timeControlSession,
+                RuntimeTimeState.Running, "player:local", false, true);
+            ApplyTimeControl(resumed);
+            foreach (var action in planned) ExecuteGameplayCommand(action.Command);
+            _timeControlSession = _timeControlSession with { PlannedActions = [] };
+            _message = planned.Length == 0
+                ? "Simulation reprise."
+                : $"Simulation reprise · {planned.Length} action(s) planifiée(s) exécutée(s).";
+        }
+        else
+        {
+            var requested = _gameplayControls.TimeControl.PlanningEnabled
+                ? RuntimeTimeState.Planning
+                : RuntimeTimeState.Paused;
+            ApplyTimeControl(TimeControlCoordinator.Request(_gameplayControls.TimeControl, _timeControlSession,
+                requested, "player:local", false, true));
+            _message = requested == RuntimeTimeState.Planning
+                ? "Pause tactique · choisissez des actions, puis P pour exécuter."
+                : "Jeu en pause.";
+        }
+
+        UpdateHud();
+    }
+
+    private void ToggleSlowMotion()
+    {
+        if (_gameplayControls is null || IsTimeFrozen()) return;
+        var requested = _timeControlSession.State == RuntimeTimeState.SlowMotion
+            ? RuntimeTimeState.Running
+            : RuntimeTimeState.SlowMotion;
+        ApplyTimeControl(TimeControlCoordinator.Request(_gameplayControls.TimeControl, _timeControlSession,
+            requested, "player:local", false, true));
+        _message = requested == RuntimeTimeState.SlowMotion ? "Ralenti tactique actif." : "Vitesse normale.";
+        UpdateHud();
+    }
+
+    private void ApplyTimeControl(TimeControlDecision decision)
+    {
+        if (!decision.Accepted)
+        {
+            _message = $"Contrôle du temps refusé ({decision.Code}).";
+            return;
+        }
+
+        _timeControlSession = decision.Session;
+        if (_player is not null)
+        {
+            _player.ControlLocked = IsTimeFrozen();
+            _player.SimulationScale = _timeControlSession.State == RuntimeTimeState.SlowMotion
+                ? _timeControlSession.Scale
+                : 1;
+        }
+    }
+
+    private void CycleCombatProvider()
+    {
+        if (_gameplayControls is null || _gameplayControls.CombatModes.Providers.Count == 0) return;
+        var providers = _gameplayControls.CombatModes.Providers;
+        var current = _activeCombatProvider is null ? -1 : providers.ToList().FindIndex(provider =>
+            provider.ProviderId == _activeCombatProvider.ProviderId);
+        _activeCombatProvider = providers[(current + 1) % providers.Count];
+        _message = $"Mode de combat : {_activeCombatProvider.DisplayName}.";
+        if (_activeCombatProvider.Kind == CombatModeKind.TurnBased && !IsTimeFrozen())
+        {
+            ApplyTimeControl(TimeControlCoordinator.Request(_gameplayControls.TimeControl, _timeControlSession,
+                RuntimeTimeState.TurnBased, "player:local", false, true));
+        }
+        else if (_activeCombatProvider.Kind != CombatModeKind.TurnBased &&
+                 _timeControlSession.State == RuntimeTimeState.TurnBased)
+        {
+            ApplyTimeControl(TimeControlCoordinator.Request(_gameplayControls.TimeControl, _timeControlSession,
+                RuntimeTimeState.Running, "player:local", false, true));
+        }
+
+        UpdateHud();
+    }
+
+    private void RequestGameplayCommand(string command)
+    {
+        if (_gameplayControls is null) return;
+        if (_timeControlSession.State == RuntimeTimeState.Planning)
+        {
+            var queued = TimeControlCoordinator.Queue(_gameplayControls.TimeControl, _timeControlSession,
+                new PlannedGameplayAction(Guid.NewGuid(), "player:local", command, "nearest",
+                    _timeControlSession.PlannedActions.Count));
+            if (queued.Accepted)
+            {
+                _timeControlSession = queued.Session;
+                _message = $"Action planifiée : {command}.";
+            }
+            else _message = $"Action refusée ({queued.Code}).";
+            UpdateHud();
+            return;
+        }
+
+        if (IsTimeFrozen())
+        {
+            _message = "Cette action exige le mode planification ou la reprise du jeu.";
+            UpdateHud();
+            return;
+        }
+
+        ExecuteGameplayCommand(command);
+    }
+
+    private void ExecuteGameplayCommand(string command)
+    {
+        switch (command)
+        {
+            case "interact": InteractWithNearest(); break;
+            case "attack": AttackNearestHostile(); break;
+            case "rest": RequestPlayerRest(); break;
+            case "quick_save": SaveRuntime(_quickSavePath!); break;
+            default:
+                _message = $"Commande de roue inconnue : {command}.";
+                UpdateHud();
+                break;
+        }
+    }
+
+    private void UpdateTacticalHud()
+    {
+        if (_hud is null || _gameplayControls is null) return;
+        var movement = _player?.CurrentCapability.ToString().ToLowerInvariant() ?? "ground";
+        _hud.UpdateTactical(_timeControlSession.State.ToString(),
+            _activeCombatProvider?.DisplayName ?? _gameplayControls.CombatModes.DefaultProvider.DisplayName,
+            _timeControlSession.PlannedActions.Count, movement, _player?.BreathRemaining ?? 0,
+            _player?.StaminaRemaining ?? 0);
+    }
+
     private void UpdateHud()
     {
         if (_hud is null)
         {
             return;
         }
+
+        UpdateTacticalHud();
 
         if (!_isCryptPrototype)
         {
@@ -2157,6 +2352,14 @@ public partial class GameRoot : Node3D
         RegisterKeyAction("quick_load", Key.F9);
         RegisterKeyAction("rest", Key.R);
         RegisterKeyAction("skip_sequence", Key.Escape);
+        RegisterKeyAction("action_wheel", Key.Tab);
+        RegisterJoypadAction("action_wheel", JoyButton.Y);
+        RegisterKeyAction("tactical_pause", Key.P);
+        RegisterJoypadAction("tactical_pause", JoyButton.Start);
+        RegisterKeyAction("slow_time", Key.T);
+        RegisterKeyAction("combat_mode", Key.M);
+        RegisterKeyAction("dive", Key.Ctrl);
+        RegisterKeyAction("climb", Key.Shift);
     }
 
     private static void RegisterKeyAction(StringName action, params Key[] keys)
@@ -2173,6 +2376,16 @@ public partial class GameRoot : Node3D
             {
                 InputMap.ActionAddEvent(action, inputEvent);
             }
+        }
+    }
+
+    private static void RegisterJoypadAction(StringName action, params JoyButton[] buttons)
+    {
+        if (!InputMap.HasAction(action)) InputMap.AddAction(action);
+        foreach (var button in buttons)
+        {
+            var inputEvent = new InputEventJoypadButton { ButtonIndex = button };
+            if (!InputMap.ActionHasEvent(action, inputEvent)) InputMap.ActionAddEvent(action, inputEvent);
         }
     }
 

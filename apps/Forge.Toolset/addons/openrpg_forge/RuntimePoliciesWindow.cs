@@ -276,7 +276,7 @@ public partial class RuntimePoliciesWindow : Window
                 _abortEnabled!.ButtonPressed, _module.SequenceAbort.Binding, flags, (int)_rollbackSteps!.Value,
                 "forge-ui");
             var module = new ModuleRuntimePolicyProfile(_module.Id, _module.SchemaVersion, [global], rest, abort,
-                "forge-ui", _module.Cinematics);
+                "forge-ui", _module.Cinematics, _module.Gameplay);
             var mode = (RestPermissionMode)_restMode!.Selected;
             var reason = mode == RestPermissionMode.Allowed ? string.Empty : NonEmpty(_denialReason!.Text, "Repos impossible ici.");
             var condition = mode == RestPermissionMode.Conditional ? NonEmpty(_condition!.Text, "camp.secure == true") : string.Empty;
