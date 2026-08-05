@@ -502,8 +502,10 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   masque de trous.
 - [x] Étendre le format `.orpmod`, les migrations et les tests de round-trip afin que le terrain soit
   inspectable et indépendant de toute scène ou ressource Godot.
-- [ ] Concevoir les commandes transactionnelles de sculpture et peinture : lever/abaisser, aplanir,
-  lisser, peindre les matériaux et ouvrir/fermer un trou, avec prévisualisation et Undo/Redo.
+- [x] Concevoir les commandes transactionnelles de sculpture : lever/abaisser, aplanir, lisser et
+  ouvrir/fermer un trou, avec prévisualisation, persistance et Undo/Redo par trait.
+- [ ] Ajouter le masque canonique et les brosses de peinture locale des matériaux, sans stocker cet
+  état dans une ressource ou une scène propre au moteur.
 - [x] Évaluer Terrain3D face à un adapter interne, vérifier licence et compatibilité, puis épingler la
   solution retenue sans faire de ses nœuds la source de vérité.
 - [x] Reconstruire dans l’adapter 3D la géométrie, les collisions et les requêtes d'altitude/pente depuis le

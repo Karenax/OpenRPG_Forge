@@ -207,8 +207,11 @@ flottabilité, qualité et fondu audio avant une application atomique. Le viewpo
 la précipitation, la surface d'eau et le preset acoustique sélectionnés. Les collections avancées de
 zones conservent leur modèle canonique et recevront un éditeur de liste dédié.
 
-G11-I ajoute **Terrain & volumes** depuis le workspace Monde. Quatre onglets séparent le relief et
-les biomes, les routes/features, la navigation 3D et les budgets de chargement. Les contrôles
+G11-I ajoute **Terrain & volumes** depuis le workspace Monde. Cinq onglets séparent le relief et
+les biomes, la sculpture, les routes/features, la navigation 3D et les budgets de chargement. La
+brosse canonique propose lever, abaisser, aplanir, lisser, ouvrir et refermer, avec centre X/Z,
+rayon, intensité, cible Y et prévisualisation des échantillons ou cellules touchés. Chaque trait
+devient une commande annulable et reconstruit immédiatement le viewport. Les autres contrôles
 emploient le vocabulaire de la carte — hauteur, pente, densité, vol, nage, cache — sans exposer les
 nœuds du moteur. Une seule action braise applique le profil complet par transaction ; le viewport
 reconstruit immédiatement terrain, collisions et overlays. Les providers non encore rendus
@@ -249,6 +252,6 @@ générique, les biomes, trous, features, volumes et collisions partagés avec l
 une rivière shader animée, quatre volumes de nage/courant et une navigation de surface réelle de
 1 990 polygones avec traversée de pont. La capture Forward+ dans
 `artifacts/verification/forgotten-forest-water-navigation-forward-plus.png` valide ce palier visuel
-local ; elle ne constitue pas encore la direction artistique finale. Sculpture interactive,
+local ; elle ne constitue pas encore la direction artistique finale. Peinture locale des matériaux,
 animations, ambiance audio, VFX, composition 512 × 512 et profilage restent nécessaires avant d’en
 faire la référence graphique d’OpenRPG Forge.

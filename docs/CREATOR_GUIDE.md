@@ -25,9 +25,14 @@ permet de déplacer sur les deux axes, tourner de 90°, supprimer et annuler/ré
 Les propriétés locales servent à spécialiser une instance sans dupliquer son blueprint ; les chemins
 ForgeScript sont des chemins relatifs `.forge` tels que `scripts/interaction.forge`.
 
-La version MVP livre un kit Crypte (sol, mur, porte, pilier, personnages et triggers) dans le module
-de démonstration. L'édition visuelle complète des catalogues de blueprints, tags, combats et quêtes
-reste le prochain grand écran auteur après cette tranche verticale.
+Pour une zone extérieure, ouvrir **Zones & transitions**, puis **Terrain & volumes…** et l’onglet
+**Sculpture**. Choisir lever, abaisser, aplanir, lisser, ouvrir ou refermer, régler le centre X/Z, le
+rayon et l’intensité, puis prévisualiser le nombre d’échantillons touchés. **Appliquer le trait** crée
+une commande indépendante : les boutons Annuler/Rétablir restaurent le heightmap et ses trous, et le
+viewport, les collisions et la navigation sont reconstruits depuis ce même document canonique.
+
+Le kit Crypte (sol, mur, porte, pilier, personnages et triggers) reste disponible dans le module de
+démonstration ; Forgotten Forest fournit le premier kit extérieur CC0 jouable.
 
 ## 3. Écrire les dialogues et scripts
 

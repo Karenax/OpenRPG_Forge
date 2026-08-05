@@ -86,6 +86,10 @@ type de première zone — intérieur ou extérieur sculptable — ainsi que sa 
 puis prépare son identité, un sol provisoire et un point de départ immédiatement éditables. Un dossier
 existant non vide est toujours refusé.
 
+Dans **Zones → Terrain & volumes**, l’onglet **Sculpture** permet de lever, abaisser, aplanir ou
+lisser le heightmap, ainsi que d’ouvrir ou refermer des cellules de grotte. Le rayon et l’intensité
+sont prévisualisés avant application ; chaque trait reconstruit l’aperçu et reste annulable.
+
 Le bouton **Modifier les propriétés** personnalise l’instance sélectionnée sans dupliquer ni modifier
 son blueprint. L’inspecteur gère des valeurs texte, booléennes, entières et numériques, puis applique
 le changement par le bus de commandes avec révision et annuler/rétablir.

@@ -294,6 +294,8 @@ biomes indépendants, des trous, routes/rivières/ponts, des volumes de vol/nage
 aériennes et un profil de chargement asynchrone. Le Creator et le runtime reconstruisent le même mesh,
 ses collisions et overlays ; l'auteur applique le profil par commande transactionnelle et les formats
 zone `1.4.0`, projet `0.6.11` et workspace `1.5.0` migrent les données absentes.
+L’onglet Sculpture ajoute désormais six opérations canoniques — lever, abaisser, aplanir, lisser,
+ouvrir et refermer — avec prévisualisation, dry-run, persistance et Undo/Redo par trait.
 
 **G11-J est fermé** : le module et chaque zone portent des timers bornés, les règles de repos et la
 restauration d'abandon d'une séquence. La fenêtre Rythme, repos & séquences applique module et zone

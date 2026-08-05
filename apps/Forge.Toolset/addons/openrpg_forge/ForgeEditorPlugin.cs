@@ -72,6 +72,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly EditAreaGeometryHandler _editAreaGeometryHandler = new(new SystemClock());
     private readonly SetAreaEnvironmentHandler _setAreaEnvironmentHandler = new(new SystemClock());
     private readonly SetAreaWorldProfileHandler _setAreaWorldProfileHandler = new(new SystemClock());
+    private readonly EditTerrainBrushHandler _editTerrainBrushHandler = new(new SystemClock());
     private readonly SetRuntimePoliciesHandler _setRuntimePoliciesHandler = new(new SystemClock());
     private readonly SetCinematicProfilesHandler _setCinematicProfilesHandler = new(new SystemClock());
     private readonly SetGameplayControlProfileHandler _setGameplayControlProfileHandler = new(new SystemClock());
@@ -334,7 +335,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areaEnvironmentWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaEnvironment, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaEnvironmentWindow);
         _terrainStudioWindow = new TerrainStudioWindow();
-        _terrainStudioWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaWorldProfile, ApplyForgeWindowIcon);
+        _terrainStudioWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
+            ApplyAreaWorldProfile, ApplyTerrainBrush, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_terrainStudioWindow);
         _runtimePoliciesWindow = new RuntimePoliciesWindow();
         _runtimePoliciesWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
@@ -1617,6 +1619,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var command = new SetAreaWorldProfileCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, areaId, profile, false);
         return ApplyCommand(_setAreaWorldProfileHandler.Handle(_history.State, command),
             "Terrain, biomes, features et volumes mis à jour.", null);
+    }
+
+    private bool ApplyTerrainBrush(AreaId areaId, TerrainBrushStroke stroke)
+    {
+        if (_history is null) return false;
+        var command = new EditTerrainBrushCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, areaId,
+            stroke, false);
+        return ApplyCommand(_editTerrainBrushHandler.Handle(_history.State, command),
+            "Terrain sculpté et navigation reconstruite.", null);
     }
 
     private bool ApplyRuntimePolicies(ModuleRuntimePolicyProfile moduleProfile, AreaId areaId,
@@ -5912,11 +5923,19 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return false;
         }
 
+        if (!_terrainStudioWindow.ApplyBrushForSmokeTest(TerrainBrushOperation.Raise, 0, 0, 8, .2f))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_FAILED sculpt");
+            return false;
+        }
+
         var applied = _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).World;
+        var sculptedSamples = applied.Terrain.Heights.Zip(terrain.Heights)
+            .Count(pair => Math.Abs(pair.First - pair.Second) > .000001f);
         var terrainPlan = TerrainBuildPlanBuilder.Build(applied);
         var graph = VolumetricNavigationGraphBuilder.Build(applied.VolumetricNavigation);
         var path = VolumetricNavigationPathfinder.FindPath(graph, new Vector3Value(-8, 8, -8), new Vector3Value(8, 8, 8));
-        if (!path.Succeeded || terrainPlan.Vertices.Count != 81 || terrainPlan.TriangleCount != 126 ||
+        if (!path.Succeeded || sculptedSamples == 0 || terrainPlan.Vertices.Count != 81 || terrainPlan.TriangleCount != 126 ||
             applied.Biomes.Count != 2 || applied.Features.Count != 3 || applied.FlightRoutes.Count != 1 ||
             applied.Loading.CacheBudgetMegabytes != 768 ||
             _projectPreview.TerrainVertexCount != 81 || _projectPreview.TerrainTriangleCount != 126 ||
@@ -5935,6 +5954,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var restored = reopened.Session?.Project.Areas.Single(candidate => candidate.Id == area.Id).World;
             if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
                 restored.Terrain.Provider != TerrainProviderKind.Heightmap || restored.Terrain.Holes.Count != 1 ||
+                !restored.Terrain.Heights.SequenceEqual(applied.Terrain.Heights) ||
                 restored.Biomes.Count != 2 || restored.Features.Count != 3 ||
                 restored.VolumetricNavigation.Obstacles.Count != 1 || restored.FlightRoutes.Count != 1 ||
                 restored.Loading.CacheBudgetMegabytes != 768)
@@ -5946,6 +5966,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
         finally
         {
             if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var brushUndo = _history.Undo();
+        var brushRedo = _history.Redo();
+        var brushCleanup = _history.Undo();
+        if (!brushUndo.Succeeded || !brushRedo.Succeeded || !brushCleanup.Succeeded ||
+            !_history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).World.Terrain.Heights.SequenceEqual(terrain.Heights))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_FAILED brush_history");
+            return false;
         }
 
         var undo = _history.Undo();
@@ -5963,7 +5993,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             $"OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_PASS provider=heightmap vertices=81 triangles=126 " +
             $"holes=1 biomes=2 features=3 volumes=3 flight_path={path.Points.Count} streaming=async-cache-cancel " +
-            "history=restored persistence=roundtrip");
+            $"sculpt=raise-{sculptedSamples} brush_history=restored history=restored persistence=roundtrip");
         return true;
     }
 

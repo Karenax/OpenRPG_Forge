@@ -1,4 +1,5 @@
 #if TOOLS
+using Forge.Application.Areas;
 using Forge.Application.Projects;
 using Forge.Domain.Areas;
 using Forge.Domain.Spatial;
@@ -12,6 +13,7 @@ public partial class TerrainStudioWindow : Window
     private Func<ProjectState?>? _state;
     private Func<AreaId?>? _active;
     private Func<AreaId, AreaWorldProfile, bool>? _apply;
+    private Func<AreaId, TerrainBrushStroke, bool>? _brush;
     private Action<Window>? _brand;
     private AreaWorldProfile? _current;
 
@@ -24,6 +26,13 @@ public partial class TerrainStudioWindow : Window
     private LineEdit? _rockColor;
     private SpinBox? _meadowDensity;
     private SpinBox? _rockSlope;
+    private OptionButton? _brushOperation;
+    private SpinBox? _brushX;
+    private SpinBox? _brushZ;
+    private SpinBox? _brushRadius;
+    private SpinBox? _brushStrength;
+    private SpinBox? _brushTargetHeight;
+    private Label? _brushPreview;
     private CheckBox? _road;
     private CheckBox? _river;
     private CheckBox? _bridge;
@@ -53,11 +62,13 @@ public partial class TerrainStudioWindow : Window
           $"{_current.VolumetricNavigation.Modes}:{_current.FlightRoutes.Count}:{_current.Loading.CacheBudgetMegabytes}";
 
     public void Initialize(Func<ProjectState?> state, Func<AreaId?> active,
-        Func<AreaId, AreaWorldProfile, bool> apply, Action<Window> brand)
+        Func<AreaId, AreaWorldProfile, bool> apply, Func<AreaId, TerrainBrushStroke, bool> brush,
+        Action<Window> brand)
     {
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _active = active ?? throw new ArgumentNullException(nameof(active));
         _apply = apply ?? throw new ArgumentNullException(nameof(apply));
+        _brush = brush ?? throw new ArgumentNullException(nameof(brush));
         _brand = brand ?? throw new ArgumentNullException(nameof(brand));
         Title = "Terrain & volumes · OpenRPG Forge";
         MinSize = new Vector2I(1180, 760);
@@ -84,6 +95,18 @@ public partial class TerrainStudioWindow : Window
 
     internal bool ApplyForSmokeTest() => Save();
 
+    internal bool ApplyBrushForSmokeTest(TerrainBrushOperation operation, float worldX, float worldZ,
+        float radius, float strength, float targetHeight = 0)
+    {
+        _brushOperation!.Selected = (int)operation;
+        _brushX!.Value = worldX;
+        _brushZ!.Value = worldZ;
+        _brushRadius!.Value = radius;
+        _brushStrength!.Value = strength;
+        _brushTargetHeight!.Value = targetHeight;
+        return ApplyBrush();
+    }
+
     private void Build()
     {
         var margin = new MarginContainer();
@@ -107,6 +130,7 @@ public partial class TerrainStudioWindow : Window
         var tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         root.AddChild(tabs);
         BuildTerrainTab(tabs);
+        BuildSculptTab(tabs);
         BuildFeatureTab(tabs);
         BuildNavigationTab(tabs);
         BuildStreamingTab(tabs);
@@ -123,6 +147,57 @@ public partial class TerrainStudioWindow : Window
         close.Pressed += Hide;
         actions.AddChild(close);
         root.AddChild(actions);
+    }
+
+    private void BuildSculptTab(TabContainer tabs)
+    {
+        var columns = Tab(tabs, "Sculpture");
+        var brush = Card(columns, "BROSSE CANONIQUE");
+        _brushOperation = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _brushOperation.AddItem("Lever", (int)TerrainBrushOperation.Raise);
+        _brushOperation.AddItem("Abaisser", (int)TerrainBrushOperation.Lower);
+        _brushOperation.AddItem("Aplanir vers Y", (int)TerrainBrushOperation.Flatten);
+        _brushOperation.AddItem("Lisser", (int)TerrainBrushOperation.Smooth);
+        _brushOperation.AddItem("Ouvrir un trou", (int)TerrainBrushOperation.OpenHole);
+        _brushOperation.AddItem("Refermer un trou", (int)TerrainBrushOperation.CloseHole);
+        brush.AddChild(FieldRow("Opération", _brushOperation));
+        _brushX = Spin(-4096, 4096, 0, .5);
+        _brushZ = Spin(-4096, 4096, 0, .5);
+        brush.AddChild(FieldRow("Centre X", _brushX));
+        brush.AddChild(FieldRow("Centre Z", _brushZ));
+
+        var influence = Card(columns, "INFLUENCE");
+        _brushRadius = Spin(.25, 4096, 8, .25);
+        _brushStrength = Spin(.01, 1, .15, .01);
+        _brushTargetHeight = Spin(-512, 512, 0, .25);
+        influence.AddChild(FieldRow("Rayon (m)", _brushRadius));
+        influence.AddChild(FieldRow("Intensité", _brushStrength));
+        influence.AddChild(FieldRow("Cible Y", _brushTargetHeight));
+        influence.AddChild(new Label
+        {
+            Text = "Le relief utilise un falloff radial. Les trous modifient les cellules canoniques et peuvent accueillir une grotte ou un surplomb séparé.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+
+        var preview = Card(columns, "PRÉVISUALISATION & HISTORIQUE");
+        _brushPreview = new Label
+        {
+            Text = "Aucun trait prévisualisé.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        preview.AddChild(_brushPreview);
+        var previewButton = new Button { Text = "Prévisualiser le trait" };
+        previewButton.Pressed += PreviewBrush;
+        preview.AddChild(previewButton);
+        var applyButton = new Button { Text = "Appliquer le trait", CustomMinimumSize = new Vector2(180, 40) };
+        applyButton.AddThemeColorOverride("font_color", Colors.White);
+        applyButton.Pressed += () => ApplyBrush();
+        preview.AddChild(applyButton);
+        preview.AddChild(new Label
+        {
+            Text = "Chaque application crée une commande indépendante : Annuler/Rétablir restaure exactement le terrain précédent.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
     }
 
     private void BuildTerrainTab(TabContainer tabs)
@@ -164,6 +239,67 @@ public partial class TerrainStudioWindow : Window
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
     }
+
+    private void PreviewBrush()
+    {
+        if (_current is null || _brushPreview is null) return;
+        try
+        {
+            var result = TerrainBrushEditor.Apply(_current.Terrain, BuildBrushStroke(),
+                Guid.Parse("d1400000-0000-4000-8000-000000000000"));
+            _brushPreview.Text = BrushSummary(result);
+        }
+        catch (ArgumentException exception)
+        {
+            _brushPreview.Text = $"✕ {exception.Message}";
+        }
+    }
+
+    private bool ApplyBrush()
+    {
+        var areaId = _active?.Invoke();
+        if (areaId is null || _current is null || _brushPreview is null) return false;
+        try
+        {
+            var stroke = BuildBrushStroke();
+            var preview = TerrainBrushEditor.Apply(_current.Terrain, stroke,
+                Guid.Parse("d1400000-0000-4000-8000-000000000000"));
+            if (preview.ChangedSamples == 0 && preview.ChangedHoleCells == 0)
+            {
+                _brushPreview.Text = "✕ La brosse ne touche aucun échantillon ou cellule modifiable.";
+                return false;
+            }
+
+            var applied = _brush?.Invoke(areaId, stroke) == true;
+            if (applied)
+            {
+                Refresh();
+                _brushPreview.Text = $"✓ {BrushSummary(preview)} · commande annulable appliquée";
+            }
+            else
+            {
+                _brushPreview.Text = "✕ Trait refusé par la validation du projet.";
+            }
+
+            return applied;
+        }
+        catch (ArgumentException exception)
+        {
+            _brushPreview.Text = $"✕ {exception.Message}";
+            return false;
+        }
+    }
+
+    private TerrainBrushStroke BuildBrushStroke() => new(
+        (TerrainBrushOperation)_brushOperation!.GetSelectedId(),
+        (float)_brushX!.Value,
+        (float)_brushZ!.Value,
+        (float)_brushRadius!.Value,
+        (float)_brushStrength!.Value,
+        (float)_brushTargetHeight!.Value);
+
+    private static string BrushSummary(TerrainBrushEditResult result) =>
+        $"Prévisualisation · {result.ChangedSamples} échantillon(s) · {result.ChangedHoleCells} cellule(s) de trou";
 
     private void BuildFeatureTab(TabContainer tabs)
     {
@@ -303,7 +439,10 @@ public partial class TerrainStudioWindow : Window
             var samples = SampleOptions[_samples!.Selected];
             var seed = (int)_seed!.Value;
             var heightScale = (float)_heightScale!.Value;
-            var heights = GenerateHeights(provider, samples, seed);
+            var heights = _current.Terrain.Provider == provider && _current.Terrain.SamplesX == samples &&
+                          _current.Terrain.SamplesZ == samples && _current.Terrain.Seed == seed
+                ? _current.Terrain.Heights
+                : GenerateHeights(provider, samples, seed);
             var oldMaterials = _current.Terrain.MaterialLayers;
             var soil = new TerrainMaterialLayer(oldMaterials.ElementAtOrDefault(0)?.Id ?? Guid.NewGuid(), "Terre",
                 ColorValue(_soilColor!.Text, "#70533a"), oldMaterials.ElementAtOrDefault(0)?.MaterialResource ?? string.Empty, 4);
