@@ -30,6 +30,7 @@ using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
+using Forge.EngineAdapter.Rendering;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Content;
@@ -3822,6 +3823,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunReferenceRenderingSmokeTest())
+        {
+            return;
+        }
+
         if (!RunNavigationAndGeometrySmokeTest())
         {
             return;
@@ -5289,6 +5295,120 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G11F_EXPERIENCE_PASS ui=scalable font=truetype-fallback " +
             "tabs=multi-area comparison=readonly favorites=project-personal recents=ordered " +
             "art=profiled-warnings history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunReferenceRenderingSmokeTest()
+    {
+        if (_history is null || _areaEnvironmentWindow is null || _projectPreview is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11G_RENDER_FAILED missing_workspace");
+            return false;
+        }
+
+        var area = GetActiveArea();
+        var original = area.Environment;
+        var rendering = new AreaRenderingProfile(
+            AreaRenderingProfile.CurrentSchemaVersion,
+            PbrMaterialWorkflow.MetallicRoughness,
+            ToneMappingProfile.Aces,
+            RenderQualityTier.Ultra,
+            forwardPlus: true,
+            perPixelLighting: true,
+            materialInstances: true,
+            hdrOutput: true,
+            exposure: 1.15,
+            whitePoint: 8,
+            lutResource: string.Empty,
+            [
+                new("desktop", 48, 12, 8192, 0.8),
+                new("mobile", 8, 2, 2048, 0.75),
+            ]);
+        var sky = new SkyProfile(
+            SkyProfile.CurrentSchemaVersion,
+            SkyProfileMode.Procedural,
+            string.Empty,
+            "#25385f",
+            "#d88f68",
+            "#211a29",
+            starIntensity: 0.35,
+            cloudCoverage: 0.25,
+            moonIntensity: 0.2,
+            energyMultiplier: 1.1,
+            transitionSeconds: 3);
+        var configured = new AreaEnvironmentProfile(
+            AreaEnvironmentProfile.CurrentSchemaVersion,
+            original.Classification,
+            original.Tags,
+            new(DayNightMode.AlwaysNight, 45, .3f, 1.4f, 4200, true, true),
+            original.Fog,
+            original.Audio,
+            rendering,
+            sky);
+        if (!_areaEnvironmentWindow.ConfigureRenderForSmokeTest(configured) ||
+            !_areaEnvironmentWindow.ApplyForSmokeTest() ||
+            _projectPreview.RenderProfileSummary != "MetallicRoughness:Aces:Procedural" ||
+            _projectPreview.RenderDiagnosticCount != 0 ||
+            _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).Environment.Rendering.ToneMapping != ToneMappingProfile.Aces ||
+            _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).Environment.Rendering.LightBudgets
+                .Single(item => item.Platform == "desktop").MaximumDynamicLights != 48)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11G_RENDER_FAILED apply_preview");
+            return false;
+        }
+
+        var applied = _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).Environment;
+        var plan = AreaRenderPlanBuilder.Build(applied, "desktop", observedDynamicLights: 39, observedShadowCastingLights: 10);
+        if (plan.LightBudget.MaximumDynamicLights != 48 ||
+            !plan.Diagnostics.Any(item => item.Code == AreaRenderPlanBuilder.DynamicLightWarningCode) ||
+            !plan.Diagnostics.Any(item => item.Code == AreaRenderPlanBuilder.ShadowLightWarningCode))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11G_RENDER_FAILED budgets");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "reference-rendering-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restoredEnvironment = reopened.Session?.Project.Areas.Single(candidate => candidate.Id == area.Id).Environment;
+            if (!saved.Succeeded || !reopened.Succeeded || restoredEnvironment is null ||
+                restoredEnvironment.Rendering.ToneMapping != ToneMappingProfile.Aces ||
+                restoredEnvironment.Sky.ZenithColor != "#25385f" ||
+                restoredEnvironment.Rendering.LightBudgets.Single(item => item.Platform == "desktop").ShadowAtlasSize != 8192)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11G_RENDER_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            !ReferenceEquals(
+                _history.State.Project.Areas.Single(candidate => candidate.Id == area.Id).Environment,
+                original))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11G_RENDER_FAILED history");
+            return false;
+        }
+
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G11G_RENDER_PASS pbr=metallic-roughness materials=instances " +
+            "tone=aces hdr=true lighting=per-pixel forward=plus sky=procedural lights=48 shadows=12 " +
+            "history=restored persistence=roundtrip");
         return true;
     }
 

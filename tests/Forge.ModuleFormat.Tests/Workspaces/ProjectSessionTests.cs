@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using Forge.Domain.Areas;
 using Forge.Domain.Projects;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Tests.Serialization;
@@ -147,6 +149,37 @@ public sealed class ProjectSessionTests : IDisposable
             Path.GetDirectoryName(session.ProjectFilePath)!,
             relativeAreaPath.Replace('/', Path.DirectorySeparatorChar))));
         Assert.True(ProjectSession.Open(_temporaryRoot).Succeeded);
+    }
+
+    [Fact]
+    public void Open_MigratesPreRenderingWorkspaceAndAreaDocuments()
+    {
+        var created = ProjectSession.Create(
+            Path.Combine(_temporaryRoot, "pre-rendering"),
+            TestProjectFactory.CreateValid());
+        var session = Assert.IsType<ProjectSession>(created.Session);
+        var projectDocument = JsonNode.Parse(File.ReadAllText(session.ProjectFilePath))!.AsObject();
+        projectDocument["formatVersion"] = "1.2.0";
+        File.WriteAllText(session.ProjectFilePath, projectDocument.ToJsonString());
+        var areaPath = Assert.Single(Directory.EnumerateFiles(
+            Path.Combine(session.RootDirectory, "areas"),
+            "*.json"));
+        var areaDocument = JsonNode.Parse(File.ReadAllText(areaPath))!.AsObject();
+        areaDocument["formatVersion"] = AreaJsonSerializer.PreRenderingProfileFormatVersion;
+        var environment = areaDocument["area"]!["environment"]!.AsObject();
+        environment["schemaVersion"] = 1;
+        environment.Remove("rendering");
+        environment.Remove("sky");
+        File.WriteAllText(areaPath, areaDocument.ToJsonString());
+
+        var reopened = ProjectSession.Open(session.RootDirectory);
+        var migrated = Assert.IsType<ProjectSession>(reopened.Session);
+        var restoredEnvironment = Assert.Single(migrated.Project.Areas).Environment;
+
+        Assert.True(reopened.Succeeded);
+        Assert.Equal(AreaEnvironmentProfile.CurrentSchemaVersion, restoredEnvironment.SchemaVersion);
+        Assert.Equal(PbrMaterialWorkflow.MetallicRoughness, restoredEnvironment.Rendering.MaterialWorkflow);
+        Assert.Equal(SkyProfileMode.Procedural, restoredEnvironment.Sky.Mode);
     }
 
     [Fact]

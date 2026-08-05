@@ -329,6 +329,29 @@ public sealed class ProjectJsonSerializerTests
     }
 
     [Fact]
+    public void Deserialize_MigratesPreRenderingProfileFormatWithCanonicalDefaults()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreRenderingProfileFormatVersion;
+        var environment = document["project"]!["areas"]!.AsArray()[0]!["environment"]!.AsObject();
+        environment["schemaVersion"] = 1;
+        environment.Remove("rendering");
+        environment.Remove("sky");
+
+        var migrated = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        var restoredEnvironment = Assert.Single(migrated.Areas).Environment;
+
+        Assert.Equal(AreaEnvironmentProfile.CurrentSchemaVersion, restoredEnvironment.SchemaVersion);
+        Assert.Equal(PbrMaterialWorkflow.MetallicRoughness, restoredEnvironment.Rendering.MaterialWorkflow);
+        Assert.True(restoredEnvironment.Rendering.HdrOutput);
+        Assert.True(restoredEnvironment.Rendering.PerPixelLighting);
+        Assert.Equal(SkyProfileMode.Procedural, restoredEnvironment.Sky.Mode);
+        Assert.Contains(
+            $"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(migrated));
+    }
+
+    [Fact]
     public void Deserialize_MigratesPaletteProvenanceFormatWithProjectDefaults()
     {
         var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();

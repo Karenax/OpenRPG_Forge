@@ -418,7 +418,10 @@ Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dan
 - [x] **G11-C** — round-trip externe et Blender réel avec source du Vault immuable.
 - [x] **G11-D** — signatures, deltas, canaux et bundle Windows installable/désinstallable.
 - [x] **G11-E** — imports/exports en masse, tables de données et fusion assistée.
-- [ ] **G11-F** — UI scalable, onglets de zone, favoris et compatibilité artistique.
+- [x] **G11-F** — UI scalable, onglets de zone, favoris et compatibilité artistique.
+- [x] **G11-G** — rendu PBR/HDR, éclairage par pixel, budgets dynamiques et ciel canonique.
+- [ ] **G11-H** — vent, météo, eau et réverbération runtime.
+- [ ] **G11-I à G11-T** — poursuivre les lots bornés du plan de preuves Aurora.
 
 ## Backlog post-MVP — Asset Vault et Forgotten Forest
 

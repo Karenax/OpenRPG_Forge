@@ -12,6 +12,7 @@ using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
 using Forge.EngineAdapter.Spatial;
+using Forge.EngineAdapter.Rendering;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Saves;
@@ -76,6 +77,7 @@ public partial class GameRoot : Node3D
     private bool _loadedSave;
     private RuntimeLifecycleCoordinator? _lifecycle;
     private ForgeScriptArtifactCache? _forgeScriptCache;
+    private AreaRenderPlan? _renderPlan;
 
     public override void _Ready()
     {
@@ -117,7 +119,8 @@ public partial class GameRoot : Node3D
             _moduleSlug = project.Module.Slug;
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
             _message = $"Explorez {_moduleTitle}.";
-            ConfigureWorld(_isCryptPrototype);
+            var entryArea = project.Areas.Single(area => area.Id == project.Module.EntryAreaId);
+            ConfigureWorld(entryArea.Environment, _isCryptPrototype);
             var selectedSpawn = BuildProject(project, requestedSpawnId);
             EnsureLifecycle(
                 _lifecycle.EnterInitialArea(
@@ -733,16 +736,32 @@ public partial class GameRoot : Node3D
         return root;
     }
 
-    private void ConfigureWorld(bool includeCryptAtmosphere)
+    private void ConfigureWorld(AreaEnvironmentProfile environmentProfile, bool includeCryptAtmosphere)
     {
-        RenderingServer.SetDefaultClearColor(new Color("11101c"));
+        ArgumentNullException.ThrowIfNull(environmentProfile);
+        var dynamicLights = includeCryptAtmosphere ? 8 : 2;
+        var shadowLights = 2;
+        _renderPlan = AreaRenderPlanBuilder.Build(
+            environmentProfile,
+            OS.HasFeature("mobile") ? "mobile" : "desktop",
+            dynamicLights,
+            shadowLights);
+        var engineEnvironment = GodotEnvironmentAdapter.Build(_renderPlan);
+        RenderingServer.SetDefaultClearColor(new Color(environmentProfile.Sky.GroundColor));
+        AddChild(new WorldEnvironment
+        {
+            Name = "ForgeWorldEnvironment",
+            Environment = engineEnvironment.Environment,
+        });
+        GetViewport().PositionalShadowAtlasSize = engineEnvironment.ShadowAtlasSize;
 
         var sun = new DirectionalLight3D
         {
+            Name = "ForgeReferenceSun",
             RotationDegrees = new Vector3(-58, -32, 0),
-            LightColor = new Color("e8d6bc"),
-            LightEnergy = 1.1f,
-            ShadowEnabled = true,
+            LightColor = engineEnvironment.DirectionalLightColor,
+            LightEnergy = engineEnvironment.DirectionalLightEnergy,
+            ShadowEnabled = environmentProfile.Lighting.Shadows,
         };
         AddChild(sun);
 
@@ -754,6 +773,20 @@ public partial class GameRoot : Node3D
             LightEnergy = 4,
             ShadowEnabled = true,
         });
+
+        foreach (var diagnostic in engineEnvironment.Diagnostics)
+        {
+            GD.Print($"OPENRPG_FORGE_RUNTIME_RENDER_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        }
+
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_RENDER_PROFILE_PASS pbr={environmentProfile.Rendering.MaterialWorkflow.ToString().ToLowerInvariant()} " +
+            $"tone={environmentProfile.Rendering.ToneMapping.ToString().ToLowerInvariant()} hdr={environmentProfile.Rendering.HdrOutput.ToString().ToLowerInvariant()} " +
+            $"perpixel={environmentProfile.Rendering.PerPixelLighting.ToString().ToLowerInvariant()} sky={environmentProfile.Sky.Mode.ToString().ToLowerInvariant()} " +
+            $"lights={dynamicLights}/{_renderPlan.LightBudget.MaximumDynamicLights} shadows={shadowLights}/{_renderPlan.LightBudget.MaximumShadowCastingLights}");
+        GD.Print(
+            $"OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method={RenderingServer.GetCurrentRenderingMethod()} " +
+            $"driver={RenderingServer.GetCurrentRenderingDriverName()}");
 
         if (includeCryptAtmosphere)
         {
@@ -1608,7 +1641,7 @@ public partial class GameRoot : Node3D
         }
     }
 
-    private static StandardMaterial3D CreateMaterial(Color color, bool emission = false)
+    private StandardMaterial3D CreateMaterial(Color color, bool emission = false)
     {
         var material = new StandardMaterial3D
         {
@@ -1616,6 +1649,10 @@ public partial class GameRoot : Node3D
             Roughness = 0.72f,
             Metallic = 0.08f,
         };
+        if (_renderPlan is not null)
+        {
+            GodotEnvironmentAdapter.ApplyPbrDefaults(material, _renderPlan);
+        }
 
         if (emission)
         {

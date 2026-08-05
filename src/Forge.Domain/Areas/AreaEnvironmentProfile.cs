@@ -121,21 +121,26 @@ public sealed record AreaAudioProfile
 
 public sealed record AreaEnvironmentProfile
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
     public int SchemaVersion { get; }
     public AreaEnvironmentClass Classification { get; }
     public IReadOnlyList<string> Tags { get; }
     public AreaLightingProfile Lighting { get; }
     public AreaFogProfile Fog { get; }
     public AreaAudioProfile Audio { get; }
+    public AreaRenderingProfile Rendering { get; }
+    public SkyProfile Sky { get; }
     public AreaEnvironmentProfile(int schemaVersion, AreaEnvironmentClass classification, IReadOnlyList<string> tags,
-        AreaLightingProfile lighting, AreaFogProfile fog, AreaAudioProfile audio)
+        AreaLightingProfile lighting, AreaFogProfile fog, AreaAudioProfile audio,
+        AreaRenderingProfile? rendering = null, SkyProfile? sky = null)
     {
-        if (schemaVersion != CurrentSchemaVersion) throw new ArgumentOutOfRangeException(nameof(schemaVersion));
+        if (schemaVersion is not 1 and not CurrentSchemaVersion) throw new ArgumentOutOfRangeException(nameof(schemaVersion));
         ArgumentNullException.ThrowIfNull(tags); ArgumentNullException.ThrowIfNull(lighting); ArgumentNullException.ThrowIfNull(fog); ArgumentNullException.ThrowIfNull(audio);
-        SchemaVersion = schemaVersion; Classification = classification; Tags = tags.Where(tag => !string.IsNullOrWhiteSpace(tag))
+        SchemaVersion = CurrentSchemaVersion; Classification = classification; Tags = tags.Where(tag => !string.IsNullOrWhiteSpace(tag))
             .Select(tag => tag.Trim().ToLowerInvariant()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         Lighting = lighting; Fog = fog; Audio = audio;
+        Rendering = rendering ?? AreaRenderingProfile.CreateDefault();
+        Sky = sky ?? SkyProfile.CreateDefault(classification);
     }
     public static AreaEnvironmentProfile CreateDefault(AreaKind kind) => new(CurrentSchemaVersion,
         kind == AreaKind.Interior ? AreaEnvironmentClass.Interior : AreaEnvironmentClass.Exterior,

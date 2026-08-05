@@ -189,6 +189,13 @@ favori projet, favori personnel non exporté et récents ordonnés. La même sur
 prévisualise le profil artistique du module et présente les écarts d’échelle, densité texel, shader,
 époque, réalisme et palette comme avertissements actionnables, jamais comme verdict esthétique opaque.
 
+G11-G transforme **Environnement de zone** en surface responsive à trois onglets. **Rendu & ciel**
+regroupe PBR, qualité, tone mapping, HDR, exposition, Forward+, éclairage par pixel, budgets desktop
+et ciel physique, procédural ou panorama sans noyer l'auteur dans les propriétés du moteur.
+**Brouillard** et **Audio** conservent leurs réglages dans des parcours courts. La prévisualisation
+3D et le jeu consomment le même profil canonique ; un budget approché ou dépassé reste visible comme
+diagnostic, et l'action braise applique l'ensemble par la commande transactionnelle existante.
+
 ## Contexte graphique 3D
 
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec

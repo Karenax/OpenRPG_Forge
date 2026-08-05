@@ -85,6 +85,13 @@ profil artistique transactionnel et des avertissements de cohérence non bloquan
 détaillée est dans
 [`tasks/G11-F-SCALABLE-EDITOR-ARTISTIC-COMPATIBILITY.md`](tasks/G11-F-SCALABLE-EDITOR-ARTISTIC-COMPATIBILITY.md).
 
+**G11-G est fermé le 5 août 2026.** Chaque zone porte désormais un profil de rendu PBR/HDR et un
+ciel canoniques. L'aperçu Creator et le runtime partagent le même adapter pour les matériaux par
+pixel, le tone mapping, l'exposition, les ombres, les budgets de lumières et les ciels physique,
+procédural ou panorama. Les formats projet, workspace et zone migrent les profils absents. La preuve
+détaillée est dans
+[`tasks/G11-G-REFERENCE-RENDERING-AND-SKY.md`](tasks/G11-G-REFERENCE-RENDERING-AND-SKY.md).
+
 ## Prochaine tâche unique
 
-Démarrer **G11-G** : rendu PBR, HDR, éclairage et ciel de référence.
+Démarrer **G11-H** : vent, météo, eau et réverbération runtime.

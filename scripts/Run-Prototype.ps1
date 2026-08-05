@@ -18,7 +18,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Start-Process `
     -FilePath $enginePath `
-    -ArgumentList @('--path', $runtimePath, '--log-file', $runtimeLog) `
+    -ArgumentList @('--rendering-method', 'forward_plus', '--path', $runtimePath, '--log-file', $runtimeLog) `
     -WorkingDirectory $runtimePath
 
 Write-Output "Prototype lancé : Crypte des Cendres. Journal : $runtimeLog"

@@ -13,6 +13,7 @@ using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.EngineAdapter.Spatial;
+using Forge.EngineAdapter.Rendering;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -50,6 +51,10 @@ public partial class ProjectPreview3D : SubViewportContainer
     private Label? _cameraSpeedLabel;
     private Label? _bookmarkSummary;
     private EditorDisplayFilter _displayFilter = EditorDisplayFilter.ShowAll;
+    private WorldEnvironment? _worldEnvironment;
+    private DirectionalLight3D? _referenceSun;
+    private OmniLight3D? _referenceFill;
+    private AreaRenderPlan? _renderPlan;
 
     public int EntityCount { get; private set; }
 
@@ -62,6 +67,12 @@ public partial class ProjectPreview3D : SubViewportContainer
     public int NavigationOverlayCellCount { get; private set; }
 
     public EditorCameraProfile? CameraProfile => _cameraHistory?.State.Profile;
+
+    public string RenderProfileSummary => _renderPlan is null
+        ? "unavailable"
+        : $"{_renderPlan.Rendering.MaterialWorkflow}:{_renderPlan.Rendering.ToneMapping}:{_renderPlan.Sky.Mode}";
+
+    public int RenderDiagnosticCount => _renderPlan?.Diagnostics.Count ?? 0;
 
     public ProjectPreview3D()
     {
@@ -160,6 +171,7 @@ public partial class ProjectPreview3D : SubViewportContainer
             project.Areas.FirstOrDefault()
             ?? throw new InvalidOperationException("The project does not contain an area to preview.");
         var blueprints = project.Blueprints.ToDictionary(blueprint => blueprint.Id);
+        ApplyEnvironment(area.Environment);
         _dragPalette.SetBlueprints(project.Blueprints);
         _areaRoot = new Node3D { Name = "AreaPreview" };
         _world.AddChild(_areaRoot);
@@ -178,6 +190,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         }
 
         RefreshSelectedGizmo();
+        ApplyPbrMaterials(_areaRoot);
         ApplyDisplayFilter();
     }
 
@@ -1124,22 +1137,65 @@ public partial class ProjectPreview3D : SubViewportContainer
         _world.AddChild(_camera);
         _camera.LookAtFromPosition(_camera.Position, Vector3.Zero, Vector3.Up);
 
-        _world.AddChild(new DirectionalLight3D
+        _referenceSun = new DirectionalLight3D
         {
             Name = "PreviewSun",
             RotationDegrees = new Vector3(-58, -32, 0),
             LightColor = new Color("e8d6bc"),
             LightEnergy = 1.1f,
             ShadowEnabled = true,
-        });
-        _world.AddChild(new OmniLight3D
+        };
+        _world.AddChild(_referenceSun);
+        _referenceFill = new OmniLight3D
         {
             Name = "PreviewFill",
             Position = new Vector3(0, 5, -7),
             OmniRange = 18,
             LightColor = new Color("ff7043"),
             LightEnergy = 4,
-        });
+        };
+        _world.AddChild(_referenceFill);
+        _worldEnvironment = new WorldEnvironment { Name = "PreviewEnvironment" };
+        _world.AddChild(_worldEnvironment);
+    }
+
+    private void ApplyEnvironment(AreaEnvironmentProfile profile)
+    {
+        _renderPlan = AreaRenderPlanBuilder.Build(profile, "desktop", observedDynamicLights: 2, observedShadowCastingLights: 1);
+        var result = GodotEnvironmentAdapter.Build(_renderPlan);
+        _worldEnvironment!.Environment = result.Environment;
+        _viewport.PositionalShadowAtlasSize = result.ShadowAtlasSize;
+        _referenceSun!.LightColor = result.DirectionalLightColor;
+        _referenceSun.LightEnergy = result.DirectionalLightEnergy;
+        _referenceSun.ShadowEnabled = profile.Lighting.Shadows;
+        foreach (var diagnostic in result.Diagnostics)
+        {
+            GD.Print($"OPENRPG_FORGE_TOOLSET_RENDER_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        }
+
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_RENDER_PROFILE_APPLIED pbr={profile.Rendering.MaterialWorkflow.ToString().ToLowerInvariant()} " +
+            $"tone={profile.Rendering.ToneMapping.ToString().ToLowerInvariant()} hdr={profile.Rendering.HdrOutput.ToString().ToLowerInvariant()} " +
+            $"perpixel={profile.Rendering.PerPixelLighting.ToString().ToLowerInvariant()} sky={profile.Sky.Mode.ToString().ToLowerInvariant()} " +
+            $"lights=2/{_renderPlan.LightBudget.MaximumDynamicLights}");
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_RENDER_BACKEND method={RenderingServer.GetCurrentRenderingMethod()} " +
+            $"driver={RenderingServer.GetCurrentRenderingDriverName()}");
+    }
+
+    private void ApplyPbrMaterials(Node node)
+    {
+        if (_renderPlan is null) return;
+        if (node is MeshInstance3D { MaterialOverride: StandardMaterial3D material } &&
+            material.ShadingMode != BaseMaterial3D.ShadingModeEnum.Unshaded)
+        {
+            GodotEnvironmentAdapter.ApplyPbrDefaults(material, _renderPlan);
+        }
+
+        foreach (Node child in node.GetChildren())
+        {
+            ApplyPbrMaterials(child);
+        }
     }
 
     private void CreateGrid()

@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta et G10 Live Director
-fermés ; G11-A à G11-F Contenu moderne fermés et G11-G ouvert.**
+fermés ; G11-A à G11-G Contenu moderne fermés et G11-H ouvert.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -13,7 +13,7 @@ zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplac
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
 
-Le lancement interactif direct est de nouveau validé sur le workspace scindé `1.0.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.3.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -40,7 +40,7 @@ G7-07 ajoute un index de recherche global dérivé, les références inversées 
 transactionnel prévisualisé qui conserve les UUID du projet, module, zones, blueprints, dialogues et
 quêtes.
 G7-08 rend configurables les métadonnées de publication localisées et les variables globales typées,
-les persiste dans le format 0.8, les indexe dans la recherche et branche le runtime sur un blackboard
+les a introduites au format 0.8, les migre dans le workspace 1.3, les indexe dans la recherche et branche le runtime sur un blackboard
 validé.
 G7-09 sépare les palettes Standard et Custom : packs installés en lecture seule, contenu projet,
 généré, favori et temporaire partagent un catalogue canonique, des filtres Aurora et une provenance
@@ -83,16 +83,16 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - moteur 3D .NET requis installé et versionné ;
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
-- solution de 16 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 256 tests .NET et 24 tests Python réussis ;
+- solution de 24 projets restaurée et compilée en Release sans avertissement ni erreur ;
+- 556 tests .NET, 24 tests Python généraux et 11 tests Python du pipeline d'assets réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
   icônes des fenêtres Forge personnalisées puis contrôlées par le smoke test et une capture ciblée ;
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
 - assistant Nouveau module validé : agrégat module, zone d’entrée, sol, spawn et workspace atomique
-  indexé au format `1.0.0`, avec zone indépendante 1.0 et lecture/migration testée des agrégats
-  `0.6.5`, `0.6.4`, `0.6.3`, `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
+  indexé au format `1.3.0`, avec zone indépendante 1.2 et lecture/migration testée des agrégats
+  `0.6.8` à `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
   édition visuelle, sérialisation, commande transactionnelle, dry-run, audit, undo/redo et smoke ;
 - Play from here validé : spawn sélectionné, snapshot de l’état courant, lancement runtime, retour
@@ -141,7 +141,7 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
   sûr prévisualisé avec dry-run, validation, UUID stable, undo/redo et round-trip ;
 - configuration G7-08 : publication localisée avec auteur, version, licence, image, tags,
   classification et crédits ; variables à UUID, type, valeur par défaut, scope et provenance ;
-  éditeur à aperçu obligatoire, format workspace 0.8, package versionné et blackboard runtime ;
+  éditeur à aperçu obligatoire, migration du format workspace 0.8 vers 1.3, package versionné et blackboard runtime ;
 - palettes G7-09 : catalogue unique filtrable par pack installé, projet, généré, favori et temporaire,
   packs verrouillés, provenance versionnée visible, recherche, dry-run, historique et round-trip ;
 - caméra G7-10 : profil auteur UUID/schéma v1, orbite, panoramique, zoom adaptatif, focus, vues
@@ -197,7 +197,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 - la branche RPG du runtime de démonstration contient encore des comportements spécifiques à Elyra,
   la clé, la porte et le boss ; le démarrage Core générique est séparé mais l'extraction complète
   attend les incréments RPG Kit ;
-- Blender Worker et le serveur autoritaire ne sont pas commencés ;
+- le Blender Worker exécute désormais un round-trip réel gouverné et le serveur autoritaire possède
+  sa bêta testée ; la surveillance d'assets continue et le déploiement multijoueur public de
+  production restent à livrer ;
 - le premier Asset Vault externe contient 555 assets CC0 Poly Haven/ambientCG et 50 packs 3D Kenney,
   soit environ 5 236 modèles logiques estimés ; leur normalisation visuelle, l’interface Assets et la
   sélection Forgotten Forest restent à livrer ;
@@ -234,7 +236,7 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 
 ## Prochaine tâche unique
 
-Le second module original **La Veillée des Éclats** est généré par 15 commandes d'auteur puis
+Le second module original **La Veillée des Éclats** est généré par 17 commandes d'auteur puis
 persisté via `ProjectSession`; son round-trip et son export `.orpmod` sont couverts automatiquement.
 
 L'audit **G11 Contenu moderne et qualité de distribution** couvre 99/99 exigences dans 20 lots bornés.
@@ -264,4 +266,8 @@ fusion à trois voies qui conserve les deux variantes conflictuelles.
 **G11-F est fermé** : le profil éditeur v2 applique échelle UI, taille de texte et chaîne de polices,
 gère plusieurs onglets de zone, comparaison protégée, favoris personnels et récents. Le module porte
 un profil artistique transactionnel et des avertissements d’échelle, densité texel, shader, époque,
-réalisme et palette. G11-G porte maintenant le rendu PBR, HDR, l’éclairage et le ciel de référence.
+réalisme et palette.
+
+**G11-G est fermé** : profil de zone PBR/HDR, éclairage Forward+ par pixel, tone mapping, exposition,
+budgets de lumières et d'ombres, ciel physique/procédural/panorama et migrations sont partagés par
+l'aperçu Creator et le runtime. G11-H porte maintenant le vent, la météo, l'eau et la réverbération.

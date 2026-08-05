@@ -7,7 +7,8 @@ namespace Forge.ModuleFormat.Serialization;
 
 public static class ProjectJsonSerializer
 {
-    public const string CurrentFormatVersion = "0.6.8";
+    public const string CurrentFormatVersion = "0.6.9";
+    public const string PreRenderingProfileFormatVersion = "0.6.8";
     public const string PreArtisticStyleFormatVersion = "0.6.7";
     public const string PreContentWorkspaceFormatVersion = "0.6.6";
     public const string PreLocalizationFormatVersion = "0.6.5";
@@ -47,6 +48,7 @@ public static class ProjectJsonSerializer
         var formatVersion = formatVersionElement.GetString();
         ProjectDefinition project;
         if (string.Equals(formatVersion, CurrentFormatVersion, StringComparison.Ordinal) ||
+            string.Equals(formatVersion, PreRenderingProfileFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PreArtisticStyleFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PreContentWorkspaceFormatVersion, StringComparison.Ordinal) ||
             string.Equals(formatVersion, PreLocalizationFormatVersion, StringComparison.Ordinal) ||

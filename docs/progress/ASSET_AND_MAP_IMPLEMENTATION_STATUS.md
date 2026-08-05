@@ -42,6 +42,8 @@ Dernière mise à jour : 5 août 2026.
 - profil artistique canonique avec cible métrique, densité texel, shader, époque, réalisme et palette,
   avertissements par blueprint, édition transactionnelle et persistance versionnée ;
 - profil éditeur v2 avec échelle UI/texte, replis de polices, onglets de zones et favoris/récents.
+- profil de rendu de zone PBR/HDR avec tone mapping, éclairage par pixel, budgets de lumières et ciel
+  physique/procédural/panorama, appliqué de façon identique au Creator et au runtime.
 
 ## Partiellement terminé
 
@@ -62,6 +64,6 @@ Dernière mise à jour : 5 août 2026.
 
 ## Prochaine action
 
-Livrer G11-G (PBR, HDR, éclairage et ciel de référence), puis curater un premier pack multi-biome
-cohérent et remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés
-la source de vérité de la carte.
+Livrer G11-H (vent, météo, eau et réverbération), puis curater un premier pack multi-biome cohérent
+et remplacer les trois slots du prototype par des GLB gouvernés sans faire des nœuds générés la
+source de vérité de la carte.

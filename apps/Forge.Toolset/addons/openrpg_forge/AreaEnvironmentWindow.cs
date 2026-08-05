@@ -7,45 +7,512 @@ namespace Forge.Toolset.Editor;
 
 public partial class AreaEnvironmentWindow : Window
 {
-    private Func<ProjectState?>? _state; private Func<AreaId?>? _active; private Func<AreaId, AreaEnvironmentProfile, bool>? _apply; private Action<Window>? _brand;
-    private OptionButton? _classification; private LineEdit? _tags; private OptionButton? _dayNight; private SpinBox? _dayLength; private SpinBox? _ambient; private SpinBox? _sun; private SpinBox? _temperature;
-    private OptionButton? _fogMode; private SpinBox? _fogDensity; private SpinBox? _fogStart; private SpinBox? _fogEnd; private LineEdit? _dayMusic; private LineEdit? _nightMusic; private LineEdit? _combatMusic; private LineEdit? _ambience; private LineEdit? _reverb; private Label? _status;
-    private LineEdit? _playlist; private OptionButton? _audioOrder; private SpinBox? _audioInterval; private SpinBox? _audioVariation; private SpinBox? _audioVolume;
-    private OptionButton? _soundMode; private SpinBox? _innerRadius; private SpinBox? _outerRadius; private CheckBox? _initiallyActive; private OptionButton? _instancePolicy; private OptionButton? _authority; private LineEdit? _adaptiveResource; private LineEdit? _adaptiveWeather; private LineEdit? _adaptiveTag;
-    private LineEdit? _captionResource; private LineEdit? _captionFr; private CheckBox? _captionDirection;
+    private Func<ProjectState?>? _state;
+    private Func<AreaId?>? _active;
+    private Func<AreaId, AreaEnvironmentProfile, bool>? _apply;
+    private Action<Window>? _brand;
+    private AreaEnvironmentProfile? _current;
 
-    public void Initialize(Func<ProjectState?> state, Func<AreaId?> active, Func<AreaId, AreaEnvironmentProfile, bool> apply, Action<Window> brand)
-    { _state = state; _active = active; _apply = apply; _brand = brand; Title = "Environnement de zone · OpenRPG Forge"; MinSize = new(980, 690); Size = MinSize; Transient = true; Visible = false; Build(); }
-    public void Open() { Refresh(); PopupCentered(MinSize); _brand?.Invoke(this); }
+    private OptionButton? _classification;
+    private LineEdit? _tags;
+    private OptionButton? _dayNight;
+    private SpinBox? _dayLength;
+    private SpinBox? _ambient;
+    private SpinBox? _sun;
+    private SpinBox? _temperature;
+    private OptionButton? _toneMapping;
+    private OptionButton? _quality;
+    private SpinBox? _exposure;
+    private SpinBox? _whitePoint;
+    private CheckBox? _hdrOutput;
+    private CheckBox? _forwardPlus;
+    private CheckBox? _perPixel;
+    private CheckBox? _materialInstances;
+    private SpinBox? _dynamicLights;
+    private SpinBox? _shadowLights;
+    private SpinBox? _shadowAtlas;
+    private OptionButton? _skyMode;
+    private LineEdit? _panorama;
+    private LineEdit? _zenith;
+    private LineEdit? _horizon;
+    private LineEdit? _ground;
+    private SpinBox? _stars;
+    private SpinBox? _clouds;
+    private SpinBox? _moon;
+    private SpinBox? _skyEnergy;
+    private SpinBox? _skyTransition;
+    private OptionButton? _fogMode;
+    private SpinBox? _fogDensity;
+    private SpinBox? _fogStart;
+    private SpinBox? _fogEnd;
+    private LineEdit? _dayMusic;
+    private LineEdit? _nightMusic;
+    private LineEdit? _combatMusic;
+    private LineEdit? _ambience;
+    private LineEdit? _reverb;
+    private LineEdit? _playlist;
+    private OptionButton? _audioOrder;
+    private SpinBox? _audioInterval;
+    private SpinBox? _audioVariation;
+    private SpinBox? _audioVolume;
+    private OptionButton? _soundMode;
+    private SpinBox? _innerRadius;
+    private SpinBox? _outerRadius;
+    private CheckBox? _initiallyActive;
+    private OptionButton? _instancePolicy;
+    private OptionButton? _authority;
+    private LineEdit? _adaptiveResource;
+    private LineEdit? _adaptiveWeather;
+    private LineEdit? _adaptiveTag;
+    private LineEdit? _captionResource;
+    private LineEdit? _captionFr;
+    private CheckBox? _captionDirection;
+    private Label? _status;
+
+    internal string RenderSummary => _current is null
+        ? "unavailable"
+        : $"{_current.Rendering.MaterialWorkflow}:{_current.Rendering.ToneMapping}:{_current.Sky.Mode}";
+
+    public void Initialize(
+        Func<ProjectState?> state,
+        Func<AreaId?> active,
+        Func<AreaId, AreaEnvironmentProfile, bool> apply,
+        Action<Window> brand)
+    {
+        _state = state ?? throw new ArgumentNullException(nameof(state));
+        _active = active ?? throw new ArgumentNullException(nameof(active));
+        _apply = apply ?? throw new ArgumentNullException(nameof(apply));
+        _brand = brand ?? throw new ArgumentNullException(nameof(brand));
+        Title = "Environnement de zone · OpenRPG Forge";
+        MinSize = new Vector2I(1240, 760);
+        Size = new Vector2I(1320, 820);
+        Transient = true;
+        Visible = false;
+        Build();
+    }
+
+    public void Open()
+    {
+        Refresh();
+        PopupCentered(Size);
+        _brand?.Invoke(this);
+    }
+
+    internal bool ConfigureRenderForSmokeTest(AreaEnvironmentProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        _current = profile;
+        Populate(profile);
+        return true;
+    }
+
+    internal bool ApplyForSmokeTest() => Save();
+
     private void Build()
     {
-        var root = new VBoxContainer { OffsetLeft = 22, OffsetTop = 18, OffsetRight = 958, OffsetBottom = 670 }; AddChild(root);
-        var h = new Label { Text = "ENVIRONNEMENT DE ZONE", ThemeTypeVariation = "HeaderSmall" }; h.AddThemeColorOverride("font_color", new("ff9858")); root.AddChild(h);
-        root.AddChild(new Label { Text = "Classification, cycle, éclairage HDR, brouillard et mixage audio dans un profil canonique." });
-        var body = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill }; root.AddChild(body);
-        var general = Col(body, "CLASSIFICATION & LUMIÈRE"); _classification = EnumOption<AreaEnvironmentClass>(); general.AddChild(_classification); _tags = Field("Tags : cave, naturel…"); general.AddChild(_tags); _dayNight = EnumOption<DayNightMode>(); general.AddChild(_dayNight);
-        _dayLength = Spin(1, 1440, 24, 1); general.AddChild(Row("Durée du jour (min)", _dayLength)); _ambient = Spin(0, 20, .35, .05); general.AddChild(Row("Ambiante", _ambient)); _sun = Spin(0, 50, 1, .05); general.AddChild(Row("Directionnelle", _sun)); _temperature = Spin(1000, 20000, 6500, 100); general.AddChild(Row("Température K", _temperature));
-        var fog = Col(body, "BROUILLARD"); _fogMode = EnumOption<FogMode>(); fog.AddChild(_fogMode); _fogDensity = Spin(0, 1, 0, .01); fog.AddChild(Row("Densité", _fogDensity)); _fogStart = Spin(0, 10000, 20, 1); fog.AddChild(Row("Début", _fogStart)); _fogEnd = Spin(0, 10000, 100, 1); fog.AddChild(Row("Fin", _fogEnd));
-        var audio = Col(body, "AUDIO ADAPTATIF"); _dayMusic = Field("Musique jour"); audio.AddChild(_dayMusic); _nightMusic = Field("Musique nuit"); audio.AddChild(_nightMusic); _combatMusic = Field("Musique combat"); audio.AddChild(_combatMusic); _ambience = Field("Ambiance"); audio.AddChild(_ambience); _reverb = Field("Réverbération"); audio.AddChild(_reverb);
-        _playlist = Field("Playlist : birds.ogg, wind.ogg"); audio.AddChild(_playlist); _audioOrder = EnumOption<AudioOrderMode>(); audio.AddChild(_audioOrder);
-        _audioInterval = Spin(0, 3600, 10, .5); audio.AddChild(Row("Intervalle", _audioInterval)); _audioVariation = Spin(0, 3600, 2, .5); audio.AddChild(Row("Variation", _audioVariation)); _audioVolume = Spin(0, 4, 1, .05); audio.AddChild(Row("Volume relatif", _audioVolume));
-        _soundMode = EnumOption<AreaSoundMode>(); audio.AddChild(_soundMode); _innerRadius = Spin(0, 10000, 2, .5); audio.AddChild(Row("Portée interne", _innerRadius)); _outerRadius = Spin(0, 10000, 20, .5); audio.AddChild(Row("Portée externe", _outerRadius)); _initiallyActive = new CheckBox { Text = "Actif au chargement", ButtonPressed = true }; audio.AddChild(_initiallyActive); _instancePolicy = EnumOption<AudioInstancePolicy>(); audio.AddChild(_instancePolicy); _authority = EnumOption<AudioAuthority>(); audio.AddChild(_authority); _adaptiveResource = Field("Couche adaptative"); audio.AddChild(_adaptiveResource); _adaptiveWeather = Field("Météo requise"); audio.AddChild(_adaptiveWeather); _adaptiveTag = Field("Tag de lieu"); audio.AddChild(_adaptiveTag);
-        _captionResource = Field("Son important à sous-titrer"); audio.AddChild(_captionResource); _captionFr = Field("Sous-titre français"); audio.AddChild(_captionFr); _captionDirection = new CheckBox { Text = "Indiquer la direction", ButtonPressed = true }; audio.AddChild(_captionDirection);
-        _status = new Label(); root.AddChild(_status); var buttons = new HBoxContainer(); buttons.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill }); var save = new Button { Text = "Appliquer" }; save.Pressed += Save; buttons.AddChild(save); var close = new Button { Text = "Fermer" }; close.Pressed += Hide; buttons.AddChild(close); root.AddChild(buttons);
+        var margin = new MarginContainer();
+        margin.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        foreach (var side in new[] { "margin_left", "margin_top", "margin_right", "margin_bottom" })
+        {
+            margin.AddThemeConstantOverride(side, 20);
+        }
+
+        AddChild(margin);
+        var root = new VBoxContainer();
+        root.AddThemeConstantOverride("separation", 12);
+        margin.AddChild(root);
+        var header = new Label { Text = "ENVIRONNEMENT DE ZONE", ThemeTypeVariation = "HeaderSmall" };
+        header.AddThemeColorOverride("font_color", new Color("ff9858"));
+        root.AddChild(header);
+        root.AddChild(new Label
+        {
+            Text = "Rendu PBR/HDR, ciel, lumière, brouillard et audio restent dans un profil canonique annulable.",
+        });
+
+        var tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        root.AddChild(tabs);
+        BuildRenderingTab(tabs);
+        BuildFogTab(tabs);
+        BuildAudioTab(tabs);
+
+        _status = new Label { Text = "Prêt · prévisualisez les budgets avant application." };
+        _status.AddThemeColorOverride("font_color", new Color("9bd9bd"));
+        root.AddChild(_status);
+        var actions = new HBoxContainer();
+        actions.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
+        var apply = new Button { Text = "Appliquer le profil", CustomMinimumSize = new Vector2(190, 40) };
+        apply.Pressed += () => Save();
+        actions.AddChild(apply);
+        var close = new Button { Text = "Fermer", CustomMinimumSize = new Vector2(110, 40) };
+        close.Pressed += Hide;
+        actions.AddChild(close);
+        root.AddChild(actions);
     }
+
+    private void BuildRenderingTab(TabContainer tabs)
+    {
+        var scroll = Tab(tabs, "Rendu & ciel");
+        var columns = new HBoxContainer();
+        columns.AddThemeConstantOverride("separation", 14);
+        scroll.AddChild(columns);
+
+        var area = Card(columns, "ZONE & LUMIÈRE");
+        _classification = EnumOption<AreaEnvironmentClass>();
+        area.AddChild(FieldRow("Classification", _classification));
+        _tags = Field("Tags : cave, naturel…");
+        area.AddChild(_tags);
+        _dayNight = EnumOption<DayNightMode>();
+        area.AddChild(FieldRow("Cycle", _dayNight));
+        _dayLength = Spin(1, 1440, 24, 1);
+        area.AddChild(FieldRow("Durée du jour (min)", _dayLength));
+        _ambient = Spin(0, 20, .35, .05);
+        area.AddChild(FieldRow("Ambiante", _ambient));
+        _sun = Spin(0, 50, 1, .05);
+        area.AddChild(FieldRow("Directionnelle", _sun));
+        _temperature = Spin(1000, 20000, 6500, 100);
+        area.AddChild(FieldRow("Température K", _temperature));
+
+        var render = Card(columns, "PBR · HDR · BUDGETS");
+        render.AddChild(new Label { Text = "Workflow · Metallic / Roughness" });
+        _toneMapping = EnumOption<ToneMappingProfile>();
+        render.AddChild(FieldRow("Tone mapper", _toneMapping));
+        _quality = EnumOption<RenderQualityTier>();
+        render.AddChild(FieldRow("Qualité", _quality));
+        _exposure = Spin(.05, 8, 1, .05);
+        render.AddChild(FieldRow("Exposition", _exposure));
+        _whitePoint = Spin(1, 32, 6, .25);
+        render.AddChild(FieldRow("Point blanc", _whitePoint));
+        _hdrOutput = Check("Sortie HDR", true);
+        _forwardPlus = Check("Forward+", true);
+        _perPixel = Check("Éclairage par pixel", true);
+        _materialInstances = Check("Instances de matériaux", true);
+        render.AddChild(_hdrOutput);
+        render.AddChild(_forwardPlus);
+        render.AddChild(_perPixel);
+        render.AddChild(_materialInstances);
+        _dynamicLights = Spin(0, 4096, 32, 1);
+        render.AddChild(FieldRow("Lumières dynamiques", _dynamicLights));
+        _shadowLights = Spin(0, 4096, 8, 1);
+        render.AddChild(FieldRow("Avec ombres", _shadowLights));
+        _shadowAtlas = Spin(512, 16384, 4096, 512);
+        render.AddChild(FieldRow("Atlas d’ombres", _shadowAtlas));
+
+        var sky = Card(columns, "CIEL DE RÉFÉRENCE");
+        _skyMode = EnumOption<SkyProfileMode>();
+        sky.AddChild(FieldRow("Mode", _skyMode));
+        _panorama = Field("HDRI relatif · skies/dawn.exr");
+        sky.AddChild(_panorama);
+        _zenith = Field("Zénith · #4c78a8");
+        sky.AddChild(_zenith);
+        _horizon = Field("Horizon · #e4b88a");
+        sky.AddChild(_horizon);
+        _ground = Field("Sol · #38402f");
+        sky.AddChild(_ground);
+        _stars = Spin(0, 4, .15, .05);
+        sky.AddChild(FieldRow("Étoiles", _stars));
+        _clouds = Spin(0, 1, .2, .05);
+        sky.AddChild(FieldRow("Nuages", _clouds));
+        _moon = Spin(0, 4, .1, .05);
+        sky.AddChild(FieldRow("Lune", _moon));
+        _skyEnergy = Spin(.05, 8, 1, .05);
+        sky.AddChild(FieldRow("Énergie", _skyEnergy));
+        _skyTransition = Spin(0, 3600, 2, .25);
+        sky.AddChild(FieldRow("Transition (s)", _skyTransition));
+    }
+
+    private void BuildFogTab(TabContainer tabs)
+    {
+        var scroll = Tab(tabs, "Brouillard");
+        var card = Card(scroll, "PROFIL ATMOSPHÉRIQUE");
+        _fogMode = EnumOption<FogMode>();
+        card.AddChild(FieldRow("Mode", _fogMode));
+        _fogDensity = Spin(0, 1, 0, .01);
+        card.AddChild(FieldRow("Densité", _fogDensity));
+        _fogStart = Spin(0, 10000, 20, 1);
+        card.AddChild(FieldRow("Début", _fogStart));
+        _fogEnd = Spin(0, 10000, 100, 1);
+        card.AddChild(FieldRow("Fin", _fogEnd));
+    }
+
+    private void BuildAudioTab(TabContainer tabs)
+    {
+        var scroll = Tab(tabs, "Audio");
+        var columns = new HBoxContainer();
+        columns.AddThemeConstantOverride("separation", 14);
+        scroll.AddChild(columns);
+        var music = Card(columns, "MUSIQUE & AMBIANCE");
+        _dayMusic = Field("Musique jour");
+        _nightMusic = Field("Musique nuit");
+        _combatMusic = Field("Musique combat");
+        _ambience = Field("Ambiance");
+        _reverb = Field("Réverbération");
+        _playlist = Field("Playlist : birds.ogg, wind.ogg");
+        foreach (var field in new Control[] { _dayMusic, _nightMusic, _combatMusic, _ambience, _reverb, _playlist }) music.AddChild(field);
+        _audioOrder = EnumOption<AudioOrderMode>();
+        music.AddChild(FieldRow("Ordre", _audioOrder));
+        _audioInterval = Spin(0, 3600, 10, .5);
+        music.AddChild(FieldRow("Intervalle", _audioInterval));
+        _audioVariation = Spin(0, 3600, 2, .5);
+        music.AddChild(FieldRow("Variation", _audioVariation));
+        _audioVolume = Spin(0, 4, 1, .05);
+        music.AddChild(FieldRow("Volume relatif", _audioVolume));
+
+        var spatial = Card(columns, "SPATIAL & RUNTIME");
+        _soundMode = EnumOption<AreaSoundMode>();
+        spatial.AddChild(FieldRow("Mode", _soundMode));
+        _innerRadius = Spin(0, 10000, 2, .5);
+        spatial.AddChild(FieldRow("Portée interne", _innerRadius));
+        _outerRadius = Spin(0, 10000, 20, .5);
+        spatial.AddChild(FieldRow("Portée externe", _outerRadius));
+        _initiallyActive = Check("Actif au chargement", true);
+        spatial.AddChild(_initiallyActive);
+        _instancePolicy = EnumOption<AudioInstancePolicy>();
+        spatial.AddChild(FieldRow("Instances", _instancePolicy));
+        _authority = EnumOption<AudioAuthority>();
+        spatial.AddChild(FieldRow("Autorité", _authority));
+        _adaptiveResource = Field("Couche adaptative");
+        _adaptiveWeather = Field("Météo requise");
+        _adaptiveTag = Field("Tag de lieu");
+        spatial.AddChild(_adaptiveResource);
+        spatial.AddChild(_adaptiveWeather);
+        spatial.AddChild(_adaptiveTag);
+
+        var captions = Card(columns, "ACCESSIBILITÉ AUDIO");
+        _captionResource = Field("Son important à sous-titrer");
+        _captionFr = Field("Sous-titre français");
+        _captionDirection = Check("Indiquer la direction", true);
+        captions.AddChild(_captionResource);
+        captions.AddChild(_captionFr);
+        captions.AddChild(_captionDirection);
+    }
+
     private void Refresh()
     {
-        var id = _active?.Invoke(); var area = _state?.Invoke()?.Project.Areas.SingleOrDefault(item => item.Id == id); if (area is null) return; var p = area.Environment;
-        _classification!.Selected = (int)p.Classification; _tags!.Text = string.Join(", ", p.Tags); _dayNight!.Selected = (int)p.Lighting.Mode; _dayLength!.Value = p.Lighting.DayLengthMinutes; _ambient!.Value = p.Lighting.AmbientIntensity; _sun!.Value = p.Lighting.DirectionalIntensity; _temperature!.Value = p.Lighting.ColorTemperatureKelvin; _fogMode!.Selected = (int)p.Fog.Mode; _fogDensity!.Value = p.Fog.Density; _fogStart!.Value = p.Fog.StartDistance; _fogEnd!.Value = p.Fog.EndDistance; _dayMusic!.Text = p.Audio.DayMusic; _nightMusic!.Text = p.Audio.NightMusic; _combatMusic!.Text = p.Audio.CombatMusic; _ambience!.Text = p.Audio.Ambience; _reverb!.Text = p.Audio.ReverbPreset; _playlist!.Text = string.Join(", ", p.Audio.Playlist); _audioOrder!.Selected = (int)p.Audio.OrderMode; _audioInterval!.Value = p.Audio.IntervalSeconds; _audioVariation!.Value = p.Audio.IntervalVariationSeconds; _audioVolume!.Value = p.Audio.RelativeVolume; _soundMode!.Selected = (int)p.Audio.Spatial.Mode; _innerRadius!.Value = p.Audio.Spatial.InnerRadius; _outerRadius!.Value = p.Audio.Spatial.OuterRadius; _initiallyActive!.ButtonPressed = p.Audio.RuntimeControl.InitiallyActive; _instancePolicy!.Selected = (int)p.Audio.RuntimeControl.InstancePolicy; _authority!.Selected = (int)p.Audio.RuntimeControl.Authority;
+        var id = _active?.Invoke();
+        var area = _state?.Invoke()?.Project.Areas.SingleOrDefault(item => item.Id == id);
+        if (area is null) return;
+        _current = area.Environment;
+        Populate(_current);
     }
-    private void Save()
+
+    private void Populate(AreaEnvironmentProfile profile)
     {
-        var id = _active?.Invoke(); if (id is null) return; try { IReadOnlyList<AdaptiveAmbienceLayer> layers = string.IsNullOrWhiteSpace(_adaptiveResource!.Text) ? [] : [new(_adaptiveResource.Text.Trim(), 18, 6, _adaptiveWeather!.Text.Trim(), _adaptiveTag!.Text.Trim(), 0, false, 1)]; var master = Guid.NewGuid(); var music = Guid.NewGuid(); IReadOnlyList<SoundCaption> captions = string.IsNullOrWhiteSpace(_captionResource!.Text) || string.IsNullOrWhiteSpace(_captionFr!.Text) ? [] : [new(_captionResource.Text.Trim(), [new("fr", _captionFr.Text.Trim())], _captionDirection!.ButtonPressed, "important")]; var orchestration = new AreaAudioOrchestration([new(MusicState.Exploration, _dayMusic!.Text, [], 2, 5), new(MusicState.Tension, _nightMusic!.Text, [], 2, 5), new(MusicState.Combat, _combatMusic!.Text, ["combat-drums"], 1, 3)], [new(master, "Master", null, 1, "default", "all", .8f, true), new(music, "Music", master, 1, "music", "all", .8f, false)], captions); var profile = new AreaEnvironmentProfile(1, (AreaEnvironmentClass)_classification!.Selected, _tags!.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries), new((DayNightMode)_dayNight!.Selected, (float)_dayLength!.Value, (float)_ambient!.Value, (float)_sun!.Value, (float)_temperature!.Value, true, true), new((FogMode)_fogMode!.Selected, (float)_fogDensity!.Value, (float)_fogStart!.Value, (float)_fogEnd!.Value, 0), new(_dayMusic.Text, _nightMusic.Text, _combatMusic.Text, _ambience!.Text, string.IsNullOrWhiteSpace(_reverb!.Text) ? "neutral" : _reverb.Text, 2, _playlist!.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries), (AudioOrderMode)_audioOrder!.Selected, (float)_audioInterval!.Value, (float)_audioVariation!.Value, (float)_audioVolume!.Value, new((AreaSoundMode)_soundMode!.Selected, (float)_innerRadius!.Value, (float)_outerRadius!.Value, .1f, "linear"), new(_initiallyActive!.ButtonPressed, (AudioInstancePolicy)_instancePolicy!.Selected, (AudioAuthority)_authority!.Selected, 1, "audio.started", "audio.stopped"), layers, orchestration)); _status!.Text = _apply?.Invoke(id, profile) == true ? "✓ Profil appliqué et historisé" : "✕ Profil refusé"; } catch (ArgumentException e) { _status!.Text = $"✕ {e.Message}"; }
+        _classification!.Selected = (int)profile.Classification;
+        _tags!.Text = string.Join(", ", profile.Tags);
+        _dayNight!.Selected = (int)profile.Lighting.Mode;
+        _dayLength!.Value = profile.Lighting.DayLengthMinutes;
+        _ambient!.Value = profile.Lighting.AmbientIntensity;
+        _sun!.Value = profile.Lighting.DirectionalIntensity;
+        _temperature!.Value = profile.Lighting.ColorTemperatureKelvin;
+        _toneMapping!.Selected = (int)profile.Rendering.ToneMapping;
+        _quality!.Selected = (int)profile.Rendering.Quality;
+        _exposure!.Value = profile.Rendering.Exposure;
+        _whitePoint!.Value = profile.Rendering.WhitePoint;
+        _hdrOutput!.ButtonPressed = profile.Rendering.HdrOutput;
+        _forwardPlus!.ButtonPressed = profile.Rendering.ForwardPlus;
+        _perPixel!.ButtonPressed = profile.Rendering.PerPixelLighting;
+        _materialInstances!.ButtonPressed = profile.Rendering.MaterialInstances;
+        var desktop = profile.Rendering.LightBudgets.FirstOrDefault(item => item.Platform == "desktop") ?? profile.Rendering.LightBudgets[0];
+        _dynamicLights!.Value = desktop.MaximumDynamicLights;
+        _shadowLights!.Value = desktop.MaximumShadowCastingLights;
+        _shadowAtlas!.Value = desktop.ShadowAtlasSize;
+        _skyMode!.Selected = (int)profile.Sky.Mode;
+        _panorama!.Text = profile.Sky.PanoramaResource;
+        _zenith!.Text = profile.Sky.ZenithColor;
+        _horizon!.Text = profile.Sky.HorizonColor;
+        _ground!.Text = profile.Sky.GroundColor;
+        _stars!.Value = profile.Sky.StarIntensity;
+        _clouds!.Value = profile.Sky.CloudCoverage;
+        _moon!.Value = profile.Sky.MoonIntensity;
+        _skyEnergy!.Value = profile.Sky.EnergyMultiplier;
+        _skyTransition!.Value = profile.Sky.TransitionSeconds;
+        _fogMode!.Selected = (int)profile.Fog.Mode;
+        _fogDensity!.Value = profile.Fog.Density;
+        _fogStart!.Value = profile.Fog.StartDistance;
+        _fogEnd!.Value = profile.Fog.EndDistance;
+        _dayMusic!.Text = profile.Audio.DayMusic;
+        _nightMusic!.Text = profile.Audio.NightMusic;
+        _combatMusic!.Text = profile.Audio.CombatMusic;
+        _ambience!.Text = profile.Audio.Ambience;
+        _reverb!.Text = profile.Audio.ReverbPreset;
+        _playlist!.Text = string.Join(", ", profile.Audio.Playlist);
+        _audioOrder!.Selected = (int)profile.Audio.OrderMode;
+        _audioInterval!.Value = profile.Audio.IntervalSeconds;
+        _audioVariation!.Value = profile.Audio.IntervalVariationSeconds;
+        _audioVolume!.Value = profile.Audio.RelativeVolume;
+        _soundMode!.Selected = (int)profile.Audio.Spatial.Mode;
+        _innerRadius!.Value = profile.Audio.Spatial.InnerRadius;
+        _outerRadius!.Value = profile.Audio.Spatial.OuterRadius;
+        _initiallyActive!.ButtonPressed = profile.Audio.RuntimeControl.InitiallyActive;
+        _instancePolicy!.Selected = (int)profile.Audio.RuntimeControl.InstancePolicy;
+        _authority!.Selected = (int)profile.Audio.RuntimeControl.Authority;
     }
-    private static VBoxContainer Col(Container p, string title) { var c = new VBoxContainer { CustomMinimumSize = new(300, 0), SizeFlagsHorizontal = Control.SizeFlags.ExpandFill }; c.AddChild(new Label { Text = title }); p.AddChild(c); return c; }
-    private static OptionButton EnumOption<T>() where T : struct, Enum { var b = new OptionButton(); foreach (var v in Enum.GetValues<T>()) b.AddItem(v.ToString()); return b; }
+
+    private bool Save()
+    {
+        var id = _active?.Invoke();
+        if (id is null || _current is null) return false;
+        try
+        {
+            var desktop = new DynamicLightBudgetProfile(
+                "desktop",
+                (int)_dynamicLights!.Value,
+                (int)_shadowLights!.Value,
+                (int)_shadowAtlas!.Value,
+                0.8);
+            var budgets = _current.Rendering.LightBudgets.Where(item => item.Platform != "desktop").Append(desktop).ToArray();
+            var rendering = new AreaRenderingProfile(
+                AreaRenderingProfile.CurrentSchemaVersion,
+                PbrMaterialWorkflow.MetallicRoughness,
+                (ToneMappingProfile)_toneMapping!.Selected,
+                (RenderQualityTier)_quality!.Selected,
+                _forwardPlus!.ButtonPressed,
+                _perPixel!.ButtonPressed,
+                _materialInstances!.ButtonPressed,
+                _hdrOutput!.ButtonPressed,
+                _exposure!.Value,
+                _whitePoint!.Value,
+                _current.Rendering.LutResource,
+                budgets);
+            var sky = new SkyProfile(
+                SkyProfile.CurrentSchemaVersion,
+                (SkyProfileMode)_skyMode!.Selected,
+                _panorama!.Text,
+                _zenith!.Text,
+                _horizon!.Text,
+                _ground!.Text,
+                _stars!.Value,
+                _clouds!.Value,
+                _moon!.Value,
+                _skyEnergy!.Value,
+                _skyTransition!.Value);
+            IReadOnlyList<AdaptiveAmbienceLayer> layers = string.IsNullOrWhiteSpace(_adaptiveResource!.Text)
+                ? []
+                : [new(_adaptiveResource.Text.Trim(), 18, 6, _adaptiveWeather!.Text.Trim(), _adaptiveTag!.Text.Trim(), 0, false, 1)];
+            var master = Guid.NewGuid();
+            var music = Guid.NewGuid();
+            IReadOnlyList<SoundCaption> captions = string.IsNullOrWhiteSpace(_captionResource!.Text) || string.IsNullOrWhiteSpace(_captionFr!.Text)
+                ? []
+                : [new(_captionResource.Text.Trim(), [new("fr", _captionFr.Text.Trim())], _captionDirection!.ButtonPressed, "important")];
+            var orchestration = new AreaAudioOrchestration(
+                [
+                    new(MusicState.Exploration, _dayMusic!.Text, [], 2, 5),
+                    new(MusicState.Tension, _nightMusic!.Text, [], 2, 5),
+                    new(MusicState.Combat, _combatMusic!.Text, ["combat-drums"], 1, 3),
+                ],
+                [
+                    new(master, "Master", null, 1, "default", "all", .8f, true),
+                    new(music, "Music", master, 1, "music", "all", .8f, false),
+                ],
+                captions);
+            var audio = new AreaAudioProfile(
+                _dayMusic.Text,
+                _nightMusic.Text,
+                _combatMusic.Text,
+                _ambience!.Text,
+                string.IsNullOrWhiteSpace(_reverb!.Text) ? "neutral" : _reverb.Text,
+                2,
+                _playlist!.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries),
+                (AudioOrderMode)_audioOrder!.Selected,
+                (float)_audioInterval!.Value,
+                (float)_audioVariation!.Value,
+                (float)_audioVolume!.Value,
+                new((AreaSoundMode)_soundMode!.Selected, (float)_innerRadius!.Value, (float)_outerRadius!.Value, .1f, "linear"),
+                new(_initiallyActive!.ButtonPressed, (AudioInstancePolicy)_instancePolicy!.Selected, (AudioAuthority)_authority!.Selected, 1, "audio.started", "audio.stopped"),
+                layers,
+                orchestration);
+            var profile = new AreaEnvironmentProfile(
+                AreaEnvironmentProfile.CurrentSchemaVersion,
+                (AreaEnvironmentClass)_classification!.Selected,
+                _tags!.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries),
+                new((DayNightMode)_dayNight!.Selected, (float)_dayLength!.Value, (float)_ambient!.Value, (float)_sun!.Value, (float)_temperature!.Value, _hdrOutput.ButtonPressed, true),
+                new((FogMode)_fogMode!.Selected, (float)_fogDensity!.Value, (float)_fogStart!.Value, (float)_fogEnd!.Value, 0),
+                audio,
+                rendering,
+                sky);
+            var applied = _apply?.Invoke(id, profile) == true;
+            if (applied) _current = profile;
+            _status!.Text = applied
+                ? $"✓ Profil appliqué · {desktop.MaximumDynamicLights} lumières · {rendering.ToneMapping} · {sky.Mode}"
+                : "✕ Profil refusé";
+            return applied;
+        }
+        catch (ArgumentException exception)
+        {
+            _status!.Text = $"✕ {exception.Message}";
+            return false;
+        }
+    }
+
+    private static ScrollContainer Tab(TabContainer tabs, string name)
+    {
+        var scroll = new ScrollContainer
+        {
+            Name = name,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        tabs.AddChild(scroll);
+        return scroll;
+    }
+
+    private static VBoxContainer Card(Container parent, string title)
+    {
+        var panel = new PanelContainer { CustomMinimumSize = new Vector2(360, 0), SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        panel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color("15111f"),
+            BorderColor = new Color("4f3b67"),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 9,
+            CornerRadiusTopRight = 9,
+            CornerRadiusBottomLeft = 9,
+            CornerRadiusBottomRight = 9,
+            ContentMarginLeft = 14,
+            ContentMarginTop = 12,
+            ContentMarginRight = 14,
+            ContentMarginBottom = 12,
+        });
+        parent.AddChild(panel);
+        var content = new VBoxContainer();
+        content.AddThemeConstantOverride("separation", 7);
+        var heading = new Label { Text = title };
+        heading.AddThemeColorOverride("font_color", new Color("ffb06d"));
+        content.AddChild(heading);
+        panel.AddChild(content);
+        return content;
+    }
+
+    private static OptionButton EnumOption<T>() where T : struct, Enum
+    {
+        var button = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var value in Enum.GetValues<T>()) button.AddItem(value.ToString());
+        return button;
+    }
+
     private static LineEdit Field(string hint) => new() { PlaceholderText = hint };
-    private static SpinBox Spin(double min, double max, double value, double step) => new() { MinValue = min, MaxValue = max, Value = value, Step = step };
-    private static HBoxContainer Row(string text, Control c) { var r = new HBoxContainer(); r.AddChild(new Label { Text = text, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill }); r.AddChild(c); return r; }
+
+    private static SpinBox Spin(double min, double max, double value, double step) => new()
+    {
+        MinValue = min,
+        MaxValue = max,
+        Value = value,
+        Step = step,
+        CustomMinimumSize = new Vector2(110, 0),
+    };
+
+    private static CheckBox Check(string label, bool value) => new() { Text = label, ButtonPressed = value };
+
+    private static HBoxContainer FieldRow(string text, Control control)
+    {
+        var row = new HBoxContainer();
+        row.AddChild(new Label { Text = text, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
+        row.AddChild(control);
+        return row;
+    }
 }
 #endif

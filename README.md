@@ -39,7 +39,7 @@ Sous Windows, depuis la racine du dépôt :
 .\scripts\Run-Prototype.ps1
 ```
 
-Le lanceur compile d'abord le runtime Debug, puis ouvre le workspace Forge fourni avec le dépôt.
+Le lanceur compile d'abord le runtime Debug, puis ouvre en Forward+ le workspace Forge fourni avec le dépôt.
 Son journal de démarrage est conservé dans `artifacts/verification/runtime-interactive.log`. Si le
 chargement du module échoue, le runtime affiche désormais le diagnostic dans la fenêtre au lieu de
 rester sur un écran vide.
@@ -62,9 +62,10 @@ Le parcours actuel permet de parler à Elyra, récupérer la Clé de braise, ouv
 L’application ajoute l’écran principal **Forge**. Elle ouvre un dossier de projet Forge, affiche ses
 diagnostics, reconstruit un aperçu 3D et le sauvegarde atomiquement. Une palette permet de placer,
 déplacer, tourner et supprimer des entités sur la grille, avec annuler/rétablir ; la Crypte des
-Cendres est ouverte par défaut.
+Cendres est ouverte par défaut. Le lanceur compile le Toolset, active Forward+ et écrit son journal
+dans `artifacts/verification/toolset-interactive.log`.
 
-Le bouton **Nouveau module** crée un workspace `0.9.0` dans un dossier dédié avec son identité, une
+Le bouton **Nouveau module** crée un workspace `1.3.0` dans un dossier dédié avec son identité, une
 première zone, un sol provisoire et un point de départ immédiatement éditables. Un dossier existant
 non vide est toujours refusé.
 
@@ -78,7 +79,7 @@ supprime le snapshot. La direction de l’interface complète est décrite dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
 
 L’espace **Dialogues** édite les nœuds, les choix, leurs conditions typées, leurs actions et leurs
-textes localisables, avec aperçu immédiat. Dialogues et quêtes sont stockés dans le projet `0.6.4`,
+textes localisables, avec aperçu immédiat. Dialogues et quêtes sont stockés dans le workspace `1.3.0`,
 mutés par commandes transactionnelles et consommés directement par le runtime de la Crypte.
 
 L’espace **Validation** configure Editor, Client, DedicatedServer, Test et Shipping, gère le registre

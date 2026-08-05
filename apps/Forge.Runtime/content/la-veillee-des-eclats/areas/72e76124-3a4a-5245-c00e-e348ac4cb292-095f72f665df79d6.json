@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.1.0",
+  "formatVersion": "1.2.0",
   "area": {
     "id": "72e76124-3a4a-5245-c00e-e348ac4cb292",
     "slug": "parvis-des-astres",
@@ -288,7 +288,7 @@
       "provenance": "migration-default"
     },
     "environment": {
-      "schemaVersion": 1,
+      "schemaVersion": 2,
       "classification": "interior",
       "tags": [],
       "lighting": {
@@ -340,6 +340,48 @@
           "mixBuses": [],
           "captions": []
         }
+      },
+      "rendering": {
+        "schemaVersion": 1,
+        "materialWorkflow": "metallicRoughness",
+        "toneMapping": "agx",
+        "quality": "high",
+        "forwardPlus": true,
+        "perPixelLighting": true,
+        "materialInstances": true,
+        "hdrOutput": true,
+        "exposure": 1,
+        "whitePoint": 6,
+        "lutResource": "",
+        "lightBudgets": [
+          {
+            "platform": "desktop",
+            "maximumDynamicLights": 32,
+            "maximumShadowCastingLights": 8,
+            "shadowAtlasSize": 4096,
+            "warningThreshold": 0.8
+          },
+          {
+            "platform": "mobile",
+            "maximumDynamicLights": 8,
+            "maximumShadowCastingLights": 2,
+            "shadowAtlasSize": 2048,
+            "warningThreshold": 0.75
+          }
+        ]
+      },
+      "sky": {
+        "schemaVersion": 1,
+        "mode": "procedural",
+        "panoramaResource": "",
+        "zenithColor": "#171225",
+        "horizonColor": "#38283f",
+        "groundColor": "#100d17",
+        "starIntensity": 0,
+        "cloudCoverage": 0,
+        "moonIntensity": 0,
+        "energyMultiplier": 0.35,
+        "transitionSeconds": 1
       }
     },
     "authoring": {
