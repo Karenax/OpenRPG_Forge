@@ -23,4 +23,3 @@
 ## Limites reportées dans G9
 
 Le transport socket, l'écran réseau auteur/client et le scénario réel à deux clients sont intégrés après les six lots de contrats afin qu'ils consomment une seule autorité complète.
-

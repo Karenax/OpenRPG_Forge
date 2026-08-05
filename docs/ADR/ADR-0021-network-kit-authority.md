@@ -19,4 +19,3 @@ Les identités, personnages, groupes et zones utilisent des UUID stables. Les se
 - audit, métriques et diagnostics partagent les mêmes décisions serveur;
 - le mode solo continue de fonctionner sans Network Kit;
 - G10 Live Director devra employer les mêmes intentions et permissions.
-

@@ -16,4 +16,3 @@ Au démarrage de G9, les 30 exigences ciblées sont `Researched`; aucune n'est r
 | G9-F | MP-031 à 034, 036 | anti-triche, reconnexion, rollback, capacité et harnais deux clients |
 
 Chaque lot ajoute ses tests déterministes et met à jour le tracker seulement après preuve. L'intégration finale branche l'hôte headless et l'interface auteur sur ces contrats.
-

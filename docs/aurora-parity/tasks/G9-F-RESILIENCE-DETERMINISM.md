@@ -15,4 +15,3 @@
 ## Invariants testés
 
 Un client ne téléporte pas son personnage et ne rejoue pas une séquence. Un ticket volé ou expiré échoue. Un rollback ne réécrit pas l'histoire : il produit une nouvelle révision. La première entrée en file est la première promue. Deux exécutions du même profil de fautes ont le même digest.
-

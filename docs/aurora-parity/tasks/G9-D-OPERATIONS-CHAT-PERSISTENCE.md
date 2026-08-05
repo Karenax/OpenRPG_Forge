@@ -15,4 +15,3 @@
 ## Invariants testés
 
 Un joueur ne peut pas gérer le monde. Un modérateur hors de sa zone est refusé. Une commande rejouée ou obsolète ne s'applique pas. Un compte muet ne publie pas. Une sauvegarde concurrente obsolète lève `NET_PERSISTENCE_REVISION_STALE`.
-

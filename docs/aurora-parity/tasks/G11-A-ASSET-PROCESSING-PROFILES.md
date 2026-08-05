@@ -50,4 +50,3 @@ Vault source.
 
 G11-A est fermé lorsque les tests ciblés, le smoke Toolset, le smoke Vault disponible localement,
 le tracker Aurora, le graphe d’architecture et `scripts/Verify.ps1` sont verts sur le même état Git.
-

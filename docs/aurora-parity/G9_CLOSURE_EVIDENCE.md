@@ -36,4 +36,3 @@ La revue a confirmé : valeurs 5121/8 visibles, action principale claire, état 
 - graphe déterministe frais;
 - smokes Toolset, runtime, packaging, MCP et sauvegarde;
 - scénario Network Beta permanent dans `scripts/Verify.ps1`.
-

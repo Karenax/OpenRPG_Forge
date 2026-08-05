@@ -15,4 +15,3 @@
 ## Sécurité vérifiée
 
 Une écriture de réplication sans autorité lève `NET_REPLICATION_AUTHORITY_REQUIRED`. Une ressource altérée produit `NET_CONTENT_SYNC_REQUIRED`. Un login inconnu et un mauvais mot de passe exposent le même code public `NET_AUTH_INVALID_CREDENTIALS`.
-

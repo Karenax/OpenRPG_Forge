@@ -15,4 +15,3 @@
 ## Invariants testés
 
 Les chaînes SQL libres sont refusées. Les paramètres manquants, surnuméraires ou de mauvais type ne s'exécutent pas. Un événement ne peut être publié deux fois. Les tokens ne figurent jamais dans le JSON. Le profiler ne conserve que des agrégats bornés.
-
