@@ -49,8 +49,12 @@ même vocabulaire. Ils ne deviennent pas une collection d’outils indépendants
 ## État actuel
 
 Le premier écran Monde permet déjà de créer un module, ouvrir un projet, éditer, sauvegarder, exporter et
-reconstruire une zone. L’inspecteur de propriétés locales distingue clairement ce qui appartient à
-l’instance de ce qui reste hérité du blueprint, avec types lisibles et action principale unique.
+reconstruire une zone. Son assistant initial conserve un parcours court : identité, type Intérieur ou
+Extérieur, dimensions en mètres, puis emplacement. Le changement de type suggère 32 × 32 m pour une
+pièce et 128 × 128 m pour un terrain, sans masquer le réglage précis. Une zone extérieure créée par ce
+parcours possède immédiatement un heightmap canonique. L’inspecteur de propriétés locales distingue
+clairement ce qui appartient à l’instance de ce qui reste hérité du blueprint, avec types lisibles et
+action principale unique.
 T3.2 ajoute la sélection du point de départ, le snapshot temporaire, le lancement immédiat et le
 retour des logs. L’espace Dialogues fournit maintenant liste de nœuds, choix branchés, conditions,
 actions, textes localisables et aperçu dans la même identité sombre et braise. Le runtime offre une

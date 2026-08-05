@@ -3,8 +3,10 @@
 ## 1. Créer ou ouvrir un module
 
 Lancer l'application de création, ouvrir l'écran **Forge**, puis choisir **+ Nouveau module**. Donner
-un titre, une description et le nom de la première zone, sélectionner un dossier parent vide et
-valider. Forge crée un workspace contenant :
+un titre, une description et le nom de la première zone. Choisir **Intérieur** pour une pièce ou un
+donjon compact, ou **Extérieur** pour un terrain sculptable ; la sélection propose respectivement
+32 × 32 m ou 128 × 128 m, mais la largeur et la profondeur restent modifiables avant la création.
+Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.15.0` contenant :
 
 ```text
 mon-module/
@@ -12,7 +14,8 @@ mon-module/
 └─ project.json
 ```
 
-Un sol provisoire, un blueprint de point de départ et leur instance sont fournis. Un projet existant
+Un sol provisoire, un blueprint de point de départ et leur instance sont fournis. Une zone extérieure
+active aussi immédiatement son heightmap canonique aux dimensions choisies. Un projet existant
 s'ouvre avec **Choisir un dossier Forge**.
 
 ## 2. Construire la zone

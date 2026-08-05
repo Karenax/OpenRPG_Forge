@@ -368,7 +368,8 @@ Le détail et les preuves des 717 capacités restent suivis dans
 `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 
 - [x] **G7-01 — second module générique** : création, export et démarrage headless sans contenu
-  spécifique à la Crypte.
+  spécifique à la Crypte ; l’assistant expose maintenant le choix Intérieur/Extérieur et les
+  dimensions, avec terrain canonique activé dès la création d’un extérieur.
 - [x] **G7-02 — coque Creator** : neuf workspaces, explorateur, sélection partagée et diagnostics
   navigables.
 - [x] **G7-03 — catalogue Blueprints** : recherche, édition transactionnelle, dérivation depuis une

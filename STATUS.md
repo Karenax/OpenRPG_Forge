@@ -102,8 +102,9 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
   icônes des fenêtres Forge personnalisées puis contrôlées par le smoke test et une capture ciblée ;
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
-- assistant Nouveau module validé : agrégat module, zone d’entrée, sol, spawn et workspace atomique
-  indexé au format `1.4.0`, avec zone indépendante 1.3 et lecture/migration testée des agrégats
+- assistant Nouveau module validé : choix Intérieur/Extérieur, dimensions 2D, agrégat module, zone
+  d’entrée, sol, spawn et workspace atomique indexé au format `1.15.0` ; le gabarit extérieur active
+  son heightmap canonique (smoke dédié 96 × 80), avec lecture/migration testée des agrégats
   `0.6.8` à `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
   édition visuelle, sérialisation, commande transactionnelle, dry-run, audit, undo/redo et smoke ;

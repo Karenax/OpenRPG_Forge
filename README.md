@@ -81,9 +81,10 @@ déplacer, tourner et supprimer des entités sur la grille, avec annuler/rétabl
 Cendres est ouverte par défaut. Le lanceur compile le Toolset, active Forward+ et écrit son journal
 dans `artifacts/verification/toolset-interactive.log`.
 
-Le bouton **Nouveau module** crée un workspace `1.3.0` dans un dossier dédié avec son identité, une
-première zone, un sol provisoire et un point de départ immédiatement éditables. Un dossier existant
-non vide est toujours refusé.
+Le bouton **Nouveau module** crée un workspace `1.15.0` dans un dossier dédié. L’assistant demande le
+type de première zone — intérieur ou extérieur sculptable — ainsi que sa largeur et sa profondeur,
+puis prépare son identité, un sol provisoire et un point de départ immédiatement éditables. Un dossier
+existant non vide est toujours refusé.
 
 Le bouton **Modifier les propriétés** personnalise l’instance sélectionnée sans dupliquer ni modifier
 son blueprint. L’inspecteur gère des valeurs texte, booléennes, entières et numériques, puis applique
@@ -95,7 +96,7 @@ supprime le snapshot. La direction de l’interface complète est décrite dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
 
 L’espace **Dialogues** édite les nœuds, les choix, leurs conditions typées, leurs actions et leurs
-textes localisables, avec aperçu immédiat. Dialogues et quêtes sont stockés dans le workspace `1.3.0`,
+textes localisables, avec aperçu immédiat. Dialogues et quêtes sont stockés dans le workspace `1.15.0`,
 mutés par commandes transactionnelles et consommés directement par le runtime de la Crypte.
 
 L’espace **Validation** configure Editor, Client, DedicatedServer, Test et Shipping, gère le registre

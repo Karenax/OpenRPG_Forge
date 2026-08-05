@@ -1447,7 +1447,7 @@
     },
     {
       "evidence": {
-        "line": 6431,
+        "line": 6476,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1456,7 +1456,7 @@
     },
     {
       "evidence": {
-        "line": 6450,
+        "line": 6495,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1465,7 +1465,7 @@
     },
     {
       "evidence": {
-        "line": 6324,
+        "line": 6369,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1474,7 +1474,7 @@
     },
     {
       "evidence": {
-        "line": 5307,
+        "line": 5352,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -2005,7 +2005,7 @@
     },
     {
       "evidence": {
-        "line": 109,
+        "line": 110,
         "path": "README.md"
       },
       "kind": "references",
@@ -2014,7 +2014,7 @@
     },
     {
       "evidence": {
-        "line": 107,
+        "line": 108,
         "path": "README.md"
       },
       "kind": "references",
@@ -2023,7 +2023,7 @@
     },
     {
       "evidence": {
-        "line": 131,
+        "line": 132,
         "path": "README.md"
       },
       "kind": "references",
@@ -2032,7 +2032,7 @@
     },
     {
       "evidence": {
-        "line": 95,
+        "line": 96,
         "path": "README.md"
       },
       "kind": "references",
@@ -2302,7 +2302,7 @@
     },
     {
       "evidence": {
-        "line": 180,
+        "line": 181,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2311,7 +2311,7 @@
     },
     {
       "evidence": {
-        "line": 242,
+        "line": 243,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2356,7 +2356,7 @@
     },
     {
       "evidence": {
-        "line": 412,
+        "line": 413,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2365,7 +2365,7 @@
     },
     {
       "evidence": {
-        "line": 441,
+        "line": 442,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -2374,7 +2374,7 @@
     },
     {
       "evidence": {
-        "line": 447,
+        "line": 448,
         "path": "TASKS_MVP.md"
       },
       "kind": "references",
@@ -4705,7 +4705,7 @@
     },
     {
       "evidence": {
-        "line": 239,
+        "line": 243,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -80485,7 +80485,7 @@
     },
     {
       "evidence": {
-        "line": 7455,
+        "line": 7526,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -80602,7 +80602,7 @@
     },
     {
       "evidence": {
-        "line": 7460,
+        "line": 7531,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -80611,7 +80611,7 @@
     },
     {
       "evidence": {
-        "line": 7465,
+        "line": 7536,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -81511,7 +81511,7 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:28c902e18ff009e506ee8e91c83e771b352622ffc5ba08fc7b5d2c1e31d32977",
+    "source_digest": "sha256:84c467de048e2b2e547367afd34f2ebd221b9f2d74aa66afc8217633bee164fa",
     "source_file_count": 1470
   },
   "nodes": [
@@ -118292,7 +118292,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 7455,
+      "line": 7526,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -118382,7 +118382,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 7460,
+      "line": 7531,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -118392,7 +118392,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 7465,
+      "line": 7536,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

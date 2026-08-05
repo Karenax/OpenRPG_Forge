@@ -170,6 +170,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private LineEdit? _newModuleTitle;
     private TextEdit? _newModuleDescription;
     private LineEdit? _newModuleAreaName;
+    private OptionButton? _newModuleAreaKind;
+    private SpinBox? _newModuleAreaWidth;
+    private SpinBox? _newModuleAreaDepth;
     private Button? _newModuleNextButton;
     private Button? _newModuleCancelButton;
     private Window? _entityPropertiesDialog;
@@ -691,8 +694,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _newModuleDialog = new Window
         {
             Title = "Créer un nouveau module Forge",
-            MinSize = new Vector2I(600, 500),
-            Size = new Vector2I(600, 500),
+            MinSize = new Vector2I(640, 620),
+            Size = new Vector2I(640, 620),
             Exclusive = false,
             Transient = true,
             Unresizable = true,
@@ -758,6 +761,30 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Text = "Zone de départ",
         };
         form.AddChild(_newModuleAreaName);
+        form.AddChild(new Label { Text = "Type de première zone" });
+        _newModuleAreaKind = new OptionButton
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        _newModuleAreaKind.AddItem("Intérieur · pièce ou donjon", (int)AreaKind.Interior);
+        _newModuleAreaKind.AddItem("Extérieur · terrain sculptable", (int)AreaKind.Exterior);
+        _newModuleAreaKind.ItemSelected += NewModuleAreaKindSelected;
+        form.AddChild(_newModuleAreaKind);
+
+        var dimensions = new HBoxContainer();
+        dimensions.AddThemeConstantOverride("separation", 10);
+        form.AddChild(dimensions);
+        dimensions.AddChild(new Label
+        {
+            Text = "Dimensions (m)",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        });
+        _newModuleAreaWidth = NewModuleDimensionBox(32);
+        _newModuleAreaDepth = NewModuleDimensionBox(32);
+        dimensions.AddChild(new Label { Text = "Largeur" });
+        dimensions.AddChild(_newModuleAreaWidth);
+        dimensions.AddChild(new Label { Text = "Profondeur" });
+        dimensions.AddChild(_newModuleAreaDepth);
 
         var buttons = new HBoxContainer
         {
@@ -1054,6 +1081,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_playButton is not null) _playButton.Pressed -= StartPlaytestFromUi;
         if (_projectDialog is not null) _projectDialog.DirSelected -= OpenSelectedProject;
         if (_exportDialog is not null) _exportDialog.FileSelected -= ExportModule;
+        if (_newModuleAreaKind is not null) _newModuleAreaKind.ItemSelected -= NewModuleAreaKindSelected;
         if (_newModuleNextButton is not null) _newModuleNextButton.Pressed -= ChooseNewModuleLocation;
         if (_newModuleCancelButton is not null) _newModuleCancelButton.Pressed -= HideNewModuleDialog;
         if (_newModuleDialog is not null) _newModuleDialog.CloseRequested -= HideNewModuleDialog;
@@ -2265,7 +2293,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _newModuleDialog.Exclusive = true;
         }
 
-        _newModuleDialog?.PopupCentered(new Vector2I(600, 500));
+        _newModuleDialog?.PopupCentered(new Vector2I(640, 620));
         if (_newModuleDialog is not null)
         {
             ApplyForgeWindowIcon(_newModuleDialog);
@@ -2302,13 +2330,24 @@ public partial class ForgeEditorPlugin : EditorPlugin
         ApplyForgeWindowIcon(_newModuleLocationDialog);
     }
 
+    private void NewModuleAreaKindSelected(long index)
+    {
+        if (_newModuleAreaKind is null || _newModuleAreaWidth is null || _newModuleAreaDepth is null) return;
+        var exterior = (AreaKind)_newModuleAreaKind.GetItemId((int)index) == AreaKind.Exterior;
+        var suggested = exterior ? 128 : 32;
+        _newModuleAreaWidth.Value = suggested;
+        _newModuleAreaDepth.Value = suggested;
+    }
+
     private void CreateNewModuleIn(string parentDirectory)
     {
         var outcome = CreateNewModuleWorkspace(
             parentDirectory,
             _newModuleTitle!.Text,
             _newModuleDescription!.Text,
-            _newModuleAreaName!.Text);
+            _newModuleAreaName!.Text,
+            (AreaKind)_newModuleAreaKind!.GetSelectedId(),
+            new AreaDimensions((int)_newModuleAreaWidth!.Value, (int)_newModuleAreaDepth!.Value));
         if (!outcome.Succeeded || outcome.WorkspaceDirectory is null)
         {
             _statusLabel!.Text = "✗ Création du module impossible";
@@ -2319,8 +2358,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         OpenProjectDirectory(outcome.WorkspaceDirectory);
         _statusLabel!.Text = "✓ Nouveau module prêt à construire";
+        var createdArea = _history!.State.Project.Areas.Single();
         _detailsLabel!.Text =
-            $"{_history!.State.Project.Module.DisplayName} · première zone et point de départ créés";
+            $"{_history.State.Project.Module.DisplayName} · {createdArea.Kind} " +
+            $"{createdArea.Dimensions.Width} × {createdArea.Dimensions.Depth} · point de départ créé";
         GD.Print($"OPENRPG_FORGE_TOOLSET_NEW_MODULE_CREATED path={outcome.WorkspaceDirectory}");
     }
 
@@ -2328,7 +2369,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         string parentDirectory,
         string title,
         string description,
-        string areaDisplayName)
+        string areaDisplayName,
+        AreaKind areaKind = AreaKind.Interior,
+        AreaDimensions? dimensions = null)
     {
         var result = _newModuleHandler.Handle(new NewModuleCommand(
             CommandId.From(Guid.NewGuid()),
@@ -2343,7 +2386,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
             title,
             description,
             areaDisplayName,
-            DryRun: false));
+            DryRun: false,
+            AreaKind: areaKind,
+            Dimensions: dimensions));
         if (!result.Succeeded || result.State is null)
         {
             return new NewModuleCreationOutcome(
@@ -7237,9 +7282,26 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 return false;
             }
 
+            var exteriorOutcome = CreateNewModuleWorkspace(
+                smokeRoot,
+                "Module Extérieur Smoke",
+                "Validation du choix extérieur et de ses dimensions.",
+                "Vallée initiale",
+                AreaKind.Exterior,
+                new AreaDimensions(96, 80));
+            var exterior = exteriorOutcome.WorkspaceDirectory is null
+                ? null
+                : ProjectSession.Open(exteriorOutcome.WorkspaceDirectory).Session?.Project.Areas.SingleOrDefault();
+            if (!exteriorOutcome.Succeeded || exterior is null || exterior.Kind != AreaKind.Exterior ||
+                exterior.Dimensions != new AreaDimensions(96, 80) || !exterior.World.Terrain.Enabled)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_T12_SMOKE_FAILED invalid_exterior_template");
+                return false;
+            }
+
             GD.Print(
                 $"OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format={ProjectSession.CurrentProjectFormatVersion} " +
-                "areas=1 documents=1 entities=2");
+                "areas=1 documents=1 entities=2 exterior=96x80 terrain=heightmap");
             return true;
         }
         catch (Exception exception) when (
@@ -7256,6 +7318,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
             }
         }
     }
+
+    private static SpinBox NewModuleDimensionBox(double value) => new()
+    {
+        MinValue = AreaDimensions.MinimumSize,
+        MaxValue = AreaDimensions.MaximumSize,
+        Step = 1,
+        Value = value,
+        CustomMinimumSize = new Vector2(92, 0),
+    };
 
     private bool RunDialogueSmokeTest()
     {
