@@ -44,7 +44,8 @@ public sealed class SetArtisticStyleProfileHandler
             module.Localization,
             module.Content,
             command.Profile,
-            module.RuntimePolicies);
+            module.RuntimePolicies,
+            module.Factions);
         var updatedProject = new ProjectDefinition(
             state.Project.Id,
             state.Project.Title,

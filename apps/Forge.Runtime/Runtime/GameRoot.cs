@@ -22,6 +22,7 @@ using Forge.Domain.Combat;
 using Forge.Domain.Creatures;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.Factions;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
@@ -91,6 +92,8 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<Node3D, double> _creatureAmbientPhases = [];
     private readonly Dictionary<Node3D, CreatureEventProfile> _creatureEventProfiles = [];
     private readonly Dictionary<Node3D, CreatureEventRuntimeState> _creatureEventStates = [];
+    private FactionCatalog _factionCatalog = FactionCatalog.Empty;
+    private FactionAdvancedProfile? _factionRuntimeProfile;
     private readonly ForgeScriptJsonService _runtimeJson = new();
     private readonly ForgeScriptUiEventService _scriptUiEvents = new();
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
@@ -182,6 +185,11 @@ public partial class GameRoot : Node3D
     private int _creatureEventInventoryDispatchCount;
     private int _creatureEventRestDispatchCount;
     private int _creatureEventCustomDispatchCount;
+    private int _factionWitnessReportCount;
+    private int _factionDiplomacyTransitionCount;
+    private int _factionExpirationCount;
+    private int _factionInheritedTagCount;
+    private int _factionMembershipCount;
     private long _creatureCombatBoundarySequence;
     private int _creatureAmbientTicks;
     private int _terrainVertices;
@@ -256,6 +264,7 @@ public partial class GameRoot : Node3D
             _blackboard = new ProjectBlackboard(project.Module.Variables, allowUndeclared: true);
             _moduleTitle = project.Module.DisplayName;
             _moduleSlug = project.Module.Slug;
+            ConfigureFactions(project.Module.Factions);
             _defaultLocale = project.Module.Metadata.DefaultLocale;
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
             _isForgottenForestPrototype = string.Equals(_moduleSlug, "forgotten-forest", StringComparison.Ordinal);
@@ -2265,6 +2274,77 @@ public partial class GameRoot : Node3D
         _creatureEventStates.Remove(creature);
     }
 
+    private void ConfigureFactions(FactionCatalog catalog)
+    {
+        var resolution = FactionRuntimeResolver.Resolve(catalog);
+        if (resolution.Diagnostics.Count > 0)
+            throw new InvalidOperationException("Advanced faction profile is invalid: " +
+                string.Join("; ", resolution.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
+        _factionCatalog = catalog;
+        _factionRuntimeProfile = resolution.Profile;
+        if (resolution.Profile is null)
+        {
+            GD.Print("OPENRPG_FORGE_FACTIONS_OPTIONAL_FALLBACK definitions=0");
+            return;
+        }
+
+        var watch = catalog.Factions.FirstOrDefault(item =>
+            string.Equals(item.Slug, "ash-watch", StringComparison.Ordinal));
+        _factionInheritedTagCount = watch is null ? 0 :
+            FactionRuntimeResolver.EffectiveDefinition(catalog, watch.Id).Tags.Count;
+        _factionMembershipCount = FactionRuntimeResolver.Memberships(catalog, "hero",
+            DateTimeOffset.Parse("2026-08-05T12:00:00Z")).Count;
+        GD.Print($"OPENRPG_FORGE_FACTIONS_READY definitions={catalog.Factions.Count} " +
+            $"inheritance={resolution.Profile.Inheritance.Count} witness={resolution.Profile.WitnessPolicies.Count} " +
+            $"memberships={resolution.Profile.Memberships.Count} dynamic={resolution.Profile.DynamicFactions.Count} " +
+            $"authority=server inherited_tags={_factionInheritedTagCount}");
+    }
+
+    private void ReportFactionWitness(string incidentTag)
+    {
+        if (_factionRuntimeProfile is null || _factionWitnessReportCount > 0) return;
+        var watch = _factionCatalog.Factions.FirstOrDefault(item =>
+            string.Equals(item.Slug, "ash-watch", StringComparison.Ordinal));
+        if (watch is null) return;
+        var at = DateTimeOffset.Parse("2026-08-05T12:00:00Z");
+        var observation = new FactionWitnessObservation(
+            Guid.Parse("b2050000-0000-4000-8000-000000000020"), incidentTag, "hero", "ash-warden-boss",
+            watch.Id, "crime.assault", .9, .8, 12, at, true);
+        var result = FactionRuntimeResolver.PropagateWitnesses(_factionCatalog, [observation], at);
+        if (result.Diagnostics.Count > 0)
+            throw new InvalidOperationException(string.Join("; ", result.Diagnostics.Select(item => item.Code)));
+        foreach (var report in result.Reports)
+        {
+            _factionWitnessReportCount++;
+            GD.Print($"OPENRPG_FORGE_FACTION_WITNESS_REPORT incident={report.IncidentId} " +
+                $"witness={report.WitnessActorId} faction={report.ReportingFactionId:D} " +
+                $"evidence={report.Evidence:0.00} reputation={report.ReputationDelta:0.00}");
+        }
+    }
+
+    private void TransitionFactionDiplomacy()
+    {
+        if (_factionRuntimeProfile is null || _factionDiplomacyTransitionCount > 0) return;
+        var dynamic = _factionRuntimeProfile.DynamicFactions.FirstOrDefault(item => item.Active);
+        var target = _factionCatalog.Factions.FirstOrDefault(item =>
+            string.Equals(item.Slug, "surface-alliance", StringComparison.Ordinal));
+        if (dynamic is null || target is null) return;
+        var at = DateTimeOffset.Parse("2026-08-05T12:05:00Z");
+        var diplomacy = new FactionDiplomacyState(
+            Guid.Parse("b2050000-0000-4000-8000-000000000021"), target.Id,
+            FactionDiplomacyStatus.Truce, at, at.AddHours(12), "ash-warden-defeated");
+        var result = FactionRuntimeResolver.TransitionDiplomacy(_factionRuntimeProfile, dynamic.Id, diplomacy,
+            isServer: true);
+        if (result.Diagnostics.Count > 0)
+            throw new InvalidOperationException(string.Join("; ", result.Diagnostics.Select(item => item.Code)));
+        _factionRuntimeProfile = result.Profile;
+        _factionCatalog = _factionCatalog with { Advanced = result.Profile };
+        _factionDiplomacyTransitionCount += result.Events.Count;
+        foreach (var item in result.Events)
+            GD.Print($"OPENRPG_FORGE_FACTION_DIPLOMACY event={item.Code} faction={item.FactionId:D} " +
+                $"target={item.TargetFactionId:D} revision={item.Revision}");
+    }
+
     private static string? GetOverride(EntityInstance entity, string key) =>
         entity.Overrides.Properties.SingleOrDefault(property =>
             string.Equals(property.Key, key, StringComparison.Ordinal))?.Value;
@@ -2460,6 +2540,7 @@ public partial class GameRoot : Node3D
             ability.Id,
             Time.GetTicksMsec() / 1000d,
             damageMultiplier: _resolvedDifficulty?.PlayerDamageMultiplier ?? 1);
+        if (hostile == _boss) ReportFactionWitness("attack.ash-warden");
         if (_creatureEventProfiles.TryGetValue(hostile, out var creatureEvents))
         {
             var combatBoundary = CreatureEventRuntimeResolver.CombatBoundary(creatureEvents,
@@ -2540,6 +2621,7 @@ public partial class GameRoot : Node3D
             if (hostile == _boss)
             {
                 _bossDefeated = true;
+                TransitionFactionDiplomacy();
                 ExecuteForgeScript(_bossDeathScript, hostile);
             }
             else
@@ -3479,6 +3561,23 @@ public partial class GameRoot : Node3D
             $"inventory={_creatureEventInventoryDispatchCount} rest={_creatureEventRestDispatchCount} " +
             $"heartbeat={_creatureEventHeartbeatDispatchCount} custom={_creatureEventCustomDispatchCount} " +
             $"cadence_ms={authoredCreatureEvents.Heartbeat?.IntervalMilliseconds} budget_ms={authoredCreatureEvents.Heartbeat?.BudgetMilliseconds}");
+        AssertSmoke(_factionRuntimeProfile is not null &&
+                    FactionValidator.Validate(_factionCatalog).Count == 0,
+            "The authored advanced faction profile did not resolve.");
+        AssertSmoke(_factionInheritedTagCount >= 4 && _factionMembershipCount == 2,
+            "Faction hierarchy or multiple memberships did not resolve.");
+        AssertSmoke(_factionWitnessReportCount == 1 && _factionDiplomacyTransitionCount == 1,
+            "Witness propagation or authoritative diplomacy did not execute.");
+        var expiration = FactionRuntimeResolver.AdvanceExpirations(_factionRuntimeProfile!,
+            DateTimeOffset.Parse("2031-08-05T12:00:00Z"), isServer: true);
+        _factionExpirationCount = expiration.Events.Count;
+        AssertSmoke(expiration.Diagnostics.Count == 0 && _factionExpirationCount > 0 &&
+                    expiration.Profile.DynamicFactions.All(item => !item.Active),
+            "Dynamic faction expiration did not execute deterministically.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G13G_ADVANCED_FACTIONS_PASS hierarchy_tags={_factionInheritedTagCount} " +
+            $"memberships={_factionMembershipCount} witness={_factionWitnessReportCount} " +
+            $"diplomacy={_factionDiplomacyTransitionCount} expiration={_factionExpirationCount} " +
+            "authority=server replication=revisioned");
         AssertSmoke(_questState == PrototypeQuestState.Completed, "Quest was not completed.");
         AssertSmoke(_questMachine?.Completed == true, "Data-driven quest was not completed.");
 

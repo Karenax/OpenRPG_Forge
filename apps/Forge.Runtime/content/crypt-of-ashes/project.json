@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.21.0",
+  "formatVersion": "1.22.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -1219,6 +1219,187 @@
           "provenance": "sample:g11-o"
         },
         "provenance": "migration-default"
+      },
+      "factions": {
+        "factions": [
+          {
+            "id": "b2050000-0000-4000-8000-000000000001",
+            "schemaVersion": 1,
+            "provenance": "sample:g13-g",
+            "slug": "crypt-covenant",
+            "displayName": "Pacte de la crypte",
+            "archived": false,
+            "parentIds": [],
+            "tags": [
+              "crypt",
+              "guardian"
+            ],
+            "policies": {
+              "intruder-response": "challenge",
+              "relic-duty": "protect"
+            }
+          },
+          {
+            "id": "b2050000-0000-4000-8000-000000000002",
+            "schemaVersion": 1,
+            "provenance": "sample:g13-g",
+            "slug": "ash-watch",
+            "displayName": "Veilleurs des cendres",
+            "archived": false,
+            "parentIds": [
+              "b2050000-0000-4000-8000-000000000001"
+            ],
+            "tags": [
+              "watch",
+              "undead"
+            ],
+            "policies": null
+          },
+          {
+            "id": "b2050000-0000-4000-8000-000000000003",
+            "schemaVersion": 1,
+            "provenance": "sample:g13-g",
+            "slug": "surface-alliance",
+            "displayName": "Alliance de la surface",
+            "archived": false,
+            "parentIds": [],
+            "tags": [
+              "adventurer",
+              "civilian"
+            ],
+            "policies": null
+          }
+        ],
+        "relationships": [
+          {
+            "sourceId": "b2050000-0000-4000-8000-000000000001",
+            "targetId": "b2050000-0000-4000-8000-000000000003",
+            "score": -75,
+            "explanation": "tomb-intrusion",
+            "preset": "hostile"
+          },
+          {
+            "sourceId": "b2050000-0000-4000-8000-000000000003",
+            "targetId": "b2050000-0000-4000-8000-000000000001",
+            "score": -30,
+            "explanation": "fear-of-the-crypt",
+            "preset": "wary"
+          }
+        ],
+        "bands": [
+          {
+            "id": "hostile",
+            "minimum": -100,
+            "maximum": -1,
+            "priority": 1
+          },
+          {
+            "id": "neutral",
+            "minimum": 0,
+            "maximum": 50,
+            "priority": 1
+          },
+          {
+            "id": "allied",
+            "minimum": 51,
+            "maximum": 100,
+            "priority": 1
+          }
+        ],
+        "members": [],
+        "advanced": {
+          "id": "b2050000-0000-4000-8000-000000000010",
+          "schemaVersion": 1,
+          "provenance": "sample:g13-g",
+          "serverAuthoritative": true,
+          "inheritance": [
+            {
+              "id": "b2050000-0000-4000-8000-000000000011",
+              "factionId": "b2050000-0000-4000-8000-000000000002",
+              "inheritTags": true,
+              "inheritPolicies": true,
+              "inheritRelationships": true
+            }
+          ],
+          "witnessPolicies": [
+            {
+              "id": "b2050000-0000-4000-8000-000000000012",
+              "factionId": "b2050000-0000-4000-8000-000000000002",
+              "minimumPerception": 0.55,
+              "minimumEvidence": 0.45,
+              "communicationRadiusMeters": 35,
+              "memorySeconds": 900,
+              "reputationDelta": -12,
+              "shareWithAllies": true
+            }
+          ],
+          "memberships": [
+            {
+              "id": "b2050000-0000-4000-8000-000000000013",
+              "schemaVersion": 1,
+              "provenance": "sample:g13-g",
+              "actorId": "ash-warden-boss",
+              "factionId": "b2050000-0000-4000-8000-000000000002",
+              "rank": "warden",
+              "coverIdentity": null,
+              "loyalty": 100,
+              "weight": 1,
+              "isPrimary": true,
+              "expiresAt": null
+            },
+            {
+              "id": "b2050000-0000-4000-8000-000000000014",
+              "schemaVersion": 1,
+              "provenance": "sample:g13-g",
+              "actorId": "hero",
+              "factionId": "b2050000-0000-4000-8000-000000000003",
+              "rank": "pathfinder",
+              "coverIdentity": null,
+              "loyalty": 85,
+              "weight": 1,
+              "isPrimary": true,
+              "expiresAt": null
+            },
+            {
+              "id": "b2050000-0000-4000-8000-000000000015",
+              "schemaVersion": 1,
+              "provenance": "sample:g13-g",
+              "actorId": "hero",
+              "factionId": "b2050000-0000-4000-8000-000000000002",
+              "rank": "novice",
+              "coverIdentity": "Ash Pilgrim",
+              "loyalty": -35,
+              "weight": 0.2,
+              "isPrimary": false,
+              "expiresAt": "2030-08-01T00:00:00+00:00"
+            }
+          ],
+          "dynamicFactions": [
+            {
+              "id": "b2050000-0000-4000-8000-000000000016",
+              "schemaVersion": 1,
+              "provenance": "sample:g13-g",
+              "factionId": "b2050000-0000-4000-8000-000000000002",
+              "kind": "runtime",
+              "createdAt": "2026-08-01T00:00:00+00:00",
+              "expiresAt": "2030-08-01T00:00:00+00:00",
+              "active": true,
+              "replicated": true,
+              "revision": 1,
+              "diplomacy": [
+                {
+                  "id": "b2050000-0000-4000-8000-000000000017",
+                  "targetFactionId": "b2050000-0000-4000-8000-000000000003",
+                  "status": "war",
+                  "since": "2026-08-01T00:00:00+00:00",
+                  "expiresAt": null,
+                  "cause": "crypt-intrusion"
+                }
+              ]
+            }
+          ]
+        },
+        "requireAdvancedRuntime": true
       }
     },
     "blueprints": [

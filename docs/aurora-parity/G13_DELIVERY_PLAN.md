@@ -64,9 +64,11 @@ capacité G13 ne peut imposer un fournisseur, un abonnement ou un asset proprié
   animations ambiantes et auto-level/templates de créature.
 - [x] **G13-F** — `ORF-CRE-039`, `ORF-CRE-041`, `ORF-CRE-042`, `ORF-CRE-044`, `ORF-CRE-045` :
   événements avancés de créature (fin de round, perturbation, repos, heartbeat et événement utilisateur).
-- [ ] **G13-G** — `ORF-FAC-002`, `ORF-FAC-008`, `ORF-FAC-009`, `ORF-FAC-010` : factions parentes,
+- [x] **G13-G** — `ORF-FAC-002`, `ORF-FAC-008`, `ORF-FAC-009`, `ORF-FAC-010` : factions parentes,
   propagation par témoins, memberships multiples et factions dynamiques.
-- [ ] **G13-G et suivants** — tranches de cinq IDs maximum, ordonnées selon les quatre pistes
+- [ ] **G13-H** — `ORF-DLG-014`, `ORF-DLG-015`, `ORF-DLG-016`, `ORF-DLG-020`, `ORF-DLG-023` :
+  animations, voix, caméra, bookmarks et interjections de dialogue.
+- [ ] **G13-I et suivants** — tranches de cinq IDs maximum, ordonnées selon les quatre pistes
   ci-dessus et consignées dans une fiche dédiée avant implémentation.
 
 ## Gate de fermeture

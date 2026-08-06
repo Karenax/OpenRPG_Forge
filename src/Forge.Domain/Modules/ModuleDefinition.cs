@@ -1,6 +1,7 @@
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Content;
+using Forge.Domain.Factions;
 using Forge.Domain.Localization;
 using Forge.Domain.RuntimePolicies;
 
@@ -32,6 +33,8 @@ public sealed record ModuleDefinition
 
     public ModuleRuntimePolicyProfile RuntimePolicies { get; }
 
+    public FactionCatalog Factions { get; }
+
     public ModuleDefinition(
         ModuleId id,
         string slug,
@@ -44,7 +47,8 @@ public sealed record ModuleDefinition
         LocalizationCatalog? localization = null,
         ContentWorkspaceConfiguration? content = null,
         ArtisticStyleProfile? artisticStyle = null,
-        ModuleRuntimePolicyProfile? runtimePolicies = null)
+        ModuleRuntimePolicyProfile? runtimePolicies = null,
+        FactionCatalog? factions = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -76,9 +80,14 @@ public sealed record ModuleDefinition
         Content = content ?? ContentWorkspaceConfiguration.CreateDefault(id.Value);
         ArtisticStyle = artisticStyle ?? ArtisticStyleProfile.CreateDefault(id.Value);
         RuntimePolicies = runtimePolicies ?? ModuleRuntimePolicyProfile.CreateDefault(id);
+        Factions = factions ?? FactionCatalog.Empty;
     }
 
     public ModuleDefinition WithRuntimePolicies(ModuleRuntimePolicyProfile runtimePolicies) =>
         new(Id, Slug, DisplayName, Description, EntryAreaId, Metadata, Variables, Distribution, Localization,
-            Content, ArtisticStyle, runtimePolicies);
+            Content, ArtisticStyle, runtimePolicies, Factions);
+
+    public ModuleDefinition WithFactions(FactionCatalog factions) =>
+        new(Id, Slug, DisplayName, Description, EntryAreaId, Metadata, Variables, Distribution, Localization,
+            Content, ArtisticStyle, RuntimePolicies, factions);
 }

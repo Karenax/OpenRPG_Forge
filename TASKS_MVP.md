@@ -606,7 +606,9 @@ les démonstrations Crypte des Cendres et Forgotten Forest jouables.
 - [x] G13-E : informations de rôle, animations ambiantes et auto-level/templates
   (`ORF-CRE-030`, `047`, `048`).
 - [x] G13-F : événements avancés de créature (`ORF-CRE-039`, `041`, `042`, `044`, `045`).
-- [ ] G13-G : factions avancées (`ORF-FAC-002`, `008`, `009`, `010`).
+- [x] G13-G : factions avancées (`ORF-FAC-002`, `008`, `009`, `010`).
+- [ ] G13-H : animations, voix, caméra, bookmarks et interjections de dialogue
+  (`ORF-DLG-014`, `015`, `016`, `020`, `023`).
 
 Acceptation G13-A : un auteur configure les raccourcis depuis l’écran Aurora, prévisualise le diff,
 applique la commande canonique et peut annuler/rétablir. Le round-trip `.forge/editor-keymap.json`
@@ -639,3 +641,8 @@ Acceptation G13-F : un auteur configure sans JSON les frontières de combat, év
 repos, heartbeat avec cadence/suspension/budget et événements utilisateur namespacés/typés. La même
 commande assure dry-run, undo/redo et round-trip ; ForgeScript et MCP restent typés et sans mutation
 directe. La Crypte déclenche réellement les cinq familles tout en conservant quête, combat et butin.
+
+Acceptation G13-G : un auteur configure sans JSON les parents et héritages d’une faction, ses règles
+de témoins, plusieurs affiliations et une faction dynamique. La même commande assure validation des
+cycles, dry-run, undo/redo et round-trip projet/workspace/`.orpmod`. ForgeScript et MCP restent typés ;
+la Crypte prouve héritage, témoin, guerre → trêve, expiration et autorité serveur.

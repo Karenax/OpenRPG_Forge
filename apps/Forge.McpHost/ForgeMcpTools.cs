@@ -4,6 +4,7 @@ using Forge.Mcp;
 using Forge.Mcp.Abilities;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Creatures;
+using Forge.Mcp.Factions;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
@@ -44,6 +45,16 @@ public sealed class ForgeMcpTools
     [Description("Validates and dry-runs a canonical creature-event mutation, returning its semantic diff without applying it.")]
     public CreatureEventPlanResult PreviewCreatureEvents(CreatureEventPlanRequest request) =>
         _project.PreviewCreatureEvents(request);
+
+    [McpServerTool]
+    [Description("Returns canonical factions, inherited tags and policies, memberships, witness policies and dynamic state without mutation.")]
+    public FactionResource QueryFactions(string? factionIdOrSearch = null, int limit = 50) =>
+        _project.QueryFactions(factionIdOrSearch, limit);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a canonical faction-catalog mutation, returning its semantic diff without applying it.")]
+    public FactionPlanResult PreviewFactions(FactionPlanRequest request) =>
+        _project.PreviewFactions(request);
 
     [McpServerTool]
     [Description("Validates the project and returns structured diagnostics without mutating it.")]

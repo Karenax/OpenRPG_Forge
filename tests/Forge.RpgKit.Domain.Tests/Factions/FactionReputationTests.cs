@@ -1,3 +1,4 @@
+using Forge.Domain.Factions;
 using Forge.RpgKit.Domain.Factions;
 
 namespace Forge.RpgKit.Domain.Tests.Factions;
@@ -45,7 +46,7 @@ public sealed class FactionReputationTests
     private static (FactionCatalog Catalog, Guid Village, Guid Glass) Sample()
     {
         var village = Guid.Parse("11111111-1111-1111-1111-111111111111"); var glass = Guid.Parse("22222222-2222-2222-2222-222222222222");
-        var factions = new[] { new FactionDefinition(village, 1, "author:test", "village", "Village", false, [], new HashSet<string> { "civilian", "merchant" }), new FactionDefinition(glass, 1, "author:test", "glass", "Glass", false, [], new HashSet<string> { "undead" }) };
+        var factions = new[] { new FactionDefinition(village, 1, "author:test", "village", "Village", false, [], ["civilian", "merchant"]), new FactionDefinition(glass, 1, "author:test", "glass", "Glass", false, [], ["undead"]) };
         var relations = new[] { new FactionRelationship(village, glass, -40, "fear", "hostile"), new FactionRelationship(glass, village, 10, "curiosity", "neutral") };
         var bands = new[] { new DispositionBand("hostile", -100, -1, 1), new DispositionBand("neutral", 0, 49, 1), new DispositionBand("allied", 50, 100, 1) };
         return (new(factions, relations, bands, []), village, glass);

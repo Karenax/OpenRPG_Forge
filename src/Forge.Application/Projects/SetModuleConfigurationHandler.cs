@@ -54,7 +54,8 @@ public sealed class SetModuleConfigurationHandler
             module.Localization,
             module.Content,
             module.ArtisticStyle,
-            module.RuntimePolicies);
+            module.RuntimePolicies,
+            module.Factions);
         var updatedProject = new ProjectDefinition(
             state.Project.Id,
             state.Project.Title,

@@ -1,5 +1,6 @@
 using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
+using Forge.Domain.Factions;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Projects;
 using Forge.Domain.RuntimeExtensions;
@@ -10,10 +11,11 @@ var addRuntimeExtensionSample = args.Contains("--runtime-extension-sample", Stri
 var addCreatureLootSample = args.Contains("--creature-loot-sample", StringComparer.Ordinal);
 var addCreatureRoleBehaviorSample = args.Contains("--creature-role-behavior-sample", StringComparer.Ordinal);
 var addCreatureEventsSample = args.Contains("--creature-events-sample", StringComparer.Ordinal);
+var addAdvancedFactionSample = args.Contains("--faction-advanced-sample", StringComparer.Ordinal);
 var workspaceArguments = args.Where(argument => !argument.StartsWith("--", StringComparison.Ordinal)).ToArray();
 if (workspaceArguments.Length == 0)
 {
-    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] [--creature-events-sample] <workspace> [workspace ...]");
+    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] [--creature-events-sample] [--faction-advanced-sample] <workspace> [workspace ...]");
     return 2;
 }
 
@@ -31,6 +33,7 @@ foreach (var argument in workspaceArguments)
     if (addCreatureLootSample) project = AddCreatureLootSample(project);
     if (addCreatureRoleBehaviorSample) project = AddCreatureRoleBehaviorSample(project);
     if (addCreatureEventsSample) project = AddCreatureEventsSample(project);
+    if (addAdvancedFactionSample) project = AddAdvancedFactionSample(project);
     var saved = opened.Session.Save(project);
     if (!saved.Succeeded)
     {
@@ -43,6 +46,51 @@ foreach (var argument in workspaceArguments)
 }
 
 return 0;
+
+static ProjectDefinition AddAdvancedFactionSample(ProjectDefinition project)
+{
+    if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal)) return project;
+    var covenant = Guid.Parse("b2050000-0000-4000-8000-000000000001");
+    var watch = Guid.Parse("b2050000-0000-4000-8000-000000000002");
+    var surface = Guid.Parse("b2050000-0000-4000-8000-000000000003");
+    var created = DateTimeOffset.Parse("2026-08-01T00:00:00Z");
+    var catalog = new FactionCatalog(
+        [
+            new(covenant, 1, "sample:g13-g", "crypt-covenant", "Pacte de la crypte", false, [],
+                ["crypt", "guardian"], new Dictionary<string, string>
+                {
+                    ["intruder-response"] = "challenge",
+                    ["relic-duty"] = "protect",
+                }),
+            new(watch, 1, "sample:g13-g", "ash-watch", "Veilleurs des cendres", false, [covenant],
+                ["watch", "undead"]),
+            new(surface, 1, "sample:g13-g", "surface-alliance", "Alliance de la surface", false, [],
+                ["adventurer", "civilian"]),
+        ],
+        [new(covenant, surface, -75, "tomb-intrusion", "hostile"),
+         new(surface, covenant, -30, "fear-of-the-crypt", "wary")],
+        [new("hostile", -100, -1, 1), new("neutral", 0, 50, 1), new("allied", 51, 100, 1)],
+        [],
+        new FactionAdvancedProfile(
+            Guid.Parse("b2050000-0000-4000-8000-000000000010"), 1, "sample:g13-g", true,
+            [new(Guid.Parse("b2050000-0000-4000-8000-000000000011"), watch, true, true, true)],
+            [new(Guid.Parse("b2050000-0000-4000-8000-000000000012"), watch, .55, .45, 35, 900, -12, true)],
+            [
+                new(Guid.Parse("b2050000-0000-4000-8000-000000000013"), 1, "sample:g13-g",
+                    "ash-warden-boss", watch, "warden", null, 100, 1, true, null),
+                new(Guid.Parse("b2050000-0000-4000-8000-000000000014"), 1, "sample:g13-g",
+                    "hero", surface, "pathfinder", null, 85, 1, true, null),
+                new(Guid.Parse("b2050000-0000-4000-8000-000000000015"), 1, "sample:g13-g",
+                    "hero", watch, "novice", "Ash Pilgrim", -35, .2, false, created.AddYears(4)),
+            ],
+            [new(Guid.Parse("b2050000-0000-4000-8000-000000000016"), 1, "sample:g13-g", watch,
+                DynamicFactionKind.Runtime, created, created.AddYears(4), true, true, 1,
+                [new(Guid.Parse("b2050000-0000-4000-8000-000000000017"), surface,
+                    FactionDiplomacyStatus.War, created, null, "crypt-intrusion")])]),
+        true);
+    return new ProjectDefinition(project.Id, project.Title, project.Module.WithFactions(catalog),
+        project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+}
 
 static ProjectDefinition AddCreatureLootSample(ProjectDefinition project)
 {

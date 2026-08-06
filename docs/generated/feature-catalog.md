@@ -365,15 +365,15 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-ENC-019 | Nettoyage | P2 | Researched | G13 |
 | ORF-ENC-020 | Validation de rencontre | P0 | Implemented | G8 |
 | ORF-FAC-001 | Création et suppression de faction | P1 | Implemented | G8 |
-| ORF-FAC-002 | Faction parente | P2 | Researched | G13 |
+| ORF-FAC-002 | Faction parente | P2 | Tested | G13 |
 | ORF-FAC-003 | Matrice de réputation | P1 | Implemented | G8 |
 | ORF-FAC-004 | Relations asymétriques | P1 | Implemented | G8 |
 | ORF-FAC-005 | Seuils hostile/neutre/allié | P1 | Implemented | G8 |
 | ORF-FAC-006 | Réputation personnelle | P1 | Implemented | G8 |
 | ORF-FAC-007 | Réputation globale | P1 | Implemented | G8 |
-| ORF-FAC-008 | Propagation par témoins | P2 | Researched | G13 |
-| ORF-FAC-009 | Membership multiple | P2 | Researched | G13 |
-| ORF-FAC-010 | Factions dynamiques | P3 | Researched | G13 |
+| ORF-FAC-008 | Propagation par témoins | P2 | Tested | G13 |
+| ORF-FAC-009 | Membership multiple | P2 | Tested | G13 |
+| ORF-FAC-010 | Factions dynamiques | P3 | Tested | G13 |
 | ORF-FAC-011 | Tags de faction | P1 | Implemented | G8 |
 | ORF-FAC-012 | Interface de matrice | P1 | Implemented | G8 |
 | ORF-FAC-013 | Réaction au joueur | P1 | Implemented | G8 |

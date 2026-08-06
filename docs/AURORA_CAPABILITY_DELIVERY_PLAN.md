@@ -499,9 +499,11 @@ talents, pouvoirs préparés, UI résumée, handle ForgeScript, runtime et `.orp
 tranche **G13-D** ferme `ORF-CRE-023`, `024` et `032` autour du butin de créature, avec commande,
 UI, persistance, script typé, fallback historique et dépouille runtime interactive. **G13-E** ferme
 `ORF-CRE-030`, `047` et `048` avec lore sans mécanique implicite, routines ambiantes et auto-level
-déterministe. **G13-F** est désormais fermé avec bindings combat/inventaire/repos, heartbeat budgété, événements
-personnalisés typés, UI, ForgeScript, MCP, persistance et runtime 3D. **G13-G** cible ensuite les
-quatre exigences de factions avancées encore recherchées.
+déterministe. **G13-F** est désormais fermé avec bindings combat/inventaire/repos, heartbeat budgété,
+événements personnalisés typés, UI, ForgeScript, MCP, persistance et runtime 3D. **G13-G** ferme les
+quatre exigences de factions avancées avec hiérarchie, témoins, affiliations multiples, diplomatie
+dynamique, autorité serveur, UI, formats, scripts, MCP et runtime. **G13-H** cible ensuite cinq
+exigences de présentation cinématique des dialogues.
 
 ## 7. Graphe de dépendances
 

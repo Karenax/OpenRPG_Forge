@@ -6,6 +6,7 @@ using Forge.Domain.Assets;
 using Forge.Domain.Areas;
 using Forge.Domain.Assistant;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Factions;
 using Forge.Domain.Combat;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Gameplay;
@@ -35,6 +36,36 @@ namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void FactionResourceIsBoundedAndMutationRemainsDryRun()
+    {
+        using var workspace = new TestWorkspace();
+        var parent = Guid.Parse("b2040000-0000-4000-8000-000000000001");
+        var child = Guid.Parse("b2040000-0000-4000-8000-000000000002");
+        var catalog = new FactionCatalog(
+            [
+                new(parent, 1, "mcp:test", "ember-guild", "Guilde", false, [], ["guild"]),
+                new(child, 1, "mcp:test", "ash-watch", "Veilleurs", false, [parent], ["guard"]),
+            ], [], [new("neutral", -100, 100, 1)], [],
+            new FactionAdvancedProfile(
+                Guid.Parse("b2040000-0000-4000-8000-000000000010"), 1, "mcp:test", true,
+                [new(Guid.Parse("b2040000-0000-4000-8000-000000000011"), child, true, true, true)],
+                [], [], []), true);
+
+        var before = workspace.Project.QueryFactions();
+        var planned = workspace.Project.PreviewFactions(new(1, 0, catalog));
+        var after = workspace.Project.QueryFactions("ash", 1);
+
+        Assert.Contains(before.Items, item => item.Slug == "ash-watch");
+        Assert.True(planned.Succeeded);
+        Assert.NotNull(planned.SemanticDiff);
+        var unchanged = Assert.Single(after.Items);
+        Assert.Equal("ash-watch", unchanged.Slug);
+        Assert.Equal(before.Items.Single(item => item.Slug == "ash-watch").FactionId, unchanged.FactionId);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.QueryFactions(limit: 101));
+    }
+
     [Fact]
     public void CreatureEventResourceIsReadOnlyFilteredAndBounded()
     {

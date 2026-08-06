@@ -24,7 +24,9 @@ G13-E livre maintenant les informations de rôle sans mécanique implicite, les 
 les templates d’auto-level déterministes ; l’écran affiche le diff et le runtime anime réellement le
 Gardien avant le combat. G13-F ajoute fin de tick/tour, accès et transfert d’inventaire, repos,
 heartbeat budgété et événements utilisateur typés ; l’écran, ForgeScript, MCP et le runtime 3D
-partagent les mêmes bindings canoniques.
+partagent les mêmes bindings canoniques. G13-G rend maintenant les factions canoniques au niveau du
+module : parents et héritage, témoins, affiliations multiples et factions dynamiques autoritaires
+sont éditables sans JSON, sérialisés et réellement exercés dans la Crypte.
 AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
@@ -47,7 +49,7 @@ Le runtime offre une caméra orbitale et un déplacement relatif à la caméra. 
 sanctuaire par un chemin réel de 70 points. Le smoke termine dialogue, collecte, passage, boss et
 quête.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.21.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.22.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -123,7 +125,7 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
 - solution de 25 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 888 tests .NET, 24 tests Python généraux et 30 tests Python du pipeline d'assets réussis ;
+- 902 tests .NET, 24 tests Python généraux et 30 tests Python du pipeline d'assets réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes
   (`Designed` 1, `Implemented` 432, `Researched` 190, `Tested` 94) et matrice de
   gates contrôlés par le gate global ;
@@ -131,7 +133,7 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
   icônes des fenêtres Forge personnalisées puis contrôlées par le smoke test et une capture ciblée ;
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
 - assistant Nouveau module validé : choix Intérieur/Extérieur, dimensions 2D, agrégat module, zone
-  d’entrée, sol, spawn et workspace atomique indexé au format `1.21.0` ; le gabarit extérieur active
+  d’entrée, sol, spawn et workspace atomique indexé au format `1.22.0` ; le gabarit extérieur active
   son heightmap canonique (smoke dédié 96 × 80), avec lecture/migration testée des agrégats
   `0.6.8` à `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
@@ -665,5 +667,13 @@ appelle `SetCreatureEventsHandler`, MCP fournit lecture filtrée et dry-run, les
 `0.6.27` / workspace `1.21.0` / `.orpmod` conservent le profil. La Crypte prouve réellement
 heartbeat, combat, inventaire, repos et événement personnalisé avant de terminer la quête.
 
-La prochaine tranche unique est **G13-G — factions avancées** : `ORF-FAC-002`, `ORF-FAC-008`,
-`ORF-FAC-009` et `ORF-FAC-010`.
+**G13-G — factions avancées livrées** : `FactionCatalog` appartient désormais au module canonique.
+Le profil avancé v1 couvre parents et héritage sélectif, perception et mémoire des témoins,
+affiliations multiples, factions temporaires, alliance/guerre/trêve, expiration et révision serveur.
+L’écran à trois onglets appelle `SetFactionCatalogHandler`; ForgeScript et MCP exposent des contrats
+typés et bornés. Les formats projet `0.6.28`, workspace `1.22.0` et `.orpmod` conservent les données.
+La Crypte résout quatre tags hérités, trois affiliations, un rapport de témoin et la transition
+guerre → trêve du Gardien, avec refus client et expiration vérifiés.
+
+La prochaine tranche unique est **G13-H — dialogues cinématiques** : `ORF-DLG-014`,
+`ORF-DLG-015`, `ORF-DLG-016`, `ORF-DLG-020` et `ORF-DLG-023`.

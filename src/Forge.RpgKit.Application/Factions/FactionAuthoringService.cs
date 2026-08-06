@@ -1,4 +1,4 @@
-using Forge.RpgKit.Domain.Factions;
+using Forge.Domain.Factions;
 
 namespace Forge.RpgKit.Application.Factions;
 

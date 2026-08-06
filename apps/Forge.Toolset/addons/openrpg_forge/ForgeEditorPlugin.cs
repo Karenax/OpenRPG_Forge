@@ -12,6 +12,7 @@ using Forge.Application.Content;
 using Forge.Application.Creator;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
+using Forge.Application.Factions;
 using Forge.Application.Gameplay;
 using Forge.Application.Rules;
 using Forge.Application.Localization;
@@ -33,6 +34,7 @@ using Forge.Domain.Content;
 using Forge.Domain.Creatures;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.Factions;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Localization;
 using Forge.Domain.Lifecycle;
@@ -131,6 +133,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetCreatureLootHandler _creatureLootHandler = new(new SystemClock());
     private readonly SetCreatureRoleBehaviorHandler _creatureRoleBehaviorHandler = new(new SystemClock());
     private readonly SetCreatureEventsHandler _creatureEventsHandler = new(new SystemClock());
+    private readonly SetFactionCatalogHandler _factionHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -238,6 +241,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private CreatureLootWindow? _creatureLootWindow;
     private CreatureRoleBehaviorWindow? _creatureRoleBehaviorWindow;
     private CreatureEventWindow? _creatureEventWindow;
+    private FactionAdvancedWindow? _factionAdvancedWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -499,6 +503,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_creatureEventWindow);
+        _factionAdvancedWindow = new FactionAdvancedWindow();
+        _factionAdvancedWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyFactions,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_factionAdvancedWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -600,6 +612,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _creatureLootWindow?.Open(),
             () => _creatureRoleBehaviorWindow?.Open(),
             () => _creatureEventWindow?.Open(),
+            () => _factionAdvancedWindow?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rpgKitAuthoringWindow);
         _networkBetaWindow = new NetworkBetaWindow();
@@ -2384,6 +2397,26 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             ApplyCommand(result, "Événements avancés de créature enregistrés dans le projet.", null);
             _creatureEventWindow?.Refresh();
+        }
+
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyFactions(FactionCatalog catalog, bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+
+        var command = new SetFactionCatalogCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            catalog,
+            dryRun);
+        var result = _factionHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Factions avancées enregistrées dans le projet.", null);
+            _factionAdvancedWindow?.Refresh();
         }
 
         return result;
@@ -5472,6 +5505,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunCreatureEventSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAdvancedFactionSmokeTest())
         {
             return;
         }
@@ -10327,6 +10365,104 @@ public partial class ForgeEditorPlugin : EditorPlugin
         finally
         {
             _creatureEventWindow.Hide();
+            if (appliedToHistory) _history.Undo();
+            RebuildPreview();
+            RefreshEditorControls();
+        }
+    }
+
+    private bool RunAdvancedFactionSmokeTest()
+    {
+        if (_history is null || _factionAdvancedWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13G_ADVANCED_FACTIONS_FAILED missing_workspace");
+            return false;
+        }
+
+        var appliedToHistory = false;
+        try
+        {
+            _factionAdvancedWindow.Open();
+            var visible = _factionAdvancedWindow.Visible;
+            _factionAdvancedWindow.Hide();
+            var before = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var configured = visible && _factionAdvancedWindow.ConfigureForSmokeTest();
+            var previewed = configured && _factionAdvancedWindow.PreviewForSmokeTest();
+            var applied = previewed && _factionAdvancedWindow.LastCommandId != Guid.Empty &&
+                          _factionAdvancedWindow.LastPatchSummary.Contains("faction", StringComparison.OrdinalIgnoreCase) &&
+                          _factionAdvancedWindow.ApplyForSmokeTest();
+            if (!configured || !previewed || !applied)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13G_ADVANCED_FACTIONS_FAILED preview_apply_ui " +
+                    $"configured={configured} previewed={previewed} applied={applied} " +
+                    $"patch={_factionAdvancedWindow.LastPatchSummary} diagnostics={_factionAdvancedWindow.LastDiagnostics}");
+                return false;
+            }
+
+            appliedToHistory = true;
+            var catalog = _history.State.Project.Module.Factions;
+            var profile = catalog.Advanced;
+            var watch = catalog.Factions.Single(item => item.Slug == "ash-watch");
+            var surface = catalog.Factions.Single(item => item.Slug == "surface-alliance");
+            var effective = FactionRuntimeResolver.EffectiveDefinition(catalog, watch.Id);
+            var at = DateTimeOffset.Parse("2026-08-05T12:00:00Z");
+            var memberships = FactionRuntimeResolver.Memberships(catalog, "hero", at);
+            var witness = FactionRuntimeResolver.PropagateWitnesses(catalog,
+                [new(Guid.Parse("b2050000-0000-4000-8000-000000000030"), "toolset-smoke", "hero",
+                    "ash-warden-boss", watch.Id, "crime.assault", .9, .8, 12, at, true)], at);
+            var dynamic = profile?.DynamicFactions.Single();
+            var truce = new FactionDiplomacyState(Guid.Parse("b2050000-0000-4000-8000-000000000031"),
+                surface.Id, FactionDiplomacyStatus.Truce, at, at.AddHours(1), "toolset-smoke");
+            var denied = profile is null || dynamic is null ? null :
+                FactionRuntimeResolver.TransitionDiplomacy(profile, dynamic.Id, truce, false);
+            var transitioned = profile is null || dynamic is null ? null :
+                FactionRuntimeResolver.TransitionDiplomacy(profile, dynamic.Id, truce, true);
+            var expiration = transitioned is null ? null : FactionRuntimeResolver.AdvanceExpirations(
+                transitioned.Profile, DateTimeOffset.Parse("2031-08-05T12:00:00Z"), true);
+            var appliedJson = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(appliedJson);
+            if (profile is null || profile.Id == Guid.Empty || profile.SchemaVersion != 1 ||
+                !profile.ServerAuthoritative || FactionValidator.Validate(catalog).Count != 0 ||
+                catalog.Factions.Count != 3 || profile.Inheritance.Count != 1 ||
+                effective.Tags.Count < 4 || memberships.Count != 2 || witness.Reports.Count != 1 ||
+                denied?.Diagnostics.SingleOrDefault()?.Code != "faction.dynamic.authority_denied" ||
+                transitioned?.Events.Count != 1 || expiration?.Events.Count < 1 ||
+                _factionAdvancedWindow.SummarySectionCount != 4 ||
+                ProjectJsonSerializer.Serialize(restored) != appliedJson ||
+                restored.Module.Factions.Advanced?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13G_ADVANCED_FACTIONS_FAILED canonical_roundtrip_runtime_summary " +
+                    $"profile={profile is not null} definitions={catalog.Factions.Count} inherited={effective.Tags.Count} " +
+                    $"memberships={memberships.Count} witness={witness.Reports.Count} transition={transitioned?.Events.Count} " +
+                    $"expiration={expiration?.Events.Count} summary={_factionAdvancedWindow.SummarySectionCount}");
+                return false;
+            }
+
+            Undo(); appliedToHistory = false;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != before)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13G_ADVANCED_FACTIONS_FAILED undo");
+                return false;
+            }
+            Redo(); appliedToHistory = true;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != appliedJson)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13G_ADVANCED_FACTIONS_FAILED redo");
+                return false;
+            }
+            Undo(); appliedToHistory = false;
+
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13G_ADVANCED_FACTIONS_PASS " +
+                "hierarchy=parents-tags-policies-relations-no-cycles witnesses=perception-memory-communication-evidence " +
+                "memberships=multiple-rank-cover-loyalty dynamic=temporary-runtime-alliance-war-truce-expiration " +
+                "ui=visible-empty-error-summary uuid=stable schema=v1 provenance=tracked forgescript=typed-handle-server " +
+                "mcp=filtered-dry-run transaction=identified audit=generated history=restored " +
+                "persistence=project-workspace-package runtime=optional-safe-authoritative-replicated");
+            return true;
+        }
+        finally
+        {
+            _factionAdvancedWindow.Hide();
             if (appliedToHistory) _history.Undo();
             RebuildPreview();
             RefreshEditorControls();

@@ -5,6 +5,7 @@ using Forge.Application.Assets;
 using Forge.Application.Blueprints;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
+using Forge.Application.Factions;
 using Forge.Application.Projects;
 using Forge.Application.Time;
 using Forge.Application.Validation;
@@ -15,6 +16,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
+using Forge.Domain.Factions;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Rules;
@@ -26,6 +28,7 @@ using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Creatures;
+using Forge.Mcp.Factions;
 using Forge.Mcp.Scripts;
 using Forge.RpgKit.Application.Abilities;
 using Forge.RpgKit.Application.Dialogues;
@@ -68,6 +71,7 @@ public sealed class ForgeProjectAgentService
     private readonly List<AgentDiagnostic> _externalWorkerSecurityLoadDiagnostics;
     private readonly SetEntityOverridesHandler _overridesHandler;
     private readonly SetCreatureEventsHandler _creatureEventsHandler;
+    private readonly SetFactionCatalogHandler _factionHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
     private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
@@ -130,6 +134,7 @@ public sealed class ForgeProjectAgentService
             new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
         _overridesHandler = new SetEntityOverridesHandler(clock);
         _creatureEventsHandler = new SetCreatureEventsHandler(clock);
+        _factionHandler = new SetFactionCatalogHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
         _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
@@ -248,6 +253,56 @@ public sealed class ForgeProjectAgentService
             return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
                 result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
                     $"blueprints/{blueprintId}/creatureEvents")).ToArray());
+        }
+    }
+
+    public FactionResource QueryFactions(string? factionIdOrSearch = null, int limit = 50)
+    {
+        if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        lock (_gate)
+        {
+            var filter = factionIdOrSearch?.Trim();
+            var catalog = _history.State.Project.Module.Factions;
+            var profile = catalog.Advanced;
+            var items = catalog.Factions
+                .Where(item => string.IsNullOrWhiteSpace(filter) ||
+                    string.Equals(item.Id.ToString("D"), filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.DisplayName.Contains(filter, StringComparison.CurrentCultureIgnoreCase) ||
+                    item.Tags.Any(tag => tag.Contains(filter, StringComparison.OrdinalIgnoreCase)))
+                .OrderBy(item => item.Slug, StringComparer.Ordinal)
+                .Take(limit)
+                .Select(item =>
+                {
+                    var effective = FactionRuntimeResolver.EffectiveDefinition(catalog, item.Id);
+                    var dynamic = profile?.DynamicFactions.SingleOrDefault(state => state.FactionId == item.Id);
+                    return new FactionResourceItem(item.Id.ToString("D"), item.Slug, item.DisplayName,
+                        item.ParentIds.Select(id => id.ToString("D")).ToArray(),
+                        effective.Tags.OrderBy(tag => tag, StringComparer.Ordinal).ToArray(),
+                        effective.Policies, profile?.Memberships.Count(member => member.FactionId == item.Id) ?? 0,
+                        profile?.WitnessPolicies.Any(policy => policy.FactionId == item.Id) == true,
+                        dynamic is not null, dynamic?.Kind.ToString(), dynamic?.Revision ?? 0);
+                }).ToArray();
+            return new(1, _history.State.Revision.Value, filter, profile?.Id.ToString("D"),
+                profile?.ServerAuthoritative == true, items);
+        }
+    }
+
+    public FactionPlanResult PreviewFactions(FactionPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("faction.mcp_schema_unsupported",
+                        "Faction MCP request schema must be v1.", "request/schemaVersion")]);
+            var result = _factionHandler.Handle(_history.State, new SetFactionCatalogCommand(
+                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), request.Catalog,
+                DryRun: true));
+            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
+                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    "module/factions")).ToArray());
         }
     }
 

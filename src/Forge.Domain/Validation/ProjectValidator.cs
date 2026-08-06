@@ -4,6 +4,7 @@ using Forge.Domain.Dialogues;
 using Forge.Domain.Quests;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
+using Forge.Domain.Factions;
 
 namespace Forge.Domain.Validation;
 
@@ -44,6 +45,8 @@ public static class ProjectValidator
         var creatureEventIds = new HashSet<Guid>();
 
         diagnostics.AddRange(RuntimePolicyValidator.Validate(project.Module));
+        diagnostics.AddRange(FactionValidator.Validate(project.Module.Factions)
+            .Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
 
         if (project.Module.Content.Id.Value != project.Module.Id.Value)
         {

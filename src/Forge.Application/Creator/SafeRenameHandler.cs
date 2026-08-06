@@ -166,7 +166,8 @@ public sealed class SafeRenameHandler
                 project.Module.Localization,
                 project.Module.Content,
                 project.Module.ArtisticStyle,
-                project.Module.RuntimePolicies)
+                project.Module.RuntimePolicies,
+                project.Module.Factions)
             : project.Module;
         var areas = kind == CreatorContentKind.Area
             ? project.Areas.Select(area => area.Id.ToString() == targetId

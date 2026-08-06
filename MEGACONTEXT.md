@@ -818,6 +818,10 @@ G13-F ajoute `CreatureEventProfile` v1 : frontière combat tick/tour, inventaire
 repos terminé, heartbeat suspendable et budgété, événements utilisateur namespacés avec payload
 typé. L’écran spécialisé, la commande, le handle ForgeScript, la ressource MCP filtrée, les formats
 et le runtime partagent les mêmes bindings serveur ; la Crypte exécute les cinq familles.
+G13-G remonte `FactionCatalog` dans le domaine canonique du module et ajoute un profil avancé v1 :
+parents, héritage de tags/politiques/relations, témoins, affiliations multiples et factions
+dynamiques révisionnées. L’écran à trois onglets, la commande, ForgeScript, MCP, les formats et le
+runtime partagent ce contrat ; la Crypte produit un rapport de témoin et une trêve autoritaire.
 
 ---
 
@@ -1845,9 +1849,9 @@ Le présent paquet contient uniquement :
 
 ## Prochaine action autorisée
 
-Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-G :
-`ORF-FAC-002`, `ORF-FAC-008`, `ORF-FAC-009` et `ORF-FAC-010`, regroupées autour des factions
-avancées. Chaque tranche doit
+Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-H :
+`ORF-DLG-014`, `ORF-DLG-015`, `ORF-DLG-016`, `ORF-DLG-020` et `ORF-DLG-023`, regroupées autour de
+la présentation cinématique et des interjections de dialogue. Chaque tranche doit
 conserver les modules jouables, le runtime sans IA, les formats migrables et le gate intégré vert.
 
 

@@ -4,6 +4,7 @@ using System.Text;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
+using Forge.Domain.Factions;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
@@ -20,6 +21,29 @@ public sealed class ModulePackageTests : IDisposable
         Path.GetTempPath(),
         "openrpg-forge-tests",
         Guid.NewGuid().ToString("N"));
+
+    [Fact]
+    public void ExportValidateAndLoad_PreservesAdvancedFactionProfile()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var catalog = FactionPersistenceTestData.Complete();
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module.WithFactions(catalog),
+            source.Blueprints, source.Areas, source.Dialogues, source.Quests);
+        var workspace = Path.Combine(_temporaryRoot, $"factions-{Guid.NewGuid():N}");
+        Assert.True(ProjectSession.Create(workspace, project).Succeeded);
+        var package = Path.Combine(_temporaryRoot, "factions.orpmod");
+
+        ModulePackager.Export(workspace, package);
+        var validation = ModulePackageValidator.Validate(package);
+        var loaded = ModulePackageLoader.Load(package, Path.Combine(_temporaryRoot, "factions-cache"));
+
+        Assert.True(validation.IsValid, JoinDiagnostics(validation));
+        var restored = Assert.IsType<FactionAdvancedProfile>(loaded.Project.Module.Factions.Advanced);
+        Assert.Equal(catalog.Advanced!.Id, restored.Id);
+        Assert.Equal(2, restored.Memberships.Count);
+        Assert.Equal(FactionDiplomacyStatus.War,
+            Assert.Single(Assert.Single(restored.DynamicFactions).Diplomacy).Status);
+    }
 
     [Fact]
     public void ExportValidateAndLoad_PreservesCanonicalCreatureEvents()

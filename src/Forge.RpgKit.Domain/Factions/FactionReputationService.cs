@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Forge.Domain.Factions;
 
 namespace Forge.RpgKit.Domain.Factions;
 

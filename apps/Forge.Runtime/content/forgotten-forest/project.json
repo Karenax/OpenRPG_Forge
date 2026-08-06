@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.21.0",
+  "formatVersion": "1.22.0",
   "project": {
     "id": "85d0cc1d-acd4-7b55-90f2-a7c4e9ff6112",
     "title": "Forgotten Forest",
@@ -954,6 +954,14 @@
           "provenance": "migration-default"
         },
         "provenance": "migration-default"
+      },
+      "factions": {
+        "factions": [],
+        "relationships": [],
+        "bands": [],
+        "members": [],
+        "advanced": null,
+        "requireAdvancedRuntime": false
       }
     },
     "blueprints": [
