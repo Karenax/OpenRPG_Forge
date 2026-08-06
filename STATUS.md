@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. AV6-C livre maintenant une carte 3D extérieure 512 × 512 jouable,
+G11 Contenu moderne fermés. AV6-D livre maintenant une carte 3D extérieure 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
 installe les GLB gouvernés dans la palette, les place comme vrais modèles dans le viewport et ferme
@@ -500,5 +500,13 @@ vertices, 32 768 triangles et 64 secteurs de 64 m rendus séparément. Cinq couc
 instances MultiMesh et cinq groupes de culling ; 39 modèles composent le parcours central et quatre
 ensembles de landmarks extérieurs. Dix segments de rivière et deux ponts alimentent un navmesh de
 32 454 polygones, avec un trajet moteur de 70 points. Les seize budgets passent et une capture
-Vulkan Forward+ aérienne est générée par le gate. Le sol PBR et la finition artistique par secteur
-restent explicitement ouverts.
+Vulkan Forward+ aérienne est générée par le gate.
+
+**AV6-D — finition PBR procédurale livrée** : les 64 secteurs partagent désormais un shader de sol
+physiquement basé utilisant couleurs vertex, variation multi-échelle, pente, humidité, litière et
+occlusion. Les deux routes sont reconstruites comme rubans continus depuis leurs points de contrôle,
+avec matériau de terre dédié, au lieu d’une succession de dalles. Forgotten Forest emploie un ciel
+physique, un éclairage moins lavé et un brouillard repoussé ; Creator et runtime exposent le même
+contrat `procedural-pbr-vertex-blend`. Les essais SSAO/SSIL ont été retirés après apparition d’artefacts
+en capture. Le résultat est une tranche stylisée plus lisible, pas encore une direction artistique AA :
+variété de végétation, textures scannées et habillage rapproché des 64 secteurs restent ouverts.

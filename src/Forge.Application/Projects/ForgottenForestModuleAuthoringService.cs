@@ -328,7 +328,7 @@ public static class ForgottenForestModuleAuthoringService
             spatial: new AudioSpatialProfile(AreaSoundMode.Spatial3D, 2, 38, .18f, "inverse-square"));
         var sky = new SkyProfile(
             SkyProfile.CurrentSchemaVersion,
-            SkyProfileMode.Procedural,
+            SkyProfileMode.Physical,
             string.Empty,
             "#4f83ad",
             "#e8c896",
@@ -336,14 +336,14 @@ public static class ForgottenForestModuleAuthoringService
             .04,
             .12,
             .04,
-            .92,
+            .82,
             2);
         return new AreaEnvironmentProfile(
             AreaEnvironmentProfile.CurrentSchemaVersion,
             AreaEnvironmentClass.Natural,
             ["forest", "temperate", "outdoor", "forgotten", "vfx:forest-ambient"],
-            new AreaLightingProfile(DayNightMode.AlwaysDay, 24, 0.42f, 1.55f, 5100, true, true),
-            new AreaFogProfile(FogMode.Distance, 0.0022f, 120, 460, 11),
+            new AreaLightingProfile(DayNightMode.AlwaysDay, 24, 0.32f, 1.32f, 5100, true, true),
+            new AreaFogProfile(FogMode.Distance, 0.0011f, 180, 620, 11),
             audio,
             defaults.Rendering,
             sky,

@@ -1,6 +1,6 @@
 # État d’implémentation — Asset Vault et carte
 
-Dernière mise à jour : 5 août 2026 — tranche AV6-C.
+Dernière mise à jour : 5 août 2026 — tranche AV6-D.
 
 ## Terminé
 
@@ -108,6 +108,11 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-C.
   avec plafonds de dispersion adaptés aux grandes surfaces mais inchangés pour les petites cartes ;
 - dix segments d’eau, deux ponts et 32 454 polygones navigables ; le trajet camp–sanctuaire de 70
   points, les seize budgets 512 × 512 et la capture Forward+ aérienne passent.
+- shader terrain PBR procédural commun aux 64 secteurs, avec variation monde multi-échelle, pente,
+  humidité, litière, roughness, specular et occlusion dérivées des couleurs vertex canoniques ;
+- deux routes reconstruites comme rubans continus et texturés procéduralement depuis leurs points de
+  contrôle, ciel physique, lumière rééquilibrée et brouillard plus distant ; capture aérienne et
+  rapprochée inspectées, avec SSAO/SSIL explicitement retirés après artefacts visibles.
 
 ## Partiellement terminé
 
@@ -117,8 +122,8 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-C.
   conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
 - Forgotten Forest : carte 512 × 512 jouable, navigable, sonorisée, enrichie de VFX et dotée de cinq
-  personnages fantasy avec combat animé ; retargeting inter-rigs, terrain PBR et habillage fin des
-  secteurs restent des finitions de production.
+  personnages fantasy avec combat animé et terrain PBR procédural ; retargeting inter-rigs, textures
+  scannées et habillage rapproché des secteurs restent des finitions de production.
 
 ## Non commencé
 
@@ -126,13 +131,13 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-C.
   migrations/désinstallations déjà analysées par le domaine ;
 - génération de miniatures et planches contact ;
 - service de surveillance temps réel ;
-- finition artistique de Forgotten Forest : matériaux terrain PBR, variations de feuillage,
-  éclairage atmosphérique, eau avancée et habillage rapproché des 64 secteurs.
+- finition artistique de Forgotten Forest : variations de feuillage, textures scannées gouvernées,
+  eau avancée et habillage rapproché des 64 secteurs.
 
 ## Prochaine action
 
-Améliorer le rendu PBR et l’habillage rapproché des secteurs sans casser les budgets 512 × 512. Le
-retargeting inter-rigs reste un incrément séparé.
+Enrichir l’habillage rapproché des secteurs sans casser les budgets 512 × 512. Le retargeting
+inter-rigs reste un incrément séparé.
 
 ## Preuves de la tranche AV3 MCP
 

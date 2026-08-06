@@ -197,7 +197,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 23,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
       "kind": "defined_in",
@@ -206,7 +206,16 @@
     },
     {
       "evidence": {
-        "line": 76,
+        "line": 225,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.EngineAdapter.World.GodotTerrainAdapter",
+      "target": "model:Forge.Domain.Areas.TerrainFeatureDefinition"
+    },
+    {
+      "evidence": {
+        "line": 78,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
       "kind": "serializes",
@@ -215,12 +224,39 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 25,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
       "kind": "serializes",
       "source": "adapter:Forge.EngineAdapter.World.GodotTerrainAdapter",
       "target": "model:Forge.EngineAdapter.World.GodotTerrainResult"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.EngineAdapter.World.GodotTerrainMaterialAdapter",
+      "target": "file:src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+    },
+    {
+      "evidence": {
+        "line": 127,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.EngineAdapter.World.GodotTerrainMaterialAdapter",
+      "target": "model:Forge.Domain.Areas.TerrainDefinition"
+    },
+    {
+      "evidence": {
+        "line": 138,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.EngineAdapter.World.GodotTerrainMaterialAdapter",
+      "target": "model:Forge.EngineAdapter.World.GodotTerrainMaterialResult"
     },
     {
       "evidence": {
@@ -1727,7 +1763,7 @@
     },
     {
       "evidence": {
-        "line": 670,
+        "line": 679,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1736,7 +1772,7 @@
     },
     {
       "evidence": {
-        "line": 1483,
+        "line": 1492,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1745,7 +1781,7 @@
     },
     {
       "evidence": {
-        "line": 1548,
+        "line": 1557,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1754,7 +1790,7 @@
     },
     {
       "evidence": {
-        "line": 1848,
+        "line": 1857,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1763,7 +1799,7 @@
     },
     {
       "evidence": {
-        "line": 1548,
+        "line": 1557,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1772,7 +1808,7 @@
     },
     {
       "evidence": {
-        "line": 1597,
+        "line": 1606,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1781,7 +1817,7 @@
     },
     {
       "evidence": {
-        "line": 1801,
+        "line": 1810,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1799,7 +1835,7 @@
     },
     {
       "evidence": {
-        "line": 762,
+        "line": 771,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1808,7 +1844,7 @@
     },
     {
       "evidence": {
-        "line": 1548,
+        "line": 1557,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1817,7 +1853,7 @@
     },
     {
       "evidence": {
-        "line": 1598,
+        "line": 1607,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1826,7 +1862,7 @@
     },
     {
       "evidence": {
-        "line": 1650,
+        "line": 1659,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1835,7 +1871,7 @@
     },
     {
       "evidence": {
-        "line": 1742,
+        "line": 1751,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1853,7 +1889,7 @@
     },
     {
       "evidence": {
-        "line": 1453,
+        "line": 1462,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1862,7 +1898,7 @@
     },
     {
       "evidence": {
-        "line": 1548,
+        "line": 1557,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1871,7 +1907,7 @@
     },
     {
       "evidence": {
-        "line": 1599,
+        "line": 1608,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1880,7 +1916,7 @@
     },
     {
       "evidence": {
-        "line": 1650,
+        "line": 1659,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1889,7 +1925,7 @@
     },
     {
       "evidence": {
-        "line": 1817,
+        "line": 1826,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1898,7 +1934,7 @@
     },
     {
       "evidence": {
-        "line": 669,
+        "line": 678,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1907,7 +1943,7 @@
     },
     {
       "evidence": {
-        "line": 669,
+        "line": 678,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1925,7 +1961,7 @@
     },
     {
       "evidence": {
-        "line": 762,
+        "line": 771,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1952,7 +1988,7 @@
     },
     {
       "evidence": {
-        "line": 1454,
+        "line": 1463,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1970,7 +2006,7 @@
     },
     {
       "evidence": {
-        "line": 1834,
+        "line": 1843,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -11763,6 +11799,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.EngineAdapter/World/ITerrainProvider.cs"
       },
       "kind": "imports",
@@ -18553,6 +18598,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs",
+      "target": "namespace:Forge.EngineAdapter.World"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs",
       "target": "namespace:Forge.EngineAdapter.World"
     },
     {
@@ -32516,6 +32579,15 @@
     },
     {
       "evidence": {
+        "line": 13,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.EngineAdapter.World.GodotTerrainMaterialResult",
+      "target": "file:src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+    },
+    {
+      "evidence": {
         "line": 17,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
@@ -32525,7 +32597,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
       "kind": "relationship",
@@ -36089,7 +36161,7 @@
     },
     {
       "evidence": {
-        "line": 3527,
+        "line": 3536,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -41993,6 +42065,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.Tests.World",
+      "target": "file:tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
       },
@@ -42071,6 +42152,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.EngineAdapter.World",
       "target": "file:src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
     },
     {
       "evidence": {
@@ -63116,6 +63206,60 @@
     },
     {
       "evidence": {
+        "line": 16,
+        "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.GodotTerrainMaterialAdapterTests",
+      "target": "adapter:Forge.EngineAdapter.World.GodotTerrainMaterialAdapter"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.EngineAdapter.Tests.World.GodotTerrainMaterialAdapterTests",
+      "target": "file:tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.GodotTerrainMaterialAdapterTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.GodotTerrainMaterialAdapterTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.GodotTerrainMaterialAdapterTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.GodotTerrainMaterialAdapterTests",
+      "target": "type:Forge.Domain.Areas.AreaWorldProfile"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
       },
@@ -78902,6 +79046,15 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.TerrainMaterialDescriptor",
+      "target": "file:src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+    },
+    {
+      "evidence": {
         "line": 100,
         "path": "src/Forge.EngineAdapter/World/TerrainProductionBenchmark.cs"
       },
@@ -83798,7 +83951,7 @@
     },
     {
       "evidence": {
-        "line": 1296,
+        "line": 1300,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83807,7 +83960,7 @@
     },
     {
       "evidence": {
-        "line": 1412,
+        "line": 1417,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83816,7 +83969,7 @@
     },
     {
       "evidence": {
-        "line": 1550,
+        "line": 1555,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83825,7 +83978,7 @@
     },
     {
       "evidence": {
-        "line": 1537,
+        "line": 1542,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83834,7 +83987,7 @@
     },
     {
       "evidence": {
-        "line": 402,
+        "line": 404,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83843,7 +83996,7 @@
     },
     {
       "evidence": {
-        "line": 1499,
+        "line": 1504,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83852,7 +84005,7 @@
     },
     {
       "evidence": {
-        "line": 1482,
+        "line": 1487,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83861,7 +84014,7 @@
     },
     {
       "evidence": {
-        "line": 1589,
+        "line": 1594,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83870,7 +84023,7 @@
     },
     {
       "evidence": {
-        "line": 1636,
+        "line": 1641,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83879,7 +84032,7 @@
     },
     {
       "evidence": {
-        "line": 1618,
+        "line": 1623,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83888,7 +84041,7 @@
     },
     {
       "evidence": {
-        "line": 1606,
+        "line": 1611,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83897,7 +84050,7 @@
     },
     {
       "evidence": {
-        "line": 1562,
+        "line": 1567,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83933,7 +84086,7 @@
     },
     {
       "evidence": {
-        "line": 3456,
+        "line": 3465,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -83960,7 +84113,7 @@
     },
     {
       "evidence": {
-        "line": 3495,
+        "line": 3504,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -85679,8 +85832,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:330d1167688f69b02cea5dc92b156bf87d898b21e8bac8023a43758c3fdfefeb",
-    "source_file_count": 1550
+    "source_digest": "sha256:7c721719c4534b146a1076ad1e4f6f738e1562a678ea2f0e40681e12736461c1",
+    "source_file_count": 1553
   },
   "nodes": [
     {
@@ -85746,12 +85899,22 @@
     {
       "id": "adapter:Forge.EngineAdapter.World.GodotTerrainAdapter",
       "kind": "adapter",
-      "line": 22,
+      "line": 23,
       "metadata": {
         "namespace": "Forge.EngineAdapter.World"
       },
       "name": "GodotTerrainAdapter",
       "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
+    },
+    {
+      "id": "adapter:Forge.EngineAdapter.World.GodotTerrainMaterialAdapter",
+      "kind": "adapter",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "GodotTerrainMaterialAdapter",
+      "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
     },
     {
       "id": "adapter:Forge.ModuleFormat.Diagnostics.ICrashDumpAdapter",
@@ -87704,14 +87867,14 @@
       "path": "apps/Forge.Runtime/content/forgotten-forest/.forge/build-graph.json"
     },
     {
-      "id": "file:apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-aaeaa1b00d94f983.json",
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-35a3b6275bd6e9f8.json",
       "kind": "configuration",
       "line": 1,
       "metadata": {
         "language": "configuration"
       },
-      "name": "a56d51fe-089a-995f-a4c9-59c349b0f1d8-aaeaa1b00d94f983.json",
-      "path": "apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-aaeaa1b00d94f983.json"
+      "name": "a56d51fe-089a-995f-a4c9-59c349b0f1d8-35a3b6275bd6e9f8.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-35a3b6275bd6e9f8.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/CREDITS_ASSETS.md",
@@ -89412,6 +89575,16 @@
       },
       "name": "AV6C_SECTORIZED_512_WORLD.md",
       "path": "docs/assets/AV6C_SECTORIZED_512_WORLD.md"
+    },
+    {
+      "id": "file:docs/assets/AV6D_PROCEDURAL_PBR_FINISH.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "AV6D_PROCEDURAL_PBR_FINISH.md",
+      "path": "docs/assets/AV6D_PROCEDURAL_PBR_FINISH.md"
     },
     {
       "id": "file:docs/assets/AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md",
@@ -95874,6 +96047,16 @@
       "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
     },
     {
+      "id": "file:src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "GodotTerrainMaterialAdapter.cs",
+      "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+    },
+    {
       "id": "file:src/Forge.EngineAdapter/World/ITerrainProvider.cs",
       "kind": "file",
       "line": 1,
@@ -99622,6 +99805,16 @@
       },
       "name": "BiomeScatterPlanBuilderTests.cs",
       "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "GodotTerrainMaterialAdapterTests.cs",
+      "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
     },
     {
       "id": "file:tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs",
@@ -106284,6 +106477,16 @@
       "path": "src/Forge.EngineAdapter/World/GodotSurfaceNavigationAdapter.cs"
     },
     {
+      "id": "model:Forge.EngineAdapter.World.GodotTerrainMaterialResult",
+      "kind": "model",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "GodotTerrainMaterialResult",
+      "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+    },
+    {
       "id": "model:Forge.EngineAdapter.World.GodotTerrainResult",
       "kind": "model",
       "line": 17,
@@ -108666,7 +108869,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 3527,
+      "line": 3536,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -112443,6 +112646,16 @@
       },
       "name": "BiomeScatterPlanBuilderTests",
       "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+    },
+    {
+      "id": "test:Forge.EngineAdapter.Tests.World.GodotTerrainMaterialAdapterTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.Tests.World"
+      },
+      "name": "GodotTerrainMaterialAdapterTests",
+      "path": "tests/Forge.EngineAdapter.Tests/World/GodotTerrainMaterialAdapterTests.cs"
     },
     {
       "id": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
@@ -118652,6 +118865,16 @@
       "path": "src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
     },
     {
+      "id": "type:Forge.EngineAdapter.World.TerrainMaterialDescriptor",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "TerrainMaterialDescriptor",
+      "path": "src/Forge.EngineAdapter/World/GodotTerrainMaterialAdapter.cs"
+    },
+    {
       "id": "type:Forge.EngineAdapter.World.TerrainProductionBenchmark",
       "kind": "type",
       "line": 100,
@@ -123924,7 +124147,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeAreaChunkLoader",
       "kind": "type",
-      "line": 3456,
+      "line": 3465,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -123954,7 +124177,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 3495,
+      "line": 3504,
       "metadata": {
         "namespace": "Forge.Runtime"
       },

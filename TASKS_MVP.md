@@ -556,4 +556,7 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Ajouter cinq variantes fantasy cohérentes et une séquence combat attaque/impact/mort bornée.
 - [ ] Prouver le retargeting d’un clip entre deux rigs incompatibles, avec audit de déformation.
 - [x] Composer la carte 512 × 512 en 64 secteurs, puis refaire budgets, navigation et revue visuelle.
-- [ ] Remplacer les couleurs terrain simples par une finition PBR et enrichir l’habillage fin des secteurs.
+- [x] Remplacer les couleurs terrain simples par une finition PBR procédurale, des routes continues et
+  une preuve Forward+ réelle partagée entre Creator et runtime.
+- [ ] Enrichir l’habillage rapproché des secteurs avec une sélection plus variée de modèles et textures
+  gouvernés, puis refaire une passe de direction artistique.

@@ -14,7 +14,8 @@ public sealed record GodotTerrainBuildMetrics(
     double ScatterMilliseconds,
     long ManagedAllocatedBytes);
 
-public sealed record GodotTerrainResult(Node3D Root, int Vertices, int Triangles, int TerrainSectors, int CollisionShapes,
+public sealed record GodotTerrainResult(Node3D Root, int Vertices, int Triangles, int TerrainSectors,
+    string TerrainMaterialMode, int TerrainMaterialLayers, int CollisionShapes,
     int FeatureSegments, int DebugVolumes, int FlightRouteSegments, int ScatterLayers, int ScatterInstances,
     int WaterSurfaces, int WaterVolumes, int CullingGroups, GodotTerrainBuildMetrics Metrics,
     IReadOnlyList<DomainDiagnostic> Diagnostics);
@@ -33,6 +34,9 @@ public static class GodotTerrainAdapter
         var collisionShapes = 0;
         var meshMilliseconds = 0d;
         var collisionMilliseconds = 0d;
+        var terrainMaterial = GodotTerrainMaterialAdapter.Build(world.Terrain);
+        root.SetMeta("forge_terrain_material_mode", terrainMaterial.Descriptor.Mode);
+        root.SetMeta("forge_terrain_material_layers", terrainMaterial.Descriptor.LayerCount);
         if (plan.Enabled && plan.Indices.Count > 0)
         {
             var meshStarted = Stopwatch.GetTimestamp();
@@ -44,7 +48,7 @@ public static class GodotTerrainAdapter
                 {
                     Name = $"TerrainSector_{sector.X}_{sector.Z}",
                     Position = new Vector3(sector.Center.X, sector.Center.Y, sector.Center.Z),
-                    Mesh = BuildTerrainMesh(plan, sector.Indices, sector.Center),
+                    Mesh = BuildTerrainMesh(plan, sector.Indices, sector.Center, terrainMaterial.Material),
                     VisibilityRangeEnd = sector.VisibilityRangeEnd,
                     VisibilityRangeEndMargin = MathF.Min(32, sector.VisibilityRangeEnd * .12f),
                 };
@@ -56,7 +60,7 @@ public static class GodotTerrainAdapter
             root.AddChild(sectorRoot);
             meshMilliseconds = Stopwatch.GetElapsedTime(meshStarted).TotalMilliseconds;
             var collisionStarted = Stopwatch.GetTimestamp();
-            var collisionMesh = BuildTerrainMesh(plan, plan.Indices, Forge.Domain.Spatial.Vector3Value.Zero);
+            var collisionMesh = BuildTerrainMesh(plan, plan.Indices, Forge.Domain.Spatial.Vector3Value.Zero, null);
             var body = new StaticBody3D { Name = "TerrainCollision" };
             body.AddChild(new CollisionShape3D { Name = "TerrainShape", Shape = collisionMesh.CreateTrimeshShape() });
             root.AddChild(body);
@@ -71,6 +75,13 @@ public static class GodotTerrainAdapter
         var featureRoot = new Node3D { Name = "TerrainFeatures" };
         foreach (var feature in plan.Features)
         {
+            if (feature.Kind == TerrainFeatureKind.Road)
+            {
+                featureRoot.AddChild(BuildRoad(feature));
+                featureSegments += feature.ControlPoints.Count - 1;
+                continue;
+            }
+
             for (var index = 0; index < feature.ControlPoints.Count - 1; index++)
             {
                 if (feature.Kind == TerrainFeatureKind.River)
@@ -87,7 +98,7 @@ public static class GodotTerrainAdapter
                 {
                     featureRoot.AddChild(BuildSegment(feature.ControlPoints[index], feature.ControlPoints[index + 1],
                         feature.Width, Math.Max(feature.Height, .08f), FeatureColor(feature.Kind),
-                        $"{feature.Kind}_{feature.Id:N}_{index}"));
+                        $"{feature.Kind}_{feature.Id:N}_{index}", feature.Kind));
                 }
                 featureSegments++;
             }
@@ -146,7 +157,8 @@ public static class GodotTerrainAdapter
             scatterMilliseconds,
             Math.Max(0, GC.GetAllocatedBytesForCurrentThread() - allocatedBefore));
 
-        return new GodotTerrainResult(root, plan.Vertices.Count, plan.TriangleCount, plan.ChunkCount, collisionShapes,
+        return new GodotTerrainResult(root, plan.Vertices.Count, plan.TriangleCount, plan.ChunkCount,
+            terrainMaterial.Descriptor.Mode, terrainMaterial.Descriptor.LayerCount, collisionShapes,
             featureSegments, debugVolumes, routeSegments, scatter.Layers, scatter.Instances,
             waterSurfaces, waterVolumes, scatter.CullingGroups, metrics, plan.Diagnostics);
     }
@@ -154,7 +166,8 @@ public static class GodotTerrainAdapter
     private static ArrayMesh BuildTerrainMesh(
         TerrainBuildPlan plan,
         IReadOnlyList<int> indices,
-        Forge.Domain.Spatial.Vector3Value origin)
+        Forge.Domain.Spatial.Vector3Value origin,
+        Material? material)
     {
         var surface = new SurfaceTool();
         surface.Begin(Mesh.PrimitiveType.Triangles);
@@ -170,18 +183,14 @@ public static class GodotTerrainAdapter
         }
         surface.GenerateNormals();
         var mesh = surface.Commit();
-        mesh.SurfaceSetMaterial(0, new StandardMaterial3D
-        {
-            VertexColorUseAsAlbedo = true,
-            Roughness = .88f,
-            Metallic = .02f,
-            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
-        });
+        if (material is not null)
+            mesh.SurfaceSetMaterial(0, material);
         return mesh;
     }
 
     private static MeshInstance3D BuildSegment(Forge.Domain.Spatial.Vector3Value start,
-        Forge.Domain.Spatial.Vector3Value end, float width, float height, Color color, string name)
+        Forge.Domain.Spatial.Vector3Value end, float width, float height, Color color, string name,
+        TerrainFeatureKind? featureKind = null)
     {
         var startValue = new Vector3(start.X, start.Y, start.Z);
         var endValue = new Vector3(end.X, end.Y, end.Z);
@@ -190,20 +199,80 @@ public static class GodotTerrainAdapter
         var node = new MeshInstance3D
         {
             Name = name,
-            Position = (startValue + endValue) / 2 + new Vector3(0, height / 2, 0),
+            Position = (startValue + endValue) / 2 + new Vector3(
+                0,
+                featureKind == TerrainFeatureKind.Road ? -height * .4f : height / 2,
+                0),
             Rotation = new Vector3(0, MathF.Atan2(delta.X, delta.Z), 0),
             Mesh = new BoxMesh
             {
                 Size = new Vector3(width, height, length),
-                Material = new StandardMaterial3D
-                {
-                    AlbedoColor = color,
-                    Roughness = .72f,
-                    Transparency = color.A < .999f ? BaseMaterial3D.TransparencyEnum.Alpha : BaseMaterial3D.TransparencyEnum.Disabled,
-                },
+                Material = featureKind == TerrainFeatureKind.Road
+                    ? GodotTerrainMaterialAdapter.BuildRoad(color)
+                    : new StandardMaterial3D
+                    {
+                        AlbedoColor = color,
+                        Roughness = .72f,
+                        Transparency = color.A < .999f
+                            ? BaseMaterial3D.TransparencyEnum.Alpha
+                            : BaseMaterial3D.TransparencyEnum.Disabled,
+                    },
             },
         };
         return node;
+    }
+
+    private static MeshInstance3D BuildRoad(TerrainFeatureDefinition feature)
+    {
+        var surface = new SurfaceTool();
+        surface.Begin(Mesh.PrimitiveType.Triangles);
+        var halfWidth = feature.Width * .5f;
+        var left = new Vector3[feature.ControlPoints.Count];
+        var right = new Vector3[feature.ControlPoints.Count];
+        var distance = new float[feature.ControlPoints.Count];
+        for (var index = 0; index < feature.ControlPoints.Count; index++)
+        {
+            var current = feature.ControlPoints[index];
+            var previous = feature.ControlPoints[Math.Max(0, index - 1)];
+            var next = feature.ControlPoints[Math.Min(feature.ControlPoints.Count - 1, index + 1)];
+            var tangent = new Vector3(next.X - previous.X, 0, next.Z - previous.Z).Normalized();
+            var perpendicular = new Vector3(tangent.Z, 0, -tangent.X);
+            var center = new Vector3(current.X, current.Y + .012f, current.Z);
+            left[index] = center - perpendicular * halfWidth;
+            right[index] = center + perpendicular * halfWidth;
+            if (index > 0)
+            {
+                var former = feature.ControlPoints[index - 1];
+                distance[index] = distance[index - 1] + new Vector2(current.X - former.X, current.Z - former.Z).Length();
+            }
+        }
+
+        for (var index = 0; index < feature.ControlPoints.Count - 1; index++)
+        {
+            var v0 = distance[index] / 5f;
+            var v1 = distance[index + 1] / 5f;
+            AddRoadVertex(surface, left[index], new Vector2(0, v0));
+            AddRoadVertex(surface, left[index + 1], new Vector2(0, v1));
+            AddRoadVertex(surface, right[index], new Vector2(1, v0));
+            AddRoadVertex(surface, right[index], new Vector2(1, v0));
+            AddRoadVertex(surface, left[index + 1], new Vector2(0, v1));
+            AddRoadVertex(surface, right[index + 1], new Vector2(1, v1));
+        }
+
+        surface.GenerateNormals();
+        var mesh = surface.Commit();
+        mesh.SurfaceSetMaterial(0, GodotTerrainMaterialAdapter.BuildRoad(FeatureColor(TerrainFeatureKind.Road)));
+        return new MeshInstance3D
+        {
+            Name = $"Road_{feature.Id:N}",
+            Mesh = mesh,
+        };
+    }
+
+    private static void AddRoadVertex(SurfaceTool surface, Vector3 position, Vector2 uv)
+    {
+        surface.SetUV(uv);
+        surface.AddVertex(position);
     }
 
     private static Node3D BuildRiverSegment(

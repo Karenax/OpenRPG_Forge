@@ -30,7 +30,7 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.Bridge);
         Assert.Equal(2, area.Navigation.OffMeshLinks.Count);
         Assert.Contains("vfx:forest-ambient", area.Environment.Tags, StringComparer.Ordinal);
-        Assert.Equal(SkyProfileMode.Procedural, area.Environment.Sky.Mode);
+        Assert.Equal(SkyProfileMode.Physical, area.Environment.Sky.Mode);
         Assert.Equal("#4f83ad", area.Environment.Sky.ZenithColor);
         Assert.Equal("forest", area.Environment.Reverb.DefaultPreset);
         Assert.Equal(AreaSoundMode.Spatial3D, area.Environment.Audio.Spatial.Mode);

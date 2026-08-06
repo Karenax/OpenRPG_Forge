@@ -1733,17 +1733,17 @@
       "lighting": {
         "mode": "alwaysDay",
         "dayLengthMinutes": 24,
-        "ambientIntensity": 0.42,
-        "directionalIntensity": 1.55,
+        "ambientIntensity": 0.32,
+        "directionalIntensity": 1.32,
         "colorTemperatureKelvin": 5100,
         "hdr": true,
         "shadows": true
       },
       "fog": {
         "mode": "distance",
-        "density": 0.0022,
-        "startDistance": 120,
-        "endDistance": 460,
+        "density": 0.0011,
+        "startDistance": 180,
+        "endDistance": 620,
         "height": 11
       },
       "audio": {
@@ -1811,7 +1811,7 @@
       },
       "sky": {
         "schemaVersion": 1,
-        "mode": "procedural",
+        "mode": "physical",
         "panoramaResource": "",
         "zenithColor": "#4f83ad",
         "horizonColor": "#e8c896",
@@ -1819,7 +1819,7 @@
         "starIntensity": 0.04,
         "cloudCoverage": 0.12,
         "moonIntensity": 0.04,
-        "energyMultiplier": 0.92,
+        "energyMultiplier": 0.82,
         "transitionSeconds": 2
       },
       "wind": {

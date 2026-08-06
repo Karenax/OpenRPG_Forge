@@ -69,6 +69,8 @@ public partial class ProjectPreview3D : SubViewportContainer
     private int _terrainVertices;
     private int _terrainTriangles;
     private int _terrainSectors;
+    private string _terrainMaterialMode = "disabled";
+    private int _terrainMaterialLayers;
     private int _terrainCollisionShapes;
     private int _terrainFeatureSegments;
     private int _terrainScatterLayers;
@@ -1347,6 +1349,8 @@ public partial class ProjectPreview3D : SubViewportContainer
         _terrainVertices = result.Vertices;
         _terrainTriangles = result.Triangles;
         _terrainSectors = result.TerrainSectors;
+        _terrainMaterialMode = result.TerrainMaterialMode;
+        _terrainMaterialLayers = result.TerrainMaterialLayers;
         _terrainCollisionShapes = result.CollisionShapes;
         _terrainFeatureSegments = result.FeatureSegments;
         _terrainScatterLayers = result.ScatterLayers;
@@ -1365,6 +1369,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         GD.Print(
             $"OPENRPG_FORGE_TOOLSET_TERRAIN_APPLIED provider={profile.Terrain.Provider.ToString().ToLowerInvariant()} " +
             $"vertices={result.Vertices} triangles={result.Triangles} sectors={result.TerrainSectors} " +
+            $"material={result.TerrainMaterialMode} material_layers={result.TerrainMaterialLayers} " +
             $"collisions={result.CollisionShapes} " +
             $"features={result.FeatureSegments} volumes={result.DebugVolumes} routes={result.FlightRouteSegments} " +
             $"scatter_layers={result.ScatterLayers} scatter_instances={result.ScatterInstances} " +

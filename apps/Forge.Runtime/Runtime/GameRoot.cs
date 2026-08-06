@@ -169,6 +169,8 @@ public partial class GameRoot : Node3D
     private int _terrainVertices;
     private int _terrainTriangles;
     private int _terrainSectors;
+    private string _terrainMaterialMode = "disabled";
+    private int _terrainMaterialLayers;
     private int _terrainCollisionShapes;
     private int _terrainScatterLayers;
     private int _terrainScatterInstances;
@@ -387,7 +389,7 @@ public partial class GameRoot : Node3D
         if (image.SavePng(destination) != Error.Ok)
             throw new IOException("World visual proof could not be written.");
         GD.Print(
-            $"OPENRPG_FORGE_AV6C_WORLD_VISUAL_PASS file={Path.GetFileName(destination)} " +
+            $"OPENRPG_FORGE_AV6D_WORLD_VISUAL_PASS file={Path.GetFileName(destination)} " +
             $"size={image.GetWidth()}x{image.GetHeight()} sectors={_terrainSectors} scatter={_terrainScatterInstances}");
         GetTree().Quit(0);
     }
@@ -1256,6 +1258,8 @@ public partial class GameRoot : Node3D
         _terrainVertices = terrain.Vertices;
         _terrainTriangles = terrain.Triangles;
         _terrainSectors = terrain.TerrainSectors;
+        _terrainMaterialMode = terrain.TerrainMaterialMode;
+        _terrainMaterialLayers = terrain.TerrainMaterialLayers;
         _terrainCollisionShapes = terrain.CollisionShapes;
         _terrainScatterLayers = terrain.ScatterLayers;
         _terrainScatterInstances = terrain.ScatterInstances;
@@ -1332,6 +1336,7 @@ public partial class GameRoot : Node3D
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider={profile.Terrain.Provider.ToString().ToLowerInvariant()} " +
             $"vertices={terrain.Vertices} triangles={terrain.Triangles} sectors={terrain.TerrainSectors} " +
+            $"material={terrain.TerrainMaterialMode} material_layers={terrain.TerrainMaterialLayers} " +
             $"collisions={terrain.CollisionShapes} " +
             $"features={terrain.FeatureSegments} volumes={terrain.DebugVolumes} routes={terrain.FlightRouteSegments} " +
             $"scatter_layers={terrain.ScatterLayers} scatter_instances={terrain.ScatterInstances} " +
@@ -3157,7 +3162,10 @@ public partial class GameRoot : Node3D
             "Forgotten Forest must use the authored 512 x 512 production footprint.");
         AssertSmoke(_terrainVertices == 129 * 129 && _terrainSectors == 64,
             "The authored 129 x 129 terrain grid was not reconstructed as 64 sectors.");
-        AssertSmoke(_terrainScatterLayers >= 3, "The biome scatter did not reconstruct enough visual layers.");
+        AssertSmoke(_terrainMaterialMode == GodotTerrainMaterialAdapter.ProceduralPbrMode &&
+                    _terrainMaterialLayers == 4,
+            "Forgotten Forest must reconstruct its four-layer procedural PBR terrain material.");
+        AssertSmoke(_terrainScatterLayers >= 5, "The biome scatter did not reconstruct all five visual layers.");
         AssertSmoke(_terrainScatterInstances >= 5_000, "The 512 x 512 forest is too sparse.");
         AssertSmoke(_terrainWaterSurfaces == 10 && _terrainWaterVolumes == 10,
             "Forgotten Forest must reconstruct all ten animated river segments and swim volumes.");
@@ -3300,6 +3308,7 @@ public partial class GameRoot : Node3D
         _escaped = true;
         GD.Print(
             $"OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain={_terrainVertices} sectors={_terrainSectors} " +
+            $"material={_terrainMaterialMode} material_layers={_terrainMaterialLayers} " +
             $"scatter_layers={_terrainScatterLayers} scatter_instances={_terrainScatterInstances} " +
             $"water_surfaces={_terrainWaterSurfaces} water_volumes={_terrainWaterVolumes} " +
             $"nav_regions={_surfaceNavigationRegions} nav_polygons={_surfaceNavigationPolygons} " +

@@ -54,6 +54,7 @@ smoke et `scripts/Verify.ps1`.
 ## Limites explicites
 
 AV6-C livre une composition stylisée fonctionnelle et inspectable, pas une finition artistique
-définitive. Le terrain emploie encore des couleurs vertex simples ; feuillage, sol PBR, variations de
-silhouettes, éclairage atmosphérique, eau avancée et habillage fin par secteur restent à améliorer.
-Le retargeting inter-rigs demeure également un incrément séparé.
+définitive. À ce jalon, le terrain emploie encore des couleurs vertex simples. AV6-D ferme ensuite le
+sol PBR procédural, les routes continues et le rééquilibrage atmosphérique ; voir
+`docs/assets/AV6D_PROCEDURAL_PBR_FINISH.md`. Variations de silhouettes, eau avancée, habillage fin par
+secteur et retargeting inter-rigs demeurent des incréments séparés.

@@ -665,6 +665,15 @@ polygones et trouve un trajet de 70 points ; les seize budgets 512 × 512 passen
 Forward+ aérienne sans HUD prouve l’étendue et la densité. Les matériaux terrain PBR et l’habillage
 artistique fin restent ouverts ; le jalon ne doit pas être présenté comme une carte finale AAA.
 
+AV6-D remplace ensuite le matériau terrain plat par un shader PBR procédural partagé entre les 64
+secteurs. La couleur canonique reste portée par les vertices, puis le runtime ajoute variation
+multi-échelle, pente, humidité, litière, roughness, specular et occlusion sans introduire de texture
+propriétaire. Les routes deviennent des rubans continus dérivés des points de contrôle canoniques et
+reçoivent leur propre terre PBR. Forgotten Forest passe à un ciel physique, un éclairage moins lavé et
+un brouillard plus distant. Creator et runtime publient le même mode de matériau. Une revue Forward+
+a conduit à retirer SSAO/SSIL lorsque des blocs transitoires sont apparus : la preuve visuelle prime
+sur l’activation nominale d’un effet. La variété des modèles et l’habillage rapproché restent à faire.
+
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de
 `AGENTS.md`. En cas de conflit, ces sources de vérité du dépôt priment sur la spécification importée.
