@@ -18,6 +18,11 @@ public sealed class AssetExternalEditCommandHistory
         State = new AssetExternalEditState(configurations, new AssetExternalEditRevision(0));
     }
 
+    public AssetExternalEditCommandHistory(AssetExternalEditState state)
+    {
+        State = state ?? throw new ArgumentNullException(nameof(state));
+    }
+
     public void Record(AssetExternalEditCommandResult result)
     {
         ArgumentNullException.ThrowIfNull(result);

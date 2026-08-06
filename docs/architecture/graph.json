@@ -1597,7 +1597,7 @@
     },
     {
       "evidence": {
-        "line": 7442,
+        "line": 7517,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1606,7 +1606,7 @@
     },
     {
       "evidence": {
-        "line": 7461,
+        "line": 7536,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1615,7 +1615,7 @@
     },
     {
       "evidence": {
-        "line": 7335,
+        "line": 7410,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1624,7 +1624,16 @@
     },
     {
       "evidence": {
-        "line": 6098,
+        "line": 8912,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "uses_service",
+      "source": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
+      "target": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService"
+    },
+    {
+      "evidence": {
+        "line": 6173,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1633,7 +1642,7 @@
     },
     {
       "evidence": {
-        "line": 8631,
+        "line": 8706,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -3658,6 +3667,69 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs",
+      "target": "namespace:Forge.Application.Assets"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs",
+      "target": "namespace:Forge.Application.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBossWindow.cs"
       },
@@ -5386,7 +5458,7 @@
     },
     {
       "evidence": {
-        "line": 232,
+        "line": 233,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -5395,7 +5467,7 @@
     },
     {
       "evidence": {
-        "line": 309,
+        "line": 316,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -11686,6 +11758,15 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
       },
@@ -13523,6 +13604,33 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Mcp/Bosses/AssistedBossContracts.cs"
       },
       "kind": "imports",
@@ -14152,6 +14260,60 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs",
+      "target": "namespace:Forge.Application.Assets"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
       },
@@ -14260,7 +14422,43 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs",
+      "target": "namespace:Forge.Application.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "imports",
@@ -22208,6 +22406,69 @@
     {
       "evidence": {
         "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs",
+      "target": "namespace:Forge.Application.Assets"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "imports",
@@ -26212,7 +26473,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 101,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26230,7 +26491,7 @@
     },
     {
       "evidence": {
-        "line": 486,
+        "line": 528,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26239,7 +26500,7 @@
     },
     {
       "evidence": {
-        "line": 176,
+        "line": 218,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26248,11 +26509,20 @@
     },
     {
       "evidence": {
-        "line": 376,
+        "line": 418,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
       "source": "function:tools.asset_pipeline.blender_bridge_entry._bounds",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._create_primitives",
       "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
@@ -26266,7 +26536,7 @@
     },
     {
       "evidence": {
-        "line": 402,
+        "line": 444,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26275,7 +26545,7 @@
     },
     {
       "evidence": {
-        "line": 386,
+        "line": 428,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26293,7 +26563,7 @@
     },
     {
       "evidence": {
-        "line": 410,
+        "line": 452,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26302,7 +26572,7 @@
     },
     {
       "evidence": {
-        "line": 273,
+        "line": 315,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26311,7 +26581,7 @@
     },
     {
       "evidence": {
-        "line": 356,
+        "line": 398,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26320,7 +26590,7 @@
     },
     {
       "evidence": {
-        "line": 102,
+        "line": 144,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26329,7 +26599,7 @@
     },
     {
       "evidence": {
-        "line": 414,
+        "line": 456,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26347,7 +26617,7 @@
     },
     {
       "evidence": {
-        "line": 111,
+        "line": 153,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26356,7 +26626,7 @@
     },
     {
       "evidence": {
-        "line": 119,
+        "line": 161,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26365,7 +26635,7 @@
     },
     {
       "evidence": {
-        "line": 95,
+        "line": 137,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26374,7 +26644,7 @@
     },
     {
       "evidence": {
-        "line": 85,
+        "line": 127,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26383,7 +26653,7 @@
     },
     {
       "evidence": {
-        "line": 661,
+        "line": 703,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -26419,7 +26689,7 @@
     },
     {
       "evidence": {
-        "line": 96,
+        "line": 97,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26428,7 +26698,7 @@
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 44,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26437,7 +26707,7 @@
     },
     {
       "evidence": {
-        "line": 465,
+        "line": 592,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26446,7 +26716,16 @@
     },
     {
       "evidence": {
-        "line": 135,
+        "line": 191,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._number",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 136,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26455,7 +26734,16 @@
     },
     {
       "evidence": {
-        "line": 57,
+        "line": 197,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._safe_name",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 58,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26464,7 +26752,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 66,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26473,7 +26761,7 @@
     },
     {
       "evidence": {
-        "line": 69,
+        "line": 70,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26482,7 +26770,16 @@
     },
     {
       "evidence": {
-        "line": 74,
+        "line": 212,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._validate_creation_recipe",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 75,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26491,7 +26788,7 @@
     },
     {
       "evidence": {
-        "line": 183,
+        "line": 184,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26500,7 +26797,7 @@
     },
     {
       "evidence": {
-        "line": 83,
+        "line": 84,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26509,7 +26806,16 @@
     },
     {
       "evidence": {
-        "line": 450,
+        "line": 206,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._vector",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 577,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26518,7 +26824,7 @@
     },
     {
       "evidence": {
-        "line": 470,
+        "line": 597,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26527,7 +26833,7 @@
     },
     {
       "evidence": {
-        "line": 636,
+        "line": 772,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26536,7 +26842,7 @@
     },
     {
       "evidence": {
-        "line": 190,
+        "line": 307,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -31657,6 +31963,96 @@
     },
     {
       "evidence": {
+        "line": 36,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "target": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "target": "model:Forge.Application.Assets.AssetExternalEditState"
+    },
+    {
+      "evidence": {
+        "line": 72,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "target": "model:Forge.Application.Assets.SetAssetExternalEditCommand"
+    },
+    {
+      "evidence": {
+        "line": 94,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 72,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 110,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "target": "model:Forge.LiveDirector.State.Definition"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "target": "model:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationCommand"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "target": "model:Forge.ModuleFormat.Assets.AssistedBlenderCreationApplyResult"
+    },
+    {
+      "evidence": {
+        "line": 130,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "target": "model:Forge.ModuleFormat.Assets.AssistedBlenderFilePatch"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "uses_service",
+      "source": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "target": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService"
+    },
+    {
+      "evidence": {
         "line": 28,
         "path": "src/Forge.ModuleFormat/Workspaces/ApplyAssistedForgeScriptHandler.cs"
       },
@@ -35068,6 +35464,69 @@
     },
     {
       "evidence": {
+        "line": 39,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assets.AssistedBlenderCreationDefinition",
+      "target": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Assets.AssistedBlenderCreationDefinition",
+      "target": "model:Forge.Domain.Assets.BlenderMaterialDefinition"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Assets.AssistedBlenderCreationDefinition",
+      "target": "model:Forge.Domain.Assets.BlenderPrimitiveDefinition"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assets.BlenderMaterialDefinition",
+      "target": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assets.BlenderPrimitiveDefinition",
+      "target": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Assets.BlenderPrimitiveDefinition",
+      "target": "model:Forge.Domain.Assets.BlenderPrimitiveKind"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assets.BlenderPrimitiveKind",
+      "target": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Assistant/AssistantPromptDefinition.cs"
       },
@@ -37642,6 +38101,42 @@
     },
     {
       "evidence": {
+        "line": 23,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Assets.AssistedBlenderCreationApplyPlanResult",
+      "target": "file:src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Assets.AssistedBlenderCreationApplyPlanResult",
+      "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Assets.AssistedBlenderCreationApplyPlanResult",
+      "target": "model:Forge.Mcp.Dialogues.PlanAuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Assets.AssistedBlenderCreationApplyPlanResult",
+      "target": "model:Forge.ModuleFormat.Assets.AssistedBlenderFilePatch"
+    },
+    {
+      "evidence": {
         "line": 21,
         "path": "src/Forge.Mcp/Bosses/AssistedBossContracts.cs"
       },
@@ -37939,7 +38434,7 @@
     },
     {
       "evidence": {
-        "line": 3274,
+        "line": 3453,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -37948,7 +38443,7 @@
     },
     {
       "evidence": {
-        "line": 3276,
+        "line": 3455,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "relationship",
@@ -38398,6 +38893,24 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationCommand",
+      "target": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
         "line": 342,
         "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
       },
@@ -38533,7 +39046,52 @@
     },
     {
       "evidence": {
-        "line": 180,
+        "line": 23,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Assets.AssistedBlenderCreationApplyResult",
+      "target": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Assets.AssistedBlenderCreationApplyResult",
+      "target": "model:Forge.Application.Assets.AssetExternalEditState"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Assets.AssistedBlenderCreationApplyResult",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Assets.AssistedBlenderCreationApplyResult",
+      "target": "model:Forge.ModuleFormat.Assets.AssistedBlenderFilePatch"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Assets.AssistedBlenderFilePatch",
+      "target": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 198,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -38542,7 +39100,7 @@
     },
     {
       "evidence": {
-        "line": 182,
+        "line": 200,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -38551,7 +39109,7 @@
     },
     {
       "evidence": {
-        "line": 184,
+        "line": 202,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "relationship",
@@ -45391,6 +45949,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assets",
+      "target": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Domain/Assistant/AssistantPermissionLevel.cs"
       },
@@ -48550,6 +49117,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Mcp.Assets",
+      "target": "file:src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Mcp/Bosses/AssistedBossContracts.cs"
       },
@@ -48829,6 +49405,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Assets",
+      "target": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs"
       },
@@ -48901,7 +49486,16 @@
     },
     {
       "evidence": {
-        "line": 4,
+        "line": 9,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Assets",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -49591,6 +50185,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Tests.Assets",
       "target": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetVaultPackageStoreTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Assets",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
     },
     {
       "evidence": {
@@ -51745,6 +52348,15 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBossWindow.cs"
       },
@@ -53779,7 +54391,16 @@
     },
     {
       "evidence": {
-        "line": 1473,
+        "line": 60,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Application.Assets.AssetExternalEditState"
+    },
+    {
+      "evidence": {
+        "line": 1479,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53788,7 +54409,7 @@
     },
     {
       "evidence": {
-        "line": 522,
+        "line": 528,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53797,7 +54418,7 @@
     },
     {
       "evidence": {
-        "line": 429,
+        "line": 435,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53806,7 +54427,7 @@
     },
     {
       "evidence": {
-        "line": 242,
+        "line": 248,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53815,7 +54436,7 @@
     },
     {
       "evidence": {
-        "line": 2445,
+        "line": 2571,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53824,7 +54445,7 @@
     },
     {
       "evidence": {
-        "line": 243,
+        "line": 249,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53833,7 +54454,7 @@
     },
     {
       "evidence": {
-        "line": 2211,
+        "line": 2337,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53842,7 +54463,7 @@
     },
     {
       "evidence": {
-        "line": 2373,
+        "line": 2499,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53851,7 +54472,7 @@
     },
     {
       "evidence": {
-        "line": 96,
+        "line": 99,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53860,7 +54481,7 @@
     },
     {
       "evidence": {
-        "line": 1162,
+        "line": 1168,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53869,7 +54490,7 @@
     },
     {
       "evidence": {
-        "line": 844,
+        "line": 850,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53878,7 +54499,7 @@
     },
     {
       "evidence": {
-        "line": 946,
+        "line": 952,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53887,7 +54508,7 @@
     },
     {
       "evidence": {
-        "line": 1055,
+        "line": 1061,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53896,7 +54517,7 @@
     },
     {
       "evidence": {
-        "line": 1261,
+        "line": 1267,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53905,7 +54526,7 @@
     },
     {
       "evidence": {
-        "line": 709,
+        "line": 715,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53914,7 +54535,7 @@
     },
     {
       "evidence": {
-        "line": 713,
+        "line": 719,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53923,7 +54544,7 @@
     },
     {
       "evidence": {
-        "line": 1430,
+        "line": 1436,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53932,7 +54553,7 @@
     },
     {
       "evidence": {
-        "line": 2408,
+        "line": 2534,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53941,7 +54562,7 @@
     },
     {
       "evidence": {
-        "line": 2414,
+        "line": 2540,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53950,7 +54571,7 @@
     },
     {
       "evidence": {
-        "line": 2423,
+        "line": 2549,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53959,7 +54580,7 @@
     },
     {
       "evidence": {
-        "line": 2200,
+        "line": 2326,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53968,7 +54589,7 @@
     },
     {
       "evidence": {
-        "line": 2398,
+        "line": 2524,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53977,7 +54598,7 @@
     },
     {
       "evidence": {
-        "line": 2401,
+        "line": 2527,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53986,7 +54607,7 @@
     },
     {
       "evidence": {
-        "line": 2361,
+        "line": 2487,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53995,7 +54616,7 @@
     },
     {
       "evidence": {
-        "line": 2370,
+        "line": 2496,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54004,7 +54625,7 @@
     },
     {
       "evidence": {
-        "line": 2467,
+        "line": 2593,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54013,7 +54634,7 @@
     },
     {
       "evidence": {
-        "line": 292,
+        "line": 298,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54022,7 +54643,16 @@
     },
     {
       "evidence": {
-        "line": 1982,
+        "line": 2101,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.LiveDirector.State.Definition"
+    },
+    {
+      "evidence": {
+        "line": 1988,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54031,7 +54661,7 @@
     },
     {
       "evidence": {
-        "line": 69,
+        "line": 71,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54040,7 +54670,7 @@
     },
     {
       "evidence": {
-        "line": 1341,
+        "line": 1347,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54049,7 +54679,7 @@
     },
     {
       "evidence": {
-        "line": 2488,
+        "line": 2614,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54058,7 +54688,7 @@
     },
     {
       "evidence": {
-        "line": 1421,
+        "line": 1427,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54067,7 +54697,16 @@
     },
     {
       "evidence": {
-        "line": 1861,
+        "line": 2111,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Assets.AssistedBlenderCreationApplyPlanResult"
+    },
+    {
+      "evidence": {
+        "line": 1867,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54076,7 +54715,7 @@
     },
     {
       "evidence": {
-        "line": 1611,
+        "line": 1617,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54085,7 +54724,7 @@
     },
     {
       "evidence": {
-        "line": 2187,
+        "line": 2313,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54094,7 +54733,7 @@
     },
     {
       "evidence": {
-        "line": 1636,
+        "line": 1642,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54103,7 +54742,7 @@
     },
     {
       "evidence": {
-        "line": 1170,
+        "line": 1176,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54112,7 +54751,7 @@
     },
     {
       "evidence": {
-        "line": 1147,
+        "line": 1153,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54121,7 +54760,7 @@
     },
     {
       "evidence": {
-        "line": 511,
+        "line": 517,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54130,7 +54769,7 @@
     },
     {
       "evidence": {
-        "line": 441,
+        "line": 447,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54139,7 +54778,7 @@
     },
     {
       "evidence": {
-        "line": 419,
+        "line": 425,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54148,7 +54787,7 @@
     },
     {
       "evidence": {
-        "line": 862,
+        "line": 868,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54157,7 +54796,7 @@
     },
     {
       "evidence": {
-        "line": 836,
+        "line": 842,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54166,7 +54805,7 @@
     },
     {
       "evidence": {
-        "line": 127,
+        "line": 133,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54175,7 +54814,7 @@
     },
     {
       "evidence": {
-        "line": 954,
+        "line": 960,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54184,7 +54823,7 @@
     },
     {
       "evidence": {
-        "line": 938,
+        "line": 944,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54193,7 +54832,7 @@
     },
     {
       "evidence": {
-        "line": 271,
+        "line": 277,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54202,7 +54841,7 @@
     },
     {
       "evidence": {
-        "line": 228,
+        "line": 234,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54211,7 +54850,7 @@
     },
     {
       "evidence": {
-        "line": 1063,
+        "line": 1069,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54220,7 +54859,7 @@
     },
     {
       "evidence": {
-        "line": 1041,
+        "line": 1047,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54229,7 +54868,7 @@
     },
     {
       "evidence": {
-        "line": 1269,
+        "line": 1275,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54238,7 +54877,7 @@
     },
     {
       "evidence": {
-        "line": 1253,
+        "line": 1259,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54247,7 +54886,7 @@
     },
     {
       "evidence": {
-        "line": 730,
+        "line": 736,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54256,7 +54895,7 @@
     },
     {
       "evidence": {
-        "line": 698,
+        "line": 704,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54265,7 +54904,7 @@
     },
     {
       "evidence": {
-        "line": 1735,
+        "line": 1741,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54274,7 +54913,7 @@
     },
     {
       "evidence": {
-        "line": 2107,
+        "line": 2233,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54283,7 +54922,7 @@
     },
     {
       "evidence": {
-        "line": 2332,
+        "line": 2458,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54292,7 +54931,16 @@
     },
     {
       "evidence": {
-        "line": 2117,
+        "line": 2122,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationCommand"
+    },
+    {
+      "evidence": {
+        "line": 2243,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54301,7 +54949,7 @@
     },
     {
       "evidence": {
-        "line": 1992,
+        "line": 1998,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54310,7 +54958,7 @@
     },
     {
       "evidence": {
-        "line": 1871,
+        "line": 1877,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54319,7 +54967,7 @@
     },
     {
       "evidence": {
-        "line": 1621,
+        "line": 1627,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54328,7 +54976,7 @@
     },
     {
       "evidence": {
-        "line": 1745,
+        "line": 1751,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54337,7 +54985,7 @@
     },
     {
       "evidence": {
-        "line": 2447,
+        "line": 2573,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54433,6 +55081,87 @@
       "kind": "defined_in",
       "source": "service:Forge.ModuleFormat.Assets.AssetDeliveryReportService",
       "target": "file:src/Forge.ModuleFormat/Assets/AssetDeliveryReportService.cs"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 93,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService",
+      "target": "model:Forge.Application.Assistant.AssistantPromptRenderResult"
+    },
+    {
+      "evidence": {
+        "line": 123,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService",
+      "target": "model:Forge.Domain.Assets.AssetCatalogItemId"
+    },
+    {
+      "evidence": {
+        "line": 137,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService",
+      "target": "model:Forge.Domain.Assets.AssetExternalEditId"
+    },
+    {
+      "evidence": {
+        "line": 138,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService",
+      "target": "model:Forge.Domain.Assets.AssetPackageManifestId"
+    },
+    {
+      "evidence": {
+        "line": 112,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService",
+      "target": "model:Forge.Domain.Assets.AssistedBlenderCreationDefinition"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderDefinition"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
     },
     {
       "evidence": {
@@ -73237,7 +73966,7 @@
     },
     {
       "evidence": {
-        "line": 661,
+        "line": 715,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73246,7 +73975,7 @@
     },
     {
       "evidence": {
-        "line": 553,
+        "line": 607,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73255,7 +73984,7 @@
     },
     {
       "evidence": {
-        "line": 554,
+        "line": 608,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73264,7 +73993,7 @@
     },
     {
       "evidence": {
-        "line": 1015,
+        "line": 1069,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73273,30 +74002,21 @@
     },
     {
       "evidence": {
-        "line": 412,
+        "line": 49,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Assistant.LoreEntryDefinition"
+      "target": "model:Forge.Domain.Assets.BlenderMaterialDefinition"
     },
     {
       "evidence": {
-        "line": 415,
+        "line": 45,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Assistant.LoreEntryKind"
-    },
-    {
-      "evidence": {
-        "line": 423,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+      "target": "model:Forge.Domain.Assets.BlenderPrimitiveDefinition"
     },
     {
       "evidence": {
@@ -73305,196 +74025,25 @@
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+      "target": "model:Forge.Domain.Assets.BlenderPrimitiveKind"
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 466,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Combat.AbilityEffectKind"
+      "target": "model:Forge.Domain.Assistant.LoreEntryDefinition"
     },
     {
       "evidence": {
-        "line": 907,
+        "line": 469,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Dialogues.DialogueId"
-    },
-    {
-      "evidence": {
-        "line": 558,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Projects.ProjectDefinition"
-    },
-    {
-      "evidence": {
-        "line": 419,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Projects.ProjectId"
-    },
-    {
-      "evidence": {
-        "line": 854,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.RuntimeExtensions.RuleSchemaKind"
-    },
-    {
-      "evidence": {
-        "line": 830,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.RuntimePolicies.AudioCueDefinition"
-    },
-    {
-      "evidence": {
-        "line": 701,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.RuntimePolicies.HeartbeatScheduleDefinition"
-    },
-    {
-      "evidence": {
-        "line": 737,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Sequences.CameraAnchorDefinition"
-    },
-    {
-      "evidence": {
-        "line": 741,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Sequences.SequenceDefinition"
-    },
-    {
-      "evidence": {
-        "line": 743,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Sequences.SequenceTargetKind"
-    },
-    {
-      "evidence": {
-        "line": 742,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Sequences.SequenceTrackDefinition"
-    },
-    {
-      "evidence": {
-        "line": 742,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Sequences.SequenceTrackKind"
-    },
-    {
-      "evidence": {
-        "line": 746,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Sequences.StartupFlowDefinition"
-    },
-    {
-      "evidence": {
-        "line": 746,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Sequences.StartupFlowKind"
-    },
-    {
-      "evidence": {
-        "line": 738,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Spatial.QuaternionValue"
-    },
-    {
-      "evidence": {
-        "line": 738,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "model:Forge.Domain.Spatial.TransformValue"
-    },
-    {
-      "evidence": {
-        "line": 568,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "service:Forge.Mcp.Projects.ForgeProjectAgentService"
-    },
-    {
-      "evidence": {
-        "line": 161,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "service:Forge.ModuleFormat.Workspaces.AssistedForgeScriptCreationService"
-    },
-    {
-      "evidence": {
-        "line": 630,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Application.Assets.AssetBlueprintFactory"
-    },
-    {
-      "evidence": {
-        "line": 678,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Application.Assets.GovernedAssetModelVerifier"
-    },
-    {
-      "evidence": {
-        "line": 315,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Application.Assistant.AssistedAreaPlanBrief"
+      "target": "model:Forge.Domain.Assistant.LoreEntryKind"
     },
     {
       "evidence": {
@@ -73503,178 +74052,124 @@
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Application.Validation.ProjectHealthStatus"
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
     },
     {
       "evidence": {
-        "line": 982,
+        "line": 101,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Assets.AssetCatalogItem"
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
     },
     {
       "evidence": {
-        "line": 1011,
+        "line": 107,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Assets.AssetChunkCompression"
+      "target": "model:Forge.Domain.Combat.AbilityEffectKind"
     },
     {
       "evidence": {
-        "line": 1005,
+        "line": 961,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Assets.AssetChunkRole"
+      "target": "model:Forge.Domain.Dialogues.DialogueId"
     },
     {
       "evidence": {
-        "line": 1003,
+        "line": 612,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Assets.AssetManifestChunk"
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
     },
     {
       "evidence": {
-        "line": 991,
+        "line": 473,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Assets.AssetPackageManifest"
+      "target": "model:Forge.Domain.Projects.ProjectId"
     },
     {
       "evidence": {
-        "line": 1012,
+        "line": 908,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Assets.AssetTargetPlatform"
+      "target": "model:Forge.Domain.RuntimeExtensions.RuleSchemaKind"
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 884,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+      "target": "model:Forge.Domain.RuntimePolicies.AudioCueDefinition"
     },
     {
       "evidence": {
-        "line": 319,
+        "line": 755,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Assistant.AssistedAreaArchetype"
+      "target": "model:Forge.Domain.RuntimePolicies.HeartbeatScheduleDefinition"
     },
     {
       "evidence": {
-        "line": 333,
+        "line": 791,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Assistant.AssistedAreaPlanCatalog"
+      "target": "model:Forge.Domain.Sequences.CameraAnchorDefinition"
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 795,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Combat.AbilityEffect"
+      "target": "model:Forge.Domain.Sequences.SequenceDefinition"
     },
     {
       "evidence": {
-        "line": 52,
+        "line": 797,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Combat.AbilityTargeting"
+      "target": "model:Forge.Domain.Sequences.SequenceTargetKind"
     },
     {
       "evidence": {
-        "line": 771,
+        "line": 796,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Gameplay.CombatModeProfile"
+      "target": "model:Forge.Domain.Sequences.SequenceTrackDefinition"
     },
     {
       "evidence": {
-        "line": 773,
+        "line": 796,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Gameplay.ModuleGameplayControlProfile"
-    },
-    {
-      "evidence": {
-        "line": 770,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Gameplay.MultiplayerPausePolicy"
-    },
-    {
-      "evidence": {
-        "line": 769,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Gameplay.TimeControlPolicy"
-    },
-    {
-      "evidence": {
-        "line": 806,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Rules.AreaCombatPolicy"
-    },
-    {
-      "evidence": {
-        "line": 806,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Rules.AreaPvpMode"
-    },
-    {
-      "evidence": {
-        "line": 805,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Rules.AreaRulesProfile"
-    },
-    {
-      "evidence": {
-        "line": 799,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Rules.DifficultyProfile"
+      "target": "model:Forge.Domain.Sequences.SequenceTrackKind"
     },
     {
       "evidence": {
@@ -73683,16 +74178,7 @@
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Rules.FriendlyFireMode"
-    },
-    {
-      "evidence": {
-        "line": 802,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Rules.ModuleRulesProfile"
+      "target": "model:Forge.Domain.Sequences.StartupFlowDefinition"
     },
     {
       "evidence": {
@@ -73701,142 +74187,25 @@
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Rules.SaveRestrictionPolicy"
+      "target": "model:Forge.Domain.Sequences.StartupFlowKind"
     },
     {
       "evidence": {
-        "line": 854,
+        "line": 792,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.RuntimeExtensions.DataDrivenRuleSchema"
+      "target": "model:Forge.Domain.Spatial.QuaternionValue"
     },
     {
       "evidence": {
-        "line": 856,
+        "line": 792,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.RuntimeExtensions.ModuleRuntimeExtensionProfile"
-    },
-    {
-      "evidence": {
-        "line": 832,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.RuntimePolicies.AreaExperienceProfile"
-    },
-    {
-      "evidence": {
-        "line": 707,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.RuntimePolicies.AreaRuntimePolicyProfile"
-    },
-    {
-      "evidence": {
-        "line": 701,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.RuntimePolicies.HeartbeatScope"
-    },
-    {
-      "evidence": {
-        "line": 705,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile"
-    },
-    {
-      "evidence": {
-        "line": 740,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Sequences.AreaCinematicProfile"
-    },
-    {
-      "evidence": {
-        "line": 739,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Sequences.CameraFraming"
-    },
-    {
-      "evidence": {
-        "line": 748,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Sequences.ModuleCinematicProfile"
-    },
-    {
-      "evidence": {
-        "line": 744,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Sequences.SequenceEasing"
-    },
-    {
-      "evidence": {
-        "line": 744,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Domain.Sequences.SequenceKeyframe"
-    },
-    {
-      "evidence": {
-        "line": 45,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.LiveDirector.Authentication.Session"
-    },
-    {
-      "evidence": {
-        "line": 62,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.LiveDirector.Chat.Message"
-    },
-    {
-      "evidence": {
-        "line": 240,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.LiveDirector.Narrative.Quest"
-    },
-    {
-      "evidence": {
-        "line": 589,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Assets.AgentAssetCatalogQuery"
+      "target": "model:Forge.Domain.Spatial.TransformValue"
     },
     {
       "evidence": {
@@ -73845,151 +74214,133 @@
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Assets.AgentAssetInstallPlanRequest"
+      "target": "service:Forge.Mcp.Projects.ForgeProjectAgentService"
     },
     {
       "evidence": {
-        "line": 930,
+        "line": 59,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Dialogues.DialogueNodeInput"
+      "target": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService"
     },
     {
       "evidence": {
-        "line": 966,
+        "line": 215,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Dialogues.DialoguePlanRequest"
+      "target": "service:Forge.ModuleFormat.Workspaces.AssistedForgeScriptCreationService"
     },
     {
       "evidence": {
-        "line": 877,
+        "line": 684,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Dialogues.DialoguePlanSchema"
+      "target": "type:Forge.Application.Assets.AssetBlueprintFactory"
     },
     {
       "evidence": {
-        "line": 834,
+        "line": 732,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Projects.AreaExperiencePlanRequest"
+      "target": "type:Forge.Application.Assets.GovernedAssetModelVerifier"
     },
     {
       "evidence": {
-        "line": 749,
+        "line": 369,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Projects.CinematicPlanRequest"
+      "target": "type:Forge.Application.Assistant.AssistedAreaPlanBrief"
     },
     {
       "evidence": {
-        "line": 777,
+        "line": 531,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Projects.GameplayControlPlanRequest"
+      "target": "type:Forge.Application.Validation.ProjectHealthStatus"
     },
     {
       "evidence": {
-        "line": 431,
+        "line": 1036,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Projects.LoreIndexPlanRequest"
+      "target": "type:Forge.Domain.Assets.AssetCatalogItem"
     },
     {
       "evidence": {
-        "line": 809,
+        "line": 1065,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Projects.RulesProfilePlanRequest"
+      "target": "type:Forge.Domain.Assets.AssetChunkCompression"
     },
     {
       "evidence": {
-        "line": 859,
+        "line": 1059,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Projects.RuntimeExtensionPlanRequest"
+      "target": "type:Forge.Domain.Assets.AssetChunkRole"
     },
     {
       "evidence": {
-        "line": 708,
+        "line": 80,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Projects.RuntimePolicyPlanRequest"
+      "target": "type:Forge.Domain.Assets.AssetExternalOperation"
     },
     {
       "evidence": {
-        "line": 948,
+        "line": 1057,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.Mcp.Scripts.ScriptBindingPlanRequest"
+      "target": "type:Forge.Domain.Assets.AssetManifestChunk"
     },
     {
       "evidence": {
-        "line": 984,
+        "line": 1045,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.ModuleFormat.Assets.AssetCatalogLoader"
+      "target": "type:Forge.Domain.Assets.AssetPackageManifest"
     },
     {
       "evidence": {
-        "line": 617,
+        "line": 1066,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.ModuleFormat.Workspaces.AssetPackageManifestStore"
+      "target": "type:Forge.Domain.Assets.AssetTargetPlatform"
     },
     {
       "evidence": {
-        "line": 390,
+        "line": 49,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.ModuleFormat.Workspaces.AssistedAreaPlanStore"
-    },
-    {
-      "evidence": {
-        "line": 162,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.ModuleFormat.Workspaces.AssistedForgeScriptBrief"
-    },
-    {
-      "evidence": {
-        "line": 45,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
-      "target": "type:Forge.ModuleFormat.Workspaces.ProjectSession"
+      "target": "type:Forge.Domain.Assets.BlenderColor"
     },
     {
       "evidence": {
@@ -73998,11 +74349,479 @@
       },
       "kind": "tests",
       "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Assets.BlenderUvProjection"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Assets.BlenderVector3"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 373,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Assistant.AssistedAreaArchetype"
+    },
+    {
+      "evidence": {
+        "line": 387,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Assistant.AssistedAreaPlanCatalog"
+    },
+    {
+      "evidence": {
+        "line": 107,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Combat.AbilityEffect"
+    },
+    {
+      "evidence": {
+        "line": 106,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Combat.AbilityTargeting"
+    },
+    {
+      "evidence": {
+        "line": 825,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Gameplay.CombatModeProfile"
+    },
+    {
+      "evidence": {
+        "line": 827,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Gameplay.ModuleGameplayControlProfile"
+    },
+    {
+      "evidence": {
+        "line": 824,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Gameplay.MultiplayerPausePolicy"
+    },
+    {
+      "evidence": {
+        "line": 823,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Gameplay.TimeControlPolicy"
+    },
+    {
+      "evidence": {
+        "line": 860,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Rules.AreaCombatPolicy"
+    },
+    {
+      "evidence": {
+        "line": 860,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Rules.AreaPvpMode"
+    },
+    {
+      "evidence": {
+        "line": 859,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Rules.AreaRulesProfile"
+    },
+    {
+      "evidence": {
+        "line": 853,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Rules.DifficultyProfile"
+    },
+    {
+      "evidence": {
+        "line": 854,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Rules.FriendlyFireMode"
+    },
+    {
+      "evidence": {
+        "line": 856,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Rules.ModuleRulesProfile"
+    },
+    {
+      "evidence": {
+        "line": 854,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Rules.SaveRestrictionPolicy"
+    },
+    {
+      "evidence": {
+        "line": 908,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.RuntimeExtensions.DataDrivenRuleSchema"
+    },
+    {
+      "evidence": {
+        "line": 910,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.RuntimeExtensions.ModuleRuntimeExtensionProfile"
+    },
+    {
+      "evidence": {
+        "line": 886,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.RuntimePolicies.AreaExperienceProfile"
+    },
+    {
+      "evidence": {
+        "line": 761,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.RuntimePolicies.AreaRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 755,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.RuntimePolicies.HeartbeatScope"
+    },
+    {
+      "evidence": {
+        "line": 759,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile"
+    },
+    {
+      "evidence": {
+        "line": 794,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Sequences.AreaCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 793,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Sequences.CameraFraming"
+    },
+    {
+      "evidence": {
+        "line": 802,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Sequences.ModuleCinematicProfile"
+    },
+    {
+      "evidence": {
+        "line": 798,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Sequences.SequenceEasing"
+    },
+    {
+      "evidence": {
+        "line": 798,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Sequences.SequenceKeyframe"
+    },
+    {
+      "evidence": {
+        "line": 99,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.LiveDirector.Authentication.Session"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.LiveDirector.Chat.Message"
+    },
+    {
+      "evidence": {
+        "line": 294,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.LiveDirector.Narrative.Quest"
+    },
+    {
+      "evidence": {
+        "line": 643,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Assets.AgentAssetCatalogQuery"
+    },
+    {
+      "evidence": {
+        "line": 676,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Assets.AgentAssetInstallPlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 984,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Dialogues.DialogueNodeInput"
+    },
+    {
+      "evidence": {
+        "line": 1020,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Dialogues.DialoguePlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 931,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Dialogues.DialoguePlanSchema"
+    },
+    {
+      "evidence": {
+        "line": 888,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.AreaExperiencePlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 803,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.CinematicPlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 831,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.GameplayControlPlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 485,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.LoreIndexPlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 863,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.RulesProfilePlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 913,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.RuntimeExtensionPlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 762,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.RuntimePolicyPlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 1002,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Scripts.ScriptBindingPlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 1038,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.ModuleFormat.Assets.AssetCatalogLoader"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationBrief"
+    },
+    {
+      "evidence": {
+        "line": 62,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.AssetExternalEditStore"
+    },
+    {
+      "evidence": {
+        "line": 671,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.AssetPackageManifestStore"
+    },
+    {
+      "evidence": {
+        "line": 444,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.AssistedAreaPlanStore"
+    },
+    {
+      "evidence": {
+        "line": 216,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.AssistedForgeScriptBrief"
+    },
+    {
+      "evidence": {
+        "line": 99,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.ProjectSession"
+    },
+    {
+      "evidence": {
+        "line": 104,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
       "target": "type:Forge.RpgKit.Application.Abilities.AssistedAbilityBrief"
     },
     {
       "evidence": {
-        "line": 111,
+        "line": 165,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74011,7 +74830,7 @@
     },
     {
       "evidence": {
-        "line": 263,
+        "line": 317,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74020,7 +74839,7 @@
     },
     {
       "evidence": {
-        "line": 211,
+        "line": 265,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74029,7 +74848,7 @@
     },
     {
       "evidence": {
-        "line": 184,
+        "line": 238,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74038,7 +74857,7 @@
     },
     {
       "evidence": {
-        "line": 937,
+        "line": 991,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74047,7 +74866,7 @@
     },
     {
       "evidence": {
-        "line": 571,
+        "line": 625,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74416,6 +75235,186 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "model:Forge.Application.Assets.AssetExternalEditState"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 78,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "model:Forge.Domain.Assets.AssistedBlenderCreationDefinition"
+    },
+    {
+      "evidence": {
+        "line": 116,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "model:Forge.Domain.Assets.BlenderMaterialDefinition"
+    },
+    {
+      "evidence": {
+        "line": 112,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "model:Forge.Domain.Assets.BlenderPrimitiveDefinition"
+    },
+    {
+      "evidence": {
+        "line": 113,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "model:Forge.Domain.Assets.BlenderPrimitiveKind"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "model:Forge.LiveDirector.State.Definition"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "model:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationCommand"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "type:Forge.Domain.Assets.AssetExternalOperation"
+    },
+    {
+      "evidence": {
+        "line": 117,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "type:Forge.Domain.Assets.BlenderColor"
+    },
+    {
+      "evidence": {
+        "line": 79,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "type:Forge.Domain.Assets.BlenderUvProjection"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 107,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationBrief"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationProposal"
+    },
+    {
+      "evidence": {
+        "line": 81,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "target": "validator:Forge.Domain.Assets.AssistedBlenderCreationValidator"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
@@ -74647,6 +75646,24 @@
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Assets.DeliveryFixture",
       "target": "type:Forge.ModuleFormat.Assets.Policy"
+    },
+    {
+      "evidence": {
+        "line": 119,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.FixedClock",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 119,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.FixedClock",
+      "target": "type:Forge.Application.Time.IClock"
     },
     {
       "evidence": {
@@ -86980,7 +87997,7 @@
     },
     {
       "evidence": {
-        "line": 57,
+        "line": 58,
         "path": "src/Forge.Domain/Assets/AssetExternalEdit.cs"
       },
       "kind": "defined_in",
@@ -87229,6 +88246,33 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Assets.AssetVfxManifest",
       "target": "file:src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.BlenderColor",
+      "target": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.BlenderUvProjection",
+      "target": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.BlenderVector3",
+      "target": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
     },
     {
       "evidence": {
@@ -89743,6 +90787,33 @@
     },
     {
       "evidence": {
+        "line": 17,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Assets.AssistedBlenderCreationApplyPlanRequest",
+      "target": "file:src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Assets.AssistedBlenderCreationProposalRequest",
+      "target": "file:src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Assets.AssistedBlenderCreationProposalResource",
+      "target": "file:src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+    },
+    {
+      "evidence": {
         "line": 15,
         "path": "src/Forge.Mcp/Bosses/AssistedBossContracts.cs"
       },
@@ -90094,7 +91165,7 @@
     },
     {
       "evidence": {
-        "line": 3247,
+        "line": 3426,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90103,7 +91174,7 @@
     },
     {
       "evidence": {
-        "line": 3167,
+        "line": 3346,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90112,7 +91183,7 @@
     },
     {
       "evidence": {
-        "line": 3048,
+        "line": 3210,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90121,7 +91192,7 @@
     },
     {
       "evidence": {
-        "line": 3140,
+        "line": 3319,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90130,7 +91201,7 @@
     },
     {
       "evidence": {
-        "line": 3123,
+        "line": 3302,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90139,7 +91210,16 @@
     },
     {
       "evidence": {
-        "line": 3031,
+        "line": 3227,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.StoredAssistedBlenderCreationPlan",
+      "target": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3193,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90148,7 +91228,7 @@
     },
     {
       "evidence": {
-        "line": 2997,
+        "line": 3159,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90157,7 +91237,7 @@
     },
     {
       "evidence": {
-        "line": 3065,
+        "line": 3244,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90166,7 +91246,7 @@
     },
     {
       "evidence": {
-        "line": 3014,
+        "line": 3176,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90175,7 +91255,7 @@
     },
     {
       "evidence": {
-        "line": 3208,
+        "line": 3387,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90184,7 +91264,7 @@
     },
     {
       "evidence": {
-        "line": 3079,
+        "line": 3258,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90193,7 +91273,7 @@
     },
     {
       "evidence": {
-        "line": 3221,
+        "line": 3400,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90202,7 +91282,7 @@
     },
     {
       "evidence": {
-        "line": 3106,
+        "line": 3285,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90211,7 +91291,7 @@
     },
     {
       "evidence": {
-        "line": 3234,
+        "line": 3413,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90220,7 +91300,7 @@
     },
     {
       "evidence": {
-        "line": 3260,
+        "line": 3439,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90229,7 +91309,7 @@
     },
     {
       "evidence": {
-        "line": 3184,
+        "line": 3363,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -90481,7 +91561,43 @@
     },
     {
       "evidence": {
-        "line": 172,
+        "line": 12,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationBrief",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 189,
+        "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationCommandHistory",
+      "target": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationProposal",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationTestEvidence",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 190,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -90490,7 +91606,7 @@
     },
     {
       "evidence": {
-        "line": 174,
+        "line": 192,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -90499,7 +91615,7 @@
     },
     {
       "evidence": {
-        "line": 159,
+        "line": 176,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -90508,7 +91624,7 @@
     },
     {
       "evidence": {
-        "line": 146,
+        "line": 163,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -90517,7 +91633,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -95440,6 +96556,24 @@
     },
     {
       "evidence": {
+        "line": 14,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.AssistedBlenderCreationWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 264,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Toolset.Editor.AssistedBlenderCreationWindow",
+      "target": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService"
+    },
+    {
+      "evidence": {
         "line": 12,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBossWindow.cs"
       },
@@ -95692,7 +96826,7 @@
     },
     {
       "evidence": {
-        "line": 9245,
+        "line": 9420,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -95809,7 +96943,7 @@
     },
     {
       "evidence": {
-        "line": 9250,
+        "line": 9425,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -95818,7 +96952,7 @@
     },
     {
       "evidence": {
-        "line": 9255,
+        "line": 9430,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -95872,7 +97006,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 37,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -96016,7 +97150,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 76,
         "path": "src/Forge.Domain/Assets/AssetExternalEdit.cs"
       },
       "kind": "defined_in",
@@ -96025,7 +97159,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 85,
         "path": "src/Forge.Domain/Assets/AssetExternalEdit.cs"
       },
       "kind": "validates",
@@ -96052,7 +97186,7 @@
     },
     {
       "evidence": {
-        "line": 156,
+        "line": 158,
         "path": "src/Forge.Domain/Assets/AssetExternalEdit.cs"
       },
       "kind": "defined_in",
@@ -96061,7 +97195,7 @@
     },
     {
       "evidence": {
-        "line": 160,
+        "line": 162,
         "path": "src/Forge.Domain/Assets/AssetExternalEdit.cs"
       },
       "kind": "validates",
@@ -96093,6 +97227,33 @@
       },
       "kind": "validates",
       "source": "validator:Forge.Domain.Assets.AssetProcessingProfileValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Assets.AssistedBlenderCreationValidator",
+      "target": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assets.AssistedBlenderCreationValidator",
+      "target": "model:Forge.Domain.Assets.AssistedBlenderCreationDefinition"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assets.AssistedBlenderCreationValidator",
       "target": "model:Forge.Domain.Validation.DomainDiagnostic"
     },
     {
@@ -96907,8 +98068,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:ea5ce4d4888b02162612e89a1b627095844eb50e4f2c4fa10497c6c9d4023d77",
-    "source_file_count": 1700
+    "source_digest": "sha256:64412e46bb9370619d8802921ff3232b08692ead39c1bbbfe02b0516ee6a733e",
+    "source_file_count": 1707
   },
   "nodes": [
     {
@@ -99862,6 +101023,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAreaPlanWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistedBlenderCreationWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedBossWindow.cs",
       "kind": "file",
       "line": 1,
@@ -101560,6 +102731,16 @@
       },
       "name": "G12-I-ASSISTED-ABILITY-CREATION.md",
       "path": "docs/aurora-parity/tasks/G12-I-ASSISTED-ABILITY-CREATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G12-J-ASSISTED-BLENDER-CREATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G12-J-ASSISTED-BLENDER-CREATION.md",
+      "path": "docs/aurora-parity/tasks/G12-J-ASSISTED-BLENDER-CREATION.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -105602,6 +106783,16 @@
       "path": "src/Forge.Domain/Assets/AssetVaultInstalledPackage.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistedBlenderCreation.cs",
+      "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Assistant/AssistantPermissionLevel.cs",
       "kind": "file",
       "line": 1,
@@ -108552,6 +109743,16 @@
       "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
     },
     {
+      "id": "file:src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistedBlenderCreationContracts.cs",
+      "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+    },
+    {
       "id": "file:src/Forge.Mcp/Bosses/AssistedBossContracts.cs",
       "kind": "file",
       "line": 1,
@@ -108812,6 +110013,16 @@
       "path": "src/Forge.Mcp/packages.lock.json"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ApplyAssistedBlenderCreationHandler.cs",
+      "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Assets/AssetCatalogLoader.cs",
       "kind": "file",
       "line": 1,
@@ -108890,6 +110101,16 @@
       },
       "name": "AssetVaultPlannedObject.cs",
       "path": "src/Forge.ModuleFormat/Assets/AssetVaultPlannedObject.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistedBlenderCreationService.cs",
+      "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
     },
     {
       "id": "file:src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs",
@@ -112602,6 +113823,16 @@
       "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetVaultPackageStoreTests.cs"
     },
     {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistedBlenderCreationTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+    },
+    {
       "id": "file:tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs",
       "kind": "file",
       "line": 1,
@@ -115544,7 +116775,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._apply_material_textures",
       "kind": "function",
-      "line": 59,
+      "line": 101,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115564,7 +116795,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._audit",
       "kind": "function",
-      "line": 486,
+      "line": 528,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115574,7 +116805,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._audit_retarget_deformation",
       "kind": "function",
-      "line": 176,
+      "line": 218,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115584,11 +116815,21 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._bounds",
       "kind": "function",
-      "line": 376,
+      "line": 418,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
       "name": "_bounds",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._create_primitives",
+      "kind": "function",
+      "line": 59,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_create_primitives",
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
@@ -115604,7 +116845,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._generate_collision",
       "kind": "function",
-      "line": 402,
+      "line": 444,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115614,7 +116855,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._generate_lods",
       "kind": "function",
-      "line": 386,
+      "line": 428,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115634,7 +116875,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._look_at",
       "kind": "function",
-      "line": 410,
+      "line": 452,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115644,7 +116885,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._merge_animation_sources",
       "kind": "function",
-      "line": 273,
+      "line": 315,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115654,7 +116895,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._normalize",
       "kind": "function",
-      "line": 356,
+      "line": 398,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115664,7 +116905,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._raw_mesh_diagonal",
       "kind": "function",
-      "line": 102,
+      "line": 144,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115674,7 +116915,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._render_thumbnail",
       "kind": "function",
-      "line": 414,
+      "line": 456,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115694,7 +116935,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._reset_pose",
       "kind": "function",
-      "line": 111,
+      "line": 153,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115704,7 +116945,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._retarget_action",
       "kind": "function",
-      "line": 119,
+      "line": 161,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115714,7 +116955,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._rig_height",
       "kind": "function",
-      "line": 95,
+      "line": 137,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115724,7 +116965,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._skinned_meshes",
       "kind": "function",
-      "line": 85,
+      "line": 127,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115734,7 +116975,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry.main",
       "kind": "function",
-      "line": 661,
+      "line": 703,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -115774,7 +117015,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._canonicalize_png",
       "kind": "function",
-      "line": 96,
+      "line": 97,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115784,7 +117025,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._contained",
       "kind": "function",
-      "line": 43,
+      "line": 44,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115794,7 +117035,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._encode_bridge_payload",
       "kind": "function",
-      "line": 465,
+      "line": 592,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115802,9 +117043,19 @@
       "path": "tools/asset_pipeline/blender_worker.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._number",
+      "kind": "function",
+      "line": 191,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_number",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._quality_report",
       "kind": "function",
-      "line": 135,
+      "line": 136,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115812,9 +117063,19 @@
       "path": "tools/asset_pipeline/blender_worker.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._safe_name",
+      "kind": "function",
+      "line": 197,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_safe_name",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._sha256",
       "kind": "function",
-      "line": 57,
+      "line": 58,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115824,7 +117085,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._sidecar_path",
       "kind": "function",
-      "line": 65,
+      "line": 66,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115834,7 +117095,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._sidecar_relative",
       "kind": "function",
-      "line": 69,
+      "line": 70,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115842,9 +117103,19 @@
       "path": "tools/asset_pipeline/blender_worker.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._validate_creation_recipe",
+      "kind": "function",
+      "line": 212,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_validate_creation_recipe",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._validate_glb",
       "kind": "function",
-      "line": 74,
+      "line": 75,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115854,7 +117125,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._validate_hash",
       "kind": "function",
-      "line": 183,
+      "line": 184,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115864,7 +117135,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._validate_png",
       "kind": "function",
-      "line": 83,
+      "line": 84,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115872,9 +117143,19 @@
       "path": "tools/asset_pipeline/blender_worker.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._vector",
+      "kind": "function",
+      "line": 206,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_vector",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._write_json_atomically",
       "kind": "function",
-      "line": 450,
+      "line": 577,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115884,7 +117165,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.execute",
       "kind": "function",
-      "line": 470,
+      "line": 597,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115894,7 +117175,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.main",
       "kind": "function",
-      "line": 636,
+      "line": 772,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -115904,7 +117185,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.validate_request",
       "kind": "function",
-      "line": 190,
+      "line": 307,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -116680,6 +117961,16 @@
       },
       "name": "GodotAssetAnimationController",
       "path": "src/Forge.EngineAdapter/Assets/GodotAssetAnimationController.cs"
+    },
+    {
+      "id": "handler:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationHandler",
+      "kind": "handler",
+      "line": 36,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "ApplyAssistedBlenderCreationHandler",
+      "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
     },
     {
       "id": "handler:Forge.ModuleFormat.Workspaces.ApplyAssistedForgeScriptHandler",
@@ -118130,6 +119421,46 @@
       },
       "name": "AssetVaultInstallationState",
       "path": "src/Forge.Domain/Assets/AssetVaultInstallationState.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assets.AssistedBlenderCreationDefinition",
+      "kind": "model",
+      "line": 39,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssistedBlenderCreationDefinition",
+      "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assets.BlenderMaterialDefinition",
+      "kind": "model",
+      "line": 33,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "BlenderMaterialDefinition",
+      "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assets.BlenderPrimitiveDefinition",
+      "kind": "model",
+      "line": 25,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "BlenderPrimitiveDefinition",
+      "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assets.BlenderPrimitiveKind",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "BlenderPrimitiveKind",
+      "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
     },
     {
       "id": "model:Forge.Domain.Assistant.AssistantPromptDefinition",
@@ -119692,6 +121023,16 @@
       "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
     },
     {
+      "id": "model:Forge.Mcp.Assets.AssistedBlenderCreationApplyPlanResult",
+      "kind": "model",
+      "line": 23,
+      "metadata": {
+        "namespace": "Forge.Mcp.Assets"
+      },
+      "name": "AssistedBlenderCreationApplyPlanResult",
+      "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+    },
+    {
       "id": "model:Forge.Mcp.Bosses.AssistedBossApplyPlanResult",
       "kind": "model",
       "line": 21,
@@ -119804,7 +121145,7 @@
     {
       "id": "model:Forge.Mcp.Projects.ForgeProjectAgentOpenResult",
       "kind": "model",
-      "line": 3274,
+      "line": 3453,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -120002,6 +121343,16 @@
       "path": "src/Forge.ModuleFormat/Assets/CuratedAnimatedCharacterInstaller.cs"
     },
     {
+      "id": "model:Forge.ModuleFormat.Assets.ApplyAssistedBlenderCreationCommand",
+      "kind": "model",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "ApplyAssistedBlenderCreationCommand",
+      "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
       "id": "model:Forge.ModuleFormat.Assets.AssetCatalogLoadResult",
       "kind": "model",
       "line": 342,
@@ -120072,9 +121423,29 @@
       "path": "src/Forge.ModuleFormat/Assets/AssetVaultPackageMutationResult.cs"
     },
     {
+      "id": "model:Forge.ModuleFormat.Assets.AssistedBlenderCreationApplyResult",
+      "kind": "model",
+      "line": 23,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssistedBlenderCreationApplyResult",
+      "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Assets.AssistedBlenderFilePatch",
+      "kind": "model",
+      "line": 21,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssistedBlenderFilePatch",
+      "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
       "id": "model:Forge.ModuleFormat.Assets.BlenderWorkerRequestDiagnostic",
       "kind": "model",
-      "line": 180,
+      "line": 198,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -120084,7 +121455,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.BlenderWorkerRequestSaveResult",
       "kind": "model",
-      "line": 182,
+      "line": 200,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -124155,6 +125526,16 @@
       "path": "src/Forge.ModuleFormat/Assets/AssetDeliveryReportService.cs"
     },
     {
+      "id": "service:Forge.ModuleFormat.Assets.AssistedBlenderCreationService",
+      "kind": "service",
+      "line": 58,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssistedBlenderCreationService",
+      "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+    },
+    {
       "id": "service:Forge.ModuleFormat.Content.ContentBatchTransferService",
       "kind": "service",
       "line": 6,
@@ -126505,6 +127886,16 @@
       "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetVaultPackageStoreTests.cs"
     },
     {
+      "id": "test:Forge.ModuleFormat.Tests.Assets.AssistedBlenderCreationTests",
+      "kind": "test",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Assets"
+      },
+      "name": "AssistedBlenderCreationTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
+    },
+    {
       "id": "test:Forge.ModuleFormat.Tests.Assets.BlenderWorkerRequestStoreTests",
       "kind": "test",
       "line": 7,
@@ -126553,6 +127944,16 @@
       },
       "name": "DeliveryFixture",
       "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetDeliveryReportServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Assets.FixedClock",
+      "kind": "test",
+      "line": 119,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Assets"
+      },
+      "name": "FixedClock",
+      "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedBlenderCreationTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
@@ -130304,7 +131705,7 @@
     {
       "id": "type:Forge.Domain.Assets.AssetExternalEditConfiguration",
       "kind": "type",
-      "line": 57,
+      "line": 58,
       "metadata": {
         "namespace": "Forge.Domain.Assets"
       },
@@ -130580,6 +131981,36 @@
       },
       "name": "AssetVfxManifest",
       "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.BlenderColor",
+      "kind": "type",
+      "line": 23,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "BlenderColor",
+      "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.BlenderUvProjection",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "BlenderUvProjection",
+      "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.BlenderVector3",
+      "kind": "type",
+      "line": 21,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "BlenderVector3",
+      "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
     },
     {
       "id": "type:Forge.Domain.Assets.CreditSource",
@@ -133332,6 +134763,36 @@
       "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
     },
     {
+      "id": "type:Forge.Mcp.Assets.AssistedBlenderCreationApplyPlanRequest",
+      "kind": "type",
+      "line": 17,
+      "metadata": {
+        "namespace": "Forge.Mcp.Assets"
+      },
+      "name": "AssistedBlenderCreationApplyPlanRequest",
+      "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Assets.AssistedBlenderCreationProposalRequest",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Mcp.Assets"
+      },
+      "name": "AssistedBlenderCreationProposalRequest",
+      "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Assets.AssistedBlenderCreationProposalResource",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Mcp.Assets"
+      },
+      "name": "AssistedBlenderCreationProposalResource",
+      "path": "src/Forge.Mcp/Assets/AssistedBlenderCreationContracts.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Bosses.AssistedBossApplyPlanRequest",
       "kind": "type",
       "line": 15,
@@ -133714,7 +135175,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAreaExperiencePlan",
       "kind": "type",
-      "line": 3247,
+      "line": 3426,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133724,7 +135185,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssetInstallPlan",
       "kind": "type",
-      "line": 3167,
+      "line": 3346,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133734,7 +135195,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAbilityPlan",
       "kind": "type",
-      "line": 3048,
+      "line": 3210,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133744,7 +135205,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAreaBuildPlan",
       "kind": "type",
-      "line": 3140,
+      "line": 3319,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133754,7 +135215,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAreaPlan",
       "kind": "type",
-      "line": 3123,
+      "line": 3302,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133762,9 +135223,19 @@
       "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
     },
     {
+      "id": "type:Forge.Mcp.Projects.StoredAssistedBlenderCreationPlan",
+      "kind": "type",
+      "line": 3227,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "StoredAssistedBlenderCreationPlan",
+      "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Projects.StoredAssistedBossPlan",
       "kind": "type",
-      "line": 3031,
+      "line": 3193,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133774,7 +135245,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedDialoguePlan",
       "kind": "type",
-      "line": 2997,
+      "line": 3159,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133784,7 +135255,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedForgeScriptPlan",
       "kind": "type",
-      "line": 3065,
+      "line": 3244,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133794,7 +135265,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedQuestPlan",
       "kind": "type",
-      "line": 3014,
+      "line": 3176,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133804,7 +135275,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredCinematicPlan",
       "kind": "type",
-      "line": 3208,
+      "line": 3387,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133814,7 +135285,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredDialoguePlan",
       "kind": "type",
-      "line": 3079,
+      "line": 3258,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133824,7 +135295,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredGameplayControlPlan",
       "kind": "type",
-      "line": 3221,
+      "line": 3400,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133834,7 +135305,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredLoreIndexPlan",
       "kind": "type",
-      "line": 3106,
+      "line": 3285,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133844,7 +135315,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRulesProfilePlan",
       "kind": "type",
-      "line": 3234,
+      "line": 3413,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133854,7 +135325,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimeExtensionPlan",
       "kind": "type",
-      "line": 3260,
+      "line": 3439,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -133864,7 +135335,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimePolicyPlan",
       "kind": "type",
-      "line": 3184,
+      "line": 3363,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -134122,9 +135593,49 @@
       "path": "src/Forge.ModuleFormat/Assets/AssetVaultPlannedObject.cs"
     },
     {
+      "id": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationBrief",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssistedBlenderCreationBrief",
+      "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationCommandHistory",
+      "kind": "type",
+      "line": 189,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssistedBlenderCreationCommandHistory",
+      "path": "src/Forge.ModuleFormat/Assets/ApplyAssistedBlenderCreationHandler.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationProposal",
+      "kind": "type",
+      "line": 28,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssistedBlenderCreationProposal",
+      "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.AssistedBlenderCreationTestEvidence",
+      "kind": "type",
+      "line": 26,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssistedBlenderCreationTestEvidence",
+      "path": "src/Forge.ModuleFormat/Assets/AssistedBlenderCreationService.cs"
+    },
+    {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerAnimationSource",
       "kind": "type",
-      "line": 172,
+      "line": 190,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -134134,7 +135645,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerMaterialTextureSource",
       "kind": "type",
-      "line": 174,
+      "line": 192,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -134144,7 +135655,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerOptions",
       "kind": "type",
-      "line": 159,
+      "line": 176,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -134154,7 +135665,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerRequest",
       "kind": "type",
-      "line": 146,
+      "line": 163,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -134164,7 +135675,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerRequestStore",
       "kind": "type",
-      "line": 7,
+      "line": 8,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -139342,6 +140853,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAreaPlanWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.AssistedBlenderCreationWindow",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "AssistedBlenderCreationWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedBlenderCreationWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.AssistedBossWindow",
       "kind": "type",
       "line": 12,
@@ -139554,7 +141075,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 9245,
+      "line": 9420,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -139644,7 +141165,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 9250,
+      "line": 9425,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -139654,7 +141175,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 9255,
+      "line": 9430,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -139714,7 +141235,7 @@
     {
       "id": "type:tools.asset_pipeline.blender_worker.WorkerError",
       "kind": "type",
-      "line": 36,
+      "line": 37,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -139764,7 +141285,7 @@
     {
       "id": "validator:Forge.Domain.Assets.AssetExternalEditValidator",
       "kind": "validator",
-      "line": 75,
+      "line": 76,
       "metadata": {
         "namespace": "Forge.Domain.Assets"
       },
@@ -139784,7 +141305,7 @@
     {
       "id": "validator:Forge.Domain.Assets.AssetPlatformParityValidator",
       "kind": "validator",
-      "line": 156,
+      "line": 158,
       "metadata": {
         "namespace": "Forge.Domain.Assets"
       },
@@ -139800,6 +141321,16 @@
       },
       "name": "AssetProcessingProfileValidator",
       "path": "src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Assets.AssistedBlenderCreationValidator",
+      "kind": "validator",
+      "line": 56,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssistedBlenderCreationValidator",
+      "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
     },
     {
       "id": "validator:Forge.Domain.Assistant.AssistantWorkspaceProfileValidator",

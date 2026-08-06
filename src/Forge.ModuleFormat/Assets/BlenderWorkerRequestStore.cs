@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Forge.Domain.Assets;
 
 namespace Forge.ModuleFormat.Assets;
@@ -30,6 +31,13 @@ public static class BlenderWorkerRequestStore
                 : diagnostics[0].Message;
             return new(null, [new(WriteFailedCode, message, configuration.OutputRelativePath)]);
         }
+        var createsPrimitives = configuration.Operations.Contains(AssetExternalOperation.CreatePrimitives);
+        if (createsPrimitives != (options.CreationRecipe is not null) ||
+            options.CreationRecipe is not null &&
+            !string.Equals(options.CreationRecipe.OutputRelativePath, configuration.OutputRelativePath,
+                StringComparison.Ordinal))
+            return new(null, [new(WriteFailedCode,
+                "Typed primitive creation requires one matching creation recipe.", configuration.OutputRelativePath)]);
 
         var relativePath = $"assets/roundtrip/{configuration.AssetId}.worker-request.json";
         var path = Path.Combine(
@@ -68,6 +76,7 @@ public static class BlenderWorkerRequestStore
         AssetExternalOperation.ExportGlb => "export_glb",
         AssetExternalOperation.GenerateThumbnail => "generate_thumbnail",
         AssetExternalOperation.AuditQuality => "audit_quality",
+        AssetExternalOperation.CreatePrimitives => "create_primitives",
         _ => throw new JsonException($"Operation '{operation}' is unsupported by Blender worker."),
     };
 
@@ -102,6 +111,13 @@ public static class BlenderWorkerRequestStore
             }
         }
 
+        if (options.CreationRecipe is not null)
+        {
+            var diagnostic = AssistedBlenderCreationValidator.Validate(options.CreationRecipe).FirstOrDefault();
+            if (diagnostic is not null)
+                return new(WriteFailedCode, diagnostic.Message, diagnostic.Path);
+        }
+
         return null;
     }
 
@@ -116,6 +132,7 @@ public static class BlenderWorkerRequestStore
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
     private static void WriteAtomically(string targetPath, string content)
@@ -163,7 +180,8 @@ public sealed record BlenderWorkerOptions(
     IReadOnlyList<decimal> LodRatios,
     bool GenerateCollision,
     IReadOnlyList<BlenderWorkerAnimationSource>? AnimationSources = null,
-    IReadOnlyList<BlenderWorkerMaterialTextureSource>? MaterialTextures = null)
+    IReadOnlyList<BlenderWorkerMaterialTextureSource>? MaterialTextures = null,
+    AssistedBlenderCreationDefinition? CreationRecipe = null)
 {
     public static BlenderWorkerOptions Default { get; } =
         new(true, 1m, "ground_center", [0.5m, 0.25m], true, [], []);

@@ -55,7 +55,9 @@ citations, localisation, lint et simulation, puis G12-F livre les machines à é
 objectifs, récompenses, échec et scénarios. G12-G ajoute la création/réparation ForgeScript compilée
 et testée avant écriture. G12-H compose maintenant un boss canonique multi-domaines, simule son
 équilibrage et applique son lot atomique. G12-I crée désormais une capacité autonome, résout ses
-dépendances et la soumet à cinq tests du résolveur de combat. La file active commence à **G12-J**.
+dépendances et la soumet à cinq tests du résolveur de combat. G12-J livre désormais la création 3D
+gouvernée, du document canonique au GLB Blender réellement exporté. La file active commence à
+**G12-K**, fournisseurs text/image-to-3D optionnels et contrôlés.
 
 ## 3. Jalons produit
 
@@ -327,7 +329,10 @@ assistée sans contourner le compilateur ni la sandbox. G12-H livre la création
 créature, combat, capacités, rencontre, phases, scripts, dialogue, loot et 32 simulations sont liés
 par un seul lot persistant et réversible. G12-I livre la création de capacité autonome : ciblage,
 coût, recharge, effets, cues, tags IA, ForgeScript, item optionnel, cinq tests combat et équilibrage
-sont liés par un seul lot persistant et réversible. G12-J portera la création 3D via Blender.
+sont liés par un seul lot persistant et réversible. G12-J livre la création 3D via Blender : recette
+canonique de primitives/transforms/matériau/UV/LOD/collision, worker typé sans Python libre,
+validation, miniature, audit et GLB réel, avec UI et MCP sur le même lot réversible. G12-K portera
+les fournisseurs text/image-to-3D optionnels, leur staging et l'acceptation humaine.
 
 **Domaine.** `AI` P1/P2, après stabilisation des workflows humains correspondants.
 

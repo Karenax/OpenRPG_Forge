@@ -95,6 +95,78 @@ class BlenderWorkerTests(unittest.TestCase):
             },
         }
 
+    def creation_request(self):
+        recipe = {
+            "schemaVersion": 1,
+            "id": str(uuid.uuid4()),
+            "slug": "forge-pillar",
+            "displayName": "Forge Pillar",
+            "provenance": "assistant:test",
+            "licenseSpdx": "CC0-1.0",
+            "primitives": [{
+                "id": str(uuid.uuid4()),
+                "name": "pillar",
+                "kind": "cylinder",
+                "positionMeters": {"x": 0.0, "y": 0.0, "z": 1.0},
+                "rotationDegrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+                "scaleMeters": {"x": 1.0, "y": 1.0, "z": 2.0},
+            }],
+            "material": {
+                "name": "forge_stone",
+                "baseColor": {"red": 0.32, "green": 0.24, "blue": 0.18, "alpha": 1.0},
+                "metallic": 0.05,
+                "roughness": 0.72,
+            },
+            "uvProjection": "cube",
+            "lodRatios": [0.5, 0.25],
+            "generateCollision": True,
+            "outputRelativePath": "assets/generated/forge-pillar/model.glb",
+        }
+        source = self.sources / "forge-pillar.recipe.json"
+        source.write_text(json.dumps(recipe), encoding="utf-8")
+        document = self.request()
+        document.update({
+            "assetId": "generated:forge-pillar",
+            "sourceRelativePath": source.name,
+            "outputRelativePath": recipe["outputRelativePath"],
+            "sourceSha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+            "provenance": "assistant:test:typed-blender-creation",
+            "operations": [
+                "create_primitives", "validate_model", "normalize_model", "generate_lods",
+                "generate_collision", "export_glb", "generate_thumbnail", "audit_quality",
+            ],
+        })
+        document["options"].update({
+            "lodRatios": recipe["lodRatios"],
+            "generateCollision": True,
+            "creationRecipe": recipe,
+        })
+        return document
+
+    def test_validates_typed_primitive_creation_without_python_or_unbounded_fields(self):
+        document = self.creation_request()
+        normalized = worker.validate_request(document, self.sources, self.workspace)
+        response = worker.execute(normalized, self.root / "missing-blender.exe", self.root / "response.json", True)
+
+        self.assertTrue(response["valid"])
+        self.assertFalse(response["executed"])
+        self.assertEqual("cylinder", normalized["options"]["creationRecipe"]["primitives"][0]["kind"])
+        self.assertNotIn("python", json.dumps(normalized).lower())
+
+        document["options"]["creationRecipe"]["primitives"][0]["kind"] = "python"
+        with self.assertRaises(worker.WorkerError) as context:
+            worker.validate_request(document, self.sources, self.workspace)
+        self.assertEqual("asset.worker.creation_recipe_invalid", context.exception.code)
+
+    def test_rejects_creation_recipe_that_differs_from_immutable_source(self):
+        document = self.creation_request()
+        document["options"]["creationRecipe"]["displayName"] = "Tampered"
+        normalized = worker.validate_request(document, self.sources, self.workspace)
+
+        with self.assertRaises(worker.WorkerError) as context:
+            worker.execute(normalized, self.root / "missing-blender.exe", self.root / "response.json", True)
+        self.assertEqual("asset.worker.creation_recipe_mismatch", context.exception.code)
+
     def test_validate_only_preserves_source_and_normalizes_typed_request(self):
         document = self.request()
         before = self.source.read_bytes()

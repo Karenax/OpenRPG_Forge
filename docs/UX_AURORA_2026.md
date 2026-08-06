@@ -303,6 +303,13 @@ les cinq scénarios du résolveur de combat, le score d'équilibrage, la provena
 diagnostics et le diff. Une édition invalide immédiatement le plan ; profil de combat et document
 runtime ne sont sauvegardés qu'ensemble, après dry-run exact, par la même commande que MCP.
 
+G12-J ajoute **Création 3D** dans le même Assistant. La première colonne définit identité,
+primitive et transforms métriques ; la seconde expose matériau PBR, couleur, UV, LOD, collision,
+style, citations, seed et approbation. La troisième affiche recette, hash, cinq tests, provenance,
+coût, diagnostics et diff avant mutation. Appliquer prépare la recette canonique et la requête du
+worker Blender ; annuler/rétablir restaure ensemble recette, configuration et requête. Le worker
+n'accepte que des opérations typées et n'exécute jamais de Python fourni par l'auteur ou l'agent.
+
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
 échelle métrique, matériaux PBR normalisés, silhouettes lisibles, éclairage maîtrisé, LOD,
 collisions, navigation et profils de qualité. Elle est détaillée dans

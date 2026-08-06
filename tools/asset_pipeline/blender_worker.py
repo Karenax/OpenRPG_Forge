@@ -18,6 +18,7 @@ import uuid
 
 SCHEMA_VERSION = 1
 ALLOWED_OPERATIONS = {
+    "create_primitives",
     "validate_model",
     "normalize_model",
     "generate_collision",
@@ -187,6 +188,122 @@ def _validate_hash(value: object, field: str) -> str:
     return normalized
 
 
+def _number(value: object, field: str, minimum: float, maximum: float) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not minimum <= float(value) <= maximum:
+        raise WorkerError("asset.worker.creation_recipe_invalid", f"{field} is outside its bounded range.", field)
+    return float(value)
+
+
+def _safe_name(value: object, field: str) -> str:
+    normalized = str(value or "").strip()
+    if not normalized or len(normalized) > 64 or any(
+        not (character.isascii() and (character.isalnum() or character in "-_")) for character in normalized
+    ):
+        raise WorkerError("asset.worker.creation_recipe_invalid", f"{field} must be a safe name.", field)
+    return normalized
+
+
+def _vector(value: object, field: str, minimum: float, maximum: float) -> dict:
+    if not isinstance(value, dict) or set(value) != {"x", "y", "z"}:
+        raise WorkerError("asset.worker.creation_recipe_invalid", f"{field} must be a typed vector.", field)
+    return {axis: _number(value[axis], f"{field}.{axis}", minimum, maximum) for axis in ("x", "y", "z")}
+
+
+def _validate_creation_recipe(value: object, output_relative: str) -> dict:
+    required = {
+        "schemaVersion", "id", "slug", "displayName", "provenance", "licenseSpdx", "primitives",
+        "material", "uvProjection", "lodRatios", "generateCollision", "outputRelativePath",
+    }
+    if not isinstance(value, dict) or set(value) != required or value.get("schemaVersion") != SCHEMA_VERSION:
+        raise WorkerError("asset.worker.creation_recipe_invalid", "Creation recipe fields or schema are invalid.",
+                          "options.creationRecipe")
+    try:
+        recipe_id = str(uuid.UUID(str(value.get("id", ""))))
+    except ValueError as error:
+        raise WorkerError("asset.worker.creation_recipe_invalid", "Creation recipe ID must be a UUID.",
+                          "options.creationRecipe.id") from error
+    slug = _safe_name(value.get("slug"), "options.creationRecipe.slug")
+    display_name = str(value.get("displayName", "")).strip()
+    provenance = str(value.get("provenance", "")).strip()
+    if not display_name or len(display_name) > 128 or not provenance or value.get("licenseSpdx") != "CC0-1.0":
+        raise WorkerError("asset.worker.creation_recipe_invalid", "Creation governance and display name are invalid.",
+                          "options.creationRecipe.governance")
+    if value.get("outputRelativePath") != output_relative:
+        raise WorkerError("asset.worker.creation_recipe_invalid", "Creation recipe output does not match request.",
+                          "options.creationRecipe.outputRelativePath")
+    primitives = value.get("primitives")
+    if not isinstance(primitives, list) or not 1 <= len(primitives) <= 64:
+        raise WorkerError("asset.worker.creation_recipe_invalid", "Creation requires one to 64 primitives.",
+                          "options.creationRecipe.primitives")
+    normalized_primitives = []
+    ids, names = set(), set()
+    for index, primitive in enumerate(primitives):
+        root = f"options.creationRecipe.primitives[{index}]"
+        fields = {"id", "name", "kind", "positionMeters", "rotationDegrees", "scaleMeters"}
+        if not isinstance(primitive, dict) or set(primitive) != fields:
+            raise WorkerError("asset.worker.creation_recipe_invalid", "Primitive fields are invalid.", root)
+        try:
+            primitive_id = str(uuid.UUID(str(primitive.get("id", ""))))
+        except ValueError as error:
+            raise WorkerError("asset.worker.creation_recipe_invalid", "Primitive ID must be a UUID.", f"{root}.id") from error
+        name = _safe_name(primitive.get("name"), f"{root}.name")
+        kind = str(primitive.get("kind", "")).strip().lower()
+        if primitive_id in ids or name.lower() in names or kind not in {"cube", "cylinder", "sphere", "cone"}:
+            raise WorkerError("asset.worker.creation_recipe_invalid", "Primitive identity or kind is invalid.", root)
+        ids.add(primitive_id)
+        names.add(name.lower())
+        normalized_primitives.append({
+            "id": primitive_id,
+            "name": name,
+            "kind": kind,
+            "positionMeters": _vector(primitive["positionMeters"], f"{root}.positionMeters", -1000, 1000),
+            "rotationDegrees": _vector(primitive["rotationDegrees"], f"{root}.rotationDegrees", -360, 360),
+            "scaleMeters": _vector(primitive["scaleMeters"], f"{root}.scaleMeters", 0.001, 1000),
+        })
+    material = value.get("material")
+    if not isinstance(material, dict) or set(material) != {"name", "baseColor", "metallic", "roughness"}:
+        raise WorkerError("asset.worker.creation_recipe_invalid", "Material fields are invalid.",
+                          "options.creationRecipe.material")
+    color = material.get("baseColor")
+    if not isinstance(color, dict) or set(color) != {"red", "green", "blue", "alpha"}:
+        raise WorkerError("asset.worker.creation_recipe_invalid", "Material color is invalid.",
+                          "options.creationRecipe.material.baseColor")
+    normalized_material = {
+        "name": _safe_name(material.get("name"), "options.creationRecipe.material.name"),
+        "baseColor": {channel: _number(color[channel], f"options.creationRecipe.material.baseColor.{channel}", 0, 1)
+                      for channel in ("red", "green", "blue", "alpha")},
+        "metallic": _number(material.get("metallic"), "options.creationRecipe.material.metallic", 0, 1),
+        "roughness": _number(material.get("roughness"), "options.creationRecipe.material.roughness", 0, 1),
+    }
+    uv = str(value.get("uvProjection", "")).strip().lower()
+    if uv not in {"generated", "cube", "cylinder", "sphere"}:
+        raise WorkerError("asset.worker.creation_recipe_invalid", "UV projection is invalid.",
+                          "options.creationRecipe.uvProjection")
+    lods = value.get("lodRatios")
+    if not isinstance(lods, list) or not 1 <= len(lods) <= 4:
+        raise WorkerError("asset.worker.creation_recipe_invalid", "Creation LOD ratios are invalid.",
+                          "options.creationRecipe.lodRatios")
+    normalized_lods = sorted({_number(item, "options.creationRecipe.lodRatios", 0.01, 0.99) for item in lods},
+                             reverse=True)
+    if len(normalized_lods) != len(lods) or not isinstance(value.get("generateCollision"), bool):
+        raise WorkerError("asset.worker.creation_recipe_invalid", "Creation LOD or collision policy is invalid.",
+                          "options.creationRecipe")
+    return {
+        "schemaVersion": SCHEMA_VERSION,
+        "id": recipe_id,
+        "slug": slug,
+        "displayName": display_name,
+        "provenance": provenance,
+        "licenseSpdx": "CC0-1.0",
+        "primitives": normalized_primitives,
+        "material": normalized_material,
+        "uvProjection": uv,
+        "lodRatios": normalized_lods,
+        "generateCollision": value["generateCollision"],
+        "outputRelativePath": output_relative,
+    }
+
+
 def validate_request(document: object, source_root: pathlib.Path, workspace_root: pathlib.Path) -> dict:
     if not isinstance(document, dict):
         raise WorkerError("asset.worker.request_invalid", "Worker request must be a JSON object.")
@@ -212,7 +329,9 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
     output_relative = str(document.get("outputRelativePath", ""))
     source_path = _contained(source_root, source_relative)
     output_path = _contained(workspace_root, output_relative, output=True)
-    if source_path.suffix.lower() not in ALLOWED_INPUT_EXTENSIONS:
+    creation_mode = "create_primitives" in normalized_operations
+    allowed_extension = source_path.suffix.lower() == ".json" if creation_mode else source_path.suffix.lower() in ALLOWED_INPUT_EXTENSIONS
+    if not allowed_extension:
         raise WorkerError("asset.worker.source_format_invalid", "Unsupported model source format.", source_relative)
     expected_hash = _validate_hash(document.get("sourceSha256"), "sourceSha256")
 
@@ -228,6 +347,7 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
         "animationSources",
         "materialTextures",
         "retargetProfile",
+        "creationRecipe",
     }
     if unknown_options:
         raise WorkerError(
@@ -248,6 +368,12 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
     ):
         raise WorkerError("asset.worker.lod_invalid", "LOD ratios must be numbers in [0.01, 1).", "options.lodRatios")
     normalized_lods = sorted({float(ratio) for ratio in lod_ratios}, reverse=True)
+    creation_recipe = options.get("creationRecipe")
+    if creation_mode:
+        creation_recipe = _validate_creation_recipe(creation_recipe, output_relative)
+    elif creation_recipe is not None:
+        raise WorkerError("asset.worker.creation_recipe_unused", "Creation recipe requires create_primitives.",
+                          "options.creationRecipe")
     animation_sources = options.get("animationSources", [])
     if not isinstance(animation_sources, list):
         raise WorkerError("asset.worker.animation_sources_invalid", "animationSources must be a list.", "options.animationSources")
@@ -441,6 +567,7 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
             "animationSources": normalized_animations,
             "materialTextures": normalized_textures,
             "retargetProfile": normalized_retarget,
+            "creationRecipe": creation_recipe,
         },
         "_sourcePath": str(source_path),
         "_outputPath": str(output_path),
@@ -475,6 +602,15 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
     source_hash_before = _sha256(source_path)
     if source_hash_before != request["sourceSha256"]:
         raise WorkerError("asset.worker.source_hash_mismatch", "Model source hash differs from the request.", request["sourceRelativePath"])
+    if "create_primitives" in request["operations"]:
+        try:
+            source_recipe = json.loads(source_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise WorkerError("asset.worker.creation_recipe_invalid", str(error), request["sourceRelativePath"]) from error
+        if source_recipe != request["options"]["creationRecipe"]:
+            raise WorkerError("asset.worker.creation_recipe_mismatch",
+                              "Immutable creation recipe differs from the typed worker options.",
+                              request["sourceRelativePath"])
     if not request["assetId"] or not request["licenseSpdx"] or not request["provenance"]:
         raise WorkerError(
             "asset.worker.governance_missing",

@@ -36,6 +36,60 @@ namespace Forge.Mcp.Tests.Projects;
 public sealed class ForgeProjectAgentServiceTests
 {
     [Fact]
+    public void AssistedBlenderMcpPlansPersistsTypedWorkerRequestAndRevertsAllFiles()
+    {
+        using var workspace = new TestWorkspace();
+        var brief = new AssistedBlenderCreationBrief(
+            Guid.Parse("b1320000-0000-4000-8000-000000000090"),
+            "mcp-forge-pillar", "MCP Forge Pillar",
+            [new BlenderPrimitiveDefinition(
+                Guid.Parse("b1320000-0000-4000-8000-000000000091"),
+                "pillar", BlenderPrimitiveKind.Cylinder,
+                new BlenderVector3(0, 0, 1), new BlenderVector3(0, 0, 0), new BlenderVector3(1, 1, 2))],
+            new BlenderMaterialDefinition("forge_stone", new BlenderColor(.32m, .24m, .18m, 1), .05m, .72m),
+            BlenderUvProjection.Cube, [.5m, .25m], true,
+            ["lore:crypt-of-ashes"], ["style:readable", "performance:realtime"], "@mcp-author", 20260806);
+
+        var proposed = workspace.Project.ProposeAssistedBlenderCreation(new(1, brief));
+        Assert.True(proposed.Proposal?.CanApply == true,
+            string.Join(" | ", proposed.Diagnostics.Select(item => $"{item.Code}: {item.Message}")));
+        var approved = proposed.Proposal!.WithApproval(true, "author-approved:mcp-test:g12-j");
+        var planned = workspace.Project.PlanAssistedBlenderCreation(new(
+            1, proposed.BaseRevision, approved, AssistantPermissionLevel.ApplyApprovedPlan));
+        var recipePath = AssistedBlenderCreationService.ResolvePath(workspace.RootDirectory, approved.RecipeRelativePath);
+        var requestPath = Path.Combine(workspace.RootDirectory, "assets", "roundtrip",
+            $"{approved.Configuration.AssetId}.worker-request.json");
+        var externalPath = Path.Combine(workspace.RootDirectory, AssetExternalEditStore.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+        var applied = workspace.Project.ApplyAssistedBlenderCreationPlan(planned.PlanId!);
+
+        Assert.True(proposed.Succeeded);
+        Assert.Equal(5, proposed.Proposal.Tests.Count);
+        Assert.All(proposed.Proposal.Tests, item => Assert.True(item.Passed));
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.Equal(3, planned.FileDiff.Count);
+        Assert.Equal(5, planned.PassedTests);
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.True(File.Exists(recipePath));
+        Assert.True(File.Exists(requestPath));
+        Assert.True(File.Exists(externalPath));
+        Assert.Contains("\"create_primitives\"", File.ReadAllText(requestPath), StringComparison.Ordinal);
+        Assert.Contains("\"kind\": \"cylinder\"", File.ReadAllText(recipePath), StringComparison.Ordinal);
+        Assert.Single(AssetExternalEditStore.Load(workspace.RootDirectory).Configurations,
+            item => item.Operations.Contains(AssetExternalOperation.CreatePrimitives));
+
+        var reverted = workspace.Project.RevertAssistedBlenderCreationPlan(planned.PlanId!);
+
+        Assert.True(reverted.Succeeded);
+        Assert.True(reverted.Reverted);
+        Assert.False(File.Exists(recipePath));
+        Assert.False(File.Exists(requestPath));
+        Assert.False(File.Exists(externalPath));
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
     public void AssistedAbilityMcpTestsPersistsCanonicalCombatMutationAndRevertsIt()
     {
         using var workspace = new TestWorkspace();

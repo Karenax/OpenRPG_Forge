@@ -182,6 +182,28 @@ public sealed class ForgeMcpTools
         _project.RevertAssistedAbilityPlan(planId);
 
     [McpServerTool]
+    [Description("Uses the deterministic offline assistant to produce a canonical typed Blender primitive recipe, material, UV, LOD, collision and governed GLB export request without mutation or free-form Python.")]
+    public AssistedBlenderCreationProposalResource ProposeAssistedBlenderCreation(
+        AssistedBlenderCreationProposalRequest request) =>
+        _project.ProposeAssistedBlenderCreation(request);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an explicitly approved typed Blender creation as one confined three-file transaction.")]
+    public AssistedBlenderCreationApplyPlanResult PlanAssistedBlenderCreation(
+        AssistedBlenderCreationApplyPlanRequest request) =>
+        _project.PlanAssistedBlenderCreation(request);
+
+    [McpServerTool]
+    [Description("Applies a previously previewed Blender creation plan and writes the canonical recipe, external-edit configuration and worker request atomically.")]
+    public AssistedBlenderCreationApplyPlanResult ApplyAssistedBlenderCreationPlan(string planId) =>
+        _project.ApplyAssistedBlenderCreationPlan(planId);
+
+    [McpServerTool]
+    [Description("Atomically reverts the latest assisted Blender creation and restores all governed files.")]
+    public AssistedBlenderCreationApplyPlanResult RevertAssistedBlenderCreationPlan(string planId) =>
+        _project.RevertAssistedBlenderCreationPlan(planId);
+
+    [McpServerTool]
     [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]
     public RuntimePolicyResource GetRuntimePolicies(string? areaId = null) =>
         _project.GetRuntimePolicies(areaId);

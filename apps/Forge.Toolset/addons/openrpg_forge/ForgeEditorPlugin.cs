@@ -120,6 +120,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly ApplyAssistedForgeScriptHandler _assistedForgeScriptHandler = new();
     private readonly ApplyAssistedBossHandler _assistedBossHandler = new(new SystemClock());
     private readonly ApplyAssistedAbilityHandler _assistedAbilityHandler = new(new SystemClock());
+    private readonly ApplyAssistedBlenderCreationHandler _assistedBlenderCreationHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -218,6 +219,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssistedForgeScriptWindow? _assistedForgeScriptWindow;
     private AssistedBossWindow? _assistedBossWindow;
     private AssistedAbilityWindow? _assistedAbilityWindow;
+    private AssistedBlenderCreationWindow? _assistedBlenderCreationWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -247,6 +249,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssetProcessingProfileCommandHistory? _assetProcessingProfileHistory;
     private AssetPackageManifestCommandHistory? _assetPackageManifestHistory;
     private AssetExternalEditCommandHistory? _assetExternalEditHistory;
+    private AssistedBlenderCreationCommandHistory? _assistedBlenderCreationHistory;
     private AssistantWorkspaceProfileCommandHistory? _assistantProfileHistory;
     private LoreIndexCommandHistory? _loreIndexHistory;
     private AssistedAreaPlanCommandHistory? _assistedAreaPlanHistory;
@@ -395,6 +398,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ApplyAssistedAbility,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistedAbilityWindow);
+        _assistedBlenderCreationWindow = new AssistedBlenderCreationWindow();
+        _assistedBlenderCreationWindow.Initialize(
+            () => _projectSession,
+            () => _history?.State,
+            () => _loreIndexHistory?.State,
+            () => _assistantProfileHistory?.State,
+            () => _assetExternalEditHistory?.State,
+            ApplyAssistedBlenderCreation,
+            UndoAssistedBlenderCreation,
+            RedoAssistedBlenderCreation,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_assistedBlenderCreationWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -410,6 +425,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _assistedForgeScriptWindow?.Open(),
             () => _assistedBossWindow?.Open(),
             () => _assistedAbilityWindow?.Open(),
+            () => _assistedBlenderCreationWindow?.Open(),
             () => _localizationWorkspace?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistantWorkspace);
@@ -2922,6 +2938,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
         var externalEdits = AssetExternalEditStore.Load(_projectSession.RootDirectory);
         _assetExternalEditHistory = new AssetExternalEditCommandHistory(externalEdits.Configurations);
+        _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(_assetExternalEditHistory.State);
         if (!externalEdits.Succeeded)
         {
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDITS_INVALID {externalEdits.Diagnostics[0].Code}");
@@ -3499,6 +3516,56 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool ApplyAssistedBlenderCreation(
+        AssistedBlenderCreationProposal proposal,
+        Guid transactionId,
+        Guid executionPlanId,
+        bool dryRun)
+    {
+        if (_projectSession is null || _assetExternalEditHistory is null) return false;
+        var state = _assetExternalEditHistory.State;
+        if (_assistedBlenderCreationHistory is null ||
+            _assistedBlenderCreationHistory.State.Revision != state.Revision ||
+            !_assistedBlenderCreationHistory.State.Configurations.SequenceEqual(state.Configurations))
+            _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(state);
+        var command = new ApplyAssistedBlenderCreationCommand(
+            CommandId.From(Guid.NewGuid()), transactionId, executionPlanId, state.Revision, proposal,
+            AssistantPermissionLevel.ApplyApprovedPlan, dryRun);
+        var result = _assistedBlenderCreationHandler.Handle(_projectSession.RootDirectory, state, command);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(code => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error, code, code,
+                $"assets/assisted-3d/{proposal.Definition.Id:D}", proposal.Definition.Id.ToString("D"))).ToArray());
+            return false;
+        }
+        if (dryRun) return !result.Applied && result.Patches.Count == 3;
+        _assistedBlenderCreationHistory.Record(result);
+        _assetExternalEditHistory = new AssetExternalEditCommandHistory(result.State);
+        _assetBrowser?.Refresh();
+        GD.Print($"OPENRPG_FORGE_TOOLSET_ASSISTED_BLENDER_APPLIED asset={proposal.Configuration.AssetId} " +
+                 $"primitives={proposal.Definition.Primitives.Count} transaction={transactionId:D} plan={executionPlanId:D}");
+        return true;
+    }
+
+    private bool UndoAssistedBlenderCreation()
+    {
+        if (_projectSession is null || _assistedBlenderCreationHistory is null ||
+            !_assistedBlenderCreationHistory.Undo(_projectSession.RootDirectory)) return false;
+        _assetExternalEditHistory = new AssetExternalEditCommandHistory(_assistedBlenderCreationHistory.State);
+        _assetBrowser?.Refresh();
+        return true;
+    }
+
+    private bool RedoAssistedBlenderCreation()
+    {
+        if (_projectSession is null || _assistedBlenderCreationHistory is null ||
+            !_assistedBlenderCreationHistory.Redo(_projectSession.RootDirectory)) return false;
+        _assetExternalEditHistory = new AssetExternalEditCommandHistory(_assistedBlenderCreationHistory.State);
+        _assetBrowser?.Refresh();
+        return true;
+    }
+
     private bool UndoAssistedForgeScript()
     {
         if (_projectSession is null || !_assistedForgeScriptHistory.Undo(_projectSession.RootDirectory)) return false;
@@ -3843,6 +3910,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             }
 
             _assetExternalEditHistory.Record(result);
+            _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(_assetExternalEditHistory.State);
             GD.Print(
                 $"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDIT_SAVED asset={item.ExternalId} id={configuration.Id} " +
                 $"request={request.RequestRelativePath} revision={_assetExternalEditHistory.State.Revision.Value}");
@@ -3868,6 +3936,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _assetExternalEditHistory.State.Configurations);
         if (saved.Succeeded)
         {
+            _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(_assetExternalEditHistory.State);
             return true;
         }
 
@@ -3887,6 +3956,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _assetExternalEditHistory.State.Configurations);
         if (saved.Succeeded)
         {
+            _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(_assetExternalEditHistory.State);
             return true;
         }
 
@@ -4883,6 +4953,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssistedAbilitySmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAssistedBlenderCreationSmokeTest())
         {
             return;
         }
@@ -8790,6 +8865,106 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _projectSession.Save(originalState.Project);
             RebuildPreview();
             RefreshEditorControls();
+        }
+    }
+
+    private bool RunAssistedBlenderCreationSmokeTest()
+    {
+        if (_projectSession is null || _assetExternalEditHistory is null ||
+            _assistedBlenderCreationWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12J_BLENDER_FAILED missing_workspace");
+            return false;
+        }
+        var originalState = _assetExternalEditHistory.State;
+        string? recipePath = null;
+        string? requestPath = null;
+        string? externalPath = null;
+        string? beforeRecipe = null;
+        string? beforeRequest = null;
+        string? beforeExternal = null;
+        static string? ReadOptional(string? path) => path is not null && File.Exists(path)
+            ? File.ReadAllText(path, Encoding.UTF8)
+            : null;
+        static void RestoreOptional(string? path, string? content)
+        {
+            if (path is null) return;
+            if (content is null)
+            {
+                if (File.Exists(path)) File.Delete(path);
+                return;
+            }
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, content, new UTF8Encoding(false));
+        }
+        try
+        {
+            if (!_assistedBlenderCreationWindow.ConfigureApprovedForSmokeTest() ||
+                !_assistedBlenderCreationWindow.PreviewForSmokeTest() ||
+                _assistedBlenderCreationWindow.LastTestCount != 5 ||
+                _assistedBlenderCreationWindow.LastPassedTestCount != 5 ||
+                _assistedBlenderCreationWindow.LastDiagnosticCount != 0 ||
+                _assistedBlenderCreationWindow.LastEstimatedCostUsd != 0)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12J_BLENDER_FAILED preview_tests_cost");
+                return false;
+            }
+            recipePath = AssistedBlenderCreationService.ResolvePath(
+                _projectSession.RootDirectory, _assistedBlenderCreationWindow.LastRecipeRelativePath);
+            requestPath = Path.Combine(_projectSession.RootDirectory,
+                _assistedBlenderCreationWindow.LastWorkerRequestRelativePath.Replace('/', Path.DirectorySeparatorChar));
+            externalPath = Path.Combine(_projectSession.RootDirectory,
+                AssetExternalEditStore.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+            beforeRecipe = ReadOptional(recipePath);
+            beforeRequest = ReadOptional(requestPath);
+            beforeExternal = ReadOptional(externalPath);
+            if (!_assistedBlenderCreationWindow.ApplyForSmokeTest() ||
+                !File.Exists(recipePath) || !File.Exists(requestPath) ||
+                !File.ReadAllText(requestPath, Encoding.UTF8).Contains("\"create_primitives\"", StringComparison.Ordinal) ||
+                AssetExternalEditStore.Load(_projectSession.RootDirectory).Configurations
+                    .Count(item => item.Operations.Contains(AssetExternalOperation.CreatePrimitives)) != 1)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12J_BLENDER_FAILED apply_persistence");
+                return false;
+            }
+            var appliedRecipe = File.ReadAllText(recipePath, Encoding.UTF8);
+            var appliedRequest = File.ReadAllText(requestPath, Encoding.UTF8);
+            if (!UndoAssistedBlenderCreation() || ReadOptional(recipePath) != beforeRecipe ||
+                ReadOptional(requestPath) != beforeRequest ||
+                !RedoAssistedBlenderCreation() || ReadOptional(recipePath) != appliedRecipe ||
+                ReadOptional(requestPath) != appliedRequest ||
+                !UndoAssistedBlenderCreation() || ReadOptional(recipePath) != beforeRecipe ||
+                ReadOptional(requestPath) != beforeRequest)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12J_BLENDER_FAILED history_roundtrip");
+                return false;
+            }
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G12J_BLENDER_PASS recipe=canonical primitives=typed transforms=bounded " +
+                "material=pbr uv=typed lod=generated collision=generated validation=five-tests glb=export-request " +
+                "provider=fake-offline cost=visible python=forbidden plan=dry-run-transaction " +
+                "permission=apply-approved history=restored persistence=roundtrip mcp=governed");
+            return true;
+        }
+        finally
+        {
+            RestoreOptional(recipePath, beforeRecipe);
+            RestoreOptional(requestPath, beforeRequest);
+            RestoreOptional(externalPath, beforeExternal);
+            foreach (var directory in new[]
+            {
+                recipePath is null ? null : Path.GetDirectoryName(recipePath),
+                requestPath is null ? null : Path.GetDirectoryName(requestPath),
+                recipePath is null ? null : Path.GetDirectoryName(Path.GetDirectoryName(recipePath)),
+                externalPath is null ? null : Path.GetDirectoryName(externalPath),
+            }.Where(path => path is not null).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (Directory.Exists(directory) && !Directory.EnumerateFileSystemEntries(directory).Any())
+                    Directory.Delete(directory);
+            }
+            _assetExternalEditHistory = new AssetExternalEditCommandHistory(originalState);
+            _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(originalState);
+            _assetBrowser?.Refresh();
         }
     }
 

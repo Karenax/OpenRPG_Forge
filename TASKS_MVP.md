@@ -571,7 +571,12 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] G12-G : création/réparation ForgeScript compilée et testée avant écriture.
 - [x] G12-H : boss canonique multi-domaines validé par 32 simulations.
 - [x] G12-I : capacité canonique validée par cinq scénarios du résolveur de combat.
-- [ ] G12-J : création 3D gouvernée via Blender (`ORF-AI-021`).
+- [x] G12-J : création 3D gouvernée via Blender (`ORF-AI-021`).
+- [ ] G12-K : fournisseurs text/image-to-3D optionnels, staging, licence et acceptation humaine (`ORF-AI-022`).
 
 Acceptation G12-I : le Toolset et MCP partagent la même proposition, le même dry-run, la même
 transaction et le même undo/redo pour le profil de combat et son document runtime.
+
+Acceptation G12-J : le Toolset et MCP partagent la même recette canonique, le même dry-run et le
+même lot réversible ; le worker Blender réel génère primitives, matériau, UV, LOD, collisions,
+miniature, audit et GLB sans accepter de Python libre.

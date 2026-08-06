@@ -56,6 +56,48 @@ def _import_model(path: pathlib.Path) -> None:
         raise ValueError(f"Unsupported model format: {extension}")
 
 
+def _create_primitives(recipe: dict) -> None:
+    material_definition = recipe["material"]
+    material = bpy.data.materials.new(material_definition["name"])
+    material.use_nodes = True
+    principled = next(node for node in material.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
+    color = material_definition["baseColor"]
+    principled.inputs["Base Color"].default_value = (
+        color["red"], color["green"], color["blue"], color["alpha"])
+    principled.inputs["Metallic"].default_value = material_definition["metallic"]
+    principled.inputs["Roughness"].default_value = material_definition["roughness"]
+    projections = {
+        "generated": lambda: bpy.ops.uv.smart_project(angle_limit=math.radians(66)),
+        "cube": bpy.ops.uv.cube_project,
+        "cylinder": bpy.ops.uv.cylinder_project,
+        "sphere": bpy.ops.uv.sphere_project,
+    }
+    creators = {
+        "cube": lambda: bpy.ops.mesh.primitive_cube_add(size=1),
+        "cylinder": lambda: bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=0.5, depth=1),
+        "sphere": lambda: bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=0.5),
+        "cone": lambda: bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=0.5, radius2=0, depth=1),
+    }
+    for primitive in recipe["primitives"]:
+        creators[primitive["kind"]]()
+        item = bpy.context.object
+        item.name = primitive["name"]
+        position = primitive["positionMeters"]
+        rotation = primitive["rotationDegrees"]
+        scale = primitive["scaleMeters"]
+        item.location = (position["x"], position["y"], position["z"])
+        item.rotation_euler = tuple(math.radians(rotation[axis]) for axis in ("x", "y", "z"))
+        item.scale = (scale["x"], scale["y"], scale["z"])
+        item.data.materials.append(material)
+        bpy.context.view_layer.objects.active = item
+        item.select_set(True)
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        projections[recipe["uvProjection"]]()
+        bpy.ops.object.mode_set(mode="OBJECT")
+        item.select_set(False)
+
+
 def _apply_material_textures(sources: list[dict]) -> None:
     for source in sources:
         if source.get("channel") != "base_color":
@@ -661,7 +703,10 @@ def _audit(options: dict, operations: list[str], preview: pathlib.Path, retarget
 def main() -> None:
     source, output, preview, report, operations, options = _arguments()
     _reset()
-    _import_model(source)
+    if "create_primitives" in operations:
+        _create_primitives(options["creationRecipe"])
+    else:
+        _import_model(source)
     _apply_material_textures(options.get("materialTextures", []))
     animation_clips, retarget_audits = _merge_animation_sources(
         options.get("animationSources", []),

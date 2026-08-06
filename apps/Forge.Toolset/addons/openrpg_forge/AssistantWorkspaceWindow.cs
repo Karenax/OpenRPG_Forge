@@ -22,6 +22,7 @@ public partial class AssistantWorkspaceWindow : Window
     private Action? _openAssistedForgeScripts;
     private Action? _openAssistedBosses;
     private Action? _openAssistedAbilities;
+    private Action? _openAssistedBlenderCreation;
     private Action? _openLocalization;
     private Action<Window>? _brandWindow;
     private AssistantWorkspaceProfile? _source;
@@ -71,6 +72,7 @@ public partial class AssistantWorkspaceWindow : Window
         Action openAssistedForgeScripts,
         Action openAssistedBosses,
         Action openAssistedAbilities,
+        Action openAssistedBlenderCreation,
         Action openLocalization,
         Action<Window> brandWindow)
     {
@@ -87,6 +89,8 @@ public partial class AssistantWorkspaceWindow : Window
         _openAssistedForgeScripts = openAssistedForgeScripts ?? throw new ArgumentNullException(nameof(openAssistedForgeScripts));
         _openAssistedBosses = openAssistedBosses ?? throw new ArgumentNullException(nameof(openAssistedBosses));
         _openAssistedAbilities = openAssistedAbilities ?? throw new ArgumentNullException(nameof(openAssistedAbilities));
+        _openAssistedBlenderCreation = openAssistedBlenderCreation ??
+            throw new ArgumentNullException(nameof(openAssistedBlenderCreation));
         _openLocalization = openLocalization ?? throw new ArgumentNullException(nameof(openLocalization));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assistant de création · OpenRPG Forge";
@@ -256,6 +260,9 @@ public partial class AssistantWorkspaceWindow : Window
         var abilities = new Button { Text = "Capacité assistée" };
         abilities.Pressed += () => _openAssistedAbilities?.Invoke();
         footer.AddChild(abilities);
+        var blender = new Button { Text = "Création 3D" };
+        blender.Pressed += () => _openAssistedBlenderCreation?.Invoke();
+        footer.AddChild(blender);
         var undo = new Button { Text = "Annuler" };
         undo.Pressed += () => { if (_undo?.Invoke() == true) Refresh(); };
         footer.AddChild(undo);

@@ -224,9 +224,10 @@ validations déjà consommés par le runtime. G12-G livre la création et répar
 compilation et sandbox obligatoires. G12-H livre la création de boss gouvernée comme un lot atomique
 créature/rencontre/capacités/phases/dialogue/loot, validé par 32 simulations et partagé avec MCP. La
 création de capacité autonome G12-I ajoute ciblage, coûts, effets, cues, tags IA, dépendances,
-cinq tests du résolveur de combat et équilibrage par la même transaction Toolset/MCP. La prochaine
-tranche est G12-J, création 3D gouvernée via Blender, sans confondre les améliorations visuelles
-optionnelles avec des capacités absentes.
+cinq tests du résolveur de combat et équilibrage par la même transaction Toolset/MCP. G12-J livre
+la création 3D gouvernée via Blender : recette canonique, opérations typées, matériau PBR, UV, LOD,
+collision, validation, miniature, audit et export GLB réel, sans Python libre. La prochaine tranche
+est G12-K, fournisseurs text/image-to-3D optionnels avec licence, staging et acceptation humaine.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;
