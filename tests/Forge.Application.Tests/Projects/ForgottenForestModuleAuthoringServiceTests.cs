@@ -52,6 +52,13 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         Assert.Equal(
             AssetCatalogItemId.ForExternalId("kenney:mini-forest:tree-high"),
             ForgottenForestModuleAuthoringService.AssetId("tree-high"));
+        var animatedAssetId = ForgottenForestModuleAuthoringService.AnimatedCharacterAssetId().ToString();
+        var animatedEntities = area.Entities.Where(entity =>
+            entity.Overrides.Properties.Any(property =>
+                property.Key == "runtime.animationProfile" && property.Value == "humanoid-basic")).ToArray();
+        Assert.Equal(5, animatedEntities.Length);
+        Assert.All(animatedEntities, entity => Assert.Contains(entity.Overrides.Properties, property =>
+            property.Key == "visual.asset" && property.Value == animatedAssetId));
         Assert.Equal(2, authored.Scripts.Count);
         Assert.Empty(ProjectValidator.Validate(project));
     }

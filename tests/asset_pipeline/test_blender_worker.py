@@ -64,6 +64,8 @@ class BlenderWorkerTests(unittest.TestCase):
                 "pivot": "ground_center",
                 "lodRatios": [0.25, 0.5, 0.5],
                 "generateCollision": True,
+                "animationSources": [],
+                "materialTextures": [],
             },
         }
 
@@ -78,6 +80,35 @@ class BlenderWorkerTests(unittest.TestCase):
         self.assertEqual("assets/imported/tree/model.preview.png", response["previewRelativePath"])
         self.assertEqual("assets/imported/tree/model.quality.json", response["qualityReportRelativePath"])
         self.assertEqual(before, self.source.read_bytes())
+
+    def test_validates_governed_animation_and_texture_companions(self):
+        animation = self.sources / "idle.fbx"
+        texture = self.sources / "skin.png"
+        animation.write_bytes(b"fbx animation")
+        texture.write_bytes(fake_png())
+        document = self.request()
+        document["options"]["animationSources"] = [{
+            "name": "idle",
+            "relativePath": "idle.fbx",
+            "contentSha256": hashlib.sha256(animation.read_bytes()).hexdigest(),
+        }]
+        document["options"]["materialTextures"] = [{
+            "material": "skin",
+            "channel": "base_color",
+            "relativePath": "skin.png",
+            "contentSha256": hashlib.sha256(texture.read_bytes()).hexdigest(),
+        }]
+
+        normalized = worker.validate_request(document, self.sources, self.workspace)
+        response = worker.execute(normalized, self.root / "missing-blender.exe", self.root / "response.json", True)
+
+        self.assertTrue(response["valid"])
+        self.assertEqual("idle", normalized["options"]["animationSources"][0]["name"])
+
+        document["options"]["animationSources"][0]["relativePath"] = "../idle.fbx"
+        with self.assertRaises(worker.WorkerError) as context:
+            worker.validate_request(document, self.sources, self.workspace)
+        self.assertEqual("asset.worker.path_unsafe", context.exception.code)
 
     def test_thumbnail_canonicalization_removes_nondeterministic_metadata(self):
         first = self.root / "first.png"

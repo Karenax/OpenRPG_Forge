@@ -9,8 +9,8 @@ AV5 ferme le chantier Asset Vault avec une preuve unique, versionnée et bloquan
 le contenu effectivement référencé par Forgotten Forest, l’intégrité des chunks, le paquet `.orpmod`
 et le benchmark terrain produit pendant le même gate.
 
-Le rapport n’est pas un inventaire déclaratif : il recalcule les tailles et SHA-256 des 44 chunks du
-workspace, recherche les références `visual.asset` et `scatterResource` dans les documents de zone,
+Le rapport n’est pas un inventaire déclaratif : il recalcule les tailles et SHA-256 des 45 chunks du
+workspace actuel, recherche les références `visual.asset` et `scatterResource` dans les documents de zone,
 mesure le `.orpmod` exporté et consomme les 16 contrôles du benchmark runtime. Toute référence non
 gouvernée, tout octet modifié ou toute licence manquante fait échouer la commande.
 
@@ -34,7 +34,7 @@ pas des sources éditées à la main.
 
 ## Mesure de référence
 
-Le passage local du 5 août 2026 a produit les valeurs suivantes :
+Le premier passage local du 5 août 2026 a produit les valeurs suivantes :
 
 | Domaine | Mesure |
 | --- | ---: |
@@ -85,3 +85,12 @@ régression, plafond 605 pour empêcher un élargissement massif sans revue. Lev
 
 Une nouvelle source peut donc être développée et testée sans entrer immédiatement dans le catalogue
 distribué. Le plafond ne change qu’après validation du pack candidat.
+
+## Extension AV6-A sans élargissement du catalogue
+
+Le personnage animé de Forgotten Forest réutilise le pack Kenney déjà présent et gouverné dans le
+Vault. Le catalogue reste donc figé à 605 entrées. La politique de livraison attend désormais
+23 manifestes CC0, 45 chunks et 22 références gouvernées ; le nouveau GLB embarque un rig de 58 os
+et trois clips, tandis que l’ancien modèle statique reste disponible pour les modules existants.
+La preuve détaillée est décrite dans
+[`AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md`](AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md).

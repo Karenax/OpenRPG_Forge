@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text;
 using System.Security.Cryptography;
+using System.Diagnostics;
 using Forge.Application.Assets;
 using Forge.Application.Commands;
 using Forge.Application.Projects;
@@ -97,7 +98,7 @@ static int Run(IReadOnlyList<string> arguments)
             "forge performance run <workspace> | " +
             "forge governance run <workspace> | " +
             "forge workspace migrate <target-directory> | forge author-original <target-directory> | " +
-            "forge author-forgotten-forest <target-directory> [--vault <directory>]");
+            "forge author-forgotten-forest <target-directory> [--vault <directory>] [--blender <executable>]");
         return 2;
     }
     catch (Exception exception)
@@ -553,6 +554,20 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
         repositoryRoot,
         catalog.VaultRoot,
         created.Session.RootDirectory);
+    var animatedPlan = CuratedAnimatedCharacterInstaller.Plan(
+        repositoryRoot,
+        catalog.VaultRoot,
+        created.Session.RootDirectory);
+    if (!animatedPlan.Reused)
+    {
+        RunAnimatedCharacterWorker(
+            repositoryRoot,
+            catalog.VaultRoot,
+            created.Session.RootDirectory,
+            animatedPlan,
+            options.GetValueOrDefault("blender"));
+    }
+    var animated = CuratedAnimatedCharacterInstaller.Complete(created.Session.RootDirectory, animatedPlan);
     Console.WriteLine(JsonSerializer.Serialize(new
     {
         valid = true,
@@ -566,12 +581,102 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
         installed.ReusedCount,
         installed.TotalBytes,
         installed.LicenseSpdx,
+        animatedCharacter = new
+        {
+            assetId = animated.AssetId.ToString(),
+            animated.OutputRelativePath,
+            clips = animated.Clips,
+            animated.TriangleCount,
+            animated.Reused,
+            animated.LicenseSpdx,
+        },
     }));
     Console.WriteLine(
         $"OPENRPG_FORGE_FORGOTTEN_FOREST_AUTHORED slug=forgotten-forest " +
         $"entities={created.Session.Project.Areas.Sum(area => area.Entities.Count)} " +
-        $"assets={installed.Entries.Count} reused={installed.ReusedCount} license={installed.LicenseSpdx}");
+        $"assets={installed.Entries.Count + 1} reused={installed.ReusedCount + (animated.Reused ? 1 : 0)} " +
+        $"animated={animated.AssetId} clips={string.Join(',', animated.Clips)} license={installed.LicenseSpdx}");
     return 0;
+}
+
+static void RunAnimatedCharacterWorker(
+    string repositoryRoot,
+    string vaultRoot,
+    string workspaceRoot,
+    CuratedAnimatedCharacterPlan plan,
+    string? configuredBlender)
+{
+    if (string.IsNullOrWhiteSpace(plan.RequestRelativePath))
+    {
+        throw new InvalidOperationException("Animated character worker request is missing.");
+    }
+
+    var blender = FindBlenderExecutable(configuredBlender);
+    var python = Environment.GetEnvironmentVariable("OPENRPG_PYTHON");
+    if (string.IsNullOrWhiteSpace(python)) python = "python";
+    var request = Path.GetFullPath(Path.Combine(
+        workspaceRoot,
+        plan.RequestRelativePath.Replace('/', Path.DirectorySeparatorChar)));
+    var response = Path.GetFullPath(Path.Combine(
+        workspaceRoot,
+        AssetRoundTripFinalizer.ResponseRelativePath.Replace('/', Path.DirectorySeparatorChar)));
+    var worker = Path.GetFullPath(Path.Combine(repositoryRoot, "tools", "asset_pipeline", "blender_worker.py"));
+    var start = new ProcessStartInfo
+    {
+        FileName = python,
+        WorkingDirectory = repositoryRoot,
+        UseShellExecute = false,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        CreateNoWindow = true,
+    };
+    foreach (var argument in new[]
+             {
+                 "-X", "utf8", worker,
+                 "--request", request,
+                 "--response", response,
+                 "--source-root", vaultRoot,
+                 "--workspace-root", workspaceRoot,
+                 "--blender", blender,
+             })
+    {
+        start.ArgumentList.Add(argument);
+    }
+
+    using var process = Process.Start(start) ?? throw new InvalidOperationException("Python asset worker did not start.");
+    var outputTask = process.StandardOutput.ReadToEndAsync();
+    var errorTask = process.StandardError.ReadToEndAsync();
+    if (!process.WaitForExit(900_000))
+    {
+        process.Kill(entireProcessTree: true);
+        throw new TimeoutException("Animated character Blender worker exceeded 15 minutes.");
+    }
+
+    Task.WaitAll(outputTask, errorTask);
+    if (process.ExitCode != 0)
+    {
+        var detail = string.Concat(outputTask.Result, Environment.NewLine, errorTask.Result).Trim();
+        throw new InvalidOperationException(
+            $"Animated character Blender worker failed with exit code {process.ExitCode}: " +
+            detail[^Math.Min(detail.Length, 2000)..]);
+    }
+}
+
+static string FindBlenderExecutable(string? configured)
+{
+    var candidates = new[]
+    {
+        configured,
+        Environment.GetEnvironmentVariable("OPENRPG_BLENDER"),
+        @"C:\Program Files\Blender Foundation\Blender 4.5\blender.exe",
+        @"C:\Program Files\Blender Foundation\Blender 4.4\blender.exe",
+    };
+    var found = candidates.FirstOrDefault(candidate =>
+        !string.IsNullOrWhiteSpace(candidate) && File.Exists(Path.GetFullPath(candidate)));
+    return found is null
+        ? throw new FileNotFoundException(
+            "Blender was not found. Pass --blender or set OPENRPG_BLENDER to a supported executable.")
+        : Path.GetFullPath(found);
 }
 
 static int RunAssets(IReadOnlyList<string> arguments)

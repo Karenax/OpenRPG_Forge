@@ -30,3 +30,14 @@
 - `kenney:mini-forest:tree-high` — `fb80555d-630c-0254-ad83-67dcc49768e0` — `assets/imported/kenney-mini-forest-tree-high/model.glb` — SHA-256 `c86332ac085c2a7f0f926ea9f51907bbd9354561f5717cf95dc2cfcaaff873b1`
 - `kenney:mini-forest:weapon-arrow` — `246ca6bc-c0a5-5555-952b-12a15cb2435a` — `assets/imported/kenney-mini-forest-weapon-arrow/model.glb` — SHA-256 `d84f466836daea08ab3e954e2dd660b8bebe2f86463875173ff661fb4b606a52`
 - `kenney:mini-forest:weapon-bow` — `90c4247a-7483-475a-8e00-cb993953d00d` — `assets/imported/kenney-mini-forest-weapon-bow/model.glb` — SHA-256 `093e834c1edf85b4e2d2ee18490e21230088ba98022dad18a799b66ee8bea689`
+
+## Animated character
+
+- Pack: forgotten-forest-animated-character 1.0.0
+- Source: Kenney Animated Characters Protagonists (https://kenney.nl/assets/animated-characters-protagonists)
+- License: CC0-1.0 (https://kenney.nl/assets/animated-characters-protagonists)
+- License verification: official Kenney page and governed local catalog
+- Modification: model, skin and compatible animation FBX files merged into a runtime GLB; Vault originals unchanged
+- Stable identity: `kenney:animated-characters-protagonists:forest-adventurer` — `16946a65-ec1b-d259-aa9b-d0aedc7a7407`
+- Runtime GLB: `assets/imported/kenney-animated-characters-protagonists-forest-adventurer/model.glb` — SHA-256 `811b69238cfa478b50581449125617ada457802bec76100aa88d4638a6f2ec32`
+- Clips: idle (1,333 s), jump (0,5 s), run (0,667 s)

@@ -18,6 +18,11 @@ public static class BlenderWorkerRequestStore
         ArgumentNullException.ThrowIfNull(configuration);
         options ??= BlenderWorkerOptions.Default;
         var diagnostics = AssetExternalEditValidator.Validate(configuration);
+        var optionDiagnostic = ValidateOptions(options);
+        if (optionDiagnostic is not null)
+        {
+            return new(null, [optionDiagnostic]);
+        }
         if (configuration.Tool != AssetExternalTool.Blender || diagnostics.Count > 0)
         {
             var message = configuration.Tool != AssetExternalTool.Blender
@@ -65,6 +70,47 @@ public static class BlenderWorkerRequestStore
         AssetExternalOperation.AuditQuality => "audit_quality",
         _ => throw new JsonException($"Operation '{operation}' is unsupported by Blender worker."),
     };
+
+    private static BlenderWorkerRequestDiagnostic? ValidateOptions(BlenderWorkerOptions options)
+    {
+        var animationSources = options.AnimationSources ?? [];
+        if (animationSources.Select(source => source.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() !=
+            animationSources.Count)
+        {
+            return new(WriteFailedCode, "Blender animation clip names must be unique.", "options.animationSources");
+        }
+
+        foreach (var source in animationSources)
+        {
+            if (!IsSafeName(source.Name) || !AssetCatalogValidator.IsSafeRelativePath(source.RelativePath) ||
+                !IsSha256(source.ContentSha256))
+            {
+                return new(WriteFailedCode, "Blender animation sources require a safe name, confined path and SHA-256.",
+                    source.RelativePath);
+            }
+        }
+
+        foreach (var texture in options.MaterialTextures ?? [])
+        {
+            if (!IsSafeName(texture.Material) ||
+                !string.Equals(texture.Channel, "base_color", StringComparison.Ordinal) ||
+                !AssetCatalogValidator.IsSafeRelativePath(texture.RelativePath) ||
+                !IsSha256(texture.ContentSha256))
+            {
+                return new(WriteFailedCode, "Blender material textures require a safe material, base_color channel, confined path and SHA-256.",
+                    texture.RelativePath);
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsSafeName(string value) =>
+        !string.IsNullOrWhiteSpace(value) && value.Length <= 64 &&
+        value.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_');
+
+    private static bool IsSha256(string value) =>
+        value.Length == 64 && value.All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f');
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -115,11 +161,21 @@ public sealed record BlenderWorkerOptions(
     decimal ScaleMeters,
     string Pivot,
     IReadOnlyList<decimal> LodRatios,
-    bool GenerateCollision)
+    bool GenerateCollision,
+    IReadOnlyList<BlenderWorkerAnimationSource>? AnimationSources = null,
+    IReadOnlyList<BlenderWorkerMaterialTextureSource>? MaterialTextures = null)
 {
     public static BlenderWorkerOptions Default { get; } =
-        new(true, 1m, "ground_center", [0.5m, 0.25m], true);
+        new(true, 1m, "ground_center", [0.5m, 0.25m], true, [], []);
 }
+
+public sealed record BlenderWorkerAnimationSource(string Name, string RelativePath, string ContentSha256);
+
+public sealed record BlenderWorkerMaterialTextureSource(
+    string Material,
+    string Channel,
+    string RelativePath,
+    string ContentSha256);
 
 public sealed record BlenderWorkerRequestDiagnostic(string Code, string Message, string Path);
 

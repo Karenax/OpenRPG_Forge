@@ -56,6 +56,87 @@ def _import_model(path: pathlib.Path) -> None:
         raise ValueError(f"Unsupported model format: {extension}")
 
 
+def _apply_material_textures(sources: list[dict]) -> None:
+    for source in sources:
+        if source.get("channel") != "base_color":
+            raise ValueError(f"Unsupported material texture channel: {source.get('channel')}")
+        material = bpy.data.materials.get(str(source.get("material", "")))
+        if material is None:
+            raise ValueError(f"Material texture target does not exist: {source.get('material')}")
+        path = pathlib.Path(str(source.get("path", "")))
+        if not path.is_file():
+            raise ValueError(f"Material texture source does not exist: {path}")
+        material.use_nodes = True
+        tree = material.node_tree
+        principled = next((node for node in tree.nodes if node.type == "BSDF_PRINCIPLED"), None)
+        if principled is None:
+            raise ValueError(f"Material has no Principled BSDF node: {material.name}")
+        image = bpy.data.images.load(str(path), check_existing=False)
+        image.colorspace_settings.name = "sRGB"
+        texture = tree.nodes.new("ShaderNodeTexImage")
+        texture.name = f"OpenRPG Forge {material.name} Base Color"
+        texture.label = "OpenRPG Forge governed base color"
+        texture.image = image
+        tree.links.new(texture.outputs["Color"], principled.inputs["Base Color"])
+        if "Alpha" in texture.outputs and "Alpha" in principled.inputs:
+            tree.links.new(texture.outputs["Alpha"], principled.inputs["Alpha"])
+
+
+def _merge_animation_sources(sources: list[dict]) -> list[str]:
+    if not sources:
+        return []
+    targets = [item for item in bpy.context.scene.objects if item.type == "ARMATURE"]
+    if len(targets) != 1:
+        raise ValueError("Animated model must contain exactly one target armature.")
+    target = targets[0]
+    target_bones = {bone.name for bone in target.data.bones}
+    if not target_bones:
+        raise ValueError("Animated model target armature has no bones.")
+
+    selected_actions = []
+    for source in sources:
+        clip_name = str(source.get("name", "")).strip().lower()
+        path = pathlib.Path(str(source.get("path", "")))
+        before_objects = set(bpy.data.objects)
+        before_actions = set(bpy.data.actions)
+        bpy.ops.import_scene.fbx(filepath=str(path), use_anim=True)
+        imported_objects = [item for item in bpy.data.objects if item not in before_objects]
+        imported_armatures = [item for item in imported_objects if item.type == "ARMATURE"]
+        if len(imported_armatures) != 1:
+            raise ValueError(f"Animation '{clip_name}' must contain exactly one armature.")
+        source_bones = {bone.name for bone in imported_armatures[0].data.bones}
+        if source_bones != target_bones:
+            missing = sorted(target_bones - source_bones)[:3]
+            extra = sorted(source_bones - target_bones)[:3]
+            raise ValueError(f"Animation '{clip_name}' rig differs from target; missing={missing} extra={extra}.")
+        imported_actions = [action for action in bpy.data.actions if action not in before_actions]
+        candidates = [
+            action for action in imported_actions
+            if action.name.lower() == clip_name or action.name.lower().endswith(f"|{clip_name}")
+        ]
+        if len(candidates) != 1:
+            raise ValueError(
+                f"Animation '{clip_name}' did not expose one matching action: {[action.name for action in imported_actions]}")
+        action = candidates[0]
+        action.name = clip_name
+        action.use_fake_user = True
+        selected_actions.append(action)
+        for item in imported_objects:
+            bpy.data.objects.remove(item, do_unlink=True)
+        for imported_action in imported_actions:
+            if imported_action != action and imported_action.users == 0:
+                bpy.data.actions.remove(imported_action)
+
+    target.animation_data_clear()
+    target.animation_data_create()
+    for action in selected_actions:
+        track = target.animation_data.nla_tracks.new()
+        track.name = action.name
+        strip = track.strips.new(action.name, int(action.frame_range[0]), action)
+        strip.extrapolation = "NOTHING"
+    return [action.name for action in selected_actions]
+
+
 def _normalize(options: dict) -> None:
     scale = float(options["scaleMeters"])
     for item in bpy.context.scene.objects:
@@ -224,6 +305,25 @@ def _audit(options: dict, operations: list[str], preview: pathlib.Path) -> dict:
     required_lods = len(base_meshes) * len(options["lodRatios"])
     collision_required = "generate_collision" in operations or options["generateCollision"]
     preview_required = "generate_thumbnail" in operations
+    armatures = [item for item in bpy.context.scene.objects if item.type == "ARMATURE"]
+    animation_clips = sorted({
+        track.name
+        for armature in armatures
+        if armature.animation_data is not None
+        for track in armature.animation_data.nla_tracks
+    })
+    frames_per_second = max(1.0, bpy.context.scene.render.fps / max(0.0001, bpy.context.scene.render.fps_base))
+    animation_durations = {
+        track.name: round(
+            max(0.0, track.strips[0].action_frame_end - track.strips[0].action_frame_start) / frames_per_second,
+            6,
+        )
+        for armature in armatures
+        if armature.animation_data is not None
+        for track in armature.animation_data.nla_tracks
+        if len(track.strips) > 0
+    }
+    expected_animation_clips = sorted(source["name"] for source in options.get("animationSources", []))
     checks = []
 
     def check(code: str, passed: bool, message: str, warning: bool = False) -> None:
@@ -276,6 +376,11 @@ def _audit(options: dict, operations: list[str], preview: pathlib.Path) -> dict:
     )
     if preview_required:
         check("asset.quality.thumbnail_present", preview.is_file(), "A generated PNG thumbnail is required.")
+    if expected_animation_clips:
+        check("asset.quality.rig_present", len(armatures) == 1 and len(armatures[0].data.bones) > 0,
+              "Animated character must contain one non-empty armature.")
+        check("asset.quality.animation_clips_present", animation_clips == expected_animation_clips,
+              "Every governed animation clip must be embedded with its stable name.")
 
     return {
         "schemaVersion": 1,
@@ -291,6 +396,11 @@ def _audit(options: dict, operations: list[str], preview: pathlib.Path) -> dict:
             "missingTextureCount": len(missing_textures),
             "invalidNormalCount": invalid_normals,
             "dimensionsMeters": [round(value, 6) for value in dimensions],
+            "armatureCount": len(armatures),
+            "boneCount": sum(len(item.data.bones) for item in armatures),
+            "animationClipCount": len(animation_clips),
+            "animationClips": animation_clips,
+            "animationDurationsSeconds": animation_durations,
         },
         "checks": checks,
     }
@@ -300,6 +410,8 @@ def main() -> None:
     source, output, preview, report, operations, options = _arguments()
     _reset()
     _import_model(source)
+    _apply_material_textures(options.get("materialTextures", []))
+    animation_clips = _merge_animation_sources(options.get("animationSources", []))
     if "normalize_model" in operations:
         _normalize(options)
     if "generate_lods" in operations:
@@ -310,13 +422,22 @@ def main() -> None:
         _render_thumbnail(preview)
     quality = _audit(options, operations, preview)
     output.parent.mkdir(parents=True, exist_ok=True)
-    bpy.ops.export_scene.gltf(
-        filepath=str(output),
-        export_format="GLB",
-        export_apply=True,
-        export_yup=True,
-        export_extras=True,
-    )
+    export_options = {
+        "filepath": str(output),
+        "export_format": "GLB",
+        "export_apply": not animation_clips,
+        "export_yup": True,
+        "export_extras": True,
+    }
+    if animation_clips:
+        export_options.update({
+            "export_animations": True,
+            "export_animation_mode": "NLA_TRACKS",
+            "export_merge_animation": "NLA_TRACK",
+            "export_nla_strips": True,
+            "export_anim_single_armature": True,
+        })
+    bpy.ops.export_scene.gltf(**export_options)
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text(json.dumps(quality, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8")
 

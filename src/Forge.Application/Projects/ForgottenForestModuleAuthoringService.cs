@@ -24,6 +24,8 @@ public sealed record ForgottenForestAuthoredModule(
 public static class ForgottenForestModuleAuthoringService
 {
     private const string AssetPrefix = "kenney:mini-forest:";
+    private const string AnimatedCharacterExternalId =
+        "kenney:animated-characters-protagonists:forest-adventurer";
     private static readonly StableIds Ids = new("f5d1ca15-4a39-46ba-a8e2-74dde7188258");
 
     public static ForgottenForestAuthoredModule Create()
@@ -71,19 +73,19 @@ public static class ForgottenForestModuleAuthoringService
         var entities = new List<EntityInstance>
         {
             Entity("spawn", "spawn", -43, -43, world, 1, ["player"],
-                Visual("character-archer"), new(1.8f, 1.8f, 1.8f)),
+                AnimatedCharacterVisual(), Vector3Value.One),
             Entity("guide", "guide", -37, -38, world, 0.08f, ["npc", "guide"],
-                Visual("character-archer", ("runtime.role", "guide"), ("runtime.displayName", "Maëlys")), new(1.8f, 1.8f, 1.8f)),
+                AnimatedCharacterVisual(("runtime.role", "guide"), ("runtime.displayName", "Maëlys")), Vector3Value.One),
             Entity("moonseed", "moonseed", -14, 13, world, 0.12f, ["quest", "item"],
                 Visual("flag", ("runtime.item", "moonseed"), ("runtime.displayName", "Graine de lune")), new(1.7f, 1.7f, 1.7f)),
             Entity("gate", "gate", 14, 18, world, 0.35f, ["gate", "solid"],
                 Visual("fence", ("runtime.displayName", "Passage des Ronces")), new(3.2f, 2.2f, 1.2f), 32),
-            Entity("scout-a", "scout", -2, 5, world, 0.08f, ["hostile"], Visual("character-archer"), new(1.8f, 1.8f, 1.8f)),
-            Entity("scout-b", "scout", 25, 25, world, 0.08f, ["hostile"], Visual("character-archer"), new(1.8f, 1.8f, 1.8f)),
+            Entity("scout-a", "scout", -2, 5, world, 0.08f, ["hostile"], AnimatedCharacterVisual(), Vector3Value.One),
+            Entity("scout-b", "scout", 25, 25, world, 0.08f, ["hostile"], AnimatedCharacterVisual(), Vector3Value.One),
             Entity("boss", "boss", 42, 42, world, 0.08f, ["boss", "hostile"],
-                Visual("character-archer", ("runtime.role", "boss"),
+                AnimatedCharacterVisual(("runtime.role", "boss"),
                     ("phaseTwoScript", "scripts/root_guardian_phase_two.forge"),
-                    ("deathScript", "scripts/root_guardian_death.forge")), new(2.15f, 2.15f, 2.15f)),
+                    ("deathScript", "scripts/root_guardian_death.forge")), new(1.2f, 1.2f, 1.2f)),
             Entity("exit", "exit", 51, 50, world, 0.12f, ["exit"], Visual("building-structure"), new(2.2f, 2.2f, 2.2f)),
         };
 
@@ -188,6 +190,9 @@ public static class ForgottenForestModuleAuthoringService
 
     public static AssetCatalogItemId AssetId(string key) => AssetCatalogItemId.ForExternalId($"{AssetPrefix}{key}");
 
+    public static AssetCatalogItemId AnimatedCharacterAssetId() =>
+        AssetCatalogItemId.ForExternalId(AnimatedCharacterExternalId);
+
     private static BlueprintDefinition Blueprint(string slug, string name, BlueprintKind kind, CombatProfile? combat = null) =>
         new(Ids.Blueprint(slug), slug, name, kind, combat);
 
@@ -224,11 +229,19 @@ public static class ForgottenForestModuleAuthoringService
         float yOffset = 0.25f) =>
         entities.Add(Entity(entityKey, "prop", x, z, world, yOffset, ["decor", "solid"], Visual(visualKey), scale, yawDegrees));
 
-    private static EntityPropertyOverrides Visual(string assetKey, params (string Key, string Value)[] values)
+    private static EntityPropertyOverrides Visual(string assetKey, params (string Key, string Value)[] values) =>
+        Visual(AssetId(assetKey), values);
+
+    private static EntityPropertyOverrides AnimatedCharacterVisual(params (string Key, string Value)[] values) =>
+        Visual(AnimatedCharacterAssetId(), [("runtime.animationProfile", "humanoid-basic"), .. values]);
+
+    private static EntityPropertyOverrides Visual(
+        AssetCatalogItemId assetId,
+        params (string Key, string Value)[] values)
     {
         var properties = new List<EntityPropertyOverride>
         {
-            new("visual.asset", EntityPropertyValueKind.String, AssetId(assetKey).ToString()),
+            new("visual.asset", EntityPropertyValueKind.String, assetId.ToString()),
         };
         properties.AddRange(values.Select(value =>
             new EntityPropertyOverride(value.Key, EntityPropertyValueKind.String, value.Value)));

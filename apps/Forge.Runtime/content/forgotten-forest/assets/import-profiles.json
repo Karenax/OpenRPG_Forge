@@ -117,6 +117,27 @@
       }
     },
     {
+      "assetId": "16946a65-ec1b-d259-aa9b-d0aedc7a7407",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "fbx",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "3c83ceda3692b1a2b9be4d6679c70ff6cf4951e364bb3426a5663f19124a0522",
+      "provenance": "curated-pack:forgotten-forest-animated-character@1.0.0;source:kenney:animated-characters-protagonists;archive-sha256:ec3787de70fa2200256848d74201b10f6b6c3126594e9857bf989753312c2b84;skin:Skins/criminalMaleA.png",
+      "maximumOutputBytes": 3891922,
+      "texture": null,
+      "model": {
+        "importRig": true,
+        "importAnimations": true,
+        "generateCollisions": false,
+        "sockets": [],
+        "lodRatios": [
+          1
+        ]
+      }
+    },
+    {
       "assetId": "192bb04e-3e7e-1c51-8c77-00cd34f95110",
       "schemaVersion": 1,
       "kind": "model",

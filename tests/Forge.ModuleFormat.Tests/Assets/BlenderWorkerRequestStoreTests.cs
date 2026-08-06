@@ -34,8 +34,45 @@ public sealed class BlenderWorkerRequestStoreTests : IDisposable
         Assert.Equal("normalize_model", document.RootElement.GetProperty("operations")[1].GetString());
         Assert.Contains("generate_thumbnail", secondJson, StringComparison.Ordinal);
         Assert.Contains("audit_quality", secondJson, StringComparison.Ordinal);
+        Assert.Empty(document.RootElement.GetProperty("options").GetProperty("animationSources").EnumerateArray());
+        Assert.Empty(document.RootElement.GetProperty("options").GetProperty("materialTextures").EnumerateArray());
         Assert.False(secondJson.Contains("script", StringComparison.OrdinalIgnoreCase));
         Assert.False(secondJson.Contains("python", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void WritesOnlyGovernedConfinedAnimationAndTextureSources()
+    {
+        var options = BlenderWorkerOptions.Default with
+        {
+            AnimationSources =
+            [
+                new("idle", "normalized/kenney/characters/idle.fbx", new string('a', 64)),
+                new("run", "normalized/kenney/characters/run.fbx", new string('b', 64)),
+            ],
+            MaterialTextures =
+            [
+                new("skin", "base_color", "normalized/kenney/characters/skin.png", new string('c', 64)),
+            ],
+        };
+
+        var result = BlenderWorkerRequestStore.Save(_root, Configuration(), options);
+        using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            _root,
+            result.RequestRelativePath!.Replace('/', Path.DirectorySeparatorChar))));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("idle", document.RootElement.GetProperty("options").GetProperty("animationSources")[0]
+            .GetProperty("name").GetString());
+        Assert.Equal("base_color", document.RootElement.GetProperty("options").GetProperty("materialTextures")[0]
+            .GetProperty("channel").GetString());
+
+        var unsafeResult = BlenderWorkerRequestStore.Save(_root, Configuration(), options with
+        {
+            AnimationSources = [new("idle", "../idle.fbx", new string('a', 64))],
+        });
+        Assert.False(unsafeResult.Succeeded);
+        Assert.Equal(BlenderWorkerRequestStore.WriteFailedCode, Assert.Single(unsafeResult.Diagnostics).Code);
     }
 
     public void Dispose()

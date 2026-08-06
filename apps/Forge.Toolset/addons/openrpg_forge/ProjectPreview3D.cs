@@ -28,6 +28,7 @@ public partial class ProjectPreview3D : SubViewportContainer
     private readonly Node3D _world;
     private readonly BlueprintDragPalette _dragPalette;
     private readonly Dictionary<EntityId, Node3D> _entityNodes = [];
+    private readonly HashSet<string> _animationClipNames = new(StringComparer.Ordinal);
     private readonly PlacementValidator _placementValidator = new();
     private readonly NavigateEditorCameraHandler _cameraHandler = new(new SystemClock());
     private Camera3D? _camera;
@@ -78,6 +79,10 @@ public partial class ProjectPreview3D : SubViewportContainer
     public int EntityCount { get; private set; }
 
     public int AssetModelInstanceCount { get; private set; }
+
+    public int AnimatedAssetModelInstanceCount { get; private set; }
+
+    public int AnimationClipCount => _animationClipNames.Count;
 
     public bool GizmoVisible => _gizmo?.Visible == true;
 
@@ -300,6 +305,8 @@ public partial class ProjectPreview3D : SubViewportContainer
         ClearNavigationOverlay();
         EntityCount = 0;
         AssetModelInstanceCount = 0;
+        AnimatedAssetModelInstanceCount = 0;
+        _animationClipNames.Clear();
         _modelLibrary = null;
         _terrainVertices = 0;
         _terrainTriangles = 0;
@@ -823,8 +830,18 @@ public partial class ProjectPreview3D : SubViewportContainer
         {
             try
             {
-                root.AddChild(_modelLibrary.Instantiate(assetId));
+                var model = _modelLibrary.Instantiate(assetId);
+                root.AddChild(model);
                 AssetModelInstanceCount++;
+                var animationProfile = entity.Overrides.Properties.SingleOrDefault(property =>
+                    string.Equals(property.Key, "runtime.animationProfile", StringComparison.Ordinal))?.Value;
+                if (string.Equals(animationProfile, "humanoid-basic", StringComparison.Ordinal))
+                {
+                    var animation = GodotAssetAnimationController.Configure(model);
+                    GodotAssetAnimationController.Play(animation, animation.IdleClip, 0);
+                    AnimatedAssetModelInstanceCount++;
+                    _animationClipNames.UnionWith(animation.Clips);
+                }
                 loadedAsset = true;
             }
             catch (Exception exception) when (

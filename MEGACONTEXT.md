@@ -610,7 +610,7 @@ et le glisser-déposer existant créent l’entité avec `visual.asset` dans la 
 transactionnelle ; aucun nœud moteur ne devient source de vérité. Creator et runtime instancient le
 même GLB par un chargeur partagé qui confine le chemin au workspace et revérifie le SHA-256 du chunk.
 Le smoke Creator charge réellement un GLB dans le viewport, tandis que Forgotten Forest conserve la
-preuve de 18 modèles de production issus de 22 manifestes.
+preuve de 18 modèles de production issus de 23 manifestes.
 
 AV3 relie aussi les blueprints d’assets installés aux recettes de biome existantes dans Terrain
 Studio. La brosse canonique « Matériau/biome » peint le matériau de la cellule, qui sélectionne la
@@ -629,7 +629,7 @@ récente. Le pont éditeur inter-processus reste volontairement limité aux lect
 AV4A possède désormais un benchmark de production sur Forgotten Forest 128 × 128 m. Le runtime
 instrumente la reconstruction du terrain, la génération de 181 formes de collision, la navigation
 de 1 990 polygones, la requête de chemin, une sculpture transactionnelle isolée, les allocations et
-le working set. Il vérifie aussi 22 assets couvrant 66 niveaux LOD et trois groupes MultiMesh dotés
+le working set. Il vérifie aussi 23 assets couvrant 67 niveaux LOD et trois groupes MultiMesh dotés
 d’une distance de culling. Un rapport JSON versionné conserve échantillon, budgets et seize checks ;
 le smoke et `scripts/Verify.ps1` échouent si l’un d’eux dépasse sa borne.
 
@@ -640,6 +640,14 @@ visuelle. Forgotten Forest possède trois cues PCM spatiaux générés de façon
 oiseaux et ruisseau — dont les hashes et la provenance sont authorisés dans la zone. Le runtime y
 ajoute trois couches animées totalisant 204 particules de lucioles, feuilles et brume, sans asset
 externe ni dépendance de production supplémentaire.
+
+AV6-A réutilise le pack Kenney `animated-characters-protagonists` déjà gouverné sans augmenter le
+catalogue. Le worker Blender confiné vérifie modèle, peau et trois FBX par SHA-256, puis produit un
+GLB autonome de 1 604 triangles avec une armature de 58 os et les clips `idle`, `jump`, `run`.
+L’identité stable, le profil, la requête, la réponse, la miniature et l’audit qualité sont persistés.
+Cinq entités portent `runtime.animationProfile=humanoid-basic` ; Creator joue l’idle et le contrôleur
+runtime du joueur commute idle/course/saut. Le smoke et la capture Forward+ prouvent la tranche ;
+variantes, retargeting, combat animé et composition 512 × 512 restent hors de ce lot.
 
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de

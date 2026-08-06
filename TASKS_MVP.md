@@ -546,3 +546,12 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Livrer la documentation, le journal d’implémentation et les procédures d’ajout de sources/packs.
 - [x] Mesurer catalogue, téléchargements, contenu utilisé, taille, licences et performances réelles.
 - [x] N’élargir massivement le catalogue qu’après validation de la cohérence visuelle et du pipeline.
+
+### AV6 — Personnages animés et finition de production
+
+- [x] Produire depuis le Vault immuable un personnage GLB skinné avec texture et clips gouvernés.
+- [x] Valider hashes, licence, rig, clips, miniature, audit qualité et réutilisation idempotente.
+- [x] Relier le profil d’animation aux entités, au viewport Creator et au contrôleur du joueur.
+- [x] Prouver cinq personnages et trois clips dans le smoke jouable puis inspecter une capture Forward+.
+- [ ] Ajouter des variantes visuelles cohérentes, le retargeting et une animation de combat bornée.
+- [ ] Composer la carte 512 × 512 par secteurs, puis refaire budgets, navigation et revue visuelle.

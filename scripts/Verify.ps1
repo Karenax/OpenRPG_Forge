@@ -651,12 +651,13 @@ try {
             '--terrain-benchmark', $forestTerrainBenchmark) `
         -Markers @(
             'OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=forgotten-forest',
-            'OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests=22 chunks=44 platform=Windows',
+            'OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests=23 chunks=45 platform=Windows',
             'OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider=heightmap vertices=1089 triangles=2048',
-            'OPENRPG_FORGE_RUNTIME_MODELS_PASS manifests=22 instances=18',
+            'OPENRPG_FORGE_RUNTIME_MODELS_PASS manifests=23 instances=18',
             'OPENRPG_FORGE_RUNTIME_FOREST_ATMOSPHERE_PASS emitters=3 particles=204 provenance=builtin:openrpg-forge:forest-atmosphere@1',
             'OPENRPG_FORGE_AV4A_TERRAIN_BENCHMARK_PASS area=128x128',
             'OPENRPG_FORGE_FORGOTTEN_FOREST_POLISH_PASS audio_cues=3 scatter=3 vfx_emitters=3 vfx_particles=204 water_animated=4 provenance=builtin',
+            'OPENRPG_FORGE_FORGOTTEN_FOREST_ANIMATION_PASS characters=5 clips=3 rig=kenney-humanoid-58 source=kenney:animated-characters-protagonists',
             'OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain=1089 scatter_layers=3 scatter_instances=357 water_surfaces=4 water_volumes=4 nav_regions=1 nav_polygons=1990 nav_blocked=58 nav_links=1 nav_path_points=72') `
         -StopAfterMarkers $false
     for ($attempt = 0; $attempt -lt 10 -and -not (Test-Path -LiteralPath $forestTerrainBenchmark); $attempt++) {
@@ -672,8 +673,8 @@ try {
         $terrainBenchmark.sample.terrainVertices -ne 1089 -or
         $terrainBenchmark.sample.terrainTriangles -ne 2048 -or
         $terrainBenchmark.sample.navigationPolygons -ne 1990 -or
-        $terrainBenchmark.sample.lodAssetCount -ne 22 -or
-        $terrainBenchmark.sample.lodLevelCount -ne 66 -or
+        $terrainBenchmark.sample.lodAssetCount -ne 23 -or
+        $terrainBenchmark.sample.lodLevelCount -ne 67 -or
         $terrainBenchmark.sample.cullingGroupCount -lt 3 -or
         @($terrainBenchmark.checks).Count -ne 16 -or
         @($terrainBenchmark.checks | Where-Object { -not $_.passed }).Count -ne 0) {
@@ -711,7 +712,7 @@ try {
     $delivery = Get-Content -LiteralPath $assetDeliveryReport -Raw | ConvertFrom-Json
     if ($delivery.schemaVersion -ne 1 -or -not $delivery.passed -or
         $delivery.catalog.assets -ne 605 -or $delivery.catalog.localAssets -ne 605 -or
-        $delivery.module.manifests -ne 22 -or $delivery.module.chunks -ne 44 -or
+        $delivery.module.manifests -ne 23 -or $delivery.module.chunks -ne 45 -or
         $delivery.module.assetReferences -ne 22 -or $delivery.module.ungovernedReferences -ne 0 -or
         $delivery.module.chunkIntegrityFailures -ne 0 -or $delivery.performance.checks -ne 16 -or
         @($delivery.checks).Count -ne 16 -or

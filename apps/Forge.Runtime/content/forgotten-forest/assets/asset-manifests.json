@@ -478,6 +478,141 @@
     },
     {
       "schemaVersion": 1,
+      "id": "92222594-6f45-a058-8ef7-5e410f8824b0",
+      "assetId": "16946a65-ec1b-d259-aa9b-d0aedc7a7407",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-animated-character@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "3c83ceda3692b1a2b9be4d6679c70ff6cf4951e364bb3426a5663f19124a0522",
+      "platformBudgets": {
+        "windows": 3891922,
+        "linux": 3891922
+      },
+      "chunks": [
+        {
+          "id": "06575740-129e-0b53-b8cb-ad11d253568e",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-animated-characters-protagonists-forest-adventurer/model.glb",
+          "contentSha256": "811b69238cfa478b50581449125617ada457802bec76100aa88d4638a6f2ec32",
+          "uncompressedBytes": 261436,
+          "storedBytes": 261436,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": {
+        "required": true,
+        "chunkId": "06575740-129e-0b53-b8cb-ad11d253568e",
+        "rig": "kenney-humanoid-58",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "idle",
+            "durationSeconds": 1.333333,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          },
+          {
+            "name": "jump",
+            "durationSeconds": 0.5,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          },
+          {
+            "name": "run",
+            "durationSeconds": 0.666667,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "06575740-129e-0b53-b8cb-ad11d253568e",
+            "screenRatio": 1,
+            "maximumTriangles": 1604
+          }
+        ]
+      },
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 1.809291,
+          "extentYMeters": 1.882343,
+          "extentZMeters": 0.524072
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 804,
+          "triangleCount": 1604,
+          "materialCount": 1,
+          "textureCount": 1,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 99
+        },
+        "styles": [
+          "3d-model",
+          "animated",
+          "animated-character",
+          "character",
+          "forest",
+          "humanoid",
+          "kenney",
+          "stylized"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Forgotten Forest Animated Adventurer",
+            "modelChunkId": "06575740-129e-0b53-b8cb-ad11d253568e",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "3d-model",
+              "animated",
+              "animated-character",
+              "character",
+              "forest",
+              "humanoid",
+              "kenney",
+              "stylized"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "stylized",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 512,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/kenney-animated-characters-protagonists-forest-adventurer/model.preview.png",
+        "previewContentSha256": "af1280423d94ee323a6dc1ae24a939326b4070c603ffc56872d29aac0fa38bf8",
+        "previewBytes": 107755,
+        "qualityReportRelativePath": "assets/imported/kenney-animated-characters-protagonists-forest-adventurer/model.quality.json",
+        "qualityReportContentSha256": "50da9c87a3d1b1921ddbbc88dc720bee2837bb98050414c242b2c76ad8fd8436"
+      }
+    },
+    {
+      "schemaVersion": 1,
       "id": "2c8949f5-7f55-0258-9511-a87f7f7c7925",
       "assetId": "192bb04e-3e7e-1c51-8c77-00cd34f95110",
       "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",

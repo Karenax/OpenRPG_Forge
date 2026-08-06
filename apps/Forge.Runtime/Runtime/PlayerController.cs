@@ -1,6 +1,7 @@
 using Godot;
 using Forge.Application.Gameplay;
 using Forge.Domain.Gameplay;
+using Forge.EngineAdapter.Assets;
 
 namespace Forge.Runtime;
 
@@ -8,6 +9,7 @@ public partial class PlayerController : CharacterBody3D
 {
     private const float Gravity = 24.0f;
     private ModuleGameplayControlProfile? _profile;
+    private GodotAssetAnimationState? _animations;
     private float _breath = 45;
     private float _stamina = 100;
 
@@ -30,11 +32,18 @@ public partial class PlayerController : CharacterBody3D
         _stamina = profile.Climbing.StaminaCapacity;
     }
 
+    public void ConfigureAnimations(GodotAssetAnimationState animations)
+    {
+        _animations = animations ?? throw new ArgumentNullException(nameof(animations));
+        GodotAssetAnimationController.Play(animations, animations.IdleClip, 0);
+    }
+
     public override void _PhysicsProcess(double delta)
     {
         if (_profile is null || ControlLocked)
         {
             Velocity = Vector3.Zero;
+            PlayMovementAnimation(Vector3.Zero, airborne: false);
             return;
         }
 
@@ -63,11 +72,23 @@ public partial class PlayerController : CharacterBody3D
 
         Velocity = velocity;
         MoveAndSlide();
+        PlayMovementAnimation(direction, !IsOnFloor() && Math.Abs(Velocity.Y) > .2f);
 
         if (direction.LengthSquared() > 0.01f)
         {
             LookAt(GlobalPosition + direction, Vector3.Up);
         }
+    }
+
+    private void PlayMovementAnimation(Vector3 direction, bool airborne)
+    {
+        if (_animations is null) return;
+        var clip = airborne
+            ? _animations.JumpClip
+            : direction.LengthSquared() > .01f
+                ? _animations.RunClip
+                : _animations.IdleClip;
+        GodotAssetAnimationController.Play(_animations, clip);
     }
 
     private Vector3 ResolveMovementDirection(Vector2 input)

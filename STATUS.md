@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. AV4B livre maintenant une première carte 3D extérieure jouable,
+G11 Contenu moderne fermés. AV6-A livre maintenant une première carte 3D extérieure jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
 installe les GLB gouvernés dans la palette, les place comme vrais modèles dans le viewport et ferme
@@ -207,8 +207,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 - les diagnostics sont désormais structurés et navigables, mais les profils de validation, filtres,
   catégories, bundle d’export et correctifs propres aux futurs imports d’assets restent à livrer ;
 - la Crypte conserve des primitives procédurales originales ; Forgotten Forest possède désormais
-  modèles CC0 cohérents, eau animée, ambiance audio et VFX procéduraux, mais les animations de
-  personnages et la composition finale ne constituent pas encore une direction artistique de production ;
+  modèles CC0 cohérents, eau animée, ambiance audio, VFX procéduraux et cinq personnages animés,
+  mais les variantes, animations de combat et la composition finale ne constituent pas encore une
+  direction artistique de production ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
   l'éditeur et les permissions interactives restent à faire avant un usage multi-processus général ;
 - le catalogue de blueprints ne gère pas encore versions, paramètres exposés, miniatures,
@@ -227,9 +228,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   désormais normalisation, collisions, LOD, miniature et audit ; le traitement massif du catalogue
   complet reste à étendre ;
 - Forgotten Forest est jouable sur le terrain générique avec végétation, bâtiments, éclairage,
-  caméra, quête, export, navigation de surface, eau animée, ambiance spatiale et VFX. Les animations
-  de personnages, une eau simulée avancée et la composition 512 × 512 restent nécessaires avant de
-  qualifier la carte de contenu final ;
+  caméra, quête, export, navigation de surface, eau animée, ambiance spatiale, VFX et animation
+  idle/course/saut. Des variantes, une animation de combat, une eau simulée avancée et la composition
+  512 × 512 restent nécessaires avant de qualifier la carte de contenu final ;
 - le workflow CI est défini, mais son exécution distante attend le premier push.
 
 ## Décisions verrouillées
@@ -460,17 +461,26 @@ collisions, navigation et requête de chemin dans le moteur, exécute une sculpt
 sur un état isolé, mesure allocations gérées et working set, puis vérifie la couverture LOD et les
 groupes de culling MultiMesh. Le passage de référence mesure 68,806 ms de reconstruction, 5,367 ms
 de collisions, 10,778 ms de navigation, 3,604 ms de sculpture, 23,649 ms de requête de chemin,
-1 737 328 octets alloués et +17 506 304 octets de working set. Les 22 assets portent 66 niveaux LOD,
+1 737 328 octets alloués et +17 506 304 octets de working set. Les 23 assets portent 67 niveaux LOD,
 357 instances sont réparties en trois groupes de culling et les 1 990 polygones de navigation sont
 conservés. Deux tests de budget portent la suite EngineAdapter à 13 tests et la suite .NET à 720.
 
 **AV5 — livraison et extension contrôlée fermées** : la CLI produit désormais un rapport JSON et
 Markdown versionné à partir du catalogue, du Vault physique, du workspace, du `.orpmod` et du
 benchmark du même gate. La preuve mesure 605 assets tous locaux et licenciés, 31 952 fichiers du
-Vault pour 5 142 241 288 octets, 22 manifestes/44 chunks, 22 références sans asset non gouverné,
-1 073 258 octets de contenu et seize budgets runtime. Le plafond de 605 bloque toute expansion
+Vault pour 5 142 241 288 octets, 23 manifestes/45 chunks, 22 références sans asset non gouverné,
+1 334 694 octets de contenu et seize budgets runtime. Le plafond de 605 bloque toute expansion
 silencieuse avant revue d’un pack candidat. Les procédures d’ajout de source/pack et le journal AV5
 sont livrés. Forgotten Forest authorise aussi trois cues PCM procéduraux déterministes et spatiaux ;
 le runtime reconstruit vent, oiseaux et ruisseau, ainsi que trois emitters GPU totalisant 204
 particules de lucioles, feuilles et brume. Le smoke vérifie les hashes audio, le démarrage des trois
 cues, la provenance intégrée, l’eau animée et les VFX sans dépendance supplémentaire.
+
+**AV6-A — personnage animé gouverné livré** : le pack Kenney existant fournit modèle, peau et trois
+FBX compatibles sans augmenter le catalogue ni modifier le Vault. Blender 4.5.10 produit un GLB de
+1 604 triangles, une armature de 58 os, les clips `idle`, `jump`, `run`, une miniature 512 × 512 et
+un audit 99/100. La requête et la réponse ne portent que des chemins relatifs et des hashes ; un
+second authoring réutilise les 23 assets sans relancer Blender. Le projet attribue le profil à cinq
+personnages, Creator joue l’idle et le runtime choisit idle/course/saut pour le joueur. Le smoke
+`.orpmod`, le rapport de livraison et la capture Vulkan Forward+ passent ; variantes, retargeting,
+combat animé et composition 512 × 512 restent explicitement à livrer.

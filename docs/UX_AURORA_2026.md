@@ -255,6 +255,8 @@ une rivière shader animée, quatre volumes de nage/courant et une navigation de
 `artifacts/verification/forgotten-forest-water-navigation-forward-plus.png` valide ce palier visuel
 local. AV5 ajoute trois ambiances spatiales PCM procédurales — vent, oiseaux et ruisseau — ainsi que
 204 particules animées de lucioles, feuilles et brume, toutes gouvernées et reconstruites sans nouvel
-asset externe. Le benchmark runtime et le rapport de livraison restent bloquants. Les animations de
-personnages, la composition finale 512 × 512 et une nouvelle revue Forward+ restent nécessaires
-avant d’en faire la direction artistique finale d’OpenRPG Forge.
+asset externe. AV6-A ajoute un humanoïde skinné de 58 os et trois clips au profil de cinq entités :
+Creator joue l’idle, tandis que le runtime choisit idle/course/saut pour le joueur. Le benchmark,
+le rapport de livraison et la capture Forward+ restent bloquants. Variantes, combat animé,
+composition finale 512 × 512 et nouvelle revue artistique restent nécessaires avant d’en faire la
+direction artistique finale d’OpenRPG Forge.

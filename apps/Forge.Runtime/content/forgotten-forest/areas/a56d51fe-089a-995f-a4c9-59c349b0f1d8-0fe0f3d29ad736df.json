@@ -27,9 +27,9 @@
             "w": 1
           },
           "scale": {
-            "x": 1.8,
-            "y": 1.8,
-            "z": 1.8
+            "x": 1,
+            "y": 1,
+            "z": 1
           }
         },
         "tags": [
@@ -39,9 +39,14 @@
           "schemaVersion": 1,
           "properties": [
             {
+              "key": "runtime.animationProfile",
+              "kind": "string",
+              "value": "humanoid-basic"
+            },
+            {
               "key": "visual.asset",
               "kind": "string",
-              "value": "e71f8820-1db3-0450-a67f-6d9b6eb444aa"
+              "value": "16946a65-ec1b-d259-aa9b-d0aedc7a7407"
             }
           ]
         }
@@ -62,9 +67,9 @@
             "w": 1
           },
           "scale": {
-            "x": 1.8,
-            "y": 1.8,
-            "z": 1.8
+            "x": 1,
+            "y": 1,
+            "z": 1
           }
         },
         "tags": [
@@ -74,6 +79,11 @@
         "overrides": {
           "schemaVersion": 1,
           "properties": [
+            {
+              "key": "runtime.animationProfile",
+              "kind": "string",
+              "value": "humanoid-basic"
+            },
             {
               "key": "runtime.displayName",
               "kind": "string",
@@ -87,7 +97,7 @@
             {
               "key": "visual.asset",
               "kind": "string",
-              "value": "e71f8820-1db3-0450-a67f-6d9b6eb444aa"
+              "value": "16946a65-ec1b-d259-aa9b-d0aedc7a7407"
             }
           ]
         }
@@ -195,9 +205,9 @@
             "w": 1
           },
           "scale": {
-            "x": 1.8,
-            "y": 1.8,
-            "z": 1.8
+            "x": 1,
+            "y": 1,
+            "z": 1
           }
         },
         "tags": [
@@ -207,9 +217,14 @@
           "schemaVersion": 1,
           "properties": [
             {
+              "key": "runtime.animationProfile",
+              "kind": "string",
+              "value": "humanoid-basic"
+            },
+            {
               "key": "visual.asset",
               "kind": "string",
-              "value": "e71f8820-1db3-0450-a67f-6d9b6eb444aa"
+              "value": "16946a65-ec1b-d259-aa9b-d0aedc7a7407"
             }
           ]
         }
@@ -230,9 +245,9 @@
             "w": 1
           },
           "scale": {
-            "x": 1.8,
-            "y": 1.8,
-            "z": 1.8
+            "x": 1,
+            "y": 1,
+            "z": 1
           }
         },
         "tags": [
@@ -242,9 +257,14 @@
           "schemaVersion": 1,
           "properties": [
             {
+              "key": "runtime.animationProfile",
+              "kind": "string",
+              "value": "humanoid-basic"
+            },
+            {
               "key": "visual.asset",
               "kind": "string",
-              "value": "e71f8820-1db3-0450-a67f-6d9b6eb444aa"
+              "value": "16946a65-ec1b-d259-aa9b-d0aedc7a7407"
             }
           ]
         }
@@ -265,9 +285,9 @@
             "w": 1
           },
           "scale": {
-            "x": 2.15,
-            "y": 2.15,
-            "z": 2.15
+            "x": 1.2,
+            "y": 1.2,
+            "z": 1.2
           }
         },
         "tags": [
@@ -288,6 +308,11 @@
               "value": "scripts/root_guardian_phase_two.forge"
             },
             {
+              "key": "runtime.animationProfile",
+              "kind": "string",
+              "value": "humanoid-basic"
+            },
+            {
               "key": "runtime.role",
               "kind": "string",
               "value": "boss"
@@ -295,7 +320,7 @@
             {
               "key": "visual.asset",
               "kind": "string",
-              "value": "e71f8820-1db3-0450-a67f-6d9b6eb444aa"
+              "value": "16946a65-ec1b-d259-aa9b-d0aedc7a7407"
             }
           ]
         }

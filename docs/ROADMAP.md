@@ -212,9 +212,9 @@ dans la palette et le glisser-déposer l’affiche réellement dans Creator. Ter
 ces mêmes assets dans les recettes de biome et la brosse Matériau/biome contrôle leur dispersion
 déterministe dans le viewport comme au runtime. Les mutations IA/MCP d’assets sont maintenant
 fermées par un triptyque plan/apply/revert transactionnel avec contrôle de licence et du GLB. La
-fondation multi-biome AV4A est maintenant mesurée par un benchmark runtime bloquant ; la prochaine
-étape ajoute la documentation de livraison, les métriques consolidées et la finition audiovisuelle
-AV5 de la carte de production.
+fondation multi-biome AV4A est mesurée par un benchmark runtime bloquant. AV5 ferme la livraison et
+l’ambiance ; AV6-A prouve un personnage skinné, trois clips gouvernés et leur lecture dans Creator et
+runtime. La suite bornée porte les variantes, le combat animé et la composition 512 × 512 par secteurs.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;

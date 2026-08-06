@@ -1,6 +1,6 @@
 # État d’implémentation — Asset Vault et carte
 
-Dernière mise à jour : 5 août 2026.
+Dernière mise à jour : 5 août 2026 — tranche AV6-A.
 
 ## Terminé
 
@@ -69,21 +69,30 @@ Dernière mise à jour : 5 août 2026.
   courant directionnel ;
 - dialogue, collecte, passage, deux éclaireurs, boss scripté, loot, quête et sortie reconstruits par
   le runtime ;
-- export `.orpmod` de 75 fichiers, validation sans diagnostic et smoke depuis le cache du package ;
+- export `.orpmod` de 80 fichiers, validation sans diagnostic et smoke depuis le cache du package ;
 - capture Forward+ 1280 × 720 inspectée après correction visuelle.
 - benchmark runtime versionné sur Forgotten Forest 128 × 128 m : 68,806 ms de reconstruction,
   5,367 ms de collisions, 10,778 ms de navigation, 3,604 ms de sculpture, 23,649 ms de requête de
   chemin, 1 737 328 octets alloués et +17 506 304 octets de working set ;
 - couverture de performance contrôlée : 1 089 échantillons/vertices, 2 048 triangles, 181 formes de
-  collision, 1 990 polygones de navigation, 22 assets/66 niveaux LOD et trois groupes de culling.
+  collision, 1 990 polygones de navigation, 23 assets/67 niveaux LOD et trois groupes de culling.
 - rapport AV5 reproductible et bloquant : 605 assets locaux/licenciés, 31 952 fichiers du Vault,
-  22 manifestes, 44 chunks, 22 références gouvernées, intégrité SHA-256, taille `.orpmod` et seize
+  23 manifestes, 45 chunks, 22 références gouvernées, intégrité SHA-256, taille `.orpmod` et seize
   budgets runtime mesurés dans une même preuve JSON/Markdown ;
 - procédure complète d’ajout de sources et packs, avec plafond du catalogue figé à 605 jusqu’à une
   nouvelle revue visuelle et technique documentée ;
 - ambiance Forgotten Forest reconstruite sans nouvel asset externe : vent de canopée, oiseaux et
   ruisseau PCM procéduraux/spatiaux, plus 204 particules animées réparties entre lucioles, feuilles et
   brume au sol ; provenance et hash des trois cues sont persistés dans le profil de zone.
+- tranche AV6-A de personnage animé construite depuis le pack Kenney déjà gouverné
+  `animated-characters-protagonists` : modèle skinné, texture et trois FBX d’animation fusionnés par
+  Blender 4.5.10 en un GLB de 1 604 triangles, 58 os et clips `idle`, `jump`, `run`, sans modifier les
+  sources du Vault ; requête, hashes, miniature 512 × 512 et audit 99/100 sont persistés ;
+- profil `runtime.animationProfile=humanoid-basic` authorisé sur le joueur, Maëlys, les deux rôdeurs
+  et le Gardien ; Creator prévisualise l’idle, le runtime bascule le joueur entre idle/course/saut et
+  le smoke prouve cinq instances, trois clips, le scénario complet et une capture Forward+ ;
+- rapport de livraison étendu sans augmenter le catalogue : 23 manifestes CC0, 45 chunks,
+  22 références gouvernées, 16 assets distincts utilisés et 1 334 694 octets de chunks.
 
 ## Partiellement terminé
 
@@ -92,8 +101,9 @@ Dernière mise à jour : 5 août 2026.
 - normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
   conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
-- Forgotten Forest : tranche jouable, navigable, sonorisée et enrichie de VFX ; animations de
-  personnages, composition finale et extension 512 × 512 restent des finitions de production.
+- Forgotten Forest : tranche jouable, navigable, sonorisée, enrichie de VFX et dotée d’un premier
+  personnage animé ; variantes de personnages, retargeting, animations de combat, composition finale
+  et extension 512 × 512 restent des finitions de production.
 
 ## Non commencé
 
@@ -107,9 +117,8 @@ Dernière mise à jour : 5 août 2026.
 
 ## Prochaine action
 
-Intégrer les outils de composition et de finition désormais prouvés dans le Creator, puis préparer
-un petit incrément d’animation de personnages avant toute extension 512 × 512 ou augmentation du
-catalogue.
+Diversifier la petite distribution de personnages et relier une animation de combat, puis préparer
+la composition 512 × 512 par secteurs sans augmenter le catalogue avant la revue visuelle prévue.
 
 ## Preuves de la tranche AV3 MCP
 

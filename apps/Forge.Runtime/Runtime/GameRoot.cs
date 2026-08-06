@@ -62,6 +62,7 @@ public partial class GameRoot : Node3D
     private const float AttackDistance = 3.5f;
     private const string VisualAssetProperty = "visual.asset";
     private const string RuntimeRoleProperty = "runtime.role";
+    private const string RuntimeAnimationProfileProperty = "runtime.animationProfile";
 
     private readonly Dictionary<Node3D, CombatantState> _hostiles = [];
     private readonly Dictionary<Node3D, string> _hostileNames = [];
@@ -77,6 +78,7 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<Guid, double> _scatterDueSeconds = [];
     private readonly Dictionary<Guid, int> _scatterSequences = [];
     private readonly Dictionary<string, AudioStreamWav> _proceduralAudioCache = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _animatedCharacterClipNames = new(StringComparer.Ordinal);
     private readonly ForgeScriptJsonService _runtimeJson = new();
     private readonly ForgeScriptUiEventService _scriptUiEvents = new();
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
@@ -159,6 +161,7 @@ public partial class GameRoot : Node3D
     private bool _initializationComplete;
     private GodotAssetModelLibrary? _modelLibrary;
     private int _runtimeModelInstances;
+    private int _animatedCharacterInstances;
     private int _terrainVertices;
     private int _terrainTriangles;
     private int _terrainCollisionShapes;
@@ -1979,6 +1982,17 @@ public partial class GameRoot : Node3D
         }
         parent.AddChild(visual);
         _runtimeModelInstances++;
+        if (string.Equals(GetOverride(entity, RuntimeAnimationProfileProperty), "humanoid-basic", StringComparison.Ordinal))
+        {
+            var animation = GodotAssetAnimationController.Configure(visual);
+            GodotAssetAnimationController.Play(animation, animation.IdleClip, 0);
+            _animatedCharacterInstances++;
+            _animatedCharacterClipNames.UnionWith(animation.Clips);
+            if (parent is PlayerController player)
+            {
+                player.ConfigureAnimations(animation);
+            }
+        }
         return true;
     }
 
@@ -3056,8 +3070,10 @@ public partial class GameRoot : Node3D
             "Forgotten Forest did not reconstruct its playable surface navigation region.");
         AssertSmoke(_surfaceNavigationBlockedTriangles > 0 && _surfaceNavigationLinks == 1,
             "River crossing policy or the authored bridge traversal is missing from surface navigation.");
-        AssertSmoke(_modelLibrary?.Count == 22, "All 22 governed Mini Forest models must be available.");
+        AssertSmoke(_modelLibrary?.Count == 23, "All 22 governed Mini Forest models and the animated character must be available.");
         AssertSmoke(_runtimeModelInstances >= 18, "Authored entities did not use their governed 3D models.");
+        AssertSmoke(_animatedCharacterInstances == 5 && _animatedCharacterClipNames.Count >= 3,
+            "The five authored characters must expose the governed idle, run and jump clips.");
         AssertSmoke(_player is not null && _npc is not null && _keyItem is not null && _door is not null &&
             _boss is not null && _exit is not null, "The playable forest scenario is incomplete.");
         AssertSmoke(_hostiles.Count == 3, "Forgotten Forest must reconstruct two scouts and its boss.");
@@ -3156,6 +3172,10 @@ public partial class GameRoot : Node3D
             $"OPENRPG_FORGE_FORGOTTEN_FOREST_POLISH_PASS audio_cues={area.RuntimePolicies.Experience.AudioCues.Count} " +
             $"scatter={area.RuntimePolicies.Experience.ScatterEmitters.Count} vfx_emitters={_ambientVfxEmitters} " +
             $"vfx_particles={_ambientVfxParticles} water_animated={_terrainWaterSurfaces} provenance=builtin");
+        GD.Print(
+            $"OPENRPG_FORGE_FORGOTTEN_FOREST_ANIMATION_PASS characters={_animatedCharacterInstances} " +
+            $"clips={_animatedCharacterClipNames.Count} rig=kenney-humanoid-58 " +
+            "source=kenney:animated-characters-protagonists");
 
         InteractWith(_npc!);
         AssertSmoke(_questMachine?.CurrentState.DisplayName == "La Graine de lune",
@@ -3183,6 +3203,7 @@ public partial class GameRoot : Node3D
             $"nav_blocked={_surfaceNavigationBlockedTriangles} nav_links={_surfaceNavigationLinks} " +
             $"nav_path_points={navigationPath.Length} " +
             $"manifests={_modelLibrary!.Count} model_instances={_runtimeModelInstances} " +
+            $"animated_characters={_animatedCharacterInstances} animation_clips={_animatedCharacterClipNames.Count} " +
             $"entities={_builtEntityCount} quest=completed boss=defeated camera=orbit");
         GetTree().Quit(0);
     }

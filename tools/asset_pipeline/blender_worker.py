@@ -27,6 +27,8 @@ ALLOWED_OPERATIONS = {
     "audit_quality",
 }
 ALLOWED_INPUT_EXTENSIONS = {".blend", ".dae", ".fbx", ".glb", ".gltf", ".obj"}
+ALLOWED_ANIMATION_EXTENSIONS = {".fbx"}
+ALLOWED_TEXTURE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
 ALLOWED_PIVOTS = {"keep", "ground_center", "object_center"}
 HASH_LENGTH = 64
 
@@ -223,6 +225,8 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
         "pivot",
         "lodRatios",
         "generateCollision",
+        "animationSources",
+        "materialTextures",
     }
     if unknown_options:
         raise WorkerError(
@@ -243,6 +247,66 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
     ):
         raise WorkerError("asset.worker.lod_invalid", "LOD ratios must be numbers in [0.01, 1).", "options.lodRatios")
     normalized_lods = sorted({float(ratio) for ratio in lod_ratios}, reverse=True)
+    animation_sources = options.get("animationSources", [])
+    if not isinstance(animation_sources, list):
+        raise WorkerError("asset.worker.animation_sources_invalid", "animationSources must be a list.", "options.animationSources")
+    normalized_animations = []
+    animation_names = set()
+    for index, source in enumerate(animation_sources):
+        root = f"options.animationSources[{index}]"
+        if not isinstance(source, dict) or set(source) != {"name", "relativePath", "contentSha256"}:
+            raise WorkerError("asset.worker.animation_source_invalid", "Animation source fields are invalid.", root)
+        name = str(source.get("name", "")).strip().lower()
+        if (
+            not name
+            or len(name) > 64
+            or any(not (character.isascii() and (character.isalnum() or character in "-_")) for character in name)
+            or name in animation_names
+        ):
+            raise WorkerError("asset.worker.animation_name_invalid", "Animation names must be unique safe identifiers.", f"{root}.name")
+        relative = str(source.get("relativePath", ""))
+        absolute = _contained(source_root, relative)
+        if absolute.suffix.lower() not in ALLOWED_ANIMATION_EXTENSIONS:
+            raise WorkerError("asset.worker.animation_format_invalid", "Animation source must be an FBX file.", relative)
+        animation_names.add(name)
+        normalized_animations.append({
+            "name": name,
+            "relativePath": relative.replace("\\", "/"),
+            "contentSha256": _validate_hash(source.get("contentSha256"), f"{root}.contentSha256"),
+            "_absolutePath": str(absolute),
+        })
+
+    material_textures = options.get("materialTextures", [])
+    if not isinstance(material_textures, list):
+        raise WorkerError("asset.worker.material_textures_invalid", "materialTextures must be a list.", "options.materialTextures")
+    normalized_textures = []
+    texture_bindings = set()
+    for index, source in enumerate(material_textures):
+        root = f"options.materialTextures[{index}]"
+        if not isinstance(source, dict) or set(source) != {"material", "channel", "relativePath", "contentSha256"}:
+            raise WorkerError("asset.worker.material_texture_invalid", "Material texture fields are invalid.", root)
+        material = str(source.get("material", "")).strip()
+        channel = str(source.get("channel", "")).strip().lower()
+        if (
+            not material
+            or len(material) > 64
+            or any(not (character.isascii() and (character.isalnum() or character in "-_")) for character in material)
+            or channel != "base_color"
+            or (material.lower(), channel) in texture_bindings
+        ):
+            raise WorkerError("asset.worker.material_binding_invalid", "Only one safe base_color binding per material is supported.", root)
+        relative = str(source.get("relativePath", ""))
+        absolute = _contained(source_root, relative)
+        if absolute.suffix.lower() not in ALLOWED_TEXTURE_EXTENSIONS:
+            raise WorkerError("asset.worker.texture_format_invalid", "Material texture format is unsupported.", relative)
+        texture_bindings.add((material.lower(), channel))
+        normalized_textures.append({
+            "material": material,
+            "channel": channel,
+            "relativePath": relative.replace("\\", "/"),
+            "contentSha256": _validate_hash(source.get("contentSha256"), f"{root}.contentSha256"),
+            "_absolutePath": str(absolute),
+        })
 
     return {
         "schemaVersion": SCHEMA_VERSION,
@@ -260,6 +324,8 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
             "pivot": pivot,
             "lodRatios": normalized_lods,
             "generateCollision": bool(options.get("generateCollision", False)),
+            "animationSources": normalized_animations,
+            "materialTextures": normalized_textures,
         },
         "_sourcePath": str(source_path),
         "_outputPath": str(output_path),
@@ -300,6 +366,34 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
             "assetId, licenseSpdx and provenance are required.",
             request["sourceRelativePath"],
         )
+    immutable_sources = []
+    bridge_options = dict(request["options"])
+    bridge_animations = []
+    for source in request["options"]["animationSources"]:
+        absolute = pathlib.Path(source["_absolutePath"])
+        if not absolute.is_file():
+            raise WorkerError("asset.worker.animation_source_missing", "Animation source does not exist.", source["relativePath"])
+        actual = _sha256(absolute)
+        if actual != source["contentSha256"]:
+            raise WorkerError("asset.worker.animation_hash_mismatch", "Animation source hash differs from the request.", source["relativePath"])
+        immutable_sources.append((absolute, actual, source["relativePath"]))
+        bridge_animations.append({"name": source["name"], "path": str(absolute)})
+    bridge_textures = []
+    for source in request["options"]["materialTextures"]:
+        absolute = pathlib.Path(source["_absolutePath"])
+        if not absolute.is_file():
+            raise WorkerError("asset.worker.texture_source_missing", "Material texture does not exist.", source["relativePath"])
+        actual = _sha256(absolute)
+        if actual != source["contentSha256"]:
+            raise WorkerError("asset.worker.texture_hash_mismatch", "Material texture hash differs from the request.", source["relativePath"])
+        immutable_sources.append((absolute, actual, source["relativePath"]))
+        bridge_textures.append({
+            "material": source["material"],
+            "channel": source["channel"],
+            "path": str(absolute),
+        })
+    bridge_options["animationSources"] = bridge_animations
+    bridge_options["materialTextures"] = bridge_textures
     if validate_only:
         preview_relative = _sidecar_relative(request["outputRelativePath"], "preview", ".png")
         quality_relative = _sidecar_relative(request["outputRelativePath"], "quality", ".json")
@@ -341,7 +435,7 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
         str(temporary_preview_path),
         str(bridge_report_path),
         _encode_bridge_payload(request["operations"]),
-        _encode_bridge_payload(request["options"]),
+        _encode_bridge_payload(bridge_options),
     ]
     try:
         completed = subprocess.run(command, capture_output=True, text=True, timeout=900, check=False)
@@ -359,6 +453,9 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
         _validate_glb(temporary_output_path)
         if _sha256(source_path) != source_hash_before:
             raise WorkerError("asset.worker.source_modified", "External worker modified the immutable source.", request["sourceRelativePath"])
+        for immutable_path, immutable_hash, immutable_relative in immutable_sources:
+            if _sha256(immutable_path) != immutable_hash:
+                raise WorkerError("asset.worker.source_modified", "External worker modified an immutable companion source.", immutable_relative)
 
         preview = None
         if "generate_thumbnail" in request["operations"]:
