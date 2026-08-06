@@ -3,6 +3,7 @@ using Forge.Application.Assets;
 using Forge.Application.Validation;
 using Forge.Domain.Assets;
 using Forge.Domain.Areas;
+using Forge.Domain.Assistant;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Projects;
@@ -23,6 +24,56 @@ namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void LoreIndexMcpUsesReadPlanApplyQueryAndRevertContract()
+    {
+        using var workspace = new TestWorkspace();
+        var summary = workspace.Project.GetSummary();
+        var current = workspace.Project.GetLoreIndex();
+        var entry = new LoreEntryDefinition(
+            Guid.Parse("b1230000-0000-4000-8000-000000000070"),
+            1,
+            LoreEntryKind.WorldBible,
+            "serment-braise",
+            "Serment de braise",
+            "Le serment protège la Crypte et relie ses gardiens.",
+            [$"project:{summary.ProjectId}"],
+            [],
+            ["braise", "canon"],
+            "mcp-test:g12-b");
+        var configured = new LoreIndexDefinition(
+            current.Index.Id,
+            1,
+            true,
+            8_000,
+            [entry],
+            "mcp-test:g12-b");
+
+        var planned = workspace.Project.PlanLoreIndex(new LoreIndexPlanRequest(
+            1,
+            current.Revision,
+            configured,
+            AssistantPermissionLevel.Configure));
+        var applied = workspace.Project.ApplyLoreIndexPlan(planned.PlanId!);
+        var context = workspace.Project.QueryLoreIndex("braise crypte");
+        var reverted = workspace.Project.RevertLoreIndexPlan(planned.PlanId!);
+
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.NotNull(planned.Diff);
+        Assert.NotNull(planned.Inverse);
+        Assert.True(Guid.TryParse(planned.TransactionId, out _));
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.Single(context.SourceIds);
+        Assert.Equal(1, context.EntryCount);
+        Assert.Equal(64, context.ContentSha256.Length);
+        Assert.Contains("serment", context.Content, StringComparison.Ordinal);
+        Assert.True(reverted.Succeeded);
+        Assert.True(reverted.Reverted);
+        Assert.Empty(workspace.Project.GetLoreIndex().Index.Entries);
+    }
+
     [Fact]
     public void SummaryRevisionAndDiagnosticsAreReadOnlyAndStructured()
     {

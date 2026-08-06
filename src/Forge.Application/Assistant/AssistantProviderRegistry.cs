@@ -26,4 +26,19 @@ public sealed class AssistantProviderRegistry
         }
         return factory.Create(definition);
     }
+
+    public static AssistantProviderRegistry CreateWithLocalTransports(
+        HttpClient httpClient,
+        Func<string, string?>? readEnvironmentVariable = null,
+        TimeSpan? requestTimeout = null)
+    {
+        ArgumentNullException.ThrowIfNull(httpClient);
+        var environment = readEnvironmentVariable ?? Environment.GetEnvironmentVariable;
+        var timeout = requestTimeout ?? TimeSpan.FromSeconds(30);
+        return new AssistantProviderRegistry([
+            new DeterministicAssistantProviderFactory(),
+            new OpenAiCompatibleAssistantProviderFactory(httpClient, environment, timeout),
+            new OllamaAssistantProviderFactory(httpClient, environment, timeout),
+        ]);
+    }
 }

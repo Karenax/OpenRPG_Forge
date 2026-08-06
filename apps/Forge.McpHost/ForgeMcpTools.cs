@@ -36,6 +36,30 @@ public sealed class ForgeMcpTools
     public IReadOnlyList<AgentDiagnostic> GetProjectDiagnostics() => _project.GetDiagnostics();
 
     [McpServerTool]
+    [Description("Returns the canonical governed lore index, its independent revision and load diagnostics without mutation.")]
+    public LoreIndexResource GetLoreIndex() => _project.GetLoreIndex();
+
+    [McpServerTool]
+    [Description("Retrieves a bounded, source-attributed and hashed lore context packet without mutation.")]
+    public LoreContextResource QueryLoreIndex(string query, int limit = 8) =>
+        _project.QueryLoreIndex(query, limit);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a lore-index transaction. It returns a semantic diff and inverse without applying changes.")]
+    public LoreIndexPlanResult PlanLoreIndex(LoreIndexPlanRequest request) =>
+        _project.PlanLoreIndex(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated lore-index plan if its transaction and base revision still match.")]
+    public LoreIndexPlanResult ApplyLoreIndexPlan(string planId) =>
+        _project.ApplyLoreIndexPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied lore-index plan through the canonical history and persisted inverse.")]
+    public LoreIndexPlanResult RevertLoreIndexPlan(string planId) =>
+        _project.RevertLoreIndexPlan(planId);
+
+    [McpServerTool]
     [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]
     public RuntimePolicyResource GetRuntimePolicies(string? areaId = null) =>
         _project.GetRuntimePolicies(areaId);

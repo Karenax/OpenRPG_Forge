@@ -5,8 +5,8 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. G12-A ouvre maintenant l’Assistant de création avancée sans dépendance
-réseau obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
+G11 Contenu moderne fermés. G12-A et G12-B ouvrent maintenant l’Assistant de création avancée, ses
+fournisseurs locaux et son lore sans dépendance réseau obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
@@ -538,4 +538,13 @@ LM Studio, vLLM et Ollama. Les prompts portent version, schéma de sortie, tests
 Un plan doit être prévisualisé à la révision exacte avant toute application ; permission,
 provenance, budgets et coût restent visibles, les secrets sont seulement référencés par nom de
 variable d’environnement, et undo/redo restaure l’état. Les transports réseau réels et l’index de
-lore sont explicitement reportés à G12-B.
+lore sont fermés séparément par G12-B.
+
+**G12-B — fournisseurs locaux et lore gouverné livrés** : les endpoints compatibles OpenAI et
+Ollama sont réellement exécutables via `HttpClient`, avec opt-in, loopback strict, secret
+d’environnement, timeout, annulation, plafond de réponse et coût calculé. Aucun modèle payant ou
+cloud n’est requis. L’index persistant couvre bible du monde, factions, personnages, chronologie et
+terminologie ; ses sources résolvent le projet, les blueprints, dialogues et quêtes. La recherche
+produit un contexte borné, sourcé et hashé. Une fenêtre Aurora dédiée et cinq outils MCP partagent
+la même commande plan/dry-run/transaction, la même persistance et le même undo/redo. G12-C portera
+le premier plan de zone assisté, sans géométrie appliquée avant validation.

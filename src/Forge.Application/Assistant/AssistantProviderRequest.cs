@@ -7,4 +7,6 @@ public sealed record AssistantProviderRequest(
     Guid TransactionId,
     AssistantPromptRenderResult Prompt,
     AssistantPermissionLevel Permission,
-    int MaximumOutputTokens);
+    int MaximumOutputTokens,
+    bool NetworkAuthorized = false,
+    bool ProjectContentAuthorized = false);

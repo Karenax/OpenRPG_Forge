@@ -70,6 +70,13 @@ inaccessible tant qu’un dry-run lié à la révision et à l’empreinte exact
 Le mode hors ligne déterministe est utilisable sans compte ; les secrets distants ne sont jamais
 affichés ni persistés, seulement leur nom de variable d’environnement.
 
+G12-B relie cet écran à de vrais transports locaux compatibles OpenAI et Ollama. La réponse affiche
+tokens, coût estimé, provenance et hash avant toute application. Un bouton **Index de lore** ouvre
+un espace dédié à trois colonnes : entrées canoniques, identité/contenu/sources, puis recherche et
+graphe de contexte. Les états vide et invalide restent explicites ; le plan montre transaction,
+diff, sources, budget, troncature et SHA-256. La couleur braise demeure réservée à l’application du
+plan validé.
+
 G7-02 installe la coque commune : neuf workspaces stables, une colonne d’exploration du projet, le
 workspace Monde au centre et un panneau contextuel pour sélection, diagnostics et logs de playtest.
 L’explorateur classe zones, entités, types de blueprints, dialogues et quêtes. La sélection est un

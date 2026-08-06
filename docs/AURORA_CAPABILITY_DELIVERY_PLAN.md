@@ -48,7 +48,8 @@ gouverné, une carte extérieure 512 × 512 jouable, son rendu PBR stylisé, des
 une preuve réelle de retargeting inter-rigs. **G12-A** ouvre désormais les extensions 1.x avec un
 Assistant intégré, un fournisseur hors ligne déterministe, des contrats de fournisseurs
 interchangeables et des prompts versionnés testés. La fermeture de `TASKS_MVP.md` ne signifie pas
-une parité Aurora complète : la file active commence à **G12-B**.
+une parité Aurora complète : G12-B ferme maintenant les transports locaux et le lore ; la file
+active commence à **G12-C**.
 
 ## 3. Jalons produit
 
@@ -310,8 +311,9 @@ Blender au runtime.
 ### G12 — IA de création avancée
 
 **État.** En cours. G12-A livre l’Assistant intégré, le profil persistant, le fournisseur hors ligne
-déterministe et les prompts versionnés. G12-B doit ajouter les transports locaux explicitement
-consentis et l’index de lore gouverné avant toute génération de contenu.
+déterministe et les prompts versionnés. G12-B ajoute les transports locaux compatibles OpenAI et
+Ollama, puis l’index de lore gouverné et son contrat MCP. G12-C doit produire un plan de zone
+contrôlé avant toute génération de géométrie.
 
 **Domaine.** `AI` P1/P2, après stabilisation des workflows humains correspondants.
 

@@ -108,6 +108,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly InstallAssetBlueprintHandler _installAssetBlueprintHandler = new(new SystemClock());
     private readonly SetAssetExternalEditHandler _assetExternalEditHandler = new(new SystemClock());
     private readonly SetAssistantWorkspaceProfileHandler _assistantProfileHandler = new(new SystemClock());
+    private readonly SetLoreIndexHandler _loreIndexHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -198,6 +199,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssetContentBrowserWindow? _assetBrowser;
     private LocalizationWorkspaceWindow? _localizationWorkspace;
     private AssistantWorkspaceWindow? _assistantWorkspace;
+    private LoreIndexWindow? _loreIndexWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -228,6 +230,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssetPackageManifestCommandHistory? _assetPackageManifestHistory;
     private AssetExternalEditCommandHistory? _assetExternalEditHistory;
     private AssistantWorkspaceProfileCommandHistory? _assistantProfileHistory;
+    private LoreIndexCommandHistory? _loreIndexHistory;
     private Image? _forgeWindowIcon;
     private bool _playtestRunning;
     private bool _showEntityPropertiesDialogWhenReady;
@@ -307,6 +310,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ApplyLocalizationCatalog,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_localizationWorkspace);
+        _loreIndexWindow = new LoreIndexWindow();
+        _loreIndexWindow.Initialize(
+            () => _history?.State,
+            () => _loreIndexHistory?.State,
+            ApplyLoreIndex,
+            UndoLoreIndex,
+            RedoLoreIndex,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_loreIndexWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -315,6 +327,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ApplyAssistantWorkspaceProfile,
             UndoAssistantWorkspaceProfile,
             RedoAssistantWorkspaceProfile,
+            () => _loreIndexWindow?.Open(),
             () => _localizationWorkspace?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistantWorkspace);
@@ -576,6 +589,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _assetBrowser = null;
         _localizationWorkspace = null;
         _assistantWorkspace = null;
+        _loreIndexWindow = null;
         _globalSearch = null;
         _moduleConfiguration = null;
         _areaWorkspace = null;
@@ -600,6 +614,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _assetPackageManifestHistory = null;
         _assetExternalEditHistory = null;
         _assistantProfileHistory = null;
+        _loreIndexHistory = null;
         GD.Print("OPENRPG_FORGE_PLUGIN_UNLOADED");
     }
 
@@ -2787,6 +2802,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _assetPackageManifestHistory = null;
             _assetExternalEditHistory = null;
             _assistantProfileHistory = null;
+            _loreIndexHistory = null;
             _activeAreaContext.Clear();
             _selectionContext.SetLocked(false);
             _selectionContext.Clear();
@@ -2833,6 +2849,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (!assistantProfile.Succeeded)
         {
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSISTANT_PROFILE_INVALID {assistantProfile.Diagnostics[0].Code}");
+        }
+        var loreIndex = LoreIndexStore.Load(_projectSession.RootDirectory);
+        _loreIndexHistory = new LoreIndexCommandHistory(loreIndex.Index);
+        if (!loreIndex.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_LORE_INDEX_INVALID {loreIndex.Diagnostics[0].Code}");
         }
         _lastSavedRevision = 0;
         _lastRecoveryRevision = 0;
@@ -3031,6 +3053,64 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _assistantProfileHistory.State.Profile);
         if (saved.Succeeded) return true;
         _assistantProfileHistory.Undo();
+        return false;
+    }
+
+    private bool ApplyLoreIndex(
+        LoreIndexDefinition index,
+        Guid transactionId,
+        Guid planId,
+        bool dryRun)
+    {
+        if (_projectSession is null || _history is null || _loreIndexHistory is null) return false;
+        var command = new SetLoreIndexCommand(
+            CommandId.From(Guid.NewGuid()),
+            transactionId,
+            planId,
+            _loreIndexHistory.State.Revision,
+            index,
+            AssistantPermissionLevel.Configure,
+            dryRun);
+        var result = _loreIndexHandler.Handle(_loreIndexHistory.State, command, _history.State.Project);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(diagnostic => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                diagnostic.Code,
+                diagnostic.Message,
+                "assistant/lore-index",
+                index.Id.ToString("D"))).ToArray());
+            return false;
+        }
+        if (dryRun) return result.Patch is not null && !result.Audit.Applied;
+        var saved = LoreIndexStore.Save(_projectSession.RootDirectory, result.State.Index);
+        if (!saved.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_LORE_INDEX_SAVE_FAILED {saved.Diagnostics[0].Code}");
+            return false;
+        }
+        _loreIndexHistory.Record(result);
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_LORE_INDEX_SAVED entries={index.Entries.Count} " +
+            $"revision={_loreIndexHistory.State.Revision} transaction={transactionId:D} plan={planId:D}");
+        return true;
+    }
+
+    private bool UndoLoreIndex()
+    {
+        if (_projectSession is null || _loreIndexHistory is null || !_loreIndexHistory.Undo()) return false;
+        var saved = LoreIndexStore.Save(_projectSession.RootDirectory, _loreIndexHistory.State.Index);
+        if (saved.Succeeded) return true;
+        _loreIndexHistory.Redo();
+        return false;
+    }
+
+    private bool RedoLoreIndex()
+    {
+        if (_projectSession is null || _loreIndexHistory is null || !_loreIndexHistory.Redo()) return false;
+        var saved = LoreIndexStore.Save(_projectSession.RootDirectory, _loreIndexHistory.State.Index);
+        if (saved.Succeeded) return true;
+        _loreIndexHistory.Undo();
         return false;
     }
 
@@ -4355,6 +4435,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssistantFoundationSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunLoreIndexSmokeTest())
         {
             return;
         }
@@ -7755,6 +7840,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 string.IsNullOrWhiteSpace(_assistantWorkspace.LastPromptHash) ||
                 _assistantWorkspace.LastPromptHash.Length != 64 ||
                 !_assistantWorkspace.LastPreviewWasOffline ||
+                _assistantWorkspace.LastProviderCost != 0 ||
                 !_assistantWorkspace.ApplyForSmokeTest() ||
                 _assistantProfileHistory.State.Profile.Prompts[0].Version != "1.1.0")
             {
@@ -7790,6 +7876,62 @@ public partial class ForgeEditorPlugin : EditorPlugin
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(profilePath)!);
                 File.WriteAllBytes(profilePath, originalBytes);
+            }
+        }
+    }
+
+    private bool RunLoreIndexSmokeTest()
+    {
+        if (_projectSession is null || _loreIndexHistory is null || _loreIndexWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12B_ASSISTANT_FAILED missing_lore_workspace");
+            return false;
+        }
+
+        var originalIndex = _loreIndexHistory.State.Index;
+        var indexPath = Path.Combine(_projectSession.RootDirectory, "assistant", "lore-index.json");
+        var originalBytes = File.Exists(indexPath) ? File.ReadAllBytes(indexPath) : null;
+        try
+        {
+            if (!_loreIndexWindow.ConfigureForSmokeTest() ||
+                !_loreIndexWindow.PreviewForSmokeTest() ||
+                _loreIndexWindow.LastContextHash.Length != 64 ||
+                _loreIndexWindow.LastContextSourceCount != 1 ||
+                !_loreIndexWindow.ApplyForSmokeTest() ||
+                _loreIndexHistory.State.Index.Entries.Count != originalIndex.Entries.Count + 1)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12B_ASSISTANT_FAILED lore_preview_apply");
+                return false;
+            }
+            var restored = LoreIndexStore.Load(_projectSession.RootDirectory);
+            if (!restored.Succeeded || restored.Index.Entries.Count != originalIndex.Entries.Count + 1 ||
+                !UndoLoreIndex() ||
+                _loreIndexHistory.State.Index.Entries.Count != originalIndex.Entries.Count ||
+                !RedoLoreIndex() ||
+                _loreIndexHistory.State.Index.Entries.Count != originalIndex.Entries.Count + 1 ||
+                !UndoLoreIndex())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12B_ASSISTANT_FAILED lore_persistence_history");
+                return false;
+            }
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G12B_ASSISTANT_PASS " +
+                "transports=openai-compatible-ollama network=explicit-loopback timeout=bounded cancellation=propagated " +
+                "lore=world-faction-character-timeline-terminology sources=resolved retrieval=hashed-bounded " +
+                "plan=dry-run-transaction permission=configure history=restored persistence=roundtrip");
+            return true;
+        }
+        finally
+        {
+            _loreIndexHistory = new LoreIndexCommandHistory(originalIndex);
+            if (originalBytes is null)
+            {
+                if (File.Exists(indexPath)) File.Delete(indexPath);
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+                File.WriteAllBytes(indexPath, originalBytes);
             }
         }
     }

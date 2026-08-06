@@ -791,6 +791,42 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.LoreIndexJsonSerializer",
+      "target": "file:src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.LoreIndexJsonSerializer",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.LoreIndexJsonSerializer",
+      "target": "model:Forge.ModuleFormat.Serialization.LoreIndexDocument"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+      },
+      "kind": "uses_service",
+      "source": "adapter:Forge.ModuleFormat.Serialization.LoreIndexJsonSerializer",
+      "target": "validator:Forge.Domain.Assistant.LoreIndexValidator"
+    },
+    {
+      "evidence": {
         "line": 308,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
@@ -1529,7 +1565,7 @@
     },
     {
       "evidence": {
-        "line": 6914,
+        "line": 6999,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1538,7 +1574,7 @@
     },
     {
       "evidence": {
-        "line": 6933,
+        "line": 7018,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1547,7 +1583,7 @@
     },
     {
       "evidence": {
-        "line": 6807,
+        "line": 6892,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1556,7 +1592,7 @@
     },
     {
       "evidence": {
-        "line": 5570,
+        "line": 5655,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -4410,6 +4446,33 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs",
+      "target": "namespace:Forge.Application.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ModuleConfigurationWindow.cs"
       },
       "kind": "imports",
@@ -4922,7 +4985,7 @@
     },
     {
       "evidence": {
-        "line": 222,
+        "line": 224,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -4931,7 +4994,7 @@
     },
     {
       "evidence": {
-        "line": 254,
+        "line": 261,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -6740,6 +6803,15 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Assistant/AssistantProviderTransport.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/AssistantProviderTransport.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs"
       },
@@ -6794,6 +6866,150 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/LoreContextAssembler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreContextAssembler.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Assistant/LoreContextAssembler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreContextAssembler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/LoreIndexCommandHistory.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreIndexCommandHistory.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreIndexCommandResult.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreIndexProjectValidator.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreIndexProjectValidator.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreIndexProjectValidator.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/LoreIndexState.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreIndexState.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/LoreProjectSourceCatalog.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreProjectSourceCatalog.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreRetrievalIndex.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreRetrievalIndex.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/LoreRetrievalResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/LoreRetrievalResult.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/OllamaAssistantProvider.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/OllamaAssistantProvider.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/OllamaAssistantProviderFactory.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/OllamaAssistantProviderFactory.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/OpenAiCompatibleAssistantProvider.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/OpenAiCompatibleAssistantProvider.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/OpenAiCompatibleAssistantProviderFactory.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/OpenAiCompatibleAssistantProviderFactory.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
       },
@@ -6836,6 +7052,60 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs",
       "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetLoreIndexCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetLoreIndexCommand.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetLoreIndexHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetLoreIndexHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetLoreIndexHandler.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetLoreIndexHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -10727,6 +10997,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Assistant/LoreIndexValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Assistant/LoreIndexValidator.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Domain/Authoring/EditorCameraPose.cs"
       },
@@ -12554,12 +12833,21 @@
     },
     {
       "evidence": {
-        "line": 2,
+        "line": 3,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
       "target": "namespace:Forge.Application.Assets"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Application.Assistant"
     },
     {
       "evidence": {
@@ -12572,7 +12860,7 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 4,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -12581,7 +12869,7 @@
     },
     {
       "evidence": {
-        "line": 4,
+        "line": 5,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -12590,7 +12878,7 @@
     },
     {
       "evidence": {
-        "line": 5,
+        "line": 6,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -12599,7 +12887,7 @@
     },
     {
       "evidence": {
-        "line": 6,
+        "line": 7,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -12608,7 +12896,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -12617,7 +12905,7 @@
     },
     {
       "evidence": {
-        "line": 8,
+        "line": 9,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -12626,7 +12914,7 @@
     },
     {
       "evidence": {
-        "line": 9,
+        "line": 11,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -12640,16 +12928,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
-    },
-    {
-      "evidence": {
-        "line": 11,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Assistant"
     },
     {
       "evidence": {
@@ -12658,25 +12937,7 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Entities"
-    },
-    {
-      "evidence": {
-        "line": 15,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Rules"
-    },
-    {
-      "evidence": {
-        "line": 14,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.RuntimeExtensions"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -12685,16 +12946,16 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.RuntimePolicies"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
-        "line": 16,
+        "line": 14,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Sequences"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
@@ -12703,16 +12964,25 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Domain.Validation"
+      "target": "namespace:Forge.Domain.Rules"
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 16,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Assets"
+      "target": "namespace:Forge.Domain.RuntimeExtensions"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -12721,43 +12991,16 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 19,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Scripts"
-    },
-    {
-      "evidence": {
-        "line": 24,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
-    },
-    {
-      "evidence": {
-        "line": 25,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.ModuleFormat.Documentation"
-    },
-    {
-      "evidence": {
-        "line": 22,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.ModuleFormat.Quality"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -12766,11 +13009,65 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.ModuleFormat.Workspaces"
+      "target": "namespace:Forge.Mcp.Assets"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Scripts"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.ModuleFormat.Documentation"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.ModuleFormat.Quality"
     },
     {
       "evidence": {
         "line": 23,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 25,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -12794,6 +13091,24 @@
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/GameplayControlContracts.cs",
       "target": "namespace:Forge.Domain.Gameplay"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/LoreIndexContracts.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/LoreIndexContracts.cs",
+      "target": "namespace:Forge.Domain.Assistant"
     },
     {
       "evidence": {
@@ -13823,6 +14138,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
@@ -14224,6 +14548,24 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
@@ -15434,6 +15776,24 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs",
+      "target": "namespace:Forge.Application.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
       },
@@ -15467,6 +15827,60 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs",
       "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -18009,6 +18423,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
       },
       "kind": "imports",
@@ -19354,7 +19777,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Assistant"
     },
     {
       "evidence": {
@@ -19363,7 +19786,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Gameplay"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -19372,25 +19795,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Projects"
-    },
-    {
-      "evidence": {
-        "line": 11,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "imports",
-      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Rules"
-    },
-    {
-      "evidence": {
-        "line": 10,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "imports",
-      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.RuntimeExtensions"
+      "target": "namespace:Forge.Domain.Gameplay"
     },
     {
       "evidence": {
@@ -19399,7 +19804,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.RuntimePolicies"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -19408,7 +19813,25 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Sequences"
+      "target": "namespace:Forge.Domain.Rules"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Domain.RuntimeExtensions"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -19417,7 +19840,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
@@ -19426,16 +19849,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Validation"
-    },
-    {
-      "evidence": {
-        "line": 16,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "imports",
-      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Assets"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -19444,7 +19858,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -19453,7 +19867,16 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Projects"
+      "target": "namespace:Forge.Mcp.Assets"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
     },
     {
       "evidence": {
@@ -19462,11 +19885,20 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Projects"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
       "target": "namespace:Forge.Mcp.Scripts"
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
@@ -19475,7 +19907,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
@@ -20884,6 +21316,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
@@ -25433,6 +25883,96 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "target": "file:src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "target": "model:Forge.Application.Assistant.LoreIndexCommandResult"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "target": "model:Forge.Application.Assistant.LoreIndexState"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "target": "model:Forge.Application.Assistant.SetLoreIndexCommand"
+    },
+    {
+      "evidence": {
+        "line": 144,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 145,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 147,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
       },
@@ -29384,6 +29924,105 @@
     },
     {
       "evidence": {
+        "line": 100,
+        "path": "src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assistant.LoreDocument",
+      "target": "file:src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+    },
+    {
+      "evidence": {
+        "line": 100,
+        "path": "src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.LoreDocument",
+      "target": "model:Forge.Domain.Assistant.LoreEntryDefinition"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assistant.LoreIndexCommandResult",
+      "target": "file:src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.LoreIndexCommandResult",
+      "target": "model:Forge.Application.Assistant.LoreIndexState"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.LoreIndexCommandResult",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.LoreIndexCommandResult",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.LoreIndexCommandResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/LoreIndexState.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assistant.LoreIndexState",
+      "target": "file:src/Forge.Application/Assistant/LoreIndexState.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/LoreIndexState.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.LoreIndexState",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/LoreRetrievalResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assistant.LoreRetrievalResult",
+      "target": "file:src/Forge.Application/Assistant/LoreRetrievalResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assistant/LoreRetrievalResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.LoreRetrievalResult",
+      "target": "model:Forge.Domain.Assistant.LoreEntryKind"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
       },
@@ -29399,6 +30038,33 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Assistant.SetAssistantWorkspaceProfileCommand",
       "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assistant.SetLoreIndexCommand",
+      "target": "file:src/Forge.Application/Assistant/SetLoreIndexCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.SetLoreIndexCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.SetLoreIndexCommand",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
     },
     {
       "evidence": {
@@ -31298,6 +31964,51 @@
       "kind": "defined_in",
       "source": "model:Forge.Domain.Assistant.AssistantProviderKind",
       "target": "file:src/Forge.Domain/Assistant/AssistantProviderKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/LoreEntryDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assistant.LoreEntryDefinition",
+      "target": "file:src/Forge.Domain/Assistant/LoreEntryDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Domain/Assistant/LoreEntryDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Assistant.LoreEntryDefinition",
+      "target": "model:Forge.Domain.Assistant.LoreEntryKind"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/LoreEntryKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assistant.LoreEntryKind",
+      "target": "file:src/Forge.Domain/Assistant/LoreEntryKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/LoreIndexDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assistant.LoreIndexDefinition",
+      "target": "file:src/Forge.Domain/Assistant/LoreIndexDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Domain/Assistant/LoreIndexDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Assistant.LoreIndexDefinition",
+      "target": "model:Forge.Domain.Assistant.LoreEntryDefinition"
     },
     {
       "evidence": {
@@ -33857,7 +34568,7 @@
     },
     {
       "evidence": {
-        "line": 1643,
+        "line": 1917,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -33866,7 +34577,7 @@
     },
     {
       "evidence": {
-        "line": 1645,
+        "line": 1919,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "relationship",
@@ -33917,6 +34628,51 @@
       "kind": "relationship",
       "source": "model:Forge.Mcp.Projects.GameplayControlPlanResult",
       "target": "model:Forge.Mcp.Projects.GameplayControlAuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Projects.LoreIndexAuditEntry",
+      "target": "file:src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Projects.LoreIndexPlanResult",
+      "target": "file:src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Projects.LoreIndexPlanResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Projects.LoreIndexPlanResult",
+      "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Projects.LoreIndexPlanResult",
+      "target": "model:Forge.Mcp.Projects.LoreIndexAuditEntry"
     },
     {
       "evidence": {
@@ -34847,6 +35603,24 @@
     },
     {
       "evidence": {
+        "line": 45,
+        "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Serialization.LoreIndexDocument",
+      "target": "file:src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Serialization.LoreIndexDocument",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectDocument.cs"
       },
@@ -34951,6 +35725,33 @@
       },
       "kind": "relationship",
       "source": "model:Forge.ModuleFormat.Workspaces.EditorCameraProfileLoadResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 92,
+        "path": "src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Workspaces.LoreIndexLoadResult",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 93,
+        "path": "src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Workspaces.LoreIndexLoadResult",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 95,
+        "path": "src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Workspaces.LoreIndexLoadResult",
       "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic"
     },
     {
@@ -37871,6 +38672,24 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assistant/AssistantProviderTransport.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantProviderTransport.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantProviderTransportException.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantProviderTransportException.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs"
       },
@@ -37943,6 +38762,141 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/LoreContextAssembler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreContextAssembler.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/LoreContextPacket.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreContextPacket.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/LoreIndexCommandHistory.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreIndexCommandHistory.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/LoreIndexRevision.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreIndexRevision.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/LoreIndexState.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreIndexState.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/LoreProjectSource.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreProjectSource.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/LoreProjectSourceCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreProjectSourceCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/LoreRetrievalResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/LoreRetrievalResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/OllamaAssistantProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/OllamaAssistantProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/OllamaAssistantProviderFactory.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/OllamaAssistantProviderFactory.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/OpenAiCompatibleAssistantProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/OpenAiCompatibleAssistantProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/OpenAiCompatibleAssistantProviderFactory.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/OpenAiCompatibleAssistantProviderFactory.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
       },
@@ -37958,6 +38912,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Assistant",
       "target": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/SetLoreIndexCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
     },
     {
       "evidence": {
@@ -39447,11 +40419,29 @@
     {
       "evidence": {
         "line": 5,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Assistant",
+      "target": "file:tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Assistant",
       "target": "file:tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Assistant",
+      "target": "file:tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
     },
     {
       "evidence": {
@@ -40469,6 +41459,42 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Assistant",
       "target": "file:src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assistant/LoreEntryDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/LoreEntryDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assistant/LoreEntryKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/LoreEntryKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assistant/LoreIndexDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/LoreIndexDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/LoreIndexValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/LoreIndexValidator.cs"
     },
     {
       "evidence": {
@@ -42434,6 +43460,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Assistant",
+      "target": "file:tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
       },
@@ -43505,7 +44540,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 28,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -43529,6 +44564,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Mcp.Projects",
       "target": "file:src/Forge.Mcp/Projects/GameplayControlContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Mcp.Projects",
+      "target": "file:src/Forge.Mcp/Projects/LoreIndexContracts.cs"
     },
     {
       "evidence": {
@@ -43613,7 +44657,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 22,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -44297,6 +45341,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Serialization",
+      "target": "file:src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+    },
+    {
+      "evidence": {
         "line": 16,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
@@ -44720,6 +45773,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Workspaces",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs"
       },
@@ -44789,6 +45851,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Workspaces",
       "target": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Workspaces",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
     },
     {
       "evidence": {
@@ -46490,6 +47561,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Toolset.Editor",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs"
     },
     {
       "evidence": {
@@ -48248,7 +49328,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 31,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -48257,7 +49337,7 @@
     },
     {
       "evidence": {
-        "line": 978,
+        "line": 1197,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48266,7 +49346,16 @@
     },
     {
       "evidence": {
-        "line": 1343,
+        "line": 205,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Application.Assistant.SetLoreIndexCommand"
+    },
+    {
+      "evidence": {
+        "line": 1562,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48275,7 +49364,7 @@
     },
     {
       "evidence": {
-        "line": 217,
+        "line": 206,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48284,7 +49373,7 @@
     },
     {
       "evidence": {
-        "line": 1109,
+        "line": 1328,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48293,7 +49382,7 @@
     },
     {
       "evidence": {
-        "line": 1271,
+        "line": 1490,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48302,7 +49391,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 71,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48311,7 +49400,7 @@
     },
     {
       "evidence": {
-        "line": 667,
+        "line": 886,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48320,7 +49409,7 @@
     },
     {
       "evidence": {
-        "line": 349,
+        "line": 568,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48329,7 +49418,7 @@
     },
     {
       "evidence": {
-        "line": 451,
+        "line": 670,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48338,7 +49427,7 @@
     },
     {
       "evidence": {
-        "line": 560,
+        "line": 779,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48347,7 +49436,7 @@
     },
     {
       "evidence": {
-        "line": 766,
+        "line": 985,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48356,7 +49445,7 @@
     },
     {
       "evidence": {
-        "line": 214,
+        "line": 433,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48365,7 +49454,7 @@
     },
     {
       "evidence": {
-        "line": 218,
+        "line": 437,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48374,7 +49463,7 @@
     },
     {
       "evidence": {
-        "line": 935,
+        "line": 1154,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48383,7 +49472,7 @@
     },
     {
       "evidence": {
-        "line": 1306,
+        "line": 1525,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48392,7 +49481,7 @@
     },
     {
       "evidence": {
-        "line": 1312,
+        "line": 1531,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48401,7 +49490,7 @@
     },
     {
       "evidence": {
-        "line": 1321,
+        "line": 1540,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48410,7 +49499,7 @@
     },
     {
       "evidence": {
-        "line": 1098,
+        "line": 1317,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48419,7 +49508,7 @@
     },
     {
       "evidence": {
-        "line": 1296,
+        "line": 1515,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48428,7 +49517,7 @@
     },
     {
       "evidence": {
-        "line": 1299,
+        "line": 1518,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48437,7 +49526,7 @@
     },
     {
       "evidence": {
-        "line": 1259,
+        "line": 1478,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48446,7 +49535,7 @@
     },
     {
       "evidence": {
-        "line": 1268,
+        "line": 1487,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48455,7 +49544,7 @@
     },
     {
       "evidence": {
-        "line": 1360,
+        "line": 1579,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48464,7 +49553,7 @@
     },
     {
       "evidence": {
-        "line": 254,
+        "line": 255,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48473,7 +49562,7 @@
     },
     {
       "evidence": {
-        "line": 85,
+        "line": 55,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48482,7 +49571,7 @@
     },
     {
       "evidence": {
-        "line": 846,
+        "line": 1065,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48491,7 +49580,7 @@
     },
     {
       "evidence": {
-        "line": 1381,
+        "line": 1600,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48500,7 +49589,7 @@
     },
     {
       "evidence": {
-        "line": 926,
+        "line": 1145,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48509,7 +49598,7 @@
     },
     {
       "evidence": {
-        "line": 1085,
+        "line": 1304,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48518,7 +49607,7 @@
     },
     {
       "evidence": {
-        "line": 1130,
+        "line": 1349,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48527,7 +49616,7 @@
     },
     {
       "evidence": {
-        "line": 675,
+        "line": 894,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48536,7 +49625,7 @@
     },
     {
       "evidence": {
-        "line": 652,
+        "line": 871,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48545,7 +49634,7 @@
     },
     {
       "evidence": {
-        "line": 367,
+        "line": 586,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48554,7 +49643,7 @@
     },
     {
       "evidence": {
-        "line": 341,
+        "line": 560,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48563,7 +49652,7 @@
     },
     {
       "evidence": {
-        "line": 79,
+        "line": 90,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48572,7 +49661,7 @@
     },
     {
       "evidence": {
-        "line": 459,
+        "line": 678,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48581,7 +49670,7 @@
     },
     {
       "evidence": {
-        "line": 443,
+        "line": 662,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48590,7 +49679,25 @@
     },
     {
       "evidence": {
-        "line": 568,
+        "line": 234,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Projects.LoreIndexAuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 191,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Projects.LoreIndexPlanResult"
+    },
+    {
+      "evidence": {
+        "line": 787,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48599,7 +49706,7 @@
     },
     {
       "evidence": {
-        "line": 546,
+        "line": 765,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48608,7 +49715,7 @@
     },
     {
       "evidence": {
-        "line": 774,
+        "line": 993,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48617,7 +49724,7 @@
     },
     {
       "evidence": {
-        "line": 758,
+        "line": 977,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48626,7 +49733,7 @@
     },
     {
       "evidence": {
-        "line": 235,
+        "line": 454,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48635,7 +49742,7 @@
     },
     {
       "evidence": {
-        "line": 203,
+        "line": 422,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -48644,7 +49751,7 @@
     },
     {
       "evidence": {
-        "line": 1230,
+        "line": 1449,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53055,6 +54162,78 @@
     {
       "evidence": {
         "line": 8,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantProviderTransportTests",
+      "target": "file:tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 175,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantProviderTransportTests",
+      "target": "model:Forge.Application.Assistant.AssistantPromptRenderResult"
+    },
+    {
+      "evidence": {
+        "line": 150,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantProviderTransportTests",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderDefinition"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantProviderTransportTests",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderKind"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantProviderTransportTests",
+      "target": "type:Forge.Application.Assistant.AssistantProviderRegistry"
+    },
+    {
+      "evidence": {
+        "line": 173,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantProviderTransportTests",
+      "target": "type:Forge.Application.Assistant.AssistantProviderRequest"
+    },
+    {
+      "evidence": {
+        "line": 86,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantProviderTransportTests",
+      "target": "type:Forge.Application.Assistant.AssistantProviderTransportException"
+    },
+    {
+      "evidence": {
+        "line": 186,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantProviderTransportTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 8,
         "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
       },
       "kind": "defined_in",
@@ -53159,6 +54338,177 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
       "target": "type:Forge.Domain.Assistant.AssistantWorkspaceProfile"
+    },
+    {
+      "evidence": {
+        "line": 218,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Assistant.BlockingHandler",
+      "target": "file:tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "file:tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "handler:Forge.Application.Assistant.SetLoreIndexHandler"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "model:Forge.Application.Assistant.SetLoreIndexCommand"
+    },
+    {
+      "evidence": {
+        "line": 78,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 109,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 110,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "model:Forge.Domain.Assistant.LoreEntryDefinition"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "model:Forge.Domain.Assistant.LoreEntryKind"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 107,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 115,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "type:Forge.Application.Assistant.LoreContextAssembler"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "type:Forge.Application.Assistant.LoreIndexCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "type:Forge.Application.Assistant.LoreRetrievalIndex"
+    },
+    {
+      "evidence": {
+        "line": 83,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "target": "validator:Forge.Application.Assistant.LoreIndexProjectValidator"
+    },
+    {
+      "evidence": {
+        "line": 192,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Assistant.RecordingHandler",
+      "target": "file:tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
     },
     {
       "evidence": {
@@ -60686,6 +62036,51 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Assistant.LoreIndexTests",
+      "target": "file:tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assistant.LoreIndexTests",
+      "target": "model:Forge.Domain.Assistant.LoreEntryDefinition"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assistant.LoreIndexTests",
+      "target": "model:Forge.Domain.Assistant.LoreEntryKind"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assistant.LoreIndexTests",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assistant.LoreIndexTests",
+      "target": "validator:Forge.Domain.Assistant.LoreIndexValidator"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
       },
@@ -65384,7 +66779,7 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 25,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -65393,7 +66788,7 @@
     },
     {
       "evidence": {
-        "line": 231,
+        "line": 282,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65402,7 +66797,7 @@
     },
     {
       "evidence": {
-        "line": 123,
+        "line": 174,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65411,7 +66806,7 @@
     },
     {
       "evidence": {
-        "line": 124,
+        "line": 175,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65420,7 +66815,7 @@
     },
     {
       "evidence": {
-        "line": 585,
+        "line": 636,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65429,7 +66824,34 @@
     },
     {
       "evidence": {
-        "line": 477,
+        "line": 33,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Assistant.LoreEntryDefinition"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Assistant.LoreEntryKind"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 528,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65438,7 +66860,7 @@
     },
     {
       "evidence": {
-        "line": 128,
+        "line": 179,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65447,7 +66869,16 @@
     },
     {
       "evidence": {
-        "line": 424,
+        "line": 40,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 475,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65456,7 +66887,7 @@
     },
     {
       "evidence": {
-        "line": 400,
+        "line": 451,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65465,7 +66896,7 @@
     },
     {
       "evidence": {
-        "line": 271,
+        "line": 322,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65474,7 +66905,7 @@
     },
     {
       "evidence": {
-        "line": 307,
+        "line": 358,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65483,7 +66914,7 @@
     },
     {
       "evidence": {
-        "line": 311,
+        "line": 362,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65492,7 +66923,7 @@
     },
     {
       "evidence": {
-        "line": 313,
+        "line": 364,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65501,7 +66932,7 @@
     },
     {
       "evidence": {
-        "line": 312,
+        "line": 363,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65510,7 +66941,7 @@
     },
     {
       "evidence": {
-        "line": 312,
+        "line": 363,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65519,7 +66950,7 @@
     },
     {
       "evidence": {
-        "line": 316,
+        "line": 367,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65528,7 +66959,7 @@
     },
     {
       "evidence": {
-        "line": 316,
+        "line": 367,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65537,7 +66968,7 @@
     },
     {
       "evidence": {
-        "line": 308,
+        "line": 359,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65546,7 +66977,7 @@
     },
     {
       "evidence": {
-        "line": 308,
+        "line": 359,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65555,7 +66986,7 @@
     },
     {
       "evidence": {
-        "line": 138,
+        "line": 189,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65564,7 +66995,7 @@
     },
     {
       "evidence": {
-        "line": 200,
+        "line": 251,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65573,7 +67004,7 @@
     },
     {
       "evidence": {
-        "line": 248,
+        "line": 299,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65582,7 +67013,7 @@
     },
     {
       "evidence": {
-        "line": 47,
+        "line": 98,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65591,7 +67022,7 @@
     },
     {
       "evidence": {
-        "line": 552,
+        "line": 603,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65600,7 +67031,7 @@
     },
     {
       "evidence": {
-        "line": 581,
+        "line": 632,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65609,7 +67040,7 @@
     },
     {
       "evidence": {
-        "line": 575,
+        "line": 626,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65618,7 +67049,7 @@
     },
     {
       "evidence": {
-        "line": 573,
+        "line": 624,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65627,7 +67058,7 @@
     },
     {
       "evidence": {
-        "line": 561,
+        "line": 612,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65636,7 +67067,7 @@
     },
     {
       "evidence": {
-        "line": 582,
+        "line": 633,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65645,7 +67076,16 @@
     },
     {
       "evidence": {
-        "line": 341,
+        "line": 56,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 392,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65654,7 +67094,7 @@
     },
     {
       "evidence": {
-        "line": 343,
+        "line": 394,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65663,7 +67103,7 @@
     },
     {
       "evidence": {
-        "line": 340,
+        "line": 391,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65672,7 +67112,7 @@
     },
     {
       "evidence": {
-        "line": 339,
+        "line": 390,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65681,7 +67121,7 @@
     },
     {
       "evidence": {
-        "line": 376,
+        "line": 427,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65690,7 +67130,7 @@
     },
     {
       "evidence": {
-        "line": 376,
+        "line": 427,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65699,7 +67139,7 @@
     },
     {
       "evidence": {
-        "line": 375,
+        "line": 426,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65708,7 +67148,7 @@
     },
     {
       "evidence": {
-        "line": 369,
+        "line": 420,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65717,7 +67157,7 @@
     },
     {
       "evidence": {
-        "line": 370,
+        "line": 421,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65726,7 +67166,7 @@
     },
     {
       "evidence": {
-        "line": 372,
+        "line": 423,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65735,7 +67175,7 @@
     },
     {
       "evidence": {
-        "line": 370,
+        "line": 421,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65744,7 +67184,7 @@
     },
     {
       "evidence": {
-        "line": 424,
+        "line": 475,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65753,7 +67193,7 @@
     },
     {
       "evidence": {
-        "line": 426,
+        "line": 477,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65762,7 +67202,7 @@
     },
     {
       "evidence": {
-        "line": 402,
+        "line": 453,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65771,7 +67211,7 @@
     },
     {
       "evidence": {
-        "line": 277,
+        "line": 328,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65780,7 +67220,7 @@
     },
     {
       "evidence": {
-        "line": 271,
+        "line": 322,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65789,7 +67229,7 @@
     },
     {
       "evidence": {
-        "line": 275,
+        "line": 326,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65798,7 +67238,7 @@
     },
     {
       "evidence": {
-        "line": 310,
+        "line": 361,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65807,7 +67247,7 @@
     },
     {
       "evidence": {
-        "line": 309,
+        "line": 360,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65816,7 +67256,7 @@
     },
     {
       "evidence": {
-        "line": 318,
+        "line": 369,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65825,7 +67265,7 @@
     },
     {
       "evidence": {
-        "line": 314,
+        "line": 365,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65834,7 +67274,7 @@
     },
     {
       "evidence": {
-        "line": 314,
+        "line": 365,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65843,7 +67283,7 @@
     },
     {
       "evidence": {
-        "line": 122,
+        "line": 173,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65852,7 +67292,7 @@
     },
     {
       "evidence": {
-        "line": 159,
+        "line": 210,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65861,7 +67301,7 @@
     },
     {
       "evidence": {
-        "line": 192,
+        "line": 243,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65870,7 +67310,7 @@
     },
     {
       "evidence": {
-        "line": 500,
+        "line": 551,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65879,7 +67319,7 @@
     },
     {
       "evidence": {
-        "line": 536,
+        "line": 587,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65888,7 +67328,7 @@
     },
     {
       "evidence": {
-        "line": 447,
+        "line": 498,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65897,7 +67337,7 @@
     },
     {
       "evidence": {
-        "line": 404,
+        "line": 455,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65906,7 +67346,7 @@
     },
     {
       "evidence": {
-        "line": 319,
+        "line": 370,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65915,7 +67355,7 @@
     },
     {
       "evidence": {
-        "line": 347,
+        "line": 398,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65924,7 +67364,16 @@
     },
     {
       "evidence": {
-        "line": 379,
+        "line": 52,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Mcp.Projects.LoreIndexPlanRequest"
+    },
+    {
+      "evidence": {
+        "line": 430,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65933,7 +67382,7 @@
     },
     {
       "evidence": {
-        "line": 429,
+        "line": 480,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65942,7 +67391,7 @@
     },
     {
       "evidence": {
-        "line": 278,
+        "line": 329,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65951,7 +67400,7 @@
     },
     {
       "evidence": {
-        "line": 518,
+        "line": 569,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65960,7 +67409,7 @@
     },
     {
       "evidence": {
-        "line": 554,
+        "line": 605,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65969,7 +67418,7 @@
     },
     {
       "evidence": {
-        "line": 187,
+        "line": 238,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65978,7 +67427,7 @@
     },
     {
       "evidence": {
-        "line": 122,
+        "line": 173,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65987,7 +67436,7 @@
     },
     {
       "evidence": {
-        "line": 507,
+        "line": 558,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -65996,7 +67445,7 @@
     },
     {
       "evidence": {
-        "line": 141,
+        "line": 192,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -70349,6 +71798,51 @@
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
       "target": "type:Forge.ModuleFormat.Workspaces.EditorWorkspaceProfileStore"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.LoreIndexStoreTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.LoreIndexStoreTests",
+      "target": "model:Forge.Domain.Assistant.LoreEntryDefinition"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.LoreIndexStoreTests",
+      "target": "model:Forge.Domain.Assistant.LoreEntryKind"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.LoreIndexStoreTests",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.LoreIndexStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.LoreIndexStore"
     },
     {
       "evidence": {
@@ -76436,6 +77930,24 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Assistant/AssistantProviderTransport.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.AssistantProviderTransport",
+      "target": "file:src/Forge.Application/Assistant/AssistantProviderTransport.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/AssistantProviderTransportException.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.AssistantProviderTransportException",
+      "target": "file:src/Forge.Application/Assistant/AssistantProviderTransportException.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs"
       },
@@ -76478,6 +77990,105 @@
       "kind": "defined_in",
       "source": "type:Forge.Application.Assistant.IAssistantProviderFactory",
       "target": "file:src/Forge.Application/Assistant/IAssistantProviderFactory.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Assistant/LoreContextAssembler.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.LoreContextAssembler",
+      "target": "file:src/Forge.Application/Assistant/LoreContextAssembler.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/LoreContextPacket.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.LoreContextPacket",
+      "target": "file:src/Forge.Application/Assistant/LoreContextPacket.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/LoreIndexCommandHistory.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.LoreIndexCommandHistory",
+      "target": "file:src/Forge.Application/Assistant/LoreIndexCommandHistory.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/LoreIndexRevision.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.LoreIndexRevision",
+      "target": "file:src/Forge.Application/Assistant/LoreIndexRevision.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/LoreProjectSource.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.LoreProjectSource",
+      "target": "file:src/Forge.Application/Assistant/LoreProjectSource.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/LoreProjectSourceCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.LoreProjectSourceCatalog",
+      "target": "file:src/Forge.Application/Assistant/LoreProjectSourceCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.LoreRetrievalIndex",
+      "target": "file:src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Assistant/OllamaAssistantProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.OllamaAssistantProvider",
+      "target": "file:src/Forge.Application/Assistant/OllamaAssistantProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/OllamaAssistantProviderFactory.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.OllamaAssistantProviderFactory",
+      "target": "file:src/Forge.Application/Assistant/OllamaAssistantProviderFactory.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Assistant/OpenAiCompatibleAssistantProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.OpenAiCompatibleAssistantProvider",
+      "target": "file:src/Forge.Application/Assistant/OpenAiCompatibleAssistantProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/OpenAiCompatibleAssistantProviderFactory.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.OpenAiCompatibleAssistantProviderFactory",
+      "target": "file:src/Forge.Application/Assistant/OpenAiCompatibleAssistantProviderFactory.cs"
     },
     {
       "evidence": {
@@ -80963,6 +82574,33 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.LoreContextResource",
+      "target": "file:src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.LoreIndexPlanRequest",
+      "target": "file:src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.LoreIndexResource",
+      "target": "file:src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.Mcp/Projects/RulesProfileContracts.cs"
       },
@@ -81017,7 +82655,7 @@
     },
     {
       "evidence": {
-        "line": 1616,
+        "line": 1890,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -81026,7 +82664,7 @@
     },
     {
       "evidence": {
-        "line": 1536,
+        "line": 1810,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -81035,7 +82673,7 @@
     },
     {
       "evidence": {
-        "line": 1577,
+        "line": 1851,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -81044,7 +82682,7 @@
     },
     {
       "evidence": {
-        "line": 1509,
+        "line": 1766,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -81053,7 +82691,7 @@
     },
     {
       "evidence": {
-        "line": 1590,
+        "line": 1864,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -81062,7 +82700,16 @@
     },
     {
       "evidence": {
-        "line": 1603,
+        "line": 1793,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.StoredLoreIndexPlan",
+      "target": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
+      "evidence": {
+        "line": 1877,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -81071,7 +82718,7 @@
     },
     {
       "evidence": {
-        "line": 1629,
+        "line": 1903,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -81080,7 +82727,7 @@
     },
     {
       "evidence": {
-        "line": 1553,
+        "line": 1827,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -82139,6 +83786,15 @@
       "kind": "defined_in",
       "source": "type:Forge.ModuleFormat.Workspaces.EditorWorkspaceProfileStore",
       "target": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Workspaces.LoreIndexStore",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
     },
     {
       "evidence": {
@@ -86165,6 +87821,15 @@
     },
     {
       "evidence": {
+        "line": 9,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.LoreIndexWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ModuleConfigurationWindow.cs"
       },
@@ -86201,7 +87866,7 @@
     },
     {
       "evidence": {
-        "line": 8246,
+        "line": 8388,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -86318,7 +87983,7 @@
     },
     {
       "evidence": {
-        "line": 8251,
+        "line": 8393,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -86327,7 +87992,7 @@
     },
     {
       "evidence": {
-        "line": 8256,
+        "line": 8398,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -86387,6 +88052,42 @@
       "kind": "defined_in",
       "source": "type:tools.asset_pipeline.blender_worker.WorkerError",
       "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Application.Assistant.LoreIndexProjectValidator",
+      "target": "file:src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Application.Assistant.LoreIndexProjectValidator",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Application.Assistant.LoreIndexProjectValidator",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Application.Assistant.LoreIndexProjectValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
     },
     {
       "evidence": {
@@ -86575,6 +88276,42 @@
       },
       "kind": "validates",
       "source": "validator:Forge.Domain.Assistant.AssistantWorkspaceProfileValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Assistant/LoreIndexValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Assistant.LoreIndexValidator",
+      "target": "file:src/Forge.Domain/Assistant/LoreIndexValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.Domain/Assistant/LoreIndexValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assistant.LoreIndexValidator",
+      "target": "model:Forge.Domain.Assistant.LoreEntryDefinition"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Domain/Assistant/LoreIndexValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assistant.LoreIndexValidator",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Domain/Assistant/LoreIndexValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assistant.LoreIndexValidator",
       "target": "model:Forge.Domain.Validation.DomainDiagnostic"
     },
     {
@@ -87272,8 +89009,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:e0deb6d864a43283b8d5fcbabf7ac57ee800ef2296e53af4edc12a0b2dd5884e",
-    "source_file_count": 1605
+    "source_digest": "sha256:ff9f54c6d9a205e9df749c24002642bc0db75844c00f06ad662e3ec25ddf30f5",
+    "source_file_count": 1637
   },
   "nodes": [
     {
@@ -87635,6 +89372,16 @@
       },
       "name": "LocalizationCatalogIdJsonConverter",
       "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.LoreIndexJsonSerializer",
+      "kind": "adapter",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "LoreIndexJsonSerializer",
+      "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
     },
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.ModuleDistributionConfigurationIdJsonConverter",
@@ -90327,6 +92074,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/ModuleConfigurationWindow.cs",
       "kind": "file",
       "line": 1,
@@ -91755,6 +93512,16 @@
       },
       "name": "G12-A-INTEGRATED-ASSISTANT-PROVIDERS-PROMPTS.md",
       "path": "docs/aurora-parity/tasks/G12-A-INTEGRATED-ASSISTANT-PROVIDERS-PROMPTS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G12-B-LOCAL-PROVIDERS-LORE-INDEX.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G12-B-LOCAL-PROVIDERS-LORE-INDEX.md",
+      "path": "docs/aurora-parity/tasks/G12-B-LOCAL-PROVIDERS-LORE-INDEX.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -93377,6 +95144,26 @@
       "path": "src/Forge.Application/Assistant/AssistantProviderResponse.cs"
     },
     {
+      "id": "file:src/Forge.Application/Assistant/AssistantProviderTransport.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantProviderTransport.cs",
+      "path": "src/Forge.Application/Assistant/AssistantProviderTransport.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantProviderTransportException.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantProviderTransportException.cs",
+      "path": "src/Forge.Application/Assistant/AssistantProviderTransportException.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs",
       "kind": "file",
       "line": 1,
@@ -93457,6 +95244,156 @@
       "path": "src/Forge.Application/Assistant/IAssistantProviderFactory.cs"
     },
     {
+      "id": "file:src/Forge.Application/Assistant/LoreContextAssembler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreContextAssembler.cs",
+      "path": "src/Forge.Application/Assistant/LoreContextAssembler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/LoreContextPacket.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreContextPacket.cs",
+      "path": "src/Forge.Application/Assistant/LoreContextPacket.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/LoreIndexCommandHistory.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexCommandHistory.cs",
+      "path": "src/Forge.Application/Assistant/LoreIndexCommandHistory.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/LoreIndexCommandResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexCommandResult.cs",
+      "path": "src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/LoreIndexProjectValidator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexProjectValidator.cs",
+      "path": "src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/LoreIndexRevision.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexRevision.cs",
+      "path": "src/Forge.Application/Assistant/LoreIndexRevision.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/LoreIndexState.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexState.cs",
+      "path": "src/Forge.Application/Assistant/LoreIndexState.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/LoreProjectSource.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreProjectSource.cs",
+      "path": "src/Forge.Application/Assistant/LoreProjectSource.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/LoreProjectSourceCatalog.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreProjectSourceCatalog.cs",
+      "path": "src/Forge.Application/Assistant/LoreProjectSourceCatalog.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/LoreRetrievalIndex.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreRetrievalIndex.cs",
+      "path": "src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/LoreRetrievalResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreRetrievalResult.cs",
+      "path": "src/Forge.Application/Assistant/LoreRetrievalResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/OllamaAssistantProvider.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "OllamaAssistantProvider.cs",
+      "path": "src/Forge.Application/Assistant/OllamaAssistantProvider.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/OllamaAssistantProviderFactory.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "OllamaAssistantProviderFactory.cs",
+      "path": "src/Forge.Application/Assistant/OllamaAssistantProviderFactory.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/OpenAiCompatibleAssistantProvider.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "OpenAiCompatibleAssistantProvider.cs",
+      "path": "src/Forge.Application/Assistant/OpenAiCompatibleAssistantProvider.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/OpenAiCompatibleAssistantProviderFactory.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "OpenAiCompatibleAssistantProviderFactory.cs",
+      "path": "src/Forge.Application/Assistant/OpenAiCompatibleAssistantProviderFactory.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs",
       "kind": "file",
       "line": 1,
@@ -93475,6 +95412,26 @@
       },
       "name": "SetAssistantWorkspaceProfileHandler.cs",
       "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/SetLoreIndexCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetLoreIndexCommand.cs",
+      "path": "src/Forge.Application/Assistant/SetLoreIndexCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/SetLoreIndexHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetLoreIndexHandler.cs",
+      "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs",
@@ -95545,6 +97502,46 @@
       },
       "name": "AssistantWorkspaceProfileValidator.cs",
       "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/LoreEntryDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreEntryDefinition.cs",
+      "path": "src/Forge.Domain/Assistant/LoreEntryDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/LoreEntryKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreEntryKind.cs",
+      "path": "src/Forge.Domain/Assistant/LoreEntryKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/LoreIndexDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexDefinition.cs",
+      "path": "src/Forge.Domain/Assistant/LoreIndexDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/LoreIndexValidator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexValidator.cs",
+      "path": "src/Forge.Domain/Assistant/LoreIndexValidator.cs"
     },
     {
       "id": "file:src/Forge.Domain/Authoring/EditorCameraBookmark.cs",
@@ -98417,6 +100414,16 @@
       "path": "src/Forge.Mcp/Projects/GameplayControlContracts.cs"
     },
     {
+      "id": "file:src/Forge.Mcp/Projects/LoreIndexContracts.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexContracts.cs",
+      "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+    },
+    {
       "id": "file:src/Forge.Mcp/Projects/RulesProfileContracts.cs",
       "kind": "file",
       "line": 1,
@@ -99217,6 +101224,16 @@
       "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexJsonSerializer.cs",
+      "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs",
       "kind": "file",
       "line": 1,
@@ -99345,6 +101362,16 @@
       },
       "name": "EditorWorkspaceProfileStore.cs",
       "path": "src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexStore.cs",
+      "path": "src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
     },
     {
       "id": "file:src/Forge.ModuleFormat/Workspaces/ProjectSession.cs",
@@ -100717,6 +102744,16 @@
       "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantProviderTransportTests.cs",
+      "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs",
       "kind": "file",
       "line": 1,
@@ -100725,6 +102762,16 @@
       },
       "name": "AssistantWorkspaceProfileCommandTests.cs",
       "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexWorkflowTests.cs",
+      "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs",
@@ -101355,6 +103402,16 @@
       },
       "name": "AssistantWorkspaceProfileTests.cs",
       "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexTests.cs",
+      "path": "tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs",
@@ -102405,6 +104462,16 @@
       },
       "name": "EditorWorkspaceProfileStoreTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "LoreIndexStoreTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ProjectSessionTests.cs",
@@ -105757,6 +107824,16 @@
       "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Assistant.SetLoreIndexHandler",
+      "kind": "handler",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "SetLoreIndexHandler",
+      "path": "src/Forge.Application/Assistant/SetLoreIndexHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
       "kind": "handler",
       "line": 9,
@@ -106447,6 +108524,46 @@
       "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileState.cs"
     },
     {
+      "id": "model:Forge.Application.Assistant.LoreDocument",
+      "kind": "model",
+      "line": 100,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreDocument",
+      "path": "src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+    },
+    {
+      "id": "model:Forge.Application.Assistant.LoreIndexCommandResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreIndexCommandResult",
+      "path": "src/Forge.Application/Assistant/LoreIndexCommandResult.cs"
+    },
+    {
+      "id": "model:Forge.Application.Assistant.LoreIndexState",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreIndexState",
+      "path": "src/Forge.Application/Assistant/LoreIndexState.cs"
+    },
+    {
+      "id": "model:Forge.Application.Assistant.LoreRetrievalResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreRetrievalResult",
+      "path": "src/Forge.Application/Assistant/LoreRetrievalResult.cs"
+    },
+    {
       "id": "model:Forge.Application.Assistant.SetAssistantWorkspaceProfileCommand",
       "kind": "model",
       "line": 6,
@@ -106455,6 +108572,16 @@
       },
       "name": "SetAssistantWorkspaceProfileCommand",
       "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Assistant.SetLoreIndexCommand",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "SetLoreIndexCommand",
+      "path": "src/Forge.Application/Assistant/SetLoreIndexCommand.cs"
     },
     {
       "id": "model:Forge.Application.Blueprints.BlueprintLibraryEntry",
@@ -107375,6 +109502,36 @@
       },
       "name": "AssistantProviderKind",
       "path": "src/Forge.Domain/Assistant/AssistantProviderKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assistant.LoreEntryDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "LoreEntryDefinition",
+      "path": "src/Forge.Domain/Assistant/LoreEntryDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assistant.LoreEntryKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "LoreEntryKind",
+      "path": "src/Forge.Domain/Assistant/LoreEntryKind.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assistant.LoreIndexDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "LoreIndexDefinition",
+      "path": "src/Forge.Domain/Assistant/LoreIndexDefinition.cs"
     },
     {
       "id": "model:Forge.Domain.Authoring.EditorCameraBookmarkId",
@@ -108909,7 +111066,7 @@
     {
       "id": "model:Forge.Mcp.Projects.ForgeProjectAgentOpenResult",
       "kind": "model",
-      "line": 1643,
+      "line": 1917,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -108935,6 +111092,26 @@
       },
       "name": "GameplayControlPlanResult",
       "path": "src/Forge.Mcp/Projects/GameplayControlContracts.cs"
+    },
+    {
+      "id": "model:Forge.Mcp.Projects.LoreIndexAuditEntry",
+      "kind": "model",
+      "line": 41,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "LoreIndexAuditEntry",
+      "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+    },
+    {
+      "id": "model:Forge.Mcp.Projects.LoreIndexPlanResult",
+      "kind": "model",
+      "line": 29,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "LoreIndexPlanResult",
+      "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
     },
     {
       "id": "model:Forge.Mcp.Projects.RulesProfileAuditEntry",
@@ -109507,6 +111684,16 @@
       "path": "src/Forge.ModuleFormat/Serialization/ProjectDocument.cs"
     },
     {
+      "id": "model:Forge.ModuleFormat.Serialization.LoreIndexDocument",
+      "kind": "model",
+      "line": 45,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "LoreIndexDocument",
+      "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
+    },
+    {
       "id": "model:Forge.ModuleFormat.Serialization.ProjectDocument",
       "kind": "model",
       "line": 10,
@@ -109575,6 +111762,16 @@
       },
       "name": "EditorCameraProfileLoadResult",
       "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Workspaces.LoreIndexLoadResult",
+      "kind": "model",
+      "line": 92,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "LoreIndexLoadResult",
+      "path": "src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
     },
     {
       "id": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic",
@@ -112917,7 +115114,7 @@
     {
       "id": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "kind": "service",
-      "line": 29,
+      "line": 31,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -113825,6 +116022,16 @@
       "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Assistant.AssistantProviderTransportTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Assistant"
+      },
+      "name": "AssistantProviderTransportTests",
+      "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
       "kind": "test",
       "line": 8,
@@ -113833,6 +116040,36 @@
       },
       "name": "AssistantWorkspaceProfileCommandTests",
       "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Assistant.BlockingHandler",
+      "kind": "test",
+      "line": 218,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Assistant"
+      },
+      "name": "BlockingHandler",
+      "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Assistant.LoreIndexWorkflowTests",
+      "kind": "test",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Assistant"
+      },
+      "name": "LoreIndexWorkflowTests",
+      "path": "tests/Forge.Application.Tests/Assistant/LoreIndexWorkflowTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Assistant.RecordingHandler",
+      "kind": "test",
+      "line": 192,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Assistant"
+      },
+      "name": "RecordingHandler",
+      "path": "tests/Forge.Application.Tests/Assistant/AssistantProviderTransportTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
@@ -114475,6 +116712,16 @@
       "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Assistant.LoreIndexTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Assistant"
+      },
+      "name": "LoreIndexTests",
+      "path": "tests/Forge.Domain.Tests/Assistant/LoreIndexTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
       "kind": "test",
       "line": 6,
@@ -115017,7 +117264,7 @@
     {
       "id": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
       "kind": "test",
-      "line": 24,
+      "line": 25,
       "metadata": {
         "namespace": "Forge.Mcp.Tests.Projects"
       },
@@ -115503,6 +117750,16 @@
       },
       "name": "EditorWorkspaceProfileStoreTests",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Workspaces.LoreIndexStoreTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Workspaces"
+      },
+      "name": "LoreIndexStoreTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Workspaces.ProjectSessionTests",
@@ -116832,6 +119089,26 @@
       "path": "src/Forge.Application/Assistant/AssistantProviderResponse.cs"
     },
     {
+      "id": "type:Forge.Application.Assistant.AssistantProviderTransport",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantProviderTransport",
+      "path": "src/Forge.Application/Assistant/AssistantProviderTransport.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.AssistantProviderTransportException",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantProviderTransportException",
+      "path": "src/Forge.Application/Assistant/AssistantProviderTransportException.cs"
+    },
+    {
       "id": "type:Forge.Application.Assistant.AssistantWorkspaceProfileCommandHistory",
       "kind": "type",
       "line": 5,
@@ -116880,6 +119157,116 @@
       },
       "name": "IAssistantProviderFactory",
       "path": "src/Forge.Application/Assistant/IAssistantProviderFactory.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.LoreContextAssembler",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreContextAssembler",
+      "path": "src/Forge.Application/Assistant/LoreContextAssembler.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.LoreContextPacket",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreContextPacket",
+      "path": "src/Forge.Application/Assistant/LoreContextPacket.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.LoreIndexCommandHistory",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreIndexCommandHistory",
+      "path": "src/Forge.Application/Assistant/LoreIndexCommandHistory.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.LoreIndexRevision",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreIndexRevision",
+      "path": "src/Forge.Application/Assistant/LoreIndexRevision.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.LoreProjectSource",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreProjectSource",
+      "path": "src/Forge.Application/Assistant/LoreProjectSource.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.LoreProjectSourceCatalog",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreProjectSourceCatalog",
+      "path": "src/Forge.Application/Assistant/LoreProjectSourceCatalog.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.LoreRetrievalIndex",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreRetrievalIndex",
+      "path": "src/Forge.Application/Assistant/LoreRetrievalIndex.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.OllamaAssistantProvider",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "OllamaAssistantProvider",
+      "path": "src/Forge.Application/Assistant/OllamaAssistantProvider.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.OllamaAssistantProviderFactory",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "OllamaAssistantProviderFactory",
+      "path": "src/Forge.Application/Assistant/OllamaAssistantProviderFactory.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.OpenAiCompatibleAssistantProvider",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "OpenAiCompatibleAssistantProvider",
+      "path": "src/Forge.Application/Assistant/OpenAiCompatibleAssistantProvider.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.OpenAiCompatibleAssistantProviderFactory",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "OpenAiCompatibleAssistantProviderFactory",
+      "path": "src/Forge.Application/Assistant/OpenAiCompatibleAssistantProviderFactory.cs"
     },
     {
       "id": "type:Forge.Application.Blueprints.BlueprintLibraryIndex",
@@ -121802,6 +124189,36 @@
       "path": "src/Forge.Mcp/Projects/DocumentationContracts.cs"
     },
     {
+      "id": "type:Forge.Mcp.Projects.LoreContextResource",
+      "kind": "type",
+      "line": 12,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "LoreContextResource",
+      "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Projects.LoreIndexPlanRequest",
+      "kind": "type",
+      "line": 23,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "LoreIndexPlanRequest",
+      "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Projects.LoreIndexResource",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "LoreIndexResource",
+      "path": "src/Forge.Mcp/Projects/LoreIndexContracts.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Projects.RulesProfilePlanRequest",
       "kind": "type",
       "line": 9,
@@ -121864,7 +124281,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAreaExperiencePlan",
       "kind": "type",
-      "line": 1616,
+      "line": 1890,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -121874,7 +124291,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssetInstallPlan",
       "kind": "type",
-      "line": 1536,
+      "line": 1810,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -121884,7 +124301,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredCinematicPlan",
       "kind": "type",
-      "line": 1577,
+      "line": 1851,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -121894,7 +124311,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredDialoguePlan",
       "kind": "type",
-      "line": 1509,
+      "line": 1766,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -121904,7 +124321,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredGameplayControlPlan",
       "kind": "type",
-      "line": 1590,
+      "line": 1864,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -121912,9 +124329,19 @@
       "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
     },
     {
+      "id": "type:Forge.Mcp.Projects.StoredLoreIndexPlan",
+      "kind": "type",
+      "line": 1793,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "StoredLoreIndexPlan",
+      "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Projects.StoredRulesProfilePlan",
       "kind": "type",
-      "line": 1603,
+      "line": 1877,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -121924,7 +124351,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimeExtensionPlan",
       "kind": "type",
-      "line": 1629,
+      "line": 1903,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -121934,7 +124361,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimePolicyPlan",
       "kind": "type",
-      "line": 1553,
+      "line": 1827,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -123050,6 +125477,16 @@
       },
       "name": "EditorWorkspaceProfileStore",
       "path": "src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Workspaces.LoreIndexStore",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "LoreIndexStore",
+      "path": "src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs"
     },
     {
       "id": "type:Forge.ModuleFormat.Workspaces.ProjectSession",
@@ -127282,6 +129719,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/LocalizationWorkspaceWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.LoreIndexWindow",
+      "kind": "type",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "LoreIndexWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/LoreIndexWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.ModuleConfigurationWindow",
       "kind": "type",
       "line": 8,
@@ -127314,7 +129761,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 8246,
+      "line": 8388,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -127404,7 +129851,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 8251,
+      "line": 8393,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -127414,7 +129861,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 8256,
+      "line": 8398,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -127480,6 +129927,16 @@
       },
       "name": "WorkerError",
       "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "id": "validator:Forge.Application.Assistant.LoreIndexProjectValidator",
+      "kind": "validator",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "LoreIndexProjectValidator",
+      "path": "src/Forge.Application/Assistant/LoreIndexProjectValidator.cs"
     },
     {
       "id": "validator:Forge.Application.Spatial.PlacementValidator",
@@ -127550,6 +130007,16 @@
       },
       "name": "AssistantWorkspaceProfileValidator",
       "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Assistant.LoreIndexValidator",
+      "kind": "validator",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "LoreIndexValidator",
+      "path": "src/Forge.Domain/Assistant/LoreIndexValidator.cs"
     },
     {
       "id": "validator:Forge.Domain.Dialogues.DialogueValidator",

@@ -15,6 +15,7 @@ public partial class AssistantWorkspaceWindow : Window
     private Func<AssistantWorkspaceProfile, Guid, bool, bool>? _apply;
     private Func<bool>? _undo;
     private Func<bool>? _redo;
+    private Action? _openLore;
     private Action? _openLocalization;
     private Action<Window>? _brandWindow;
     private AssistantWorkspaceProfile? _source;
@@ -36,12 +37,19 @@ public partial class AssistantWorkspaceWindow : Window
     private Label? _context;
     private RichTextLabel? _preview;
     private Label? _status;
+    private Button? _previewButton;
     private Button? _applyButton;
     private bool _suppressSignals;
+    private readonly System.Net.Http.HttpClient _providerHttpClient = new(
+        new System.Net.Http.SocketsHttpHandler { AllowAutoRedirect = false })
+    {
+        Timeout = Timeout.InfiniteTimeSpan,
+    };
 
     public string PromptVersion => _getAssistant?.Invoke()?.Profile.Prompts.FirstOrDefault()?.Version ?? string.Empty;
     public string LastPromptHash { get; private set; } = string.Empty;
     public bool LastPreviewWasOffline { get; private set; }
+    public decimal LastProviderCost { get; private set; }
 
     public void Initialize(
         Func<ProjectState?> getProject,
@@ -50,6 +58,7 @@ public partial class AssistantWorkspaceWindow : Window
         Func<AssistantWorkspaceProfile, Guid, bool, bool> apply,
         Func<bool> undo,
         Func<bool> redo,
+        Action openLore,
         Action openLocalization,
         Action<Window> brandWindow)
     {
@@ -59,6 +68,7 @@ public partial class AssistantWorkspaceWindow : Window
         _apply = apply ?? throw new ArgumentNullException(nameof(apply));
         _undo = undo ?? throw new ArgumentNullException(nameof(undo));
         _redo = redo ?? throw new ArgumentNullException(nameof(redo));
+        _openLore = openLore ?? throw new ArgumentNullException(nameof(openLore));
         _openLocalization = openLocalization ?? throw new ArgumentNullException(nameof(openLocalization));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assistant de création · OpenRPG Forge";
@@ -117,7 +127,7 @@ public partial class AssistantWorkspaceWindow : Window
         return true;
     }
 
-    public bool PreviewForSmokeTest() => Preview();
+    public bool PreviewForSmokeTest() => PreviewAsync().GetAwaiter().GetResult();
 
     public bool ApplyForSmokeTest()
     {
@@ -207,15 +217,18 @@ public partial class AssistantWorkspaceWindow : Window
         var localization = new Button { Text = "Localisation" };
         localization.Pressed += () => _openLocalization?.Invoke();
         footer.AddChild(localization);
+        var lore = new Button { Text = "Index de lore" };
+        lore.Pressed += () => _openLore?.Invoke();
+        footer.AddChild(lore);
         var undo = new Button { Text = "Annuler" };
         undo.Pressed += () => { if (_undo?.Invoke() == true) Refresh(); };
         footer.AddChild(undo);
         var redo = new Button { Text = "Rétablir" };
         redo.Pressed += () => { if (_redo?.Invoke() == true) Refresh(); };
         footer.AddChild(redo);
-        var preview = new Button { Text = "Prévisualiser", CustomMinimumSize = new Vector2(140, 42) };
-        preview.Pressed += () => Preview();
-        footer.AddChild(preview);
+        _previewButton = new Button { Text = "Prévisualiser", CustomMinimumSize = new Vector2(140, 42) };
+        _previewButton.Pressed += async () => await PreviewAsync();
+        footer.AddChild(_previewButton);
         _applyButton = new Button { Text = "Appliquer le profil", Disabled = true, CustomMinimumSize = new Vector2(170, 42) };
         _applyButton.AddThemeColorOverride("font_color", Colors.White);
         _applyButton.AddThemeStyleboxOverride("normal", Card("d84f32", "ff8b63", 1, 8));
@@ -235,8 +248,9 @@ public partial class AssistantWorkspaceWindow : Window
         _shareProjectContent.Toggled += _ => InvalidatePreview();
     }
 
-    private bool Preview()
+    private async Task<bool> PreviewAsync()
     {
+        if (_previewButton is not null) _previewButton.Disabled = true;
         try
         {
             var draft = BuildDraft();
@@ -257,8 +271,8 @@ public partial class AssistantWorkspaceWindow : Window
             var selection = _getSelection!.Invoke().FirstOrDefault();
             var rendered = AssistantPromptRenderer.Render(prompt, new Dictionary<string, string>
             {
-                ["project.title"] = project.Project.Title,
-                ["selection.kind"] = selection?.Kind.ToString() ?? "None",
+                ["project.title"] = draft.ShareProjectContent ? project.Project.Title : "[contenu projet masqué]",
+                ["selection.kind"] = draft.ShareProjectContent ? selection?.Kind.ToString() ?? "None" : "Hidden",
                 ["request.text"] = _request!.Text.Trim(),
             });
             var planId = Guid.NewGuid();
@@ -267,37 +281,48 @@ public partial class AssistantWorkspaceWindow : Window
                 SetStatus("Le plan de configuration a été refusé par la commande de domaine.", true);
                 return false;
             }
-            string providerPreview;
             LastPreviewWasOffline = draft.ActiveProvider.Kind == AssistantProviderKind.DeterministicOffline;
-            if (LastPreviewWasOffline)
-            {
-                var response = new AssistantProviderRegistry().Resolve(draft.ActiveProvider)
-                    .GenerateAsync(new AssistantProviderRequest(
-                        planId, Guid.NewGuid(), rendered, AssistantPermissionLevel.Propose,
-                        draft.ActiveProvider.MaximumOutputTokens))
-                    .GetAwaiter().GetResult();
-                providerPreview = response.Content;
-            }
-            else
-            {
-                providerPreview = "Provider configuré. Aucun appel réseau n'est effectué pendant la prévisualisation du profil.";
-            }
+            var registry = LastPreviewWasOffline
+                ? new AssistantProviderRegistry()
+                : AssistantProviderRegistry.CreateWithLocalTransports(
+                    _providerHttpClient,
+                    requestTimeout: TimeSpan.FromSeconds(30));
+            var response = await registry.Resolve(draft.ActiveProvider).GenerateAsync(new AssistantProviderRequest(
+                planId,
+                Guid.NewGuid(),
+                rendered,
+                AssistantPermissionLevel.Propose,
+                draft.ActiveProvider.MaximumOutputTokens,
+                draft.NetworkAllowed,
+                draft.ShareProjectContent));
             _approved = draft;
             _approvedPlanId = planId;
             LastPromptHash = rendered.ContentSha256;
+            LastProviderCost = response.EstimatedCost;
             _applyButton!.Disabled = false;
             _preview!.Text =
                 $"[color=#83d6ae]PLAN {planId:D}[/color]\n" +
                 $"Provider : {draft.ActiveProvider.DisplayName} · {draft.ActiveProvider.Kind}\n" +
                 $"Prompt : {prompt.Key}@{prompt.Version}\nSHA-256 : {LastPromptHash}\n" +
-                $"Permission : {draft.MaximumPermission} · coût affiché : 0 en mode hors ligne\n\n{providerPreview}";
+                $"Permission : {draft.MaximumPermission} · coût estimé : {response.EstimatedCost:0.########}\n" +
+                $"Tokens : {response.InputTokens} entrée / {response.OutputTokens} sortie\n" +
+                $"Provenance : {response.Provenance}\n\n{response.Content}";
             SetStatus("✓ Plan prévisualisé · aucun fichier ni révision modifié.", false);
             return true;
+        }
+        catch (AssistantProviderTransportException exception)
+        {
+            SetStatus($"{exception.Code} · {exception.Message}", true);
+            return false;
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
         {
             SetStatus(exception.Message, true);
             return false;
+        }
+        finally
+        {
+            if (_previewButton is not null) _previewButton.Disabled = false;
         }
     }
 
@@ -369,6 +394,7 @@ public partial class AssistantWorkspaceWindow : Window
         _applyButton.Disabled = true;
         LastPromptHash = string.Empty;
         LastPreviewWasOffline = false;
+        LastProviderCost = 0;
     }
 
     private void SetStatus(string text, bool error)

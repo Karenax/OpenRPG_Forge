@@ -1,4 +1,5 @@
 using Forge.Application.Commands;
+using Forge.Application.Assistant;
 using Forge.Application.Assets;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
@@ -6,6 +7,7 @@ using Forge.Application.Projects;
 using Forge.Application.Time;
 using Forge.Application.Validation;
 using Forge.Domain.Areas;
+using Forge.Domain.Assistant;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
@@ -48,6 +50,9 @@ public sealed class ForgeProjectAgentService
     private readonly SetAreaExperienceProfileHandler _areaExperienceHandler;
     private readonly SetRuntimeExtensionsHandler _runtimeExtensionsHandler;
     private readonly InstallAssetBlueprintHandler _assetInstallHandler;
+    private readonly SetLoreIndexHandler _loreIndexHandler;
+    private readonly LoreIndexCommandHistory _loreIndexHistory;
+    private readonly List<AgentDiagnostic> _loreLoadDiagnostics;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
@@ -56,6 +61,7 @@ public sealed class ForgeProjectAgentService
     private readonly Dictionary<string, StoredAreaExperiencePlan> _areaExperiencePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimeExtensionPlan> _runtimeExtensionPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssetInstallPlan> _assetInstallPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredLoreIndexPlan> _loreIndexPlans = new(StringComparer.Ordinal);
     private readonly IClock _clock;
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
@@ -72,6 +78,11 @@ public sealed class ForgeProjectAgentService
         _areaExperienceHandler = new SetAreaExperienceProfileHandler(clock);
         _runtimeExtensionsHandler = new SetRuntimeExtensionsHandler(clock);
         _assetInstallHandler = new InstallAssetBlueprintHandler(clock);
+        _loreIndexHandler = new SetLoreIndexHandler(clock);
+        var loreIndex = LoreIndexStore.Load(session.RootDirectory);
+        _loreIndexHistory = new LoreIndexCommandHistory(loreIndex.Index);
+        _loreLoadDiagnostics = loreIndex.Diagnostics.Select(item =>
+            new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
     }
 
     public string WorkspaceDirectory => _session.RootDirectory;
@@ -114,6 +125,214 @@ public sealed class ForgeProjectAgentService
         lock (_gate)
         {
             return _history.State.Revision.Value;
+        }
+    }
+
+    public LoreIndexResource GetLoreIndex()
+    {
+        lock (_gate)
+        {
+            return new LoreIndexResource(
+                1,
+                _loreIndexHistory.State.Revision.Value,
+                _loreIndexHistory.State.Index,
+                _loreLoadDiagnostics.ToArray());
+        }
+    }
+
+    public LoreContextResource QueryLoreIndex(string query, int limit = 8)
+    {
+        if (limit is < 1 or > 50)
+        {
+            return new LoreContextResource(
+                1,
+                _loreIndexHistory.State.Revision.Value,
+                query ?? string.Empty,
+                string.Empty,
+                new string('0', 64),
+                [],
+                0,
+                false,
+                [new AgentDiagnostic("assistant.lore.query_limit_invalid", "Lore query limit must be between 1 and 50.")]);
+        }
+        lock (_gate)
+        {
+            if (_loreLoadDiagnostics.Count > 0)
+            {
+                return new LoreContextResource(
+                    1,
+                    _loreIndexHistory.State.Revision.Value,
+                    query ?? string.Empty,
+                    string.Empty,
+                    new string('0', 64),
+                    [],
+                    0,
+                    false,
+                    _loreLoadDiagnostics.ToArray());
+            }
+            var packet = LoreContextAssembler.Assemble(
+                _loreIndexHistory.State.Index,
+                _history.State.Project,
+                query ?? string.Empty,
+                limit);
+            return new LoreContextResource(
+                1,
+                _loreIndexHistory.State.Revision.Value,
+                packet.Query,
+                packet.Content,
+                packet.ContentSha256,
+                packet.SourceIds,
+                packet.EntryCount,
+                packet.Truncated,
+                []);
+        }
+    }
+
+    public LoreIndexPlanResult PlanLoreIndex(LoreIndexPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
+            {
+                return LoreIndexFailure(
+                    _loreIndexHistory.State.Revision.Value,
+                    "assistant.lore.request_invalid",
+                    "Lore plan request schema or base revision is invalid.");
+            }
+            var planId = Guid.NewGuid();
+            var transactionId = Guid.NewGuid();
+            var command = new SetLoreIndexCommand(
+                CommandId.From(Guid.NewGuid()),
+                transactionId,
+                planId,
+                new LoreIndexRevision(request.BaseRevision),
+                request.Index,
+                request.Permission,
+                DryRun: true);
+            var preview = _loreIndexHandler.Handle(_loreIndexHistory.State, command, _history.State.Project);
+            if (!preview.Succeeded || preview.Patch is null || preview.Inverse is null)
+            {
+                return new LoreIndexPlanResult(
+                    false,
+                    null,
+                    transactionId.ToString("D"),
+                    request.BaseRevision,
+                    null,
+                    null,
+                    preview.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, "assistant/lore-index")).ToArray(),
+                    false,
+                    false,
+                    []);
+            }
+            var planKey = planId.ToString("D");
+            var plan = new StoredLoreIndexPlan(
+                planKey,
+                command,
+                preview.Patch,
+                preview.Inverse,
+                [new LoreIndexAuditEntry(planKey, transactionId.ToString("D"), "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _loreIndexPlans.Add(planKey, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public LoreIndexPlanResult ApplyLoreIndexPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_loreIndexPlans.TryGetValue(planId, out var plan))
+            {
+                return LoreIndexFailure(
+                    _loreIndexHistory.State.Revision.Value,
+                    "assistant.lore.plan_missing",
+                    $"Lore plan '{planId}' does not exist.");
+            }
+            if (plan.Applied)
+            {
+                return LoreIndexFailure(
+                    plan.Command.BaseRevision.Value,
+                    "assistant.lore.plan_already_applied",
+                    $"Lore plan '{planId}' is already applied.");
+            }
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _loreIndexHandler.Handle(_loreIndexHistory.State, command, _history.State.Project);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new LoreIndexAuditEntry(
+                    plan.PlanId,
+                    plan.Command.TransactionId.ToString("D"),
+                    "apply",
+                    _loreIndexHistory.State.Revision.Value,
+                    _clock.UtcNow,
+                    false));
+                return WithFailure(plan, result.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, "assistant/lore-index")).ToArray());
+            }
+            var saved = LoreIndexStore.Save(_session.RootDirectory, result.State.Index);
+            if (!saved.Succeeded)
+            {
+                plan.Audit.Add(new LoreIndexAuditEntry(
+                    plan.PlanId,
+                    plan.Command.TransactionId.ToString("D"),
+                    "apply",
+                    _loreIndexHistory.State.Revision.Value,
+                    _clock.UtcNow,
+                    false));
+                return WithFailure(plan, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            _loreIndexHistory.Record(result);
+            _loreLoadDiagnostics.Clear();
+            plan.Applied = true;
+            plan.AppliedRevision = _loreIndexHistory.State.Revision.Value;
+            plan.Audit.Add(new LoreIndexAuditEntry(
+                plan.PlanId,
+                plan.Command.TransactionId.ToString("D"),
+                "apply",
+                plan.AppliedRevision.Value,
+                _clock.UtcNow,
+                true));
+            return ToResult(plan);
+        }
+    }
+
+    public LoreIndexPlanResult RevertLoreIndexPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_loreIndexPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+            {
+                return LoreIndexFailure(
+                    _loreIndexHistory.State.Revision.Value,
+                    "assistant.lore.plan_not_applied",
+                    $"Lore plan '{planId}' is not currently applied.");
+            }
+            if (plan.AppliedRevision != _loreIndexHistory.State.Revision.Value || !_loreIndexHistory.Undo())
+            {
+                return LoreIndexFailure(
+                    _loreIndexHistory.State.Revision.Value,
+                    "assistant.lore.revert_conflict",
+                    "Lore plan is no longer the latest applied lore mutation.");
+            }
+            var saved = LoreIndexStore.Save(_session.RootDirectory, _loreIndexHistory.State.Index);
+            if (!saved.Succeeded)
+            {
+                _loreIndexHistory.Redo();
+                return WithFailure(plan, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new LoreIndexAuditEntry(
+                plan.PlanId,
+                plan.Command.TransactionId.ToString("D"),
+                "revert",
+                _loreIndexHistory.State.Revision.Value,
+                _clock.UtcNow,
+                true));
+            return ToResult(plan);
         }
     }
 
@@ -1418,6 +1637,44 @@ public sealed class ForgeProjectAgentService
         false,
         []);
 
+    private static LoreIndexPlanResult LoreIndexFailure(long revision, string code, string message) => new(
+        false,
+        null,
+        null,
+        revision,
+        null,
+        null,
+        [new AgentDiagnostic(code, message, "assistant/lore-index")],
+        false,
+        false,
+        []);
+
+    private static LoreIndexPlanResult WithFailure(
+        StoredLoreIndexPlan plan,
+        IReadOnlyList<AgentDiagnostic> diagnostics) => new(
+        false,
+        plan.PlanId,
+        plan.Command.TransactionId.ToString("D"),
+        plan.Command.BaseRevision.Value,
+        plan.Diff,
+        plan.Inverse,
+        diagnostics,
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
+    private static LoreIndexPlanResult ToResult(StoredLoreIndexPlan plan) => new(
+        true,
+        plan.PlanId,
+        plan.Command.TransactionId.ToString("D"),
+        plan.Command.BaseRevision.Value,
+        plan.Diff,
+        plan.Inverse,
+        [],
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
     private static DialoguePlanResult WithFailure(
         StoredDialoguePlan plan,
         IReadOnlyList<AgentDiagnostic> diagnostics) => new(
@@ -1530,6 +1787,23 @@ public sealed class ForgeProjectAgentService
 
         public bool Reverted { get; set; }
 
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredLoreIndexPlan(
+        string planId,
+        SetLoreIndexCommand command,
+        ProjectPatch diff,
+        ProjectPatch inverse,
+        List<LoreIndexAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetLoreIndexCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<LoreIndexAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }
     }
 
