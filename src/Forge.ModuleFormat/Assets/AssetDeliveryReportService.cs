@@ -19,6 +19,7 @@ public static class AssetDeliveryReportService
         string RequiredLicenseSpdx)
     {
         public static Policy ForgottenForestAv5 { get; } = new(605, 605, 28, 44, 16, "CC0-1.0");
+        public static Policy ForgottenForestAv6E { get; } = new(605, 605, 40, 56, 16, "CC0-1.0");
     }
 
     public sealed record FileMetrics(int Files, long Bytes);
@@ -99,7 +100,7 @@ public static class AssetDeliveryReportService
         Policy? policy = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
-        policy ??= Policy.ForgottenForestAv5;
+        policy ??= Policy.ForgottenForestAv6E;
         ValidatePolicy(policy);
 
         vaultRoot = RequireDirectory(vaultRoot, nameof(vaultRoot));
@@ -115,14 +116,14 @@ public static class AssetDeliveryReportService
 
         return new Report(
             CurrentSchemaVersion,
-            "forgotten-forest-av5",
+            "forgotten-forest-av6e",
             catalogMetrics,
             vaultMetrics,
             moduleMetrics,
             performanceMetrics,
             checks,
             checks.All(check => check.Passed),
-            "measured:openrpg-forge:asset-delivery-report@1");
+            "measured:openrpg-forge:asset-delivery-report@2");
     }
 
     public static string RenderMarkdown(Report report)

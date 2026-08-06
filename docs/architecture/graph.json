@@ -21,7 +21,7 @@
       "path": "src/Forge.LiveDirector/World/LiveWorldActionService.cs"
     },
     {
-      "line": 345,
+      "line": 382,
       "message": "Identifiant de nœud ambigu ignoré : type:Forge.ModuleFormat.Assets.SourcePack",
       "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
     },
@@ -1763,7 +1763,7 @@
     },
     {
       "evidence": {
-        "line": 679,
+        "line": 688,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1772,7 +1772,7 @@
     },
     {
       "evidence": {
-        "line": 1492,
+        "line": 1501,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1781,7 +1781,7 @@
     },
     {
       "evidence": {
-        "line": 1557,
+        "line": 1566,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1790,7 +1790,7 @@
     },
     {
       "evidence": {
-        "line": 1857,
+        "line": 1866,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1799,7 +1799,7 @@
     },
     {
       "evidence": {
-        "line": 1557,
+        "line": 1566,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1808,7 +1808,7 @@
     },
     {
       "evidence": {
-        "line": 1606,
+        "line": 1615,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1817,7 +1817,7 @@
     },
     {
       "evidence": {
-        "line": 1810,
+        "line": 1819,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1835,7 +1835,7 @@
     },
     {
       "evidence": {
-        "line": 771,
+        "line": 780,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1844,7 +1844,7 @@
     },
     {
       "evidence": {
-        "line": 1557,
+        "line": 1566,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1853,7 +1853,7 @@
     },
     {
       "evidence": {
-        "line": 1607,
+        "line": 1616,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1862,7 +1862,7 @@
     },
     {
       "evidence": {
-        "line": 1659,
+        "line": 1668,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1871,7 +1871,7 @@
     },
     {
       "evidence": {
-        "line": 1751,
+        "line": 1760,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1889,7 +1889,7 @@
     },
     {
       "evidence": {
-        "line": 1462,
+        "line": 1471,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1898,7 +1898,7 @@
     },
     {
       "evidence": {
-        "line": 1557,
+        "line": 1566,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1907,7 +1907,7 @@
     },
     {
       "evidence": {
-        "line": 1608,
+        "line": 1617,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1916,7 +1916,7 @@
     },
     {
       "evidence": {
-        "line": 1659,
+        "line": 1668,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1925,7 +1925,7 @@
     },
     {
       "evidence": {
-        "line": 1826,
+        "line": 1835,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1934,7 +1934,7 @@
     },
     {
       "evidence": {
-        "line": 678,
+        "line": 687,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1943,7 +1943,7 @@
     },
     {
       "evidence": {
-        "line": 678,
+        "line": 687,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1961,7 +1961,7 @@
     },
     {
       "evidence": {
-        "line": 771,
+        "line": 780,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1988,7 +1988,7 @@
     },
     {
       "evidence": {
-        "line": 1463,
+        "line": 1472,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2006,7 +2006,7 @@
     },
     {
       "evidence": {
-        "line": 1843,
+        "line": 1852,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -4859,7 +4859,7 @@
     },
     {
       "evidence": {
-        "line": 180,
+        "line": 187,
         "path": "docs/assets/ASSET_PIPELINE_USAGE.md"
       },
       "kind": "references",
@@ -4868,7 +4868,7 @@
     },
     {
       "evidence": {
-        "line": 179,
+        "line": 186,
         "path": "docs/assets/ASSET_PIPELINE_USAGE.md"
       },
       "kind": "references",
@@ -4964,6 +4964,15 @@
       "kind": "references",
       "source": "file:docs/assets/AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md",
       "target": "file:docs/assets/AV6C_SECTORIZED_512_WORLD.md"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "docs/assets/AV6D_PROCEDURAL_PBR_FINISH.md"
+      },
+      "kind": "references",
+      "source": "file:docs/assets/AV6D_PROCEDURAL_PBR_FINISH.md",
+      "target": "file:docs/assets/AV6E_NATURE_DRESSING.md"
     },
     {
       "evidence": {
@@ -33740,7 +33749,7 @@
     },
     {
       "evidence": {
-        "line": 348,
+        "line": 385,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
       },
       "kind": "defined_in",
@@ -33749,7 +33758,7 @@
     },
     {
       "evidence": {
-        "line": 351,
+        "line": 388,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
       },
       "kind": "relationship",
@@ -33758,7 +33767,7 @@
     },
     {
       "evidence": {
-        "line": 357,
+        "line": 394,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
       },
       "kind": "defined_in",
@@ -33767,7 +33776,7 @@
     },
     {
       "evidence": {
-        "line": 361,
+        "line": 398,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
       },
       "kind": "relationship",
@@ -33794,7 +33803,7 @@
     },
     {
       "evidence": {
-        "line": 344,
+        "line": 381,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
       },
       "kind": "defined_in",
@@ -33803,7 +33812,7 @@
     },
     {
       "evidence": {
-        "line": 334,
+        "line": 370,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
       },
       "kind": "defined_in",
@@ -33812,7 +33821,7 @@
     },
     {
       "evidence": {
-        "line": 342,
+        "line": 379,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
       },
       "kind": "relationship",
@@ -36161,7 +36170,7 @@
     },
     {
       "evidence": {
-        "line": 3536,
+        "line": 3537,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -46538,7 +46547,7 @@
     },
     {
       "evidence": {
-        "line": 215,
+        "line": 216,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46547,7 +46556,7 @@
     },
     {
       "evidence": {
-        "line": 183,
+        "line": 184,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46556,7 +46565,7 @@
     },
     {
       "evidence": {
-        "line": 188,
+        "line": 189,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46565,7 +46574,7 @@
     },
     {
       "evidence": {
-        "line": 218,
+        "line": 219,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46574,7 +46583,7 @@
     },
     {
       "evidence": {
-        "line": 223,
+        "line": 227,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46583,7 +46592,7 @@
     },
     {
       "evidence": {
-        "line": 60,
+        "line": 61,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46592,7 +46601,7 @@
     },
     {
       "evidence": {
-        "line": 39,
+        "line": 40,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46601,7 +46610,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 47,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46610,7 +46619,7 @@
     },
     {
       "evidence": {
-        "line": 132,
+        "line": 133,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46619,7 +46628,7 @@
     },
     {
       "evidence": {
-        "line": 73,
+        "line": 74,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46628,7 +46637,7 @@
     },
     {
       "evidence": {
-        "line": 296,
+        "line": 300,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46637,7 +46646,7 @@
     },
     {
       "evidence": {
-        "line": 194,
+        "line": 195,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46646,7 +46655,7 @@
     },
     {
       "evidence": {
-        "line": 200,
+        "line": 201,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46655,7 +46664,7 @@
     },
     {
       "evidence": {
-        "line": 179,
+        "line": 180,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46664,7 +46673,7 @@
     },
     {
       "evidence": {
-        "line": 178,
+        "line": 179,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46673,7 +46682,7 @@
     },
     {
       "evidence": {
-        "line": 167,
+        "line": 168,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46682,7 +46691,7 @@
     },
     {
       "evidence": {
-        "line": 167,
+        "line": 168,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46691,7 +46700,7 @@
     },
     {
       "evidence": {
-        "line": 303,
+        "line": 307,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46700,7 +46709,7 @@
     },
     {
       "evidence": {
-        "line": 240,
+        "line": 244,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46709,7 +46718,7 @@
     },
     {
       "evidence": {
-        "line": 157,
+        "line": 158,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -56069,7 +56078,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 31,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -56078,7 +56087,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 61,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -56087,7 +56096,7 @@
     },
     {
       "evidence": {
-        "line": 52,
+        "line": 54,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -56096,7 +56105,7 @@
     },
     {
       "evidence": {
-        "line": 44,
+        "line": 46,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -56123,7 +56132,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 38,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -56132,7 +56141,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 35,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -56141,7 +56150,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 80,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -75626,7 +75635,7 @@
     },
     {
       "evidence": {
-        "line": 309,
+        "line": 313,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -75635,7 +75644,7 @@
     },
     {
       "evidence": {
-        "line": 361,
+        "line": 365,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "uses_service",
@@ -75680,7 +75689,7 @@
     },
     {
       "evidence": {
-        "line": 633,
+        "line": 673,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -79946,7 +79955,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 27,
         "path": "src/Forge.ModuleFormat/Assets/AssetDeliveryReportService.cs"
       },
       "kind": "defined_in",
@@ -79955,7 +79964,7 @@
     },
     {
       "evidence": {
-        "line": 80,
+        "line": 81,
         "path": "src/Forge.ModuleFormat/Assets/AssetDeliveryReportService.cs"
       },
       "kind": "defined_in",
@@ -80027,7 +80036,7 @@
     },
     {
       "evidence": {
-        "line": 24,
+        "line": 25,
         "path": "src/Forge.ModuleFormat/Assets/AssetDeliveryReportService.cs"
       },
       "kind": "defined_in",
@@ -80036,7 +80045,7 @@
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 44,
         "path": "src/Forge.ModuleFormat/Assets/AssetDeliveryReportService.cs"
       },
       "kind": "defined_in",
@@ -80045,7 +80054,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 60,
         "path": "src/Forge.ModuleFormat/Assets/AssetDeliveryReportService.cs"
       },
       "kind": "defined_in",
@@ -80090,7 +80099,7 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 83,
         "path": "src/Forge.ModuleFormat/Assets/AssetDeliveryReportService.cs"
       },
       "kind": "defined_in",
@@ -80108,7 +80117,7 @@
     },
     {
       "evidence": {
-        "line": 345,
+        "line": 382,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
       },
       "kind": "defined_in",
@@ -80126,7 +80135,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 37,
         "path": "src/Forge.ModuleFormat/Assets/AssetDeliveryReportService.cs"
       },
       "kind": "defined_in",
@@ -84086,7 +84095,7 @@
     },
     {
       "evidence": {
-        "line": 3465,
+        "line": 3466,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -84113,7 +84122,7 @@
     },
     {
       "evidence": {
-        "line": 3504,
+        "line": 3505,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -85832,8 +85841,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:7c721719c4534b146a1076ad1e4f6f738e1562a678ea2f0e40681e12736461c1",
-    "source_file_count": 1553
+    "source_digest": "sha256:ed28f03cf0ac88978caf5c73bfeb778a952412c62597eb1223314aa8b2043762",
+    "source_file_count": 1569
   },
   "nodes": [
     {
@@ -87867,14 +87876,14 @@
       "path": "apps/Forge.Runtime/content/forgotten-forest/.forge/build-graph.json"
     },
     {
-      "id": "file:apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-35a3b6275bd6e9f8.json",
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-cef1401404a46a19.json",
       "kind": "configuration",
       "line": 1,
       "metadata": {
         "language": "configuration"
       },
-      "name": "a56d51fe-089a-995f-a4c9-59c349b0f1d8-35a3b6275bd6e9f8.json",
-      "path": "apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-35a3b6275bd6e9f8.json"
+      "name": "a56d51fe-089a-995f-a4c9-59c349b0f1d8-cef1401404a46a19.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-cef1401404a46a19.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/CREDITS_ASSETS.md",
@@ -87895,6 +87904,26 @@
       },
       "name": "asset-manifests.json",
       "path": "apps/Forge.Runtime/content/forgotten-forest/assets/asset-manifests.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/credits/forgotten-forest-core.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "forgotten-forest-core.md",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/credits/forgotten-forest-core.md"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/credits/forgotten-forest-nature-dressing.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "forgotten-forest-nature-dressing.md",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/credits/forgotten-forest-nature-dressing.md"
     },
     {
       "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/import-profiles.json",
@@ -88185,6 +88214,126 @@
       },
       "name": "import-receipt.json",
       "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-mini-forest-weapon-bow/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-dark-detailed-tree/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-dark-detailed-tree/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-detailed-bush/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-detailed-bush/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-fall-tree/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-fall-tree/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-fallen-log/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-fallen-log/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-large-grass/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-large-grass/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-large-rock/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-large-rock/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-oak-tree/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-oak-tree/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-pine-round/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-pine-round/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-pine-tall/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-pine-tall/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-purple-flowers/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-purple-flowers/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-red-mushrooms/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-red-mushrooms/import-receipt.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-tall-plant/import-receipt.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "import-receipt.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-nature-kit-tall-plant/import-receipt.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/053511fd-e165-1951-9869-6224f82b747f.worker-request.json",
@@ -89007,6 +89156,16 @@
       "path": "asset_manifests/packs/forgotten_forest_kaykit_rogue_hooded.json"
     },
     {
+      "id": "file:asset_manifests/packs/forgotten_forest_nature_dressing.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "forgotten_forest_nature_dressing.json",
+      "path": "asset_manifests/packs/forgotten_forest_nature_dressing.json"
+    },
+    {
       "id": "file:asset_manifests/packs/kenney_3d_all.json",
       "kind": "configuration",
       "line": 1,
@@ -89585,6 +89744,16 @@
       },
       "name": "AV6D_PROCEDURAL_PBR_FINISH.md",
       "path": "docs/assets/AV6D_PROCEDURAL_PBR_FINISH.md"
+    },
+    {
+      "id": "file:docs/assets/AV6E_NATURE_DRESSING.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "AV6E_NATURE_DRESSING.md",
+      "path": "docs/assets/AV6E_NATURE_DRESSING.md"
     },
     {
       "id": "file:docs/assets/AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md",
@@ -107019,7 +107188,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.CuratedAssetInstallEntry",
       "kind": "model",
-      "line": 348,
+      "line": 385,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -107029,7 +107198,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.CuratedAssetPackInstallResult",
       "kind": "model",
-      "line": 357,
+      "line": 394,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -107049,7 +107218,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.CuratedModelDocument",
       "kind": "model",
-      "line": 344,
+      "line": 381,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -107059,7 +107228,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.CuratedPackDocument",
       "kind": "model",
-      "line": 334,
+      "line": 370,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -108869,7 +109038,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 3536,
+      "line": 3537,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -115077,7 +115246,7 @@
     {
       "id": "type:Forge.Application.Projects.CharacterClips",
       "kind": "type",
-      "line": 309,
+      "line": 313,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -115127,7 +115296,7 @@
     {
       "id": "type:Forge.Application.Projects.StableIds",
       "kind": "type",
-      "line": 633,
+      "line": 673,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -119797,7 +119966,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.CatalogMetrics",
       "kind": "type",
-      "line": 26,
+      "line": 27,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -119807,7 +119976,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.Check",
       "kind": "type",
-      "line": 80,
+      "line": 81,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -119887,7 +120056,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.FileMetrics",
       "kind": "type",
-      "line": 24,
+      "line": 25,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -119897,7 +120066,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.ModuleMetrics",
       "kind": "type",
-      "line": 43,
+      "line": 44,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -119907,7 +120076,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.PerformanceMetrics",
       "kind": "type",
-      "line": 59,
+      "line": 60,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -119957,7 +120126,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.Report",
       "kind": "type",
-      "line": 82,
+      "line": 83,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -119977,7 +120146,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.VaultMetrics",
       "kind": "type",
-      "line": 36,
+      "line": 37,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -124147,7 +124316,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeAreaChunkLoader",
       "kind": "type",
-      "line": 3465,
+      "line": 3466,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -124177,7 +124346,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 3504,
+      "line": 3505,
       "metadata": {
         "namespace": "Forge.Runtime"
       },

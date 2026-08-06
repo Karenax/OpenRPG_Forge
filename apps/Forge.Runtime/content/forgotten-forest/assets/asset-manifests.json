@@ -1684,6 +1684,87 @@
     },
     {
       "schemaVersion": 1,
+      "id": "dd85d566-da45-9d52-a2de-ae32c45f99e8",
+      "assetId": "16144713-9b8a-fb5a-bf37-b816dff5bcad",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "9ba6337460e718b8baf165b23c02f39455e3d5757b1911505410c46bc88a86b5",
+      "platformBudgets": {
+        "windows": 21416,
+        "linux": 21416
+      },
+      "chunks": [
+        {
+          "id": "816d915a-5324-ed56-9112-911a7786f732",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-pine-tall/model.glb",
+          "contentSha256": "9ba6337460e718b8baf165b23c02f39455e3d5757b1911505410c46bc88a86b5",
+          "uncompressedBytes": 10708,
+          "storedBytes": 10708,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "816d915a-5324-ed56-9112-911a7786f732",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "816d915a-5324-ed56-9112-911a7786f732",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "816d915a-5324-ed56-9112-911a7786f732",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
       "id": "92222594-6f45-a058-8ef7-5e410f8824b0",
       "assetId": "16946a65-ec1b-d259-aa9b-d0aedc7a7407",
       "modificationProvenance": "author:openrpg-forge:forgotten-forest-animated-character@1.0.0",
@@ -1893,6 +1974,87 @@
           {
             "level": 0,
             "chunkId": "7f735062-970c-d15d-aeb3-869e5aee4b3a",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "64c9b02d-d92b-dc59-ae82-3f7e5e597cd8",
+      "assetId": "19795bc7-8e7e-4e51-81cc-cdb1e12ae4fb",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "29f02df0589dd2b09e8d2aff6a4662394dac5cfcf1fec701640dcbd6127e0802",
+      "platformBudgets": {
+        "windows": 29920,
+        "linux": 29920
+      },
+      "chunks": [
+        {
+          "id": "d65817e4-ddb1-365d-89c6-65601dfba05a",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-red-mushrooms/model.glb",
+          "contentSha256": "29f02df0589dd2b09e8d2aff6a4662394dac5cfcf1fec701640dcbd6127e0802",
+          "uncompressedBytes": 14960,
+          "storedBytes": 14960,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "d65817e4-ddb1-365d-89c6-65601dfba05a",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "d65817e4-ddb1-365d-89c6-65601dfba05a",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "d65817e4-ddb1-365d-89c6-65601dfba05a",
             "screenRatio": 1,
             "maximumTriangles": 100000
           },
@@ -2610,6 +2772,87 @@
     },
     {
       "schemaVersion": 1,
+      "id": "9afc2fe2-9c04-2d50-976a-cbc71c820dff",
+      "assetId": "2abafbd7-3e72-6d57-a05d-fbf3ce8d1c19",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "2afb10cd68a9a7b185fc46110be0da550ea2aef86ef9ac6b7339f217eb4b636a",
+      "platformBudgets": {
+        "windows": 16168,
+        "linux": 16168
+      },
+      "chunks": [
+        {
+          "id": "e5aa7187-93f6-db50-8425-3251fa3ae3bd",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-purple-flowers/model.glb",
+          "contentSha256": "2afb10cd68a9a7b185fc46110be0da550ea2aef86ef9ac6b7339f217eb4b636a",
+          "uncompressedBytes": 8084,
+          "storedBytes": 8084,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "e5aa7187-93f6-db50-8425-3251fa3ae3bd",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "e5aa7187-93f6-db50-8425-3251fa3ae3bd",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "e5aa7187-93f6-db50-8425-3251fa3ae3bd",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
       "id": "3de88495-774c-b25e-8b82-acfb35b97ae2",
       "assetId": "3bf93c4b-7df6-455c-be89-ba38d40e941c",
       "modificationProvenance": "author:openrpg-forge:forgotten-forest-kaykit-barbarian@1.0.0",
@@ -3213,6 +3456,87 @@
     },
     {
       "schemaVersion": 1,
+      "id": "cc32ab0c-9707-575d-b92d-96268e435672",
+      "assetId": "3d20f8e7-5de0-8758-9a12-9e6fb271fefb",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "f8e90ed7f7771644998a7c361302213af04350150b3ea0631e8384d26506efa2",
+      "platformBudgets": {
+        "windows": 33880,
+        "linux": 33880
+      },
+      "chunks": [
+        {
+          "id": "b350c97d-d5c7-9f5d-a8f3-254dc987100e",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-fall-tree/model.glb",
+          "contentSha256": "f8e90ed7f7771644998a7c361302213af04350150b3ea0631e8384d26506efa2",
+          "uncompressedBytes": 16940,
+          "storedBytes": 16940,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "b350c97d-d5c7-9f5d-a8f3-254dc987100e",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "b350c97d-d5c7-9f5d-a8f3-254dc987100e",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "b350c97d-d5c7-9f5d-a8f3-254dc987100e",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
       "id": "f560d5f3-c198-c251-9f4d-ceb549436491",
       "assetId": "513bdb67-d69d-7256-8a88-c829b9eae152",
       "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
@@ -3308,6 +3632,87 @@
     },
     {
       "schemaVersion": 1,
+      "id": "d547da81-4e64-315c-9d1a-09ce5e623a2d",
+      "assetId": "654d6f01-dab6-d555-9996-ed19a77bedb9",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "29080a4935bae6b4ab29066f22c99c58f88b23ce4e2f79b4dcbb5e76de73f69d",
+      "platformBudgets": {
+        "windows": 30664,
+        "linux": 30664
+      },
+      "chunks": [
+        {
+          "id": "929cf0ae-b23c-6a57-9778-d21d4cd41c8f",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-pine-round/model.glb",
+          "contentSha256": "29080a4935bae6b4ab29066f22c99c58f88b23ce4e2f79b4dcbb5e76de73f69d",
+          "uncompressedBytes": 15332,
+          "storedBytes": 15332,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "929cf0ae-b23c-6a57-9778-d21d4cd41c8f",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "929cf0ae-b23c-6a57-9778-d21d4cd41c8f",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "929cf0ae-b23c-6a57-9778-d21d4cd41c8f",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
       "id": "8b479312-e5f1-405c-8353-a106c60897cb",
       "assetId": "7a794831-7f7b-3155-abc4-e4e4fd7ba989",
       "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
@@ -3382,6 +3787,168 @@
           {
             "level": 0,
             "chunkId": "ec74e181-1fc3-8b5f-ad93-1510ea8e2477",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "d1c57619-9f6d-4b54-b4eb-a01d70f4c4cb",
+      "assetId": "81f2a693-3439-bc5d-8dab-13e462e743b2",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "2e0487020d68ccf664435db9d829c78ae00e6d2785ee3ec10b9f89cc70a10406",
+      "platformBudgets": {
+        "windows": 20344,
+        "linux": 20344
+      },
+      "chunks": [
+        {
+          "id": "b5294474-abce-6158-8fd5-c500c9232d3c",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-detailed-bush/model.glb",
+          "contentSha256": "2e0487020d68ccf664435db9d829c78ae00e6d2785ee3ec10b9f89cc70a10406",
+          "uncompressedBytes": 10172,
+          "storedBytes": 10172,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "b5294474-abce-6158-8fd5-c500c9232d3c",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "b5294474-abce-6158-8fd5-c500c9232d3c",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "b5294474-abce-6158-8fd5-c500c9232d3c",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "b7d767bf-43f4-f85c-84e5-ee062da392b5",
+      "assetId": "82866648-f741-2f59-a938-305a8af65aaf",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "d7fd8773674928c50c11b66d12c636d49bdcc15a8b1c7fbb98e6f63a3439a3f3",
+      "platformBudgets": {
+        "windows": 29288,
+        "linux": 29288
+      },
+      "chunks": [
+        {
+          "id": "53a6b25a-a0e3-9d52-ad2e-87fbae54dd4c",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-oak-tree/model.glb",
+          "contentSha256": "d7fd8773674928c50c11b66d12c636d49bdcc15a8b1c7fbb98e6f63a3439a3f3",
+          "uncompressedBytes": 14644,
+          "storedBytes": 14644,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "53a6b25a-a0e3-9d52-ad2e-87fbae54dd4c",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "53a6b25a-a0e3-9d52-ad2e-87fbae54dd4c",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "53a6b25a-a0e3-9d52-ad2e-87fbae54dd4c",
             "screenRatio": 1,
             "maximumTriangles": 100000
           },
@@ -3593,6 +4160,87 @@
     },
     {
       "schemaVersion": 1,
+      "id": "ced1f846-9671-225d-8bae-27a6592076b6",
+      "assetId": "a46f9cfb-f902-e556-98ca-83b5ec3756b3",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "af49a595624abca7249824eeefb944d4baf974abeeb5b16110d175da3563d6cd",
+      "platformBudgets": {
+        "windows": 37008,
+        "linux": 37008
+      },
+      "chunks": [
+        {
+          "id": "dcdb25ba-cfa9-7752-b02d-5fbcb4d64deb",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-large-grass/model.glb",
+          "contentSha256": "af49a595624abca7249824eeefb944d4baf974abeeb5b16110d175da3563d6cd",
+          "uncompressedBytes": 18504,
+          "storedBytes": 18504,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "dcdb25ba-cfa9-7752-b02d-5fbcb4d64deb",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "dcdb25ba-cfa9-7752-b02d-5fbcb4d64deb",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "dcdb25ba-cfa9-7752-b02d-5fbcb4d64deb",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
       "id": "2d3905b5-a02d-c853-9740-5f070c8805e0",
       "assetId": "a83efe7b-1418-e55b-84b4-9f249da2b0f4",
       "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
@@ -3762,6 +4410,87 @@
           {
             "level": 0,
             "chunkId": "80cf5229-2171-8f5d-bec6-5a2d97f72486",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "da8c6fd2-27c6-dd5f-8a2f-e5229d1fbe98",
+      "assetId": "b1b376c2-fcfa-a35b-86dd-bcead260ce7c",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "b192523736f32754788de4dc7a5dcf30a58322b260ec8969120c91432a10b633",
+      "platformBudgets": {
+        "windows": 6960,
+        "linux": 6960
+      },
+      "chunks": [
+        {
+          "id": "a6db9844-c6b0-ff5a-b4be-dc3a1aaeabe8",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-tall-plant/model.glb",
+          "contentSha256": "b192523736f32754788de4dc7a5dcf30a58322b260ec8969120c91432a10b633",
+          "uncompressedBytes": 3480,
+          "storedBytes": 3480,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "a6db9844-c6b0-ff5a-b4be-dc3a1aaeabe8",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "a6db9844-c6b0-ff5a-b4be-dc3a1aaeabe8",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "a6db9844-c6b0-ff5a-b4be-dc3a1aaeabe8",
             "screenRatio": 1,
             "maximumTriangles": 100000
           },
@@ -4460,6 +5189,168 @@
           {
             "level": 0,
             "chunkId": "256fd7e4-3d44-385f-90c2-de9419bf2cdb",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "c28040e5-5097-ba51-b0ba-7e6ddbd391ea",
+      "assetId": "c76498c2-b20c-1d54-8a0e-473845a5c83a",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "e7a92369062d491e5a31a163d390e07db04ee573605bbfa84c00660d18896b4c",
+      "platformBudgets": {
+        "windows": 15848,
+        "linux": 15848
+      },
+      "chunks": [
+        {
+          "id": "6b28a9e0-9188-505a-a249-b20fd198dd9c",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-fallen-log/model.glb",
+          "contentSha256": "e7a92369062d491e5a31a163d390e07db04ee573605bbfa84c00660d18896b4c",
+          "uncompressedBytes": 7924,
+          "storedBytes": 7924,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "6b28a9e0-9188-505a-a249-b20fd198dd9c",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "6b28a9e0-9188-505a-a249-b20fd198dd9c",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "6b28a9e0-9188-505a-a249-b20fd198dd9c",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "24267155-2655-dc50-bf77-4a3e65924c5a",
+      "assetId": "ce7b3ccb-e440-8f52-973e-88577ca6bd36",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "1e2211dc6483b1d8a32130c3441afa108d4075f0d851825620fba85d2dc6e5d7",
+      "platformBudgets": {
+        "windows": 62832,
+        "linux": 62832
+      },
+      "chunks": [
+        {
+          "id": "8a29b813-f228-2b55-a2f7-eae621783d34",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-dark-detailed-tree/model.glb",
+          "contentSha256": "1e2211dc6483b1d8a32130c3441afa108d4075f0d851825620fba85d2dc6e5d7",
+          "uncompressedBytes": 31416,
+          "storedBytes": 31416,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "8a29b813-f228-2b55-a2f7-eae621783d34",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "8a29b813-f228-2b55-a2f7-eae621783d34",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "8a29b813-f228-2b55-a2f7-eae621783d34",
             "screenRatio": 1,
             "maximumTriangles": 100000
           },
@@ -5220,6 +6111,87 @@
           {
             "level": 0,
             "chunkId": "b36b1e27-1fb8-835f-8bda-92ceb8899b95",
+            "screenRatio": 1,
+            "maximumTriangles": 100000
+          },
+          {
+            "level": 1,
+            "chunkId": null,
+            "screenRatio": 0.5,
+            "maximumTriangles": 50000
+          },
+          {
+            "level": 2,
+            "chunkId": null,
+            "screenRatio": 0.25,
+            "maximumTriangles": 25000
+          }
+        ]
+      },
+      "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "3d3f8b5d-33d3-795b-a6d8-ebf5d341369d",
+      "assetId": "fca055d7-55e4-135e-a36f-d3e6ba38d9c0",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "caa8b025833d4dabf6d98fe2e96cf2fbd886693ac990df0db75f9d827194374b",
+      "platformBudgets": {
+        "windows": 17120,
+        "linux": 17120
+      },
+      "chunks": [
+        {
+          "id": "04300ec8-1b9d-2452-bcab-428f15cf1312",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/kenney-nature-kit-large-rock/model.glb",
+          "contentSha256": "caa8b025833d4dabf6d98fe2e96cf2fbd886693ac990df0db75f9d827194374b",
+          "uncompressedBytes": 8560,
+          "storedBytes": 8560,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": {
+        "required": false,
+        "chunkId": "04300ec8-1b9d-2452-bcab-428f15cf1312",
+        "generation": "embedded",
+        "materialTags": [
+          "default"
+        ],
+        "cookPlatforms": [
+          "windows",
+          "linux"
+        ]
+      },
+      "animation": {
+        "required": false,
+        "chunkId": "04300ec8-1b9d-2452-bcab-428f15cf1312",
+        "rig": "humanoid",
+        "retargetMap": null,
+        "clips": [
+          {
+            "name": "preview",
+            "durationSeconds": 1,
+            "rootMotion": false,
+            "compression": "balanced",
+            "events": []
+          }
+        ]
+      },
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "04300ec8-1b9d-2452-bcab-428f15cf1312",
             "screenRatio": 1,
             "maximumTriangles": 100000
           },

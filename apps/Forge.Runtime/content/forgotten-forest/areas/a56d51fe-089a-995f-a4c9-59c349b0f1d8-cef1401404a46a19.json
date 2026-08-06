@@ -18641,6 +18641,29 @@
           "provenance": "authored:forgotten-forest@1"
         },
         {
+          "id": "73435d49-db8a-b85a-a89f-bf5c826f4c63",
+          "name": "Rochers isol\u00E9s",
+          "materialLayerId": "15a52b0f-99f5-b752-9807-5560aa6758b3",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 8,
+          "maximumSlopeDegrees": 62,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.025,
+          "scatterResource": "asset:fca055d7-55e4-135e-a36f-d3e6ba38d9c0",
+          "tags": [
+            "ground-cover",
+            "rock"
+          ],
+          "exclusionTags": [
+            "river",
+            "road"
+          ],
+          "priority": 59,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
           "id": "01e4d720-a8e5-bd55-8e45-1726f2afedf1",
           "name": "Canop\u00E9e",
           "materialLayerId": "373eed1b-659f-155e-964d-1b36d076ceba",
@@ -18666,6 +18689,135 @@
           "provenance": "authored:forgotten-forest@1"
         },
         {
+          "id": "6a0a7661-a1a4-3c5f-888e-289c8dbcc616",
+          "name": "Ch\u00EAnes anciens",
+          "materialLayerId": "373eed1b-659f-155e-964d-1b36d076ceba",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 0,
+          "maximumSlopeDegrees": 34,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.06,
+          "scatterResource": "asset:82866648-f741-2f59-a938-305a8af65aaf",
+          "tags": [
+            "canopy",
+            "forest",
+            "oak",
+            "tree"
+          ],
+          "exclusionTags": [
+            "building",
+            "river",
+            "road"
+          ],
+          "priority": 49,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
+          "id": "9fc961e6-c2dc-b05a-9022-e9926e362451",
+          "name": "Feuillus sombres",
+          "materialLayerId": "373eed1b-659f-155e-964d-1b36d076ceba",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 0,
+          "maximumSlopeDegrees": 38,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.055,
+          "scatterResource": "asset:ce7b3ccb-e440-8f52-973e-88577ca6bd36",
+          "tags": [
+            "canopy",
+            "dark",
+            "forest",
+            "tree"
+          ],
+          "exclusionTags": [
+            "building",
+            "river",
+            "road"
+          ],
+          "priority": 48,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
+          "id": "2523fee0-8786-2259-9416-cb7ed5672b5d",
+          "name": "Accents mordor\u00E9s",
+          "materialLayerId": "899181bf-7ce4-ed57-ae25-0d8bf9fe0481",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 0,
+          "maximumSlopeDegrees": 30,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.025,
+          "scatterResource": "asset:3d20f8e7-5de0-8758-9a12-9e6fb271fefb",
+          "tags": [
+            "forest",
+            "seasonal",
+            "tree"
+          ],
+          "exclusionTags": [
+            "building",
+            "river",
+            "road"
+          ],
+          "priority": 47,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
+          "id": "6a6162a7-dd20-355c-bbf8-221990996511",
+          "name": "Pins \u00E9lanc\u00E9s",
+          "materialLayerId": "373eed1b-659f-155e-964d-1b36d076ceba",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 6,
+          "maximumSlopeDegrees": 48,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.05,
+          "scatterResource": "asset:16144713-9b8a-fb5a-bf37-b816dff5bcad",
+          "tags": [
+            "canopy",
+            "forest",
+            "pine",
+            "tree"
+          ],
+          "exclusionTags": [
+            "building",
+            "river",
+            "road"
+          ],
+          "priority": 46,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
+          "id": "851bf2f0-11ba-8c53-ae24-c940feb8e8d5",
+          "name": "Pins ronds",
+          "materialLayerId": "373eed1b-659f-155e-964d-1b36d076ceba",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 0,
+          "maximumSlopeDegrees": 42,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.05,
+          "scatterResource": "asset:654d6f01-dab6-d555-9996-ed19a77bedb9",
+          "tags": [
+            "forest",
+            "pine",
+            "tree",
+            "understory"
+          ],
+          "exclusionTags": [
+            "building",
+            "river",
+            "road"
+          ],
+          "priority": 45,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
           "id": "a2fe6420-0968-ba5b-8fba-8aa9928a688d",
           "name": "Sous-bois",
           "materialLayerId": "373eed1b-659f-155e-964d-1b36d076ceba",
@@ -18689,6 +18841,150 @@
           ],
           "priority": 40,
           "provenance": "authored:forgotten-forest@1"
+        },
+        {
+          "id": "0f8ecf7d-931a-1958-8771-5beccbec85b2",
+          "name": "Buissons d\u00E9taill\u00E9s",
+          "materialLayerId": "373eed1b-659f-155e-964d-1b36d076ceba",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 0,
+          "maximumSlopeDegrees": 48,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.1,
+          "scatterResource": "asset:81f2a693-3439-bc5d-8dab-13e462e743b2",
+          "tags": [
+            "bush",
+            "forest",
+            "ground-cover"
+          ],
+          "exclusionTags": [
+            "river",
+            "road"
+          ],
+          "priority": 38,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
+          "id": "d4102632-761e-905e-bdae-a429a785f3c1",
+          "name": "Herbes hautes",
+          "materialLayerId": "373eed1b-659f-155e-964d-1b36d076ceba",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 0,
+          "maximumSlopeDegrees": 42,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.09,
+          "scatterResource": "asset:b1b376c2-fcfa-a35b-86dd-bcead260ce7c",
+          "tags": [
+            "forest",
+            "ground-cover",
+            "plant"
+          ],
+          "exclusionTags": [
+            "river",
+            "road"
+          ],
+          "priority": 36,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
+          "id": "dae623a6-4d98-065e-af71-15998b889b13",
+          "name": "Champignons rouges",
+          "materialLayerId": "373eed1b-659f-155e-964d-1b36d076ceba",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 0,
+          "maximumSlopeDegrees": 38,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.035,
+          "scatterResource": "asset:19795bc7-8e7e-4e51-81cc-cdb1e12ae4fb",
+          "tags": [
+            "forest",
+            "ground-cover",
+            "mushroom"
+          ],
+          "exclusionTags": [
+            "river",
+            "road"
+          ],
+          "priority": 34,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
+          "id": "9466807f-6c0e-b75d-bd2e-8931509c4eac",
+          "name": "Fleurs violettes",
+          "materialLayerId": "899181bf-7ce4-ed57-ae25-0d8bf9fe0481",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 0,
+          "maximumSlopeDegrees": 24,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.04,
+          "scatterResource": "asset:2abafbd7-3e72-6d57-a05d-fbf3ce8d1c19",
+          "tags": [
+            "flower",
+            "ground-cover",
+            "meadow"
+          ],
+          "exclusionTags": [
+            "river",
+            "road"
+          ],
+          "priority": 33,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
+          "id": "321fbb89-0740-cb59-836e-b4cc8a4b770e",
+          "name": "Touffes d\u0027herbe",
+          "materialLayerId": "899181bf-7ce4-ed57-ae25-0d8bf9fe0481",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 0,
+          "maximumSlopeDegrees": 28,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.06,
+          "scatterResource": "asset:a46f9cfb-f902-e556-98ca-83b5ec3756b3",
+          "tags": [
+            "grass",
+            "ground-cover",
+            "meadow"
+          ],
+          "exclusionTags": [
+            "river",
+            "road"
+          ],
+          "priority": 32,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
+        },
+        {
+          "id": "a4d6eac3-bd6e-c45c-a356-8571434eb3fb",
+          "name": "Bois mort",
+          "materialLayerId": "5c2f5df0-4928-1a54-8d1c-aa3be90a8536",
+          "minimumAltitude": -20,
+          "maximumAltitude": 30,
+          "minimumSlopeDegrees": 0,
+          "maximumSlopeDegrees": 38,
+          "minimumMoisture": 0,
+          "maximumMoisture": 1,
+          "scatterDensity": 0.012,
+          "scatterResource": "asset:c76498c2-b20c-1d54-8a0e-473845a5c83a",
+          "tags": [
+            "deadwood",
+            "forest",
+            "ground-cover"
+          ],
+          "exclusionTags": [
+            "river",
+            "road"
+          ],
+          "priority": 31,
+          "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0"
         },
         {
           "id": "25351fee-c9f5-ad54-9f4e-ba753b3b65ad",

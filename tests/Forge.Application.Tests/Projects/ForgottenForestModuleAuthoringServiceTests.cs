@@ -24,7 +24,9 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         Assert.Equal(16, area.World.Terrain.ChunkSize);
         Assert.Equal(1024, area.World.Loading.CacheBudgetMegabytes);
         Assert.Equal(2, area.World.Loading.ChunkRadius);
-        Assert.Equal(5, area.World.Biomes.Count);
+        Assert.Equal(17, area.World.Biomes.Count);
+        Assert.Equal(12, area.World.Biomes.Count(biome =>
+            biome.Provenance == "curated-pack:forgotten-forest-nature-dressing@1.0.0"));
         Assert.Equal(5, area.World.Features.Count);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.River);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.Bridge);
@@ -58,6 +60,9 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         Assert.Equal(
             AssetCatalogItemId.ForExternalId("kenney:mini-forest:tree-high"),
             ForgottenForestModuleAuthoringService.AssetId("tree-high"));
+        Assert.Equal(
+            AssetCatalogItemId.ForExternalId("kenney:nature-kit:oak-tree"),
+            ForgottenForestModuleAuthoringService.NatureAssetId("oak-tree"));
         var animatedEntities = area.Entities.Where(entity =>
             entity.Overrides.Properties.Any(property =>
                 property.Key == "runtime.animationProfile" && property.Value == "kaykit-adventurer")).ToArray();

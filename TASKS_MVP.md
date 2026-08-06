@@ -558,5 +558,5 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Composer la carte 512 × 512 en 64 secteurs, puis refaire budgets, navigation et revue visuelle.
 - [x] Remplacer les couleurs terrain simples par une finition PBR procédurale, des routes continues et
   une preuve Forward+ réelle partagée entre Creator et runtime.
-- [ ] Enrichir l’habillage rapproché des secteurs avec une sélection plus variée de modèles et textures
+- [x] Enrichir l’habillage rapproché des secteurs avec une sélection plus variée de modèles et textures
   gouvernés, puis refaire une passe de direction artistique.

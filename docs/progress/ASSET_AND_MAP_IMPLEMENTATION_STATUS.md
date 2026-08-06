@@ -1,6 +1,6 @@
 # État d’implémentation — Asset Vault et carte
 
-Dernière mise à jour : 5 août 2026 — tranche AV6-D.
+Dernière mise à jour : 5 août 2026 — tranche AV6-E.
 
 ## Terminé
 
@@ -113,6 +113,11 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-D.
 - deux routes reconstruites comme rubans continus et texturés procéduralement depuis leurs points de
   contrôle, ciel physique, lumière rééquilibrée et brouillard plus distant ; capture aérienne et
   rapprochée inspectées, avec SSAO/SSIL explicitement retirés après artefacts visibles.
+- pack curaté `forgotten-forest-nature-dressing` de douze GLB Kenney Nature Kit CC0, avec cinq
+  silhouettes d’arbres et sept détails de sol, hashes, profils, reçus et crédits déterministes ;
+- 17 couches de biome, 7 112 instances MultiMesh, 40 manifestes, 62 chunks, 56 références
+  gouvernées, 108 niveaux LOD et 17 groupes de culling ; package de 126 fichiers, smoke jouable et
+  captures Forward+ aérienne/rapprochée validés.
 
 ## Partiellement terminé
 
@@ -121,9 +126,10 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-D.
 - normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
   conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
-- Forgotten Forest : carte 512 × 512 jouable, navigable, sonorisée, enrichie de VFX et dotée de cinq
-  personnages fantasy avec combat animé et terrain PBR procédural ; retargeting inter-rigs, textures
-  scannées et habillage rapproché des secteurs restent des finitions de production.
+- Forgotten Forest : carte 512 × 512 jouable, navigable, sonorisée, enrichie de VFX, de douze
+  modèles naturels supplémentaires et de cinq personnages fantasy avec combat animé ; retargeting
+  inter-rigs, textures scannées, eau avancée et composition manuelle propre à chaque secteur restent
+  des finitions de production.
 
 ## Non commencé
 
@@ -131,8 +137,8 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-D.
   migrations/désinstallations déjà analysées par le domaine ;
 - génération de miniatures et planches contact ;
 - service de surveillance temps réel ;
-- finition artistique de Forgotten Forest : variations de feuillage, textures scannées gouvernées,
-  eau avancée et habillage rapproché des 64 secteurs.
+- finition artistique de Forgotten Forest : textures scannées gouvernées, eau avancée et composition
+  manuelle propre à chacun des 64 secteurs.
 
 ## Prochaine action
 

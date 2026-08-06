@@ -674,6 +674,15 @@ un brouillard plus distant. Creator et runtime publient le même mode de matéri
 a conduit à retirer SSAO/SSIL lorsque des blocs transitoires sont apparus : la preuve visuelle prime
 sur l’activation nominale d’un effet. La variété des modèles et l’habillage rapproché restent à faire.
 
+AV6-E ferme cette variété rapprochée avec une sélection bornée de douze GLB Kenney Nature Kit CC0
+déjà acquis dans le Vault. L’installateur de pack curaté accepte les palettes embarquées, conserve
+un crédit déterministe par pack et agrège le registre du module sans toucher aux sources. Cinq
+silhouettes d’arbres et sept détails de sol portent Forgotten Forest à 17 recettes, 7 112 instances,
+40 manifestes, 62 chunks, 56 références gouvernées et 108 niveaux LOD. Le smoke rejoue le scénario
+complet, la navigation conserve 32 454 polygones et les captures Forward+ aérienne/rapprochée sont
+inspectées. Cette passe stylisée ne vaut pas promesse AAA ; eau avancée, textures scannées,
+placement artistique manuel fin et retargeting inter-rigs restent séparés.
+
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de
 `AGENTS.md`. En cas de conflit, ces sources de vérité du dépôt priment sur la spécification importée.

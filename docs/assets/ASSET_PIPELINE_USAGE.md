@@ -168,8 +168,15 @@ dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
   --vault E:\OpenRPG_AssetVault
 ```
 
-La commande est idempotente et ne modifie jamais `normalized/kenney/mini-forest`. Pour authoriser,
-compiler et lancer la carte en une fois, utiliser `scripts/Run-ForgottenForest.ps1`.
+La commande installe aussi la sélection bornée
+`asset_manifests/packs/forgotten_forest_nature_dressing.json` depuis Kenney Nature Kit. Le format de
+pack accepte soit une texture partagée déclarée par `shared_texture_path`, soit des textures
+embarquées dans chaque GLB. Un registre de crédits déterministe est produit par pack puis agrégé dans
+`assets/CREDITS_ASSETS.md`.
+
+La commande est idempotente et ne modifie jamais `normalized/kenney/mini-forest` ni
+`normalized/kenney/nature-kit`. Pour authoriser, compiler et lancer la carte en une fois, utiliser
+`scripts/Run-ForgottenForest.ps1`.
 
 ## Mesurer la livraison complète
 

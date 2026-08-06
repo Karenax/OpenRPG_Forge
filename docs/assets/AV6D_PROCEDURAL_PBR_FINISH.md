@@ -44,3 +44,6 @@ AV6-D améliore nettement la lisibilité du sol et des routes tout en restant un
 Il ne remplace pas une passe artistique AA avec textures scannées, davantage de silhouettes de
 végétation, variations saisonnières, eau avancée et habillage rapproché propre à chaque secteur. Le
 retargeting entre rigs incompatibles reste lui aussi séparé.
+
+La passe suivante de variété et d’habillage est documentée dans
+[`AV6E_NATURE_DRESSING.md`](AV6E_NATURE_DRESSING.md).

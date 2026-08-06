@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "assetId": "ce7b3ccb-e440-8f52-973e-88577ca6bd36",
+  "cacheKey": "a4f857f7bb4c928bc0f71cc14a94012a164d9401619333fba4ea2be9be7e2413",
+  "catalogContentSha256": "1e2211dc6483b1d8a32130c3441afa108d4075f0d851825620fba85d2dc6e5d7",
+  "sourceFileSha256": "1e2211dc6483b1d8a32130c3441afa108d4075f0d851825620fba85d2dc6e5d7",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_detailed_dark.glb",
+  "sourceRelativePath": "normalized/kenney/nature-kit/Models/GLTF format/tree_detailed_dark.glb",
+  "outputRelativePath": "assets/imported/kenney-nature-kit-dark-detailed-tree/model.glb",
+  "outputContentSha256": "1e2211dc6483b1d8a32130c3441afa108d4075f0d851825620fba85d2dc6e5d7",
+  "outputBytes": 31416,
+  "status": "canonicalReady",
+  "tasks": [
+    {
+      "name": "model.normalize",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-dark-detailed-tree/model.glb",
+      "cacheKey": "a4f857f7bb4c928bc0f71cc14a94012a164d9401619333fba4ea2be9be7e2413",
+      "dependencies": []
+    },
+    {
+      "name": "model.animations",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-dark-detailed-tree/animations.index.json",
+      "cacheKey": "a4f857f7bb4c928bc0f71cc14a94012a164d9401619333fba4ea2be9be7e2413",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.collisions",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-dark-detailed-tree/collisions.glb",
+      "cacheKey": "a4f857f7bb4c928bc0f71cc14a94012a164d9401619333fba4ea2be9be7e2413",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.5",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-dark-detailed-tree/lod-0.5.glb",
+      "cacheKey": "a4f857f7bb4c928bc0f71cc14a94012a164d9401619333fba4ea2be9be7e2413",
+      "dependencies": [
+        "model.normalize"
+      ]
+    },
+    {
+      "name": "model.lod.0.25",
+      "outputRelativePath": "assets/imported/kenney-nature-kit-dark-detailed-tree/lod-0.25.glb",
+      "cacheKey": "a4f857f7bb4c928bc0f71cc14a94012a164d9401619333fba4ea2be9be7e2413",
+      "dependencies": [
+        "model.normalize"
+      ]
+    }
+  ]
+}

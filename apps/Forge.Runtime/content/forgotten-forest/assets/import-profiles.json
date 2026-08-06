@@ -159,6 +159,29 @@
       }
     },
     {
+      "assetId": "16144713-9b8a-fb5a-bf37-b816dff5bcad",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "9ba6337460e718b8baf165b23c02f39455e3d5757b1911505410c46bc88a86b5",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_pineTallA_detailed.glb",
+      "maximumOutputBytes": 21416,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "16946a65-ec1b-d259-aa9b-d0aedc7a7407",
       "schemaVersion": 1,
       "kind": "model",
@@ -189,6 +212,29 @@
       "contentSha256": "cafd760fb763fe2a76ad84b469683d18209a2b2ff013b1e11516d0fd62be2a6d",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/bridge.glb",
       "maximumOutputBytes": 86238,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "19795bc7-8e7e-4e51-81cc-cdb1e12ae4fb",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "29f02df0589dd2b09e8d2aff6a4662394dac5cfcf1fec701640dcbd6127e0802",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/mushroom_redGroup.glb",
+      "maximumOutputBytes": 29920,
       "texture": null,
       "model": {
         "importRig": false,
@@ -247,6 +293,29 @@
       }
     },
     {
+      "assetId": "2abafbd7-3e72-6d57-a05d-fbf3ce8d1c19",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "2afb10cd68a9a7b185fc46110be0da550ea2aef86ef9ac6b7339f217eb4b636a",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/flower_purpleB.glb",
+      "maximumOutputBytes": 16168,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "3bf93c4b-7df6-455c-be89-ba38d40e941c",
       "schemaVersion": 1,
       "kind": "model",
@@ -264,6 +333,29 @@
         "sockets": [],
         "lodRatios": [
           1
+        ]
+      }
+    },
+    {
+      "assetId": "3d20f8e7-5de0-8758-9a12-9e6fb271fefb",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "f8e90ed7f7771644998a7c361302213af04350150b3ea0631e8384d26506efa2",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_default_fall.glb",
+      "maximumOutputBytes": 33880,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
         ]
       }
     },
@@ -291,6 +383,29 @@
       }
     },
     {
+      "assetId": "654d6f01-dab6-d555-9996-ed19a77bedb9",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "29080a4935bae6b4ab29066f22c99c58f88b23ce4e2f79b4dcbb5e76de73f69d",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_pineRoundC.glb",
+      "maximumOutputBytes": 30664,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "7a794831-7f7b-3155-abc4-e4e4fd7ba989",
       "schemaVersion": 1,
       "kind": "model",
@@ -300,6 +415,52 @@
       "contentSha256": "e09b699180e66a615be406d0ca8b1e1f42d573589a41c0067988418bc548d807",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/rocks-ramp.glb",
       "maximumOutputBytes": 67614,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "81f2a693-3439-bc5d-8dab-13e462e743b2",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "2e0487020d68ccf664435db9d829c78ae00e6d2785ee3ec10b9f89cc70a10406",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/plant_bushDetailed.glb",
+      "maximumOutputBytes": 20344,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "82866648-f741-2f59-a938-305a8af65aaf",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "d7fd8773674928c50c11b66d12c636d49bdcc15a8b1c7fbb98e6f63a3439a3f3",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_oak.glb",
+      "maximumOutputBytes": 29288,
       "texture": null,
       "model": {
         "importRig": false,
@@ -360,6 +521,29 @@
       }
     },
     {
+      "assetId": "a46f9cfb-f902-e556-98ca-83b5ec3756b3",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "af49a595624abca7249824eeefb944d4baf974abeeb5b16110d175da3563d6cd",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/grass_large.glb",
+      "maximumOutputBytes": 37008,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "a83efe7b-1418-e55b-84b4-9f249da2b0f4",
       "schemaVersion": 1,
       "kind": "model",
@@ -406,6 +590,29 @@
       }
     },
     {
+      "assetId": "b1b376c2-fcfa-a35b-86dd-bcead260ce7c",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "b192523736f32754788de4dc7a5dcf30a58322b260ec8969120c91432a10b633",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/plant_flatTall.glb",
+      "maximumOutputBytes": 6960,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
       "assetId": "b7cb21fb-b54e-835a-8f84-eea64beb294a",
       "schemaVersion": 1,
       "kind": "model",
@@ -436,6 +643,52 @@
       "contentSha256": "0072eff50ddf6cfca2655e994ebf6654ef00f5f34ca5e09b5af654b668186abb",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/patch-dirt.glb",
       "maximumOutputBytes": 41670,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "c76498c2-b20c-1d54-8a0e-473845a5c83a",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "e7a92369062d491e5a31a163d390e07db04ee573605bbfa84c00660d18896b4c",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/log_large.glb",
+      "maximumOutputBytes": 15848,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "ce7b3ccb-e440-8f52-973e-88577ca6bd36",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "1e2211dc6483b1d8a32130c3441afa108d4075f0d851825620fba85d2dc6e5d7",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/tree_detailed_dark.glb",
+      "maximumOutputBytes": 62832,
       "texture": null,
       "model": {
         "importRig": false,
@@ -620,6 +873,29 @@
       "contentSha256": "c86332ac085c2a7f0f926ea9f51907bbd9354561f5717cf95dc2cfcaaff873b1",
       "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest;path:Models/GLB format/tree-high.glb",
       "maximumOutputBytes": 83670,
+      "texture": null,
+      "model": {
+        "importRig": false,
+        "importAnimations": true,
+        "generateCollisions": true,
+        "sockets": [],
+        "lodRatios": [
+          1,
+          0.5,
+          0.25
+        ]
+      }
+    },
+    {
+      "assetId": "fca055d7-55e4-135e-a36f-d3e6ba38d9c0",
+      "schemaVersion": 1,
+      "kind": "model",
+      "sourceFormat": "glb",
+      "canonicalFormat": "glb",
+      "licenseSpdx": "CC0-1.0",
+      "contentSha256": "caa8b025833d4dabf6d98fe2e96cf2fbd886693ac990df0db75f9d827194374b",
+      "provenance": "curated-pack:forgotten-forest-nature-dressing@1.0.0;source:kenney:nature-kit;path:Models/GLTF format/rock_largeB.glb",
+      "maximumOutputBytes": 17120,
       "texture": null,
       "model": {
         "importRig": false,

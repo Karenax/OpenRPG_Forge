@@ -389,7 +389,7 @@ public partial class GameRoot : Node3D
         if (image.SavePng(destination) != Error.Ok)
             throw new IOException("World visual proof could not be written.");
         GD.Print(
-            $"OPENRPG_FORGE_AV6D_WORLD_VISUAL_PASS file={Path.GetFileName(destination)} " +
+            $"OPENRPG_FORGE_AV6E_WORLD_VISUAL_PASS file={Path.GetFileName(destination)} " +
             $"size={image.GetWidth()}x{image.GetHeight()} sectors={_terrainSectors} scatter={_terrainScatterInstances}");
         GetTree().Quit(0);
     }
@@ -3165,16 +3165,17 @@ public partial class GameRoot : Node3D
         AssertSmoke(_terrainMaterialMode == GodotTerrainMaterialAdapter.ProceduralPbrMode &&
                     _terrainMaterialLayers == 4,
             "Forgotten Forest must reconstruct its four-layer procedural PBR terrain material.");
-        AssertSmoke(_terrainScatterLayers >= 5, "The biome scatter did not reconstruct all five visual layers.");
-        AssertSmoke(_terrainScatterInstances >= 5_000, "The 512 x 512 forest is too sparse.");
+        AssertSmoke(_terrainScatterLayers == 17,
+            "The biome scatter did not reconstruct the five foundation and twelve close-dressing layers.");
+        AssertSmoke(_terrainScatterInstances >= 7_000, "The 512 x 512 dressed forest is too sparse.");
         AssertSmoke(_terrainWaterSurfaces == 10 && _terrainWaterVolumes == 10,
             "Forgotten Forest must reconstruct all ten animated river segments and swim volumes.");
         AssertSmoke(_surfaceNavigationRegions == 1 && _surfaceNavigationPolygons > 0,
             "Forgotten Forest did not reconstruct its playable surface navigation region.");
         AssertSmoke(_surfaceNavigationBlockedTriangles > 0 && _surfaceNavigationLinks == 2,
             "River crossing policy or the two authored bridge traversals are missing from surface navigation.");
-        AssertSmoke(_modelLibrary?.Count == 28,
-            "All 22 governed Mini Forest models, the legacy character and five KayKit variants must be available.");
+        AssertSmoke(_modelLibrary?.Count == 40,
+            "All 34 governed environment models, the legacy character and five KayKit variants must be available.");
         AssertSmoke(_runtimeModelInstances >= 39, "Authored sector landmarks did not use their governed 3D models.");
         AssertSmoke(_animatedCharacterInstances == 5 && _animatedCharacterClipNames.Count >= 75,
             "The five authored KayKit characters must expose the governed movement and combat clips.");

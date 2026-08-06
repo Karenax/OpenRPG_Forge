@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "pack_id": "forgotten-forest-nature-dressing",
+  "version": "1.0.0",
+  "display_name": "Forgotten Forest Nature Dressing",
+  "source_catalog": "asset_manifests/catalogs/kenney_3d_packs.json",
+  "source_pack_id": "kenney:nature-kit",
+  "license": "CC0-1.0",
+  "models": [
+    { "key": "dark-detailed-tree", "path": "Models/GLTF format/tree_detailed_dark.glb", "tags": ["tree", "canopy", "dark"] },
+    { "key": "detailed-bush", "path": "Models/GLTF format/plant_bushDetailed.glb", "tags": ["plant", "bush", "ground-cover"] },
+    { "key": "fall-tree", "path": "Models/GLTF format/tree_default_fall.glb", "tags": ["tree", "canopy", "seasonal"] },
+    { "key": "fallen-log", "path": "Models/GLTF format/log_large.glb", "tags": ["log", "deadwood", "ground-cover"] },
+    { "key": "large-grass", "path": "Models/GLTF format/grass_large.glb", "tags": ["grass", "ground-cover"] },
+    { "key": "large-rock", "path": "Models/GLTF format/rock_largeB.glb", "tags": ["rock", "ground-cover"] },
+    { "key": "oak-tree", "path": "Models/GLTF format/tree_oak.glb", "tags": ["tree", "canopy", "oak"] },
+    { "key": "pine-round", "path": "Models/GLTF format/tree_pineRoundC.glb", "tags": ["tree", "canopy", "pine"] },
+    { "key": "pine-tall", "path": "Models/GLTF format/tree_pineTallA_detailed.glb", "tags": ["tree", "canopy", "pine"] },
+    { "key": "purple-flowers", "path": "Models/GLTF format/flower_purpleB.glb", "tags": ["flower", "ground-cover"] },
+    { "key": "red-mushrooms", "path": "Models/GLTF format/mushroom_redGroup.glb", "tags": ["mushroom", "ground-cover"] },
+    { "key": "tall-plant", "path": "Models/GLTF format/plant_flatTall.glb", "tags": ["plant", "ground-cover"] }
+  ]
+}

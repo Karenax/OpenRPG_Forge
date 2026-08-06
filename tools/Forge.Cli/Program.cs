@@ -550,10 +550,17 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
         File.WriteAllText(scriptPath, script.Value, new System.Text.UTF8Encoding(false));
     }
 
-    var installed = CuratedAssetPackInstaller.InstallForgottenForest(
-        repositoryRoot,
-        catalog.VaultRoot,
-        created.Session.RootDirectory);
+    var environmentPackManifests = new[]
+    {
+        Path.Combine(repositoryRoot, CuratedAssetPackInstaller.DefaultManifestRelativePath.Replace('/', Path.DirectorySeparatorChar)),
+        Path.Combine(repositoryRoot, "asset_manifests", "packs", "forgotten_forest_nature_dressing.json"),
+    };
+    var installed = environmentPackManifests.Select(manifest =>
+        CuratedAssetPackInstaller.InstallForgottenForest(
+            repositoryRoot,
+            catalog.VaultRoot,
+            created.Session.RootDirectory,
+            manifest)).ToArray();
     var animatedPlan = CuratedAnimatedCharacterInstaller.Plan(
         repositoryRoot,
         catalog.VaultRoot,
@@ -605,10 +612,17 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
         entities = created.Session.Project.Areas.Sum(area => area.Entities.Count),
         blueprints = created.Session.Project.Blueprints.Count,
         biomes = created.Session.Project.Areas.Sum(area => area.World.Biomes.Count),
-        assets = installed.Entries.Count,
-        installed.ReusedCount,
-        installed.TotalBytes,
-        installed.LicenseSpdx,
+        assets = installed.Sum(pack => pack.Entries.Count),
+        reusedCount = installed.Sum(pack => pack.ReusedCount),
+        totalBytes = installed.Sum(pack => pack.TotalBytes),
+        licenseSpdx = installed.Select(pack => pack.LicenseSpdx).Distinct(StringComparer.Ordinal).Single(),
+        environmentPacks = installed.Select(pack => new
+        {
+            pack.PackId,
+            pack.Version,
+            assets = pack.Entries.Count,
+            pack.ReusedCount,
+        }),
         animatedCharacter = new
         {
             assetId = animated.AssetId.ToString(),
@@ -633,10 +647,11 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
     Console.WriteLine(
         $"OPENRPG_FORGE_FORGOTTEN_FOREST_AUTHORED slug=forgotten-forest " +
         $"entities={created.Session.Project.Areas.Sum(area => area.Entities.Count)} " +
-        $"assets={installed.Entries.Count + 1 + embeddedCharacters.Count} " +
-        $"reused={installed.ReusedCount + (animated.Reused ? 1 : 0) + embeddedCharacters.Count(character => character.Reused)} " +
+        $"assets={installed.Sum(pack => pack.Entries.Count) + 1 + embeddedCharacters.Count} " +
+        $"reused={installed.Sum(pack => pack.ReusedCount) + (animated.Reused ? 1 : 0) + embeddedCharacters.Count(character => character.Reused)} " +
+        $"environment_packs={installed.Length} " +
         $"animated_variants={embeddedCharacters.Count} clips={embeddedCharacters.Min(character => character.Clips.Count)} " +
-        $"profile=kaykit-adventurer license={installed.LicenseSpdx}");
+        $"profile=kaykit-adventurer license={installed.Select(pack => pack.LicenseSpdx).Distinct(StringComparer.Ordinal).Single()}");
     return 0;
 }
 

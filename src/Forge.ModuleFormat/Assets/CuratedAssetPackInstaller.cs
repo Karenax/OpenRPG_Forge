@@ -51,13 +51,27 @@ public static class CuratedAssetPackInstaller
         }
 
         var extractedRoot = ResolveContained(vault, sourcePack.ExtractedRoot);
-        var sharedTexturePath = ResolveContained(extractedRoot, "Models/GLB format/Textures/colormap.png");
-        if (!File.Exists(sharedTexturePath))
+        var sharedTextureRelativePath = document.SharedTexturePath;
+        if (string.IsNullOrWhiteSpace(sharedTextureRelativePath) &&
+            string.Equals(document.SourcePackId, "kenney:mini-forest", StringComparison.Ordinal))
         {
-            throw new FileNotFoundException("The curated Mini Forest color map is missing.", sharedTexturePath);
+            sharedTextureRelativePath = "Models/GLB format/Textures/colormap.png";
         }
-        var sharedTextureSha256 = HashFile(sharedTexturePath);
-        var sharedTextureBytes = new FileInfo(sharedTexturePath).Length;
+
+        string? sharedTexturePath = null;
+        string? sharedTextureSha256 = null;
+        var sharedTextureBytes = 0L;
+        if (!string.IsNullOrWhiteSpace(sharedTextureRelativePath))
+        {
+            sharedTexturePath = ResolveContained(extractedRoot, sharedTextureRelativePath);
+            if (!File.Exists(sharedTexturePath))
+            {
+                throw new FileNotFoundException("The curated pack shared texture is missing.", sharedTexturePath);
+            }
+
+            sharedTextureSha256 = HashFile(sharedTexturePath);
+            sharedTextureBytes = new FileInfo(sharedTexturePath).Length;
+        }
         var profiles = AssetProcessingProfileStore.Load(workspace);
         var manifests = AssetPackageManifestStore.Load(workspace);
         if (!profiles.Succeeded || !manifests.Succeeded)
@@ -132,9 +146,6 @@ public static class CuratedAssetPackInstaller
             var outputDirectory = Path.GetDirectoryName(Path.Combine(
                 workspace,
                 output.OutputRelativePath.Replace('/', Path.DirectorySeparatorChar)))!;
-            var texturePath = Path.Combine(outputDirectory, "Textures", "colormap.png");
-            CopyAtomically(sharedTexturePath, texturePath);
-            var textureRelativePath = Normalize(Path.GetRelativePath(workspace, texturePath));
             var baseManifest = AssetPackageManifestFactory.Create(
                 item,
                 profile,
@@ -148,17 +159,24 @@ public static class CuratedAssetPackInstaller
                     ModificationProvenance = $"author:openrpg-forge:{document.PackId}@{document.Version}",
                     RequireGeneratedExtensions = false,
                 });
-            var textureChunk = new AssetManifestChunk(
-                StableGuid($"{assetId}:texture:colormap"),
-                AssetChunkRole.Texture,
-                true,
-                textureRelativePath,
-                sharedTextureSha256,
-                sharedTextureBytes,
-                sharedTextureBytes,
-                AssetChunkCompression.None,
-                AssetPackageManifestAuthoringOptions.Default.Platforms);
-            var manifest = baseManifest with { Chunks = [.. baseManifest.Chunks, textureChunk] };
+            var manifest = baseManifest;
+            if (sharedTexturePath is not null && sharedTextureSha256 is not null)
+            {
+                var texturePath = Path.Combine(outputDirectory, "Textures", "colormap.png");
+                CopyAtomically(sharedTexturePath, texturePath);
+                var textureRelativePath = Normalize(Path.GetRelativePath(workspace, texturePath));
+                var textureChunk = new AssetManifestChunk(
+                    StableGuid($"{assetId}:texture:colormap"),
+                    AssetChunkRole.Texture,
+                    true,
+                    textureRelativePath,
+                    sharedTextureSha256,
+                    sharedTextureBytes,
+                    sharedTextureBytes,
+                    AssetChunkCompression.None,
+                    AssetPackageManifestAuthoringOptions.Default.Platforms);
+                manifest = baseManifest with { Chunks = [.. baseManifest.Chunks, textureChunk] };
+            }
             profileMap[assetId] = profile;
             manifestMap[assetId] = manifest;
             installed.Add(new CuratedAssetInstallEntry(
@@ -211,6 +229,7 @@ public static class CuratedAssetPackInstaller
             }
 
             return new SourcePack(
+                pack.TryGetProperty("name", out var name) ? name.GetString() ?? sourcePackId : sourcePackId,
                 pack.GetProperty("extracted_root").GetString() ?? string.Empty,
                 pack.GetProperty("license").GetString() ?? string.Empty,
                 pack.GetProperty("license_url").GetString() ?? string.Empty,
@@ -227,13 +246,14 @@ public static class CuratedAssetPackInstaller
         SourcePack sourcePack,
         IReadOnlyList<CuratedAssetInstallEntry> entries)
     {
-        var path = Path.Combine(workspace, "assets", "CREDITS_ASSETS.md");
+        var creditsDirectory = Path.Combine(workspace, "assets", "credits");
+        var path = Path.Combine(creditsDirectory, $"{SafeFileName(document.PackId)}.md");
         var lines = new List<string>
         {
-            "# Asset credits",
+            $"## {document.DisplayName}",
             string.Empty,
             $"- Pack: {document.DisplayName} ({document.PackId} {document.Version})",
-            $"- Source: Kenney Mini Forest ({sourcePack.SourcePage})",
+            $"- Source: {sourcePack.Name} ({sourcePack.SourcePage})",
             $"- License: {document.License} ({sourcePack.LicenseUrl})",
             "- License verification: verified in the OpenRPG Forge CC0 catalog",
             "- Modification: canonical GLB copied into the module workspace without altering the Vault original",
@@ -244,6 +264,19 @@ public static class CuratedAssetPackInstaller
         lines.AddRange(entries.OrderBy(entry => entry.Key, StringComparer.Ordinal)
             .Select(entry => $"- `{entry.ExternalId}` — `{entry.AssetId}` — `{entry.OutputRelativePath}` — SHA-256 `{entry.OutputSha256}`"));
         WriteTextAtomically(path, string.Join(Environment.NewLine, lines) + Environment.NewLine);
+        RegenerateCreditsIndex(workspace, creditsDirectory);
+    }
+
+    private static void RegenerateCreditsIndex(string workspace, string creditsDirectory)
+    {
+        var sections = Directory.EnumerateFiles(creditsDirectory, "*.md", SearchOption.TopDirectoryOnly)
+            .Order(StringComparer.Ordinal)
+            .Select(path => File.ReadAllText(path, Encoding.UTF8).Trim())
+            .Where(content => content.Length > 0)
+            .ToArray();
+        var content = "# Asset credits" + Environment.NewLine + Environment.NewLine +
+                      string.Join(Environment.NewLine + Environment.NewLine, sections) + Environment.NewLine;
+        WriteTextAtomically(Path.Combine(workspace, "assets", "CREDITS_ASSETS.md"), content);
     }
 
     private static void EnsureSaved(ProjectSessionSaveResult result)
@@ -316,6 +349,9 @@ public static class CuratedAssetPackInstaller
     private static string Humanize(string key) => string.Join(' ', key.Split('-', StringSplitOptions.RemoveEmptyEntries)
         .Select(part => char.ToUpperInvariant(part[0]) + part[1..]));
 
+    private static string SafeFileName(string value) => string.Concat(value.Select(character =>
+        char.IsLetterOrDigit(character) || character is '-' or '_' ? character : '-')).Trim('-');
+
     private static void WriteTextAtomically(string targetPath, string content)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
@@ -338,11 +374,12 @@ public static class CuratedAssetPackInstaller
         [property: JsonPropertyName("display_name")] string DisplayName,
         [property: JsonPropertyName("source_catalog")] string SourceCatalog,
         [property: JsonPropertyName("source_pack_id")] string SourcePackId,
+        [property: JsonPropertyName("shared_texture_path")] string? SharedTexturePath,
         string License,
         IReadOnlyList<CuratedModelDocument> Models);
 
     private sealed record CuratedModelDocument(string Key, string Path, IReadOnlyList<string> Tags);
-    private sealed record SourcePack(string ExtractedRoot, string License, string LicenseUrl, bool LicenseVerified, string SourcePage);
+    private sealed record SourcePack(string Name, string ExtractedRoot, string License, string LicenseUrl, bool LicenseVerified, string SourcePage);
 }
 
 public sealed record CuratedAssetInstallEntry(

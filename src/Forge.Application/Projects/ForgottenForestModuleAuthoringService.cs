@@ -24,6 +24,7 @@ public sealed record ForgottenForestAuthoredModule(
 public static class ForgottenForestModuleAuthoringService
 {
     private const string AssetPrefix = "kenney:mini-forest:";
+    private const string NatureAssetPrefix = "kenney:nature-kit:";
     private const string AnimatedCharacterExternalIdPrefix =
         "kaykit:character-pack-adventures-1.0:";
     private static readonly StableIds Ids = new("f5d1ca15-4a39-46ba-a8e2-74dde7188258");
@@ -216,6 +217,9 @@ public static class ForgottenForestModuleAuthoringService
     }
 
     public static AssetCatalogItemId AssetId(string key) => AssetCatalogItemId.ForExternalId($"{AssetPrefix}{key}");
+
+    public static AssetCatalogItemId NatureAssetId(string key) =>
+        AssetCatalogItemId.ForExternalId($"{NatureAssetPrefix}{key}");
 
     public static AssetCatalogItemId AnimatedCharacterAssetId(string key = "knight") =>
         AssetCatalogItemId.ForExternalId($"{AnimatedCharacterExternalIdPrefix}{key}");
@@ -538,6 +542,42 @@ public static class ForgottenForestModuleAuthoringService
             new BiomeLayerDefinition(Stable("biome:rocks"), "Rochers", rockId, -20, 30, 10, 68, 0, 1,
                 0.25f, $"asset:{AssetId("rocks-low")}", ["rock", "ground-cover"], ["road", "river"], 60,
                 "authored:forgotten-forest@1"),
+            new BiomeLayerDefinition(Stable("biome:nature-oak"), "Chênes anciens", grassId, -20, 30, 0, 34, 0, 1,
+                0.06f, $"asset:{NatureAssetId("oak-tree")}", ["forest", "tree", "canopy", "oak"],
+                ["road", "river", "building"], 49, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-dark"), "Feuillus sombres", grassId, -20, 30, 0, 38, 0, 1,
+                0.055f, $"asset:{NatureAssetId("dark-detailed-tree")}", ["forest", "tree", "canopy", "dark"],
+                ["road", "river", "building"], 48, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-fall"), "Accents mordorés", meadowId, -20, 30, 0, 30, 0, 1,
+                0.025f, $"asset:{NatureAssetId("fall-tree")}", ["forest", "tree", "seasonal"],
+                ["road", "river", "building"], 47, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-pine-tall"), "Pins élancés", grassId, -20, 30, 6, 48, 0, 1,
+                0.05f, $"asset:{NatureAssetId("pine-tall")}", ["forest", "tree", "canopy", "pine"],
+                ["road", "river", "building"], 46, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-pine-round"), "Pins ronds", grassId, -20, 30, 0, 42, 0, 1,
+                0.05f, $"asset:{NatureAssetId("pine-round")}", ["forest", "tree", "understory", "pine"],
+                ["road", "river", "building"], 45, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-bush"), "Buissons détaillés", grassId, -20, 30, 0, 48, 0, 1,
+                0.10f, $"asset:{NatureAssetId("detailed-bush")}", ["forest", "bush", "ground-cover"],
+                ["road", "river"], 38, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-tall-plant"), "Herbes hautes", grassId, -20, 30, 0, 42, 0, 1,
+                0.09f, $"asset:{NatureAssetId("tall-plant")}", ["forest", "plant", "ground-cover"],
+                ["road", "river"], 36, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-mushrooms"), "Champignons rouges", grassId, -20, 30, 0, 38, 0, 1,
+                0.035f, $"asset:{NatureAssetId("red-mushrooms")}", ["forest", "mushroom", "ground-cover"],
+                ["road", "river"], 34, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-flowers"), "Fleurs violettes", meadowId, -20, 30, 0, 24, 0, 1,
+                0.04f, $"asset:{NatureAssetId("purple-flowers")}", ["meadow", "flower", "ground-cover"],
+                ["road", "river"], 33, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-grass"), "Touffes d'herbe", meadowId, -20, 30, 0, 28, 0, 1,
+                0.06f, $"asset:{NatureAssetId("large-grass")}", ["meadow", "grass", "ground-cover"],
+                ["road", "river"], 32, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-deadwood"), "Bois mort", soilId, -20, 30, 0, 38, 0, 1,
+                0.012f, $"asset:{NatureAssetId("fallen-log")}", ["forest", "deadwood", "ground-cover"],
+                ["road", "river"], 31, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+            new BiomeLayerDefinition(Stable("biome:nature-large-rock"), "Rochers isolés", rockId, -20, 30, 8, 62, 0, 1,
+                0.025f, $"asset:{NatureAssetId("large-rock")}", ["rock", "ground-cover"],
+                ["road", "river"], 59, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
         };
         Vector3Value Point(float x, float z, float lift = 0.08f) => new(x, terrain.HeightAt(x, z) + lift, z);
         var features = new[]

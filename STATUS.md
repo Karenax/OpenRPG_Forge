@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. AV6-D livre maintenant une carte 3D extérieure 512 × 512 jouable,
+G11 Contenu moderne fermés. AV6-E livre maintenant une carte 3D extérieure 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
 installe les GLB gouvernés dans la palette, les place comme vrais modèles dans le viewport et ferme
@@ -17,21 +17,21 @@ zone versionnée « Crypte des Cendres ». Le parcours jouable couvre le déplac
 avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du boss, la quête, la
 sortie, l'export, la sauvegarde et la reprise.
 
-Forgotten Forest reconstruit une zone extérieure canonique 128 × 128 m : relief 33 × 33, sentier,
-ruisseau, quatre recettes de biome, 357 instances MultiMesh, camp, pont, tour et sanctuaire. Les 22
-modèles Kenney Mini Forest sont importés individuellement depuis le Vault sous licence CC0-1.0 avec
-hash, manifestes, palette externe, crédits et provenance. Le runtime offre une caméra orbitale et un
-déplacement relatif à la caméra. Quatre segments d’eau animés exposent nage et courant ; un
-`NavigationRegion3D` de 1 990 polygones bloque 58 triangles de rivière hors traversée et relie le
-camp au sanctuaire par un chemin réel de 72 points. Le smoke termine dialogue, collecte, passage,
-boss et quête.
+Forgotten Forest reconstruit une zone extérieure canonique 512 × 512 m : relief 129 × 129, 64
+secteurs, deux routes, dix segments de ruisseau, deux ponts et 17 recettes de biome produisant 7 112
+instances MultiMesh. Les 34 modèles d’environnement Kenney Mini Forest/Nature Kit sont importés
+individuellement depuis le Vault sous licence CC0-1.0 avec hash, manifestes, crédits et provenance.
+Le runtime offre une caméra orbitale et un déplacement relatif à la caméra. Un
+`NavigationRegion3D` de 32 454 polygones bloque la rivière hors traversées et relie le camp au
+sanctuaire par un chemin réel de 70 points. Le smoke termine dialogue, collecte, passage, boss et
+quête.
 
 Le lancement interactif direct est validé sur le workspace scindé `1.16.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
 `Run-ForgottenForest.ps1` authorise de nouveau la carte et ses assets de manière idempotente, puis la
-lance en Forward+ ; l’archive de 75 fichiers est validée et rejouée par le gate depuis son cache.
+lance en Forward+ ; l’archive de 126 fichiers est validée et rejouée par le gate depuis son cache.
 
 Le graphe d’architecture transversal est conservé comme outillage local, déterministe et sans
 dépendance externe. Ses 18 tests et son contrôle de fraîcheur font maintenant partie de la
@@ -510,3 +510,11 @@ physique, un éclairage moins lavé et un brouillard repoussé ; Creator et runt
 contrat `procedural-pbr-vertex-blend`. Les essais SSAO/SSIL ont été retirés après apparition d’artefacts
 en capture. Le résultat est une tranche stylisée plus lisible, pas encore une direction artistique AA :
 variété de végétation, textures scannées et habillage rapproché des 64 secteurs restent ouverts.
+
+**AV6-E — habillage naturel gouverné livré** : douze modèles Kenney Nature Kit CC0 déjà présents
+dans le Vault ajoutent cinq silhouettes d’arbres, buissons, plantes, champignons, fleurs, herbes,
+bois mort et rochers. Les 17 recettes déterministes produisent 7 112 instances avec 40 manifestes,
+62 chunks, 56 références gouvernées et 108 niveaux LOD. Les captures Forward+ aérienne et rapprochée
+montrent la variété réelle ; navigation, quête, boss et caméra orbitale restent valides. Le rendu
+demeure stylisé : textures photogrammétriques, eau avancée, placement artistique manuel fin et
+retargeting inter-rigs ne sont pas revendiqués.
