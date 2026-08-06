@@ -110,6 +110,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetAssistantWorkspaceProfileHandler _assistantProfileHandler = new(new SystemClock());
     private readonly SetLoreIndexHandler _loreIndexHandler = new(new SystemClock());
     private readonly SetAssistedAreaPlansHandler _assistedAreaPlanHandler = new(new SystemClock());
+    private readonly BuildAssistedAreaPlanHandler _assistedAreaBuildHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -329,6 +330,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _loreIndexHistory?.State,
             () => _assistantProfileHistory?.State,
             ApplyAssistedAreaPlans,
+            BuildAssistedAreaPlan,
             UndoAssistedAreaPlans,
             RedoAssistedAreaPlans,
             ApplyForgeWindowIcon);
@@ -3179,6 +3181,52 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return false;
     }
 
+    private bool BuildAssistedAreaPlan(
+        Guid assistedAreaPlanId,
+        Guid transactionId,
+        Guid executionPlanId,
+        bool dryRun)
+    {
+        if (_projectSession is null || _history is null || _assistedAreaPlanHistory is null) return false;
+        var command = new BuildAssistedAreaPlanCommand(
+            CommandId.From(Guid.NewGuid()),
+            transactionId,
+            executionPlanId,
+            _history.State.Revision,
+            assistedAreaPlanId,
+            AssistantPermissionLevel.ApplyApprovedPlan,
+            dryRun);
+        var result = _assistedAreaBuildHandler.Handle(
+            _history.State,
+            command,
+            _assistedAreaPlanHistory.State.Catalog);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(diagnostic => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                diagnostic.Code,
+                diagnostic.Message,
+                "assistant/area-build",
+                assistedAreaPlanId.ToString("D"))).ToArray());
+            return false;
+        }
+        if (dryRun) return result.Command.Patch is not null && !result.Command.Audit.Applied;
+        var saved = _projectSession.Save(result.Command.State.Project);
+        if (!saved.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_AREA_BUILD_SAVE_FAILED {saved.Diagnostics[0].Code}");
+            return false;
+        }
+        _history.Record(result.Command);
+        _activeAreaContext.EnsureValid(_history.State.Project);
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print($"OPENRPG_FORGE_TOOLSET_AREA_BUILD_APPLIED area_plan={assistedAreaPlanId:D} " +
+                 $"placements={result.EntityIds.Count} revision={_history.State.Revision} " +
+                 $"transaction={transactionId:D} plan={executionPlanId:D}");
+        return true;
+    }
+
     private bool RedoAssistedAreaPlans()
     {
         if (_projectSession is null || _assistedAreaPlanHistory is null || !_assistedAreaPlanHistory.Redo()) return false;
@@ -4519,6 +4567,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssistedAreaPlanSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAssistedAreaBuildSmokeTest())
         {
             return;
         }
@@ -8067,6 +8120,95 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                 File.WriteAllBytes(path, originalBytes);
             }
+        }
+    }
+
+    private bool RunAssistedAreaBuildSmokeTest()
+    {
+        if (_projectSession is null || _history is null || _projectPreview is null ||
+            _assistedAreaPlanHistory is null || _assistedAreaPlanWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12D_AREA_BUILD_FAILED missing_workspace");
+            return false;
+        }
+        var originalState = _history.State;
+        var originalCatalog = _assistedAreaPlanHistory.State.Catalog;
+        var originalEntityCount = originalState.Project.Areas.Sum(item => item.Entities.Count);
+        var catalogPath = Path.Combine(_projectSession.RootDirectory, AssistedAreaPlanStore.RelativePath);
+        var originalCatalogBytes = File.Exists(catalogPath) ? File.ReadAllBytes(catalogPath) : null;
+        var areaDocumentsDirectory = Path.Combine(_projectSession.RootDirectory, "areas");
+        var originalAreaDocuments = Directory.Exists(areaDocumentsDirectory)
+            ? Directory.EnumerateFiles(areaDocumentsDirectory, "*.json").ToHashSet(StringComparer.OrdinalIgnoreCase)
+            : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            if (!_assistedAreaPlanWindow.ConfigureApprovedForSmokeTest() ||
+                !_assistedAreaPlanWindow.PreviewForSmokeTest() ||
+                !_assistedAreaPlanWindow.ApplyForSmokeTest() ||
+                !_assistedAreaPlanWindow.SelectApprovedPlanForSmokeTest() ||
+                !_assistedAreaPlanWindow.PreviewBuildForSmokeTest() ||
+                _assistedAreaPlanWindow.LastBuildEntityCount <= 0)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12D_AREA_BUILD_FAILED plan_preview");
+                return false;
+            }
+            var placementCount = _assistedAreaPlanWindow.LastBuildEntityCount;
+            if (!_assistedAreaPlanWindow.ApplyBuildForSmokeTest() ||
+                _history.State.Project.Areas.Sum(item => item.Entities.Count) != originalEntityCount + placementCount ||
+                _projectPreview.EntityCount != GetActiveArea().Entities.Count)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12D_AREA_BUILD_FAILED atomic_apply");
+                return false;
+            }
+            var reopened = ProjectSession.Open(_projectSession.RootDirectory);
+            if (reopened.Session is null ||
+                reopened.Session.Project.Areas.Sum(item => item.Entities.Count) != originalEntityCount + placementCount)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12D_AREA_BUILD_FAILED persistence");
+                return false;
+            }
+            var undone = _history.Undo();
+            if (!undone.Succeeded ||
+                _history.State.Project.Areas.Sum(item => item.Entities.Count) != originalEntityCount ||
+                !_history.Redo().Succeeded ||
+                _history.State.Project.Areas.Sum(item => item.Entities.Count) != originalEntityCount + placementCount ||
+                !_history.Undo().Succeeded ||
+                !_projectSession.Save(_history.State.Project).Succeeded)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12D_AREA_BUILD_FAILED history");
+                return false;
+            }
+            RebuildPreview();
+            RefreshEditorControls();
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G12D_AREA_BUILD_PASS placements=batch-manual-commands seed=preserved " +
+                "geometry=validated navigation=no-regression lighting=validated approval=required " +
+                "plan=dry-run-transaction permission=apply-approved atomic=true history=restored " +
+                "persistence=roundtrip mcp=governed");
+            return true;
+        }
+        finally
+        {
+            _history = new ProjectCommandHistory(originalState);
+            _projectSession.Save(originalState.Project);
+            if (Directory.Exists(areaDocumentsDirectory))
+            {
+                foreach (var generatedPath in Directory.EnumerateFiles(areaDocumentsDirectory, "*.json")
+                             .Where(item => !originalAreaDocuments.Contains(item)))
+                    File.Delete(generatedPath);
+            }
+            _assistedAreaPlanHistory = new AssistedAreaPlanCommandHistory(originalCatalog);
+            if (originalCatalogBytes is null)
+            {
+                if (File.Exists(catalogPath)) File.Delete(catalogPath);
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(catalogPath)!);
+                File.WriteAllBytes(catalogPath, originalCatalogBytes);
+            }
+            RebuildPreview();
+            RefreshEditorControls();
         }
     }
 

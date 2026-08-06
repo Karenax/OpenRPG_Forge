@@ -48,8 +48,9 @@ gouverné, une carte extérieure 512 × 512 jouable, son rendu PBR stylisé, des
 une preuve réelle de retargeting inter-rigs. **G12-A** ouvre désormais les extensions 1.x avec un
 Assistant intégré, un fournisseur hors ligne déterministe, des contrats de fournisseurs
 interchangeables et des prompts versionnés testés. La fermeture de `TASKS_MVP.md` ne signifie pas
-une parité Aurora complète : G12-B ferme les transports locaux et le lore, puis G12-C livre le
-premier plan de zone assisté sans mutation géométrique. La file active commence à **G12-D**.
+une parité Aurora complète : G12-B ferme les transports locaux et le lore, G12-C livre le premier
+plan de zone assisté sans mutation géométrique, puis G12-D construit un plan approuvé par les mêmes
+commandes que l’édition manuelle. La file active commence à **G12-E**.
 
 ## 3. Jalons produit
 
@@ -313,8 +314,9 @@ Blender au runtime.
 **État.** En cours. G12-A livre l’Assistant intégré, le profil persistant, le fournisseur hors ligne
 déterministe et les prompts versionnés. G12-B ajoute les transports locaux compatibles OpenAI et
 Ollama, puis l’index de lore gouverné et son contrat MCP. G12-C produit désormais un plan de crypte
-ou village contrôlé, persistant et annulable avant toute génération de géométrie. G12-D portera
-l’application assistée d’un plan approuvé par les commandes AREA existantes.
+ou village contrôlé, persistant et annulable avant toute génération de géométrie. G12-D applique
+désormais un plan approuvé par un lot de placements atomique, validé, persistant et réversible. G12-E
+portera la création de dialogue assistée sur les agrégats RPG existants.
 
 **Domaine.** `AI` P1/P2, après stabilisation des workflows humains correspondants.
 

@@ -263,6 +263,11 @@ provenance restent visibles, puis le même dry-run transactionnel sert l’UI et
 d’enregistrement conserve uniquement le plan ; aucune géométrie n’est créée avant une future
 commande de construction explicitement approuvée.
 
+G12-D active cette seconde étape dans la même fenêtre. Un plan enregistré et approuvé peut être
+prévisualisé comme lot de placements, avec nombre d’entités, seed, navigation et éclairage contrôlés,
+puis construit en une mutation atomique. L’interface ne permet l’application qu’après le dry-run
+exact ; undo/redo et MCP utilisent le même diff et la même sauvegarde canonique.
+
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
 échelle métrique, matériaux PBR normalisés, silhouettes lisibles, éclairage maîtrisé, LOD,
 collisions, navigation et profils de qualité. Elle est détaillée dans

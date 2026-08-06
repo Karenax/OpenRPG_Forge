@@ -5,9 +5,9 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. G12-A à G12-C ouvrent maintenant l’Assistant de création avancée, ses
-fournisseurs locaux, son lore et ses plans de crypte/village sans dépendance réseau obligatoire ni
-mutation géométrique avant approbation. AV6-F ferme le lot de production 3D : carte extérieure
+G11 Contenu moderne fermés. G12-A à G12-D ouvrent maintenant l’Assistant de création avancée, ses
+fournisseurs locaux, son lore, ses plans de crypte/village et leur construction atomique après
+approbation, sans dépendance réseau obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
@@ -105,7 +105,7 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
 - solution de 25 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 713 tests .NET, 24 tests Python généraux et 22 tests Python du pipeline d'assets réussis ;
+- 770 tests .NET, 24 tests Python généraux et 25 tests Python du pipeline d'assets réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et

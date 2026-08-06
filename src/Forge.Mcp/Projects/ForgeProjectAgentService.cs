@@ -54,6 +54,7 @@ public sealed class ForgeProjectAgentService
     private readonly LoreIndexCommandHistory _loreIndexHistory;
     private readonly List<AgentDiagnostic> _loreLoadDiagnostics;
     private readonly SetAssistedAreaPlansHandler _areaPlanHandler;
+    private readonly BuildAssistedAreaPlanHandler _areaBuildHandler;
     private readonly AssistedAreaPlanCommandHistory _areaPlanHistory;
     private readonly List<AgentDiagnostic> _areaPlanLoadDiagnostics;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
@@ -66,6 +67,7 @@ public sealed class ForgeProjectAgentService
     private readonly Dictionary<string, StoredAssetInstallPlan> _assetInstallPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredLoreIndexPlan> _loreIndexPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedAreaPlan> _areaPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAssistedAreaBuildPlan> _areaBuildPlans = new(StringComparer.Ordinal);
     private readonly IClock _clock;
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
@@ -88,6 +90,7 @@ public sealed class ForgeProjectAgentService
         _loreLoadDiagnostics = loreIndex.Diagnostics.Select(item =>
             new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
         _areaPlanHandler = new SetAssistedAreaPlansHandler(clock);
+        _areaBuildHandler = new BuildAssistedAreaPlanHandler(clock);
         var areaPlans = AssistedAreaPlanStore.Load(session.RootDirectory);
         _areaPlanHistory = new AssistedAreaPlanCommandHistory(areaPlans.Catalog);
         _areaPlanLoadDiagnostics = areaPlans.Diagnostics.Select(item =>
@@ -476,6 +479,110 @@ public sealed class ForgeProjectAgentService
             plan.Reverted = true;
             plan.Audit.Add(new(plan.PlanId, plan.Command.TransactionId.ToString("D"), "revert",
                 _areaPlanHistory.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AssistedAreaBuildPlanResult PlanAssistedAreaBuild(AssistedAreaBuildPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1 || request.BaseRevision < 0 ||
+                !Guid.TryParse(request.AssistedAreaPlanId, out var assistedAreaPlanId))
+                return AssistedAreaBuildFailure(_history.State.Revision.Value,
+                    "assistant.area_build.request_invalid", "Area-build request schema, revision or plan ID is invalid.");
+            var executionPlanId = Guid.NewGuid();
+            var transactionId = Guid.NewGuid();
+            var command = new BuildAssistedAreaPlanCommand(
+                CommandId.From(Guid.NewGuid()), transactionId, executionPlanId,
+                new ProjectRevision(request.BaseRevision), assistedAreaPlanId, request.Permission, DryRun: true);
+            var preview = _areaBuildHandler.Handle(_history.State, command, _areaPlanHistory.State.Catalog);
+            if (!preview.Succeeded || preview.Command.Patch is null || preview.Command.Inverse is null)
+                return new(false, null, transactionId.ToString("D"), request.AssistedAreaPlanId,
+                    request.BaseRevision, null, null, [], "no-change", 0, 0, false,
+                    preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var key = executionPlanId.ToString("D");
+            var stored = new StoredAssistedAreaBuildPlan(
+                key,
+                command,
+                preview.Command.Patch,
+                preview.Command.Inverse,
+                preview.EntityIds.Select(item => item.ToString()).ToArray(),
+                preview.SemanticDiff,
+                preview.NavigationDiagnosticsBefore,
+                preview.NavigationDiagnosticsAfter,
+                preview.LightingPass,
+                [new AssistedAreaPlanAuditEntry(
+                    key, transactionId.ToString("D"), "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _areaBuildPlans.Add(key, stored);
+            return ToResult(stored);
+        }
+    }
+
+    public AssistedAreaBuildPlanResult ApplyAssistedAreaBuild(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaBuildPlans.TryGetValue(planId, out var plan))
+                return AssistedAreaBuildFailure(_history.State.Revision.Value,
+                    "assistant.area_build.plan_missing", $"Area-build plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AssistedAreaBuildFailure(plan.Command.BaseRevision.Value,
+                    "assistant.area_build.plan_already_applied", $"Area-build plan '{planId}' is already applied.");
+            var result = _areaBuildHandler.Handle(
+                _history.State,
+                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false },
+                _areaPlanHistory.State.Catalog);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, plan.Command.TransactionId.ToString("D"), "apply",
+                    _history.State.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan, result.Diagnostics.Select(Map).ToArray());
+            }
+            var saved = _session.Save(result.Command.State.Project);
+            if (!saved.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, plan.Command.TransactionId.ToString("D"), "apply",
+                    _history.State.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            _history.Record(result.Command);
+            plan.Applied = true;
+            plan.AppliedRevision = _history.State.Revision.Value;
+            plan.Audit.Add(new(plan.PlanId, plan.Command.TransactionId.ToString("D"), "apply",
+                plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AssistedAreaBuildPlanResult RevertAssistedAreaBuild(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaBuildPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AssistedAreaBuildFailure(_history.State.Revision.Value,
+                    "assistant.area_build.plan_not_applied", $"Area-build plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return AssistedAreaBuildFailure(plan.Command.BaseRevision.Value,
+                    "assistant.area_build.revert_conflict", "Only the latest project mutation can be reverted safely.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return AssistedAreaBuildFailure(plan.Command.BaseRevision.Value,
+                    "assistant.area_build.inverse_unavailable", "The assisted build inverse is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return WithFailure(plan, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(plan.PlanId, plan.Command.TransactionId.ToString("D"), "revert",
+                undone.State.Revision.Value, _clock.UtcNow, true));
             return ToResult(plan);
         }
     }
@@ -1860,6 +1967,53 @@ public sealed class ForgeProjectAgentService
         plan.Reverted,
         plan.Audit.ToArray());
 
+    private static AssistedAreaBuildPlanResult AssistedAreaBuildFailure(
+        long revision,
+        string code,
+        string message) => new(
+        false,
+        null,
+        null,
+        null,
+        revision,
+        null,
+        null,
+        [],
+        "no-change",
+        0,
+        0,
+        false,
+        [new AgentDiagnostic(code, message, "assistant/area-build")],
+        false,
+        false,
+        []);
+
+    private static AssistedAreaBuildPlanResult WithFailure(
+        StoredAssistedAreaBuildPlan plan,
+        IReadOnlyList<AgentDiagnostic> diagnostics) => ToResult(plan) with
+        {
+            Succeeded = false,
+            Diagnostics = diagnostics,
+        };
+
+    private static AssistedAreaBuildPlanResult ToResult(StoredAssistedAreaBuildPlan plan) => new(
+        true,
+        plan.PlanId,
+        plan.Command.TransactionId.ToString("D"),
+        plan.Command.AssistedAreaPlanId.ToString("D"),
+        plan.Command.BaseRevision.Value,
+        plan.Diff,
+        plan.Inverse,
+        plan.EntityIds,
+        plan.SemanticDiff,
+        plan.NavigationDiagnosticsBefore,
+        plan.NavigationDiagnosticsAfter,
+        plan.LightingPass,
+        [],
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
     private static DialoguePlanResult WithFailure(
         StoredDialoguePlan plan,
         IReadOnlyList<AgentDiagnostic> diagnostics) => new(
@@ -2003,6 +2157,33 @@ public sealed class ForgeProjectAgentService
         public SetAssistedAreaPlansCommand Command { get; } = command;
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
+        public List<AssistedAreaPlanAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAssistedAreaBuildPlan(
+        string planId,
+        BuildAssistedAreaPlanCommand command,
+        ProjectPatch diff,
+        ProjectPatch inverse,
+        IReadOnlyList<string> entityIds,
+        string semanticDiff,
+        int navigationDiagnosticsBefore,
+        int navigationDiagnosticsAfter,
+        bool lightingPass,
+        List<AssistedAreaPlanAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public BuildAssistedAreaPlanCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public IReadOnlyList<string> EntityIds { get; } = entityIds;
+        public string SemanticDiff { get; } = semanticDiff;
+        public int NavigationDiagnosticsBefore { get; } = navigationDiagnosticsBefore;
+        public int NavigationDiagnosticsAfter { get; } = navigationDiagnosticsAfter;
+        public bool LightingPass { get; } = lightingPass;
         public List<AssistedAreaPlanAuditEntry> Audit { get; } = audit;
         public bool Applied { get; set; }
         public bool Reverted { get; set; }

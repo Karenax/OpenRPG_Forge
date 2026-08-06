@@ -84,6 +84,21 @@ public sealed class ForgeMcpTools
         _project.RevertAssistedAreaPlan(planId);
 
     [McpServerTool]
+    [Description("Validates and dry-runs the atomic construction of an explicitly approved assisted area plan.")]
+    public AssistedAreaBuildPlanResult PlanAssistedAreaBuild(AssistedAreaBuildPlanRequest request) =>
+        _project.PlanAssistedAreaBuild(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated assisted area build through canonical placement commands and persists the project.")]
+    public AssistedAreaBuildPlanResult ApplyAssistedAreaBuild(string planId) =>
+        _project.ApplyAssistedAreaBuild(planId);
+
+    [McpServerTool]
+    [Description("Atomically reverts the latest assisted area build through canonical project history.")]
+    public AssistedAreaBuildPlanResult RevertAssistedAreaBuild(string planId) =>
+        _project.RevertAssistedAreaBuild(planId);
+
+    [McpServerTool]
     [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]
     public RuntimePolicyResource GetRuntimePolicies(string? areaId = null) =>
         _project.GetRuntimePolicies(areaId);

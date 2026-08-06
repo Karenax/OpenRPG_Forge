@@ -50,3 +50,27 @@ public sealed record AssistedAreaPlanAuditEntry(
     long Revision,
     DateTimeOffset OccurredAt,
     bool Succeeded);
+
+public sealed record AssistedAreaBuildPlanRequest(
+    int SchemaVersion,
+    long BaseRevision,
+    string AssistedAreaPlanId,
+    AssistantPermissionLevel Permission);
+
+public sealed record AssistedAreaBuildPlanResult(
+    bool Succeeded,
+    string? PlanId,
+    string? TransactionId,
+    string? AssistedAreaPlanId,
+    long BaseRevision,
+    ProjectPatch? Diff,
+    ProjectPatch? Inverse,
+    IReadOnlyList<string> EntityIds,
+    string SemanticDiff,
+    int NavigationDiagnosticsBefore,
+    int NavigationDiagnosticsAfter,
+    bool LightingPass,
+    IReadOnlyList<AgentDiagnostic> Diagnostics,
+    bool Applied,
+    bool Reverted,
+    IReadOnlyList<AssistedAreaPlanAuditEntry> Audit);

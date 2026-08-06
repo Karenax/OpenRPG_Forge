@@ -5,6 +5,7 @@ using Forge.Application.Validation;
 using Forge.Domain.Assets;
 using Forge.Domain.Areas;
 using Forge.Domain.Assistant;
+using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Projects;
@@ -25,6 +26,60 @@ namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void AssistedAreaBuildMcpRequiresApprovalAndPersistsAtomicPlacementsWithRevert()
+    {
+        using var workspace = new TestWorkspace();
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var area = project.Areas[0];
+        var blueprint = project.Blueprints.First(item => item.Kind == BlueprintKind.Placeable);
+        var entitiesBefore = project.Areas.Sum(item => item.Entities.Count);
+        var brief = new AssistedAreaPlanBrief(
+            Guid.Parse("b1250000-0000-4000-8000-000000000090"),
+            area.Id.Value,
+            "Crypte MCP construite",
+            AssistedAreaArchetype.Crypt,
+            20260805,
+            Math.Min(64, area.Dimensions.Width),
+            Math.Min(64, area.Dimensions.Depth),
+            8,
+            [blueprint.Id.Value],
+            ["Preserve a navigable route."],
+            ["Reach the objective."],
+            [$"project:{project.Id}"],
+            "mcp-test:g12-d");
+
+        var proposal = workspace.Project.ProposeAssistedAreaPlan(new(1, brief));
+        var approved = proposal.Plan!.WithApproval(true, "author-approved:mcp-test:g12-d");
+        var current = workspace.Project.GetAssistedAreaPlans();
+        var catalog = new AssistedAreaPlanCatalog(current.Catalog.Id, 1, [approved], "mcp-test:g12-d");
+        var catalogPlan = workspace.Project.PlanAssistedAreaPlans(new(
+            1, current.Revision, catalog, AssistantPermissionLevel.ApplyApprovedPlan));
+        Assert.True(workspace.Project.ApplyAssistedAreaPlan(catalogPlan.PlanId!).Succeeded);
+
+        var buildPlan = workspace.Project.PlanAssistedAreaBuild(new(
+            1,
+            workspace.Project.GetCurrentRevision(),
+            approved.Id.ToString("D"),
+            AssistantPermissionLevel.ApplyApprovedPlan));
+        var applied = workspace.Project.ApplyAssistedAreaBuild(buildPlan.PlanId!);
+        var persistedCount = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas.Sum(item => item.Entities.Count);
+        var reverted = workspace.Project.RevertAssistedAreaBuild(buildPlan.PlanId!);
+        var revertedCount = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas.Sum(item => item.Entities.Count);
+
+        Assert.True(buildPlan.Succeeded);
+        Assert.NotEmpty(buildPlan.EntityIds);
+        Assert.False(buildPlan.Applied);
+        Assert.True(buildPlan.LightingPass);
+        Assert.Contains("seed:preserved", buildPlan.SemanticDiff, StringComparison.Ordinal);
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.Equal(entitiesBefore + buildPlan.EntityIds.Count, persistedCount);
+        Assert.True(reverted.Succeeded);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(entitiesBefore, revertedCount);
+    }
+
     [Fact]
     public void AssistedAreaPlanMcpProposesPersistsAndRevertsWithoutGeometryMutation()
     {

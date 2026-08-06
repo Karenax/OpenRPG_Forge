@@ -13,6 +13,7 @@ public partial class AssistedAreaPlanWindow : Window
     private Func<LoreIndexState?>? _getLore;
     private Func<AssistantWorkspaceProfileState?>? _getAssistant;
     private Func<AssistedAreaPlanCatalog, Guid, Guid, AssistantPermissionLevel, bool, bool>? _apply;
+    private Func<Guid, Guid, Guid, bool, bool>? _build;
     private Func<bool>? _undo;
     private Func<bool>? _redo;
     private Action<Window>? _brandWindow;
@@ -24,6 +25,9 @@ public partial class AssistedAreaPlanWindow : Window
     private AssistedAreaPlanCatalog? _approvedCatalog;
     private Guid _approvedTransactionId;
     private Guid _approvedPreviewPlanId;
+    private Guid _selectedPlanId;
+    private Guid _buildTransactionId;
+    private Guid _buildPreviewPlanId;
     private Guid[] _areaIds = [];
     private Guid[] _blueprintIds = [];
 
@@ -43,10 +47,13 @@ public partial class AssistedAreaPlanWindow : Window
     private Label? _status;
     private Button? _generateButton;
     private Button? _applyButton;
+    private Button? _previewBuildButton;
+    private Button? _buildButton;
 
     public int PlanCount => _getPlans?.Invoke()?.Catalog.Plans.Count ?? 0;
     public bool LastGeometryApplied { get; private set; }
     public decimal LastEstimatedCostUsd { get; private set; }
+    public int LastBuildEntityCount { get; private set; }
 
     public void Initialize(
         Func<ProjectState?> getProject,
@@ -54,6 +61,7 @@ public partial class AssistedAreaPlanWindow : Window
         Func<LoreIndexState?> getLore,
         Func<AssistantWorkspaceProfileState?> getAssistant,
         Func<AssistedAreaPlanCatalog, Guid, Guid, AssistantPermissionLevel, bool, bool> apply,
+        Func<Guid, Guid, Guid, bool, bool> build,
         Func<bool> undo,
         Func<bool> redo,
         Action<Window> brandWindow)
@@ -63,6 +71,7 @@ public partial class AssistedAreaPlanWindow : Window
         _getLore = getLore;
         _getAssistant = getAssistant;
         _apply = apply;
+        _build = build;
         _undo = undo;
         _redo = redo;
         _brandWindow = brandWindow;
@@ -103,11 +112,14 @@ public partial class AssistedAreaPlanWindow : Window
         _savedPlans!.Clear();
         foreach (var item in plans.Catalog.Plans)
             _savedPlans.AddItem($"{(item.ApprovedForConstruction ? "✓" : "○")} {item.Title} · {item.Archetype} · {item.Nodes.Count} nœuds");
+        _selectedPlanId = plans.Catalog.Plans.FirstOrDefault()?.Id ?? Guid.Empty;
+        if (_savedPlans.ItemCount > 0) _savedPlans.Select(0);
         _proposal = null;
         _approvedCatalog = null;
         _applyButton!.Disabled = true;
         LastGeometryApplied = false;
         LastEstimatedCostUsd = 0;
+        LastBuildEntityCount = 0;
         if (_areaIds.Length > 0)
         {
             var selected = state.Project.Areas[0];
@@ -139,6 +151,33 @@ public partial class AssistedAreaPlanWindow : Window
     {
         Apply();
         return _approvedCatalog is null;
+    }
+
+    public bool ConfigureApprovedForSmokeTest()
+    {
+        if (!ConfigureForSmokeTest()) return false;
+        _approve!.ButtonPressed = true;
+        return true;
+    }
+
+    public bool PreviewBuildForSmokeTest() => PreviewBuild();
+
+    public bool SelectApprovedPlanForSmokeTest()
+    {
+        var plans = _getPlans?.Invoke()?.Catalog.Plans;
+        if (plans is null) return false;
+        var index = plans.ToList().FindLastIndex(item => item.ApprovedForConstruction);
+        if (index < 0) return false;
+        _selectedPlanId = plans[index].Id;
+        _savedPlans?.Select(index);
+        _buildButton!.Disabled = true;
+        return true;
+    }
+
+    public bool ApplyBuildForSmokeTest()
+    {
+        ApplyBuild();
+        return _buildPreviewPlanId == Guid.Empty;
     }
 
     private void BuildUi()
@@ -211,7 +250,19 @@ public partial class AssistedAreaPlanWindow : Window
         governance.AddChild(new HSeparator());
         governance.AddChild(Section("PLANS ENREGISTRÉS"));
         _savedPlans = new ItemList { SizeFlagsVertical = Control.SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 330) };
+        _savedPlans.ItemSelected += index =>
+        {
+            var plans = _getPlans?.Invoke()?.Catalog.Plans;
+            if (plans is not null && index >= 0 && index < plans.Count) _selectedPlanId = plans[(int)index].Id;
+            _buildButton!.Disabled = true;
+        };
         governance.AddChild(_savedPlans);
+        _previewBuildButton = new Button { Text = "Prévisualiser construction" };
+        _previewBuildButton.Pressed += () => PreviewBuild();
+        governance.AddChild(_previewBuildButton);
+        _buildButton = new Button { Text = "Construire le plan", Disabled = true };
+        _buildButton.Pressed += ApplyBuild;
+        governance.AddChild(_buildButton);
         var history = new HBoxContainer();
         var undo = new Button { Text = "Annuler" };
         undo.Pressed += () => { if (_undo?.Invoke() == true) Refresh(); };
@@ -322,6 +373,39 @@ public partial class AssistedAreaPlanWindow : Window
             _approvedCatalog = null;
             _applyButton!.Disabled = true;
             Refresh();
+        }
+    }
+
+    private bool PreviewBuild()
+    {
+        var plan = _getPlans?.Invoke()?.Catalog.Plans.SingleOrDefault(item => item.Id == _selectedPlanId);
+        if (plan is null || !plan.ApprovedForConstruction)
+        {
+            SetStatus("Sélectionnez un plan explicitement approuvé pour la construction.", true);
+            return false;
+        }
+        _buildTransactionId = Guid.NewGuid();
+        _buildPreviewPlanId = Guid.NewGuid();
+        if (_build?.Invoke(plan.Id, _buildTransactionId, _buildPreviewPlanId, true) != true)
+        {
+            _buildPreviewPlanId = Guid.Empty;
+            SetStatus("Le dry-run de construction a été refusé.", true);
+            return false;
+        }
+        LastBuildEntityCount = plan.Nodes.Sum(item => item.ContentBlueprintIds.Count);
+        _buildButton!.Disabled = false;
+        SetStatus($"Construction prête · {LastBuildEntityCount} placement(s) · navigation et éclairage validés · undo atomique.", false);
+        return true;
+    }
+
+    private void ApplyBuild()
+    {
+        if (_selectedPlanId == Guid.Empty || _buildPreviewPlanId == Guid.Empty) return;
+        if (_build?.Invoke(_selectedPlanId, _buildTransactionId, _buildPreviewPlanId, false) == true)
+        {
+            _buildPreviewPlanId = Guid.Empty;
+            _buildButton!.Disabled = true;
+            SetStatus($"Construction appliquée · {LastBuildEntityCount} placement(s) atomiques.", false);
         }
     }
 
