@@ -1708,7 +1708,7 @@
     },
     {
       "evidence": {
-        "line": 596,
+        "line": 602,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1717,7 +1717,7 @@
     },
     {
       "evidence": {
-        "line": 1409,
+        "line": 1415,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1726,7 +1726,7 @@
     },
     {
       "evidence": {
-        "line": 1474,
+        "line": 1480,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1735,7 +1735,7 @@
     },
     {
       "evidence": {
-        "line": 1774,
+        "line": 1780,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1744,7 +1744,7 @@
     },
     {
       "evidence": {
-        "line": 1474,
+        "line": 1480,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1753,7 +1753,7 @@
     },
     {
       "evidence": {
-        "line": 1523,
+        "line": 1529,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1762,7 +1762,7 @@
     },
     {
       "evidence": {
-        "line": 1727,
+        "line": 1733,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1780,7 +1780,7 @@
     },
     {
       "evidence": {
-        "line": 688,
+        "line": 694,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1789,7 +1789,7 @@
     },
     {
       "evidence": {
-        "line": 1474,
+        "line": 1480,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1798,7 +1798,7 @@
     },
     {
       "evidence": {
-        "line": 1524,
+        "line": 1530,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1807,7 +1807,7 @@
     },
     {
       "evidence": {
-        "line": 1576,
+        "line": 1582,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1816,7 +1816,7 @@
     },
     {
       "evidence": {
-        "line": 1668,
+        "line": 1674,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1834,7 +1834,7 @@
     },
     {
       "evidence": {
-        "line": 1379,
+        "line": 1385,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1843,7 +1843,7 @@
     },
     {
       "evidence": {
-        "line": 1474,
+        "line": 1480,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1852,7 +1852,7 @@
     },
     {
       "evidence": {
-        "line": 1525,
+        "line": 1531,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1861,7 +1861,7 @@
     },
     {
       "evidence": {
-        "line": 1576,
+        "line": 1582,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1870,7 +1870,7 @@
     },
     {
       "evidence": {
-        "line": 1743,
+        "line": 1749,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1879,7 +1879,7 @@
     },
     {
       "evidence": {
-        "line": 595,
+        "line": 601,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1888,7 +1888,7 @@
     },
     {
       "evidence": {
-        "line": 595,
+        "line": 601,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1906,7 +1906,7 @@
     },
     {
       "evidence": {
-        "line": 688,
+        "line": 694,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1933,7 +1933,7 @@
     },
     {
       "evidence": {
-        "line": 1380,
+        "line": 1386,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1951,7 +1951,7 @@
     },
     {
       "evidence": {
-        "line": 1760,
+        "line": 1766,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2311,7 +2311,7 @@
     },
     {
       "evidence": {
-        "line": 248,
+        "line": 249,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -22102,6 +22102,15 @@
     },
     {
       "evidence": {
+        "line": 19,
+        "path": "tests/asset_pipeline/test_blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tests.asset_pipeline.test_blender_worker.fake_png",
+      "target": "file:tests/asset_pipeline/test_blender_worker.py"
+    },
+    {
+      "evidence": {
         "line": 21,
         "path": "tests/test_aurora_tracker.py"
       },
@@ -22264,7 +22273,7 @@
     },
     {
       "evidence": {
-        "line": 18,
+        "line": 19,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -22273,7 +22282,25 @@
     },
     {
       "evidence": {
-        "line": 14,
+        "line": 189,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._audit",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 79,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._bounds",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 15,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -22282,7 +22309,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 105,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -22291,7 +22318,7 @@
     },
     {
       "evidence": {
-        "line": 68,
+        "line": 89,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -22300,7 +22327,7 @@
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 43,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -22309,7 +22336,16 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 113,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._look_at",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 59,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -22318,7 +22354,16 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 117,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._render_thumbnail",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 38,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -22327,7 +22372,7 @@
     },
     {
       "evidence": {
-        "line": 92,
+        "line": 299,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -22336,7 +22381,16 @@
     },
     {
       "evidence": {
-        "line": 38,
+        "line": 94,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._canonicalize_png",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 41,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -22345,7 +22399,7 @@
     },
     {
       "evidence": {
-        "line": 163,
+        "line": 284,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -22354,7 +22408,16 @@
     },
     {
       "evidence": {
-        "line": 52,
+        "line": 133,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._quality_report",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 55,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -22363,7 +22426,34 @@
     },
     {
       "evidence": {
-        "line": 60,
+        "line": 63,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._sidecar_path",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._sidecar_relative",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 72,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._validate_glb",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 181,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -22372,7 +22462,16 @@
     },
     {
       "evidence": {
-        "line": 148,
+        "line": 81,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._validate_png",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 269,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -22381,7 +22480,7 @@
     },
     {
       "evidence": {
-        "line": 168,
+        "line": 289,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -22390,7 +22489,7 @@
     },
     {
       "evidence": {
-        "line": 236,
+        "line": 424,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -22399,7 +22498,7 @@
     },
     {
       "evidence": {
-        "line": 67,
+        "line": 188,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -32542,7 +32641,7 @@
     },
     {
       "evidence": {
-        "line": 122,
+        "line": 124,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -32551,7 +32650,7 @@
     },
     {
       "evidence": {
-        "line": 124,
+        "line": 126,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -32560,7 +32659,7 @@
     },
     {
       "evidence": {
-        "line": 126,
+        "line": 128,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "relationship",
@@ -62953,7 +63052,7 @@
     },
     {
       "evidence": {
-        "line": 50,
+        "line": 52,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -62962,7 +63061,7 @@
     },
     {
       "evidence": {
-        "line": 52,
+        "line": 54,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -62971,7 +63070,7 @@
     },
     {
       "evidence": {
-        "line": 47,
+        "line": 49,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -62980,7 +63079,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 62,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -62989,7 +63088,7 @@
     },
     {
       "evidence": {
-        "line": 58,
+        "line": 60,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -62998,7 +63097,7 @@
     },
     {
       "evidence": {
-        "line": 61,
+        "line": 69,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -71998,7 +72097,7 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 29,
         "path": "tests/asset_pipeline/test_blender_worker.py"
       },
       "kind": "defined_in",
@@ -74104,7 +74203,7 @@
     },
     {
       "evidence": {
-        "line": 55,
+        "line": 57,
         "path": "src/Forge.Domain/Assets/AssetExternalEdit.cs"
       },
       "kind": "defined_in",
@@ -77083,7 +77182,7 @@
     },
     {
       "evidence": {
-        "line": 111,
+        "line": 113,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -77092,7 +77191,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 100,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -81961,7 +82060,7 @@
     },
     {
       "evidence": {
-        "line": 31,
+        "line": 34,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -82033,7 +82132,7 @@
     },
     {
       "evidence": {
-        "line": 73,
+        "line": 75,
         "path": "src/Forge.Domain/Assets/AssetExternalEdit.cs"
       },
       "kind": "defined_in",
@@ -82042,7 +82141,7 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 84,
         "path": "src/Forge.Domain/Assets/AssetExternalEdit.cs"
       },
       "kind": "validates",
@@ -82069,7 +82168,7 @@
     },
     {
       "evidence": {
-        "line": 152,
+        "line": 156,
         "path": "src/Forge.Domain/Assets/AssetExternalEdit.cs"
       },
       "kind": "defined_in",
@@ -82078,7 +82177,7 @@
     },
     {
       "evidence": {
-        "line": 156,
+        "line": 160,
         "path": "src/Forge.Domain/Assets/AssetExternalEdit.cs"
       },
       "kind": "validates",
@@ -82807,8 +82906,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:3938afd9916cbf9d09c7edda9fe1c65640cb94c805fa53e76c27f4011938a84b",
-    "source_file_count": 1494
+    "source_digest": "sha256:08eca66aaaed3442235f9f4eca4184bbf17248414fcb84141b2b49c7f2e0d22b",
+    "source_file_count": 1495
   },
   "nodes": [
     {
@@ -86460,6 +86559,16 @@
       },
       "name": "AV2-ACQUISITION-LIFECYCLE.md",
       "path": "docs/aurora-parity/tasks/AV2-ACQUISITION-LIFECYCLE.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/AV2-NORMALIZATION-QUALITY.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "AV2-NORMALIZATION-QUALITY.md",
+      "path": "docs/aurora-parity/tasks/AV2-NORMALIZATION-QUALITY.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G10-A-LIVE-DIRECTOR-FOUNDATION.md",
@@ -99132,6 +99241,16 @@
       "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
     },
     {
+      "id": "function:tests.asset_pipeline.test_blender_worker.fake_png",
+      "kind": "function",
+      "line": 19,
+      "metadata": {
+        "module": "tests.asset_pipeline.test_blender_worker"
+      },
+      "name": "fake_png",
+      "path": "tests/asset_pipeline/test_blender_worker.py"
+    },
+    {
       "id": "function:tests.test_aurora_tracker.read_csv",
       "kind": "function",
       "line": 21,
@@ -99314,7 +99433,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._arguments",
       "kind": "function",
-      "line": 18,
+      "line": 19,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -99322,9 +99441,29 @@
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._audit",
+      "kind": "function",
+      "line": 189,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_audit",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._bounds",
+      "kind": "function",
+      "line": 79,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_bounds",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._decode_payload",
       "kind": "function",
-      "line": 14,
+      "line": 15,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -99334,7 +99473,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._generate_collision",
       "kind": "function",
-      "line": 84,
+      "line": 105,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -99344,7 +99483,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._generate_lods",
       "kind": "function",
-      "line": 68,
+      "line": 89,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -99354,7 +99493,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._import_model",
       "kind": "function",
-      "line": 35,
+      "line": 43,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -99362,9 +99501,19 @@
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._look_at",
+      "kind": "function",
+      "line": 113,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_look_at",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._normalize",
       "kind": "function",
-      "line": 51,
+      "line": 59,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -99372,9 +99521,19 @@
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._render_thumbnail",
+      "kind": "function",
+      "line": 117,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_render_thumbnail",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._reset",
       "kind": "function",
-      "line": 30,
+      "line": 38,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -99384,7 +99543,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry.main",
       "kind": "function",
-      "line": 92,
+      "line": 299,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -99392,9 +99551,19 @@
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._canonicalize_png",
+      "kind": "function",
+      "line": 94,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_canonicalize_png",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._contained",
       "kind": "function",
-      "line": 38,
+      "line": 41,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -99404,7 +99573,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._encode_bridge_payload",
       "kind": "function",
-      "line": 163,
+      "line": 284,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -99412,9 +99581,19 @@
       "path": "tools/asset_pipeline/blender_worker.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._quality_report",
+      "kind": "function",
+      "line": 133,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_quality_report",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._sha256",
       "kind": "function",
-      "line": 52,
+      "line": 55,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -99422,9 +99601,39 @@
       "path": "tools/asset_pipeline/blender_worker.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._sidecar_path",
+      "kind": "function",
+      "line": 63,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_sidecar_path",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.blender_worker._sidecar_relative",
+      "kind": "function",
+      "line": 67,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_sidecar_relative",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.blender_worker._validate_glb",
+      "kind": "function",
+      "line": 72,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_validate_glb",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._validate_hash",
       "kind": "function",
-      "line": 60,
+      "line": 181,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -99432,9 +99641,19 @@
       "path": "tools/asset_pipeline/blender_worker.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._validate_png",
+      "kind": "function",
+      "line": 81,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_validate_png",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._write_json_atomically",
       "kind": "function",
-      "line": 148,
+      "line": 269,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -99444,7 +99663,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.execute",
       "kind": "function",
-      "line": 168,
+      "line": 289,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -99454,7 +99673,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.main",
       "kind": "function",
-      "line": 236,
+      "line": 424,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -99464,7 +99683,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.validate_request",
       "kind": "function",
-      "line": 67,
+      "line": 188,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -103094,7 +103313,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.BlenderWorkerRequestDiagnostic",
       "kind": "model",
-      "line": 122,
+      "line": 124,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -103104,7 +103323,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.BlenderWorkerRequestSaveResult",
       "kind": "model",
-      "line": 124,
+      "line": 126,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -109835,7 +110054,7 @@
     {
       "id": "test:tests.asset_pipeline.test_blender_worker.BlenderWorkerTests",
       "kind": "test",
-      "line": 17,
+      "line": 29,
       "metadata": {
         "module": "tests.asset_pipeline.test_blender_worker"
       },
@@ -112172,7 +112391,7 @@
     {
       "id": "type:Forge.Domain.Assets.AssetExternalEditConfiguration",
       "kind": "type",
-      "line": 55,
+      "line": 57,
       "metadata": {
         "namespace": "Forge.Domain.Assets"
       },
@@ -115412,7 +115631,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerOptions",
       "kind": "type",
-      "line": 111,
+      "line": 113,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -115422,7 +115641,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerRequest",
       "kind": "type",
-      "line": 98,
+      "line": 100,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -120532,7 +120751,7 @@
     {
       "id": "type:tools.asset_pipeline.blender_worker.WorkerError",
       "kind": "type",
-      "line": 31,
+      "line": 34,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -120562,7 +120781,7 @@
     {
       "id": "validator:Forge.Domain.Assets.AssetExternalEditValidator",
       "kind": "validator",
-      "line": 73,
+      "line": 75,
       "metadata": {
         "namespace": "Forge.Domain.Assets"
       },
@@ -120582,7 +120801,7 @@
     {
       "id": "validator:Forge.Domain.Assets.AssetPlatformParityValidator",
       "kind": "validator",
-      "line": 152,
+      "line": 156,
       "metadata": {
         "namespace": "Forge.Domain.Assets"
       },

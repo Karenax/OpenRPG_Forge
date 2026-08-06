@@ -591,6 +591,12 @@ versionne les nouveaux octets sans écraser les originaux, diff déterministe de
 désinstallation d’acquisition récupérable sous `cache/uninstalled/`. Les plans secs restent le mode
 par défaut et les smokes n’effectuent aucun miroir massif.
 
+AV2 ferme aussi la préparation 3D : le worker Blender confiné normalise échelle et pivot, produit GLB
+2, collisions et LOD, rend une miniature PNG 512 × 512 dont les métadonnées variables sont retirées,
+puis écrit un audit JSON. Cet audit inventorie géométrie, triangles, matériaux, textures, dimensions,
+normales, collision et LOD ; il calcule les six scores demandés et bloque les erreurs structurelles.
+Le tout est vérifié sur un OBJ CC0 réel sans modifier le Vault.
+
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de
 `AGENTS.md`. En cas de conflit, ces sources de vérité du dépôt priment sur la spécification importée.

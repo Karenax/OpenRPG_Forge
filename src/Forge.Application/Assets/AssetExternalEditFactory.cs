@@ -49,6 +49,8 @@ public static class AssetExternalEditFactory
         }
 
         operations.Add(AssetExternalOperation.ExportGlb);
+        operations.Add(AssetExternalOperation.GenerateThumbnail);
+        operations.Add(AssetExternalOperation.AuditQuality);
         var configuration = new AssetExternalEditConfiguration(
             AssetExternalEditConfiguration.CurrentSchemaVersion,
             AssetExternalEditId.ForAsset(item.Id),

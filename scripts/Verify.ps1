@@ -457,8 +457,13 @@ try {
         }
         if ($blenderPath) {
             $roundTripOutput = Join-Path $assetImportSmoke 'assets\imported\ambientcg-3dapple001\model.glb'
-            if (-not $roundTripResult.executed -or -not (Test-Path -LiteralPath $roundTripOutput -PathType Leaf)) {
-                throw 'The installed Blender worker did not produce the governed GLB output.'
+            $roundTripPreview = Join-Path $assetImportSmoke 'assets\imported\ambientcg-3dapple001\model.preview.png'
+            $roundTripQuality = Join-Path $assetImportSmoke 'assets\imported\ambientcg-3dapple001\model.quality.json'
+            if (-not $roundTripResult.executed -or
+                -not (Test-Path -LiteralPath $roundTripOutput -PathType Leaf) -or
+                -not (Test-Path -LiteralPath $roundTripPreview -PathType Leaf) -or
+                -not (Test-Path -LiteralPath $roundTripQuality -PathType Leaf)) {
+                throw 'The installed Blender worker did not produce the governed GLB, thumbnail and quality report.'
             }
             $roundTripOutputHash = (Get-FileHash -LiteralPath $roundTripOutput -Algorithm SHA256).Hash
             $roundTripOutputBytes = [System.IO.File]::ReadAllBytes($roundTripOutput)
@@ -469,9 +474,27 @@ try {
                 $roundTripOutputHash -ne $roundTripResult.outputSha256) {
                 throw 'The Blender output is not a self-consistent GLB 2 artifact.'
             }
+            $roundTripPreviewHash = (Get-FileHash -LiteralPath $roundTripPreview -Algorithm SHA256).Hash
+            $roundTripPreviewBytes = [System.IO.File]::ReadAllBytes($roundTripPreview)
+            $roundTripPngMagic = -join ($roundTripPreviewBytes[0..7] | ForEach-Object { '{0:X2}' -f $_ })
+            $roundTripQualityResult = Get-Content -LiteralPath $roundTripQuality -Raw | ConvertFrom-Json
+            if ($roundTripPngMagic -ne '89504E470D0A1A0A' -or
+                $roundTripPreviewHash -ne $roundTripResult.preview.sha256 -or
+                $roundTripResult.preview.width -ne 512 -or
+                $roundTripResult.preview.height -ne 512 -or
+                -not $roundTripQualityResult.passed -or
+                -not $roundTripResult.quality.passed -or
+                $roundTripQualityResult.metrics.triangleCount -le 0 -or
+                $roundTripQualityResult.scores.overall -le 0) {
+                throw 'The Blender thumbnail or quality report is invalid.'
+            }
             Write-Output (
                 "OPENRPG_FORGE_G11C_BLENDER_SMOKE_PASS bytes=$($roundTripOutputBytes.Length) " +
                 "sha256=$($roundTripResult.outputSha256)")
+            Write-Output (
+                "OPENRPG_FORGE_AV2_NORMALIZATION_SMOKE_PASS preview=$($roundTripPreviewBytes.Length) " +
+                "triangles=$($roundTripQualityResult.metrics.triangleCount) " +
+                "score=$($roundTripQualityResult.scores.overall)")
         }
         if ($modelSourceHash -ne (Get-FileHash -LiteralPath $modelSource -Algorithm SHA256).Hash -or
             $textureSourceHash -ne (Get-FileHash -LiteralPath $textureSource -Algorithm SHA256).Hash -or

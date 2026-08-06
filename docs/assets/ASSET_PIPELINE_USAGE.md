@@ -122,8 +122,37 @@ python tools/asset_pipeline/validate_cc0_catalog.py `
 ```
 
 La validation recalcule SHA-256, contrôle tailles, licences CC0, dépendances locales glTF et modèles
-extraits. Le pipeline de normalisation Godot/Blender, les collisions, LOD et previews restent le
-prochain incrément avant usage de production dans une carte.
+extraits.
+
+## Normaliser, prévisualiser et auditer un modèle
+
+Le CLI prépare le manifeste et une requête Blender typée ; le worker n’accepte aucun script fourni
+par l’asset. Il garde le Vault en lecture seule et n’écrit que sous la racine du workspace :
+
+```powershell
+dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
+  assets prepare . artifacts/asset-workspace `
+  --id ambientcg:3DApple001 --kind model --vault E:\OpenRPG_AssetVault
+
+dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
+  assets roundtrip . artifacts/asset-workspace `
+  --id ambientcg:3DApple001 --vault E:\OpenRPG_AssetVault
+
+python tools/asset_pipeline/blender_worker.py `
+  --request artifacts/asset-workspace/assets/roundtrip/96ce5ad8-a1e9-8255-99ce-11cf8d593506.worker-request.json `
+  --response artifacts/asset-workspace/assets/roundtrip/worker-response.json `
+  --source-root E:\OpenRPG_AssetVault `
+  --workspace-root artifacts/asset-workspace `
+  --blender 'C:\Program Files\Blender Foundation\Blender 4.5\blender.exe'
+```
+
+Une exécution réussie publie depuis des fichiers temporaires `model.glb`, `model.preview.png` et
+`model.quality.json`. La miniature transparente fait 512 × 512 ; le worker retire les métadonnées
+variables du PNG afin que deux rendus identiques aient le même SHA-256. Le rapport inventorie
+géométrie, triangles, matériaux, textures, dimensions, normales, collision et LOD, puis expose les
+scores `license`, `sourceTrust`, `technical`, `visual`, `performance`, `metadata` et `overall`.
+Une erreur structurelle conserve le rapport mais ne remplace pas le dernier GLB ou aperçu valide.
+Blender est lancé avec l’auto-exécution désactivée, y compris pour les fichiers `.blend` externes.
 
 ## Pack curaté Forgotten Forest
 

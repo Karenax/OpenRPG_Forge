@@ -32,6 +32,8 @@ public sealed class BlenderWorkerRequestStoreTests : IDisposable
         Assert.Equal(firstJson, secondJson);
         Assert.Equal(1, document.RootElement.GetProperty("schemaVersion").GetInt32());
         Assert.Equal("normalize_model", document.RootElement.GetProperty("operations")[1].GetString());
+        Assert.Contains("generate_thumbnail", secondJson, StringComparison.Ordinal);
+        Assert.Contains("audit_quality", secondJson, StringComparison.Ordinal);
         Assert.False(secondJson.Contains("script", StringComparison.OrdinalIgnoreCase));
         Assert.False(secondJson.Contains("python", StringComparison.OrdinalIgnoreCase));
     }
@@ -56,7 +58,13 @@ public sealed class BlenderWorkerRequestStoreTests : IDisposable
             "normalized/test/tree.obj",
             "assets/imported/tree/model.glb",
             AssetExternalTool.Blender,
-            [AssetExternalOperation.ValidateModel, AssetExternalOperation.NormalizeModel, AssetExternalOperation.ExportGlb],
+            [
+                AssetExternalOperation.ValidateModel,
+                AssetExternalOperation.NormalizeModel,
+                AssetExternalOperation.ExportGlb,
+                AssetExternalOperation.GenerateThumbnail,
+                AssetExternalOperation.AuditQuality,
+            ],
             true,
             [AssetTargetPlatform.Windows]);
 }

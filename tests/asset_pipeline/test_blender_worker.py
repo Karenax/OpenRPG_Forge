@@ -2,9 +2,11 @@ import hashlib
 import importlib.util
 import json
 import pathlib
+import struct
 import tempfile
 import unittest
 import uuid
+import zlib
 from unittest import mock
 
 
@@ -12,6 +14,16 @@ WORKER_PATH = pathlib.Path(__file__).parents[2] / "tools" / "asset_pipeline" / "
 SPEC = importlib.util.spec_from_file_location("blender_worker", WORKER_PATH)
 worker = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(worker)
+
+
+def fake_png(width=512, height=512, metadata=b""):
+    def chunk(kind, payload):
+        checksum = zlib.crc32(kind + payload) & 0xFFFFFFFF
+        return struct.pack(">I", len(payload)) + kind + payload + struct.pack(">I", checksum)
+
+    header = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
+    text = chunk(b"tEXt", metadata) if metadata else b""
+    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + text + chunk(b"IEND", b"")
 
 
 class BlenderWorkerTests(unittest.TestCase):
@@ -38,7 +50,14 @@ class BlenderWorkerTests(unittest.TestCase):
             "sourceSha256": hashlib.sha256(self.source.read_bytes()).hexdigest(),
             "licenseSpdx": "CC0-1.0",
             "provenance": "asset-catalog:polyhaven:tree",
-            "operations": ["validate_model", "normalize_model", "generate_lods", "export_glb"],
+            "operations": [
+                "validate_model",
+                "normalize_model",
+                "generate_lods",
+                "export_glb",
+                "generate_thumbnail",
+                "audit_quality",
+            ],
             "options": {
                 "applyTransforms": True,
                 "scaleMeters": 1.0,
@@ -56,7 +75,20 @@ class BlenderWorkerTests(unittest.TestCase):
         response = worker.execute(normalized, self.root / "missing-blender.exe", self.root / "response.json", True)
         self.assertTrue(response["valid"])
         self.assertFalse(response["executed"])
+        self.assertEqual("assets/imported/tree/model.preview.png", response["previewRelativePath"])
+        self.assertEqual("assets/imported/tree/model.quality.json", response["qualityReportRelativePath"])
         self.assertEqual(before, self.source.read_bytes())
+
+    def test_thumbnail_canonicalization_removes_nondeterministic_metadata(self):
+        first = self.root / "first.png"
+        second = self.root / "second.png"
+        first.write_bytes(fake_png(metadata=b"RenderTime\x001.25"))
+        second.write_bytes(fake_png(metadata=b"RenderTime\x001.93"))
+
+        worker._canonicalize_png(first)
+        worker._canonicalize_png(second)
+
+        self.assertEqual(first.read_bytes(), second.read_bytes())
 
     def test_rejects_path_escape_and_arbitrary_operation(self):
         path_escape = self.request()
@@ -84,10 +116,18 @@ class BlenderWorkerTests(unittest.TestCase):
         output_path = pathlib.Path(normalized["_outputPath"])
 
         def run(command, **_kwargs):
+            self.assertIn("--disable-autoexec", command)
             self.assertNotIn('"', command[-2])
             self.assertNotIn("{", command[-1])
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_bytes(b"glTFstub")
+            pathlib.Path(command[-5]).write_bytes(struct.pack("<4sII", b"glTF", 2, 12))
+            pathlib.Path(command[-4]).write_bytes(fake_png())
+            pathlib.Path(command[-3]).write_text(json.dumps({
+                "schemaVersion": 1,
+                "passed": True,
+                "metrics": {"triangleCount": 1, "vertexCount": 3},
+                "checks": [{"code": "asset.quality.mesh_present", "status": "pass", "message": "ok"}],
+            }), encoding="utf-8")
             return worker.subprocess.CompletedProcess(command, 0, stdout="Blender quit", stderr="")
 
         before = self.source.read_bytes()
@@ -95,8 +135,46 @@ class BlenderWorkerTests(unittest.TestCase):
             response = worker.execute(normalized, blender, self.root / "response.json", False)
 
         self.assertTrue(response["executed"])
-        self.assertEqual(8, response["outputBytes"])
+        self.assertEqual(12, response["outputBytes"])
+        self.assertEqual(512, response["preview"]["width"])
+        self.assertTrue(response["quality"]["passed"])
+        self.assertEqual(100, response["quality"]["scores"]["overall"])
+        self.assertTrue((output_path.parent / "model.preview.png").is_file())
+        self.assertTrue((output_path.parent / "model.quality.json").is_file())
         self.assertEqual(before, self.source.read_bytes())
+
+    def test_execute_rejects_failed_quality_gate_but_keeps_report(self):
+        blender = self.root / "blender.exe"
+        blender.write_bytes(b"stub")
+        normalized = worker.validate_request(self.request(), self.sources, self.workspace)
+        output_path = pathlib.Path(normalized["_outputPath"])
+
+        def run(command, **_kwargs):
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            pathlib.Path(command[-5]).write_bytes(struct.pack("<4sII", b"glTF", 2, 12))
+            pathlib.Path(command[-4]).write_bytes(fake_png())
+            pathlib.Path(command[-3]).write_text(json.dumps({
+                "schemaVersion": 1,
+                "passed": False,
+                "metrics": {"triangleCount": 0, "vertexCount": 0},
+                "checks": [{
+                    "code": "asset.quality.geometry_present",
+                    "status": "fail",
+                    "message": "geometry missing",
+                }],
+            }), encoding="utf-8")
+            return worker.subprocess.CompletedProcess(command, 0, stdout="Blender quit", stderr="")
+
+        with mock.patch.object(worker.subprocess, "run", side_effect=run):
+            with self.assertRaises(worker.WorkerError) as context:
+                worker.execute(normalized, blender, self.root / "response.json", False)
+
+        self.assertEqual("asset.worker.quality_failed", context.exception.code)
+        self.assertFalse(output_path.exists())
+        self.assertFalse((output_path.parent / "model.preview.png").exists())
+        quality = json.loads((output_path.parent / "model.quality.json").read_text(encoding="utf-8"))
+        self.assertFalse(quality["passed"])
+        self.assertLess(quality["scores"]["technical"], 100)
 
     def test_execute_surfaces_blender_traceback_even_when_blender_returns_zero(self):
         blender = self.root / "blender.exe"

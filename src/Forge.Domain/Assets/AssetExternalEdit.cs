@@ -50,6 +50,8 @@ public enum AssetExternalOperation
     ExportGlb,
     EditImage,
     EditAudio,
+    GenerateThumbnail,
+    AuditQuality,
 }
 
 public sealed record AssetExternalEditConfiguration(
@@ -118,6 +120,8 @@ public static class AssetExternalEditValidator
                 AssetExternalOperation.GenerateCollision,
                 AssetExternalOperation.GenerateLods,
                 AssetExternalOperation.ExportGlb,
+                AssetExternalOperation.GenerateThumbnail,
+                AssetExternalOperation.AuditQuality,
             },
             AssetExternalTool.ImageEditor => [AssetExternalOperation.EditImage],
             AssetExternalTool.AudioEditor => [AssetExternalOperation.EditAudio],

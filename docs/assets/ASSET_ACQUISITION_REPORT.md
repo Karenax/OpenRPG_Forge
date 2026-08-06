@@ -40,12 +40,17 @@ Le catalogue contient notamment 176 entrées `props`, 110 `nature`, 85 `furnitur
 
 ## Limites
 
-Le fonds 3D est intégré au Vault et catalogué, mais pas encore déclaré prêt pour une scène
-de production. Les contrôles visuels, normalisation d’échelle/pivot, matériaux Godot, collisions,
-LOD, miniatures locales et sélection artistique Forgotten Forest restent à réaliser. Le catalogue
+Le fonds 3D est intégré au Vault et catalogué, mais le catalogue complet n’est pas déclaré prêt en
+bloc pour une scène de production. La chaîne normalise désormais échelle/pivot, GLB 2, collisions,
+LOD et miniatures locales, puis audite la qualité sur chaque asset traité. Les matériaux propres au
+moteur, le traitement massif et la sélection artistique restent à valider par pack. Le catalogue
 complet maximise la matière disponible ; une carte ne doit en employer qu’un sous-ensemble cohérent.
 
 Depuis le 5 août 2026, le pipeline possède reprise HTTP, cache SHA-256, rafraîchissement immuable,
 plan de diff et désinstallation locale récupérable. Ces fonctions sont validées sur fixtures sans
 réexécuter le miroir de 4,16 Gio ; le volume et les comptes ci-dessus restent ceux du snapshot
 d’acquisition du 2 août.
+
+Le même jour, `ambientcg:3DApple001` a traversé le worker Blender 4.5 réel : source intacte, GLB 2,
+deux LOD, une collision, miniature 512 × 512 et audit à 99/100 pour 500 triangles. Cette preuve borne
+la capacité du pipeline ; elle ne prétend pas que les 605 entrées ont déjà été normalisées.

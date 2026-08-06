@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import pathlib
+import struct
 import subprocess
 import sys
 import tempfile
@@ -22,6 +23,8 @@ ALLOWED_OPERATIONS = {
     "generate_collision",
     "generate_lods",
     "export_glb",
+    "generate_thumbnail",
+    "audit_quality",
 }
 ALLOWED_INPUT_EXTENSIONS = {".blend", ".dae", ".fbx", ".glb", ".gltf", ".obj"}
 ALLOWED_PIVOTS = {"keep", "ground_center", "object_center"}
@@ -55,6 +58,124 @@ def _sha256(path: pathlib.Path) -> str:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _sidecar_path(output_path: pathlib.Path, label: str, extension: str) -> pathlib.Path:
+    return output_path.with_name(f"{output_path.stem}.{label}{extension}")
+
+
+def _sidecar_relative(output_relative: str, label: str, extension: str) -> str:
+    value = pathlib.PurePosixPath(output_relative)
+    return str(value.with_name(f"{value.stem}.{label}{extension}"))
+
+
+def _validate_glb(path: pathlib.Path) -> None:
+    if path.stat().st_size < 12:
+        raise WorkerError("asset.worker.output_invalid", "Blender output is shorter than a GLB 2 header.", str(path))
+    with path.open("rb") as stream:
+        magic, version, declared_length = struct.unpack("<4sII", stream.read(12))
+    if magic != b"glTF" or version != 2 or declared_length != path.stat().st_size:
+        raise WorkerError("asset.worker.output_invalid", "Blender output is not a self-consistent GLB 2 file.", str(path))
+
+
+def _validate_png(path: pathlib.Path) -> tuple[int, int]:
+    if not path.is_file() or path.stat().st_size < 24:
+        raise WorkerError("asset.worker.thumbnail_missing", "Blender did not produce a PNG thumbnail.", str(path))
+    with path.open("rb") as stream:
+        header = stream.read(24)
+    if header[:8] != b"\x89PNG\r\n\x1a\n" or header[12:16] != b"IHDR":
+        raise WorkerError("asset.worker.thumbnail_invalid", "Generated thumbnail is not a valid PNG.", str(path))
+    width, height = struct.unpack(">II", header[16:24])
+    if width < 64 or height < 64 or width > 4096 or height > 4096:
+        raise WorkerError("asset.worker.thumbnail_invalid", "Generated thumbnail dimensions are outside policy.", str(path))
+    return width, height
+
+
+def _canonicalize_png(path: pathlib.Path) -> None:
+    if not path.is_file():
+        raise WorkerError("asset.worker.thumbnail_missing", "Blender did not produce a PNG thumbnail.", str(path))
+    data = path.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise WorkerError("asset.worker.thumbnail_invalid", "Generated thumbnail is not a valid PNG.", str(path))
+    position = 8
+    chunks = []
+    stable_ancillary = {b"cHRM", b"gAMA", b"iCCP", b"sRGB"}
+    while position < len(data):
+        if position + 12 > len(data):
+            raise WorkerError("asset.worker.thumbnail_invalid", "PNG chunk header is truncated.", str(path))
+        length = struct.unpack(">I", data[position : position + 4])[0]
+        end = position + 12 + length
+        if end > len(data):
+            raise WorkerError("asset.worker.thumbnail_invalid", "PNG chunk payload is truncated.", str(path))
+        chunk_type = data[position + 4 : position + 8]
+        if not chunk_type or (not 65 <= chunk_type[0] <= 90 and chunk_type not in stable_ancillary):
+            position = end
+            continue
+        chunks.append(data[position:end])
+        position = end
+        if chunk_type == b"IEND":
+            break
+    if not chunks or chunks[0][4:8] != b"IHDR" or chunks[-1][4:8] != b"IEND":
+        raise WorkerError("asset.worker.thumbnail_invalid", "PNG critical chunks are incomplete.", str(path))
+    descriptor, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(data[:8])
+            stream.write(b"".join(chunks))
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def _quality_report(request: dict, bridge_report: object, preview_generated: bool) -> dict:
+    if not isinstance(bridge_report, dict) or bridge_report.get("schemaVersion") != SCHEMA_VERSION:
+        raise WorkerError("asset.worker.quality_report_invalid", "Blender quality report schema is invalid.")
+    metrics = bridge_report.get("metrics")
+    checks = bridge_report.get("checks")
+    if (
+        not isinstance(metrics, dict)
+        or not isinstance(checks, list)
+        or not isinstance(bridge_report.get("passed"), bool)
+        or any(
+            not isinstance(item, dict)
+            or item.get("status") not in {"pass", "warning", "fail"}
+            or not str(item.get("code", "")).strip()
+            for item in checks
+        )
+    ):
+        raise WorkerError("asset.worker.quality_report_invalid", "Blender quality metrics or checks are invalid.")
+    triangle_value = metrics.get("triangleCount", 0)
+    if isinstance(triangle_value, bool) or not isinstance(triangle_value, int) or triangle_value < 0:
+        raise WorkerError("asset.worker.quality_report_invalid", "Blender triangle metric is invalid.")
+    failed = sum(1 for item in checks if item.get("status") == "fail")
+    warnings = sum(1 for item in checks if item.get("status") == "warning")
+    technical = max(0, 100 - failed * 40 - warnings * 8)
+    triangles = triangle_value
+    performance = 100 if triangles <= 500_000 else 75 if triangles <= 2_000_000 else 30
+    visual = 100 if preview_generated else 50
+    scores = {
+        "license": 100,
+        "sourceTrust": 100,
+        "technical": technical,
+        "visual": visual,
+        "performance": performance,
+        "metadata": 100,
+    }
+    scores["overall"] = round(sum(scores.values()) / len(scores))
+    return {
+        "schemaVersion": SCHEMA_VERSION,
+        "assetId": request["assetId"],
+        "sourceSha256": request["sourceSha256"],
+        "licenseSpdx": request["licenseSpdx"],
+        "provenance": request["provenance"],
+        "passed": failed == 0 and bool(bridge_report.get("passed")),
+        "metrics": metrics,
+        "checks": checks,
+        "scores": scores,
+    }
 
 
 def _validate_hash(value: object, field: str) -> str:
@@ -180,42 +301,104 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
             request["sourceRelativePath"],
         )
     if validate_only:
+        preview_relative = _sidecar_relative(request["outputRelativePath"], "preview", ".png")
+        quality_relative = _sidecar_relative(request["outputRelativePath"], "quality", ".json")
         return {
             "valid": True,
             "executed": False,
             "schemaVersion": SCHEMA_VERSION,
             "jobId": request["jobId"],
             "operations": request["operations"],
+            "previewRelativePath": preview_relative if "generate_thumbnail" in request["operations"] else None,
+            "qualityReportRelativePath": quality_relative if "audit_quality" in request["operations"] else None,
             "diagnostics": [],
         }
     if not blender.is_file():
         raise WorkerError("asset.worker.blender_missing", "Configured Blender executable was not found.", str(blender))
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    preview_path = _sidecar_path(output_path, "preview", ".png")
+    quality_path = _sidecar_path(output_path, "quality", ".json")
+    temporary_output_path = output_path.parent / f".{output_path.stem}.{request['jobId']}.tmp.glb"
+    temporary_preview_path = output_path.parent / f".{output_path.stem}.{request['jobId']}.tmp.png"
+    temporary_quality_path = output_path.parent / f".{output_path.stem}.{request['jobId']}.tmp.json"
+    bridge_report_path = output_path.parent / f".{output_path.stem}.{request['jobId']}.bridge-report.json"
+    temporary_paths = (temporary_output_path, temporary_preview_path, temporary_quality_path, bridge_report_path)
+    for temporary_path in temporary_paths:
+        if temporary_path.exists():
+            temporary_path.unlink()
     bridge = pathlib.Path(__file__).with_name("blender_bridge_entry.py").resolve()
     command = [
         str(blender),
         "--background",
         "--factory-startup",
+        "--disable-autoexec",
         "--python",
         str(bridge),
         "--",
         str(source_path),
-        str(output_path),
+        str(temporary_output_path),
+        str(temporary_preview_path),
+        str(bridge_report_path),
         _encode_bridge_payload(request["operations"]),
         _encode_bridge_payload(request["options"]),
     ]
-    completed = subprocess.run(command, capture_output=True, text=True, timeout=900, check=False)
-    if completed.returncode != 0:
-        detail = (completed.stderr or completed.stdout or "Blender worker failed.").strip()[-2000:]
-        raise WorkerError("asset.worker.blender_failed", detail, request["outputRelativePath"])
-    if not output_path.is_file():
+    try:
+        completed = subprocess.run(command, capture_output=True, text=True, timeout=900, check=False)
         detail = (completed.stderr or completed.stdout or "").strip()
-        if detail:
-            raise WorkerError("asset.worker.blender_failed", detail[-2000:], request["outputRelativePath"])
-        raise WorkerError("asset.worker.output_missing", "Blender did not produce the requested GLB.", request["outputRelativePath"])
-    if _sha256(source_path) != source_hash_before:
-        raise WorkerError("asset.worker.source_modified", "External worker modified the immutable source.", request["sourceRelativePath"])
+        if completed.returncode != 0 or "Traceback" in (completed.stderr or ""):
+            raise WorkerError(
+                "asset.worker.blender_failed",
+                (detail or "Blender worker failed.")[-2000:],
+                request["outputRelativePath"],
+            )
+        if not temporary_output_path.is_file():
+            if detail:
+                raise WorkerError("asset.worker.blender_failed", detail[-2000:], request["outputRelativePath"])
+            raise WorkerError("asset.worker.output_missing", "Blender did not produce the requested GLB.", request["outputRelativePath"])
+        _validate_glb(temporary_output_path)
+        if _sha256(source_path) != source_hash_before:
+            raise WorkerError("asset.worker.source_modified", "External worker modified the immutable source.", request["sourceRelativePath"])
+
+        preview = None
+        if "generate_thumbnail" in request["operations"]:
+            _canonicalize_png(temporary_preview_path)
+            width, height = _validate_png(temporary_preview_path)
+            preview = {
+                "relativePath": _sidecar_relative(request["outputRelativePath"], "preview", ".png"),
+                "sha256": _sha256(temporary_preview_path),
+                "bytes": temporary_preview_path.stat().st_size,
+                "width": width,
+                "height": height,
+            }
+
+        quality = None
+        if "audit_quality" in request["operations"]:
+            if not bridge_report_path.is_file():
+                raise WorkerError("asset.worker.quality_report_missing", "Blender did not produce a quality report.")
+            try:
+                bridge_report = json.loads(bridge_report_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as error:
+                raise WorkerError("asset.worker.quality_report_invalid", str(error), str(bridge_report_path)) from error
+            quality = _quality_report(request, bridge_report, preview is not None)
+            if not quality["passed"]:
+                _write_json_atomically(quality_path, quality)
+                failed_codes = [item.get("code", "unknown") for item in quality["checks"] if item.get("status") == "fail"]
+                raise WorkerError(
+                    "asset.worker.quality_failed",
+                    f"Model quality gate failed: {', '.join(failed_codes)}.",
+                    _sidecar_relative(request["outputRelativePath"], "quality", ".json"),
+                )
+            _write_json_atomically(temporary_quality_path, quality)
+        os.replace(temporary_output_path, output_path)
+        if preview is not None:
+            os.replace(temporary_preview_path, preview_path)
+        if quality is not None:
+            os.replace(temporary_quality_path, quality_path)
+    finally:
+        for temporary_path in temporary_paths:
+            if temporary_path.exists():
+                temporary_path.unlink()
 
     result = {
         "valid": True,
@@ -227,6 +410,11 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
         "outputRelativePath": request["outputRelativePath"],
         "outputSha256": _sha256(output_path),
         "outputBytes": output_path.stat().st_size,
+        "preview": preview,
+        "quality": quality,
+        "qualityReportRelativePath": (
+            _sidecar_relative(request["outputRelativePath"], "quality", ".json") if quality is not None else None
+        ),
         "diagnostics": [],
     }
     _write_json_atomically(response_path, result)

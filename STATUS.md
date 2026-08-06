@@ -7,7 +7,7 @@ Dernière mise à jour : 5 août 2026.
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
 G11 Contenu moderne fermés. AV4B livre maintenant une première carte 3D extérieure jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault et AV2 sécurise le
-cycle de vie des acquisitions.**
+cycle de vie des acquisitions ainsi que leur normalisation 3D.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -100,7 +100,7 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
 - solution de 25 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 705 tests .NET, 24 tests Python généraux et 20 tests Python du pipeline d'assets réussis ;
+- 705 tests .NET, 24 tests Python généraux et 22 tests Python du pipeline d'assets réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -220,8 +220,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 - le premier Asset Vault externe contient 555 assets CC0 Poly Haven/ambientCG et 50 packs 3D Kenney,
   soit environ 5 236 modèles logiques estimés ; Forgotten Forest en consomme désormais une sélection
   cohérente de 22 GLB. Les packs locaux possèdent maintenant registre v1, stockage SHA-256
-  dédupliqué, backup de désinstallation et crédits agrégés, mais la normalisation visuelle et les
-  métriques 3D du catalogue complet restent à étendre ;
+  dédupliqué, backup de désinstallation et crédits agrégés. Une ressource ambientCG réelle franchit
+  désormais normalisation, collisions, LOD, miniature et audit ; le traitement massif du catalogue
+  complet reste à étendre ;
 - Forgotten Forest est jouable sur le terrain générique avec végétation, bâtiments, éclairage,
   caméra, quête et export. Un bake de navigation avancé, une eau simulée, des animations, de l’audio
   et des VFX de production restent nécessaires avant de qualifier la carte de contenu final ;
@@ -269,8 +270,9 @@ transactionnelle revue visuellement.
 
 **G11-C est fermé** : round-trip externe persistant et transactionnel, worker Blender typé
 optionnel, parité plateforme, migrations/désinstallations analysées en dry-run et production réelle
-d'un GLB 2 texturé depuis un OBJ du Vault. Blender 4.5.10 a produit collisions et LOD, le hash du
-source est resté inchangé et le rendu de contrôle est valide.
+  d'un GLB 2 texturé depuis un OBJ du Vault. Blender 4.5.10 a produit collisions, LOD, miniature
+  locale déterministe et audit qualité, le hash du source est resté inchangé et le rendu de contrôle
+  est valide.
 
 **G11-D est fermé** : canaux Development/Preview/Stable, matrice Windows/Linux/macOS, signature
 ECDSA avec confiance/révocation, delta content-addressed reprenable et réversible, bundle Windows
@@ -398,4 +400,13 @@ snapshot antérieur. Le diff de catalogues sépare ajouts, changements, retraits
 désinstallation est sèche par défaut, rejette traversal, plan altéré ou contenu modifié, puis déplace
 les octets vers un backup récupérable avec reçu et registre. Vingt tests Python valident ce contrat
 sans retélécharger le Vault réel. Le registre de gouvernance distingue en plus sources automatisées,
-packs manuels, catégories refusées ou différées et gate d’admission d’un nouvel adaptateur.
+  packs manuels, catégories refusées ou différées et gate d’admission d’un nouvel adaptateur.
+
+**AV2 — normalisation 3D fermée** : le contrat de round-trip ajoute deux opérations typées,
+`generate_thumbnail` et `audit_quality`. Le worker écrit d’abord GLB et PNG dans des fichiers
+temporaires, contrôle leurs en-têtes, ne les publie qu’après succès, retire les métadonnées PNG
+variables et conserve un rapport d’échec exploitable sans remplacer le dernier modèle valide.
+L’audit vérifie géométrie, normales, textures, matériaux, dimensions, pivot, triangle budget,
+collision, LOD et miniature, puis calcule les scores licence, confiance source, technique, visuel,
+performance, métadonnées et global. La preuve réelle `ambientcg:3DApple001` donne 500 triangles,
+2 LOD, 1 collision, une miniature 512 × 512 revue visuellement et un score global de 99/100.

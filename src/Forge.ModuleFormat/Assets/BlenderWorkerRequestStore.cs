@@ -61,6 +61,8 @@ public static class BlenderWorkerRequestStore
         AssetExternalOperation.GenerateCollision => "generate_collision",
         AssetExternalOperation.GenerateLods => "generate_lods",
         AssetExternalOperation.ExportGlb => "export_glb",
+        AssetExternalOperation.GenerateThumbnail => "generate_thumbnail",
+        AssetExternalOperation.AuditQuality => "audit_quality",
         _ => throw new JsonException($"Operation '{operation}' is unsupported by Blender worker."),
     };
 

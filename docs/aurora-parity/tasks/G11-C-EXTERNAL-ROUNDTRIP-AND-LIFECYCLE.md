@@ -16,7 +16,7 @@
 - worker Python confiné aux racines source/workspace, avec allowlist d’opérations et formats, SHA-256
   avant/après, source immuable, rapport JSON et codes de diagnostic stables ;
 - point d’entrée Blender livré par le projet pour import OBJ/FBX/DAE/GLTF/Blend, normalisation,
-  pivot au sol, collisions, LOD et export GLB ;
+  pivot au sol/centre, collisions, LOD, export GLB, miniature et audit qualité ;
 - sélection de variantes par plateforme et validation de parité des rôles requis ;
 - plans purs de migration et désinstallation : code hôte de confiance, dry-run, sauvegarde,
   changelog, analyse des dépendants, remplacement et refus si l’impact reste non résolu ;
@@ -32,13 +32,17 @@
   remontée des erreurs `bpy`, Blender absent et hash invalide ;
 - smoke réel sur l’OBJ `ambientcg:3DApple001` : préparation, manifeste, configuration C# puis
   validation de la requête par le worker Python sur le fichier du Vault ;
-- Blender LTS 4.5.10 produit réellement un GLB 2 de 1 696 280 octets depuis
+- Blender LTS 4.5.10 produit réellement un GLB 2 de 1 696 444 octets depuis
   `ambientcg:3DApple001`, avec collision et deux LOD ; le SHA-256 source reste
   `500623c45cdd14514fae358b646724c49b78dad7a601be862fbfc3782f040c95` et le GLB produit porte le
-  SHA-256 `776ab45d03c7af52010d02183ff06bab8d94adde3677fd03c32364452a8d8522` ;
-- la prévisualisation Blender du GLB exporté confirme visuellement la géométrie et la texture ;
+  SHA-256 `0f582c05e5479780c1cb14f1fda4197c375d5f1dc384820ab94dd4dbc7572e1c` ;
+- une miniature locale 512 × 512 confirme visuellement géométrie et texture ; ses métadonnées
+  variables sont retirées pour rendre son SHA-256 reproductible ;
+- l’audit réel compte 500 triangles, deux LOD, une collision, aucune texture manquante et produit un
+  score global de 99/100 ;
 - `scripts/Verify.ps1` exécute ce round-trip lorsque Blender est détecté et émet
-  `OPENRPG_FORGE_G11C_BLENDER_SMOKE_PASS` ; sans Blender, il conserve le mode validation confiné.
+  `OPENRPG_FORGE_G11C_BLENDER_SMOKE_PASS` et `OPENRPG_FORGE_AV2_NORMALIZATION_SMOKE_PASS` ; sans
+  Blender, il conserve le mode validation confiné.
 
 ## Limites explicites
 
