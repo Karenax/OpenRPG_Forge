@@ -16,6 +16,7 @@ using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
+using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Projects;
@@ -23,6 +24,7 @@ using Forge.Mcp.Scripts;
 using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Assets;
 using Forge.RpgKit.Application.Dialogues;
+using Forge.RpgKit.Application.Bosses;
 using Forge.RpgKit.Application.Quests;
 using Forge.Scripting;
 
@@ -30,6 +32,62 @@ namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void AssistedBossMcpProposesSimulatesPersistsAtomicPackageAndRevertsIt()
+    {
+        using var workspace = new TestWorkspace();
+        var scriptsDirectory = Path.Combine(workspace.RootDirectory, "scripts");
+        Directory.CreateDirectory(scriptsDirectory);
+        foreach (var name in new[] { "boss_phase_one.forge", "boss_phase_two.forge", "boss_death.forge" })
+            File.WriteAllText(Path.Combine(scriptsDirectory, name), "void main() {}\n");
+        var before = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var area = before.Areas[0];
+        var summon = before.Blueprints.First(item => item.Kind == BlueprintKind.Creature);
+        var brief = new AssistedBossBrief(
+            Guid.Parse("b1290000-0000-4000-8000-000000000090"),
+            Guid.Parse("b1290000-0000-4000-8000-000000000091"),
+            "souveraine-mcp", "Souveraine MCP", area.Id.Value,
+            "La souveraine change de tactique au cœur de l'arène.",
+            480, 24, 12, 18,
+            ["Trait de braise", "Cercle de feu", "Couronne ardente"],
+            ["scripts/boss_phase_one.forge", "scripts/boss_phase_two.forge"],
+            [summon.Slug], ["crown-ember", "royal-ash"], "scripts/boss_death.forge",
+            ["lore:crypt-of-ashes"], ["style:crypt", "combat:telegraphed"], "@mcp-author", 20260806);
+
+        var proposed = workspace.Project.ProposeAssistedBoss(new(1, brief));
+        var approved = proposed.Proposal!.WithApproval(true, "author-approved:mcp-test:g12-h");
+        var planned = workspace.Project.PlanAssistedBoss(new(1, workspace.Project.GetCurrentRevision(), approved,
+            AssistantPermissionLevel.ApplyApprovedPlan));
+        var applied = workspace.Project.ApplyAssistedBossPlan(planned.PlanId!);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var reverted = workspace.Project.RevertAssistedBossPlan(planned.PlanId!);
+        var restored = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+
+        Assert.True(proposed.Succeeded);
+        Assert.True(proposed.Proposal.CanApply);
+        Assert.Equal(32, proposed.Proposal.Balance.Runs);
+        Assert.True(proposed.Proposal.Balance.Passed);
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.NotNull(planned.Diff);
+        Assert.Equal(32, planned.BalanceRuns);
+        Assert.True(planned.BalancePassed);
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.Equal(before.Blueprints.Count + 1, persisted.Blueprints.Count);
+        Assert.Equal(before.Dialogues.Count + 1, persisted.Dialogues.Count);
+        Assert.Equal(before.Module.RuntimePolicies.Extensions.JsonDocuments.Count + 1,
+            persisted.Module.RuntimePolicies.Extensions.JsonDocuments.Count);
+        Assert.Contains(persisted.Module.RuntimePolicies.Extensions.JsonDocuments,
+            item => item.Key == "boss.souveraine-mcp" && item.InitialValue.Contains("\"phases\"", StringComparison.Ordinal));
+        Assert.True(reverted.Succeeded);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(before.Blueprints.Count, restored.Blueprints.Count);
+        Assert.Equal(before.Dialogues.Count, restored.Dialogues.Count);
+        Assert.Equal(before.Module.RuntimePolicies.Extensions.JsonDocuments.Count,
+            restored.Module.RuntimePolicies.Extensions.JsonDocuments.Count);
+    }
+
     [Fact]
     public void AssistedForgeScriptMcpProposesCompilesTestsPersistsAndRevertsSource()
     {

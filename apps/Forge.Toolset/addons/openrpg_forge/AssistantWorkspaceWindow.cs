@@ -20,6 +20,7 @@ public partial class AssistantWorkspaceWindow : Window
     private Action? _openAssistedDialogues;
     private Action? _openAssistedQuests;
     private Action? _openAssistedForgeScripts;
+    private Action? _openAssistedBosses;
     private Action? _openLocalization;
     private Action<Window>? _brandWindow;
     private AssistantWorkspaceProfile? _source;
@@ -67,6 +68,7 @@ public partial class AssistantWorkspaceWindow : Window
         Action openAssistedDialogues,
         Action openAssistedQuests,
         Action openAssistedForgeScripts,
+        Action openAssistedBosses,
         Action openLocalization,
         Action<Window> brandWindow)
     {
@@ -81,6 +83,7 @@ public partial class AssistantWorkspaceWindow : Window
         _openAssistedDialogues = openAssistedDialogues ?? throw new ArgumentNullException(nameof(openAssistedDialogues));
         _openAssistedQuests = openAssistedQuests ?? throw new ArgumentNullException(nameof(openAssistedQuests));
         _openAssistedForgeScripts = openAssistedForgeScripts ?? throw new ArgumentNullException(nameof(openAssistedForgeScripts));
+        _openAssistedBosses = openAssistedBosses ?? throw new ArgumentNullException(nameof(openAssistedBosses));
         _openLocalization = openLocalization ?? throw new ArgumentNullException(nameof(openLocalization));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assistant de création · OpenRPG Forge";
@@ -244,6 +247,9 @@ public partial class AssistantWorkspaceWindow : Window
         var scripts = new Button { Text = "ForgeScript assisté" };
         scripts.Pressed += () => _openAssistedForgeScripts?.Invoke();
         footer.AddChild(scripts);
+        var bosses = new Button { Text = "Boss assisté" };
+        bosses.Pressed += () => _openAssistedBosses?.Invoke();
+        footer.AddChild(bosses);
         var undo = new Button { Text = "Annuler" };
         undo.Pressed += () => { if (_undo?.Invoke() == true) Refresh(); };
         footer.AddChild(undo);

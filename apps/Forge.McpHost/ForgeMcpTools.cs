@@ -3,6 +3,7 @@ using Forge.Application.Validation;
 using Forge.Mcp;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Dialogues;
+using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
@@ -138,6 +139,26 @@ public sealed class ForgeMcpTools
     [Description("Atomically reverts the latest assisted quest plan through canonical project history.")]
     public AssistedQuestApplyPlanResult RevertAssistedQuestPlan(string planId) =>
         _project.RevertAssistedQuestPlan(planId);
+
+    [McpServerTool]
+    [Description("Uses the deterministic offline assistant to compose a canonical boss creature, encounter, abilities, phases, dialogue and rewards, then runs bounded balance simulations without mutation.")]
+    public AssistedBossProposalResource ProposeAssistedBoss(AssistedBossProposalRequest request) =>
+        _project.ProposeAssistedBoss(request);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an explicitly approved assisted boss as one atomic multi-domain transaction.")]
+    public AssistedBossApplyPlanResult PlanAssistedBoss(AssistedBossApplyPlanRequest request) =>
+        _project.PlanAssistedBoss(request);
+
+    [McpServerTool]
+    [Description("Applies a previously previewed boss package and persists its canonical blueprint, dialogue and runtime orchestration document.")]
+    public AssistedBossApplyPlanResult ApplyAssistedBossPlan(string planId) =>
+        _project.ApplyAssistedBossPlan(planId);
+
+    [McpServerTool]
+    [Description("Atomically reverts the latest assisted boss package through canonical project history.")]
+    public AssistedBossApplyPlanResult RevertAssistedBossPlan(string planId) =>
+        _project.RevertAssistedBossPlan(planId);
 
     [McpServerTool]
     [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]

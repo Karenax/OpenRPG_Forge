@@ -288,6 +288,14 @@ fichier du module ; chaque correction invalide le plan et doit être recompilée
 reste verrouillé tant que la source n'est pas approuvée et verte. Annuler/rétablir restaure le vrai
 fichier `scripts/*.forge` par le même patch que MCP.
 
+G12-H ajoute **Boss assisté** au pied de page de l'Assistant. Trois colonnes séparent identité,
+zone, statistiques et capacités ; phases, ForgeScripts, invocations, récompenses et gouvernance ;
+puis la composition et son équilibrage. Le panneau de preuve affiche le blueprint de créature, la
+rencontre, les seuils de vie, le dialogue, le loot, les citations, le coût, les diagnostics, le diff
+et les 32 simulations. Le bouton reste verrouillé tant que les dépendances ne sont pas résolues ou
+que le lot exact n'a pas été approuvé et prévisualisé. Blueprint, dialogue et document runtime sont
+sauvegardés, annulés et rétablis ensemble par la même commande que MCP.
+
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
 échelle métrique, matériaux PBR normalisés, silhouettes lisibles, éclairage maîtrisé, LOD,
 collisions, navigation et profils de qualité. Elle est détaillée dans

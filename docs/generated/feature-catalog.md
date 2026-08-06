@@ -22,7 +22,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-AI-016 | Création de dialogue | P1 | Tested | G12 |
 | ORF-AI-017 | Création de quête | P1 | Tested | G12 |
 | ORF-AI-018 | Création de ForgeScript | P1 | Tested | G12 |
-| ORF-AI-019 | Création de boss | P2 | Researched | G12 |
+| ORF-AI-019 | Création de boss | P2 | Tested | G12 |
 | ORF-AI-020 | Création de capacité | P1 | Researched | G12 |
 | ORF-AI-021 | Création 3D via Blender | P1 | Researched | G12 |
 | ORF-AI-022 | Fournisseurs text/image-to-3D | P2 | Researched | G12 |

@@ -58,6 +58,7 @@ using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Quality;
 using Forge.ModuleFormat.Workspaces;
 using Forge.RpgKit.Application.Dialogues;
+using Forge.RpgKit.Application.Bosses;
 using Forge.RpgKit.Application.Quests;
 using Forge.Scripting;
 using Godot;
@@ -116,6 +117,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly ApplyAssistedDialogueHandler _assistedDialogueHandler = new(new SystemClock());
     private readonly ApplyAssistedQuestHandler _assistedQuestHandler = new(new SystemClock());
     private readonly ApplyAssistedForgeScriptHandler _assistedForgeScriptHandler = new();
+    private readonly ApplyAssistedBossHandler _assistedBossHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -212,6 +214,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssistedDialogueWindow? _assistedDialogueWindow;
     private AssistedQuestWindow? _assistedQuestWindow;
     private AssistedForgeScriptWindow? _assistedForgeScriptWindow;
+    private AssistedBossWindow? _assistedBossWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -371,6 +374,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
             RedoAssistedForgeScript,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistedForgeScriptWindow);
+        _assistedBossWindow = new AssistedBossWindow();
+        _assistedBossWindow.Initialize(
+            () => _projectSession,
+            () => _history?.State,
+            () => _loreIndexHistory?.State,
+            () => _assistantProfileHistory?.State,
+            ApplyAssistedBoss,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_assistedBossWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -384,6 +396,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _assistedDialogueWindow?.Open(),
             () => _assistedQuestWindow?.Open(),
             () => _assistedForgeScriptWindow?.Open(),
+            () => _assistedBossWindow?.Open(),
             () => _localizationWorkspace?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistantWorkspace);
@@ -3389,6 +3402,48 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool ApplyAssistedBoss(
+        AssistedBossProposal proposal,
+        Guid transactionId,
+        Guid executionPlanId,
+        bool dryRun)
+    {
+        if (_projectSession is null || _history is null) return false;
+        var command = new ApplyAssistedBossCommand(
+            CommandId.From(Guid.NewGuid()),
+            transactionId,
+            executionPlanId,
+            _history.State.Revision,
+            proposal,
+            AssistantPermissionLevel.ApplyApprovedPlan,
+            dryRun);
+        var result = _assistedBossHandler.Handle(_history.State, command);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(diagnostic => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                diagnostic.Code,
+                diagnostic.Message,
+                $"bosses/{proposal.Boss.Id:D}",
+                proposal.Boss.Id.ToString("D"))).ToArray());
+            return false;
+        }
+        if (dryRun) return result.Command.Patch is not null && !result.Command.Audit.Applied;
+        var saved = _projectSession.Save(result.Command.State.Project);
+        if (!saved.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSISTED_BOSS_SAVE_FAILED {saved.Diagnostics[0].Code}");
+            return false;
+        }
+        _history.Record(result.Command);
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print($"OPENRPG_FORGE_TOOLSET_ASSISTED_BOSS_APPLIED boss={proposal.Boss.Id:D} " +
+                 $"abilities={proposal.Boss.Blueprint.Combat!.Abilities.Count} phases={proposal.Boss.Phases.Count} " +
+                 $"transaction={transactionId:D} plan={executionPlanId:D}");
+        return true;
+    }
+
     private bool UndoAssistedForgeScript()
     {
         if (_projectSession is null || !_assistedForgeScriptHistory.Undo(_projectSession.RootDirectory)) return false;
@@ -4763,6 +4818,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssistedForgeScriptSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAssistedBossSmokeTest())
         {
             return;
         }
@@ -8548,6 +8608,67 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 useAfter: false);
             _assistedForgeScriptHistory.Reset();
             _buildPipeline?.Refresh();
+        }
+    }
+
+    private bool RunAssistedBossSmokeTest()
+    {
+        if (_projectSession is null || _history is null || _assistedBossWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12H_BOSS_FAILED missing_workspace");
+            return false;
+        }
+        var originalState = _history.State;
+        var originalBlueprintCount = originalState.Project.Blueprints.Count;
+        var originalDialogueCount = originalState.Project.Dialogues.Count;
+        var originalDocumentCount = originalState.Project.Module.RuntimePolicies.Extensions.JsonDocuments.Count;
+        try
+        {
+            if (!_assistedBossWindow.ConfigureApprovedForSmokeTest() ||
+                !_assistedBossWindow.PreviewForSmokeTest() ||
+                _assistedBossWindow.LastAbilityCount < 2 ||
+                _assistedBossWindow.LastPhaseCount is < 2 or > 3 ||
+                _assistedBossWindow.LastBalanceRuns != 32 ||
+                !_assistedBossWindow.LastBalancePassed ||
+                _assistedBossWindow.LastDiagnosticCount != 0 ||
+                _assistedBossWindow.LastEstimatedCostUsd != 0 ||
+                !_assistedBossWindow.ApplyForSmokeTest() ||
+                _history.State.Project.Blueprints.Count != originalBlueprintCount + 1 ||
+                _history.State.Project.Dialogues.Count != originalDialogueCount + 1 ||
+                _history.State.Project.Module.RuntimePolicies.Extensions.JsonDocuments.Count != originalDocumentCount + 1)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12H_BOSS_FAILED preview_balance_apply");
+                return false;
+            }
+            var reopened = ProjectSession.Open(_projectSession.RootDirectory);
+            if (reopened.Session is null ||
+                reopened.Session.Project.Blueprints.Count != originalBlueprintCount + 1 ||
+                reopened.Session.Project.Dialogues.Count != originalDialogueCount + 1 ||
+                reopened.Session.Project.Module.RuntimePolicies.Extensions.JsonDocuments.Count != originalDocumentCount + 1 ||
+                !_history.Undo().Succeeded ||
+                _history.State.Project.Blueprints.Count != originalBlueprintCount ||
+                _history.State.Project.Dialogues.Count != originalDialogueCount ||
+                _history.State.Project.Module.RuntimePolicies.Extensions.JsonDocuments.Count != originalDocumentCount ||
+                !_history.Redo().Succeeded ||
+                _history.State.Project.Module.RuntimePolicies.Extensions.JsonDocuments.Count != originalDocumentCount + 1 ||
+                !_history.Undo().Succeeded || !_projectSession.Save(_history.State.Project).Succeeded)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12H_BOSS_FAILED persistence_history");
+                return false;
+            }
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G12H_BOSS_PASS creature=canonical encounter=bounded abilities=typed " +
+                "phases=scripted dialogue=typed rewards=loot balance=32-runs dependencies=resolved " +
+                "provider=fake-offline cost=visible plan=dry-run-transaction permission=apply-approved " +
+                "batch=atomic history=restored persistence=roundtrip mcp=governed");
+            return true;
+        }
+        finally
+        {
+            _history = new ProjectCommandHistory(originalState);
+            _projectSession.Save(originalState.Project);
+            RebuildPreview();
+            RefreshEditorControls();
         }
     }
 

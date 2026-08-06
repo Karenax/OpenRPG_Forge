@@ -19,10 +19,12 @@ using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
+using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Scripts;
 using Forge.RpgKit.Application.Dialogues;
+using Forge.RpgKit.Application.Bosses;
 using Forge.RpgKit.Application.Quests;
 using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Quality;
@@ -50,6 +52,7 @@ public sealed class ForgeProjectAgentService
     private readonly ApplyAssistedQuestHandler _assistedQuestHandler;
     private readonly IForgeScriptRuntime _forgeScriptRuntime;
     private readonly ApplyAssistedForgeScriptHandler _assistedForgeScriptHandler;
+    private readonly ApplyAssistedBossHandler _assistedBossHandler;
     private readonly SetEntityOverridesHandler _overridesHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
@@ -69,6 +72,7 @@ public sealed class ForgeProjectAgentService
     private readonly Dictionary<string, StoredAssistedDialoguePlan> _assistedDialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedQuestPlan> _assistedQuestPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedForgeScriptPlan> _assistedForgeScriptPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAssistedBossPlan> _assistedBossPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredGameplayControlPlan> _gameplayControlPlans = new(StringComparer.Ordinal);
@@ -91,6 +95,7 @@ public sealed class ForgeProjectAgentService
         _assistedQuestHandler = new ApplyAssistedQuestHandler(clock);
         _forgeScriptRuntime = new NativeForgeScriptRuntime();
         _assistedForgeScriptHandler = new ApplyAssistedForgeScriptHandler();
+        _assistedBossHandler = new ApplyAssistedBossHandler(clock);
         _overridesHandler = new SetEntityOverridesHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
@@ -1816,6 +1821,127 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public AssistedBossProposalResource ProposeAssistedBoss(AssistedBossProposalRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, null,
+                    [new AgentDiagnostic("assistant.boss.request_invalid",
+                        "Assisted boss proposal schema is invalid.", "assistant/boss")]);
+            try
+            {
+                var profile = AssistantWorkspaceProfile.CreateDefault();
+                var proposal = AssistedBossCreationService.ProposeAsync(
+                    request.Brief,
+                    _history.State.Project,
+                    _loreIndexHistory.State.Index,
+                    AvailableForgeScripts(),
+                    new DeterministicAssistantProvider(profile.ActiveProvider),
+                    profile.ActiveProvider,
+                    networkAuthorized: false,
+                    projectContentAuthorized: false).GetAwaiter().GetResult();
+                return new(proposal.Succeeded, proposal,
+                    proposal.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            catch (ArgumentException exception)
+            {
+                return new(false, null,
+                    [new AgentDiagnostic("assistant.boss.brief_invalid", exception.Message, "assistant/boss")]);
+            }
+        }
+    }
+
+    public AssistedBossApplyPlanResult PlanAssistedBoss(AssistedBossApplyPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
+                return AssistedBossFailure(_history.State.Revision.Value,
+                    "assistant.boss.request_invalid", "Assisted boss request schema or revision is invalid.");
+            var transactionId = Guid.NewGuid();
+            var executionPlanId = Guid.NewGuid();
+            var command = new ApplyAssistedBossCommand(
+                CommandId.From(Guid.NewGuid()), transactionId, executionPlanId,
+                new ProjectRevision(request.BaseRevision), request.Proposal, request.Permission, DryRun: true);
+            var preview = _assistedBossHandler.Handle(_history.State, command);
+            if (!preview.Succeeded || preview.Command.Patch is null || preview.Command.Inverse is null)
+                return new(false, null, transactionId.ToString("D"), request.Proposal.Boss.Id.ToString("D"),
+                    request.BaseRevision, null, null, "no-change", request.Proposal.Citations,
+                    request.Proposal.Diagnostics.Select(item => item.Code).ToArray(),
+                    request.Proposal.Balance.Runs, request.Proposal.Balance.Passed,
+                    request.Proposal.EstimatedCostUsd, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var key = executionPlanId.ToString("D");
+            var stored = new StoredAssistedBossPlan(key, command, preview.Command.Patch, preview.Command.Inverse,
+                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _assistedBossPlans.Add(key, stored);
+            return ToResult(stored);
+        }
+    }
+
+    public AssistedBossApplyPlanResult ApplyAssistedBossPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_assistedBossPlans.TryGetValue(planId, out var plan))
+                return AssistedBossFailure(_history.State.Revision.Value,
+                    "assistant.boss.plan_missing", $"Assisted boss plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AssistedBossFailure(plan.Command.BaseRevision.Value,
+                    "assistant.boss.plan_already_applied", $"Assisted boss plan '{planId}' is already applied.");
+            var result = _assistedBossHandler.Handle(_history.State,
+                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan, result.Diagnostics.Select(Map).ToArray());
+            }
+            var saved = _session.Save(result.Command.State.Project);
+            if (!saved.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            _history.Record(result.Command);
+            plan.Applied = true;
+            plan.AppliedRevision = _history.State.Revision.Value;
+            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AssistedBossApplyPlanResult RevertAssistedBossPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_assistedBossPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AssistedBossFailure(_history.State.Revision.Value,
+                    "assistant.boss.plan_not_applied", $"Assisted boss plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return AssistedBossFailure(plan.Command.BaseRevision.Value,
+                    "assistant.boss.revert_conflict", "Only the latest project mutation can be reverted safely.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return AssistedBossFailure(plan.Command.BaseRevision.Value,
+                    "assistant.boss.inverse_unavailable", "The assisted boss inverse is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return WithFailure(plan, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(plan.PlanId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
     public AssistedForgeScriptProposalResource ProposeAssistedForgeScript(AssistedForgeScriptProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -2352,6 +2478,65 @@ public sealed class ForgeProjectAgentService
         plan.Reverted,
         plan.Audit.ToArray());
 
+    private static AssistedBossApplyPlanResult AssistedBossFailure(
+        long revision,
+        string code,
+        string message) => new(
+        false,
+        null,
+        null,
+        null,
+        revision,
+        null,
+        null,
+        "no-change",
+        [],
+        [],
+        0,
+        false,
+        0,
+        [new AgentDiagnostic(code, message, "assistant/boss")],
+        false,
+        false,
+        []);
+
+    private static AssistedBossApplyPlanResult WithFailure(
+        StoredAssistedBossPlan plan,
+        IReadOnlyList<AgentDiagnostic> diagnostics) => ToResult(plan) with
+        {
+            Succeeded = false,
+            Diagnostics = diagnostics,
+        };
+
+    private static AssistedBossApplyPlanResult ToResult(StoredAssistedBossPlan plan) => new(
+        true,
+        plan.PlanId,
+        plan.Command.TransactionId.ToString("D"),
+        plan.Command.Proposal.Boss.Id.ToString("D"),
+        plan.Command.BaseRevision.Value,
+        plan.Diff,
+        plan.Inverse,
+        plan.Command.Proposal.SemanticDiff,
+        plan.Command.Proposal.Citations,
+        plan.Command.Proposal.Diagnostics.Select(item => item.Code).ToArray(),
+        plan.Command.Proposal.Balance.Runs,
+        plan.Command.Proposal.Balance.Passed,
+        plan.Command.Proposal.EstimatedCostUsd,
+        [],
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
+    private IReadOnlySet<string> AvailableForgeScripts()
+    {
+        var root = Path.Combine(_session.RootDirectory, "scripts");
+        return Directory.Exists(root)
+            ? Directory.GetFiles(root, "*.forge", SearchOption.TopDirectoryOnly)
+                .Select(path => Path.GetRelativePath(_session.RootDirectory, path).Replace('\\', '/'))
+                .ToHashSet(StringComparer.Ordinal)
+            : new HashSet<string>(StringComparer.Ordinal);
+    }
+
     private static AssistedForgeScriptApplyPlanResult AssistedForgeScriptFailure(
         long revision,
         string code,
@@ -2650,6 +2835,23 @@ public sealed class ForgeProjectAgentService
     {
         public string PlanId { get; } = planId;
         public ApplyAssistedQuestCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<PlanAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAssistedBossPlan(
+        string planId,
+        ApplyAssistedBossCommand command,
+        ProjectPatch diff,
+        ProjectPatch inverse,
+        List<PlanAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public ApplyAssistedBossCommand Command { get; } = command;
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
         public List<PlanAuditEntry> Audit { get; } = audit;

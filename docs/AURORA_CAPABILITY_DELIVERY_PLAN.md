@@ -53,7 +53,8 @@ plan de zone assisté sans mutation géométrique, puis G12-D construit un plan 
 commandes que l’édition manuelle, puis G12-E relie le graphe RPG avancé au dialogue Core avec
 citations, localisation, lint et simulation, puis G12-F livre les machines à états de quête,
 objectifs, récompenses, échec et scénarios. G12-G ajoute la création/réparation ForgeScript compilée
-et testée avant écriture. La file active commence à **G12-H**.
+et testée avant écriture. G12-H compose maintenant un boss canonique multi-domaines, simule son
+équilibrage et applique son lot atomique. La file active commence à **G12-I**.
 
 ## 3. Jalons produit
 
@@ -321,7 +322,9 @@ ou village contrôlé, persistant et annulable avant toute génération de géom
 désormais un plan approuvé par un lot de placements atomique, validé, persistant et réversible. G12-E
 livre la création de dialogue assistée sur les agrégats RPG et Core existants. G12-F livre la
 création de quête assistée avec le même contrat gouverné. G12-G livre la création de ForgeScript
-assistée sans contourner le compilateur ni la sandbox. G12-H portera la création de boss assistée.
+assistée sans contourner le compilateur ni la sandbox. G12-H livre la création de boss assistée :
+créature, combat, capacités, rencontre, phases, scripts, dialogue, loot et 32 simulations sont liés
+par un seul lot persistant et réversible. G12-I portera la création de capacité autonome.
 
 **Domaine.** `AI` P1/P2, après stabilisation des workflows humains correspondants.
 

@@ -221,8 +221,10 @@ crypte/village avec UI et MCP, puis sa construction approuvée par un lot atomiq
 placement validé, persistant et annulable. G12-E livre la création assistée de dialogues via les
 contrats RPG et Core existants. G12-F livre la création assistée de quêtes par les agrégats et
 validations déjà consommés par le runtime. G12-G livre la création et réparation ForgeScript avec
-compilation et sandbox obligatoires. La prochaine tranche est G12-H, création de boss gouvernée, sans
-confondre les améliorations visuelles optionnelles avec des capacités absentes.
+compilation et sandbox obligatoires. G12-H livre la création de boss gouvernée comme un lot atomique
+créature/rencontre/capacités/phases/dialogue/loot, validé par 32 simulations et partagé avec MCP. La
+prochaine tranche est G12-I, création de capacité autonome, sans confondre les améliorations visuelles
+optionnelles avec des capacités absentes.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;
