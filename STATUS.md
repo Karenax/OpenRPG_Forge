@@ -9,7 +9,7 @@ G11 Contenu moderne fermés. AV4B livre maintenant une première carte 3D extér
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
 installe les GLB gouvernés dans la palette, les place comme vrais modèles dans le viewport et ferme
-leur mutation IA/MCP transactionnelle.**
+leur mutation IA/MCP transactionnelle. AV4A possède maintenant son benchmark terrain bloquant.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -451,3 +451,13 @@ la suite à 718 tests .NET et couvrent dry-run, persistance, revert, audit de li
 discordante et GLB absent sans mutation. Le gate global passe le 5 août 2026 avec 718 tests .NET,
 24 tests Python généraux, 22 tests du pipeline d’assets et le marqueur
 `OPENRPG_FORGE_VERIFICATION=PASS`.
+
+**AV4A — benchmark terrain multi-biome fermé** : le smoke réel Forgotten Forest écrit un rapport
+JSON versionné et bloquant pour la tranche 128 × 128 m. Il instrumente séparément reconstruction,
+collisions, navigation et requête de chemin dans le moteur, exécute une sculpture transactionnelle
+sur un état isolé, mesure allocations gérées et working set, puis vérifie la couverture LOD et les
+groupes de culling MultiMesh. Le passage de référence mesure 68,806 ms de reconstruction, 5,367 ms
+de collisions, 10,778 ms de navigation, 3,604 ms de sculpture, 23,649 ms de requête de chemin,
+1 737 328 octets alloués et +17 506 304 octets de working set. Les 22 assets portent 66 niveaux LOD,
+357 instances sont réparties en trois groupes de culling et les 1 990 polygones de navigation sont
+conservés. Deux tests de budget portent la suite EngineAdapter à 13 tests et la suite .NET à 720.

@@ -1,12 +1,22 @@
+using System.Diagnostics;
 using Forge.Domain.Areas;
 using Forge.Domain.Validation;
 using Godot;
 
 namespace Forge.EngineAdapter.World;
 
+public sealed record GodotTerrainBuildMetrics(
+    double TotalMilliseconds,
+    double PlanMilliseconds,
+    double MeshMilliseconds,
+    double CollisionMilliseconds,
+    double FeatureMilliseconds,
+    double ScatterMilliseconds,
+    long ManagedAllocatedBytes);
+
 public sealed record GodotTerrainResult(Node3D Root, int Vertices, int Triangles, int CollisionShapes,
     int FeatureSegments, int DebugVolumes, int FlightRouteSegments, int ScatterLayers, int ScatterInstances,
-    int WaterSurfaces, int WaterVolumes,
+    int WaterSurfaces, int WaterVolumes, int CullingGroups, GodotTerrainBuildMetrics Metrics,
     IReadOnlyList<DomainDiagnostic> Diagnostics);
 
 public static class GodotTerrainAdapter
@@ -14,19 +24,30 @@ public static class GodotTerrainAdapter
     public static GodotTerrainResult Build(AreaWorldProfile world, Func<string, Mesh?>? scatterMeshResolver = null)
     {
         ArgumentNullException.ThrowIfNull(world);
+        var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+        var totalStarted = Stopwatch.GetTimestamp();
+        var planStarted = Stopwatch.GetTimestamp();
         var plan = TerrainBuildPlanBuilder.Build(world);
+        var planMilliseconds = Stopwatch.GetElapsedTime(planStarted).TotalMilliseconds;
         var root = new Node3D { Name = "ForgeAreaWorld" };
         var collisionShapes = 0;
+        var meshMilliseconds = 0d;
+        var collisionMilliseconds = 0d;
         if (plan.Enabled && plan.Indices.Count > 0)
         {
+            var meshStarted = Stopwatch.GetTimestamp();
             var mesh = BuildTerrainMesh(plan);
             root.AddChild(new MeshInstance3D { Name = "TerrainSurface", Mesh = mesh });
+            meshMilliseconds = Stopwatch.GetElapsedTime(meshStarted).TotalMilliseconds;
+            var collisionStarted = Stopwatch.GetTimestamp();
             var body = new StaticBody3D { Name = "TerrainCollision" };
             body.AddChild(new CollisionShape3D { Name = "TerrainShape", Shape = mesh.CreateTrimeshShape() });
             root.AddChild(body);
             collisionShapes = 1;
+            collisionMilliseconds = Stopwatch.GetElapsedTime(collisionStarted).TotalMilliseconds;
         }
 
+        var featureStarted = Stopwatch.GetTimestamp();
         var featureSegments = 0;
         var waterSurfaces = 0;
         var waterVolumes = 0;
@@ -90,14 +111,27 @@ public static class GodotTerrainAdapter
             }
         }
         root.AddChild(routesRoot);
+        var featureMilliseconds = Stopwatch.GetElapsedTime(featureStarted).TotalMilliseconds;
 
+        var scatterStarted = Stopwatch.GetTimestamp();
         var scatter = GodotBiomeScatterAdapter.Build(world, scatterMeshResolver);
         root.AddChild(scatter.Root);
         collisionShapes += scatter.CollisionShapes;
+        collisionMilliseconds += scatter.CollisionMilliseconds;
+        var scatterMilliseconds = Stopwatch.GetElapsedTime(scatterStarted).TotalMilliseconds;
+
+        var metrics = new GodotTerrainBuildMetrics(
+            Stopwatch.GetElapsedTime(totalStarted).TotalMilliseconds,
+            planMilliseconds,
+            meshMilliseconds,
+            collisionMilliseconds,
+            featureMilliseconds,
+            scatterMilliseconds,
+            Math.Max(0, GC.GetAllocatedBytesForCurrentThread() - allocatedBefore));
 
         return new GodotTerrainResult(root, plan.Vertices.Count, plan.TriangleCount, collisionShapes,
             featureSegments, debugVolumes, routeSegments, scatter.Layers, scatter.Instances,
-            waterSurfaces, waterVolumes, plan.Diagnostics);
+            waterSurfaces, waterVolumes, scatter.CullingGroups, metrics, plan.Diagnostics);
     }
 
     private static ArrayMesh BuildTerrainMesh(TerrainBuildPlan plan)

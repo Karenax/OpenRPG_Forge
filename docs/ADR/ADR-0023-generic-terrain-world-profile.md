@@ -40,3 +40,10 @@ Terrain3D. Un provider externe pourra être ajouté plus tard derrière `ITerrai
 de licence, compatibilité, migration et reproductibilité. La sculpture et la peinture interactives,
 la tessellation de splines de production, le suivi d'une route par un acteur volant et les
 benchmarks de grandes cartes restent des incréments séparés.
+
+## Vérification postérieure AV4A
+
+Le 5 août 2026, la tranche extérieure représentative 128 × 128 m a reçu un benchmark runtime
+versionné. Il mesure mémoire, reconstruction, collisions, navigation, sculpture, LOD et culling sans
+changer la décision architecturale : le terrain canonique reste indépendant de l’adapter moteur.
+L’extension à une carte plus grande demeure conditionnée au respect des budgets enregistrés.

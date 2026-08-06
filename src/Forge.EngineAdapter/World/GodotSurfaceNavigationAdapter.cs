@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Forge.Domain.Areas;
 using Forge.Domain.Navigation;
 using Forge.Domain.Validation;
@@ -11,6 +12,8 @@ public sealed record GodotSurfaceNavigationResult(
     int Polygons,
     int BlockedTriangles,
     int Links,
+    double BuildMilliseconds,
+    long ManagedAllocatedBytes,
     IReadOnlyList<DomainDiagnostic> Diagnostics);
 
 public static class GodotSurfaceNavigationAdapter
@@ -20,11 +23,16 @@ public static class GodotSurfaceNavigationAdapter
         AreaNavigationDefinition navigation,
         NavigationAgentProfile? requestedAgent = null)
     {
+        var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+        var started = Stopwatch.GetTimestamp();
         var plan = SurfaceNavigationPlanBuilder.Build(world, navigation, requestedAgent);
         var root = new Node3D { Name = "ForgeSurfaceNavigation" };
         if (!plan.Enabled || plan.Agent is null)
         {
-            return new(root, 0, 0, plan.BlockedTriangles, 0, plan.Diagnostics);
+            return new(root, 0, 0, plan.BlockedTriangles, 0,
+                Stopwatch.GetElapsedTime(started).TotalMilliseconds,
+                Math.Max(0, GC.GetAllocatedBytesForCurrentThread() - allocatedBefore),
+                plan.Diagnostics);
         }
 
         var navigationMesh = new NavigationMesh
@@ -67,6 +75,9 @@ public static class GodotSurfaceNavigationAdapter
             root.AddChild(linkNode);
         }
 
-        return new(root, 1, plan.Triangles.Count, plan.BlockedTriangles, plan.Links.Count, plan.Diagnostics);
+        return new(root, 1, plan.Triangles.Count, plan.BlockedTriangles, plan.Links.Count,
+            Stopwatch.GetElapsedTime(started).TotalMilliseconds,
+            Math.Max(0, GC.GetAllocatedBytesForCurrentThread() - allocatedBefore),
+            plan.Diagnostics);
     }
 }

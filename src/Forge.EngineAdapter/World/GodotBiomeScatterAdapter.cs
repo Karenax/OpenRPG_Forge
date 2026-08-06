@@ -1,22 +1,33 @@
+using System.Diagnostics;
 using Forge.Domain.Areas;
 using Godot;
 
 namespace Forge.EngineAdapter.World;
 
-public sealed record GodotBiomeScatterResult(Node3D Root, int Layers, int Instances, int CollisionShapes);
+public sealed record GodotBiomeScatterResult(
+    Node3D Root,
+    int Layers,
+    int Instances,
+    int CollisionShapes,
+    int CullingGroups,
+    double BuildMilliseconds,
+    double CollisionMilliseconds);
 
 public static class GodotBiomeScatterAdapter
 {
     public static GodotBiomeScatterResult Build(AreaWorldProfile world, Func<string, Mesh?>? meshResolver)
     {
         ArgumentNullException.ThrowIfNull(world);
+        var started = Stopwatch.GetTimestamp();
         var root = new Node3D { Name = "BiomeScatter" };
         if (!world.Terrain.Enabled || meshResolver is null)
-            return new(root, 0, 0, 0);
+            return new(root, 0, 0, 0, 0, Stopwatch.GetElapsedTime(started).TotalMilliseconds, 0);
 
         var layers = 0;
         var instances = 0;
         var collisionShapes = 0;
+        var cullingGroups = 0;
+        var collisionMilliseconds = 0d;
         foreach (var biome in world.Biomes.Where(candidate => !string.IsNullOrWhiteSpace(candidate.ScatterResource)))
         {
             var mesh = meshResolver(biome.ScatterResource);
@@ -38,18 +49,21 @@ public static class GodotBiomeScatterAdapter
                     basis,
                     new Vector3(placement.Position.X, placement.Position.Y, placement.Position.Z)));
             }
+            var cullingRange = biome.Tags.Contains("ground-cover", StringComparer.OrdinalIgnoreCase) ? 42 : 120;
             root.AddChild(new MultiMeshInstance3D
             {
                 Name = $"Scatter_{biome.Id:N}",
                 Multimesh = multiMesh,
-                VisibilityRangeEnd = biome.Tags.Contains("ground-cover", StringComparer.OrdinalIgnoreCase) ? 42 : 120,
+                VisibilityRangeEnd = cullingRange,
                 VisibilityRangeEndMargin = 8,
             });
             layers++;
             instances += placements.Count;
+            cullingGroups++;
 
             if (biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase))
             {
+                var collisionStarted = Stopwatch.GetTimestamp();
                 var body = new StaticBody3D { Name = $"ScatterCollision_{biome.Id:N}" };
                 foreach (var placement in placements.Take(96))
                 {
@@ -62,10 +76,12 @@ public static class GodotBiomeScatterAdapter
                     collisionShapes++;
                 }
                 root.AddChild(body);
+                collisionMilliseconds += Stopwatch.GetElapsedTime(collisionStarted).TotalMilliseconds;
             }
         }
 
-        return new(root, layers, instances, collisionShapes);
+        return new(root, layers, instances, collisionShapes, cullingGroups,
+            Stopwatch.GetElapsedTime(started).TotalMilliseconds, collisionMilliseconds);
     }
 
 }

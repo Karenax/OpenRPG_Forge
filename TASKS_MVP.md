@@ -523,7 +523,7 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   humidité, eau, chemins et exclusions sans posséder ni dupliquer le terrain.
 - [x] Migrer le prototype `forge_forest_map` en première couche de biome posée sur ce terrain et
   supprimer son hypothèse de sol plan sans créer une seconde source de vérité.
-- [ ] Mesurer mémoire, temps de reconstruction, sculpture, collisions, navigation, LOD et culling sur
+- [x] Mesurer mémoire, temps de reconstruction, sculpture, collisions, navigation, LOD et culling sur
   une zone extérieure représentative avant d'étendre la taille des cartes.
 
 #### AV4B — Carte Forgotten Forest

@@ -71,6 +71,11 @@ Dernière mise à jour : 5 août 2026.
   le runtime ;
 - export `.orpmod` de 75 fichiers, validation sans diagnostic et smoke depuis le cache du package ;
 - capture Forward+ 1280 × 720 inspectée après correction visuelle.
+- benchmark runtime versionné sur Forgotten Forest 128 × 128 m : 68,806 ms de reconstruction,
+  5,367 ms de collisions, 10,778 ms de navigation, 3,604 ms de sculpture, 23,649 ms de requête de
+  chemin, 1 737 328 octets alloués et +17 506 304 octets de working set ;
+- couverture de performance contrôlée : 1 089 échantillons/vertices, 2 048 triangles, 181 formes de
+  collision, 1 990 polygones de navigation, 22 assets/66 niveaux LOD et trois groupes de culling.
 
 ## Partiellement terminé
 
@@ -94,8 +99,9 @@ Dernière mise à jour : 5 août 2026.
 
 ## Prochaine action
 
-Mesurer mémoire, reconstruction, sculpture, collisions, navigation, LOD et culling sur la zone
-extérieure représentative AV4A, puis enrichir AV5 avec animations, ambiance audio et VFX gouvernés.
+Fermer AV5 avec documentation de livraison, métriques consolidées et procédures d’ajout de packs,
+puis enrichir la carte avec animations, ambiance audio et VFX gouvernés sans élargissement massif
+du catalogue avant une nouvelle revue de cohérence.
 
 ## Preuves de la tranche AV3 MCP
 

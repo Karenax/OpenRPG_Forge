@@ -626,6 +626,13 @@ GLB canonique confiné, taille et SHA-256 conformes. L’application passe par l
 persistance du projet, conserve un audit asset/SPDX/révision, et l’inverse refuse toute révision plus
 récente. Le pont éditeur inter-processus reste volontairement limité aux lectures.
 
+AV4A possède désormais un benchmark de production sur Forgotten Forest 128 × 128 m. Le runtime
+instrumente la reconstruction du terrain, la génération de 181 formes de collision, la navigation
+de 1 990 polygones, la requête de chemin, une sculpture transactionnelle isolée, les allocations et
+le working set. Il vérifie aussi 22 assets couvrant 66 niveaux LOD et trois groupes MultiMesh dotés
+d’une distance de culling. Un rapport JSON versionné conserve échantillon, budgets et seize checks ;
+le smoke et `scripts/Verify.ps1` échouent si l’un d’eux dépasse sa borne.
+
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de
 `AGENTS.md`. En cas de conflit, ces sources de vérité du dépôt priment sur la spécification importée.

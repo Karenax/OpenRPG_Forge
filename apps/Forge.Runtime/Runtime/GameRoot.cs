@@ -3,12 +3,15 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Forge.Application.Areas;
+using Forge.Application.Commands;
 using Forge.Application.Gameplay;
 using Forge.Application.Lifecycle;
 using Forge.Application.Sequences;
+using Forge.Application.Time;
 using Forge.Application.Validation;
 using Forge.Application.Rules;
 using Forge.Application.Quality;
+using Forge.Application.Projects;
 using Forge.Application.RuntimeExtensions;
 using Forge.Application.Entities;
 using Forge.Application.Combat;
@@ -54,6 +57,7 @@ public partial class GameRoot : Node3D
     private const string LoadSaveArgument = "--load-save";
     private const string VisualCaptureArgument = "--visual-capture";
     private const string VisualRegressionSuiteArgument = "--g11s-visual-suite";
+    private const string TerrainBenchmarkArgument = "--terrain-benchmark";
     private const float InteractionDistance = 3.0f;
     private const float AttackDistance = 3.5f;
     private const string VisualAssetProperty = "visual.asset";
@@ -155,14 +159,24 @@ public partial class GameRoot : Node3D
     private GodotAssetModelLibrary? _modelLibrary;
     private int _runtimeModelInstances;
     private int _terrainVertices;
+    private int _terrainTriangles;
+    private int _terrainCollisionShapes;
     private int _terrainScatterLayers;
     private int _terrainScatterInstances;
+    private int _terrainCullingGroups;
     private int _terrainWaterSurfaces;
     private int _terrainWaterVolumes;
     private int _surfaceNavigationRegions;
     private int _surfaceNavigationPolygons;
     private int _surfaceNavigationBlockedTriangles;
     private int _surfaceNavigationLinks;
+    private GodotTerrainBuildMetrics? _terrainBuildMetrics;
+    private double _surfaceNavigationBuildMilliseconds;
+    private long _surfaceNavigationManagedAllocatedBytes;
+    private long _terrainManagedHeapBeforeBytes;
+    private long _terrainManagedHeapAfterBytes;
+    private long _terrainWorkingSetBeforeBytes;
+    private long _terrainWorkingSetAfterBytes;
 
     public override async void _Ready()
     {
@@ -176,9 +190,10 @@ public partial class GameRoot : Node3D
         var saveSmokeResume = userArguments.Contains("--save-smoke-resume", StringComparer.Ordinal);
         var visualCapturePath = GetArgumentValue(userArguments, VisualCaptureArgument);
         var visualRegressionSuitePath = GetArgumentValue(userArguments, VisualRegressionSuiteArgument);
+        var terrainBenchmarkPath = GetArgumentValue(userArguments, TerrainBenchmarkArgument);
         var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || forgottenForestSmokeTest ||
             saveSmokeCreate || saveSmokeResume ||
-            visualCapturePath is not null || visualRegressionSuitePath is not null;
+            visualCapturePath is not null || visualRegressionSuitePath is not null || terrainBenchmarkPath is not null;
 
         try
         {
@@ -271,7 +286,7 @@ public partial class GameRoot : Node3D
 
             if (forgottenForestSmokeTest)
             {
-                await RunForgottenForestSmokeTestAsync(project);
+                await RunForgottenForestSmokeTestAsync(project, terrainBenchmarkPath);
             }
             else if (rpgKitSmokeTest)
             {
@@ -1167,14 +1182,22 @@ public partial class GameRoot : Node3D
     private async Task ConfigureAreaWorldAsync(AreaWorldProfile profile, AreaNavigationDefinition navigation)
     {
         var started = Stopwatch.GetTimestamp();
+        using var process = Process.GetCurrentProcess();
+        process.Refresh();
+        _terrainWorkingSetBeforeBytes = process.WorkingSet64;
+        _terrainManagedHeapBeforeBytes = GC.GetTotalMemory(forceFullCollection: false);
         _activeBiomeTags = profile.Biomes.SelectMany(item => item.Tags)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var terrain = GodotTerrainAdapter.Build(
             profile,
             _modelLibrary is null ? null : _modelLibrary.ResolveScatterMesh);
         _terrainVertices = terrain.Vertices;
+        _terrainTriangles = terrain.Triangles;
+        _terrainCollisionShapes = terrain.CollisionShapes;
         _terrainScatterLayers = terrain.ScatterLayers;
         _terrainScatterInstances = terrain.ScatterInstances;
+        _terrainCullingGroups = terrain.CullingGroups;
+        _terrainBuildMetrics = terrain.Metrics;
         _terrainWaterSurfaces = terrain.WaterSurfaces;
         _terrainWaterVolumes = terrain.WaterVolumes;
         var surfaceNavigation = GodotSurfaceNavigationAdapter.Build(profile, navigation);
@@ -1182,9 +1205,14 @@ public partial class GameRoot : Node3D
         _surfaceNavigationPolygons = surfaceNavigation.Polygons;
         _surfaceNavigationBlockedTriangles = surfaceNavigation.BlockedTriangles;
         _surfaceNavigationLinks = surfaceNavigation.Links;
+        _surfaceNavigationBuildMilliseconds = surfaceNavigation.BuildMilliseconds;
+        _surfaceNavigationManagedAllocatedBytes = surfaceNavigation.ManagedAllocatedBytes;
         _areaWorldRoot = terrain.Root;
         _areaWorldRoot.AddChild(surfaceNavigation.Root);
         AddChild(_areaWorldRoot);
+        _terrainManagedHeapAfterBytes = GC.GetTotalMemory(forceFullCollection: false);
+        process.Refresh();
+        _terrainWorkingSetAfterBytes = process.WorkingSet64;
         foreach (var diagnostic in terrain.Diagnostics)
         {
             GD.Print($"OPENRPG_FORGE_RUNTIME_TERRAIN_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
@@ -2976,7 +3004,7 @@ public partial class GameRoot : Node3D
         GetTree().Quit(0);
     }
 
-    private async Task RunForgottenForestSmokeTestAsync(ProjectDefinition project)
+    private async Task RunForgottenForestSmokeTestAsync(ProjectDefinition project, string? benchmarkPath)
     {
         AssertSmoke(_isForgottenForestPrototype, "The Forgotten Forest smoke test loaded another module.");
         AssertSmoke(project.Areas.Single().Kind == AreaKind.Exterior, "Forgotten Forest must remain an exterior area.");
@@ -2996,6 +3024,7 @@ public partial class GameRoot : Node3D
         AssertSmoke(_hostiles.Count == 3, "Forgotten Forest must reconstruct two scouts and its boss.");
         AssertSmoke(project.Dialogues.Count == 1 && project.Quests.Count == 1,
             "Forgotten Forest dialogue or quest data is missing.");
+        var navigationPathStarted = Stopwatch.GetTimestamp();
         var navigationPath = Array.Empty<Vector3>();
         for (var frame = 0; frame < 8 && navigationPath.Length < 2; frame++)
         {
@@ -3010,6 +3039,68 @@ public partial class GameRoot : Node3D
         }
         AssertSmoke(navigationPath.Length >= 2,
             "Godot surface navigation could not find a path from the forest spawn to the sanctuary.");
+        var navigationPathMilliseconds = Stopwatch.GetElapsedTime(navigationPathStarted).TotalMilliseconds;
+
+        var area = project.Areas.Single();
+        var sculptureHandler = new EditTerrainBrushHandler(new SystemClock());
+        var sculptureStarted = Stopwatch.GetTimestamp();
+        var sculpture = sculptureHandler.Handle(
+            new ProjectState(project, new ProjectRevision(0)),
+            new EditTerrainBrushCommand(
+                CommandId.From(Guid.Parse("f5d1ca15-4a39-46ba-a8e2-74dde7188258")),
+                new ProjectRevision(0),
+                area.Id,
+                new TerrainBrushStroke(TerrainBrushOperation.Raise, -48, -48, 3, .05f),
+                DryRun: false));
+        var sculptureMilliseconds = Stopwatch.GetElapsedTime(sculptureStarted).TotalMilliseconds;
+        AssertSmoke(sculpture.Succeeded && sculpture.NewRevision?.Value == 1,
+            "Transactional terrain sculpture benchmark did not produce an isolated revision.");
+
+        var terrainMetrics = _terrainBuildMetrics ??
+            throw new InvalidOperationException("Terrain build metrics were not captured.");
+        var benchmark = TerrainProductionBenchmark.Evaluate(new TerrainProductionBenchmarkSample(
+            _moduleSlug,
+            area.World.Terrain.Width,
+            area.World.Terrain.Depth,
+            area.World.Terrain.SamplesX * area.World.Terrain.SamplesZ,
+            _terrainVertices,
+            _terrainTriangles,
+            _terrainCollisionShapes,
+            _terrainScatterLayers,
+            _terrainScatterInstances,
+            _surfaceNavigationRegions,
+            _surfaceNavigationPolygons,
+            _surfaceNavigationBlockedTriangles,
+            _surfaceNavigationLinks,
+            navigationPath.Length,
+            _modelLibrary?.LodAssetCount ?? 0,
+            _modelLibrary?.LodLevelCount ?? 0,
+            _terrainCullingGroups,
+            _modelLibrary?.GovernedStoredBytes ?? 0,
+            terrainMetrics.ManagedAllocatedBytes + _surfaceNavigationManagedAllocatedBytes,
+            Math.Max(0, _terrainManagedHeapAfterBytes - _terrainManagedHeapBeforeBytes),
+            Math.Max(0, _terrainWorkingSetAfterBytes - _terrainWorkingSetBeforeBytes),
+            terrainMetrics.TotalMilliseconds,
+            terrainMetrics.CollisionMilliseconds,
+            _surfaceNavigationBuildMilliseconds,
+            sculptureMilliseconds,
+            navigationPathMilliseconds,
+            sculpture.Succeeded));
+        if (!string.IsNullOrWhiteSpace(benchmarkPath))
+        {
+            WriteTerrainBenchmark(benchmarkPath, benchmark);
+        }
+        AssertSmoke(benchmark.Passed,
+            $"Terrain benchmark exceeded budget: {string.Join(',', benchmark.Checks.Where(check => !check.Passed).Select(check => check.Key))}.");
+        GD.Print(
+            $"OPENRPG_FORGE_AV4A_TERRAIN_BENCHMARK_PASS area={area.World.Terrain.Width:0}x{area.World.Terrain.Depth:0} " +
+            $"memory_mb={benchmark.Sample.ProcessWorkingSetDeltaBytes / 1048576d:0.###} " +
+            $"rebuild_ms={benchmark.Sample.ReconstructionMilliseconds:0.###} " +
+            $"collision_ms={benchmark.Sample.CollisionMilliseconds:0.###} " +
+            $"nav_ms={benchmark.Sample.NavigationMilliseconds:0.###} " +
+            $"sculpture_ms={benchmark.Sample.SculptureMilliseconds:0.###} " +
+            $"lod_assets={benchmark.Sample.LodAssetCount} lod_levels={benchmark.Sample.LodLevelCount} " +
+            $"culling_groups={benchmark.Sample.CullingGroupCount}");
 
         InteractWith(_npc!);
         AssertSmoke(_questMachine?.CurrentState.DisplayName == "La Graine de lune",
@@ -3039,6 +3130,26 @@ public partial class GameRoot : Node3D
             $"manifests={_modelLibrary!.Count} model_instances={_runtimeModelInstances} " +
             $"entities={_builtEntityCount} quest=completed boss=defeated camera=orbit");
         GetTree().Quit(0);
+    }
+
+    private static void WriteTerrainBenchmark(string path, TerrainProductionBenchmarkReport report)
+    {
+        var absolute = Path.GetFullPath(path);
+        Directory.CreateDirectory(Path.GetDirectoryName(absolute)!);
+        var temporary = $"{absolute}.{Guid.NewGuid():N}.tmp";
+        try
+        {
+            File.WriteAllText(temporary, JsonSerializer.Serialize(report, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true,
+            }), new UTF8Encoding(false));
+            File.Move(temporary, absolute, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporary)) File.Delete(temporary);
+        }
     }
 
     private void RunRpgKitHeadlessSmokeTest(ProjectDefinition project)

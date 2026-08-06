@@ -24,6 +24,14 @@ public sealed class GodotAssetModelLibrary
 
     public int Count => _manifests.Count;
 
+    public int LodAssetCount => _manifests.Values.Count(manifest => manifest.Lod?.Levels.Count > 0);
+
+    public int LodLevelCount => _manifests.Values.Sum(manifest => manifest.Lod?.Levels.Count ?? 0);
+
+    public long GovernedStoredBytes => _manifests.Values
+        .SelectMany(manifest => manifest.Chunks)
+        .Sum(chunk => chunk.StoredBytes);
+
     public Node3D Instantiate(string assetId)
     {
         var id = AssetCatalogItemId.Parse(assetId);
