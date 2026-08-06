@@ -1,6 +1,7 @@
 using Forge.Application.Entities;
 using Forge.Application.Projects;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Entities;
 
 namespace Forge.Application.Tests.Entities;
 
@@ -38,6 +39,33 @@ public sealed class PlaceEntityHandlerTests
         Assert.NotNull(result.Patch);
         Assert.NotNull(result.Inverse);
         Assert.False(result.Audit.Applied);
+    }
+
+    [Fact]
+    public void Handle_PersistsAssetTagsAndOverridesInSameTransaction()
+    {
+        var context = new PlaceEntityTestContext();
+        var original = context.CreateCommand();
+        var overrides = new EntityPropertyOverrides(
+            EntityPropertyOverrides.CurrentSchemaVersion,
+            [new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String, "asset-id")]);
+        var command = new PlaceEntityCommand(
+            original.CommandId,
+            original.BaseRevision,
+            original.AreaId,
+            original.EntityId,
+            original.BlueprintId,
+            original.Transform,
+            original.DryRun,
+            ["asset", "stylized"],
+            overrides);
+
+        var result = context.Handler.Handle(context.State, command);
+
+        var entity = Assert.Single(Assert.Single(result.State.Project.Areas).Entities);
+        Assert.Equal(["asset", "stylized"], entity.Tags);
+        Assert.Same(overrides, entity.Overrides);
+        Assert.Equal("asset-id", Assert.Single(entity.Overrides.Properties).Value);
     }
 
     [Fact]

@@ -7,8 +7,8 @@ Dernière mise à jour : 5 août 2026.
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
 G11 Contenu moderne fermés. AV4B livre maintenant une première carte 3D extérieure jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
-cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles dans
-les manifestes et le Content Browser.**
+cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
+installe les GLB gouvernés dans la palette et les place comme vrais modèles dans le viewport.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -101,7 +101,7 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
 - solution de 25 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 705 tests .NET, 24 tests Python généraux et 22 tests Python du pipeline d'assets réussis ;
+- 713 tests .NET, 24 tests Python généraux et 22 tests Python du pipeline d'assets réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -418,3 +418,13 @@ avant d’appliquer le manifeste par la commande transactionnelle commune. Dimen
 styles, variante, compatibilité et sidecars deviennent persistants. Creator préfère la miniature du
 workspace et affiche dimensions, triangles, score et réalisme. Trois tests portent la suite .NET à
 708 ; le gate réel réutilise `ambientcg:3DApple001` et refuse toute sortie altérée après le worker.
+
+**AV3 — installation et placement fermés** : le Content Browser propose désormais
+« Installer + ajouter à la palette ». La commande `InstallAssetBlueprint` transforme un manifeste
+GLB sous licence vérifiée en blueprint ProjectContent stable, favori et traçable, avec dry-run,
+révision, audit, undo et redo. Le placement par bouton ou glisser-déposer transporte dans la même
+transaction les tags de style et l’override `visual.asset`. Creator et runtime partagent
+`GodotAssetModelLibrary`, qui confine les chemins, vérifie le SHA-256 du chunk puis instancie le GLB ;
+un modèle invalide reste visible sous forme de placeholder avec diagnostic. Le smoke moteur charge
+un GLB autonome réel dans le viewport sans erreur et le runtime Forgotten Forest continue de prouver
+18 instances issues de 22 manifestes. Cinq tests supplémentaires portent la suite .NET à 713.

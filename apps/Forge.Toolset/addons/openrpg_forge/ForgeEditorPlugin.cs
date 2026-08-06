@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.Security.Cryptography;
+using System.Text;
 using Forge.Application.Areas;
 using Forge.Application.Assets;
 using Forge.Application.Blueprints;
@@ -101,6 +102,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly ApplyDiagnosticQuickFixHandler _diagnosticQuickFixHandler = new(new SystemClock());
     private readonly SetAssetProcessingProfileHandler _assetProcessingProfileHandler = new(new SystemClock());
     private readonly SetAssetPackageManifestHandler _assetPackageManifestHandler = new(new SystemClock());
+    private readonly InstallAssetBlueprintHandler _installAssetBlueprintHandler = new(new SystemClock());
     private readonly SetAssetExternalEditHandler _assetExternalEditHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -284,6 +286,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             RedoAssetProcessingProfile,
             () => _assetPackageManifestHistory?.State,
             PrepareAssetPackageManifest,
+            InstallAssetForPlacement,
             UndoAssetPackageManifest,
             RedoAssetPackageManifest,
             () => _assetExternalEditHistory?.State,
@@ -432,6 +435,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _projectPreview = new ProjectPreview3D();
         _projectPreview.Initialize(
             () => _history?.State,
+            () => _projectSession?.RootDirectory,
+            () => _assetPackageManifestHistory?.State,
             () => _activeAreaContext.Current,
             () => GridStep,
             SelectEntityFromViewport,
@@ -3049,6 +3054,93 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
     }
 
+    private BlueprintDefinition? InstallAssetForPlacement(
+        AssetCatalogItem item,
+        AssetProcessingProfile profile,
+        bool dryRun)
+    {
+        if (_projectSession is null || _history is null || _assetPackageManifestHistory is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var manifest = _assetPackageManifestHistory.State.Find(item.Id) ??
+                PrepareAssetPackageManifest(item, profile, includeVfx: false, dryRun);
+            if (manifest is null)
+            {
+                return null;
+            }
+
+            var command = new InstallAssetBlueprintCommand(
+                CommandId.From(Guid.NewGuid()),
+                _history.State.Revision,
+                item,
+                manifest,
+                dryRun);
+            var result = _installAssetBlueprintHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                GD.PrintErr(
+                    $"OPENRPG_FORGE_TOOLSET_ASSET_INSTALL_FAILED asset={item.ExternalId} " +
+                    $"code={result.Diagnostics[0].Code}");
+                return null;
+            }
+
+            var blueprint = AssetBlueprintFactory.Create(item, manifest);
+            if (dryRun)
+            {
+                return result.Patch is not null && !result.Audit.Applied ? blueprint : null;
+            }
+
+            if (!VerifyGovernedModelArtifact(_projectSession.RootDirectory, manifest) ||
+                !ApplyCommand(
+                    result,
+                    $"Asset « {item.DisplayName} » installé dans la palette.",
+                    selectedEntityId: null))
+            {
+                return null;
+            }
+
+            GD.Print(
+                $"OPENRPG_FORGE_TOOLSET_ASSET_INSTALL_PASS asset={item.ExternalId} blueprint={blueprint.Id} " +
+                "placement=palette-drag visual=governed-glb");
+            return _history.State.Project.Blueprints.Single(candidate => candidate.Id == blueprint.Id);
+        }
+        catch (Exception exception) when (
+            exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_INSTALL_FAILED asset={item.ExternalId} {exception.Message}");
+            return null;
+        }
+    }
+
+    private static bool VerifyGovernedModelArtifact(string workspaceRoot, AssetPackageManifest manifest)
+    {
+        var model = manifest.Chunks.SingleOrDefault(chunk =>
+            chunk.Role == AssetChunkRole.Model && chunk.Required &&
+            string.Equals(Path.GetExtension(chunk.RelativePath), ".glb", StringComparison.OrdinalIgnoreCase));
+        if (model is null || !AssetCatalogValidator.IsSafeRelativePath(model.RelativePath))
+        {
+            return false;
+        }
+
+        var root = Path.GetFullPath(workspaceRoot);
+        var rootPrefix = root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var absolute = Path.GetFullPath(Path.Combine(
+            root,
+            model.RelativePath.Replace('/', Path.DirectorySeparatorChar)));
+        if (!absolute.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase) || !File.Exists(absolute))
+        {
+            return false;
+        }
+
+        using var stream = File.OpenRead(absolute);
+        var actual = Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
+        return string.Equals(actual, model.ContentSha256, StringComparison.OrdinalIgnoreCase);
+    }
+
     private bool UndoAssetPackageManifest()
     {
         if (_projectSession is null || _assetPackageManifestHistory is null ||
@@ -3267,14 +3359,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
             new Vector3Value(SnapToGrid(_positionX.Value), 0, SnapToGrid(_positionZ.Value)),
             QuaternionValue.Identity,
             Vector3Value.One);
+        var blueprintId = _paletteBlueprintIds[_blueprintPalette.Selected];
+        var assetPlacement = ResolveAssetPlacement(blueprintId);
         var command = new PlaceEntityCommand(
             CommandId.From(Guid.NewGuid()),
             _history.State.Revision,
             area.Id,
             entityId,
-            _paletteBlueprintIds[_blueprintPalette.Selected],
+            blueprintId,
             transform,
-            dryRun: false);
+            dryRun: false,
+            assetPlacement.Tags,
+            assetPlacement.Overrides);
         var result = _placeHandler.Handle(_history.State, command);
         return ApplyCommand(result, "Entité placée sur la grille.", entityId) ? entityId : null;
     }
@@ -3288,6 +3384,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         var area = GetActiveArea();
         var entityId = EntityId.From(Guid.NewGuid());
+        var assetPlacement = ResolveAssetPlacement(blueprintId);
         var command = new PlaceEntityCommand(
             CommandId.From(Guid.NewGuid()),
             _history.State.Revision,
@@ -3295,13 +3392,41 @@ public partial class ForgeEditorPlugin : EditorPlugin
             entityId,
             blueprintId,
             new TransformValue(position, QuaternionValue.Identity, Vector3Value.One),
-            dryRun: false);
+            dryRun: false,
+            assetPlacement.Tags,
+            assetPlacement.Overrides);
         return ApplyCommand(
             _placeHandler.Handle(_history.State, command),
             "Blueprint déposé directement dans le Monde.",
             entityId)
                 ? entityId
                 : null;
+    }
+
+    private (IReadOnlyList<string> Tags, EntityPropertyOverrides Overrides) ResolveAssetPlacement(
+        BlueprintId blueprintId)
+    {
+        var blueprint = _history?.State.Project.Blueprints.SingleOrDefault(candidate => candidate.Id == blueprintId);
+        if (blueprint is null || !AssetBlueprintFactory.TryGetAssetId(blueprint, out var assetId) || assetId is null)
+        {
+            return ([], EntityPropertyOverrides.Empty);
+        }
+
+        var manifest = _assetPackageManifestHistory?.State.Find(assetId);
+        if (manifest is null)
+        {
+            return ([], EntityPropertyOverrides.Empty);
+        }
+
+        var tags = new[] { "asset" }
+            .Concat(manifest.ModelMetadata?.Styles ?? [])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        var overrides = new EntityPropertyOverrides(
+            EntityPropertyOverrides.CurrentSchemaVersion,
+            [new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String, assetId.ToString())]);
+        return (tags, overrides);
     }
 
     private bool TransformEntityFromViewport(EntityId entityId, TransformValue transform)
@@ -4152,6 +4277,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssetContentBrowserSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunGovernedAssetPreviewSmokeTest())
         {
             return;
         }
@@ -7241,6 +7371,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             !_assetBrowser.PreviewManifestCommandForSmokeTest() ||
             !_assetBrowser.PreviewExternalEditCommandForSmokeTest() ||
             _assetBrowser.FilterForSmokeTest(string.Empty, "kenney") != 50 ||
+            !_assetBrowser.SelectAssetForSmokeTest("kenney:castle-kit") ||
+            !_assetBrowser.PreviewInstallForPlacementForSmokeTest() ||
             _assetBrowser.FilterForSmokeTest(string.Empty, category: "furniture") == 0)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G716_ASSETS_FAILED catalog_facets_preview");
@@ -7251,8 +7383,161 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=605 sources=3 facets=search-source-category " +
             "uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed " +
-            "profile=command-dry-run manifest=command-dry-run roundtrip=command-dry-run");
+            "profile=command-dry-run manifest=command-dry-run roundtrip=command-dry-run " +
+            "install=command-dry-run placement=palette-drag");
         return true;
+    }
+
+    private bool RunGovernedAssetPreviewSmokeTest()
+    {
+        if (_mainPanel is null || _history is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_FAILED missing_panel");
+            return false;
+        }
+
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "OpenRPG_Forge",
+            "av3-preview-smoke",
+            Guid.NewGuid().ToString("N"));
+        var modelRelativePath = "assets/imported/av3-smoke/model.glb";
+        var modelPath = Path.Combine(root, modelRelativePath.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(Path.GetDirectoryName(modelPath)!);
+        WriteSmokeTriangleGlb(modelPath);
+        var modelHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(modelPath))).ToLowerInvariant();
+        var assetId = AssetCatalogItemId.ForExternalId("openrpg:av3-preview-smoke");
+        var item = new AssetCatalogItem(
+            assetId,
+            "openrpg:av3-preview-smoke",
+            "Modèle gouverné AV3",
+            "openrpg",
+            "av3-preview-smoke",
+            "https://openrpg.example/assets/av3-preview-smoke",
+            "CC0-1.0",
+            "https://creativecommons.org/publicdomain/zero/1.0/",
+            true,
+            modelHash,
+            new FileInfo(modelPath).Length,
+            ["3d-model"],
+            ["smoke"],
+            "generated-test-fixture",
+            AssetAvailability.ExtractedAvailable,
+            modelRelativePath,
+            null,
+            null,
+            "toolset-smoke:av3");
+        var chunk = new AssetManifestChunk(
+            Guid.Parse("a83d0000-0000-4000-8000-000000000001"),
+            AssetChunkRole.Model,
+            true,
+            modelRelativePath,
+            modelHash,
+            new FileInfo(modelPath).Length,
+            new FileInfo(modelPath).Length,
+            AssetChunkCompression.None,
+            [AssetTargetPlatform.Any]);
+        var manifest = new AssetPackageManifest(
+            AssetPackageManifest.CurrentSchemaVersion,
+            AssetPackageManifestId.ForAsset(assetId),
+            assetId,
+            "toolset-smoke:av3",
+            item.LicenseSpdx,
+            item.ContentSha256,
+            new Dictionary<AssetTargetPlatform, long> { [AssetTargetPlatform.Any] = 1024 * 1024 },
+            [chunk],
+            null,
+            null,
+            null,
+            null);
+        var blueprint = AssetBlueprintFactory.Create(item, manifest);
+        var sourceProject = _history.State.Project;
+        var sourceArea = GetActiveArea();
+        var entity = new EntityInstance(
+            EntityId.From(Guid.Parse("a83d0000-0000-4000-8000-000000000002")),
+            blueprint.Id,
+            TransformValue.Identity,
+            ["asset"],
+            new EntityPropertyOverrides(
+                EntityPropertyOverrides.CurrentSchemaVersion,
+                [new EntityPropertyOverride("visual.asset", EntityPropertyValueKind.String, assetId.ToString())]));
+        var project = new ProjectDefinition(
+            sourceProject.Id,
+            sourceProject.Title,
+            sourceProject.Module,
+            [blueprint],
+            [sourceArea.WithEntities([entity])],
+            sourceProject.Dialogues,
+            sourceProject.Quests);
+        var state = new ProjectState(project, new ProjectRevision(0));
+        var manifests = new AssetPackageManifestState([manifest]);
+        var areaId = project.Areas.First().Id;
+        var preview = new ProjectPreview3D { Visible = false };
+        _mainPanel.AddChild(preview);
+        try
+        {
+            preview.Initialize(
+                () => state,
+                () => root,
+                () => manifests,
+                () => areaId,
+                () => 1f,
+                _ => { },
+                (_, _) => false,
+                (_, _) => null,
+                (_, _) => { });
+            preview.Rebuild(project);
+            if (preview.AssetModelInstanceCount != 1)
+            {
+                GD.PrintErr(
+                    "OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_FAILED expected=1 " +
+                    $"loaded={preview.AssetModelInstanceCount}");
+                return false;
+            }
+
+            GD.Print(
+                $"OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_PASS models={preview.AssetModelInstanceCount} " +
+                $"manifests={manifests.Manifests.Count} visual=governed-glb hash=verified preview=editor");
+            return true;
+        }
+        finally
+        {
+            _mainPanel.RemoveChild(preview);
+            preview.Free();
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
+    private static void WriteSmokeTriangleGlb(string path)
+    {
+        const string json =
+            "{\"asset\":{\"version\":\"2.0\"},\"scene\":0,\"scenes\":[{\"nodes\":[0]}]," +
+            "\"nodes\":[{\"mesh\":0}],\"meshes\":[{\"primitives\":[{\"attributes\":{\"POSITION\":0},\"indices\":1}]}]," +
+            "\"buffers\":[{\"byteLength\":42}]," +
+            "\"bufferViews\":[{\"buffer\":0,\"byteOffset\":0,\"byteLength\":36,\"target\":34962}," +
+            "{\"buffer\":0,\"byteOffset\":36,\"byteLength\":6,\"target\":34963}]," +
+            "\"accessors\":[{\"bufferView\":0,\"componentType\":5126,\"count\":3,\"type\":\"VEC3\"," +
+            "\"min\":[0,0,0],\"max\":[1,1,0]},{\"bufferView\":1,\"componentType\":5123,\"count\":3,\"type\":\"SCALAR\"}]}";
+        var jsonBytes = Encoding.UTF8.GetBytes(json);
+        var jsonLength = (jsonBytes.Length + 3) & ~3;
+        const int binaryLength = 44;
+        var totalLength = 12 + 8 + jsonLength + 8 + binaryLength;
+        using var stream = File.Create(path);
+        using var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: false);
+        writer.Write(0x46546c67u);
+        writer.Write(2u);
+        writer.Write((uint)totalLength);
+        writer.Write((uint)jsonLength);
+        writer.Write(0x4e4f534au);
+        writer.Write(jsonBytes);
+        for (var index = jsonBytes.Length; index < jsonLength; index++) writer.Write((byte)0x20);
+        writer.Write((uint)binaryLength);
+        writer.Write(0x004e4942u);
+        foreach (var coordinate in new[] { 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f, 0f }) writer.Write(coordinate);
+        writer.Write((ushort)0);
+        writer.Write((ushort)1);
+        writer.Write((ushort)2);
+        writer.Write((ushort)0);
     }
 
     private bool RunLocalizationWorkspaceSmokeTest()

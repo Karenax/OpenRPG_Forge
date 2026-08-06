@@ -1,16 +1,17 @@
+using System.Security.Cryptography;
 using Forge.Domain.Assets;
 using Godot;
 
-namespace Forge.Runtime;
+namespace Forge.EngineAdapter.Assets;
 
-internal sealed class RuntimeModelLibrary
+public sealed class GodotAssetModelLibrary
 {
     private readonly string _contentRoot;
     private readonly string _contentRootPrefix;
     private readonly IReadOnlyDictionary<AssetCatalogItemId, AssetPackageManifest> _manifests;
     private readonly Dictionary<AssetCatalogItemId, PackedScene> _scenes = [];
 
-    internal RuntimeModelLibrary(string contentRoot, IReadOnlyList<AssetPackageManifest> manifests)
+    public GodotAssetModelLibrary(string contentRoot, IReadOnlyList<AssetPackageManifest> manifests)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(contentRoot);
         ArgumentNullException.ThrowIfNull(manifests);
@@ -19,16 +20,16 @@ internal sealed class RuntimeModelLibrary
         _manifests = manifests.ToDictionary(manifest => manifest.AssetId);
     }
 
-    internal int Count => _manifests.Count;
+    public int Count => _manifests.Count;
 
-    internal Node3D Instantiate(string assetId)
+    public Node3D Instantiate(string assetId)
     {
         var id = AssetCatalogItemId.Parse(assetId);
         var scene = LoadScene(id);
         return scene.Instantiate<Node3D>();
     }
 
-    internal Mesh? ResolveScatterMesh(string resource)
+    public Mesh? ResolveScatterMesh(string resource)
     {
         const string prefix = "asset:";
         if (!resource.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return null;
@@ -57,10 +58,22 @@ internal sealed class RuntimeModelLibrary
         var absolute = ResolveContained(chunk.RelativePath);
         if (!File.Exists(absolute))
             throw new FileNotFoundException($"Visual asset '{id}' is missing its model chunk.", absolute);
+        VerifyContentHash(id, chunk, absolute);
 
         var scene = TryLoadImportedScene(absolute) ?? LoadRuntimeGltf(absolute);
         _scenes[id] = scene;
         return scene;
+    }
+
+    private static void VerifyContentHash(AssetCatalogItemId id, AssetManifestChunk chunk, string absolute)
+    {
+        using var stream = File.OpenRead(absolute);
+        var actual = Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
+        if (!string.Equals(actual, chunk.ContentSha256, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                $"Visual asset '{id}' model hash does not match its governed package manifest.");
+        }
     }
 
     private PackedScene? TryLoadImportedScene(string absolute)

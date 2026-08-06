@@ -78,7 +78,12 @@ public sealed class PlaceEntityHandler
                 CreateAudit(command, false));
         }
 
-        var entity = new EntityInstance(command.EntityId, command.BlueprintId, command.Transform);
+        var entity = new EntityInstance(
+            command.EntityId,
+            command.BlueprintId,
+            command.Transform,
+            command.Tags,
+            command.Overrides);
         var updatedArea = area.WithEntities([.. area.Entities, entity]);
         var updatedProject = new ProjectDefinition(
             state.Project.Id,

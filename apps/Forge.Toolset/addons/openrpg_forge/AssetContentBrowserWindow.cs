@@ -1,6 +1,7 @@
 #if TOOLS
 using Forge.Application.Assets;
 using Forge.Domain.Assets;
+using Forge.Domain.Blueprints;
 using Forge.ModuleFormat.Assets;
 using Godot;
 
@@ -16,6 +17,7 @@ public partial class AssetContentBrowserWindow : Window
     private Func<bool>? _redoProfile;
     private Func<AssetPackageManifestState?>? _getManifestState;
     private Func<AssetCatalogItem, AssetProcessingProfile, bool, bool, AssetPackageManifest?>? _prepareManifest;
+    private Func<AssetCatalogItem, AssetProcessingProfile, bool, BlueprintDefinition?>? _installForPlacement;
     private Func<bool>? _undoManifest;
     private Func<bool>? _redoManifest;
     private Func<AssetExternalEditState?>? _getExternalEditState;
@@ -57,6 +59,7 @@ public partial class AssetContentBrowserWindow : Window
     private Button? _prepareManifestButton;
     private Button? _undoManifestButton;
     private Button? _redoManifestButton;
+    private Button? _installForPlacementButton;
     private Label? _externalEditSummary;
     private CheckButton? _watchExternalChanges;
     private Button? _configureExternalEditButton;
@@ -87,6 +90,7 @@ public partial class AssetContentBrowserWindow : Window
         Func<bool> redoProfile,
         Func<AssetPackageManifestState?> getManifestState,
         Func<AssetCatalogItem, AssetProcessingProfile, bool, bool, AssetPackageManifest?> prepareManifest,
+        Func<AssetCatalogItem, AssetProcessingProfile, bool, BlueprintDefinition?> installForPlacement,
         Func<bool> undoManifest,
         Func<bool> redoManifest,
         Func<AssetExternalEditState?> getExternalEditState,
@@ -103,6 +107,7 @@ public partial class AssetContentBrowserWindow : Window
         _redoProfile = redoProfile ?? throw new ArgumentNullException(nameof(redoProfile));
         _getManifestState = getManifestState ?? throw new ArgumentNullException(nameof(getManifestState));
         _prepareManifest = prepareManifest ?? throw new ArgumentNullException(nameof(prepareManifest));
+        _installForPlacement = installForPlacement ?? throw new ArgumentNullException(nameof(installForPlacement));
         _undoManifest = undoManifest ?? throw new ArgumentNullException(nameof(undoManifest));
         _redoManifest = redoManifest ?? throw new ArgumentNullException(nameof(redoManifest));
         _getExternalEditState = getExternalEditState ?? throw new ArgumentNullException(nameof(getExternalEditState));
@@ -222,6 +227,8 @@ public partial class AssetContentBrowserWindow : Window
     }
 
     public bool PreviewManifestCommandForSmokeTest() => PrepareManifest(dryRun: true);
+
+    public bool PreviewInstallForPlacementForSmokeTest() => InstallForPlacement(dryRun: true);
 
     public bool PreviewExternalEditCommandForSmokeTest() => ConfigureExternalEdit(dryRun: true);
 
@@ -433,6 +440,15 @@ public partial class AssetContentBrowserWindow : Window
         _redoManifestButton = new Button { Text = "Rétablir" };
         _redoManifestButton.Pressed += RedoManifest;
         manifestActions.AddChild(_redoManifestButton);
+        _installForPlacementButton = new Button
+        {
+            Text = "Installer + ajouter à la palette",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(0, 38),
+        };
+        _installForPlacementButton.AddThemeStyleboxOverride("normal", Card("5b2d86", "a676d4", 1, 7));
+        _installForPlacementButton.Pressed += () => InstallForPlacement(dryRun: false);
+        details.AddChild(_installForPlacementButton);
         details.AddChild(Section("ROUND-TRIP EXTERNE"));
         _externalEditSummary = new Label
         {
@@ -902,6 +918,50 @@ public partial class AssetContentBrowserWindow : Window
         }
     }
 
+    private bool InstallForPlacement(bool dryRun)
+    {
+        if (_selectedItem is null || _installForPlacement is null)
+        {
+            return false;
+        }
+
+        var profile = CreateProfileFromControls();
+        if (profile is null || profile.Kind != AssetProcessingKind.Model)
+        {
+            SetStatus("Le placement 3D exige un profil de modèle.", true);
+            return false;
+        }
+
+        if (!dryRun)
+        {
+            if (!SaveProfile(dryRun: false))
+            {
+                return false;
+            }
+
+            profile = _getProfileState?.Invoke()?.Find(_selectedItem.Id, profile.Kind) ?? profile;
+        }
+
+        var blueprint = _installForPlacement(_selectedItem, profile, dryRun);
+        if (blueprint is null)
+        {
+            SetStatus(
+                dryRun
+                    ? "L’installation pour placement ne peut pas être prévisualisée."
+                    : "L’installation du modèle dans la palette a échoué.",
+                true);
+            return false;
+        }
+
+        SetStatus(
+            dryRun
+                ? $"Aperçu d’installation prêt · {blueprint.DisplayName} · aucune écriture"
+                : $"✓ {blueprint.DisplayName} installé · fermez puis glissez-le depuis la palette du Monde",
+            false);
+        RefreshManifestControls();
+        return true;
+    }
+
     private void RefreshManifestControls()
     {
         if (_manifestSummary is null || _selectedItem is null)
@@ -934,6 +994,7 @@ public partial class AssetContentBrowserWindow : Window
         }
         _includeVfx!.ButtonPressed = manifest?.Vfx is not null;
         _prepareManifestButton!.Disabled = !_selectedItem.CanPlanImport;
+        _installForPlacementButton!.Disabled = !_selectedItem.CanPlanImport;
         var state = _getManifestState?.Invoke();
         _undoManifestButton!.Disabled = state is null || _undoManifest is null;
         _redoManifestButton!.Disabled = state is null || _redoManifest is null;
@@ -1047,6 +1108,11 @@ public partial class AssetContentBrowserWindow : Window
         {
             _prepareManifestButton.Disabled = true;
             _manifestSummary!.Text = "Aucun manifeste enregistré";
+        }
+
+        if (_installForPlacementButton is not null)
+        {
+            _installForPlacementButton.Disabled = true;
         }
 
         if (_configureExternalEditButton is not null)

@@ -488,7 +488,9 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   résolution explicite des dépendants.
 - [x] Enrichir les manifests avec styles, variantes, dimensions, métriques 3D et compatibilité ; la
   finalisation vérifie GLB, miniature, audit, licence et provenance avant la commande transactionnelle.
-- [ ] Ajouter installation à la demande, glisser-déposer et intégration au placement existant.
+- [x] Ajouter installation à la demande, glisser-déposer et intégration au placement existant :
+  un asset GLB gouverné devient un blueprint ProjectContent favori, le placement conserve
+  `visual.asset` dans la même commande et Creator/runtime partagent le chargeur avec contrôle SHA-256.
 - [ ] Préparer les brosses de dispersion et recettes de biome sans dupliquer les systèmes de scène.
 - [ ] Faire passer toute mutation IA/MCP par les commandes transactionnelles et la validation de
   licence.

@@ -31,6 +31,7 @@ using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.EngineAdapter.Spatial;
 using Forge.EngineAdapter.Rendering;
+using Forge.EngineAdapter.Assets;
 using Forge.EngineAdapter.World;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Packages;
@@ -151,7 +152,7 @@ public partial class GameRoot : Node3D
     private double _progressionExperience;
     private int _progressionLevel = 1;
     private bool _initializationComplete;
-    private RuntimeModelLibrary? _modelLibrary;
+    private GodotAssetModelLibrary? _modelLibrary;
     private int _runtimeModelInstances;
     private int _terrainVertices;
     private int _terrainScatterLayers;
@@ -667,7 +668,7 @@ public partial class GameRoot : Node3D
             resolvedChunks += resolution.Chunks.Count;
         }
 
-        _modelLibrary = new RuntimeModelLibrary(_moduleContentRoot, loaded.Manifests);
+        _modelLibrary = new GodotAssetModelLibrary(_moduleContentRoot, loaded.Manifests);
 
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests={loaded.Manifests.Count} " +

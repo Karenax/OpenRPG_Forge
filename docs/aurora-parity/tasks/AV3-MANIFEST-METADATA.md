@@ -33,10 +33,9 @@ d’asset persistant, puis les rend lisibles dans le Content Browser.
 
 ## Limites explicites
 
-- `RuntimeImportVerified` reste faux : cette tranche prouve la fabrication et la gouvernance du GLB,
-  pas encore son import/placement interactif depuis le Content Browser ;
-- l’installation à la demande, le glisser-déposer et les brosses de dispersion sont les incréments
-  AV3 suivants ;
+- `RuntimeImportVerified` reste une preuve attachée au résultat du worker ; l’import/placement
+  interactif est fermé séparément par `AV3-INSTALL-AND-PLACE.md` sans falsifier ce champ historique ;
+- les brosses de dispersion sont l’incrément AV3 suivant ;
 - les tags de style viennent du catalogue gouverné existant ; un futur éditeur pourra les enrichir
   par commande transactionnelle, sans réécrire le Vault.
 

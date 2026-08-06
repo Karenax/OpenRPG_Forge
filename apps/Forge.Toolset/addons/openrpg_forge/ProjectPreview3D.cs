@@ -1,5 +1,6 @@
 #if TOOLS
 using Forge.Application.Commands;
+using Forge.Application.Assets;
 using Forge.Application.Creator;
 using Forge.Application.Entities;
 using Forge.Application.Projects;
@@ -13,6 +14,7 @@ using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
 using Forge.EngineAdapter.Spatial;
+using Forge.EngineAdapter.Assets;
 using Forge.EngineAdapter.Rendering;
 using Forge.EngineAdapter.World;
 using Godot;
@@ -34,6 +36,8 @@ public partial class ProjectPreview3D : SubViewportContainer
     private MeshInstance3D? _ghost;
     private Node3D? _navigationOverlay;
     private Func<ProjectState?>? _getState;
+    private Func<string?>? _getWorkspaceRoot;
+    private Func<AssetPackageManifestState?>? _getManifestState;
     private Func<AreaId?>? _getActiveAreaId;
     private Func<float>? _getGridSize;
     private Action<EntityId>? _selectEntity;
@@ -67,8 +71,11 @@ public partial class ProjectPreview3D : SubViewportContainer
     private int _terrainFeatureSegments;
     private int _volumetricDebugVolumes;
     private int _flightRouteSegments;
+    private GodotAssetModelLibrary? _modelLibrary;
 
     public int EntityCount { get; private set; }
+
+    public int AssetModelInstanceCount { get; private set; }
 
     public bool GizmoVisible => _gizmo?.Visible == true;
 
@@ -168,6 +175,8 @@ public partial class ProjectPreview3D : SubViewportContainer
 
     public void Initialize(
         Func<ProjectState?> getState,
+        Func<string?> getWorkspaceRoot,
+        Func<AssetPackageManifestState?> getManifestState,
         Func<AreaId?> getActiveAreaId,
         Func<float> getGridSize,
         Action<EntityId> selectEntity,
@@ -176,6 +185,8 @@ public partial class ProjectPreview3D : SubViewportContainer
         Action<string, bool> showPlacementFeedback)
     {
         _getState = getState ?? throw new ArgumentNullException(nameof(getState));
+        _getWorkspaceRoot = getWorkspaceRoot ?? throw new ArgumentNullException(nameof(getWorkspaceRoot));
+        _getManifestState = getManifestState ?? throw new ArgumentNullException(nameof(getManifestState));
         _getActiveAreaId = getActiveAreaId ?? throw new ArgumentNullException(nameof(getActiveAreaId));
         _getGridSize = getGridSize ?? throw new ArgumentNullException(nameof(getGridSize));
         _selectEntity = selectEntity ?? throw new ArgumentNullException(nameof(selectEntity));
@@ -205,6 +216,11 @@ public partial class ProjectPreview3D : SubViewportContainer
             project.Areas.FirstOrDefault()
             ?? throw new InvalidOperationException("The project does not contain an area to preview.");
         var blueprints = project.Blueprints.ToDictionary(blueprint => blueprint.Id);
+        var workspaceRoot = _getWorkspaceRoot?.Invoke();
+        var manifests = _getManifestState?.Invoke()?.Manifests ?? [];
+        _modelLibrary = string.IsNullOrWhiteSpace(workspaceRoot) || manifests.Count == 0
+            ? null
+            : new GodotAssetModelLibrary(workspaceRoot, manifests);
         ApplyEnvironment(area.Environment);
         _dragPalette.SetBlueprints(project.Blueprints);
         _areaRoot = new Node3D { Name = "AreaPreview" };
@@ -277,6 +293,8 @@ public partial class ProjectPreview3D : SubViewportContainer
     {
         ClearNavigationOverlay();
         EntityCount = 0;
+        AssetModelInstanceCount = 0;
+        _modelLibrary = null;
         _terrainVertices = 0;
         _terrainTriangles = 0;
         _terrainCollisionShapes = 0;
@@ -780,7 +798,7 @@ public partial class ProjectPreview3D : SubViewportContainer
 
     private static Vector3Value ToValue(Vector3 value) => new(value.X, 0, value.Z);
 
-    private static Node3D CreateRepresentation(
+    private Node3D CreateRepresentation(
         EntityInstance entity,
         BlueprintDefinition blueprint)
     {
@@ -789,15 +807,39 @@ public partial class ProjectPreview3D : SubViewportContainer
             Name = SafeNodeName(blueprint.DisplayName),
             Transform = EngineValueConverter.ToEngine(entity.Transform),
         };
-        root.AddChild(new MeshInstance3D
+        var assetId = entity.Overrides.Properties
+            .SingleOrDefault(property =>
+                string.Equals(property.Key, "visual.asset", StringComparison.Ordinal))?.Value;
+        var loadedAsset = false;
+        if (!string.IsNullOrWhiteSpace(assetId) && _modelLibrary is not null)
         {
-            Mesh = CreateMesh(blueprint.Kind, entity.Tags),
-            MaterialOverride = new StandardMaterial3D
+            try
             {
-                AlbedoColor = ColorFor(blueprint.Kind, entity.Tags),
-                Roughness = 0.72f,
-            },
-        });
+                root.AddChild(_modelLibrary.Instantiate(assetId));
+                AssetModelInstanceCount++;
+                loadedAsset = true;
+            }
+            catch (Exception exception) when (
+                exception is IOException or ArgumentException or InvalidOperationException)
+            {
+                GD.PrintErr(
+                    $"OPENRPG_FORGE_TOOLSET_ASSET_VISUAL_FAILED entity={entity.Id} asset={assetId} " +
+                    $"reason={exception.Message}");
+            }
+        }
+
+        if (!loadedAsset)
+        {
+            root.AddChild(new MeshInstance3D
+            {
+                Mesh = CreateMesh(blueprint.Kind, entity.Tags),
+                MaterialOverride = new StandardMaterial3D
+                {
+                    AlbedoColor = ColorFor(blueprint.Kind, entity.Tags),
+                    Roughness = 0.72f,
+                },
+            });
+        }
 
         if (blueprint.Kind is BlueprintKind.Creature or BlueprintKind.Item or BlueprintKind.Door)
         {

@@ -39,6 +39,9 @@ Dernière mise à jour : 5 août 2026.
   confiné, validation croisée C#/Python sur un OBJ réel et analyse sûre migration/désinstallation.
 - production réelle d'un GLB 2 texturé par Blender 4.5.10 depuis `ambientcg:3DApple001`, avec
   collisions, deux LOD, hash de sortie vérifié, source du Vault immuable et prévisualisation rendue.
+- installation à la demande d’un GLB gouverné comme blueprint ProjectContent, ajout automatique à la
+  palette, placement par bouton ou glisser-déposer avec `visual.asset`, et chargement réel partagé
+  entre Creator et runtime après contrôle SHA-256 du chunk ;
 - profil artistique canonique avec cible métrique, densité texel, shader, époque, réalisme et palette,
   avertissements par blueprint, édition transactionnelle et persistance versionnée ;
 - profil éditeur v2 avec échelle UI/texte, replis de polices, onglets de zones et favoris/récents.
@@ -65,8 +68,8 @@ Dernière mise à jour : 5 août 2026.
 
 ## Partiellement terminé
 
-- catalogue : lecture, recherche et gouvernance disponibles dans le workspace Assets, sans encore
-  installation/désinstallation, SQLite ni gestion complète des packs ;
+- catalogue : lecture, recherche, gouvernance et installation d’un modèle dans la palette disponibles
+  dans le workspace Assets ; la désinstallation UI, SQLite et la gestion complète des packs restent ;
 - normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
   conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
@@ -75,7 +78,7 @@ Dernière mise à jour : 5 août 2026.
 
 ## Non commencé
 
-- gestionnaire Asset Vault complet avec installation, mise à jour et application physique des
+- gestionnaire Asset Vault complet avec mise à jour et application physique des
   migrations/désinstallations déjà analysées par le domaine ;
 - génération de miniatures et planches contact ;
 - service de surveillance temps réel ;
@@ -85,6 +88,6 @@ Dernière mise à jour : 5 août 2026.
 
 ## Prochaine action
 
-Exposer dans le Creator Aurora l’authoring de terrain, les recettes de biome et l’installation du
-pack curaté sans faire des nœuds générés la source de vérité de la carte, puis enrichir la tranche
+Exposer dans le Creator Aurora les brosses de dispersion et recettes de biome en réutilisant les
+blueprints d’assets installés, sans faire des nœuds générés la source de vérité de la carte, puis enrichir la tranche
 avec animations, ambiance audio et VFX gouvernés.

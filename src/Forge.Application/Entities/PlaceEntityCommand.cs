@@ -21,6 +21,10 @@ public sealed record PlaceEntityCommand
 
     public TransformValue Transform { get; }
 
+    public IReadOnlyList<string> Tags { get; }
+
+    public EntityPropertyOverrides Overrides { get; }
+
     public bool DryRun { get; }
 
     public PlaceEntityCommand(
@@ -30,7 +34,9 @@ public sealed record PlaceEntityCommand
         EntityId entityId,
         BlueprintId blueprintId,
         TransformValue transform,
-        bool dryRun)
+        bool dryRun,
+        IReadOnlyList<string>? tags = null,
+        EntityPropertyOverrides? overrides = null)
     {
         ArgumentNullException.ThrowIfNull(commandId);
         ArgumentNullException.ThrowIfNull(areaId);
@@ -44,6 +50,8 @@ public sealed record PlaceEntityCommand
         EntityId = entityId;
         BlueprintId = blueprintId;
         Transform = transform;
+        Tags = (tags ?? []).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        Overrides = overrides ?? EntityPropertyOverrides.Empty;
         DryRun = dryRun;
     }
 }
