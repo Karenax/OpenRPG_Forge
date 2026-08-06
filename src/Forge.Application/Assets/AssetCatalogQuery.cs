@@ -8,4 +8,5 @@ public sealed record AssetCatalogQuery(
     string? Category = null,
     string? LicenseSpdx = null,
     AssetAvailability? Availability = null,
-    int MaximumResults = 300);
+    int MaximumResults = 300,
+    bool? Installed = null);

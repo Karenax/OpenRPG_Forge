@@ -44,6 +44,16 @@ public sealed record AssetCatalogItem
 
     public string Provenance { get; }
 
+    public string Author { get; }
+
+    public bool AttributionRequired { get; }
+
+    public string AttributionText { get; }
+
+    public IReadOnlyList<string> InstalledPackIds { get; }
+
+    public bool Installed => InstalledPackIds.Count > 0;
+
     public bool CanPreviewLocally => Availability != AssetAvailability.CatalogOnly &&
         !string.IsNullOrWhiteSpace(RelativePreviewPath);
 
@@ -70,7 +80,11 @@ public sealed record AssetCatalogItem
         string? relativePreviewPath,
         string? thumbnailUrl,
         string provenance,
-        int schemaVersion = CurrentSchemaVersion)
+        int schemaVersion = CurrentSchemaVersion,
+        string? author = null,
+        bool attributionRequired = false,
+        string? attributionText = null,
+        IReadOnlyList<string>? installedPackIds = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(externalId);
@@ -110,7 +124,37 @@ public sealed record AssetCatalogItem
         RelativePreviewPath = NormalizePath(relativePreviewPath);
         ThumbnailUrl = string.IsNullOrWhiteSpace(thumbnailUrl) ? null : thumbnailUrl.Trim();
         Provenance = provenance.Trim();
+        Author = string.IsNullOrWhiteSpace(author) ? Source : author.Trim();
+        AttributionRequired = attributionRequired;
+        AttributionText = attributionText?.Trim() ?? string.Empty;
+        InstalledPackIds = Normalize(installedPackIds);
     }
+
+    public AssetCatalogItem WithInstalledPacks(IReadOnlyList<string> installedPackIds) => new(
+        Id,
+        ExternalId,
+        DisplayName,
+        Source,
+        SourceAssetId,
+        SourcePage,
+        LicenseSpdx,
+        LicenseUrl,
+        LicenseVerified,
+        ContentSha256,
+        TotalBytes,
+        Categories,
+        Tags,
+        CatalogStatus,
+        Availability,
+        RelativeModelPath,
+        RelativePreviewPath,
+        ThumbnailUrl,
+        Provenance,
+        SchemaVersion,
+        Author,
+        AttributionRequired,
+        AttributionText,
+        installedPackIds);
 
     private static IReadOnlyList<string> Normalize(IReadOnlyList<string>? values) => (values ?? [])
         .Where(value => !string.IsNullOrWhiteSpace(value))

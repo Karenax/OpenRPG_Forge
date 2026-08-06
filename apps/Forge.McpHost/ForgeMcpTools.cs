@@ -175,14 +175,16 @@ public sealed class ForgeMcpTools
         string? category = null,
         string? licenseSpdx = null,
         string? availability = null,
-        int maximumResults = 100) =>
+        int maximumResults = 100,
+        bool? installed = null) =>
         _project.GetAssets(new AgentAssetCatalogQuery(
             query,
             source,
             category,
             licenseSpdx,
             availability,
-            maximumResults));
+            maximumResults,
+            installed));
 
     [McpServerTool]
     [Description("Returns the versioned JSON schema used by dialogue mutation plans.")]

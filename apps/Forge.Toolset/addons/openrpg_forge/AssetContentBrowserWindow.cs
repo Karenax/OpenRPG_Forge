@@ -148,8 +148,9 @@ public partial class AssetContentBrowserWindow : Window
             PopulateFacets();
             RefreshResults();
             var local = _browser.Catalog.Items.Count(item => item.Availability != AssetAvailability.CatalogOnly);
+            var installed = _browser.Catalog.InstalledItems.Count;
             _catalogMetric!.Text = $"{CatalogCount} entrées · schéma v{_browser.Catalog.SchemaVersion}";
-            _localMetric!.Text = $"{local} locales · {CatalogCount - local} à installer";
+            _localMetric!.Text = $"{local} locales · {installed} installées · {CatalogCount - local} à acquérir";
             SetStatus(
                 _load.Diagnostics.Count == 0
                     ? $"✓ Catalogue prêt · {_browser.Catalog.LicensePolicy} · Vault {_load.VaultRoot}"
@@ -269,7 +270,14 @@ public partial class AssetContentBrowserWindow : Window
         filters.AddChild(_category);
         filters.AddChild(FieldLabel("DISPONIBILITÉ"));
         _availability = new OptionButton();
-        foreach (var label in new[] { "Toutes", "Catalogue seulement", "Original local", "Extrait local" })
+        foreach (var label in new[]
+        {
+            "Toutes",
+            "Catalogue seulement",
+            "Original local",
+            "Extrait local",
+            "Installé dans un pack",
+        })
         {
             _availability.AddItem(label);
         }
@@ -500,16 +508,18 @@ public partial class AssetContentBrowserWindow : Window
             3 => AssetAvailability.ExtractedAvailable,
             _ => (AssetAvailability?)null,
         };
+        var installed = _availability.Selected == 4 ? true : (bool?)null;
         _visibleItems = _browser.Search(new AssetCatalogQuery(
             _search!.Text,
             source,
             category,
             null,
-            availability));
+            availability,
+            Installed: installed));
         _results.Clear();
         foreach (var item in _visibleItems)
         {
-            var availabilityBadge = item.Availability switch
+            var availabilityBadge = item.Installed ? "INSTALLÉ" : item.Availability switch
             {
                 AssetAvailability.ExtractedAvailable => "EXTRAIT",
                 AssetAvailability.OriginalAvailable => "LOCAL",
@@ -550,7 +560,8 @@ public partial class AssetContentBrowserWindow : Window
             $"SHA-256 · {item.ContentSha256[..16]}…\nProvenance · {item.Provenance}";
         _assetFacets!.Text =
             $"Catégories · {string.Join(", ", item.Categories)}\nTags · {string.Join(", ", item.Tags.Take(12))}\n" +
-            $"État · {FormatAvailability(item.Availability)}";
+            $"État · {FormatAvailability(item.Availability)}\n" +
+            $"Packs installés · {(item.Installed ? string.Join(", ", item.InstalledPackIds) : "aucun")}";
         _assetPaths!.Text =
             $"Modèle · {item.RelativeModelPath ?? "non catalogué"}\n" +
             $"Aperçu · {item.RelativePreviewPath ?? item.ThumbnailUrl ?? "indisponible"}";

@@ -456,7 +456,7 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Formaliser la politique de licence du noyau CC0 et des packs optionnels.
 - [x] Versionner le schéma de métadonnées et les manifestes de packs.
 - [x] Implémenter le catalogue local en lecture, l’adressage par hash et les contrôles de licence.
-- [ ] Ajouter stockage installé/désinstallable, déduplication et crédits agrégés au catalogue.
+- [x] Ajouter stockage installé/désinstallable, déduplication et crédits agrégés au catalogue.
 
 ### AV2 — Acquisition et normalisation
 

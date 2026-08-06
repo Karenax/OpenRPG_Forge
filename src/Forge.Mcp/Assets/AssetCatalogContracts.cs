@@ -6,7 +6,8 @@ public sealed record AgentAssetCatalogQuery(
     string? Category = null,
     string? LicenseSpdx = null,
     string? Availability = null,
-    int MaximumResults = 100);
+    int MaximumResults = 100,
+    bool? Installed = null);
 
 public sealed record AgentAssetCatalogItem(
     string Id,
@@ -28,7 +29,12 @@ public sealed record AgentAssetCatalogItem(
     string? RelativePreviewPath,
     string? ThumbnailUrl,
     bool CanPlanImport,
-    string Provenance);
+    string Provenance,
+    string Author,
+    bool AttributionRequired,
+    string AttributionText,
+    bool Installed,
+    IReadOnlyList<string> InstalledPackIds);
 
 public sealed record AgentAssetCatalogResult(
     int SchemaVersion,

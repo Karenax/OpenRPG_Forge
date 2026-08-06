@@ -14,6 +14,16 @@ public sealed record AssetCatalog
 
     public IReadOnlyList<AssetCatalogItem> Items { get; }
 
+    public IReadOnlyList<AssetCatalogItem> InstalledItems => Items.Where(item => item.Installed).ToArray();
+
+    public IReadOnlyList<string> InstalledPackIds => Items
+        .SelectMany(item => item.InstalledPackIds)
+        .Distinct(StringComparer.Ordinal)
+        .Order(StringComparer.Ordinal)
+        .ToArray();
+
+    public IReadOnlyList<AssetCreditEntry> Credits => AssetCreditCatalog.Aggregate(Items);
+
     public string Provenance { get; }
 
     public AssetCatalog(

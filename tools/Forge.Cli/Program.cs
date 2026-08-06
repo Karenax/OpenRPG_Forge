@@ -88,7 +88,7 @@ static int Run(IReadOnlyList<string> arguments)
 
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
-            "forge assets <list|prepare|roundtrip> ... | " +
+            "forge assets <list|install-pack|uninstall-pack|report|credits|prepare|roundtrip> ... | " +
             "forge content <batch|export-blueprints|merge-table> ... | " +
             "forge docs <generate|check> | " +
             "forge readiness <validate|health|crash|recovery|sync-plan> ... | " +
@@ -575,6 +575,26 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
 
 static int RunAssets(IReadOnlyList<string> arguments)
 {
+    if (arguments.Count >= 3 && arguments[0] == "install-pack")
+    {
+        return InstallAssetPack(arguments);
+    }
+
+    if (arguments.Count >= 3 && arguments[0] == "uninstall-pack")
+    {
+        return UninstallAssetPack(arguments);
+    }
+
+    if (arguments.Count >= 2 && arguments[0] == "report")
+    {
+        return ReportAssetVault(arguments);
+    }
+
+    if (arguments.Count >= 2 && arguments[0] == "credits")
+    {
+        return PrintAssetCredits(arguments);
+    }
+
     if (arguments.Count >= 3 && arguments[0] == "prepare")
     {
         return PrepareAsset(arguments);
@@ -590,7 +610,13 @@ static int RunAssets(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(
             "Usage: forge assets list <repository-or-workspace> [--query <text>] [--source <source>] " +
             "[--category <category>] [--license <spdx>] [--availability <catalog|original|extracted>] " +
-            "[--limit <count>] [--vault <directory>] | " +
+            "[--installed <true|false>] [--limit <count>] [--vault <directory>] | " +
+            "forge assets install-pack <repository-or-workspace> <pack-id> --id <external-id[,external-id]> " +
+            "[--version <version>] [--apply <true|false>] [--vault <directory>] | " +
+            "forge assets uninstall-pack <repository-or-workspace> <pack-id> " +
+            "[--apply <true|false>] [--vault <directory>] | " +
+            "forge assets report <repository-or-workspace> [--vault <directory>] | " +
+            "forge assets credits <repository-or-workspace> [--format <markdown|text>] [--vault <directory>] | " +
             "forge assets prepare <repository-or-workspace> <workspace> --id <external-id> " +
             "[--kind <model|texture>] [--vfx <true|false>] [--vault <directory>] | " +
             "forge assets roundtrip <repository-or-workspace> <workspace> --id <external-id> " +
@@ -624,7 +650,8 @@ static int RunAssets(IReadOnlyList<string> arguments)
         options.GetValueOrDefault("category"),
         options.GetValueOrDefault("license"),
         ParseAvailability(options.GetValueOrDefault("availability")),
-        ParseLimit(options.GetValueOrDefault("limit")));
+        ParseLimit(options.GetValueOrDefault("limit")),
+        ParseNullableBooleanOption(options.GetValueOrDefault("installed"), "installed"));
     var browser = new AssetCatalogBrowser(load.Catalog);
     var items = browser.Search(query);
     Console.WriteLine(JsonSerializer.Serialize(new
@@ -659,6 +686,11 @@ static int RunAssets(IReadOnlyList<string> arguments)
             item.RelativePreviewPath,
             item.ThumbnailUrl,
             item.CanPlanImport,
+            item.Author,
+            item.AttributionRequired,
+            item.AttributionText,
+            item.Installed,
+            item.InstalledPackIds,
             item.Provenance,
         }),
     }));
@@ -666,6 +698,176 @@ static int RunAssets(IReadOnlyList<string> arguments)
         $"OPENRPG_FORGE_ASSET_BROWSER_PASS catalog={load.Catalog.Items.Count} results={items.Count} " +
         $"sources={browser.Sources.Count} schema={load.Catalog.SchemaVersion}");
     return load.Diagnostics.Count == 0 ? 0 : 1;
+}
+
+static int InstallAssetPack(IReadOnlyList<string> arguments)
+{
+    var options = ParseOptions(arguments.Skip(3).ToArray());
+    if (!options.TryGetValue("id", out var assetIds) || string.IsNullOrWhiteSpace(assetIds))
+    {
+        throw new ArgumentException("Asset package installation requires --id <external-id[,external-id]>.");
+    }
+
+    var context = LoadAssetVaultContext(arguments[1], options.GetValueOrDefault("vault"));
+    if (context.Load.Catalog is null || context.Load.Diagnostics.Count > 0)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = context.Load.Diagnostics }));
+        return 1;
+    }
+
+    var apply = ParseBooleanOption(options.GetValueOrDefault("apply"), defaultValue: false, "apply");
+    var store = new AssetVaultPackageStore(context.Load.VaultRoot);
+    var plan = store.PlanInstall(
+        context.Load.Catalog,
+        arguments[2],
+        options.GetValueOrDefault("version") ?? "1.0.0",
+        assetIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+        dryRun: !apply);
+    var result = store.Apply(plan);
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = result.Succeeded,
+        result.Applied,
+        planId = result.PlanId,
+        operation = result.Operation.ToString(),
+        result.PackageId,
+        packages = result.Applied ? result.State.Packages.Count : plan.ResultingState.Packages.Count,
+        installedAssets = (result.Applied ? result.State : plan.ResultingState).Packages
+            .SelectMany(package => package.Assets).Select(asset => asset.AssetId).Distinct().Count(),
+        plannedObjects = plan.Objects.Count,
+        plan.NewBytes,
+        plan.ReusedBytes,
+        result.WrittenObjectCount,
+        result.ReusedObjectCount,
+        result.ReceiptRelativePath,
+        credits = plan.Credits.Count,
+        diagnostics = result.Diagnostics,
+    }));
+    if (result.Succeeded)
+    {
+        Console.WriteLine(
+            $"OPENRPG_FORGE_ASSET_PACK_{(result.Applied ? "INSTALL" : "PLAN")}_PASS " +
+            $"pack={result.PackageId} objects={plan.Objects.Count} new_bytes={plan.NewBytes} " +
+            $"reused_bytes={plan.ReusedBytes} credits={plan.Credits.Count}");
+    }
+
+    return result.Succeeded ? 0 : 1;
+}
+
+static int UninstallAssetPack(IReadOnlyList<string> arguments)
+{
+    var options = ParseOptions(arguments.Skip(3).ToArray());
+    var context = LoadAssetVaultContext(arguments[1], options.GetValueOrDefault("vault"));
+    if (context.Load.Catalog is null || context.Load.Diagnostics.Count > 0)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = context.Load.Diagnostics }));
+        return 1;
+    }
+
+    var apply = ParseBooleanOption(options.GetValueOrDefault("apply"), defaultValue: false, "apply");
+    var store = new AssetVaultPackageStore(context.Load.VaultRoot);
+    var plan = store.PlanUninstall(arguments[2], dryRun: !apply);
+    var result = store.Apply(plan);
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = result.Succeeded,
+        result.Applied,
+        planId = result.PlanId,
+        operation = result.Operation.ToString(),
+        result.PackageId,
+        remainingPackages = (result.Applied ? result.State : plan.ResultingState).Packages.Count,
+        result.DeletedObjectCount,
+        result.BackupRelativePath,
+        result.ReceiptRelativePath,
+        credits = plan.Credits.Count,
+        diagnostics = result.Diagnostics,
+    }));
+    if (result.Succeeded)
+    {
+        Console.WriteLine(
+            $"OPENRPG_FORGE_ASSET_PACK_{(result.Applied ? "UNINSTALL" : "UNINSTALL_PLAN")}_PASS " +
+            $"pack={result.PackageId} deleted={result.DeletedObjectCount} credits={plan.Credits.Count}");
+    }
+
+    return result.Succeeded ? 0 : 1;
+}
+
+static int ReportAssetVault(IReadOnlyList<string> arguments)
+{
+    var options = ParseOptions(arguments.Skip(2).ToArray());
+    var context = LoadAssetVaultContext(arguments[1], options.GetValueOrDefault("vault"));
+    if (context.Load.Catalog is null || context.Load.Diagnostics.Count > 0)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = context.Load.Diagnostics }));
+        return 1;
+    }
+
+    var state = context.Load.InstallationState;
+    var blobSizes = state.Packages.SelectMany(package => package.Assets)
+        .SelectMany(asset => asset.Files)
+        .GroupBy(file => file.ContentSha256, StringComparer.Ordinal)
+        .Select(group => group.First().Bytes)
+        .ToArray();
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = true,
+        schemaVersion = state.SchemaVersion,
+        vault = context.Load.VaultRoot,
+        catalogAssets = context.Load.Catalog.Items.Count,
+        installedPackages = state.Packages.Count,
+        installedAssets = state.Packages.SelectMany(package => package.Assets)
+            .Select(asset => asset.AssetId).Distinct().Count(),
+        referencedObjects = state.BlobReferenceCounts.Count,
+        storedBytes = blobSizes.Sum(),
+        deduplicatedReferences = state.BlobReferenceCounts.Values.Sum() - state.BlobReferenceCounts.Count,
+        credits = AssetCreditCatalog.Aggregate(state).Count,
+        packages = state.Packages.Select(package => new
+        {
+            package.PackageId,
+            package.Version,
+            assets = package.Assets.Count,
+            objects = package.Assets.SelectMany(asset => asset.Files).Count(),
+        }),
+    }));
+    Console.WriteLine(
+        $"OPENRPG_FORGE_ASSET_VAULT_REPORT_PASS packages={state.Packages.Count} " +
+        $"assets={state.Packages.SelectMany(package => package.Assets).Select(asset => asset.AssetId).Distinct().Count()} " +
+        $"objects={state.BlobReferenceCounts.Count} bytes={blobSizes.Sum()}");
+    return 0;
+}
+
+static int PrintAssetCredits(IReadOnlyList<string> arguments)
+{
+    var options = ParseOptions(arguments.Skip(2).ToArray());
+    var context = LoadAssetVaultContext(arguments[1], options.GetValueOrDefault("vault"));
+    if (context.Load.Catalog is null || context.Load.Diagnostics.Count > 0)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = context.Load.Diagnostics }));
+        return 1;
+    }
+
+    var store = new AssetVaultPackageStore(context.Load.VaultRoot);
+    var format = options.GetValueOrDefault("format")?.Trim().ToLowerInvariant() ?? "markdown";
+    Console.Write(format switch
+    {
+        "markdown" or "md" => store.RenderCreditsMarkdown(context.Load.InstallationState),
+        "text" or "txt" => store.RenderCreditsText(context.Load.InstallationState),
+        _ => throw new ArgumentException("Unknown credits format. Expected markdown or text."),
+    });
+    Console.WriteLine(
+        $"OPENRPG_FORGE_ASSET_CREDITS_PASS entries={AssetCreditCatalog.Aggregate(context.Load.InstallationState).Count} " +
+        $"format={format}");
+    return 0;
+}
+
+static (string RepositoryRoot, AssetCatalogLoadResult Load) LoadAssetVaultContext(
+    string startPath,
+    string? vaultRoot)
+{
+    var start = Path.GetFullPath(startPath);
+    var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(start)
+        ?? throw new DirectoryNotFoundException("OpenRPG Forge repository root was not found.");
+    return (repositoryRoot, AssetCatalogLoader.Load(repositoryRoot, vaultRoot));
 }
 
 static int PrepareAsset(IReadOnlyList<string> arguments)
@@ -1411,6 +1613,23 @@ static AssetAvailability? ParseAvailability(string? value)
             $"Unknown asset availability '{value}'. Expected catalog, original or extracted."),
     };
 }
+
+static bool ParseBooleanOption(string? value, bool defaultValue, string optionName)
+{
+    if (string.IsNullOrWhiteSpace(value))
+    {
+        return defaultValue;
+    }
+
+    return bool.TryParse(value, out var parsed)
+        ? parsed
+        : throw new ArgumentException($"Asset option '--{optionName}' expects true or false.");
+}
+
+static bool? ParseNullableBooleanOption(string? value, string optionName) =>
+    string.IsNullOrWhiteSpace(value)
+        ? null
+        : ParseBooleanOption(value, defaultValue: false, optionName);
 
 static int ParseLimit(string? value) => string.IsNullOrWhiteSpace(value)
     ? 50

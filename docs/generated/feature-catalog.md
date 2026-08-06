@@ -169,10 +169,10 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CONT-024 | Quarantaine d’import | P0 | Researched | G4 |
 | ORF-CONT-025 | Compatibilité de plateforme | P1 | Implemented | G11 |
 | ORF-CONT-026 | Migrations de package | P1 | Implemented | G11 |
-| ORF-CONT-027 | Désinstallation sûre | P1 | Implemented | G11 |
+| ORF-CONT-027 | Désinstallation sûre | P1 | Tested | G11 |
 | ORF-CONT-028 | Signatures | P2 | Implemented | G11 |
 | ORF-CONT-029 | Delta updates | P2 | Implemented | G11 |
-| ORF-CONT-030 | Credits and notices generation | P0 | Researched | G4 |
+| ORF-CONT-030 | Credits and notices generation | P0 | Tested | G4 |
 | ORF-CONT-031 | IP boundary enforcement | P0 | Researched | G4 |
 | ORF-CRE-001 | Assistant de créature | P1 | Implemented | G8 |
 | ORF-CRE-002 | Blueprint de créature | P0 | Implemented | G8 |

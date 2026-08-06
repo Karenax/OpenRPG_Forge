@@ -13,7 +13,8 @@ public sealed class AssetCatalogBrowserTests
             "Pomme stylisée",
             "ambientcg",
             ["food"],
-            ["pomme", "stylisé"]);
+            ["pomme", "stylisé"])
+            .WithInstalledPacks(["food-core"]);
         var chair = CreateItem(
             "polyhaven:chair",
             "Fauteuil gothique",
@@ -28,6 +29,8 @@ public sealed class AssetCatalogBrowserTests
             Source: "polyhaven",
             Category: "furniture"))).Id);
         Assert.Empty(browser.Search(new AssetCatalogQuery(Source: "kenney")));
+        Assert.Equal(apple.Id, Assert.Single(browser.Search(new AssetCatalogQuery(Installed: true))).Id);
+        Assert.Equal(chair.Id, Assert.Single(browser.Search(new AssetCatalogQuery(Installed: false))).Id);
         Assert.Equal(["ambientcg", "polyhaven"], browser.Sources);
         Assert.Contains("food", browser.Categories);
     }

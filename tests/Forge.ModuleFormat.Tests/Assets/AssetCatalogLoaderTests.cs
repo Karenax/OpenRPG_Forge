@@ -23,6 +23,15 @@ public sealed class AssetCatalogLoaderTests
         File.WriteAllText(Path.Combine(catalogs, "kenney_3d_packs.json"), PackCatalogJson);
         try
         {
+            var initial = AssetCatalogLoader.Load(root, vault);
+            Assert.True(initial.Succeeded, string.Join(Environment.NewLine, initial.Diagnostics));
+            var installed = new AssetVaultPackageStore(vault).Apply(new AssetVaultPackageStore(vault).PlanInstall(
+                initial.Catalog!,
+                "food-core",
+                "1.0.0",
+                ["ambientcg:Apple"],
+                dryRun: false));
+            Assert.True(installed.Succeeded, string.Join(Environment.NewLine, installed.Diagnostics));
             var result = AssetCatalogLoader.Load(root, vault);
             var repeated = AssetCatalogLoader.Load(root, vault);
 
@@ -32,6 +41,9 @@ public sealed class AssetCatalogLoaderTests
             var apple = result.Catalog.Items.Single(item => item.ExternalId == "ambientcg:Apple");
             Assert.Equal(AssetAvailability.ExtractedAvailable, apple.Availability);
             Assert.True(apple.CanPreviewLocally);
+            Assert.True(apple.Installed);
+            Assert.Equal(["food-core"], apple.InstalledPackIds);
+            Assert.Single(result.Catalog.Credits);
             Assert.Equal(64, apple.ContentSha256.Length);
             Assert.Equal("normalized/ambientcg/Apple/apple.png", apple.RelativePreviewPath);
             var nature = result.Catalog.Items.Single(item => item.ExternalId == "kenney:nature");

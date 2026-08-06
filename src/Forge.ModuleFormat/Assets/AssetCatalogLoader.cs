@@ -30,7 +30,12 @@ public static class AssetCatalogLoader
                 CatalogMissingCode,
                 "The versioned CC0 asset catalogs are missing from asset_manifests/catalogs.",
                 "asset_manifests/catalogs"));
-            return new AssetCatalogLoadResult(null, repositoryRoot, vaultRoot, diagnostics);
+            return new AssetCatalogLoadResult(
+                null,
+                repositoryRoot,
+                vaultRoot,
+                new AssetVaultInstallationState(),
+                diagnostics);
         }
 
         try
@@ -46,6 +51,10 @@ public static class AssetCatalogLoader
                 .Select(item => MapUnitAsset(item, vaultRoot)));
             items.AddRange(packRoot.GetProperty("packs").EnumerateArray()
                 .Select(item => MapPack(item, vaultRoot)));
+            var installationState = new AssetVaultPackageStore(vaultRoot).LoadState();
+            items = items.Select(item => item.WithInstalledPacks(
+                    installationState.FindPackageIds(item.Id)))
+                .ToList();
             var catalogDate = new[] { ReadString(unitRoot, "catalog_date"), ReadString(packRoot, "catalog_date") }
                 .OrderByDescending(value => value, StringComparer.Ordinal)
                 .First();
@@ -56,7 +65,7 @@ public static class AssetCatalogLoader
                 items,
                 "asset_manifests/packs/cc0_3d_all.json");
             diagnostics.AddRange(AssetCatalogValidator.Validate(catalog));
-            return new AssetCatalogLoadResult(catalog, repositoryRoot, vaultRoot, diagnostics);
+            return new AssetCatalogLoadResult(catalog, repositoryRoot, vaultRoot, installationState, diagnostics);
         }
         catch (Exception exception) when (
             exception is JsonException or IOException or UnauthorizedAccessException or
@@ -66,7 +75,12 @@ public static class AssetCatalogLoader
                 CatalogInvalidCode,
                 exception.Message,
                 "asset_manifests/catalogs"));
-            return new AssetCatalogLoadResult(null, repositoryRoot, vaultRoot, diagnostics);
+            return new AssetCatalogLoadResult(
+                null,
+                repositoryRoot,
+                vaultRoot,
+                new AssetVaultInstallationState(),
+                diagnostics);
         }
     }
 
@@ -178,7 +192,10 @@ public static class AssetCatalogLoader
         modelPath,
         previewPath,
         thumbnailUrl,
-        $"asset-catalog:{externalId}");
+        $"asset-catalog:{externalId}",
+        author: ReadOptionalString(item, "author"),
+        attributionRequired: ReadBoolean(item, "attribution_required"),
+        attributionText: ReadOptionalString(item, "attribution_text"));
 
     private static string? SelectModelPath(JsonElement item, string? extractedRoot)
     {
@@ -326,6 +343,7 @@ public sealed record AssetCatalogLoadResult(
     AssetCatalog? Catalog,
     string RepositoryRoot,
     string VaultRoot,
+    AssetVaultInstallationState InstallationState,
     IReadOnlyList<DomainDiagnostic> Diagnostics)
 {
     public bool Succeeded => Catalog is not null && Diagnostics.Count == 0;

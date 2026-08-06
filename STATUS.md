@@ -6,7 +6,7 @@ Dernière mise à jour : 5 août 2026.
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
 G11 Contenu moderne fermés. AV4B livre maintenant une première carte 3D extérieure jouable,
-exportable et visuellement vérifiée.**
+exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -31,7 +31,7 @@ Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendammen
 lance en Forward+ ; l’archive de 75 fichiers est validée et rejouée par le gate depuis son cache.
 
 Le graphe d’architecture transversal est conservé comme outillage local, déterministe et sans
-dépendance externe. Ses 17 tests et son contrôle de fraîcheur font maintenant partie de la
+dépendance externe. Ses 18 tests et son contrôle de fraîcheur font maintenant partie de la
 vérification globale du dépôt, en plus de leur workflow CI dédié.
 
 Le dossier Aurora 2026 est conservé comme snapshot immuable. Les 717 capacités possèdent maintenant
@@ -98,8 +98,8 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - moteur 3D .NET requis installé et versionné ;
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
-- solution de 24 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 659 tests .NET, 24 tests Python généraux et 11 tests Python du pipeline d'assets réussis ;
+- solution de 25 projets restaurée et compilée en Release sans avertissement ni erreur ;
+- 705 tests .NET, 24 tests Python généraux et 11 tests Python du pipeline d'assets réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -218,8 +218,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   production restent à livrer ;
 - le premier Asset Vault externe contient 555 assets CC0 Poly Haven/ambientCG et 50 packs 3D Kenney,
   soit environ 5 236 modèles logiques estimés ; Forgotten Forest en consomme désormais une sélection
-  cohérente de 22 GLB, mais la normalisation visuelle et les métriques 3D du catalogue complet restent
-  à étendre ;
+  cohérente de 22 GLB. Les packs locaux possèdent maintenant registre v1, stockage SHA-256
+  dédupliqué, backup de désinstallation et crédits agrégés, mais la normalisation visuelle et les
+  métriques 3D du catalogue complet restent à étendre ;
 - Forgotten Forest est jouable sur le terrain générique avec végétation, bâtiments, éclairage,
   caméra, quête et export. Un bake de navigation avancé, une eau simulée, des animations, de l’audio
   et des VFX de production restent nécessaires avant de qualifier la carte de contenu final ;
@@ -368,7 +369,7 @@ contraste, sous-titres et descriptions sonores ; 112 cas déterministes couvrent
 zéro crash inattendu et zéro évasion de chemin. Le registre tiers impose risque, état, deux rôles de
 revue et audit sécurité, puis projette ces preuves dans le manifeste `.orpmod` 1.2. Les formats
 projet `0.6.22` et workspace `1.16.0` sont migrés. Forgotten Forest fournit maintenant la carte 3D
-jouable ; les prochains incréments portent sa finition artistique et les workflows de packs. Le tracker compte désormais 56 capacités
+jouable ; les prochains incréments portent sa finition artistique et les workflows de packs. Le tracker compte désormais 58 capacités
 `Tested`.
 
 **AV4B — tranche jouable navigable livrée** : le module `forgotten-forest` est authorisé depuis le
@@ -382,3 +383,10 @@ terrain canonique, applique pente et politiques de traversée, crée le lien du 
 chemin moteur de 72 points. Le ruisseau emploie quatre surfaces shader animées, quatre volumes de
 nage et un courant directionnel. La suite AV4B porte la finition audiovisuelle, puis l’intégration de
 ces outils dans le Creator Aurora.
+
+**AV1 — stockage Asset Vault fermé** : le registre externe versionné projette l’état installé dans
+les 605 entrées du catalogue, Creator, CLI et MCP. Les modèles et aperçus sont copiés une seule fois
+par SHA-256, plusieurs packs partagent le même blob, les originaux restent inchangés et une
+désinstallation sauvegarde registre et objets avant de retirer les références actives. Les crédits
+Markdown et texte sont reconstruits depuis les seuls assets installés. Trois nouveaux tests portent
+la suite .NET à 705 et `ORF-CONT-027`/`ORF-CONT-030` deviennent `Tested`.

@@ -46,6 +46,7 @@ public sealed class AssetCatalogBrowser
                 item.Categories.Contains(query.Category.Trim(), StringComparer.OrdinalIgnoreCase))
             .Where(item => Matches(query.LicenseSpdx, item.LicenseSpdx))
             .Where(item => query.Availability is null || item.Availability == query.Availability)
+            .Where(item => query.Installed is null || item.Installed == query.Installed)
             .Take(query.MaximumResults)
             .ToArray();
     }

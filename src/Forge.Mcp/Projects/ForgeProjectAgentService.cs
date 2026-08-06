@@ -882,7 +882,8 @@ public sealed class ForgeProjectAgentService
                 query.Category,
                 query.LicenseSpdx,
                 ParseAssetAvailability(query.Availability),
-                query.MaximumResults));
+                query.MaximumResults,
+                query.Installed));
             return new AgentAssetCatalogResult(
                 load.Catalog.SchemaVersion,
                 load.Catalog.Items.Count,
@@ -909,7 +910,12 @@ public sealed class ForgeProjectAgentService
                     item.RelativePreviewPath,
                     item.ThumbnailUrl,
                     item.CanPlanImport,
-                    item.Provenance)).ToArray(),
+                    item.Provenance,
+                    item.Author,
+                    item.AttributionRequired,
+                    item.AttributionText,
+                    item.Installed,
+                    item.InstalledPackIds)).ToArray(),
                 load.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
         }
     }

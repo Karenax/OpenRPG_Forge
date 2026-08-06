@@ -581,6 +581,11 @@ Ce chantier doit fournir progressivement :
 - des commandes applicatives et, plus tard, MCP qui ne contournent ni le bus transactionnel ni les
   contrôles de licence.
 
+AV1 persiste maintenant les packs installés dans le Vault externe sous schéma v1, déduplique modèles
+et aperçus par SHA-256, sauvegarde le registre avant désinstallation, collecte uniquement les blobs
+orphelins et régénère les crédits Markdown/texte depuis les assets installés. Le catalogue, Creator,
+le CLI et la lecture MCP exposent les IDs de packs ; les mutations CLI restent en plan sec par défaut.
+
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de
 `AGENTS.md`. En cas de conflit, ces sources de vérité du dépôt priment sur la spécification importée.

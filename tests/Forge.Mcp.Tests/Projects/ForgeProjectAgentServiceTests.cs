@@ -170,6 +170,8 @@ public sealed class ForgeProjectAgentServiceTests
             Assert.True(item.LicenseVerified);
             Assert.Equal(64, item.ContentSha256.Length);
             Assert.Equal("ambientcg", item.Source);
+            Assert.False(string.IsNullOrWhiteSpace(item.Author));
+            Assert.NotNull(item.InstalledPackIds);
         });
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }

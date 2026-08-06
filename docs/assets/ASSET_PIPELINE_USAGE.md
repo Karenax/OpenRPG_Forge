@@ -11,6 +11,33 @@ $env:OPENRPG_ASSET_VAULT = 'D:\OpenRPG_AssetVault'
 Le Vault reste extérieur à Git. Le dépôt conserve son catalogue portable dans
 `asset_manifests/catalogs/cc0_3d_all.json`.
 
+## Installer et désinstaller des packs locaux
+
+Le registre installé et les blobs dédupliqués restent dans le Vault externe. Les commandes sont en
+mode aperçu tant que `--apply true` n’est pas fourni :
+
+```powershell
+dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
+  assets install-pack . food-props `
+  --id ambientcg:3DApple001,ambientcg:3DApple002
+
+dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
+  assets install-pack . food-props `
+  --id ambientcg:3DApple001,ambientcg:3DApple002 `
+  --apply true
+
+dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- assets report .
+dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- assets credits . --format markdown
+
+dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
+  assets uninstall-pack . food-props --apply true
+```
+
+L’installation recalcule chaque SHA-256, refuse une licence non vérifiée ou non CC0, copie une seule
+fois chaque contenu sous `packages/objects/sha256/`, puis écrit registre, reçu et crédits agrégés.
+La désinstallation sauvegarde le registre et conserve tout objet encore référencé par un autre pack.
+Les répertoires `originals/` et `normalized/` ne sont jamais modifiés.
+
 ## Télécharger ou reprendre
 
 ```powershell
