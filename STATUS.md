@@ -690,5 +690,16 @@ L’écran possède sept onglets et une simulation ; ForgeScript et MCP réutili
 typées. Les formats projet `0.6.30`, workspace `1.24.0` et `.orpmod` migrent depuis G13-H. La Crypte
 prouve timeout, pause, choix, variante et seed avant de terminer son parcours jouable.
 
-Le développement est **arrêté après G13-I**. Aucune tranche G13-J ni extension suivante ne doit
-démarrer sans nouvelle demande explicite de l’utilisateur.
+**G13-J — opérations avancées de quête livrées** : `QuestOperationsProfile` ajoute priorité et
+importance du journal, répétition, partage de groupe, transitions exclusives et notifications
+localisées/accessibles. L’écran dédié appelle `SetQuestOperationsHandler`, tandis que ForgeScript et
+MCP réutilisent le même profil. La Crypte prouve les cinq familles sous autorité explicite.
+
+**G13-K à G13-M — profondeur des objets livrée** : `ItemAdvancedProfile` couvre économie,
+prérequis, identification, propriété/vol, procs, armes, armures, munitions, durabilité, conteneurs,
+loot contextuel, unicité transactionnelle, propriété instanciée, artisanat et génération par seed.
+L’écran à trois onglets assure diagnostic, simulation, dry-run, application et undo/redo. Les
+formats projet `0.6.31`, workspace `1.25.0` et `.orpmod` conservent quêtes et objets avancés ; les
+anciens modules restent jouables avec profils absents.
+
+Ce run est **arrêté après G13-M**. Aucune tranche G13-N ni extension suivante n’est démarrée.

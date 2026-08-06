@@ -5,6 +5,7 @@ using Forge.Mcp.Abilities;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Creatures;
 using Forge.Mcp.Factions;
+using Forge.Mcp.Items;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
@@ -35,6 +36,26 @@ public sealed class ForgeMcpTools
     [McpServerTool]
     [Description("Returns the current transactional project revision without mutating the project.")]
     public long GetCurrentRevision() => _project.GetCurrentRevision();
+
+    [McpServerTool]
+    [Description("Returns advanced quest journal, repetition, sharing, exclusivity and notification policies without mutation.")]
+    public QuestOperationsResource QueryQuestOperations(string? questIdOrSearch = null, int limit = 50) =>
+        _project.QueryQuestOperations(questIdOrSearch, limit);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an advanced quest-policy mutation, returning its semantic diff without applying it.")]
+    public QuestOperationsPlanResult PreviewQuestOperations(QuestOperationsPlanRequest request) =>
+        _project.PreviewQuestOperations(request);
+
+    [McpServerTool]
+    [Description("Returns advanced item economy, equipment, ownership, loot, crafting and generation summaries without mutation.")]
+    public ItemAdvancedResource QueryAdvancedItems(string? blueprintIdOrSearch = null, int limit = 50) =>
+        _project.QueryAdvancedItems(blueprintIdOrSearch, limit);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an advanced item mutation, returning its semantic diff without applying it.")]
+    public ItemAdvancedPlanResult PreviewAdvancedItem(ItemAdvancedPlanRequest request) =>
+        _project.PreviewAdvancedItem(request);
 
     [McpServerTool]
     [Description("Returns canonical creature-event profiles filtered by blueprint ID, slug or display name without mutation.")]

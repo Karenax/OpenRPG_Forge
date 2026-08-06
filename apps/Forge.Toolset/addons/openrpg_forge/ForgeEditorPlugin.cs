@@ -38,6 +38,7 @@ using Forge.Domain.Factions;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Localization;
 using Forge.Domain.Lifecycle;
+using Forge.Domain.Items;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
@@ -135,6 +136,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetCreatureEventsHandler _creatureEventsHandler = new(new SystemClock());
     private readonly SetFactionCatalogHandler _factionHandler = new(new SystemClock());
     private readonly SetDialoguePresentationHandler _dialoguePresentationHandler = new(new SystemClock());
+    private readonly SetQuestOperationsHandler _questOperationsHandler = new(new SystemClock());
+    private readonly SetItemAdvancedProfileHandler _itemAdvancedHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -243,6 +246,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private CreatureLootWindow? _creatureLootWindow;
     private CreatureRoleBehaviorWindow? _creatureRoleBehaviorWindow;
     private CreatureEventWindow? _creatureEventWindow;
+    private QuestOperationsWindow? _questOperationsWindow;
+    private ItemAdvancedWindow? _itemAdvancedWindow;
     private FactionAdvancedWindow? _factionAdvancedWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
@@ -514,6 +519,22 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_creatureEventWindow);
+        _questOperationsWindow = new QuestOperationsWindow();
+        _questOperationsWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyQuestOperations,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_questOperationsWindow);
+        _itemAdvancedWindow = new ItemAdvancedWindow();
+        _itemAdvancedWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyItemAdvanced,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_itemAdvancedWindow);
         _factionAdvancedWindow = new FactionAdvancedWindow();
         _factionAdvancedWindow.Initialize(
             () => _history?.State,
@@ -624,6 +645,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _creatureRoleBehaviorWindow?.Open(),
             () => _creatureEventWindow?.Open(),
             () => _factionAdvancedWindow?.Open(),
+            () => _questOperationsWindow?.Open(),
+            () => _itemAdvancedWindow?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rpgKitAuthoringWindow);
         _networkBetaWindow = new NetworkBetaWindow();
@@ -817,6 +840,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _creatureLootWindow = null;
         _creatureRoleBehaviorWindow = null;
         _creatureEventWindow = null;
+        _questOperationsWindow = null;
+        _itemAdvancedWindow = null;
         _loreIndexWindow = null;
         _globalSearch = null;
         _moduleConfiguration = null;
@@ -2410,6 +2435,42 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _creatureEventWindow?.Refresh();
         }
 
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyQuestOperations(
+        QuestId questId,
+        QuestOperationsProfile? profile,
+        bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        var command = new SetQuestOperationsCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            questId, profile, dryRun);
+        var result = _questOperationsHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Politiques avancées de quête enregistrées dans le projet.", null);
+            _questOperationsWindow?.Refresh();
+        }
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyItemAdvanced(
+        BlueprintId blueprintId,
+        ItemAdvancedProfile? profile,
+        bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        var command = new SetItemAdvancedProfileCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            blueprintId, profile, dryRun);
+        var result = _itemAdvancedHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Économie, équipement, butin et craft de l’objet enregistrés.", null);
+            _itemAdvancedWindow?.Refresh();
+        }
         return result;
     }
 
@@ -5542,6 +5603,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunDialoguePresentationSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunQuestOperationsSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunItemAdvancedSmokeTest())
         {
             return;
         }
@@ -10400,6 +10471,157 @@ public partial class ForgeEditorPlugin : EditorPlugin
             if (appliedToHistory) _history.Undo();
             RebuildPreview();
             RefreshEditorControls();
+        }
+    }
+
+    private bool RunQuestOperationsSmokeTest()
+    {
+        if (_history is null || _questOperationsWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13J_QUEST_OPERATIONS_FAILED missing_workspace");
+            return false;
+        }
+        var appliedToHistory = false;
+        try
+        {
+            _questOperationsWindow.Open(); var visible = _questOperationsWindow.Visible;
+            _questOperationsWindow.Hide(); var questId = _questOperationsWindow.SelectedQuestId;
+            var before = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var configured = visible && questId is not null && _questOperationsWindow.ConfigureForSmokeTest();
+            var previewed = configured && _questOperationsWindow.PreviewForSmokeTest();
+            var applied = previewed && _questOperationsWindow.LastCommandId != Guid.Empty &&
+                          _questOperationsWindow.LastPatchSummary.Contains("quest", StringComparison.OrdinalIgnoreCase) &&
+                          _questOperationsWindow.ApplyForSmokeTest();
+            if (!applied || questId is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13J_QUEST_OPERATIONS_FAILED preview_apply_ui " +
+                    _questOperationsWindow.LastDiagnostics); return false;
+            }
+            appliedToHistory = true;
+            var quest = _history.State.Project.Quests.Single(item => item.Id == questId);
+            var profile = quest.Operations; var context = new QuestOperationsRuntimeContext(
+                DateTimeOffset.Parse("2026-08-06T12:00:00Z"), DateTimeOffset.Parse("2026-08-06T10:00:00Z"),
+                1, 2, 2, true, true, new HashSet<QuestTransitionId>());
+            var repeat = profile is null ? null : QuestOperationsRuntimeResolver.ResolveRepeat(quest, context);
+            var share = profile is null ? null : QuestOperationsRuntimeResolver.ResolveShare(quest, context);
+            var exclusive = profile is null || quest.Transitions.Count == 0 ? null :
+                QuestOperationsRuntimeResolver.ResolveExclusive(quest, quest.Transitions[0].Id, context);
+            var notice = profile is null ? null : QuestOperationsRuntimeResolver.ResolveNotification(quest);
+            var script = profile is null ? null : new QuestOperationsScriptService(quest);
+            var snapshot = script?.Read(script.Handle);
+            var appliedJson = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(appliedJson).Quests.Single(item => item.Id == questId);
+            if (profile is null || QuestOperationsValidator.Validate(quest).Count != 0 ||
+                profile.Journal.Priority != 92 || repeat is not { Allowed: true } || share is not { Accepted: true } ||
+                exclusive is not { Allowed: true, RequiresConfirmation: true } || notice is not { Visible: true } ||
+                snapshot is null || snapshot.ExclusiveChoiceCount != 1 ||
+                _questOperationsWindow.SummarySectionCount != 5 || restored.Operations?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13J_QUEST_OPERATIONS_FAILED canonical_runtime_roundtrip");
+                return false;
+            }
+            Undo(); appliedToHistory = false;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != before) return false;
+            Redo(); appliedToHistory = true;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != appliedJson) return false;
+            Undo(); appliedToHistory = false;
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13J_QUEST_OPERATIONS_PASS " +
+                "journal=priority-importance-manual-pin notifications=grouped-accessible-localized-silent-cinematic " +
+                "repeat=cooldown-counter-reset-decay-seed share=individual-party-optin-leader-unanimous-separation " +
+                "exclusive=mutex-irreversible-confirmation-consequence ui=visible-empty-error-summary-simulation " +
+                "forgescript=typed-handle mcp=filtered-dry-run transaction=identified audit=generated " +
+                "history=restored persistence=project-workspace-package runtime=optional-safe-authoritative");
+            return true;
+        }
+        finally
+        {
+            _questOperationsWindow.Hide(); if (appliedToHistory) _history.Undo();
+            RebuildPreview(); RefreshEditorControls();
+        }
+    }
+
+    private bool RunItemAdvancedSmokeTest()
+    {
+        if (_history is null || _itemAdvancedWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13K_M_ITEM_ADVANCED_FAILED missing_workspace");
+            return false;
+        }
+        var appliedToHistory = false;
+        try
+        {
+            _itemAdvancedWindow.Open(); var visible = _itemAdvancedWindow.Visible; _itemAdvancedWindow.Hide();
+            var blueprintId = _itemAdvancedWindow.SelectedBlueprintId;
+            var before = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var configured = visible && blueprintId is not null && _itemAdvancedWindow.ConfigureForSmokeTest();
+            var previewed = configured && _itemAdvancedWindow.PreviewForSmokeTest();
+            var applied = previewed && _itemAdvancedWindow.LastCommandId != Guid.Empty &&
+                          _itemAdvancedWindow.LastPatchSummary.Contains("item", StringComparison.OrdinalIgnoreCase) &&
+                          _itemAdvancedWindow.ApplyForSmokeTest();
+            if (!applied || blueprintId is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13K_M_ITEM_ADVANCED_FAILED preview_apply_ui " +
+                    _itemAdvancedWindow.LastDiagnostics); return false;
+            }
+            appliedToHistory = true;
+            var blueprint = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId);
+            var profile = blueprint.ItemAdvanced;
+            var context = new ItemRuntimeContext(20, 20, new HashSet<string>(["lore", "smithing"]),
+                new HashSet<string>(["ash-attuned"]), new HashSet<string>(["surface-alliance"]),
+                new HashSet<string>(["quest.accepted"]), "default", "gold", 1, 40, 2026, "player", true);
+            var requirements = profile is null ? null : ItemAdvancedRuntimeResolver.ResolveRequirements(profile, context);
+            var value = profile is null ? 0 : ItemAdvancedRuntimeResolver.ResolveEconomicValue(profile, context);
+            var proc = profile is null ? null : ItemAdvancedRuntimeResolver.ResolveOnHit(profile, "hit",
+                new Dictionary<Guid, DateTimeOffset>(), DateTimeOffset.UnixEpoch, context);
+            var generated = profile?.Generator?.Enabled == true ? ItemAdvancedRuntimeResolver.Generate(profile, context) : null;
+            var wear = profile is null ? null : ItemAdvancedRuntimeResolver.ApplyWear(profile, 40, 1, 1);
+            var ammo = profile?.Ammo is null ? null : ItemAmmoResolver.Fire(profile, 3, 2026, Guid.Parse("a1650000-0000-4000-8000-000000000001"));
+            var reservation = profile is null ? null : ItemUniqueRegistryResolver.Reserve(profile,
+                ItemUniqueRegistryState.Empty, "player", "party", "season", DateTimeOffset.UnixEpoch, true);
+            var ownership = profile is null ? null : ItemLootOwnershipResolver.Resolve(profile,
+                new("player", "player", "party", "party", DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch,
+                    false, null, false, true));
+            var craft = profile?.Recipes.Count > 0 ? ItemCraftingResolver.Resolve(profile, profile.Recipes[0].Id,
+                new("forge", new HashSet<string>(["smithing"]), 1,
+                    new Dictionary<string, int> { ["tag:ember-metal"] = 2 }, true)) : null;
+            var loot = profile is null ? null : ItemAdvancedRuntimeResolver.ResolveLootContext(profile,
+                "crypt-chest", "crypt", "ash-watch", null, new HashSet<string>(["undead"]), null, context);
+            var script = profile is null ? null : new ItemAdvancedScriptService(blueprint);
+            var snapshot = script?.Read(script.Handle);
+            var appliedJson = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(appliedJson).Blueprints.Single(item => item.Id == blueprintId);
+            if (profile is null || ItemAdvancedValidator.Validate(profile, "item").Count != 0 ||
+                requirements is not { Allowed: true } || value <= 0 || proc is not { Triggered: true } ||
+                profile.Weapon is null || profile.Armor is null || ammo is not { Fired: true } ||
+                wear is null || wear.Current >= 40 || profile.Container is null || generated?.Affixes.Count != 1 ||
+                reservation is not { Accepted: true } || ownership is not { Allowed: true } ||
+                craft is not { Allowed: true } || loot?.RuleId is null || snapshot is null ||
+                _itemAdvancedWindow.SummarySectionCount != 4 || restored.ItemAdvanced?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13K_M_ITEM_ADVANCED_FAILED canonical_runtime_roundtrip");
+                return false;
+            }
+            Undo(); appliedToHistory = false; if (ProjectJsonSerializer.Serialize(_history.State.Project) != before) return false;
+            Redo(); appliedToHistory = true; if (ProjectJsonSerializer.Serialize(_history.State.Project) != appliedJson) return false;
+            Undo(); appliedToHistory = false;
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13K_ITEM_FOUNDATION_PASS economy=currency-market-quality-rarity-wear-demand " +
+                "requirements=level-skill-trait-faction-knowledge-script identification=levels-hidden-cost-party " +
+                "ownership=history-stolen-jurisdiction-evidence-launder onhit=trigger-chance-cooldown-condition-effect-attribution-deterministic " +
+                "ui=visible-empty-error-summary-simulation transaction=identified history=restored persistence=roundtrip");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13L_ITEM_EQUIPMENT_PASS weapon=attacks-damage-reach-animation-requirements-tags " +
+                "armor=coverage-protection-encumbrance-noise-material-resistance-visual ammo=projectile-stack-recovery-element " +
+                "durability=wear-repair-break-vfx-optional container=capacity-mass-depth-weight-permissions-persistence-cycles " +
+                "ui=three-tabs runtime=deterministic persistence=roundtrip");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13M_ITEM_LOOT_CRAFT_PASS loot=context-biome-faction-level-difficulty-tags-player-event " +
+                "unique=world-party-player-season-transactional ownership=public-party-personal-needgreed-gm-expiration " +
+                "craft=recipe-query-station-skill-quality-duration-byproducts-provenance " +
+                "generator=seed-pools-affixes-budget-rarity-exclusions-explanation forgescript=typed-handle mcp=filtered-dry-run");
+            return true;
+        }
+        finally
+        {
+            _itemAdvancedWindow.Hide(); if (appliedToHistory) _history.Undo();
+            RebuildPreview(); RefreshEditorControls();
         }
     }
 

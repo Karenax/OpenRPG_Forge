@@ -70,8 +70,15 @@ capacité G13 ne peut imposer un fournisseur, un abonnement ou un asset proprié
   animations, voix, caméra, bookmarks et interjections de dialogue.
 - [x] **G13-I** — `ORF-DLG-025`, `ORF-DLG-027` : choix temporisés accessibles et variantes
   conditionnelles/pondérées déterministes.
-- [ ] **G13-J et suivants** — développement volontairement arrêté après G13-I ; aucune nouvelle
-  tranche ne démarre sans demande explicite de l’utilisateur.
+- [x] **G13-J** — `ORF-QST-009`, `ORF-QST-016`, `ORF-QST-017`, `ORF-QST-018`, `ORF-QST-021` :
+  priorité du journal, répétition, partage de groupe, choix exclusifs et notifications accessibles.
+- [x] **G13-K** — `ORF-ITEM-007`, `ORF-ITEM-010`, `ORF-ITEM-011`, `ORF-ITEM-012`, `ORF-ITEM-017` :
+  économie, prérequis, identification, propriété/vol et effets On Hit déterministes.
+- [x] **G13-L** — `ORF-ITEM-019`, `ORF-ITEM-020`, `ORF-ITEM-021`, `ORF-ITEM-022`, `ORF-ITEM-023` :
+  armes, armures, munitions, durabilité et conteneurs imbriqués.
+- [x] **G13-M** — `ORF-ITEM-025`, `ORF-ITEM-026`, `ORF-ITEM-027`, `ORF-ITEM-028`, `ORF-ITEM-029` :
+  loot contextuel, unicité transactionnelle, propriété instanciée, artisanat et génération par seed.
+- [ ] **G13-N et suivants** — volontairement non démarrés dans ce run borné.
 
 ## Gate de fermeture
 

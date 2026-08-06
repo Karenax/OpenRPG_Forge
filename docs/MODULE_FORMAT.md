@@ -33,6 +33,12 @@ Le schéma courant du manifest est `1.1.0`. Le hash SHA-256 couvre, dans un ordr
 chemin UTF-8 puis les octets de chaque entrée hors manifest. L’exporteur écrit une archive
 déterministe dans un fichier temporaire voisin, la valide, puis la remplace atomiquement.
 
+Le document projet courant est `0.6.31` et le workspace `1.25.0`. Quêtes et blueprints d’objet
+peuvent porter respectivement `QuestOperationsProfile` et `ItemAdvancedProfile`. Ces extensions
+restent optionnelles : un module `0.6.30`/`1.24.0` est relu sans profil avancé, puis réécrit dans le
+format courant par le migrateur. Le round-trip `.orpmod` conserve les profils sans autre source de
+vérité moteur.
+
 ## Validation obligatoire
 
 Le loader contrôle avant extraction ou montage : normalisation des chemins, traversées, nombre et taille des fichiers, ratio de compression, allowlist d’extensions, types réels, hashes, schémas, IDs et dépendances. DLL, assemblies, binaires natifs et scripts Godot sont refusés.

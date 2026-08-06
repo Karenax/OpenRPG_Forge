@@ -23,6 +23,7 @@ using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Projects;
+using Forge.Mcp.Items;
 using Forge.Mcp.Scripts;
 using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Assets;
@@ -36,6 +37,37 @@ namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void Quest_and_item_depth_resources_are_filtered_bounded_and_dry_run_only()
+    {
+        using var workspace = new TestWorkspace();
+        var canonical = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var quest = canonical.Quests.Single(item => item.Operations is not null);
+        var item = canonical.Blueprints.Single(candidate => candidate.ItemAdvanced is not null);
+
+        var quests = workspace.Project.QueryQuestOperations("crypt", 1);
+        var questPlan = workspace.Project.PreviewQuestOperations(new(1, 0, quest.Id.ToString(),
+            quest.Operations!));
+        var items = workspace.Project.QueryAdvancedItems("ash-key", 1);
+        var itemPlan = workspace.Project.PreviewAdvancedItem(new ItemAdvancedPlanRequest(1, 0,
+            item.Id.ToString(), item.ItemAdvanced!));
+
+        var questResource = Assert.Single(quests.Items);
+        Assert.True(questResource.Repeatable);
+        Assert.Equal("Unanimous", questResource.ShareMode);
+        Assert.Equal(1, questResource.ExclusiveChoiceCount);
+        var itemResource = Assert.Single(items.Items);
+        Assert.True(itemResource.Weapon);
+        Assert.True(itemResource.Container);
+        Assert.True(itemResource.Unique);
+        Assert.True(itemResource.Procedural);
+        Assert.True(questPlan.Succeeded);
+        Assert.True(itemPlan.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.QueryQuestOperations(limit: 101));
+        Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.QueryAdvancedItems(limit: 101));
+    }
+
     [Fact]
     public void DialoguePresentationResourceIsFilteredBoundedAndMutationRemainsDryRun()
     {

@@ -1849,11 +1849,13 @@ Le présent paquet contient uniquement :
 
 ## Prochaine action autorisée
 
-La file G13 a livré G13-I : `ORF-DLG-025` et `ORF-DLG-027` ajoutent au profil de présentation les
-choix temporisés accessibles et les variantes conditionnelles/pondérées déterministes. G13-H reste
-la fondation animation, voix, caméra, bookmarks et interjections. Le développement est arrêté après
-G13-I. Conserver les modules jouables, le runtime sans IA, les formats migrables et le gate intégré
-vert ; ne pas démarrer G13-J sans demande explicite.
+La file G13 a livré G13-J à G13-M après les dialogues adaptatifs : opérations avancées de quête,
+fondation économique et d’identification des objets, équipement/usure/conteneurs, puis loot
+contextuel, unicité transactionnelle, propriété instanciée, artisanat et génération déterministe.
+Les profils restent optionnels, canoniques et indépendants du moteur ; Toolset, ForgeScript, MCP,
+runtime et `.orpmod` consomment la même source. Conserver les modules jouables, le runtime sans IA,
+les formats migrables et le gate intégré vert. Ce run est borné après G13-M ; ne pas démarrer G13-N
+sans nouvelle décision explicite.
 
 
 ---

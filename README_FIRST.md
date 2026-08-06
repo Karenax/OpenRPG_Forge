@@ -40,8 +40,10 @@ d’auto-level déterministes, les événements avancés de créature typés et 
 hiérarchiques, affiliations multiples, témoins et états diplomatiques dynamiques, puis la mise en
 scène canonique des dialogues : animations, voix/sous-titres, caméra accessible, bookmarks et
 interjections autoritaires, puis timers accessibles et variantes conditionnelles/pondérées avec
-seed stable. Le développement est volontairement arrêté après **G13-I** jusqu’à
-nouvelle demande.
+seed stable. G13-J à G13-M ajoutent ensuite les opérations avancées de quête et la profondeur des
+objets : économie, identification, propriété, équipement, durabilité, conteneurs, loot contextuel,
+unicité, artisanat et génération déterministe. Le présent run est volontairement arrêté après
+**G13-M**.
 
 La source de vérité de l’avancement est `STATUS.md`. La direction d’interface et le contexte
 graphique sont dans `docs/UX_AURORA_2026.md`. Le chantier Asset Vault/Forgotten Forest, sa cible

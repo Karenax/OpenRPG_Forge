@@ -121,7 +121,8 @@ public sealed class CreateBlueprintFromEntityHandler
                 source.Provenance.LicenseSpdx,
                 source.Provenance.ContentHash,
                 source.Provenance.IsAiGenerated,
-                [.. source.Provenance.Modifications, $"Derived from blueprint {source.Id}"]));
+                [.. source.Provenance.Modifications, $"Derived from blueprint {source.Id}"]),
+            itemAdvanced: source.ItemAdvanced);
         var retargeted = new EntityInstance(
             entity.Id,
             derived.Id,

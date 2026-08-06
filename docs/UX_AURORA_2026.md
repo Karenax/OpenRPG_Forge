@@ -310,6 +310,18 @@ les cinq scénarios du résolveur de combat, le score d'équilibrage, la provena
 diagnostics et le diff. Une édition invalide immédiatement le plan ; profil de combat et document
 runtime ne sont sauvegardés qu'ensemble, après dry-run exact, par la même commande que MCP.
 
+G13-J ajoute **Quêtes avancées** au RPG Kit. Le catalogue reste à gauche ; les onglets séparent
+journal/répétition, groupe/exclusivité et notifications. Le panneau de synthèse montre les valeurs
+runtime simulées, les diagnostics et le diff avant application. Les textes localisés, le mode
+silencieux et le libellé accessible restent visibles au même niveau que la règle mécanique.
+
+G13-K à G13-M ajoutent **Objets avancés**. Trois onglets progressifs évitent un inspecteur unique
+surchargé : identité/usage pour économie, prérequis, connaissance, propriété et procs ; équipement
+pour armes, armures, munitions, usure et conteneurs ; loot/craft pour contexte, unicité, attribution,
+recettes et génération. Chaque onglet possède un résumé compréhensible, et prévisualiser ne modifie
+jamais le projet. Les références d’assets, la provenance et les décisions d’autorité restent
+explicites afin que la richesse RPG n’affaiblisse ni l’accessibilité ni la gouvernance visuelle.
+
 G12-J ajoute **Création 3D** dans le même Assistant. La première colonne définit identité,
 primitive et transforms métriques ; la seconde expose matériau PBR, couleur, UV, LOD, collision,
 style, citations, seed et approbation. La troisième affiche recette, hash, cinq tests, provenance,

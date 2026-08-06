@@ -611,6 +611,14 @@ les démonstrations Crypte des Cendres et Forgotten Forest jouables.
   (`ORF-DLG-014`, `015`, `016`, `020`, `023`).
 - [x] G13-I : choix temporisés accessibles et variantes procédurales déterministes
   (`ORF-DLG-025`, `027`).
+- [x] G13-J : journal priorisé, quêtes répétables et partagées, choix exclusifs, notifications
+  (`ORF-QST-009`, `016`, `017`, `018`, `021`).
+- [x] G13-K : économie, prérequis, identification, propriété/vol et On Hit des objets
+  (`ORF-ITEM-007`, `010`, `011`, `012`, `017`).
+- [x] G13-L : armes, armures, munitions, durabilité et conteneurs imbriqués
+  (`ORF-ITEM-019`, `020`, `021`, `022`, `023`).
+- [x] G13-M : loot contextuel, objets uniques, loot instancié, artisanat et génération procédurale
+  (`ORF-ITEM-025`, `026`, `027`, `028`, `029`).
 
 Acceptation G13-A : un auteur configure les raccourcis depuis l’écran Aurora, prévisualise le diff,
 applique la commande canonique et peut annuler/rétablir. Le round-trip `.forge/editor-keymap.json`
@@ -660,4 +668,13 @@ serveur, hook de timeout et variantes localisées conditionnelles/pondérées. S
 dry-run, undo/redo, persistance, ForgeScript et MCP partagent le même profil. La Crypte prouve
 timeout, pause, seed stable et anti-répétition tout en conservant son smoke jouable.
 
-Le développement s’arrête après G13-I. G13-J ne doit pas démarrer sans nouvelle demande explicite.
+Acceptation G13-J : un auteur configure sans JSON ordre du journal, répétition, partage, choix mutex
+et notifications. Validation, simulation, dry-run, undo/redo, projet/workspace/`.orpmod`,
+ForgeScript, MCP et runtime consomment le même profil optionnel et déterministe.
+
+Acceptation G13-K à G13-M : un auteur configure sans JSON l’objet depuis sa valeur et ses prérequis
+jusqu’à son équipement, sa durabilité, ses conteneurs, son loot, son unicité, son artisanat et ses
+affixes. Le runtime prouve calculs, autorité et transactions ; l’absence du profil conserve le
+fallback historique.
+
+Ce run s’arrête après G13-M. G13-N n’est pas démarré.

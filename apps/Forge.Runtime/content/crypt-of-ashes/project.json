@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.24.0",
+  "formatVersion": "1.25.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -1424,7 +1424,8 @@
         "creatureProgression": null,
         "creatureLoot": null,
         "creatureRoleBehavior": null,
-        "creatureEvents": null
+        "creatureEvents": null,
+        "itemAdvanced": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000002",
@@ -1447,7 +1448,8 @@
         "creatureProgression": null,
         "creatureLoot": null,
         "creatureRoleBehavior": null,
-        "creatureEvents": null
+        "creatureEvents": null,
+        "itemAdvanced": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000003",
@@ -1470,7 +1472,8 @@
         "creatureProgression": null,
         "creatureLoot": null,
         "creatureRoleBehavior": null,
-        "creatureEvents": null
+        "creatureEvents": null,
+        "itemAdvanced": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000004",
@@ -1504,7 +1507,8 @@
         "creatureProgression": null,
         "creatureLoot": null,
         "creatureRoleBehavior": null,
-        "creatureEvents": null
+        "creatureEvents": null,
+        "itemAdvanced": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000005",
@@ -1562,7 +1566,8 @@
         "creatureProgression": null,
         "creatureLoot": null,
         "creatureRoleBehavior": null,
-        "creatureEvents": null
+        "creatureEvents": null,
+        "itemAdvanced": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000006",
@@ -1904,7 +1909,8 @@
           "overrides": {
             "telemetry.channel": "ash-warden"
           }
-        }
+        },
+        "itemAdvanced": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000007",
@@ -1956,7 +1962,8 @@
         "creatureProgression": null,
         "creatureLoot": null,
         "creatureRoleBehavior": null,
-        "creatureEvents": null
+        "creatureEvents": null,
+        "itemAdvanced": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000008",
@@ -1979,7 +1986,268 @@
         "creatureProgression": null,
         "creatureLoot": null,
         "creatureRoleBehavior": null,
-        "creatureEvents": null
+        "creatureEvents": null,
+        "itemAdvanced": {
+          "id": "a1610000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "sample:g13-k-m",
+          "requiredAtRuntime": true,
+          "economy": {
+            "currency": "gold",
+            "baseCost": 125,
+            "qualityMultiplier": 1.1,
+            "rarityMultiplier": 1.4,
+            "wearMultiplier": 0.5,
+            "demandMultiplier": 1,
+            "marketOverrides": {
+              "crypt": 150
+            }
+          },
+          "requirements": {
+            "minimumLevel": 1,
+            "minimumLore": 2,
+            "skills": [
+              "lore"
+            ],
+            "traits": [
+              "ash-attuned"
+            ],
+            "factions": [
+              "surface-alliance"
+            ],
+            "scriptCondition": "quest.accepted"
+          },
+          "identification": {
+            "initialLevel": "unknown",
+            "difficulty": 12,
+            "attemptCost": 5,
+            "currency": "gold",
+            "shareWithParty": true,
+            "levels": [
+              {
+                "id": "unknown",
+                "threshold": 0,
+                "revealedPropertyIds": [
+                  "name"
+                ]
+              },
+              {
+                "id": "recognized",
+                "threshold": 6,
+                "revealedPropertyIds": [
+                  "origin",
+                  "value"
+                ]
+              },
+              {
+                "id": "identified",
+                "threshold": 12,
+                "revealedPropertyIds": [
+                  "unlock",
+                  "on-hit",
+                  "unique"
+                ]
+              }
+            ]
+          },
+          "ownership": {
+            "stolen": true,
+            "currentOwnerId": "ash-watch",
+            "jurisdiction": "crypt",
+            "canBeLaundered": true,
+            "history": [
+              {
+                "id": "a1610000-0000-4000-8000-000000000002",
+                "ownerId": "ash-watch",
+                "jurisdiction": "crypt",
+                "evidenceId": "warden-seal",
+                "occurredAt": "2026-08-01T00:00:00+00:00",
+                "provenance": "sample:g13-k"
+              }
+            ]
+          },
+          "onHitProcs": [
+            {
+              "id": "a1610000-0000-4000-8000-000000000003",
+              "trigger": "unlock-strike",
+              "chance": 1,
+              "internalCooldownSeconds": 2,
+              "condition": "target.ash-sealed",
+              "effectId": "ash-key-pulse",
+              "attribution": "wielder",
+              "deterministic": true,
+              "provenance": "sample:g13-k"
+            }
+          ],
+          "weapon": {
+            "weaponClass": "ritual-key",
+            "attacksPerSecond": 0.8,
+            "twoHanded": false,
+            "attacks": [
+              {
+                "id": "key-thrust",
+                "damageChannel": "fire",
+                "minimumDamage": 1,
+                "maximumDamage": 4,
+                "reachMeters": 1.2,
+                "animationId": "attack.key-thrust",
+                "requiredTags": [
+                  "ritual"
+                ]
+              }
+            ],
+            "tags": [
+              "key",
+              "ritual"
+            ]
+          },
+          "armor": {
+            "coverage": [
+              "hand"
+            ],
+            "protection": 5,
+            "encumbrance": 0.2,
+            "noise": 0,
+            "material": "ember-steel",
+            "damageResistances": {
+              "fire": 0.25
+            },
+            "damageStateVisuals": [
+              "dim",
+              "cracked"
+            ]
+          },
+          "ammo": {
+            "ammoTag": "ash-spark",
+            "projectileAssetId": "assets/projectiles/ash-spark.glb",
+            "maximumStack": 12,
+            "recoveryChance": 0.5,
+            "elementalPayload": "fire",
+            "consumeOnUse": true
+          },
+          "durability": {
+            "enabled": true,
+            "maximum": 40,
+            "initial": 40,
+            "wearPerUse": 0.25,
+            "wearPerHit": 1,
+            "repairSkill": "smithing",
+            "repairCostPerPoint": 2,
+            "brokenEffectId": "item.ash-key.broken",
+            "brokenVisualId": "visual.ash-key.cracked"
+          },
+          "container": {
+            "capacitySlots": 4,
+            "capacityMass": 10,
+            "maximumDepth": 2,
+            "nestedWeightMultiplier": 0.75,
+            "allowedTags": [
+              "gem",
+              "key-fragment"
+            ],
+            "requiredPermissions": [
+              "inventory.open"
+            ],
+            "persistContents": true,
+            "preventCycles": true
+          },
+          "lootContexts": [
+            {
+              "id": "a1610000-0000-4000-8000-000000000004",
+              "source": "crypt-chest",
+              "biome": "crypt",
+              "faction": "ash-watch",
+              "minimumLevel": 1,
+              "maximumLevel": 20,
+              "difficulty": "normal",
+              "requiredTags": [
+                "undead"
+              ],
+              "playerCondition": "quest.accepted",
+              "eventId": "eclipse",
+              "weight": 5,
+              "provenance": "sample:g13-m"
+            }
+          ],
+          "unique": {
+            "enabled": true,
+            "registryKey": "unique:ash-key",
+            "scope": "world",
+            "reservationSeconds": 60,
+            "releaseOnDestroy": true
+          },
+          "lootOwnership": {
+            "mode": "personal",
+            "expirationSeconds": 120,
+            "transferToPartyAfterExpiration": true,
+            "requireServerAuthority": true
+          },
+          "recipes": [
+            {
+              "id": "a1610000-0000-4000-8000-000000000005",
+              "slug": "repair-ash-key",
+              "ingredients": [
+                {
+                  "query": "tag:ember-metal",
+                  "quantity": 2,
+                  "consume": true,
+                  "minimumQuality": 1
+                }
+              ],
+              "stationTag": "forge",
+              "skillId": "smithing",
+              "difficulty": 10,
+              "minimumQuality": 1,
+              "durationSeconds": 6,
+              "byproductSlugs": [],
+              "provenance": "sample:g13-m"
+            }
+          ],
+          "generator": {
+            "enabled": true,
+            "budget": 6,
+            "minimumAffixes": 1,
+            "maximumAffixes": 2,
+            "pools": [
+              "ritual-key"
+            ],
+            "rarityWeights": {
+              "common": 80,
+              "rare": 20
+            },
+            "affixes": [
+              {
+                "id": "a1610000-0000-4000-8000-000000000006",
+                "key": "keen",
+                "pool": "ritual-key",
+                "cost": 2,
+                "weight": 5,
+                "rarity": "common",
+                "exclusions": [
+                  "heavy"
+                ],
+                "propertyIds": [
+                  "critical"
+                ],
+                "provenance": "sample:g13-m"
+              },
+              {
+                "id": "a1610000-0000-4000-8000-000000000007",
+                "key": "ember",
+                "pool": "ritual-key",
+                "cost": 4,
+                "weight": 2,
+                "rarity": "rare",
+                "exclusions": [],
+                "propertyIds": [
+                  "fire-damage"
+                ],
+                "provenance": "sample:g13-m"
+              }
+            ],
+            "seedOffset": 17
+          }
+        }
       },
       {
         "id": "10000000-0000-4000-8000-000000000009",
@@ -2002,7 +2270,8 @@
         "creatureProgression": null,
         "creatureLoot": null,
         "creatureRoleBehavior": null,
-        "creatureEvents": null
+        "creatureEvents": null,
+        "itemAdvanced": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000010",
@@ -2025,7 +2294,8 @@
         "creatureProgression": null,
         "creatureLoot": null,
         "creatureRoleBehavior": null,
-        "creatureEvents": null
+        "creatureEvents": null,
+        "itemAdvanced": null
       }
     ],
     "areas": [
@@ -2394,7 +2664,68 @@
             ],
             "actions": []
           }
-        ]
+        ],
+        "operations": {
+          "id": "a1600000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "sample:g13-j",
+          "requiredAtRuntime": true,
+          "journal": {
+            "sorting": "importanceThenUpdated",
+            "priority": 90,
+            "allowManualPin": true,
+            "defaultPinned": true,
+            "narrativeImportance": 95,
+            "notifyOnPriorityChange": true
+          },
+          "repeat": {
+            "enabled": true,
+            "cooldownSeconds": 3600,
+            "maximumCompletions": 3,
+            "resetMode": "full",
+            "resetStateIds": [],
+            "rewardDecay": 0.75,
+            "seedOffset": 2026
+          },
+          "share": {
+            "mode": "unanimous",
+            "synchronizeProgress": true,
+            "separation": "snapshotIndividual",
+            "requireServerAuthority": true
+          },
+          "exclusiveChoices": [
+            {
+              "id": "a1600000-0000-4000-8000-000000000002",
+              "transitionId": "52000000-0000-4000-8000-000000000001",
+              "mutexGroup": "crypt-ending",
+              "irreversible": true,
+              "confirmation": {
+                "key": "quest.crypt.choice.confirm",
+                "fallback": "Accepter cette voie irr\u00E9versible ?"
+              },
+              "consequence": {
+                "key": "quest.crypt.choice.consequence",
+                "fallback": "Les autres voies seront verrouill\u00E9es."
+              },
+              "incompatibleTransitionIds": [],
+              "provenance": "sample:g13-j"
+            }
+          ],
+          "notification": {
+            "mode": "grouped",
+            "title": {
+              "key": "quest.crypt.notice.title",
+              "fallback": "Crypte mise \u00E0 jour"
+            },
+            "body": {
+              "key": "quest.crypt.notice.body",
+              "fallback": "Un nouvel objectif est disponible."
+            },
+            "accessibleText": "Qu\u00EAte Crypte des Cendres mise \u00E0 jour : nouvel objectif disponible.",
+            "groupKey": "crypt-main",
+            "cooldownSeconds": 3
+          }
+        }
       }
     ]
   }

@@ -14,13 +14,16 @@ public sealed record QuestDefinition
 
     public IReadOnlyList<QuestTransition> Transitions { get; }
 
+    public QuestOperationsProfile? Operations { get; }
+
     public QuestDefinition(
         QuestId id,
         string slug,
         string displayName,
         QuestStateId initialStateId,
         IReadOnlyList<QuestStateDefinition> states,
-        IReadOnlyList<QuestTransition>? transitions = null)
+        IReadOnlyList<QuestTransition>? transitions = null,
+        QuestOperationsProfile? operations = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -46,5 +49,9 @@ public sealed record QuestDefinition
         InitialStateId = initialStateId;
         States = materializedStates;
         Transitions = materializedTransitions;
+        Operations = operations;
     }
+
+    public QuestDefinition WithOperations(QuestOperationsProfile? operations) => new(
+        Id, Slug, DisplayName, InitialStateId, States, Transitions, operations);
 }

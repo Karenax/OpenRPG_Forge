@@ -5,6 +5,7 @@ using Forge.Domain.Quests;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
 using Forge.Domain.Factions;
+using Forge.Domain.Items;
 
 namespace Forge.Domain.Validation;
 
@@ -31,6 +32,9 @@ public static class ProjectValidator
     public const string DuplicateCreatureLootCode = "creature.loot.uuid_duplicate";
     public const string DuplicateCreatureRoleBehaviorCode = "creature.role_behavior.uuid_duplicate";
     public const string DuplicateCreatureEventsCode = "creature.events.uuid_duplicate";
+    public const string DuplicateQuestOperationsCode = "quest.operations.uuid_duplicate";
+    public const string DuplicateItemAdvancedCode = "item.advanced.uuid_duplicate";
+    public const string MissingItemRecipeByproductCode = "item.recipe.byproduct_missing";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -45,6 +49,10 @@ public static class ProjectValidator
         var lootIds = new HashSet<Guid>();
         var roleBehaviorIds = new HashSet<Guid>();
         var creatureEventIds = new HashSet<Guid>();
+        var questOperationsIds = new HashSet<Guid>();
+        var itemAdvancedIds = new HashSet<Guid>();
+        var projectItemSlugs = project.Blueprints.Where(item => item.Kind == BlueprintKind.Item)
+            .Select(item => item.Slug).ToHashSet(StringComparer.Ordinal);
         var cameraAnchorIds = project.Areas.SelectMany(area => area.RuntimePolicies.Cinematics.CameraAnchors)
             .Select(anchor => anchor.Id).ToHashSet();
 
@@ -167,6 +175,27 @@ public static class ProjectValidator
                     diagnostics.Add(new DomainDiagnostic(DuplicateCreatureEventsCode,
                         $"Creature-event profile '{blueprint.CreatureEvents.Id}' is assigned more than once.",
                         $"{creatureEventsPath}/id"));
+                }
+            }
+
+            if (blueprint.ItemAdvanced is not null)
+            {
+                var itemPath = $"blueprints/{blueprint.Id}/itemAdvanced";
+                diagnostics.AddRange(ItemAdvancedValidator.Validate(blueprint.ItemAdvanced, itemPath)
+                    .Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
+                if (!itemAdvancedIds.Add(blueprint.ItemAdvanced.Id))
+                {
+                    diagnostics.Add(new DomainDiagnostic(DuplicateItemAdvancedCode,
+                        $"Advanced item profile '{blueprint.ItemAdvanced.Id}' is assigned more than once.",
+                        $"{itemPath}/id"));
+                }
+
+                foreach (var byproduct in blueprint.ItemAdvanced.Recipes.SelectMany(item => item.ByproductSlugs)
+                             .Where(item => !projectItemSlugs.Contains(item)))
+                {
+                    diagnostics.Add(new DomainDiagnostic(MissingItemRecipeByproductCode,
+                        $"Recipe byproduct '{byproduct}' does not reference an item blueprint.",
+                        $"{itemPath}/recipes/byproducts/{byproduct}"));
                 }
             }
         }
@@ -299,6 +328,13 @@ public static class ProjectValidator
         foreach (var quest in project.Quests)
         {
             diagnostics.AddRange(QuestValidator.Validate(quest));
+            if (quest.Operations is { } operations && !questOperationsIds.Add(operations.Id))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    DuplicateQuestOperationsCode,
+                    $"Quest operations profile '{operations.Id}' is assigned more than once.",
+                    $"quests/{quest.Id}/operations/id"));
+            }
         }
 
         if (project.Module.Localization.Messages.Count > 0)

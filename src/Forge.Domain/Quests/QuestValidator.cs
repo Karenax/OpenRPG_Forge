@@ -63,6 +63,8 @@ public static class QuestValidator
                 $"quests/{quest.Id}/states/{state.Id}"));
         }
 
+        diagnostics.AddRange(QuestOperationsValidator.Validate(quest));
+
         return diagnostics;
     }
 }

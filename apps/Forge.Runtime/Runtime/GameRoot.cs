@@ -25,6 +25,7 @@ using Forge.Domain.Entities;
 using Forge.Domain.Factions;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Lifecycle;
+using Forge.Domain.Items;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
@@ -74,6 +75,12 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<Node3D, CreatureEventProfile> _corpseCreatureEvents = [];
     private ProjectBlackboard _blackboard = new([], allowUndeclared: true);
     private readonly HashSet<string> _inventory = new(StringComparer.Ordinal);
+    private ItemUniqueRegistryState _uniqueItemRegistry = ItemUniqueRegistryState.Empty;
+    private BlueprintDefinition? _keyItemBlueprint;
+    private Guid? _keyItemUniqueToken;
+    private decimal _keyItemEconomicValue;
+    private int _keyItemGeneratedAffixes;
+    private readonly HashSet<QuestTransitionId> _chosenQuestTransitions = [];
     private readonly NativeForgeScriptRuntime _forgeScriptRuntime = new();
     private readonly List<RuntimeLifecycleEvent> _lifecycleEvents = [];
     private readonly HeartbeatScheduler _heartbeatScheduler = new();
@@ -792,6 +799,14 @@ public partial class GameRoot : Node3D
         var quest = guidedPrototype ? project.Quests.SingleOrDefault() : null;
         _questDefinition = quest;
         _questMachine = quest is null ? null : new QuestStateMachine(quest);
+        if (quest?.Operations is { } questOperations)
+        {
+            var notification = QuestOperationsRuntimeResolver.ResolveNotification(quest);
+            GD.Print($"OPENRPG_FORGE_RUNTIME_QUEST_OPERATIONS_LOADED profile={questOperations.Id:D} " +
+                     $"priority={questOperations.Journal.Priority} repeat={questOperations.Repeat.Enabled.ToString().ToLowerInvariant()} " +
+                     $"share={questOperations.Share.Mode.ToString().ToLowerInvariant()} " +
+                     $"exclusive={questOperations.ExclusiveChoices.Count} notification={notification.GroupKey}");
+        }
         var spawnCandidates = project.Areas
             .SelectMany(area => area.Entities.Select(entity => (Area: area, Entity: entity)))
             .Where(candidate =>
@@ -990,7 +1005,7 @@ public partial class GameRoot : Node3D
                 _player = CreatePlayer(entity, blueprint);
                 break;
             case BlueprintKind.Item:
-                _keyItem = CreateItem(entity, blueprint.DisplayName, blueprint.Slug);
+                _keyItem = CreateItem(entity, blueprint);
                 break;
             case BlueprintKind.Trigger:
                 _exit = CreateExit(entity);
@@ -1225,8 +1240,10 @@ public partial class GameRoot : Node3D
         }
     }
 
-    private Node3D CreateItem(EntityInstance entity, string displayName, string itemSlug)
+    private Node3D CreateItem(EntityInstance entity, BlueprintDefinition blueprint)
     {
+        var displayName = blueprint.DisplayName;
+        var itemSlug = blueprint.Slug;
         var root = new Node3D
         {
             Name = SafeNodeName(displayName),
@@ -1243,6 +1260,18 @@ public partial class GameRoot : Node3D
         }
         _questItemSlug = GetOverride(entity, "runtime.item") ?? itemSlug;
         _questItemDisplayName = GetOverride(entity, "runtime.displayName") ?? displayName;
+        _keyItemBlueprint = blueprint;
+        if (blueprint.ItemAdvanced is { } advanced)
+        {
+            var diagnostics = ItemAdvancedValidator.Validate(advanced, $"blueprints/{blueprint.Id}/itemAdvanced");
+            if (diagnostics.Count > 0)
+                throw new InvalidOperationException($"Advanced item '{blueprint.Slug}' is invalid: {diagnostics[0].Code}.");
+            GD.Print($"OPENRPG_FORGE_RUNTIME_ITEM_ADVANCED_LOADED profile={advanced.Id:D} " +
+                     $"weapon={(advanced.Weapon is not null).ToString().ToLowerInvariant()} " +
+                     $"armor={(advanced.Armor is not null).ToString().ToLowerInvariant()} " +
+                     $"container={(advanced.Container is not null).ToString().ToLowerInvariant()} " +
+                     $"recipes={advanced.Recipes.Count} procedural={(advanced.Generator?.Enabled == true).ToString().ToLowerInvariant()}");
+        }
         CreateLabel(root, displayName, new Color("ffe6a0"), 0.9f);
         return root;
     }
@@ -2450,6 +2479,37 @@ public partial class GameRoot : Node3D
 
         if (target == _keyItem && !_hasKey)
         {
+            if (_keyItemBlueprint?.ItemAdvanced is { } advanced)
+            {
+                var context = AdvancedItemContext(advanced, 2026);
+                var requirements = ItemAdvancedRuntimeResolver.ResolveRequirements(advanced, context);
+                if (!requirements.Allowed)
+                {
+                    _message = $"Objet inutilisable : {string.Join(", ", requirements.Missing)}.";
+                    UpdateHud();
+                    return;
+                }
+                var reservation = ItemUniqueRegistryResolver.Reserve(advanced, _uniqueItemRegistry, "player:local",
+                    "party:local", "season:2026", DateTimeOffset.UtcNow, true);
+                if (!reservation.Accepted)
+                {
+                    _message = $"Objet unique indisponible ({reservation.Code}).";
+                    UpdateHud();
+                    return;
+                }
+                _uniqueItemRegistry = reservation.State;
+                _keyItemUniqueToken = reservation.Reservation?.Token;
+                if (_keyItemUniqueToken is { } token)
+                    _uniqueItemRegistry = ItemUniqueRegistryResolver.Commit(_uniqueItemRegistry, token, true);
+                _keyItemEconomicValue = ItemAdvancedRuntimeResolver.ResolveEconomicValue(advanced, context);
+                _keyItemGeneratedAffixes = advanced.Generator?.Enabled == true
+                    ? ItemAdvancedRuntimeResolver.Generate(advanced, context).Affixes.Count : 0;
+                var identified = ItemAdvancedRuntimeResolver.ResolveIdentifiedProperties(advanced,
+                    advanced.Identification.Difficulty);
+                GD.Print($"OPENRPG_FORGE_RUNTIME_ITEM_PICKUP profile={advanced.Id:D} value={_keyItemEconomicValue:0.##} " +
+                         $"identified={identified.Count} affixes={_keyItemGeneratedAffixes} " +
+                         $"unique_revision={_uniqueItemRegistry.Revision}");
+            }
             _hasKey = true;
             _inventory.Add(_questItemSlug);
             _message = $"Vous obtenez {_questItemDisplayName}.";
@@ -3200,6 +3260,23 @@ public partial class GameRoot : Node3D
             return;
         }
 
+        if (_questDefinition?.Operations is not null)
+        {
+            var context = QuestOperationsContext();
+            var exclusive = QuestOperationsRuntimeResolver.ResolveExclusive(_questDefinition, transition.Id, context);
+            if (!exclusive.Allowed)
+            {
+                _message = "Cette voie de quête est incompatible avec un choix antérieur.";
+                return;
+            }
+            var share = QuestOperationsRuntimeResolver.ResolveShare(_questDefinition, context);
+            if (!share.Accepted)
+            {
+                _message = "Le groupe n’a pas validé cette progression de quête.";
+                return;
+            }
+            _chosenQuestTransitions.Add(transition.Id);
+        }
         var result = _questMachine.Advance(transition.Id, new RuntimeConditionEvaluator(this));
         _questState = result.Completed ? PrototypeQuestState.Completed : PrototypeQuestState.Active;
         foreach (var action in result.Actions)
@@ -3221,7 +3298,24 @@ public partial class GameRoot : Node3D
         }
 
         _message = result.State.Journal.Fallback;
+        if (_questDefinition?.Operations is not null)
+        {
+            var notice = QuestOperationsRuntimeResolver.ResolveNotification(_questDefinition);
+            GD.Print($"OPENRPG_FORGE_RUNTIME_QUEST_NOTICE visible={notice.Visible.ToString().ToLowerInvariant()} " +
+                     $"cinematic={notice.Cinematic.ToString().ToLowerInvariant()} group={notice.GroupKey} " +
+                     $"state={result.State.Id}");
+        }
     }
+
+    private QuestOperationsRuntimeContext QuestOperationsContext() => new(
+        DateTimeOffset.UtcNow, null, 0, 1, 1, true, true, _chosenQuestTransitions);
+
+    private ItemRuntimeContext AdvancedItemContext(ItemAdvancedProfile profile, int seed) => new(
+        6, 20, new HashSet<string>(["lore", "smithing"]), new HashSet<string>(["ash-attuned"]),
+        new HashSet<string>(["surface-alliance"]),
+        new HashSet<string>(_questState == PrototypeQuestState.NotStarted
+            ? ["target.ash-sealed"] : ["target.ash-sealed", "quest.accepted"]),
+        "crypt", profile.Economy.Currency, 1, profile.Durability?.Initial ?? 100, seed, "player:local", true);
 
     private void UnlockEntity(string entityId)
     {
@@ -3643,6 +3737,51 @@ public partial class GameRoot : Node3D
             "NPC interaction did not start the data-driven quest.");
         InteractWith(_keyItem!);
         AssertSmoke(_hasKey, "Key interaction did not update inventory state.");
+        var advancedItem = _keyItemBlueprint?.ItemAdvanced ??
+            throw new InvalidOperationException("The authored advanced item profile is missing.");
+        var itemContext = AdvancedItemContext(advancedItem, 2026);
+        var requirementDecision = ItemAdvancedRuntimeResolver.ResolveRequirements(advancedItem, itemContext);
+        var identifiedProperties = ItemAdvancedRuntimeResolver.ResolveIdentifiedProperties(advancedItem,
+            advancedItem.Identification.Difficulty);
+        var procDecision = ItemAdvancedRuntimeResolver.ResolveOnHit(advancedItem, "unlock-strike",
+            new Dictionary<Guid, DateTimeOffset>(), DateTimeOffset.UnixEpoch, itemContext);
+        AssertSmoke(requirementDecision.Allowed && _keyItemEconomicValue > 0 && identifiedProperties.Count >= 3 &&
+                    procDecision.Triggered, "Economy, requirements, identification or on-hit data did not resolve.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G13K_ITEM_FOUNDATION_PASS value={_keyItemEconomicValue:0.##} " +
+                 $"requirements=allowed knowledge={identifiedProperties.Count} ownership=stolen " +
+                 $"proc={procDecision.EffectId}");
+        var ammo = ItemAmmoResolver.Fire(advancedItem, 5, 2026,
+            Guid.Parse("a1610000-0000-4000-8000-000000000020"));
+        var weapon = advancedItem.Weapon ?? throw new InvalidOperationException("The authored weapon profile is missing.");
+        var armor = advancedItem.Armor ?? throw new InvalidOperationException("The authored armor profile is missing.");
+        var container = advancedItem.Container ?? throw new InvalidOperationException("The authored container profile is missing.");
+        var durability = ItemAdvancedRuntimeResolver.ApplyWear(advancedItem,
+            advancedItem.Durability?.Initial ?? 0, 2, 1);
+        var canNest = ItemAdvancedRuntimeResolver.CanNest(
+            Guid.Parse("a1610000-0000-4000-8000-000000000021"),
+            Guid.Parse("a1610000-0000-4000-8000-000000000022"),
+            new Dictionary<Guid, Guid?>(), advancedItem.Container?.MaximumDepth ?? 1);
+        AssertSmoke(ammo.Fired &&
+                    durability.Current < advancedItem.Durability!.Initial && canNest,
+            "Equipment, ammo, durability or container policies did not execute.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G13L_ITEM_EQUIPMENT_PASS weapon={weapon.WeaponClass} " +
+                 $"armor={armor.Material} ammo={ammo.Remaining} durability={durability.Current} " +
+                 $"container_depth={container.MaximumDepth}");
+        var lootContext = ItemAdvancedRuntimeResolver.ResolveLootContext(advancedItem, "crypt-chest", "crypt",
+            "ash-watch", "normal", new HashSet<string>(["undead"]), "eclipse", itemContext);
+        var ownership = ItemLootOwnershipResolver.Resolve(advancedItem, new("player:local", "player:local",
+            "party:local", "party:local", DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch, false, null,
+            false, true));
+        var recipe = advancedItem.Recipes.Single();
+        var craft = ItemCraftingResolver.Resolve(advancedItem, recipe.Id,
+            new("forge", new HashSet<string>(["smithing"]), 2,
+                new Dictionary<string, int> { ["tag:ember-metal"] = 2 }, true));
+        AssertSmoke(lootContext.RuleId is not null && ownership.Allowed && craft.Allowed &&
+                    _keyItemUniqueToken is not null && _keyItemGeneratedAffixes > 0,
+            "Contextual loot, ownership, craft, unique registry or procedural generation did not execute.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G13M_ITEM_LOOT_CRAFT_PASS context={lootContext.RuleId:D} " +
+                 $"ownership={ownership.Code} recipe={recipe.Slug} unique={_keyItemUniqueToken:D} " +
+                 $"affixes={_keyItemGeneratedAffixes}");
         InteractWith(_door!);
         AssertSmoke(_doorUnlocked, "Door interaction did not unlock the door.");
 
@@ -3685,6 +3824,19 @@ public partial class GameRoot : Node3D
             "authority=server replication=revisioned");
         AssertSmoke(_questState == PrototypeQuestState.Completed, "Quest was not completed.");
         AssertSmoke(_questMachine?.Completed == true, "Data-driven quest was not completed.");
+        var questOperations = _questDefinition?.Operations ??
+            throw new InvalidOperationException("The authored quest operations profile is missing.");
+        var repeat = QuestOperationsRuntimeResolver.ResolveRepeat(_questDefinition!, new(
+            DateTimeOffset.Parse("2026-08-06T12:00:00Z"), DateTimeOffset.Parse("2026-08-06T10:00:00Z"),
+            1, 1, 1, true, true, _chosenQuestTransitions));
+        var sortedJournal = QuestOperationsRuntimeResolver.SortJournal([_questDefinition!]);
+        AssertSmoke(repeat.Allowed && repeat.RewardMultiplier == questOperations.Repeat.RewardDecay &&
+                    sortedJournal.Single().Id == _questDefinition!.Id && _chosenQuestTransitions.Count == 3,
+            "Quest journal, repetition, sharing or exclusive-choice policies did not execute.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G13J_QUEST_OPERATIONS_PASS priority={questOperations.Journal.Priority} " +
+                 $"repeat_seed={repeat.Seed} reward={repeat.RewardMultiplier:0.###} " +
+                 $"share={questOperations.Share.Mode.ToString().ToLowerInvariant()} " +
+                 $"choices={questOperations.ExclusiveChoices.Count} notifications={questOperations.Notification.Mode.ToString().ToLowerInvariant()}");
 
         GD.Print("OPENRPG_FORGE_RUNTIME_SMOKE_PASS quest=completed door=unlocked boss=defeated");
         GetTree().Quit(0);

@@ -38,6 +38,14 @@ Le prototype MCP emploie exclusivement un pipe nommé limité à l'utilisateur c
 - Toolset, Runtime et MCP appellent l’application ; ils ne modifient pas directement l’état persistant.
 - Les objets de scène sont des représentations reconstructibles.
 
+## Profils RPG avancés
+
+Les opérations avancées de quête et d’objet restent des profils optionnels attachés aux agrégats
+canoniques. Le domaine pur valide et résout ordre, seed, contexte et autorité ; l’application porte
+les transactions ; Toolset, ForgeScript, MCP et runtime ne sont que des consommateurs. Les registres
+d’unicité et recettes utilisent des opérations atomiques explicites. Voir
+`docs/ADR/ADR-0039-canonical-quest-item-depth.md`.
+
 ## Bootstrap minimal
 
 Le premier lot ne crée que :

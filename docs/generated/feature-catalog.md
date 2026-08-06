@@ -413,29 +413,29 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-ITEM-004 | Identité et localisation | P0 | Implemented | G8 |
 | ORF-ITEM-005 | Apparence personnalisable | P1 | Implemented | G8 |
 | ORF-ITEM-006 | Poids et encombrement | P1 | Implemented | G8 |
-| ORF-ITEM-007 | Valeur et coût | P2 | Researched | G13 |
+| ORF-ITEM-007 | Valeur et coût | P2 | Tested | G13 |
 | ORF-ITEM-008 | Piles | P1 | Implemented | G8 |
 | ORF-ITEM-009 | Charges et utilisations | P1 | Implemented | G8 |
-| ORF-ITEM-010 | Niveau ou Lore requis | P2 | Researched | G13 |
-| ORF-ITEM-011 | Objet identifié | P2 | Researched | G13 |
-| ORF-ITEM-012 | Objet volé | P2 | Researched | G13 |
+| ORF-ITEM-010 | Niveau ou Lore requis | P2 | Tested | G13 |
+| ORF-ITEM-011 | Objet identifié | P2 | Tested | G13 |
+| ORF-ITEM-012 | Objet volé | P2 | Tested | G13 |
 | ORF-ITEM-013 | Objet plot | P1 | Implemented | G8 |
 | ORF-ITEM-014 | Indroppable et transfert | P1 | Implemented | G8 |
 | ORF-ITEM-015 | Propriétés magiques | P1 | Implemented | G8 |
 | ORF-ITEM-016 | Pouvoir unique | P1 | Implemented | G8 |
-| ORF-ITEM-017 | Effets On Hit | P2 | Researched | G13 |
+| ORF-ITEM-017 | Effets On Hit | P2 | Tested | G13 |
 | ORF-ITEM-018 | Équipement et slots | P1 | Implemented | G8 |
-| ORF-ITEM-019 | Armes et combat | P2 | Researched | G13 |
-| ORF-ITEM-020 | Armures et protection | P2 | Researched | G13 |
-| ORF-ITEM-021 | Munitions et projectiles | P3 | Researched | G13 |
-| ORF-ITEM-022 | Usure et durabilité | P3 | Researched | G13 |
-| ORF-ITEM-023 | Conteneurs imbriqués | P2 | Researched | G13 |
+| ORF-ITEM-019 | Armes et combat | P2 | Tested | G13 |
+| ORF-ITEM-020 | Armures et protection | P2 | Tested | G13 |
+| ORF-ITEM-021 | Munitions et projectiles | P3 | Tested | G13 |
+| ORF-ITEM-022 | Usure et durabilité | P3 | Tested | G13 |
+| ORF-ITEM-023 | Conteneurs imbriqués | P2 | Tested | G13 |
 | ORF-ITEM-024 | Loot tables | P1 | Implemented | G8 |
-| ORF-ITEM-025 | Trésor par contexte | P2 | Researched | G13 |
-| ORF-ITEM-026 | Objets uniques | P2 | Researched | G13 |
-| ORF-ITEM-027 | Butin instancié | P2 | Researched | G13 |
-| ORF-ITEM-028 | Artisanat et matériaux | P2 | Researched | G13 |
-| ORF-ITEM-029 | Génération procédurale d’objet | P2 | Researched | G13 |
+| ORF-ITEM-025 | Trésor par contexte | P2 | Tested | G13 |
+| ORF-ITEM-026 | Objets uniques | P2 | Tested | G13 |
+| ORF-ITEM-027 | Butin instancié | P2 | Tested | G13 |
+| ORF-ITEM-028 | Artisanat et matériaux | P2 | Tested | G13 |
+| ORF-ITEM-029 | Génération procédurale d’objet | P2 | Tested | G13 |
 | ORF-ITEM-030 | Inspecteur d’inventaire | P1 | Implemented | G8 |
 | ORF-ITEM-031 | Événements d’objet | P1 | Implemented | G8 |
 | ORF-ITEM-032 | Validation d’objet | P0 | Implemented | G8 |
@@ -602,19 +602,19 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-QST-006 | Objectifs explicites | P1 | Implemented | G8 |
 | ORF-QST-007 | Transitions d’état | P0 | Researched | G1 |
 | ORF-QST-008 | Récompenses | P1 | Implemented | G8 |
-| ORF-QST-009 | Priorité du journal | P2 | Researched | G13 |
+| ORF-QST-009 | Priorité du journal | P2 | Tested | G13 |
 | ORF-QST-010 | Commentaires auteur | P1 | Implemented | G8 |
 | ORF-QST-011 | Plot Wizard | P1 | Implemented | G8 |
 | ORF-QST-012 | Cast du scénario | P1 | Implemented | G8 |
 | ORF-QST-013 | Props du scénario | P1 | Implemented | G8 |
 | ORF-QST-014 | Étapes de scénario | P1 | Implemented | G8 |
 | ORF-QST-015 | Quêtes cachées ou révélées | P1 | Implemented | G8 |
-| ORF-QST-016 | Quêtes répétables | P2 | Researched | G13 |
-| ORF-QST-017 | Quêtes de groupe | P2 | Researched | G13 |
-| ORF-QST-018 | Choix exclusifs | P2 | Researched | G13 |
+| ORF-QST-016 | Quêtes répétables | P2 | Tested | G13 |
+| ORF-QST-017 | Quêtes de groupe | P2 | Tested | G13 |
+| ORF-QST-018 | Choix exclusifs | P2 | Tested | G13 |
 | ORF-QST-019 | Chronologie des événements | P1 | Implemented | G8 |
 | ORF-QST-020 | Pins de carte | P1 | Implemented | G8 |
-| ORF-QST-021 | Notifications | P2 | Researched | G13 |
+| ORF-QST-021 | Notifications | P2 | Tested | G13 |
 | ORF-QST-022 | Simulation de quête | P0 | Researched | G1 |
 | ORF-QST-023 | Validation narrative | P0 | Researched | G1 |
 | ORF-QST-024 | Tests générés | P1 | Implemented | G8 |

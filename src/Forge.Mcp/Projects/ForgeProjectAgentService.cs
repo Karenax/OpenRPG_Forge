@@ -7,6 +7,7 @@ using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Factions;
 using Forge.Application.Projects;
+using Forge.Application.Quests;
 using Forge.Application.Time;
 using Forge.Application.Validation;
 using Forge.Domain.Areas;
@@ -17,6 +18,8 @@ using Forge.Domain.Creatures;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Factions;
+using Forge.Domain.Items;
+using Forge.Domain.Quests;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Rules;
@@ -29,6 +32,7 @@ using Forge.Mcp.Quests;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Creatures;
 using Forge.Mcp.Factions;
+using Forge.Mcp.Items;
 using Forge.Mcp.Scripts;
 using Forge.RpgKit.Application.Abilities;
 using Forge.RpgKit.Application.Dialogues;
@@ -73,6 +77,8 @@ public sealed class ForgeProjectAgentService
     private readonly SetCreatureEventsHandler _creatureEventsHandler;
     private readonly SetFactionCatalogHandler _factionHandler;
     private readonly SetDialoguePresentationHandler _dialoguePresentationHandler;
+    private readonly SetQuestOperationsHandler _questOperationsHandler;
+    private readonly SetItemAdvancedProfileHandler _itemAdvancedHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
     private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
@@ -137,6 +143,8 @@ public sealed class ForgeProjectAgentService
         _creatureEventsHandler = new SetCreatureEventsHandler(clock);
         _factionHandler = new SetFactionCatalogHandler(clock);
         _dialoguePresentationHandler = new SetDialoguePresentationHandler(clock);
+        _questOperationsHandler = new SetQuestOperationsHandler(clock);
+        _itemAdvancedHandler = new SetItemAdvancedProfileHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
         _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
@@ -197,6 +205,107 @@ public sealed class ForgeProjectAgentService
         lock (_gate)
         {
             return _history.State.Revision.Value;
+        }
+    }
+
+    public QuestOperationsResource QueryQuestOperations(string? questIdOrSearch = null, int limit = 50)
+    {
+        if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        lock (_gate)
+        {
+            var filter = questIdOrSearch?.Trim();
+            var items = _history.State.Project.Quests.Where(item => item.Operations is not null)
+                .Where(item => string.IsNullOrWhiteSpace(filter) ||
+                    string.Equals(item.Id.ToString(), filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.DisplayName.Contains(filter, StringComparison.CurrentCultureIgnoreCase))
+                .OrderBy(item => item.Slug, StringComparer.Ordinal).Take(limit)
+                .Select(item => new QuestOperationsResourceItem(item.Id.ToString(), item.Slug, item.DisplayName,
+                    item.Operations!.Id.ToString("D"), item.Operations.Journal.Priority,
+                    item.Operations.Journal.NarrativeImportance, item.Operations.Repeat.Enabled,
+                    item.Operations.Share.Mode.ToString(), item.Operations.ExclusiveChoices.Count,
+                    item.Operations.Notification.Mode.ToString(), item.Operations.RequiredAtRuntime))
+                .ToArray();
+            return new(1, _history.State.Revision.Value, filter, items);
+        }
+    }
+
+    public QuestOperationsPlanResult PreviewQuestOperations(QuestOperationsPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("quest.operations.mcp_schema_unsupported",
+                        "Quest-operations MCP request schema must be v1.", "request/schemaVersion")]);
+            if (!Guid.TryParse(request.QuestId, out var parsed) || parsed == Guid.Empty)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("quest.operations.mcp_id_invalid", "Quest ID must be a non-empty UUID.",
+                        "request/questId")]);
+            var result = _questOperationsHandler.Handle(_history.State, new SetQuestOperationsCommand(
+                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), QuestId.From(parsed),
+                request.Profile, true));
+            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
+                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    $"quests/{request.QuestId}/operations")).ToArray());
+        }
+    }
+
+    public ItemAdvancedResource QueryAdvancedItems(string? blueprintIdOrSearch = null, int limit = 50)
+    {
+        if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        lock (_gate)
+        {
+            var filter = blueprintIdOrSearch?.Trim();
+            var items = _history.State.Project.Blueprints.Where(item => item.ItemAdvanced is not null)
+                .Where(item => string.IsNullOrWhiteSpace(filter) ||
+                    string.Equals(item.Id.ToString(), filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.DisplayName.Contains(filter, StringComparison.CurrentCultureIgnoreCase))
+                .OrderBy(item => item.Slug, StringComparer.Ordinal).Take(limit)
+                .Select(item =>
+                {
+                    var profile = item.ItemAdvanced!;
+                    var requirements = profile.Requirements.Skills.Count + profile.Requirements.Traits.Count +
+                                       profile.Requirements.Factions.Count +
+                                       (profile.Requirements.MinimumLevel > 0 ? 1 : 0) +
+                                       (profile.Requirements.MinimumLore > 0 ? 1 : 0) +
+                                       (profile.Requirements.ScriptCondition is null ? 0 : 1);
+                    return new ItemAdvancedResourceItem(item.Id.ToString(), item.Slug, item.DisplayName,
+                        profile.Id.ToString("D"), profile.Economy.BaseCost, requirements,
+                        profile.Identification.Levels.Count, profile.OnHitProcs.Count, profile.Weapon is not null,
+                        profile.Armor is not null, profile.Ammo is not null, profile.Durability?.Enabled == true,
+                        profile.Container is not null, profile.LootContexts.Count, profile.Unique.Enabled,
+                        profile.Recipes.Count, profile.Generator?.Enabled == true, profile.RequiredAtRuntime);
+                }).ToArray();
+            return new(1, _history.State.Revision.Value, filter, items);
+        }
+    }
+
+    public ItemAdvancedPlanResult PreviewAdvancedItem(ItemAdvancedPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("item.advanced.mcp_schema_unsupported",
+                        "Advanced-item MCP request schema must be v1.", "request/schemaVersion")]);
+            BlueprintId blueprintId;
+            try { blueprintId = BlueprintId.Parse(request.BlueprintId); }
+            catch (Exception exception) when (exception is FormatException or ArgumentException)
+            {
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("item.advanced.mcp_blueprint_invalid", exception.Message,
+                        "request/blueprintId")]);
+            }
+            var result = _itemAdvancedHandler.Handle(_history.State, new SetItemAdvancedProfileCommand(
+                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), blueprintId,
+                request.Profile, true));
+            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
+                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    $"blueprints/{blueprintId}/itemAdvanced")).ToArray());
         }
     }
 

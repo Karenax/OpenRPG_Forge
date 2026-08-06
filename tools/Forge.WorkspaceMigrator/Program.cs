@@ -3,7 +3,9 @@ using Forge.Domain.Creatures;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Factions;
 using Forge.Domain.Lifecycle;
+using Forge.Domain.Items;
 using Forge.Domain.Projects;
+using Forge.Domain.Quests;
 using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Sequences;
@@ -15,10 +17,12 @@ var addCreatureRoleBehaviorSample = args.Contains("--creature-role-behavior-samp
 var addCreatureEventsSample = args.Contains("--creature-events-sample", StringComparer.Ordinal);
 var addAdvancedFactionSample = args.Contains("--faction-advanced-sample", StringComparer.Ordinal);
 var addDialoguePresentationSample = args.Contains("--dialogue-presentation-sample", StringComparer.Ordinal);
+var addQuestOperationsSample = args.Contains("--quest-operations-sample", StringComparer.Ordinal);
+var addItemAdvancedSample = args.Contains("--item-advanced-sample", StringComparer.Ordinal);
 var workspaceArguments = args.Where(argument => !argument.StartsWith("--", StringComparison.Ordinal)).ToArray();
 if (workspaceArguments.Length == 0)
 {
-    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] [--creature-events-sample] [--faction-advanced-sample] [--dialogue-presentation-sample] <workspace> [workspace ...]");
+    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] [--creature-events-sample] [--faction-advanced-sample] [--dialogue-presentation-sample] [--quest-operations-sample] [--item-advanced-sample] <workspace> [workspace ...]");
     return 2;
 }
 
@@ -38,6 +42,8 @@ foreach (var argument in workspaceArguments)
     if (addCreatureEventsSample) project = AddCreatureEventsSample(project);
     if (addAdvancedFactionSample) project = AddAdvancedFactionSample(project);
     if (addDialoguePresentationSample) project = AddDialoguePresentationSample(project);
+    if (addQuestOperationsSample) project = AddQuestOperationsSample(project);
+    if (addItemAdvancedSample) project = AddItemAdvancedSample(project);
     var saved = opened.Session.Save(project);
     if (!saved.Succeeded)
     {
@@ -50,6 +56,85 @@ foreach (var argument in workspaceArguments)
 }
 
 return 0;
+
+static ProjectDefinition AddQuestOperationsSample(ProjectDefinition project)
+{
+    if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal)) return project;
+    var quests = project.Quests.Select(quest =>
+    {
+        if (!string.Equals(quest.Slug, "crypt-of-ashes", StringComparison.Ordinal)) return quest;
+        var exclusiveTransition = quest.Transitions.First().Id;
+        var profile = new QuestOperationsProfile(
+            Guid.Parse("a1600000-0000-4000-8000-000000000001"), 1, "sample:g13-j", true,
+            new(QuestJournalSortingPolicy.ImportanceThenUpdated, 90, true, true, 95, true),
+            new(true, 3_600, 3, QuestRepeatResetMode.Full, [], .75, 2026),
+            new(QuestShareMode.Unanimous, true, QuestSeparationPolicy.SnapshotIndividual, true),
+            [new(Guid.Parse("a1600000-0000-4000-8000-000000000002"), exclusiveTransition,
+                "crypt-ending", true,
+                new LocalizedText("quest.crypt.choice.confirm", "Accepter cette voie irréversible ?"),
+                new LocalizedText("quest.crypt.choice.consequence", "Les autres voies seront verrouillées."),
+                [], "sample:g13-j")],
+            new(QuestNotificationMode.Grouped,
+                new LocalizedText("quest.crypt.notice.title", "Crypte mise à jour"),
+                new LocalizedText("quest.crypt.notice.body", "Un nouvel objectif est disponible."),
+                "Quête Crypte des Cendres mise à jour : nouvel objectif disponible.", "crypt-main", 3));
+        return quest.WithOperations(profile);
+    }).ToArray();
+    return new(project.Id, project.Title, project.Module, project.Blueprints, project.Areas,
+        project.Dialogues, quests);
+}
+
+static ProjectDefinition AddItemAdvancedSample(ProjectDefinition project)
+{
+    if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal)) return project;
+    var blueprints = project.Blueprints.Select(blueprint =>
+    {
+        if (!string.Equals(blueprint.Slug, "ash-key", StringComparison.Ordinal)) return blueprint;
+        var profile = ItemAdvancedProfile.CreateDefault(
+            Guid.Parse("a1610000-0000-4000-8000-000000000001"), "sample:g13-k-m") with
+        {
+            RequiredAtRuntime = true,
+            Economy = new("gold", 125, 1.1, 1.4, .5, 1,
+                new Dictionary<string, decimal> { ["crypt"] = 150 }),
+            Requirements = new(1, 2, ["lore"], ["ash-attuned"], ["surface-alliance"],
+                "quest.accepted"),
+            Identification = new("unknown", 12, 5, "gold", true,
+                [new("unknown", 0, ["name"]), new("recognized", 6, ["origin", "value"]),
+                 new("identified", 12, ["unlock", "on-hit", "unique"])]),
+            Ownership = new(true, "ash-watch", "crypt", true,
+                [new(Guid.Parse("a1610000-0000-4000-8000-000000000002"), "ash-watch", "crypt",
+                    "warden-seal", DateTimeOffset.Parse("2026-08-01T00:00:00Z"), "sample:g13-k")]),
+            OnHitProcs = [new(Guid.Parse("a1610000-0000-4000-8000-000000000003"), "unlock-strike", 1,
+                2, "target.ash-sealed", "ash-key-pulse", "wielder", true, "sample:g13-k")],
+            Weapon = new("ritual-key", .8, false,
+                [new("key-thrust", "fire", 1, 4, 1.2, "attack.key-thrust", ["ritual"])],
+                ["key", "ritual"]),
+            Armor = new(["hand"], 5, .2, 0, "ember-steel",
+                new Dictionary<string, double> { ["fire"] = .25 }, ["dim", "cracked"]),
+            Ammo = new("ash-spark", "assets/projectiles/ash-spark.glb", 12, .5, "fire", true),
+            Durability = new(true, 40, 40, .25, 1, "smithing", 2, "item.ash-key.broken",
+                "visual.ash-key.cracked"),
+            Container = new(4, 10, 2, .75, ["gem", "key-fragment"], ["inventory.open"], true, true),
+            LootContexts = [new(Guid.Parse("a1610000-0000-4000-8000-000000000004"), "crypt-chest",
+                "crypt", "ash-watch", 1, 20, "normal", ["undead"], "quest.accepted", "eclipse", 5,
+                "sample:g13-m")],
+            Unique = new(true, "unique:ash-key", ItemUniqueScope.World, 60, true),
+            LootOwnership = new(ItemLootOwnershipMode.Personal, 120, true, true),
+            Recipes = [new(Guid.Parse("a1610000-0000-4000-8000-000000000005"), "repair-ash-key",
+                [new("tag:ember-metal", 2, true, 1)], "forge", "smithing", 10, 1, 6, [],
+                "sample:g13-m")],
+            Generator = new(true, 6, 1, 2, ["ritual-key"],
+                new Dictionary<string, int> { ["common"] = 80, ["rare"] = 20 },
+                [new(Guid.Parse("a1610000-0000-4000-8000-000000000006"), "keen", "ritual-key", 2, 5,
+                        "common", ["heavy"], ["critical"], "sample:g13-m"),
+                 new(Guid.Parse("a1610000-0000-4000-8000-000000000007"), "ember", "ritual-key", 4, 2,
+                        "rare", [], ["fire-damage"], "sample:g13-m")], 17)
+        };
+        return blueprint.WithItemAdvanced(profile);
+    }).ToArray();
+    return new(project.Id, project.Title, project.Module, blueprints, project.Areas,
+        project.Dialogues, project.Quests);
+}
 
 static ProjectDefinition AddDialoguePresentationSample(ProjectDefinition project)
 {
@@ -147,7 +232,7 @@ static ProjectDefinition AddCreatureLootSample(ProjectDefinition project)
         return new BlueprintDefinition(blueprint.Id, blueprint.Slug, blueprint.DisplayName, blueprint.Kind,
             blueprint.Combat, blueprint.PaletteOrigin, blueprint.IsFavorite, blueprint.Provenance,
             blueprint.CreaturePresentation, blueprint.CreatureProgression, loot, blueprint.CreatureRoleBehavior,
-            blueprint.CreatureEvents);
+            blueprint.CreatureEvents, blueprint.ItemAdvanced);
     }).ToArray();
     return new ProjectDefinition(project.Id, project.Title, project.Module, blueprints, project.Areas,
         project.Dialogues, project.Quests);
@@ -192,7 +277,8 @@ static ProjectDefinition AddCreatureRoleBehaviorSample(ProjectDefinition project
             throw new InvalidOperationException("The G13-E sample profile cannot resolve its deterministic progression.");
         return new BlueprintDefinition(blueprint.Id, blueprint.Slug, blueprint.DisplayName, blueprint.Kind,
             blueprint.Combat, blueprint.PaletteOrigin, blueprint.IsFavorite, blueprint.Provenance,
-            blueprint.CreaturePresentation, preview.Result, blueprint.CreatureLoot, behavior, blueprint.CreatureEvents);
+            blueprint.CreaturePresentation, preview.Result, blueprint.CreatureLoot, behavior, blueprint.CreatureEvents,
+            blueprint.ItemAdvanced);
     }).ToArray();
     return new ProjectDefinition(project.Id, project.Title, project.Module, blueprints, project.Areas,
         project.Dialogues, project.Quests);
@@ -231,7 +317,7 @@ static ProjectDefinition AddCreatureEventsSample(ProjectDefinition project)
         return new BlueprintDefinition(blueprint.Id, blueprint.Slug, blueprint.DisplayName, blueprint.Kind,
             blueprint.Combat, blueprint.PaletteOrigin, blueprint.IsFavorite, blueprint.Provenance,
             blueprint.CreaturePresentation, blueprint.CreatureProgression, blueprint.CreatureLoot,
-            blueprint.CreatureRoleBehavior, events);
+            blueprint.CreatureRoleBehavior, events, blueprint.ItemAdvanced);
     }).ToArray();
     return new ProjectDefinition(project.Id, project.Title, project.Module, blueprints, project.Areas,
         project.Dialogues, project.Quests);

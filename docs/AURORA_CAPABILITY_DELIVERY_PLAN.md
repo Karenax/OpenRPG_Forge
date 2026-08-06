@@ -505,8 +505,10 @@ quatre exigences de factions avancées avec hiérarchie, témoins, affiliations 
 dynamique, autorité serveur, UI, formats, scripts, MCP et runtime. **G13-H** ferme ensuite cinq
 exigences de présentation cinématique des dialogues avec animations, voix/sous-titres, caméra,
 bookmarks et interjections autoritaires. **G13-I** ferme les choix temporisés accessibles et les
-variantes conditionnelles/pondérées déterministes. La file est arrêtée après ce lot jusqu’à nouvelle
-demande.
+variantes conditionnelles/pondérées déterministes. **G13-J** ferme les opérations de quête : journal,
+répétition, partage, exclusivité et notifications. **G13-K**, **G13-L** et **G13-M** ferment quinze
+exigences objet : économie et connaissance, équipement et conteneurs, puis loot, unicité, artisanat
+et génération déterministe. Ce run est arrêté après G13-M ; aucune tranche suivante n’est ouverte.
 
 ## 7. Graphe de dépendances
 

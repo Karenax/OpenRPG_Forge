@@ -202,7 +202,8 @@ public sealed class SafeRenameHandler
                     blueprint.CreatureProgression,
                     blueprint.CreatureLoot,
                     blueprint.CreatureRoleBehavior,
-                    blueprint.CreatureEvents)
+                    blueprint.CreatureEvents,
+                    blueprint.ItemAdvanced)
                 : blueprint).ToArray()
             : project.Blueprints;
         var dialogues = kind == CreatorContentKind.Dialogue
@@ -212,7 +213,8 @@ public sealed class SafeRenameHandler
             : project.Dialogues;
         var quests = kind == CreatorContentKind.Quest
             ? project.Quests.Select(quest => quest.Id.ToString() == targetId
-                ? new QuestDefinition(quest.Id, slug!, displayName, quest.InitialStateId, quest.States, quest.Transitions)
+                ? new QuestDefinition(quest.Id, slug!, displayName, quest.InitialStateId, quest.States, quest.Transitions,
+                    quest.Operations)
                 : quest).ToArray()
             : project.Quests;
         return new ProjectDefinition(

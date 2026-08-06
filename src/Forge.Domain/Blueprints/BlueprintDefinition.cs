@@ -1,5 +1,6 @@
 using Forge.Domain.Combat;
 using Forge.Domain.Creatures;
+using Forge.Domain.Items;
 
 namespace Forge.Domain.Blueprints;
 
@@ -31,6 +32,8 @@ public sealed record BlueprintDefinition
 
     public CreatureEventProfile? CreatureEvents { get; }
 
+    public ItemAdvancedProfile? ItemAdvanced { get; }
+
     public bool IsReadOnly() => PaletteOrigin == BlueprintPaletteOrigin.InstalledPack;
 
     public BlueprintDefinition(
@@ -46,7 +49,8 @@ public sealed record BlueprintDefinition
         CreatureProgressionProfile? creatureProgression = null,
         CreatureLootProfile? creatureLoot = null,
         CreatureRoleBehaviorProfile? creatureRoleBehavior = null,
-        CreatureEventProfile? creatureEvents = null)
+        CreatureEventProfile? creatureEvents = null,
+        ItemAdvancedProfile? itemAdvanced = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -100,5 +104,17 @@ public sealed record BlueprintDefinition
         }
 
         CreatureEvents = creatureEvents;
+        if (itemAdvanced is not null && kind != BlueprintKind.Item)
+        {
+            throw new ArgumentException(
+                "Advanced item data can only be assigned to item blueprints.",
+                nameof(itemAdvanced));
+        }
+
+        ItemAdvanced = itemAdvanced;
     }
+
+    public BlueprintDefinition WithItemAdvanced(ItemAdvancedProfile? profile) => new(
+        Id, Slug, DisplayName, Kind, Combat, PaletteOrigin, IsFavorite, Provenance,
+        CreaturePresentation, CreatureProgression, CreatureLoot, CreatureRoleBehavior, CreatureEvents, profile);
 }
