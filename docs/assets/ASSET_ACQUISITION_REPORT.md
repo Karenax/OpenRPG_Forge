@@ -44,3 +44,8 @@ Le fonds 3D est intégré au Vault et catalogué, mais pas encore déclaré prê
 de production. Les contrôles visuels, normalisation d’échelle/pivot, matériaux Godot, collisions,
 LOD, miniatures locales et sélection artistique Forgotten Forest restent à réaliser. Le catalogue
 complet maximise la matière disponible ; une carte ne doit en employer qu’un sous-ensemble cohérent.
+
+Depuis le 5 août 2026, le pipeline possède reprise HTTP, cache SHA-256, rafraîchissement immuable,
+plan de diff et désinstallation locale récupérable. Ces fonctions sont validées sur fixtures sans
+réexécuter le miroir de 4,16 Gio ; le volume et les comptes ci-dessus restent ceux du snapshot
+d’acquisition du 2 août.

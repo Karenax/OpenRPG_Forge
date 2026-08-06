@@ -19,6 +19,8 @@ la licence, l’URL de licence, la date de vérification, les fichiers télécha
 
 Les enregistrements vérifiés sont dans `asset_manifests/sources/`. Cette admission concerne les
 assets téléchargés depuis les URLs officielles, pas des miroirs ou redistributions tierces.
+Le registre accepté, manuel, refusé ou différé et son gate d’admission sont maintenus dans
+`docs/assets/ASSET_SOURCE_GOVERNANCE.md`.
 
 ## État d’un asset
 

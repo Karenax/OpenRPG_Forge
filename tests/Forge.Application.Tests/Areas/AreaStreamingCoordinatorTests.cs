@@ -38,10 +38,12 @@ public sealed class AreaStreamingCoordinatorTests
         var loader = new BlockingLoader();
         var coordinator = new AreaStreamingCoordinator(loader);
         using var cancellation = new CancellationTokenSource();
-        cancellation.CancelAfter(TimeSpan.FromMilliseconds(25));
+        var load = coordinator.LoadAsync(Profile(["areas/slow.bin"]), cancellationToken: cancellation.Token);
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            coordinator.LoadAsync(Profile(["areas/slow.bin"]), cancellationToken: cancellation.Token));
+        await loader.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => load);
         Assert.True(loader.CancellationObserved);
     }
 
@@ -65,10 +67,12 @@ public sealed class AreaStreamingCoordinatorTests
 
     private sealed class BlockingLoader : IAreaChunkLoader
     {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public bool CancellationObserved { get; private set; }
 
         public async Task<AreaChunkPayload> LoadAsync(string resourcePath, CancellationToken cancellationToken)
         {
+            Started.TrySetResult();
             try
             {
                 await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);

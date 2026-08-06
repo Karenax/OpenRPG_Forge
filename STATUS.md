@@ -6,7 +6,8 @@ Dernière mise à jour : 5 août 2026.
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
 G11 Contenu moderne fermés. AV4B livre maintenant une première carte 3D extérieure jouable,
-exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault.**
+exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault et AV2 sécurise le
+cycle de vie des acquisitions.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -99,7 +100,7 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
 - solution de 25 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 705 tests .NET, 24 tests Python généraux et 11 tests Python du pipeline d'assets réussis ;
+- 705 tests .NET, 24 tests Python généraux et 20 tests Python du pipeline d'assets réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -390,3 +391,11 @@ par SHA-256, plusieurs packs partagent le même blob, les originaux restent inch
 désinstallation sauvegarde registre et objets avant de retirer les références actives. Les crédits
 Markdown et texte sont reconstruits depuis les seuls assets installés. Trois nouveaux tests portent
 la suite .NET à 705 et `ORF-CONT-027`/`ORF-CONT-030` deviennent `Tested`.
+
+**AV2 — cycle d’acquisition fermé** : les téléchargements reprennent par HTTP Range, remplissent un
+cache SHA-256 et, avec `--update`, versionnent tout nouvel original et son extraction sans écraser le
+snapshot antérieur. Le diff de catalogues sépare ajouts, changements, retraits et inchangés. La
+désinstallation est sèche par défaut, rejette traversal, plan altéré ou contenu modifié, puis déplace
+les octets vers un backup récupérable avec reçu et registre. Vingt tests Python valident ce contrat
+sans retélécharger le Vault réel. Le registre de gouvernance distingue en plus sources automatisées,
+packs manuels, catégories refusées ou différées et gate d’admission d’un nouvel adaptateur.

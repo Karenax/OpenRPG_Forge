@@ -48,9 +48,30 @@ python tools/asset_pipeline/download_cc0_3d.py `
   --catalog-output asset_manifests/catalogs/cc0_3d_all.json
 ```
 
-Le téléchargement est idempotent : un fichier existant avec le MD5 attendu est réutilisé. Poly
-Haven est téléchargé en glTF 1K, avec repli FBX 1K quand glTF n’existe pas. ambientCG est téléchargé
-en archive `LQ-1K-JPG`, conservée intacte puis extraite dans `normalized/` après contrôle des chemins.
+Le téléchargement est idempotent : un fichier existant avec le MD5 attendu est réutilisé. Un
+téléchargement interrompu conserve un fichier `.part` et reprend avec HTTP Range. Chaque résultat
+alimente `cache/downloads/sha256/`. Avec `--update`, un contenu distant différent ne remplace jamais
+l’original : il rejoint `versions/<hash>/` et les extractions ambientCG/Kenney suivent la même
+version. Poly Haven est téléchargé en glTF 1K, avec repli FBX 1K quand glTF n’existe pas. ambientCG
+est téléchargé en archive `LQ-1K-JPG`, conservée intacte puis extraite dans `normalized/` après
+contrôle des chemins.
+
+Pour rafraîchir réellement les sources après revue du plan :
+
+```powershell
+python tools/asset_pipeline/asset_vault_lifecycle.py update-plan `
+  --current asset_manifests/catalogs/cc0_3d_all.json `
+  --incoming E:\OpenRPG_AssetVault\metadata\catalog-next.json
+
+python tools/asset_pipeline/download_cc0_3d.py `
+  --source all --vault E:\OpenRPG_AssetVault --update
+
+python tools/asset_pipeline/download_kenney_3d.py `
+  --vault E:\OpenRPG_AssetVault --update
+```
+
+Le plan distingue ajouts, changements, retraits et entrées inchangées. Le gate simule le transport :
+il ne redéclenche pas le miroir complet.
 
 Les 50 packs 3D gratuits Kenney se téléchargent séparément :
 
@@ -63,6 +84,30 @@ python tools/asset_pipeline/download_kenney_3d.py `
 
 L’adaptateur refuse automatiquement une page ne déclarant pas `Creative Commons CC0` ou ne
 fournissant pas un ZIP officiel.
+
+## Désinstaller une acquisition locale
+
+La commande suivante ne modifie rien sans `--apply` :
+
+```powershell
+python tools/asset_pipeline/asset_vault_lifecycle.py uninstall `
+  --vault E:\OpenRPG_AssetVault `
+  --catalog asset_manifests/catalogs/cc0_3d_all.json `
+  --id ambientcg:3DApple001
+
+python tools/asset_pipeline/asset_vault_lifecycle.py uninstall `
+  --vault E:\OpenRPG_AssetVault `
+  --catalog asset_manifests/catalogs/cc0_3d_all.json `
+  --id ambientcg:3DApple001 `
+  --apply
+
+python tools/asset_pipeline/asset_vault_lifecycle.py report `
+  --vault E:\OpenRPG_AssetVault
+```
+
+L’application vérifie à nouveau tous les hashes puis déplace l’acquisition sous
+`cache/uninstalled/<plan_id>/`. Elle produit un reçu et un registre v1. Il n’existe aucune purge
+automatique : les octets restent récupérables tant qu’une politique de rétention n’a pas été choisie.
 
 ## Valider l’inventaire local
 

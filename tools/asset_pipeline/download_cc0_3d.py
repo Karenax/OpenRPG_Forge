@@ -79,20 +79,116 @@ def relativize_vault_paths(value: Any, vault: Path) -> Any:
     return value
 
 
-def download_file(url: str, destination: Path, expected_md5: str | None = None) -> dict[str, Any]:
+def download_to_partial(url: str, partial: Path, attempts: int = 4) -> None:
+    partial.parent.mkdir(parents=True, exist_ok=True)
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        offset = partial.stat().st_size if partial.exists() else 0
+        headers = {
+            "User-Agent": USER_AGENT,
+            "Referer": "https://github.com/Karenax/OpenRPG_Forge",
+        }
+        if offset:
+            headers["Range"] = f"bytes={offset}-"
+        request = Request(url, headers=headers)
+        try:
+            with urlopen(request, timeout=90) as response:
+                status = getattr(response, "status", None)
+                if status is None and hasattr(response, "getcode"):
+                    status = response.getcode()
+                append = offset > 0 and status == 206
+                with partial.open("ab" if append else "wb") as output:
+                    shutil.copyfileobj(response, output)
+            return
+        except (HTTPError, URLError, TimeoutError, OSError) as error:
+            last_error = error
+            if attempt + 1 < attempts:
+                time.sleep(2**attempt)
+    raise RuntimeError(f"Unable to download {url}: {last_error}")
+
+
+def find_vault_root(path: Path) -> Path | None:
+    for parent in path.resolve().parents:
+        if parent.name.lower() == "originals":
+            return parent.parent
+    return None
+
+
+def ensure_download_cache(path: Path, content_sha256: str) -> Path | None:
+    vault = find_vault_root(path)
+    if vault is None:
+        return None
+    cache = vault / "cache" / "downloads" / "sha256" / content_sha256[:2] / content_sha256
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    if cache.exists():
+        if file_digest(cache) != content_sha256:
+            raise RuntimeError(f"Download cache object is corrupt: {cache}")
+        return cache
+    try:
+        os.link(path, cache)
+    except OSError:
+        shutil.copy2(path, cache)
+    return cache
+
+
+def materialize_download(partial: Path, destination: Path) -> Path:
+    content_sha256 = file_digest(partial)
+    if destination.exists():
+        if file_digest(destination) == content_sha256:
+            partial.unlink(missing_ok=True)
+            ensure_download_cache(destination, content_sha256)
+            return destination
+        destination = destination.parent / "versions" / content_sha256[:16] / destination.name
+        if destination.exists():
+            if file_digest(destination) != content_sha256:
+                raise RuntimeError(f"Immutable version path contains different bytes: {destination}")
+            partial.unlink(missing_ok=True)
+            ensure_download_cache(destination, content_sha256)
+            return destination
+
+    vault = find_vault_root(destination)
+    if vault is None:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        partial.replace(destination)
+        return destination
+
+    cache = vault / "cache" / "downloads" / "sha256" / content_sha256[:2] / content_sha256
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    if cache.exists():
+        if file_digest(cache) != content_sha256:
+            raise RuntimeError(f"Download cache object is corrupt: {cache}")
+        partial.unlink(missing_ok=True)
+    else:
+        partial.replace(cache)
+
     destination.parent.mkdir(parents=True, exist_ok=True)
-    if destination.exists() and (expected_md5 is None or file_digest(destination, "md5") == expected_md5):
+    try:
+        os.link(cache, destination)
+    except OSError:
+        shutil.copy2(cache, destination)
+    return destination
+
+
+def download_file(
+    url: str,
+    destination: Path,
+    expected_md5: str | None = None,
+    *,
+    refresh: bool = False,
+) -> dict[str, Any]:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.exists() and not refresh and (
+        expected_md5 is None or file_digest(destination, "md5") == expected_md5
+    ):
         return describe_file(destination, url, expected_md5)
 
-    payload = request_bytes(url)
-    with tempfile.NamedTemporaryFile("wb", dir=destination.parent, delete=False) as stream:
-        stream.write(payload)
-        temporary = Path(stream.name)
-    if expected_md5 and file_digest(temporary, "md5") != expected_md5:
-        temporary.unlink(missing_ok=True)
+    partial = destination.parent / f".{destination.name}.part"
+    download_to_partial(url, partial)
+    if expected_md5 and file_digest(partial, "md5") != expected_md5:
+        partial.unlink(missing_ok=True)
         raise RuntimeError(f"MD5 mismatch for {url}")
-    temporary.replace(destination)
-    return describe_file(destination, url, expected_md5)
+    materialized = materialize_download(partial, destination)
+    return describe_file(materialized, url, expected_md5)
 
 
 def describe_file(path: Path, url: str, expected_md5: str | None) -> dict[str, Any]:
@@ -175,7 +271,13 @@ def ambientcg_index(max_assets: int | None) -> list[dict[str, Any]]:
     return select_ids(records, max_assets)
 
 
-def download_polyhaven_asset(vault: Path, record: dict[str, Any], resolution: str) -> dict[str, Any]:
+def download_polyhaven_asset(
+    vault: Path,
+    record: dict[str, Any],
+    resolution: str,
+    *,
+    refresh: bool = False,
+) -> dict[str, Any]:
     asset_id = record["id"]
     source_metadata = request_json(POLYHAVEN_FILES_URL.format(asset_id=asset_id))
     model_format = "gltf"
@@ -189,9 +291,14 @@ def download_polyhaven_asset(vault: Path, record: dict[str, Any], resolution: st
     base = vault / "originals" / "polyhaven" / asset_id / f"{model_format}-{resolution}"
     downloads: list[dict[str, Any]] = []
     main_name = Path(variant["url"]).name
-    downloads.append(download_file(variant["url"], base / main_name, variant.get("md5")))
+    downloads.append(download_file(variant["url"], base / main_name, variant.get("md5"), refresh=refresh))
     for relative_name, dependency in sorted((variant.get("include") or {}).items()):
-        downloads.append(download_file(dependency["url"], base / relative_name, dependency.get("md5")))
+        downloads.append(download_file(
+            dependency["url"],
+            base / relative_name,
+            dependency.get("md5"),
+            refresh=refresh,
+        ))
 
     metadata = {
         "schema_version": 1,
@@ -217,16 +324,25 @@ def download_polyhaven_asset(vault: Path, record: dict[str, Any], resolution: st
     return metadata
 
 
-def download_ambientcg_asset(vault: Path, record: dict[str, Any], quality: str) -> dict[str, Any]:
+def download_ambientcg_asset(
+    vault: Path,
+    record: dict[str, Any],
+    quality: str,
+    *,
+    refresh: bool = False,
+) -> dict[str, Any]:
     asset_id = record["id"]
     variant = next((item for item in record["downloads"] if item.get("attributes") == quality), None)
     if not variant:
         raise RuntimeError(f"No {quality} variant for ambientCG asset {asset_id}")
 
     archive = vault / "originals" / "ambientcg" / asset_id / f"{asset_id}_{quality}.zip"
-    downloaded = download_file(variant["url"], archive)
+    downloaded = download_file(variant["url"], archive, refresh=refresh)
     extracted_root = vault / "normalized" / "ambientcg" / asset_id / quality.lower()
-    extracted = safe_extract_zip(archive, extracted_root)
+    downloaded_archive = Path(downloaded["path"])
+    if downloaded_archive.resolve() != archive.resolve():
+        extracted_root = extracted_root / "versions" / downloaded["sha256"][:16]
+    extracted = safe_extract_zip(downloaded_archive, extracted_root)
     model_files = [name for name in extracted if Path(name).suffix.lower() in {".gltf", ".glb", ".fbx", ".obj"}]
     if not model_files:
         raise RuntimeError(f"No supported 3D model found in {archive}")
@@ -290,6 +406,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--polyhaven-resolution", choices=("1k", "2k", "4k"), default="1k")
     parser.add_argument("--ambientcg-quality", default="LQ-1K-JPG")
     parser.add_argument("--catalog-output", type=Path)
+    parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Refresh remote files while preserving differing originals under versioned paths",
+    )
     return parser.parse_args(argv)
 
 
@@ -312,7 +433,12 @@ def main(argv: list[str] | None = None) -> int:
         result, failures = run_parallel(
             "PolyHaven",
             records,
-            lambda record: download_polyhaven_asset(vault, record, args.polyhaven_resolution),
+            lambda record: download_polyhaven_asset(
+                vault,
+                record,
+                args.polyhaven_resolution,
+                refresh=args.update,
+            ),
             args.jobs,
         )
         assets.extend(result)
@@ -322,7 +448,12 @@ def main(argv: list[str] | None = None) -> int:
         result, failures = run_parallel(
             "ambientCG",
             records,
-            lambda record: download_ambientcg_asset(vault, record, args.ambientcg_quality),
+            lambda record: download_ambientcg_asset(
+                vault,
+                record,
+                args.ambientcg_quality,
+                refresh=args.update,
+            ),
             args.jobs,
         )
         assets.extend(result)

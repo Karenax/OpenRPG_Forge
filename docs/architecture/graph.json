@@ -1708,7 +1708,7 @@
     },
     {
       "evidence": {
-        "line": 591,
+        "line": 596,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1717,7 +1717,7 @@
     },
     {
       "evidence": {
-        "line": 1404,
+        "line": 1409,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1726,7 +1726,7 @@
     },
     {
       "evidence": {
-        "line": 1469,
+        "line": 1474,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1735,7 +1735,7 @@
     },
     {
       "evidence": {
-        "line": 1769,
+        "line": 1774,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1744,7 +1744,7 @@
     },
     {
       "evidence": {
-        "line": 1469,
+        "line": 1474,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1753,7 +1753,7 @@
     },
     {
       "evidence": {
-        "line": 1518,
+        "line": 1523,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1762,7 +1762,7 @@
     },
     {
       "evidence": {
-        "line": 1722,
+        "line": 1727,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1780,7 +1780,7 @@
     },
     {
       "evidence": {
-        "line": 683,
+        "line": 688,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1789,7 +1789,7 @@
     },
     {
       "evidence": {
-        "line": 1469,
+        "line": 1474,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1798,7 +1798,7 @@
     },
     {
       "evidence": {
-        "line": 1519,
+        "line": 1524,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1807,7 +1807,7 @@
     },
     {
       "evidence": {
-        "line": 1571,
+        "line": 1576,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1816,7 +1816,7 @@
     },
     {
       "evidence": {
-        "line": 1663,
+        "line": 1668,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1834,7 +1834,7 @@
     },
     {
       "evidence": {
-        "line": 1374,
+        "line": 1379,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1843,7 +1843,7 @@
     },
     {
       "evidence": {
-        "line": 1469,
+        "line": 1474,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1852,7 +1852,7 @@
     },
     {
       "evidence": {
-        "line": 1520,
+        "line": 1525,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1861,7 +1861,7 @@
     },
     {
       "evidence": {
-        "line": 1571,
+        "line": 1576,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1870,7 +1870,7 @@
     },
     {
       "evidence": {
-        "line": 1738,
+        "line": 1743,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1879,7 +1879,7 @@
     },
     {
       "evidence": {
-        "line": 590,
+        "line": 595,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1888,7 +1888,7 @@
     },
     {
       "evidence": {
-        "line": 590,
+        "line": 595,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1906,7 +1906,7 @@
     },
     {
       "evidence": {
-        "line": 683,
+        "line": 688,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1933,7 +1933,7 @@
     },
     {
       "evidence": {
-        "line": 1375,
+        "line": 1380,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1951,7 +1951,7 @@
     },
     {
       "evidence": {
-        "line": 1755,
+        "line": 1760,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2302,7 +2302,7 @@
     },
     {
       "evidence": {
-        "line": 184,
+        "line": 185,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2311,7 +2311,7 @@
     },
     {
       "evidence": {
-        "line": 247,
+        "line": 248,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2320,7 +2320,7 @@
     },
     {
       "evidence": {
-        "line": 97,
+        "line": 98,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -4720,6 +4720,15 @@
       "kind": "references",
       "source": "file:docs/UX_AURORA_2026.md",
       "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "docs/assets/ASSET_SOURCE_GOVERNANCE.md"
+      },
+      "kind": "references",
+      "source": "file:docs/assets/ASSET_SOURCE_GOVERNANCE.md",
+      "target": "file:docs/assets/MANUAL_DOWNLOADS_REQUIRED.md"
     },
     {
       "evidence": {
@@ -22066,12 +22075,192 @@
     },
     {
       "evidence": {
+        "line": 131,
+        "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tests.asset_pipeline.test_asset_vault_lifecycle.catalog",
+      "target": "file:tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 135,
+        "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tests.asset_pipeline.test_asset_vault_lifecycle.entry",
+      "target": "file:tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 162,
+        "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tests.asset_pipeline.test_asset_vault_lifecycle.write",
+      "target": "file:tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
         "line": 21,
         "path": "tests/test_aurora_tracker.py"
       },
       "kind": "defined_in",
       "source": "function:tests.test_aurora_tracker.read_csv",
       "target": "file:tests/test_aurora_tracker.py"
+    },
+    {
+      "evidence": {
+        "line": 127,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.acquisition_roots",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 190,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.apply_uninstall",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 251,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.cache_report",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.catalog_entries",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 114,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.directory_size",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 33,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.entry_id",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.entry_signature",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.load_catalog",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 283,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.main",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 267,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.parse_args",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 118,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.path_fingerprint",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 61,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.plan_catalog_update",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 156,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.plan_uninstall",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 105,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.resolve_contained",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 98,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.safe_relative_path",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 181,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.uninstall_plan_id",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 230,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.asset_vault_lifecycle.update_uninstall_registry",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
     },
     {
       "evidence": {
@@ -22219,7 +22408,7 @@
     },
     {
       "evidence": {
-        "line": 153,
+        "line": 249,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22237,7 +22426,7 @@
     },
     {
       "evidence": {
-        "line": 279,
+        "line": 395,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22246,7 +22435,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 194,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22255,7 +22444,7 @@
     },
     {
       "evidence": {
-        "line": 220,
+        "line": 327,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22264,7 +22453,7 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 172,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22273,11 +22462,29 @@
     },
     {
       "evidence": {
-        "line": 178,
+        "line": 274,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
       "source": "function:tools.asset_pipeline.download_cc0_3d.download_polyhaven_asset",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.download_to_partial",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 117,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.ensure_download_cache",
       "target": "file:tools/asset_pipeline/download_cc0_3d.py"
     },
     {
@@ -22291,7 +22498,16 @@
     },
     {
       "evidence": {
-        "line": 296,
+        "line": 110,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.find_vault_root",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 417,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22300,7 +22516,16 @@
     },
     {
       "evidence": {
-        "line": 284,
+        "line": 134,
+        "path": "tools/asset_pipeline/download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.download_cc0_3d.materialize_download",
+      "target": "file:tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 400,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22309,7 +22534,7 @@
     },
     {
       "evidence": {
-        "line": 138,
+        "line": 234,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22345,7 +22570,7 @@
     },
     {
       "evidence": {
-        "line": 261,
+        "line": 377,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22354,7 +22579,7 @@
     },
     {
       "evidence": {
-        "line": 108,
+        "line": 204,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22363,7 +22588,7 @@
     },
     {
       "evidence": {
-        "line": 133,
+        "line": 229,
         "path": "tools/asset_pipeline/download_cc0_3d.py"
       },
       "kind": "defined_in",
@@ -22390,7 +22615,7 @@
     },
     {
       "evidence": {
-        "line": 119,
+        "line": 122,
         "path": "tools/asset_pipeline/download_kenney_3d.py"
       },
       "kind": "defined_in",
@@ -35009,6 +35234,15 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "module:tests.asset_pipeline.test_asset_vault_lifecycle",
+      "target": "file:tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/asset_pipeline/test_blender_worker.py"
       },
       "kind": "defined_in",
@@ -35050,6 +35284,15 @@
       "kind": "defined_in",
       "source": "module:tests.test_mcp_stdio",
       "target": "file:tests/test_mcp_stdio.py"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "module:tools.asset_pipeline.asset_vault_lifecycle",
+      "target": "file:tools/asset_pipeline/asset_vault_lifecycle.py"
     },
     {
       "evidence": {
@@ -48661,7 +48904,7 @@
     },
     {
       "evidence": {
-        "line": 48,
+        "line": 50,
         "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
       },
       "kind": "tests",
@@ -48904,7 +49147,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 68,
         "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
       },
       "kind": "defined_in",
@@ -48913,7 +49156,7 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 73,
         "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
       },
       "kind": "tests",
@@ -48922,7 +49165,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 68,
         "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
       },
       "kind": "tests",
@@ -49057,7 +49300,7 @@
     },
     {
       "evidence": {
-        "line": 85,
+        "line": 89,
         "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
       },
       "kind": "defined_in",
@@ -49066,7 +49309,7 @@
     },
     {
       "evidence": {
-        "line": 85,
+        "line": 89,
         "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
       },
       "kind": "tests",
@@ -49075,7 +49318,7 @@
     },
     {
       "evidence": {
-        "line": 54,
+        "line": 56,
         "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
       },
       "kind": "defined_in",
@@ -49084,7 +49327,7 @@
     },
     {
       "evidence": {
-        "line": 54,
+        "line": 56,
         "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
       },
       "kind": "tests",
@@ -49093,7 +49336,7 @@
     },
     {
       "evidence": {
-        "line": 54,
+        "line": 56,
         "path": "tests/Forge.Application.Tests/Areas/AreaStreamingCoordinatorTests.cs"
       },
       "kind": "tests",
@@ -71746,6 +71989,15 @@
     },
     {
       "evidence": {
+        "line": 20,
+        "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+      },
+      "kind": "defined_in",
+      "source": "test:tests.asset_pipeline.test_asset_vault_lifecycle.AssetVaultLifecycleTests",
+      "target": "file:tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
+      "evidence": {
         "line": 17,
         "path": "tests/asset_pipeline/test_blender_worker.py"
       },
@@ -71755,11 +72007,20 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 19,
         "path": "tests/asset_pipeline/test_download_cc0_3d.py"
       },
       "kind": "defined_in",
       "source": "test:tests.asset_pipeline.test_download_cc0_3d.DownloadCc0AssetsTests",
+      "target": "file:tests/asset_pipeline/test_download_cc0_3d.py"
+    },
+    {
+      "evidence": {
+        "line": 161,
+        "path": "tests/asset_pipeline/test_download_cc0_3d.py"
+      },
+      "kind": "defined_in",
+      "source": "test:tests.asset_pipeline.test_download_cc0_3d.FakeResponse",
       "target": "file:tests/asset_pipeline/test_download_cc0_3d.py"
     },
     {
@@ -82546,8 +82807,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:8c80441aff786f7ceabb0448b8321994ce912576315030e1a337ed32964d15ac",
-    "source_file_count": 1490
+    "source_digest": "sha256:3938afd9916cbf9d09c7edda9fe1c65640cb94c805fa53e76c27f4011938a84b",
+    "source_file_count": 1494
   },
   "nodes": [
     {
@@ -86011,6 +86272,16 @@
       "path": "docs/assets/ASSET_PIPELINE_USAGE.md"
     },
     {
+      "id": "file:docs/assets/ASSET_SOURCE_GOVERNANCE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "ASSET_SOURCE_GOVERNANCE.md",
+      "path": "docs/assets/ASSET_SOURCE_GOVERNANCE.md"
+    },
+    {
       "id": "file:docs/assets/GODOT_FOREST_DEMO_INTEGRATION.md",
       "kind": "document",
       "line": 1,
@@ -86179,6 +86450,16 @@
       },
       "name": "AV1-CONTENT-ADDRESSED-ASSET-PACKS.md",
       "path": "docs/aurora-parity/tasks/AV1-CONTENT-ADDRESSED-ASSET-PACKS.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/AV2-ACQUISITION-LIFECYCLE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "AV2-ACQUISITION-LIFECYCLE.md",
+      "path": "docs/aurora-parity/tasks/AV2-ACQUISITION-LIFECYCLE.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G10-A-LIVE-DIRECTOR-FOUNDATION.md",
@@ -97161,6 +97442,16 @@
       "path": "tests/Forge.Scripting.Tests/packages.lock.json"
     },
     {
+      "id": "file:tests/asset_pipeline/test_asset_vault_lifecycle.py",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "python"
+      },
+      "name": "test_asset_vault_lifecycle.py",
+      "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
       "id": "file:tests/asset_pipeline/test_blender_worker.py",
       "kind": "file",
       "line": 1,
@@ -98291,6 +98582,16 @@
       "path": "tools/Forge.WorkspaceMigrator/packages.lock.json"
     },
     {
+      "id": "file:tools/asset_pipeline/asset_vault_lifecycle.py",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "python"
+      },
+      "name": "asset_vault_lifecycle.py",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
       "id": "file:tools/asset_pipeline/blender_bridge_entry.py",
       "kind": "file",
       "line": 1,
@@ -98801,6 +99102,36 @@
       "path": "scripts/architecture_graph.py"
     },
     {
+      "id": "function:tests.asset_pipeline.test_asset_vault_lifecycle.catalog",
+      "kind": "function",
+      "line": 131,
+      "metadata": {
+        "module": "tests.asset_pipeline.test_asset_vault_lifecycle"
+      },
+      "name": "catalog",
+      "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tests.asset_pipeline.test_asset_vault_lifecycle.entry",
+      "kind": "function",
+      "line": 135,
+      "metadata": {
+        "module": "tests.asset_pipeline.test_asset_vault_lifecycle"
+      },
+      "name": "entry",
+      "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tests.asset_pipeline.test_asset_vault_lifecycle.write",
+      "kind": "function",
+      "line": 162,
+      "metadata": {
+        "module": "tests.asset_pipeline.test_asset_vault_lifecycle"
+      },
+      "name": "write",
+      "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
       "id": "function:tests.test_aurora_tracker.read_csv",
       "kind": "function",
       "line": 21,
@@ -98809,6 +99140,176 @@
       },
       "name": "read_csv",
       "path": "tests/test_aurora_tracker.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.acquisition_roots",
+      "kind": "function",
+      "line": 127,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "acquisition_roots",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.apply_uninstall",
+      "kind": "function",
+      "line": 190,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "apply_uninstall",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.cache_report",
+      "kind": "function",
+      "line": 251,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "cache_report",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.catalog_entries",
+      "kind": "function",
+      "line": 29,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "catalog_entries",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.directory_size",
+      "kind": "function",
+      "line": 114,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "directory_size",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.entry_id",
+      "kind": "function",
+      "line": 33,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "entry_id",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.entry_signature",
+      "kind": "function",
+      "line": 40,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "entry_signature",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.load_catalog",
+      "kind": "function",
+      "line": 20,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "load_catalog",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.main",
+      "kind": "function",
+      "line": 283,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "main",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.parse_args",
+      "kind": "function",
+      "line": 267,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "parse_args",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.path_fingerprint",
+      "kind": "function",
+      "line": 118,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "path_fingerprint",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.plan_catalog_update",
+      "kind": "function",
+      "line": 61,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "plan_catalog_update",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.plan_uninstall",
+      "kind": "function",
+      "line": 156,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "plan_uninstall",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.resolve_contained",
+      "kind": "function",
+      "line": 105,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "resolve_contained",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.safe_relative_path",
+      "kind": "function",
+      "line": 98,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "safe_relative_path",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.uninstall_plan_id",
+      "kind": "function",
+      "line": 181,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "uninstall_plan_id",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.asset_vault_lifecycle.update_uninstall_registry",
+      "kind": "function",
+      "line": 230,
+      "metadata": {
+        "module": "tools.asset_pipeline.asset_vault_lifecycle"
+      },
+      "name": "update_uninstall_registry",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
     },
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._arguments",
@@ -98973,7 +99474,7 @@
     {
       "id": "function:tools.asset_pipeline.download_cc0_3d.ambientcg_index",
       "kind": "function",
-      "line": 153,
+      "line": 249,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -98993,7 +99494,7 @@
     {
       "id": "function:tools.asset_pipeline.download_cc0_3d.default_vault",
       "kind": "function",
-      "line": 279,
+      "line": 395,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -99003,7 +99504,7 @@
     {
       "id": "function:tools.asset_pipeline.download_cc0_3d.describe_file",
       "kind": "function",
-      "line": 98,
+      "line": 194,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -99013,7 +99514,7 @@
     {
       "id": "function:tools.asset_pipeline.download_cc0_3d.download_ambientcg_asset",
       "kind": "function",
-      "line": 220,
+      "line": 327,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -99023,7 +99524,7 @@
     {
       "id": "function:tools.asset_pipeline.download_cc0_3d.download_file",
       "kind": "function",
-      "line": 82,
+      "line": 172,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -99033,11 +99534,31 @@
     {
       "id": "function:tools.asset_pipeline.download_cc0_3d.download_polyhaven_asset",
       "kind": "function",
-      "line": 178,
+      "line": 274,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
       "name": "download_polyhaven_asset",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.download_to_partial",
+      "kind": "function",
+      "line": 82,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "download_to_partial",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.ensure_download_cache",
+      "kind": "function",
+      "line": 117,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "ensure_download_cache",
       "path": "tools/asset_pipeline/download_cc0_3d.py"
     },
     {
@@ -99051,9 +99572,19 @@
       "path": "tools/asset_pipeline/download_cc0_3d.py"
     },
     {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.find_vault_root",
+      "kind": "function",
+      "line": 110,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "find_vault_root",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.download_cc0_3d.main",
       "kind": "function",
-      "line": 296,
+      "line": 417,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -99061,9 +99592,19 @@
       "path": "tools/asset_pipeline/download_cc0_3d.py"
     },
     {
+      "id": "function:tools.asset_pipeline.download_cc0_3d.materialize_download",
+      "kind": "function",
+      "line": 134,
+      "metadata": {
+        "module": "tools.asset_pipeline.download_cc0_3d"
+      },
+      "name": "materialize_download",
+      "path": "tools/asset_pipeline/download_cc0_3d.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.download_cc0_3d.parse_args",
       "kind": "function",
-      "line": 284,
+      "line": 400,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -99073,7 +99614,7 @@
     {
       "id": "function:tools.asset_pipeline.download_cc0_3d.polyhaven_index",
       "kind": "function",
-      "line": 138,
+      "line": 234,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -99113,7 +99654,7 @@
     {
       "id": "function:tools.asset_pipeline.download_cc0_3d.run_parallel",
       "kind": "function",
-      "line": 261,
+      "line": 377,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -99123,7 +99664,7 @@
     {
       "id": "function:tools.asset_pipeline.download_cc0_3d.safe_extract_zip",
       "kind": "function",
-      "line": 108,
+      "line": 204,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -99133,7 +99674,7 @@
     {
       "id": "function:tools.asset_pipeline.download_cc0_3d.select_ids",
       "kind": "function",
-      "line": 133,
+      "line": 229,
       "metadata": {
         "module": "tools.asset_pipeline.download_cc0_3d"
       },
@@ -99163,7 +99704,7 @@
     {
       "id": "function:tools.asset_pipeline.download_kenney_3d.main",
       "kind": "function",
-      "line": 119,
+      "line": 122,
       "metadata": {
         "module": "tools.asset_pipeline.download_kenney_3d"
       },
@@ -104618,6 +105159,13 @@
       "path": "scripts/architecture_graph.py"
     },
     {
+      "id": "module:tests.asset_pipeline.test_asset_vault_lifecycle",
+      "kind": "module",
+      "line": 1,
+      "name": "tests.asset_pipeline.test_asset_vault_lifecycle",
+      "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
       "id": "module:tests.asset_pipeline.test_blender_worker",
       "kind": "module",
       "line": 1,
@@ -104651,6 +105199,13 @@
       "line": 1,
       "name": "tests.test_mcp_stdio",
       "path": "tests/test_mcp_stdio.py"
+    },
+    {
+      "id": "module:tools.asset_pipeline.asset_vault_lifecycle",
+      "kind": "module",
+      "line": 1,
+      "name": "tools.asset_pipeline.asset_vault_lifecycle",
+      "path": "tools/asset_pipeline/asset_vault_lifecycle.py"
     },
     {
       "id": "module:tools.asset_pipeline.blender_bridge_entry",
@@ -106960,7 +107515,7 @@
     {
       "id": "test:Forge.Application.Tests.Areas.BlockingLoader",
       "kind": "test",
-      "line": 66,
+      "line": 68,
       "metadata": {
         "namespace": "Forge.Application.Tests.Areas"
       },
@@ -106980,7 +107535,7 @@
     {
       "id": "test:Forge.Application.Tests.Areas.InlineProgress",
       "kind": "test",
-      "line": 85,
+      "line": 89,
       "metadata": {
         "namespace": "Forge.Application.Tests.Areas"
       },
@@ -106990,7 +107545,7 @@
     {
       "id": "test:Forge.Application.Tests.Areas.RecordingLoader",
       "kind": "test",
-      "line": 54,
+      "line": 56,
       "metadata": {
         "namespace": "Forge.Application.Tests.Areas"
       },
@@ -109268,6 +109823,16 @@
       "path": "tests/Forge.Scripting.Tests/NativeForgeScriptRuntimeTests.cs"
     },
     {
+      "id": "test:tests.asset_pipeline.test_asset_vault_lifecycle.AssetVaultLifecycleTests",
+      "kind": "test",
+      "line": 20,
+      "metadata": {
+        "module": "tests.asset_pipeline.test_asset_vault_lifecycle"
+      },
+      "name": "AssetVaultLifecycleTests",
+      "path": "tests/asset_pipeline/test_asset_vault_lifecycle.py"
+    },
+    {
       "id": "test:tests.asset_pipeline.test_blender_worker.BlenderWorkerTests",
       "kind": "test",
       "line": 17,
@@ -109280,11 +109845,21 @@
     {
       "id": "test:tests.asset_pipeline.test_download_cc0_3d.DownloadCc0AssetsTests",
       "kind": "test",
-      "line": 17,
+      "line": 19,
       "metadata": {
         "module": "tests.asset_pipeline.test_download_cc0_3d"
       },
       "name": "DownloadCc0AssetsTests",
+      "path": "tests/asset_pipeline/test_download_cc0_3d.py"
+    },
+    {
+      "id": "test:tests.asset_pipeline.test_download_cc0_3d.FakeResponse",
+      "kind": "test",
+      "line": 161,
+      "metadata": {
+        "module": "tests.asset_pipeline.test_download_cc0_3d"
+      },
+      "name": "FakeResponse",
       "path": "tests/asset_pipeline/test_download_cc0_3d.py"
     },
     {

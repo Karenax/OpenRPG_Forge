@@ -17,5 +17,8 @@ manuellement depuis la page officielle, puis déposer l’archive intacte dans
 calculer SHA-256, conserver la page/preuve CC0 et extraire avec les mêmes contrôles que les autres
 sources.
 
+Ce mode manuel et les catégories explicitement refusées sont gouvernés par
+`docs/assets/ASSET_SOURCE_GOVERNANCE.md`.
+
 - https://quaternius.com/packs/stylizednaturemegakit.html
 - https://quaternius.com/packs/medievalvillage.html

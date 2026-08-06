@@ -461,13 +461,13 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 ### AV2 — Acquisition et normalisation
 
 - [x] Intégrer les trois premières sources autorisées : Poly Haven, ambientCG et packs Kenney CC0.
-- [ ] Étendre acquisition, reprise et cache actuels avec mise à jour et désinstallation locale.
+- [x] Étendre acquisition, reprise et cache actuels avec mise à jour et désinstallation locale.
 - [ ] Construire la normalisation GLB/Blender, les collisions, LOD, miniatures et audits qualité.
 - [x] Persister les profils texture/modèle, produire des tâches et reçus déterministes et préparer
   un GLB et une texture réels sans écrire dans le Vault.
 - [x] Produire un manifeste distribuable par asset avec chunks, variantes plateforme, collisions,
   animations, VFX, LOD, budgets et contrôle runtime des hashes.
-- [ ] Documenter les sources acceptées, refusées et celles exigeant une action manuelle.
+- [x] Documenter les sources acceptées, refusées et celles exigeant une action manuelle.
 
 ### AV3 — Interface Asset Vault
 

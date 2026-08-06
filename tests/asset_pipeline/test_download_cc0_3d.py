@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 import zipfile
 
 
@@ -60,6 +62,112 @@ class DownloadCc0AssetsTests(unittest.TestCase):
                 bundle.writestr("model/textures/color.jpg", "data")
             extracted = MODULE.safe_extract_zip(archive, root / "output")
             self.assertEqual(["model/asset.gltf", "model/textures/color.jpg"], extracted)
+
+    def test_download_resumes_into_content_cache(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            vault = Path(folder) / "vault"
+            destination = vault / "originals" / "source" / "asset" / "model.glb"
+            destination.parent.mkdir(parents=True)
+            partial = destination.parent / ".model.glb.part"
+            partial.write_bytes(b"open")
+            requests = []
+
+            def open_request(request, timeout):
+                requests.append((request, timeout))
+                return FakeResponse(b"rpg-forge", status=206)
+
+            with mock.patch.object(MODULE, "urlopen", side_effect=open_request):
+                result = MODULE.download_file("https://example.invalid/model.glb", destination)
+
+            self.assertEqual(b"openrpg-forge", destination.read_bytes())
+            self.assertEqual("bytes=4-", requests[0][0].get_header("Range"))
+            cache = (
+                vault
+                / "cache"
+                / "downloads"
+                / "sha256"
+                / result["sha256"][:2]
+                / result["sha256"]
+            )
+            self.assertTrue(cache.is_file())
+            self.assertEqual(result["sha256"], MODULE.file_digest(cache))
+
+    def test_refresh_preserves_changed_original_in_versioned_path(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            vault = Path(folder) / "vault"
+            destination = vault / "originals" / "source" / "asset" / "model.glb"
+            destination.parent.mkdir(parents=True)
+            destination.write_bytes(b"old-original")
+
+            with mock.patch.object(
+                MODULE,
+                "urlopen",
+                return_value=FakeResponse(b"new-original", status=200),
+            ):
+                result = MODULE.download_file(
+                    "https://example.invalid/model.glb",
+                    destination,
+                    refresh=True,
+                )
+
+            versioned = Path(result["path"])
+            self.assertEqual(b"old-original", destination.read_bytes())
+            self.assertEqual(b"new-original", versioned.read_bytes())
+            self.assertIn("versions", versioned.parts)
+            self.assertNotEqual(destination, versioned)
+
+    def test_ambientcg_refresh_versions_archive_and_normalized_output(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            vault = Path(folder) / "vault"
+            archive = vault / "originals/ambientcg/Tree/Tree_LQ-1K-JPG.zip"
+            archive.parent.mkdir(parents=True)
+            archive.write_bytes(b"immutable-old-archive")
+            payload = io.BytesIO()
+            with zipfile.ZipFile(payload, "w") as bundle:
+                bundle.writestr("tree.obj", "o tree")
+                bundle.writestr("tree.png", "preview")
+            record = {
+                "id": "Tree",
+                "title": "Tree",
+                "url": "https://example.invalid/tree",
+                "tags": ["tree"],
+                "thumbnail": None,
+                "downloads": [
+                    {
+                        "attributes": "LQ-1K-JPG",
+                        "url": "https://example.invalid/tree.zip",
+                    }
+                ],
+            }
+
+            with mock.patch.object(
+                MODULE,
+                "urlopen",
+                return_value=FakeResponse(payload.getvalue(), status=200),
+            ):
+                result = MODULE.download_ambientcg_asset(
+                    vault,
+                    record,
+                    "LQ-1K-JPG",
+                    refresh=True,
+                )
+
+            self.assertEqual(b"immutable-old-archive", archive.read_bytes())
+            self.assertIn("versions/", result["extracted_root"])
+            self.assertTrue((vault / result["extracted_root"] / "tree.obj").is_file())
+            self.assertIn("versions/", result["files"][0]["path"])
+
+
+class FakeResponse(io.BytesIO):
+    def __init__(self, value: bytes, status: int) -> None:
+        super().__init__(value)
+        self.status = status
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, exception, traceback) -> None:
+        self.close()
 
 
 if __name__ == "__main__":

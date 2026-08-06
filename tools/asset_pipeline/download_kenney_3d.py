@@ -81,12 +81,15 @@ def parse_pack_page(url: str) -> dict[str, Any]:
     }
 
 
-def download_pack(vault: Path, record: dict[str, Any]) -> dict[str, Any]:
+def download_pack(vault: Path, record: dict[str, Any], *, refresh: bool = False) -> dict[str, Any]:
     pack_id = record["id"]
     archive = vault / "originals" / "kenney" / pack_id / Path(record["download_url"]).name
-    downloaded = download_file(record["download_url"], archive)
+    downloaded = download_file(record["download_url"], archive, refresh=refresh)
     extracted_root = vault / "normalized" / "kenney" / pack_id
-    extracted = safe_extract_zip(archive, extracted_root)
+    downloaded_archive = Path(downloaded["path"])
+    if downloaded_archive.resolve() != archive.resolve():
+        extracted_root = extracted_root / "versions" / downloaded["sha256"][:16]
+    extracted = safe_extract_zip(downloaded_archive, extracted_root)
     model_files = sorted(name for name in extracted if Path(name).suffix.lower() in MODEL_EXTENSIONS)
     if not model_files:
         raise RuntimeError(f"No supported 3D file found in {archive}")
@@ -122,6 +125,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--jobs", type=int, default=4)
     parser.add_argument("--max-packs", type=int)
     parser.add_argument("--catalog-output", type=Path)
+    parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Refresh remote ZIPs while preserving differing originals under versioned paths",
+    )
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)
     repo_root = Path(__file__).resolve().parents[2]
     configured = os.environ.get("OPENRPG_ASSET_VAULT")
@@ -144,7 +152,10 @@ def main(argv: list[str] | None = None) -> int:
     packs: list[dict[str, Any]] = []
     errors: list[dict[str, str]] = list(page_errors)
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
-        futures = {executor.submit(download_pack, vault, record): record for record in records}
+        futures = {
+            executor.submit(download_pack, vault, record, refresh=args.update): record
+            for record in records
+        }
         for index, future in enumerate(concurrent.futures.as_completed(futures), start=1):
             record = futures[future]
             try:
