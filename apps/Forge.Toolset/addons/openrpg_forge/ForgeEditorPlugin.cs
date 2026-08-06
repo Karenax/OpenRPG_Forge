@@ -1503,7 +1503,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var availableAreas = _history?.State.Project.Areas.Select(area => area.Id).ToArray() ?? [];
             return EditorWorkspaceProfilePlanner.ReconcileAreas(loaded, availableAreas, areaId);
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
+                                           InvalidDataException or ArgumentException or
+                                           System.Text.Json.JsonException)
         {
             GD.PrintErr($"OPENRPG_FORGE_WORKSPACE_PROFILE_LOAD_FAILED {exception.Message}");
             return EditorWorkspaceProfile.CreateDefault(EditorRole.Builder, areaId);
@@ -1551,6 +1553,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         };
         theme.DefaultFont = font;
         _mainPanel.Theme = theme;
+        _projectPreview?.SetDisplayFilter(profile.DisplayFilter);
         _creatorShell?.SetAreaTabs(_history.State.Project, profile);
         if (profile.ActiveAreaId is not null)
         {
@@ -4077,6 +4080,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunCreatorProductivitySmokeTest())
+        {
+            return;
+        }
+
         if (!RunScalableEditorExperienceSmokeTest())
         {
             return;
@@ -5434,6 +5442,181 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G11E_CONTENT_PASS tables=typed batch=dry-run-applied " +
             "collisions=preserve-both blueprints=transitive-governed merge=three-way-conflicts " +
             "history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunCreatorProductivitySmokeTest()
+    {
+        if (_history is null || _projectSession is null || _projectPreview is null ||
+            _creatorShell is null || _blueprintPalette is null || _positionX is null || _positionZ is null ||
+            _paletteBlueprintIds.Count == 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G720_PRODUCTIVITY_FAILED missing_workspace");
+            return false;
+        }
+
+        var originalProfile = LoadWorkspaceProfile();
+        var originalArea = GetActiveArea();
+        var originalAreaCount = _history.State.Project.Areas.Count;
+        var originalPaletteSelection = _blueprintPalette.Selected;
+        var originalPositionX = _positionX.Value;
+        var originalPositionZ = _positionZ.Value;
+        var originalSelection = _selectionContext.Current.ToArray();
+        var originalSelectionLock = _selectionContext.IsLocked;
+        AreaId? comparisonAreaId = null;
+        string? failure = null;
+        try
+        {
+            _selectionContext.SetLocked(false);
+            var blueprints = _history.State.Project.Blueprints.ToDictionary(blueprint => blueprint.Id);
+            var filterTarget = originalArea.Entities.First(entity => blueprints.ContainsKey(entity.BlueprintId));
+            var targetBlueprint = blueprints[filterTarget.BlueprintId];
+            var requiredTags = filterTarget.Tags.Take(1).ToArray();
+            var filter = new EditorDisplayFilter(
+                [targetBlueprint.Kind],
+                requiredTags,
+                targetBlueprint.Provenance.Author,
+                targetBlueprint.PaletteOrigin.ToString(),
+                ghostHidden: true);
+            var expectedVisible = originalArea.Entities.Count(entity =>
+                blueprints.TryGetValue(entity.BlueprintId, out var blueprint) &&
+                filter.VisibleKinds.Contains(blueprint.Kind) &&
+                filter.RequiredTags.All(tag => entity.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase)) &&
+                blueprint.Provenance.Author.Contains(filter.Author, StringComparison.OrdinalIgnoreCase) &&
+                blueprint.PaletteOrigin.ToString().Contains(filter.State, StringComparison.OrdinalIgnoreCase));
+            var visible = ApplyWorkspaceFilter(filter);
+            if (visible != expectedVisible || _projectPreview.GhostedEntityCount != originalArea.Entities.Count - expectedVisible)
+            {
+                failure = "display_filter";
+            }
+
+            if (failure is null &&
+                (!_projectPreview.SelectEntityForSmokeTest(filterTarget.Id) ||
+                 ApplyWorkspaceFilter(new EditorDisplayFilter(
+                     filter.VisibleKinds, filter.RequiredTags, filter.Author, filter.State,
+                     isolateSelection: true, ghostHidden: true)) != 1))
+            {
+                failure = "selection_isolation";
+            }
+
+            if (failure is null)
+            {
+                comparisonAreaId = CreateArea(
+                    "Comparaison G7-20",
+                    AreaKind.Interior,
+                    new AreaDimensions(24, 24),
+                    AreaTemplateKind.Empty);
+                if (comparisonAreaId is null)
+                {
+                    failure = "area_creation";
+                }
+            }
+
+            if (failure is null && comparisonAreaId is not null)
+            {
+                var configuredProfile = new EditorWorkspaceProfile(
+                    originalProfile.Id,
+                    originalProfile.Name,
+                    EditorRole.Builder,
+                    filter,
+                    repeatPlacement: true,
+                    [originalArea.Id, comparisonAreaId],
+                    originalArea.Id,
+                    comparisonAreaId,
+                    contextualHelpEnabled: true,
+                    "toolset-g720-smoke",
+                    EditorWorkspaceProfile.CurrentSchemaVersion,
+                    originalProfile.UiScale,
+                    originalProfile.TextScale,
+                    originalProfile.PrimaryFontFamily,
+                    originalProfile.FallbackFontFamilies,
+                    originalProfile.PersonalFavoriteBlueprintIds,
+                    originalProfile.RecentBlueprintIds);
+                SaveWorkspaceProfile(configuredProfile);
+                var persisted = EditorWorkspaceProfileStore.TryLoad(_projectSession.RootDirectory);
+                if (persisted is null ||
+                    !persisted.DisplayFilter.VisibleKinds.SequenceEqual(filter.VisibleKinds) ||
+                    !persisted.DisplayFilter.RequiredTags.SequenceEqual(filter.RequiredTags) ||
+                    persisted.DisplayFilter.Author != filter.Author ||
+                    persisted.DisplayFilter.State != filter.State ||
+                    persisted.DisplayFilter.IsolateSelection != filter.IsolateSelection ||
+                    persisted.DisplayFilter.GhostHidden != filter.GhostHidden ||
+                    persisted.OpenAreaTabs.Count != 2 || persisted.ActiveAreaId != originalArea.Id ||
+                    persisted.ComparisonAreaId != comparisonAreaId || !persisted.RepeatPlacement ||
+                    !persisted.ContextualHelpEnabled || _creatorShell.AreaTabCount != 2 ||
+                    Enum.GetValues<EditorRole>().Length != 7 ||
+                    !CreatorWorkspaceWindow.ContextualHelpContent.Contains(
+                        "docs/aurora-parity/tasks/G7-20-CREATOR-PRODUCTIVITY.md",
+                        StringComparison.Ordinal))
+                {
+                    failure = "profile_tabs_help_persistence";
+                }
+            }
+
+            if (failure is null)
+            {
+                var placeable = _history.State.Project.Blueprints.First(blueprint => blueprint.Kind == BlueprintKind.Placeable);
+                _blueprintPalette.Selected = _paletteBlueprintIds.FindIndex(id => id == placeable.Id);
+                _positionX.Value = -8;
+                _positionZ.Value = 10;
+                var beforePlacement = GetActiveArea().Entities.Count;
+                if (_blueprintPalette.Selected < 0 ||
+                    !PlaceRepeatedSeries(6, 2f, PlacementDistribution.Grid, 2026) ||
+                    GetActiveArea().Entities.Count != beforePlacement + 6)
+                {
+                    failure = "repeated_placement";
+                }
+                else
+                {
+                    var undo = _history.Undo();
+                    var redo = _history.Redo();
+                    var cleanup = _history.Undo();
+                    if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+                        GetActiveArea().Entities.Count != beforePlacement)
+                    {
+                        failure = "repeated_history";
+                    }
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            failure = $"exception_{exception.GetType().Name}";
+        }
+        finally
+        {
+            while (_history.CanUndo && comparisonAreaId is not null &&
+                   _history.State.Project.Areas.Any(area => area.Id == comparisonAreaId))
+            {
+                _history.Undo();
+            }
+
+            _activeAreaContext.EnsureValid(_history.State.Project);
+            ActivateArea(originalArea.Id);
+            SaveWorkspaceProfile(EditorWorkspaceProfilePlanner.ReconcileAreas(
+                originalProfile,
+                _history.State.Project.Areas.Select(area => area.Id).ToArray(),
+                originalArea.Id));
+            _blueprintPalette.Selected = originalPaletteSelection;
+            _positionX.Value = originalPositionX;
+            _positionZ.Value = originalPositionZ;
+            _selectionContext.SetLocked(false);
+            _selectionContext.Replace(originalSelection);
+            _selectionContext.SetLocked(originalSelectionLock);
+            RebuildPreview();
+            RefreshEditorControls();
+        }
+
+        if (failure is not null || _history.State.Project.Areas.Count != originalAreaCount)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_G720_PRODUCTIVITY_FAILED {failure ?? "cleanup"}");
+            return false;
+        }
+
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_G720_PRODUCTIVITY_PASS filters=combined-isolation-ghost " +
+            "placement=deterministic-atomic tabs=multi-area comparison=readonly help=sourced " +
+            "profiles=seven persistence=roundtrip history=restored");
         return true;
     }
 

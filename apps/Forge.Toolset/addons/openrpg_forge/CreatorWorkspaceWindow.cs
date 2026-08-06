@@ -26,7 +26,7 @@ public partial class CreatorWorkspaceWindow : Window
     private OptionButton? _role;
     private OptionButton? _activeArea;
     private OptionButton? _comparisonArea;
-    private OptionButton? _kind;
+    private ItemList? _kinds;
     private LineEdit? _tags;
     private LineEdit? _author;
     private LineEdit? _state;
@@ -90,6 +90,12 @@ public partial class CreatorWorkspaceWindow : Window
         _helpEnabled!.ButtonPressed = profile.ContextualHelpEnabled;
         _isolate!.ButtonPressed = profile.DisplayFilter.IsolateSelection;
         _ghost!.ButtonPressed = profile.DisplayFilter.GhostHidden;
+        _kinds!.DeselectAll();
+        var visibleKinds = profile.DisplayFilter.VisibleKinds.ToHashSet();
+        for (var index = 0; index < _kinds.ItemCount; index++)
+        {
+            if (visibleKinds.Contains((BlueprintKind)index)) _kinds.Select(index, false);
+        }
         _tags!.Text = string.Join(", ", profile.DisplayFilter.RequiredTags);
         _author!.Text = profile.DisplayFilter.Author;
         _state!.Text = profile.DisplayFilter.State;
@@ -104,7 +110,7 @@ public partial class CreatorWorkspaceWindow : Window
         {
             _areas.Add(area.Id); _activeArea.AddItem(area.DisplayName); _comparisonArea.AddItem(area.DisplayName);
             _openTabs.AddItem(area.DisplayName);
-            _openTabs.SetItemTooltip(_openTabs.ItemCount - 1, $"{area.Id}\n{area.Dimensions.Width} Ã— {area.Dimensions.Depth}");
+            _openTabs.SetItemTooltip(_openTabs.ItemCount - 1, $"{area.Id}\n{area.Dimensions.Width} × {area.Dimensions.Depth}");
         }
         for (var index = 0; index < _areas.Count; index++)
         {
@@ -128,7 +134,10 @@ public partial class CreatorWorkspaceWindow : Window
 
         var profile = Column(columns, "PROFIL & AFFICHAGE");
         profile.AddChild(new Label { Text = "Métier" }); _role = new OptionButton(); foreach (var role in Enum.GetValues<EditorRole>()) _role.AddItem(RoleName(role)); profile.AddChild(_role);
-        profile.AddChild(new Label { Text = "Type visible" }); _kind = new OptionButton(); _kind.AddItem("Tous les types"); foreach (var kind in Enum.GetValues<BlueprintKind>()) _kind.AddItem(kind.ToString()); profile.AddChild(_kind);
+        profile.AddChild(new Label { Text = "Types visibles (aucune sélection = tous)" });
+        _kinds = new ItemList { SelectMode = ItemList.SelectModeEnum.Multi, CustomMinimumSize = new Vector2(0, 92) };
+        foreach (var kind in Enum.GetValues<BlueprintKind>()) _kinds.AddItem(kind.ToString());
+        profile.AddChild(_kinds);
         _tags = new LineEdit { PlaceholderText = "Tags requis, séparés par virgules" }; profile.AddChild(_tags);
         _author = new LineEdit { PlaceholderText = "Auteur / provenance" }; profile.AddChild(_author);
         _state = new LineEdit { PlaceholderText = "État: projet, pack…" }; profile.AddChild(_state);
@@ -179,7 +188,9 @@ public partial class CreatorWorkspaceWindow : Window
 
     private EditorDisplayFilter BuildFilter()
     {
-        IReadOnlyList<BlueprintKind> kinds = _kind!.Selected == 0 ? Enum.GetValues<BlueprintKind>() : [(BlueprintKind)(_kind.Selected - 1)];
+        IReadOnlyList<BlueprintKind> kinds = _kinds!.GetSelectedItems().Length == 0
+            ? Enum.GetValues<BlueprintKind>()
+            : _kinds.GetSelectedItems().Select(index => (BlueprintKind)index).ToArray();
         return new(kinds, _tags!.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries), _author!.Text, _state!.Text, _isolate!.ButtonPressed, _ghost!.ButtonPressed);
     }
 
@@ -301,8 +312,10 @@ public partial class CreatorWorkspaceWindow : Window
         _comparison.Text = $"[b]{a.DisplayName}[/b]  ↔  [b]{b.DisplayName}[/b]\nDimensions: {a.Dimensions.Width}×{a.Dimensions.Depth} / {b.Dimensions.Width}×{b.Dimensions.Depth}\nEntités: {a.Entities.Count} / {b.Entities.Count}\nTransitions: {a.Portals.Count} / {b.Portals.Count}";
     }
 
-    private void RefreshHelp() => _help!.Text = !_helpEnabled!.ButtonPressed ? "Aide masquée." :
-        "[b]Affichage[/b]\nCombinez type, tags, auteur et état. L’isolation suit la sélection; le mode fantôme conserve le contexte.\n\n[b]Zones[/b]\nLa zone active est l’unique cible des commandes. La comparaison est en lecture seule.\n\n[b]Placement[/b]\nLigne, grille ou dispersion déterministe partent des coordonnées X/Z du bandeau Monde et forment une seule entrée d’historique.\n\n[b]Dépendances[/b]\nBlueprint sélectionné + zone active + grille valide.\n\n[color=#79d5ad]Sources locales: docs/aurora-parity/G7_COMPLETION_PLAN.md; OpenRPG_Forge_MEGACONTEXT.md[/color]";
+    internal static string ContextualHelpContent =>
+        "[b]Affichage[/b]\nCombinez types, tags, auteur et état. L’isolation suit la sélection; le mode fantôme conserve le contexte.\n\n[b]Zones[/b]\nLa zone active est l’unique cible des commandes. La comparaison est en lecture seule.\n\n[b]Placement[/b]\nLigne, grille ou dispersion déterministe partent des coordonnées X/Z du bandeau Monde et forment une seule entrée d’historique.\n\n[b]Dépendances[/b]\nBlueprint sélectionné + zone active + grille valide.\n\n[color=#79d5ad]Sources locales: docs/aurora-parity/tasks/G7-20-CREATOR-PRODUCTIVITY.md; MEGACONTEXT.md[/color]";
+
+    private void RefreshHelp() => _help!.Text = !_helpEnabled!.ButtonPressed ? "Aide masquée." : ContextualHelpContent;
 
     private AreaId? SelectedArea(OptionButton button, int offset) { var index = button.Selected - offset; return index >= 0 && index < _areas.Count ? _areas[index] : null; }
     private void SelectArea(OptionButton button, AreaId? id, int offset) { var index = id is null ? -1 : _areas.FindIndex(value => value == id); button.Selected = index < 0 ? 0 : index + offset; }

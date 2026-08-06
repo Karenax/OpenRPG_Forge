@@ -406,8 +406,9 @@ Le détail et les preuves des 717 capacités restent suivis dans
   propriétés précises, commande transactionnelle et historique pour `ORF-EE-002`.
 - [x] **G7-19 — pathfinding amélioré** : requêtes de chemin déterministes, coûts, blocages dynamiques,
   invalidation incrémentale et diagnostics pour `ORF-EE-028`.
-- [ ] **G7-20 — productivité de la coque Creator** : filtres d’affichage, placement répété, onglets de
-  zones, aide contextuelle et profils d’éditeur.
+- [x] **G7-20 — productivité de la coque Creator** : filtres combinés restaurés dans le viewport,
+  placement répété atomique, onglets de zones, comparaison protégée, aide sourcée et sept profils
+  d’éditeur persistants, couverts par le smoke moteur `OPENRPG_FORGE_TOOLSET_G720_PRODUCTIVITY_PASS`.
 
 Les règles graphiques et d’interaction de G7-03 à G7-17 sont consignées dans
 [`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).

@@ -83,6 +83,9 @@ quêtes, résout les replis par langue et offre édition, pseudo-localisation, d
 transactionnel dans une surface Creator dédiée.
 G7-18 complète l’échelle auteur : valeurs X/Y/Z, mode uniforme, Ctrl + molette, contraintes,
 validation géométrique et commande atomique multi-entités avec historique partagé.
+G7-20 ferme la productivité de la coque : filtres multi-types persistés et réappliqués au viewport,
+isolation et fantômes, placement déterministe groupé, zones ouvertes comparables, aide locale sourcée
+et sept profils métier. Son smoke moteur restaure projet, profil et historique après vérification.
 G7-19 ajoute un A* Core déterministe avec obstacles dynamiques, coûts, récupération des extrémités,
 budget de recherche, instrumentation et invalidation incrémentale affichés par l’analyse Navigation.
 

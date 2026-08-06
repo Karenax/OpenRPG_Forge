@@ -449,7 +449,7 @@ La file active est maintenant :
 | 18 | G7-17 | ORF-CONT-011 | Terminé partiellement : catalogue canonique, fallback, extraction, pseudo-localisation, diagnostics et édition transactionnelle. |
 | 19 | G7-18 | ORF-EE-002 | Terminé partiellement : échelle précise/uniforme, Ctrl-molette, contraintes, validation et transaction multi-entités. |
 | 20 | G7-19 | ORF-EE-028 | Terminé partiellement : A* déterministe, coûts, obstacles dynamiques, récupération et invalidation partielle. |
-| 21 | G7-20 | ORF-SHELL-008, 009, 012, 021, 023 | Terminé partiellement : filtres, placement répété atomique, zones comparables, aide et profils persistants. |
+| 21 | G7-20 | ORF-SHELL-008, 009, 012, 021, 023 | Gate P1 terminé : filtres restaurés dans le viewport, placement répété atomique, zones comparables, aide sourcée et profils persistants ; extensions avancées explicitement différées. |
 
 Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md`,
 `docs/aurora-parity/tasks/G7-02-CREATOR-SHELL.md` et

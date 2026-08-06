@@ -27,7 +27,11 @@ public sealed class EditorWorkspaceProfileStoreTests
 
             Assert.NotNull(restored);
             Assert.Equal(profile.Id, restored.Id);
+            Assert.Equal(profile.DisplayFilter.VisibleKinds, restored.DisplayFilter.VisibleKinds);
             Assert.Equal(profile.DisplayFilter.RequiredTags, restored.DisplayFilter.RequiredTags);
+            Assert.Equal(profile.DisplayFilter.Author, restored.DisplayFilter.Author);
+            Assert.Equal(profile.DisplayFilter.State, restored.DisplayFilter.State);
+            Assert.Equal(profile.DisplayFilter.GhostHidden, restored.DisplayFilter.GhostHidden);
             Assert.True(restored.RepeatPlacement);
             Assert.Equal(EditorWorkspaceProfile.CurrentSchemaVersion, restored.SchemaVersion);
             Assert.Equal(1, restored.UiScale);

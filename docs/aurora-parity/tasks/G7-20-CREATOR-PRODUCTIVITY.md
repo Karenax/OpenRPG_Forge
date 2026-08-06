@@ -10,6 +10,11 @@ Le Creator expose désormais un **Espace de travail créateur** cohérent avec l
 - aide locale intégrée avec exemples, dépendances et chemins de provenance ;
 - sept profils métier persistés dans `.forge/editor-profile.json`, hors contenu canonique du module.
 
+Le filtre de types accepte une sélection multiple, est restauré fidèlement dans la surface Creator
+et est réappliqué au viewport dès la réouverture du projet. Une configuration locale invalide est
+refusée avec le diagnostic stable `OPENRPG_FORGE_WORKSPACE_PROFILE_LOAD_FAILED`, puis le profil sûr
+par défaut reste disponible.
+
 ## Architecture et sécurité
 
 `EditorWorkspaceProfile` et `EditorDisplayFilter` sont indépendants du moteur. La sérialisation est
@@ -22,8 +27,9 @@ centralisés. La zone active demeure l’unique cible des mutations ; la compara
 - `tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs`
 - `tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs`
 - `tests/Forge.Application.Tests/Creator/RepeatedPlacementPlannerTests.cs`
-- build complet : 0 avertissement, 0 erreur
-- suite .NET : 261 tests réussis
+- `OPENRPG_FORGE_TOOLSET_G720_PRODUCTIVITY_PASS` vérifie le viewport réel, isolation, fantômes,
+  six placements groupés, undo/redo, deux onglets, comparaison, aide sourcée et round-trip du profil ;
+- build Toolset Release et Debug : 0 avertissement, 0 erreur.
 
 ## Limites explicites
 
@@ -31,4 +37,5 @@ Le lot ne prétend pas encore fournir des calques nommés, la peinture continue,
 simultanés, une recherche documentaire globale ni des permissions de profil contraignantes. Ces
 extensions n'empêchent pas les cinq flux P1 d'être utilisables dans le prototype.
 
-La prochaine tranche unique est **G7-21 — sauvegarde automatique et récupération**.
+Le gate P1 G7-20 est fermé. Les extensions avancées listées ci-dessus restent suivies par les lignes
+de capacité concernées sans rouvrir ce lot de prototype.

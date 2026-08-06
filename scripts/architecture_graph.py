@@ -112,6 +112,7 @@ CSHARP_USING_PATTERN = re.compile(
     r"(?m)^\s*using\s+(?:static\s+)?(?:[A-Za-z_]\w*\s*=\s*)?"
     r"(?P<name>[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\s*;"
 )
+CSHARP_IDENTIFIER_PATTERN = re.compile(r"\b[A-Za-z_]\w*\b")
 CSHARP_MAP_ROUTE_PATTERN = re.compile(
     r"\bMap(?P<verb>Get|Post|Put|Delete|Patch)\s*\(\s*"
     r'"(?P<path>/[^"\r\n]*)"\s*,\s*'
@@ -600,11 +601,12 @@ def analyze_csharp(
     for source_type in types:
         full_masked = masked_by_path[source_type.path]
         masked = full_masked[source_type.start : source_type.end]
-        for target_name, candidates in sorted(type_names.items()):
+        referenced_names: dict[str, int] = {}
+        for match in CSHARP_IDENTIFIER_PATTERN.finditer(masked):
+            referenced_names.setdefault(match.group(), match.start())
+        for target_name, reference_offset in sorted(referenced_names.items()):
+            candidates = type_names.get(target_name, [])
             if target_name == source_type.name or len(candidates) != 1:
-                continue
-            match = re.search(rf"\b{re.escape(target_name)}\b", masked)
-            if match is None:
                 continue
             target = candidates[0]
             relationship = relationship_for_types(source_type.kind, target.kind)
@@ -614,7 +616,7 @@ def analyze_csharp(
                     target.id,
                     relationship,
                     source_type.path,
-                    line_number(full_masked, source_type.start + match.start()),
+                    line_number(full_masked, source_type.start + reference_offset),
                 )
 
     routes: dict[tuple[str, str], str] = {}

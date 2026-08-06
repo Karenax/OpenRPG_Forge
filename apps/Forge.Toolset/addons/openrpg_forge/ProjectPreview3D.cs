@@ -74,6 +74,8 @@ public partial class ProjectPreview3D : SubViewportContainer
 
     public bool GhostVisible => _ghost?.Visible == true;
 
+    public int GhostedEntityCount { get; private set; }
+
     public bool LastPlacementWasValid { get; private set; }
 
     public int NavigationOverlayCellCount { get; private set; }
@@ -235,6 +237,7 @@ public partial class ProjectPreview3D : SubViewportContainer
 
     public int ApplyDisplayFilter()
     {
+        GhostedEntityCount = 0;
         var state = _getState?.Invoke();
         var areaId = _getActiveAreaId?.Invoke();
         var area = state?.Project.Areas.FirstOrDefault(candidate => candidate.Id == areaId);
@@ -255,6 +258,7 @@ public partial class ProjectPreview3D : SubViewportContainer
                 (!_displayFilter.IsolateSelection || entity.Id == _selectedEntityId);
             node.Visible = matches || _displayFilter.GhostHidden;
             SetGhosted(node, !matches && _displayFilter.GhostHidden);
+            if (!matches && _displayFilter.GhostHidden) GhostedEntityCount++;
             if (matches) visible++;
         }
 

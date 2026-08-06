@@ -640,6 +640,9 @@ ciblées. Le lot actif construit une carte 3D jouable et artistiquement revue. L
 - le profil éditeur v2 applique échelle UI/texte et chaîne de polices système, conserve jusqu’à huit
   onglets de zones, une comparaison protégée, les favoris personnels et les récents sans polluer le
   module exporté ;
+- l’espace de travail Creator restaure ses filtres multi-types, tags, auteur et état dans le viewport,
+  isole ou fantômise la scène, groupe le placement répété dans une transaction et relie son aide aux
+  preuves locales G7-20 ;
 - le module possède un profil artistique transactionnel qui cible échelle métrique, densité texel,
   shader, époque, réalisme et palette, puis expose les divergences comme avertissements structurés.
 - chaque zone possède un profil PBR/HDR, un tone mapper, des budgets de lumières/ombres et un ciel

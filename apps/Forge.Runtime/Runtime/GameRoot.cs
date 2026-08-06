@@ -270,7 +270,7 @@ public partial class GameRoot : Node3D
 
             if (forgottenForestSmokeTest)
             {
-                RunForgottenForestSmokeTest(project);
+                await RunForgottenForestSmokeTestAsync(project);
             }
             else if (rpgKitSmokeTest)
             {
@@ -2975,7 +2975,7 @@ public partial class GameRoot : Node3D
         GetTree().Quit(0);
     }
 
-    private void RunForgottenForestSmokeTest(ProjectDefinition project)
+    private async Task RunForgottenForestSmokeTestAsync(ProjectDefinition project)
     {
         AssertSmoke(_isForgottenForestPrototype, "The Forgotten Forest smoke test loaded another module.");
         AssertSmoke(project.Areas.Single().Kind == AreaKind.Exterior, "Forgotten Forest must remain an exterior area.");
@@ -2995,11 +2995,18 @@ public partial class GameRoot : Node3D
         AssertSmoke(_hostiles.Count == 3, "Forgotten Forest must reconstruct two scouts and its boss.");
         AssertSmoke(project.Dialogues.Count == 1 && project.Quests.Count == 1,
             "Forgotten Forest dialogue or quest data is missing.");
-        var navigationPath = NavigationServer3D.MapGetPath(
-            GetWorld3D().NavigationMap,
-            _player!.GlobalPosition,
-            _exit!.GlobalPosition,
-            optimize: true);
+        var navigationPath = Array.Empty<Vector3>();
+        for (var frame = 0; frame < 8 && navigationPath.Length < 2; frame++)
+        {
+            // NavigationServer3D synchronizes regions after the physics step. Querying it directly
+            // from _Ready is timing-dependent on a cold engine launch.
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+            navigationPath = NavigationServer3D.MapGetPath(
+                GetWorld3D().NavigationMap,
+                _player!.GlobalPosition,
+                _exit!.GlobalPosition,
+                optimize: true);
+        }
         AssertSmoke(navigationPath.Length >= 2,
             "Godot surface navigation could not find a path from the forest spawn to the sanctuary.");
 
