@@ -633,6 +633,14 @@ le working set. Il vérifie aussi 22 assets couvrant 66 niveaux LOD et trois gro
 d’une distance de culling. Un rapport JSON versionné conserve échantillon, budgets et seize checks ;
 le smoke et `scripts/Verify.ps1` échouent si l’un d’eux dépasse sa borne.
 
+AV5 consolide catalogue, téléchargements physiques, contenu utilisé, tailles, licences, intégrité du
+module et benchmark dans un rapport JSON/Markdown bloquant. Le catalogue reste figé à 605 entrées
+tant qu’un petit pack candidat n’a pas franchi la procédure documentée de gouvernance et de revue
+visuelle. Forgotten Forest possède trois cues PCM spatiaux générés de façon déterministe — vent,
+oiseaux et ruisseau — dont les hashes et la provenance sont authorisés dans la zone. Le runtime y
+ajoute trois couches animées totalisant 204 particules de lucioles, feuilles et brume, sans asset
+externe ni dépendance de production supplémentaire.
+
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de
 `AGENTS.md`. En cas de conflit, ces sources de vérité du dépôt priment sur la spécification importée.

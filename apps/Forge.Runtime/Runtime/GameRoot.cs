@@ -76,6 +76,7 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<Guid, CameraAnchorDefinition> _cameraAnchors = [];
     private readonly Dictionary<Guid, double> _scatterDueSeconds = [];
     private readonly Dictionary<Guid, int> _scatterSequences = [];
+    private readonly Dictionary<string, AudioStreamWav> _proceduralAudioCache = new(StringComparer.Ordinal);
     private readonly ForgeScriptJsonService _runtimeJson = new();
     private readonly ForgeScriptUiEventService _scriptUiEvents = new();
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
@@ -166,6 +167,8 @@ public partial class GameRoot : Node3D
     private int _terrainCullingGroups;
     private int _terrainWaterSurfaces;
     private int _terrainWaterVolumes;
+    private int _ambientVfxEmitters;
+    private int _ambientVfxParticles;
     private int _surfaceNavigationRegions;
     private int _surfaceNavigationPolygons;
     private int _surfaceNavigationBlockedTriangles;
@@ -1137,14 +1140,17 @@ public partial class GameRoot : Node3D
         };
         AddChild(sun);
 
-        AddChild(new OmniLight3D
+        if (includeCryptAtmosphere)
         {
-            Position = new Vector3(0, 5, -7),
-            OmniRange = 18,
-            LightColor = new Color("ff7043"),
-            LightEnergy = 4,
-            ShadowEnabled = true,
-        });
+            AddChild(new OmniLight3D
+            {
+                Position = new Vector3(0, 5, -7),
+                OmniRange = 18,
+                LightColor = new Color("ff7043"),
+                LightEnergy = 4,
+                ShadowEnabled = true,
+            });
+        }
 
         foreach (var diagnostic in engineEnvironment.Diagnostics)
         {
@@ -1167,6 +1173,17 @@ public partial class GameRoot : Node3D
         if (includeCryptAtmosphere)
         {
             CreateFinalCryptAtmosphere();
+        }
+
+        if (environmentProfile.Tags.Contains("vfx:forest-ambient", StringComparer.Ordinal))
+        {
+            var atmosphere = GodotForestAtmosphereAdapter.Build();
+            _ambientVfxEmitters = atmosphere.AnimatedEmitters;
+            _ambientVfxParticles = atmosphere.Particles;
+            AddChild(atmosphere.Root);
+            GD.Print(
+                $"OPENRPG_FORGE_RUNTIME_FOREST_ATMOSPHERE_PASS emitters={atmosphere.AnimatedEmitters} " +
+                $"particles={atmosphere.Particles} provenance={atmosphere.Provenance}");
         }
 
         _camera = new Camera3D
@@ -1343,6 +1360,27 @@ public partial class GameRoot : Node3D
     private AudioStream? LoadAudioStream(string resourcePath)
     {
         if (string.IsNullOrWhiteSpace(resourcePath)) return null;
+        if (resourcePath.StartsWith("builtin://", StringComparison.Ordinal))
+        {
+            if (!ProceduralAmbientAudioService.SupportedResources.Contains(resourcePath, StringComparer.Ordinal))
+                return null;
+            if (!_proceduralAudioCache.TryGetValue(resourcePath, out var procedural))
+            {
+                var clip = ProceduralAmbientAudioService.Create(resourcePath);
+                procedural = new AudioStreamWav
+                {
+                    Format = AudioStreamWav.FormatEnum.Format16Bits,
+                    MixRate = clip.SampleRate,
+                    Stereo = false,
+                    LoopMode = AudioStreamWav.LoopModeEnum.Disabled,
+                    Data = clip.Pcm16Mono,
+                };
+                _proceduralAudioCache.Add(resourcePath, procedural);
+            }
+
+            return procedural;
+        }
+
         var direct = resourcePath.StartsWith("res://", StringComparison.Ordinal)
             ? resourcePath
             : _moduleContentRoot is null
@@ -3007,7 +3045,8 @@ public partial class GameRoot : Node3D
     private async Task RunForgottenForestSmokeTestAsync(ProjectDefinition project, string? benchmarkPath)
     {
         AssertSmoke(_isForgottenForestPrototype, "The Forgotten Forest smoke test loaded another module.");
-        AssertSmoke(project.Areas.Single().Kind == AreaKind.Exterior, "Forgotten Forest must remain an exterior area.");
+        var area = project.Areas.Single();
+        AssertSmoke(area.Kind == AreaKind.Exterior, "Forgotten Forest must remain an exterior area.");
         AssertSmoke(_terrainVertices == 33 * 33, "The authored 33 x 33 terrain grid was not reconstructed.");
         AssertSmoke(_terrainScatterLayers >= 3, "The biome scatter did not reconstruct enough visual layers.");
         AssertSmoke(_terrainScatterInstances >= 300, "The forest is too sparse for the playable slice.");
@@ -3024,6 +3063,19 @@ public partial class GameRoot : Node3D
         AssertSmoke(_hostiles.Count == 3, "Forgotten Forest must reconstruct two scouts and its boss.");
         AssertSmoke(project.Dialogues.Count == 1 && project.Quests.Count == 1,
             "Forgotten Forest dialogue or quest data is missing.");
+        AssertSmoke(area.RuntimePolicies.Experience.AudioCues.Count == 3 &&
+                    area.RuntimePolicies.Experience.ScatterEmitters.Count == 3,
+            "Forgotten Forest procedural audio authoring is incomplete.");
+        foreach (var cue in area.RuntimePolicies.Experience.AudioCues)
+        {
+            var clip = ProceduralAmbientAudioService.Create(cue.Resource);
+            AssertSmoke(string.Equals(clip.ContentSha256, cue.ContentSha256, StringComparison.Ordinal),
+                $"Procedural audio hash is stale for '{cue.CueId}'.");
+            AssertSmoke(LoadAudioStream(cue.Resource) is AudioStreamWav { Data.Length: > 0 },
+                $"Procedural audio stream could not be reconstructed for '{cue.CueId}'.");
+        }
+        AssertSmoke(_ambientVfxEmitters == 3 && _ambientVfxParticles == 204,
+            "Forgotten Forest animated atmosphere was not reconstructed.");
         var navigationPathStarted = Stopwatch.GetTimestamp();
         var navigationPath = Array.Empty<Vector3>();
         for (var frame = 0; frame < 8 && navigationPath.Length < 2; frame++)
@@ -3041,7 +3093,6 @@ public partial class GameRoot : Node3D
             "Godot surface navigation could not find a path from the forest spawn to the sanctuary.");
         var navigationPathMilliseconds = Stopwatch.GetElapsedTime(navigationPathStarted).TotalMilliseconds;
 
-        var area = project.Areas.Single();
         var sculptureHandler = new EditTerrainBrushHandler(new SystemClock());
         var sculptureStarted = Stopwatch.GetTimestamp();
         var sculpture = sculptureHandler.Handle(
@@ -3101,6 +3152,10 @@ public partial class GameRoot : Node3D
             $"sculpture_ms={benchmark.Sample.SculptureMilliseconds:0.###} " +
             $"lod_assets={benchmark.Sample.LodAssetCount} lod_levels={benchmark.Sample.LodLevelCount} " +
             $"culling_groups={benchmark.Sample.CullingGroupCount}");
+        GD.Print(
+            $"OPENRPG_FORGE_FORGOTTEN_FOREST_POLISH_PASS audio_cues={area.RuntimePolicies.Experience.AudioCues.Count} " +
+            $"scatter={area.RuntimePolicies.Experience.ScatterEmitters.Count} vfx_emitters={_ambientVfxEmitters} " +
+            $"vfx_particles={_ambientVfxParticles} water_animated={_terrainWaterSurfaces} provenance=builtin");
 
         InteractWith(_npc!);
         AssertSmoke(_questMachine?.CurrentState.DisplayName == "La Graine de lune",

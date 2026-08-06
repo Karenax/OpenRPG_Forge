@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text;
 using System.Security.Cryptography;
 using Forge.Application.Assets;
 using Forge.Application.Commands;
@@ -88,7 +89,7 @@ static int Run(IReadOnlyList<string> arguments)
 
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
-            "forge assets <list|install-pack|uninstall-pack|report|credits|prepare|roundtrip|finalize-roundtrip> ... | " +
+            "forge assets <list|install-pack|uninstall-pack|report|delivery-report|credits|prepare|roundtrip|finalize-roundtrip> ... | " +
             "forge content <batch|export-blueprints|merge-table> ... | " +
             "forge docs <generate|check> | " +
             "forge readiness <validate|health|crash|recovery|sync-plan> ... | " +
@@ -590,6 +591,11 @@ static int RunAssets(IReadOnlyList<string> arguments)
         return ReportAssetVault(arguments);
     }
 
+    if (arguments.Count >= 3 && arguments[0] == "delivery-report")
+    {
+        return ReportAssetDelivery(arguments);
+    }
+
     if (arguments.Count >= 2 && arguments[0] == "credits")
     {
         return PrintAssetCredits(arguments);
@@ -621,6 +627,9 @@ static int RunAssets(IReadOnlyList<string> arguments)
             "forge assets uninstall-pack <repository-or-workspace> <pack-id> " +
             "[--apply <true|false>] [--vault <directory>] | " +
             "forge assets report <repository-or-workspace> [--vault <directory>] | " +
+            "forge assets delivery-report <repository-or-workspace> <module-workspace> " +
+            "--module <module.orpmod> --benchmark <terrain-benchmark.json> --output <report.json> " +
+            "[--markdown <report.md>] [--vault <directory>] | " +
             "forge assets credits <repository-or-workspace> [--format <markdown|text>] [--vault <directory>] | " +
             "forge assets prepare <repository-or-workspace> <workspace> --id <external-id> " +
             "[--kind <model|texture>] [--vfx <true|false>] [--vault <directory>] | " +
@@ -841,6 +850,65 @@ static int ReportAssetVault(IReadOnlyList<string> arguments)
         $"assets={state.Packages.SelectMany(package => package.Assets).Select(asset => asset.AssetId).Distinct().Count()} " +
         $"objects={state.BlobReferenceCounts.Count} bytes={blobSizes.Sum()}");
     return 0;
+}
+
+static int ReportAssetDelivery(IReadOnlyList<string> arguments)
+{
+    var options = ParseOptions(arguments.Skip(3).ToArray());
+    var context = LoadAssetVaultContext(arguments[1], options.GetValueOrDefault("vault"));
+    if (context.Load.Catalog is null || context.Load.Diagnostics.Count > 0)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = context.Load.Diagnostics }));
+        return 1;
+    }
+
+    var modulePackage = RequireOption(options, "module");
+    var benchmark = RequireOption(options, "benchmark");
+    var output = RequireOption(options, "output");
+    var report = AssetDeliveryReportService.Measure(
+        context.Load.Catalog,
+        context.Load.VaultRoot,
+        arguments[2],
+        modulePackage,
+        benchmark);
+    var jsonOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+    };
+    WriteUtf8Atomically(output, JsonSerializer.Serialize(report, jsonOptions) + Environment.NewLine);
+    if (options.TryGetValue("markdown", out var markdown) && !string.IsNullOrWhiteSpace(markdown))
+    {
+        WriteUtf8Atomically(markdown, AssetDeliveryReportService.RenderMarkdown(report));
+    }
+
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = report.Passed,
+        report.SchemaVersion,
+        report.Scope,
+        catalog = report.Catalog.Assets,
+        local = report.Catalog.LocalAssets,
+        vaultFiles = report.Vault.Total.Files,
+        vaultBytes = report.Vault.Total.Bytes,
+        manifests = report.Module.Manifests,
+        references = report.Module.AssetReferences,
+        moduleBytes = report.Module.PackageBytes,
+        benchmarkChecks = report.Performance.Checks,
+        checks = report.Checks.Count,
+        output = Path.GetFullPath(output),
+    }));
+    if (report.Passed)
+    {
+        Console.WriteLine(
+            $"OPENRPG_FORGE_AV5_DELIVERY_REPORT_PASS catalog={report.Catalog.Assets} " +
+            $"local={report.Catalog.LocalAssets} vault_files={report.Vault.Total.Files} " +
+            $"vault_bytes={report.Vault.Total.Bytes} manifests={report.Module.Manifests} " +
+            $"references={report.Module.AssetReferences} module_bytes={report.Module.PackageBytes} " +
+            $"benchmark_checks={report.Performance.Checks} checks={report.Checks.Count}");
+    }
+
+    return report.Passed ? 0 : 1;
 }
 
 static int PrintAssetCredits(IReadOnlyList<string> arguments)
@@ -1754,4 +1822,26 @@ static string HashFileSha256(string path)
 {
     using var stream = File.OpenRead(path);
     return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
+}
+
+static string RequireOption(IReadOnlyDictionary<string, string> options, string key) =>
+    options.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value)
+        ? value
+        : throw new ArgumentException($"Asset option '--{key}' is required.");
+
+static void WriteUtf8Atomically(string path, string content)
+{
+    var absolute = Path.GetFullPath(path);
+    var directory = Path.GetDirectoryName(absolute)!;
+    Directory.CreateDirectory(directory);
+    var temporary = Path.Combine(directory, $".{Path.GetFileName(absolute)}.{Guid.NewGuid():N}.tmp");
+    try
+    {
+        File.WriteAllText(temporary, content, new UTF8Encoding(false));
+        File.Move(temporary, absolute, overwrite: true);
+    }
+    finally
+    {
+        if (File.Exists(temporary)) File.Delete(temporary);
+    }
 }

@@ -76,6 +76,14 @@ Dernière mise à jour : 5 août 2026.
   chemin, 1 737 328 octets alloués et +17 506 304 octets de working set ;
 - couverture de performance contrôlée : 1 089 échantillons/vertices, 2 048 triangles, 181 formes de
   collision, 1 990 polygones de navigation, 22 assets/66 niveaux LOD et trois groupes de culling.
+- rapport AV5 reproductible et bloquant : 605 assets locaux/licenciés, 31 952 fichiers du Vault,
+  22 manifestes, 44 chunks, 22 références gouvernées, intégrité SHA-256, taille `.orpmod` et seize
+  budgets runtime mesurés dans une même preuve JSON/Markdown ;
+- procédure complète d’ajout de sources et packs, avec plafond du catalogue figé à 605 jusqu’à une
+  nouvelle revue visuelle et technique documentée ;
+- ambiance Forgotten Forest reconstruite sans nouvel asset externe : vent de canopée, oiseaux et
+  ruisseau PCM procéduraux/spatiaux, plus 204 particules animées réparties entre lucioles, feuilles et
+  brume au sol ; provenance et hash des trois cues sont persistés dans le profil de zone.
 
 ## Partiellement terminé
 
@@ -84,8 +92,8 @@ Dernière mise à jour : 5 août 2026.
 - normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
   conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
-- Forgotten Forest : tranche jouable, navigable et revue disponible ; animations, audio, VFX et
-  extension 512 × 512 restent des finitions de production.
+- Forgotten Forest : tranche jouable, navigable, sonorisée et enrichie de VFX ; animations de
+  personnages, composition finale et extension 512 × 512 restent des finitions de production.
 
 ## Non commencé
 
@@ -99,9 +107,9 @@ Dernière mise à jour : 5 août 2026.
 
 ## Prochaine action
 
-Fermer AV5 avec documentation de livraison, métriques consolidées et procédures d’ajout de packs,
-puis enrichir la carte avec animations, ambiance audio et VFX gouvernés sans élargissement massif
-du catalogue avant une nouvelle revue de cohérence.
+Intégrer les outils de composition et de finition désormais prouvés dans le Creator, puis préparer
+un petit incrément d’animation de personnages avant toute extension 512 × 512 ou augmentation du
+catalogue.
 
 ## Preuves de la tranche AV3 MCP
 

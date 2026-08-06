@@ -1,4 +1,5 @@
 using Forge.Application.Projects;
+using Forge.Application.Areas;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
@@ -25,6 +26,22 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.River);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.Bridge);
         Assert.Single(area.Navigation.OffMeshLinks);
+        Assert.Contains("vfx:forest-ambient", area.Environment.Tags, StringComparer.Ordinal);
+        Assert.Equal(SkyProfileMode.Procedural, area.Environment.Sky.Mode);
+        Assert.Equal("#4f83ad", area.Environment.Sky.ZenithColor);
+        Assert.Equal("forest", area.Environment.Reverb.DefaultPreset);
+        Assert.Equal(AreaSoundMode.Spatial3D, area.Environment.Audio.Spatial.Mode);
+        Assert.Equal(3, area.RuntimePolicies.Experience.AudioCues.Count);
+        Assert.Equal(3, area.RuntimePolicies.Experience.ScatterEmitters.Count);
+        Assert.All(area.RuntimePolicies.Experience.AudioCues, cue =>
+        {
+            Assert.StartsWith("builtin://forest/", cue.Resource, StringComparison.Ordinal);
+            Assert.Equal("LicenseRef-OpenRPG-Forge-Generated", cue.LicenseSpdx);
+            Assert.Equal(
+                ProceduralAmbientAudioService.Create(cue.Resource).ContentSha256,
+                cue.ContentSha256);
+            Assert.StartsWith("builtin:openrpg-forge", cue.Provenance, StringComparison.Ordinal);
+        });
         Assert.True(area.Entities.Count >= 18);
         Assert.Contains(project.Blueprints, blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn && blueprint.Combat is not null);
         Assert.Contains(area.Entities, entity => entity.Tags.Contains("boss", StringComparer.Ordinal));

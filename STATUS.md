@@ -206,8 +206,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   suivants ; Scripts possède l'analyse de build et de cache mais pas encore l'éditeur de code complet ;
 - les diagnostics sont désormais structurés et navigables, mais les profils de validation, filtres,
   catégories, bundle d’export et correctifs propres aux futurs imports d’assets restent à livrer ;
-- les visuels finaux du MVP sont des primitives procédurales originales ; ils ne constituent pas
-  encore une direction artistique de production avec modèles, animations, audio et VFX finis ;
+- la Crypte conserve des primitives procédurales originales ; Forgotten Forest possède désormais
+  modèles CC0 cohérents, eau animée, ambiance audio et VFX procéduraux, mais les animations de
+  personnages et la composition finale ne constituent pas encore une direction artistique de production ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
   l'éditeur et les permissions interactives restent à faire avant un usage multi-processus général ;
 - le catalogue de blueprints ne gère pas encore versions, paramètres exposés, miniatures,
@@ -226,8 +227,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   désormais normalisation, collisions, LOD, miniature et audit ; le traitement massif du catalogue
   complet reste à étendre ;
 - Forgotten Forest est jouable sur le terrain générique avec végétation, bâtiments, éclairage,
-  caméra, quête et export. Un bake de navigation avancé, une eau simulée, des animations, de l’audio
-  et des VFX de production restent nécessaires avant de qualifier la carte de contenu final ;
+  caméra, quête, export, navigation de surface, eau animée, ambiance spatiale et VFX. Les animations
+  de personnages, une eau simulée avancée et la composition 512 × 512 restent nécessaires avant de
+  qualifier la carte de contenu final ;
 - le workflow CI est défini, mais son exécution distante attend le premier push.
 
 ## Décisions verrouillées
@@ -461,3 +463,14 @@ de collisions, 10,778 ms de navigation, 3,604 ms de sculpture, 23,649 ms de requ
 1 737 328 octets alloués et +17 506 304 octets de working set. Les 22 assets portent 66 niveaux LOD,
 357 instances sont réparties en trois groupes de culling et les 1 990 polygones de navigation sont
 conservés. Deux tests de budget portent la suite EngineAdapter à 13 tests et la suite .NET à 720.
+
+**AV5 — livraison et extension contrôlée fermées** : la CLI produit désormais un rapport JSON et
+Markdown versionné à partir du catalogue, du Vault physique, du workspace, du `.orpmod` et du
+benchmark du même gate. La preuve mesure 605 assets tous locaux et licenciés, 31 952 fichiers du
+Vault pour 5 142 241 288 octets, 22 manifestes/44 chunks, 22 références sans asset non gouverné,
+1 073 258 octets de contenu et seize budgets runtime. Le plafond de 605 bloque toute expansion
+silencieuse avant revue d’un pack candidat. Les procédures d’ajout de source/pack et le journal AV5
+sont livrés. Forgotten Forest authorise aussi trois cues PCM procéduraux déterministes et spatiaux ;
+le runtime reconstruit vent, oiseaux et ruisseau, ainsi que trois emitters GPU totalisant 204
+particules de lucioles, feuilles et brume. Le smoke vérifie les hashes audio, le démarrage des trois
+cues, la provenance intégrée, l’eau animée et les VFX sans dépendance supplémentaire.

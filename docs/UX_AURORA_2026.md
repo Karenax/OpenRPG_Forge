@@ -253,6 +253,8 @@ générique, les biomes, trous, features, volumes et collisions partagés avec l
 une rivière shader animée, quatre volumes de nage/courant et une navigation de surface réelle de
 1 990 polygones avec traversée de pont. La capture Forward+ dans
 `artifacts/verification/forgotten-forest-water-navigation-forward-plus.png` valide ce palier visuel
-local ; elle ne constitue pas encore la direction artistique finale. Animations, ambiance audio,
-VFX, composition 512 × 512 et profilage restent nécessaires avant d’en
-faire la référence graphique d’OpenRPG Forge.
+local. AV5 ajoute trois ambiances spatiales PCM procédurales — vent, oiseaux et ruisseau — ainsi que
+204 particules animées de lucioles, feuilles et brume, toutes gouvernées et reconstruites sans nouvel
+asset externe. Le benchmark runtime et le rapport de livraison restent bloquants. Les animations de
+personnages, la composition finale 512 × 512 et une nouvelle revue Forward+ restent nécessaires
+avant d’en faire la direction artistique finale d’OpenRPG Forge.

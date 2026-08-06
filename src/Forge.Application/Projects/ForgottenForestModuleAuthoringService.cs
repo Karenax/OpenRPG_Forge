@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Forge.Application.Areas;
 using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
@@ -11,6 +12,7 @@ using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
 using Forge.Domain.Quests;
+using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Spatial;
 
 namespace Forge.Application.Projects;
@@ -31,6 +33,7 @@ public static class ForgottenForestModuleAuthoringService
         var world = CreateWorld(areaId, dimensions);
         var navigation = CreateNavigation(areaId, world);
         var environment = CreateEnvironment();
+        var runtimePolicies = CreateRuntimePolicies(areaId);
         var strike = new AbilityDefinition(
             Ids.Ability("forest-strike"),
             "forest-strike",
@@ -157,6 +160,7 @@ public static class ForgottenForestModuleAuthoringService
             dimensions,
             environment: environment,
             navigation: navigation,
+            runtimePolicies: runtimePolicies,
             world: world);
         var module = new ModuleDefinition(
             Ids.Module("forgotten-forest"),
@@ -240,19 +244,151 @@ public static class ForgottenForestModuleAuthoringService
     private static AreaEnvironmentProfile CreateEnvironment()
     {
         var defaults = AreaEnvironmentProfile.CreateDefault(AreaKind.Exterior);
+        var audio = new AreaAudioProfile(
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            "forest",
+            1.2f,
+            relativeVolume: .9f,
+            spatial: new AudioSpatialProfile(AreaSoundMode.Spatial3D, 2, 38, .18f, "inverse-square"));
+        var sky = new SkyProfile(
+            SkyProfile.CurrentSchemaVersion,
+            SkyProfileMode.Procedural,
+            string.Empty,
+            "#4f83ad",
+            "#e8c896",
+            "#354b35",
+            .04,
+            .12,
+            .04,
+            .92,
+            2);
         return new AreaEnvironmentProfile(
             AreaEnvironmentProfile.CurrentSchemaVersion,
             AreaEnvironmentClass.Natural,
-            ["forest", "temperate", "outdoor", "forgotten"],
-            new AreaLightingProfile(DayNightMode.AlwaysDay, 24, 0.62f, 1.25f, 5600, true, true),
-            new AreaFogProfile(FogMode.Distance, 0.012f, 50, 150, 5),
-            defaults.Audio,
+            ["forest", "temperate", "outdoor", "forgotten", "vfx:forest-ambient"],
+            new AreaLightingProfile(DayNightMode.AlwaysDay, 24, 0.42f, 1.55f, 5100, true, true),
+            new AreaFogProfile(FogMode.Distance, 0.0045f, 64, 185, 7),
+            audio,
             defaults.Rendering,
-            defaults.Sky,
+            sky,
             defaults.Wind,
             defaults.Weather,
             defaults.Water,
-            defaults.Reverb);
+            AreaReverbProfile.CreateDefault("forest"));
+    }
+
+    private static AreaRuntimePolicyProfile CreateRuntimePolicies(AreaId areaId)
+    {
+        var defaults = AreaRuntimePolicyProfile.CreateDefault(areaId);
+        var resources = new[]
+        {
+            (Key: "canopy-wind", Cue: "ambient.forest.wind", Resource: ProceduralAmbientAudioService.CanopyWindResource,
+                Volume: .34f),
+            (Key: "birdsong", Cue: "ambient.forest.birds", Resource: ProceduralAmbientAudioService.BirdsongResource,
+                Volume: .42f),
+            (Key: "stream", Cue: "ambient.forest.stream", Resource: ProceduralAmbientAudioService.StreamResource,
+                Volume: .38f),
+        };
+        var cues = resources.Select(item =>
+        {
+            var clip = ProceduralAmbientAudioService.Create(item.Resource);
+            return new AudioCueDefinition(
+                Ids.Guid($"experience:cue:{item.Key}"),
+                item.Cue,
+                item.Resource,
+                "Master",
+                item.Volume,
+                false,
+                "LicenseRef-OpenRPG-Forge-Generated",
+                clip.ContentSha256,
+                "1.0",
+                "builtin:openrpg-forge:procedural-audio@1");
+        }).ToArray();
+        var scatter = new[]
+        {
+            new SpatialScatterEmitter(
+                Ids.Guid("experience:scatter:canopy-wind"),
+                "ambient.forest.wind",
+                new Vector3Value(0, 4, 0),
+                new Vector3Value(112, 5, 112),
+                false,
+                2026080501,
+                6,
+                10,
+                .82f,
+                true,
+                ["forest"],
+                ["interior"],
+                "authored:forgotten-forest:procedural-audio@1"),
+            new SpatialScatterEmitter(
+                Ids.Guid("experience:scatter:birdsong"),
+                "ambient.forest.birds",
+                new Vector3Value(0, 6, 0),
+                new Vector3Value(104, 7, 104),
+                false,
+                2026080502,
+                8,
+                14,
+                .9f,
+                true,
+                ["canopy", "understory"],
+                ["interior"],
+                "authored:forgotten-forest:procedural-audio@1"),
+            new SpatialScatterEmitter(
+                Ids.Guid("experience:scatter:stream"),
+                "ambient.forest.stream",
+                new Vector3Value(2, .8f, 1),
+                new Vector3Value(92, 2, 12),
+                false,
+                2026080503,
+                5,
+                9,
+                .88f,
+                true,
+                ["forest"],
+                ["interior"],
+                "authored:forgotten-forest:procedural-audio@1"),
+        };
+        var loading = defaults.Experience.Loading with
+        {
+            Title = "Forgotten Forest",
+            LocalizedTips = new Dictionary<string, IReadOnlyList<string>>
+            {
+                ["fr"] =
+                [
+                    "La rivière guide vers le sanctuaire.",
+                    "Les fanions marquent le sentier sûr.",
+                ],
+                ["en"] =
+                [
+                    "The river leads toward the sanctuary.",
+                    "The flags mark the safe trail.",
+                ],
+            },
+            AccessibleFallback = "Préparation de la forêt, de ses sons et de ses repères visuels.",
+            Provenance = "authored:forgotten-forest:loading@1",
+        };
+        var experience = new AreaExperienceProfile(
+            areaId.Value,
+            AreaExperienceProfile.CurrentSchemaVersion,
+            cues,
+            scatter,
+            [],
+            [],
+            loading,
+            "authored:forgotten-forest:experience@1");
+        return new AreaRuntimePolicyProfile(
+            areaId.Value,
+            AreaRuntimePolicyProfile.CurrentSchemaVersion,
+            defaults.Heartbeats,
+            defaults.Rest,
+            "authored:forgotten-forest:runtime-policies@1",
+            defaults.Cinematics,
+            defaults.Rules,
+            experience);
     }
 
     private static AreaWorldProfile CreateWorld(AreaId areaId, AreaDimensions dimensions)

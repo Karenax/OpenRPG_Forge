@@ -55,3 +55,8 @@ Avant d’ajouter un adaptateur ou un pack manuel :
 8. produire crédits et notices depuis les assets réellement installés/utilisés ;
 9. ajouter tests, documentation et manifeste `asset_manifests/sources/<source>.json` ;
 10. n’élargir le catalogue qu’après validation d’un petit pack cohérent.
+
+La procédure d’implémentation, de revue visuelle et d’admission est détaillée dans
+[`ASSET_SOURCE_AND_PACK_EXTENSION.md`](ASSET_SOURCE_AND_PACK_EXTENSION.md). Le gate AV5 maintient
+actuellement un plafond de 605 entrées ; sa levée exige la décision et les preuves décrites dans
+[`AV5_DELIVERY_AND_EXTENSION.md`](AV5_DELIVERY_AND_EXTENSION.md).

@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.8.0",
+  "formatVersion": "1.9.0",
   "area": {
     "id": "a56d51fe-089a-995f-a4c9-59c349b0f1d8",
     "slug": "forgotten-forest",
@@ -777,42 +777,43 @@
         "forest",
         "forgotten",
         "outdoor",
-        "temperate"
+        "temperate",
+        "vfx:forest-ambient"
       ],
       "lighting": {
         "mode": "alwaysDay",
         "dayLengthMinutes": 24,
-        "ambientIntensity": 0.62,
-        "directionalIntensity": 1.25,
-        "colorTemperatureKelvin": 5600,
+        "ambientIntensity": 0.42,
+        "directionalIntensity": 1.55,
+        "colorTemperatureKelvin": 5100,
         "hdr": true,
         "shadows": true
       },
       "fog": {
         "mode": "distance",
-        "density": 0.012,
-        "startDistance": 50,
-        "endDistance": 150,
-        "height": 5
+        "density": 0.0045,
+        "startDistance": 64,
+        "endDistance": 185,
+        "height": 7
       },
       "audio": {
         "dayMusic": "",
         "nightMusic": "",
         "combatMusic": "",
         "ambience": "",
-        "reverbPreset": "neutral",
-        "transitionSeconds": 2,
+        "reverbPreset": "forest",
+        "transitionSeconds": 1.2,
         "playlist": [],
         "orderMode": "sequential",
         "intervalSeconds": 0,
         "intervalVariationSeconds": 0,
-        "relativeVolume": 1,
+        "relativeVolume": 0.9,
         "spatial": {
-          "mode": "global2D",
-          "innerRadius": 0,
-          "outerRadius": 0,
-          "airAbsorption": 0,
-          "attenuationCurve": "linear"
+          "mode": "spatial3D",
+          "innerRadius": 2,
+          "outerRadius": 38,
+          "airAbsorption": 0.18,
+          "attenuationCurve": "inverse-square"
         },
         "runtimeControl": {
           "initiallyActive": true,
@@ -860,15 +861,15 @@
       },
       "sky": {
         "schemaVersion": 1,
-        "mode": "physical",
+        "mode": "procedural",
         "panoramaResource": "",
-        "zenithColor": "#4c78a8",
-        "horizonColor": "#e4b88a",
-        "groundColor": "#38402f",
-        "starIntensity": 0.15,
-        "cloudCoverage": 0.2,
-        "moonIntensity": 0.1,
-        "energyMultiplier": 1,
+        "zenithColor": "#4f83ad",
+        "horizonColor": "#e8c896",
+        "groundColor": "#354b35",
+        "starIntensity": 0.04,
+        "cloudCoverage": 0.12,
+        "moonIntensity": 0.04,
+        "energyMultiplier": 0.92,
         "transitionSeconds": 2
       },
       "wind": {
@@ -930,7 +931,7 @@
       },
       "reverb": {
         "schemaVersion": 1,
-        "defaultPreset": "neutral",
+        "defaultPreset": "forest",
         "zones": []
       }
     },
@@ -2075,6 +2076,7 @@
           }
         ],
         "holes": [],
+        "materialPaint": [],
         "heightmapResource": "",
         "voxelResource": "",
         "meshResource": "",
@@ -2403,32 +2405,154 @@
       "experience": {
         "id": "a56d51fe-089a-995f-a4c9-59c349b0f1d8",
         "schemaVersion": 1,
-        "audioCues": [],
-        "scatterEmitters": [],
+        "audioCues": [
+          {
+            "id": "dd88e86d-40dd-7151-a9ba-c2436eb2b736",
+            "cueId": "ambient.forest.birds",
+            "resource": "builtin://forest/birdsong",
+            "bus": "Master",
+            "volume": 0.42,
+            "loop": false,
+            "licenseSpdx": "LicenseRef-OpenRPG-Forge-Generated",
+            "contentSha256": "9f11243feb988b6042fcaf74f74a0ace86c5372953b38428148f39882b653db3",
+            "forgeScriptApiVersion": "1.0",
+            "provenance": "builtin:openrpg-forge:procedural-audio@1"
+          },
+          {
+            "id": "d0c8c793-9122-1751-8f9d-87d570c17607",
+            "cueId": "ambient.forest.stream",
+            "resource": "builtin://forest/stream",
+            "bus": "Master",
+            "volume": 0.38,
+            "loop": false,
+            "licenseSpdx": "LicenseRef-OpenRPG-Forge-Generated",
+            "contentSha256": "81a4f6b57d182d3eb9e601c7eed7b9f6f40c3b4270c84b5bd99273fd58cbdbbf",
+            "forgeScriptApiVersion": "1.0",
+            "provenance": "builtin:openrpg-forge:procedural-audio@1"
+          },
+          {
+            "id": "56297bd4-e8d9-4856-865a-73adbc8fe269",
+            "cueId": "ambient.forest.wind",
+            "resource": "builtin://forest/canopy-wind",
+            "bus": "Master",
+            "volume": 0.34,
+            "loop": false,
+            "licenseSpdx": "LicenseRef-OpenRPG-Forge-Generated",
+            "contentSha256": "48d208c12cc8ed269c624e43c77a9ef30b59aa4ccf619b82c13b42c2e5ff6012",
+            "forgeScriptApiVersion": "1.0",
+            "provenance": "builtin:openrpg-forge:procedural-audio@1"
+          }
+        ],
+        "scatterEmitters": [
+          {
+            "id": "43154c34-23be-c951-bcc1-7b7a5ba9a540",
+            "cueId": "ambient.forest.wind",
+            "center": {
+              "x": 0,
+              "y": 4,
+              "z": 0
+            },
+            "size": {
+              "x": 112,
+              "y": 5,
+              "z": 112
+            },
+            "surfaceOnly": false,
+            "deterministicSeed": 2026080501,
+            "minimumIntervalSeconds": 6,
+            "maximumIntervalSeconds": 10,
+            "volume": 0.82,
+            "requireNavigable": true,
+            "biomeTags": [
+              "forest"
+            ],
+            "exclusionTags": [
+              "interior"
+            ],
+            "provenance": "authored:forgotten-forest:procedural-audio@1"
+          },
+          {
+            "id": "793ddc04-c63d-a853-8f3a-bc32e35aaf18",
+            "cueId": "ambient.forest.birds",
+            "center": {
+              "x": 0,
+              "y": 6,
+              "z": 0
+            },
+            "size": {
+              "x": 104,
+              "y": 7,
+              "z": 104
+            },
+            "surfaceOnly": false,
+            "deterministicSeed": 2026080502,
+            "minimumIntervalSeconds": 8,
+            "maximumIntervalSeconds": 14,
+            "volume": 0.9,
+            "requireNavigable": true,
+            "biomeTags": [
+              "canopy",
+              "understory"
+            ],
+            "exclusionTags": [
+              "interior"
+            ],
+            "provenance": "authored:forgotten-forest:procedural-audio@1"
+          },
+          {
+            "id": "cf1c7890-6945-ee52-affe-672a9f71a200",
+            "cueId": "ambient.forest.stream",
+            "center": {
+              "x": 2,
+              "y": 0.8,
+              "z": 1
+            },
+            "size": {
+              "x": 92,
+              "y": 2,
+              "z": 12
+            },
+            "surfaceOnly": false,
+            "deterministicSeed": 2026080503,
+            "minimumIntervalSeconds": 5,
+            "maximumIntervalSeconds": 9,
+            "volume": 0.88,
+            "requireNavigable": true,
+            "biomeTags": [
+              "forest"
+            ],
+            "exclusionTags": [
+              "interior"
+            ],
+            "provenance": "authored:forgotten-forest:procedural-audio@1"
+          }
+        ],
         "voices": [],
         "patrolRoutes": [],
         "loading": {
           "id": "14255809-54f3-51b6-b6e3-e1baffd725f4",
-          "title": "Chargement",
+          "title": "Forgotten Forest",
           "imageResource": "",
           "videoResource": "",
           "localizedTips": {
             "fr": [
-              "Pr\u00E9paration de la zone\u2026"
+              "La rivi\u00E8re guide vers le sanctuaire.",
+              "Les fanions marquent le sentier s\u00FBr."
             ],
             "en": [
-              "Preparing the area\u2026"
+              "The river leads toward the sanctuary.",
+              "The flags mark the safe trail."
             ]
           },
           "showProgress": true,
-          "accessibleFallback": "Chargement de la zone en cours.",
+          "accessibleFallback": "Pr\u00E9paration de la for\u00EAt, de ses sons et de ses rep\u00E8res visuels.",
           "prefetchRequiredResources": true,
           "minimumVisibleMilliseconds": 250,
-          "provenance": "migration-default"
+          "provenance": "authored:forgotten-forest:loading@1"
         },
-        "provenance": "migration-default"
+        "provenance": "authored:forgotten-forest:experience@1"
       },
-      "provenance": "migration-default"
+      "provenance": "authored:forgotten-forest:runtime-policies@1"
     }
   }
 }

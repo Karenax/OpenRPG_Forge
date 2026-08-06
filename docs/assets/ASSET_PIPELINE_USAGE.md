@@ -170,3 +170,12 @@ dotnet run --project tools/Forge.Cli/Forge.Cli.csproj -- `
 
 La commande est idempotente et ne modifie jamais `normalized/kenney/mini-forest`. Pour authoriser,
 compiler et lancer la carte en une fois, utiliser `scripts/Run-ForgottenForest.ps1`.
+
+## Mesurer la livraison complète
+
+Après export et smoke runtime, `assets delivery-report` consolide catalogue, Vault, contenu utilisé,
+taille du module, licences, intégrité et performances. La commande reproductible et les mesures de
+référence sont documentées dans
+[`AV5_DELIVERY_AND_EXTENSION.md`](AV5_DELIVERY_AND_EXTENSION.md). Pour ajouter une source ou un pack,
+suivre [`ASSET_SOURCE_AND_PACK_EXTENSION.md`](ASSET_SOURCE_AND_PACK_EXTENSION.md) avant de modifier
+le plafond du catalogue.

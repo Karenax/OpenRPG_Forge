@@ -543,6 +543,6 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 
 ### AV5 — Livraison et extension
 
-- [ ] Livrer la documentation, le journal d’implémentation et les procédures d’ajout de sources/packs.
-- [ ] Mesurer catalogue, téléchargements, contenu utilisé, taille, licences et performances réelles.
-- [ ] N’élargir massivement le catalogue qu’après validation de la cohérence visuelle et du pipeline.
+- [x] Livrer la documentation, le journal d’implémentation et les procédures d’ajout de sources/packs.
+- [x] Mesurer catalogue, téléchargements, contenu utilisé, taille, licences et performances réelles.
+- [x] N’élargir massivement le catalogue qu’après validation de la cohérence visuelle et du pipeline.
