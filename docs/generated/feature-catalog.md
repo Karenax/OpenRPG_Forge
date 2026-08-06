@@ -4,7 +4,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 
 | ID | Fonctionnalité | Priorité | État | Gate |
 |---|---|---:|---|---|
-| ORF-AI-001 | Assistant intégré au Toolset | P1 | Researched | G12 |
+| ORF-AI-001 | Assistant intégré au Toolset | P1 | Tested | G12 |
 | ORF-AI-002 | Contexte structuré du projet | P0 | Researched | G5 |
 | ORF-AI-003 | Index de lore | P1 | Researched | G12 |
 | ORF-AI-004 | Graph de références | P0 | Researched | G5 |
@@ -15,7 +15,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-AI-009 | Diff sémantique | P0 | Researched | G5 |
 | ORF-AI-010 | Niveaux d’autorisation | P0 | Researched | G5 |
 | ORF-AI-011 | Audit IA | P0 | Researched | G5 |
-| ORF-AI-012 | Fournisseurs interchangeables | P1 | Researched | G12 |
+| ORF-AI-012 | Fournisseurs interchangeables | P1 | Implemented | G12 |
 | ORF-AI-013 | Budget et confidentialité | P0 | Researched | G5 |
 | ORF-AI-014 | Création de plan de zone | P1 | Researched | G12 |
 | ORF-AI-015 | Construction de zone assistée | P1 | Researched | G12 |
@@ -33,7 +33,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-AI-027 | Simulation de quête | P1 | Researched | G12 |
 | ORF-AI-028 | Simulation de combat | P2 | Researched | G12 |
 | ORF-AI-029 | Contrôle de cohérence narrative | P1 | Researched | G12 |
-| ORF-AI-030 | Prompts versionnés | P1 | Researched | G12 |
+| ORF-AI-030 | Prompts versionnés | P1 | Tested | G12 |
 | ORF-AI-031 | Résultats structurés | P0 | Researched | G5 |
 | ORF-AI-032 | Protection contre prompt injection | P0 | Researched | G5 |
 | ORF-AI-033 | Mode hors ligne | P0 | Researched | G5 |

@@ -503,6 +503,33 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.AssistantWorkspaceProfileJsonSerializer",
+      "target": "file:src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.AssistantWorkspaceProfileJsonSerializer",
+      "target": "model:Forge.ModuleFormat.Serialization.AssistantWorkspaceProfileDocument"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "uses_service",
+      "source": "adapter:Forge.ModuleFormat.Serialization.AssistantWorkspaceProfileJsonSerializer",
+      "target": "validator:Forge.Domain.Assistant.AssistantWorkspaceProfileValidator"
+    },
+    {
+      "evidence": {
         "line": 196,
         "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
       },
@@ -1493,7 +1520,7 @@
     },
     {
       "evidence": {
-        "line": 64,
+        "line": 66,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1502,7 +1529,7 @@
     },
     {
       "evidence": {
-        "line": 6822,
+        "line": 6914,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1511,7 +1538,7 @@
     },
     {
       "evidence": {
-        "line": 6841,
+        "line": 6933,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1520,7 +1547,7 @@
     },
     {
       "evidence": {
-        "line": 6715,
+        "line": 6807,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1529,7 +1556,7 @@
     },
     {
       "evidence": {
-        "line": 5478,
+        "line": 5570,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -2357,7 +2384,7 @@
     },
     {
       "evidence": {
-        "line": 188,
+        "line": 189,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2366,7 +2393,7 @@
     },
     {
       "evidence": {
-        "line": 257,
+        "line": 258,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2375,7 +2402,7 @@
     },
     {
       "evidence": {
-        "line": 101,
+        "line": 102,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -3402,6 +3429,42 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs",
+      "target": "namespace:Forge.Application.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
       },
       "kind": "imports",
@@ -3788,7 +3851,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3797,12 +3860,12 @@
     },
     {
       "evidence": {
-        "line": 8,
+        "line": 7,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Blueprints"
+      "target": "namespace:Forge.Application.Assistant"
     },
     {
       "evidence": {
@@ -3811,7 +3874,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Commands"
+      "target": "namespace:Forge.Application.Blueprints"
     },
     {
       "evidence": {
@@ -3820,7 +3883,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Content"
+      "target": "namespace:Forge.Application.Commands"
     },
     {
       "evidence": {
@@ -3829,7 +3892,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Creator"
+      "target": "namespace:Forge.Application.Content"
     },
     {
       "evidence": {
@@ -3838,7 +3901,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Dialogues"
+      "target": "namespace:Forge.Application.Creator"
     },
     {
       "evidence": {
@@ -3847,7 +3910,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Entities"
+      "target": "namespace:Forge.Application.Dialogues"
     },
     {
       "evidence": {
@@ -3856,61 +3919,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Gameplay"
-    },
-    {
-      "evidence": {
-        "line": 17,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Lifecycle"
-    },
-    {
-      "evidence": {
-        "line": 16,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Localization"
-    },
-    {
-      "evidence": {
-        "line": 18,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Navigation"
-    },
-    {
-      "evidence": {
-        "line": 20,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Projects"
-    },
-    {
-      "evidence": {
-        "line": 22,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Quality"
-    },
-    {
-      "evidence": {
-        "line": 21,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Quests"
+      "target": "namespace:Forge.Application.Entities"
     },
     {
       "evidence": {
@@ -3919,7 +3928,25 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Rules"
+      "target": "namespace:Forge.Application.Gameplay"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Application.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Application.Localization"
     },
     {
       "evidence": {
@@ -3928,7 +3955,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Sequences"
+      "target": "namespace:Forge.Application.Navigation"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
@@ -3937,7 +3973,34 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Spatial"
+      "target": "namespace:Forge.Application.Quality"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Application.Quests"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Application.Rules"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Application.Sequences"
     },
     {
       "evidence": {
@@ -3946,7 +4009,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Application.Time"
+      "target": "namespace:Forge.Application.Spatial"
     },
     {
       "evidence": {
@@ -3955,11 +4018,20 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Areas"
+      "target": "namespace:Forge.Application.Time"
     },
     {
       "evidence": {
         "line": 26,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 28,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -3973,16 +4045,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Authoring"
-    },
-    {
-      "evidence": {
-        "line": 28,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Blueprints"
+      "target": "namespace:Forge.Domain.Assistant"
     },
     {
       "evidence": {
@@ -3991,7 +4054,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Build"
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
@@ -4000,7 +4063,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Content"
+      "target": "namespace:Forge.Domain.Blueprints"
     },
     {
       "evidence": {
@@ -4009,7 +4072,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Build"
     },
     {
       "evidence": {
@@ -4018,7 +4081,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Entities"
+      "target": "namespace:Forge.Domain.Content"
     },
     {
       "evidence": {
@@ -4027,16 +4090,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Gameplay"
-    },
-    {
-      "evidence": {
-        "line": 35,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Lifecycle"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -4045,16 +4099,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Localization"
+      "target": "namespace:Forge.Domain.Entities"
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 35,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Modules"
+      "target": "namespace:Forge.Domain.Gameplay"
     },
     {
       "evidence": {
@@ -4063,7 +4117,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Navigation"
+      "target": "namespace:Forge.Domain.Lifecycle"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Domain.Localization"
     },
     {
       "evidence": {
@@ -4072,7 +4135,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Projects"
+      "target": "namespace:Forge.Domain.Modules"
     },
     {
       "evidence": {
@@ -4081,25 +4144,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Quests"
-    },
-    {
-      "evidence": {
-        "line": 42,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Rules"
-    },
-    {
-      "evidence": {
-        "line": 41,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.RuntimeExtensions"
+      "target": "namespace:Forge.Domain.Navigation"
     },
     {
       "evidence": {
@@ -4108,16 +4153,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.RuntimePolicies"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 41,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Sequences"
+      "target": "namespace:Forge.Domain.Quests"
     },
     {
       "evidence": {
@@ -4126,7 +4171,25 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Rules"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Domain.RuntimeExtensions"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -4135,7 +4198,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.Domain.Validation"
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
@@ -4144,7 +4207,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.EngineAdapter.Assets"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -4153,7 +4216,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.EngineAdapter.Rendering"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -4162,16 +4225,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.EngineAdapter.World"
-    },
-    {
-      "evidence": {
-        "line": 50,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
+      "target": "namespace:Forge.EngineAdapter.Assets"
     },
     {
       "evidence": {
@@ -4180,16 +4234,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Build"
+      "target": "namespace:Forge.EngineAdapter.Rendering"
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 50,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Content"
+      "target": "namespace:Forge.EngineAdapter.World"
     },
     {
       "evidence": {
@@ -4198,7 +4252,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Distribution"
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
     },
     {
       "evidence": {
@@ -4207,16 +4270,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Navigation"
-    },
-    {
-      "evidence": {
-        "line": 55,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.ModuleFormat.Content"
     },
     {
       "evidence": {
@@ -4225,16 +4279,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.ModuleFormat.Distribution"
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 55,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Quality"
+      "target": "namespace:Forge.ModuleFormat.Navigation"
     },
     {
       "evidence": {
@@ -4243,11 +4297,38 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Workspaces"
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 56,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
     },
     {
       "evidence": {
         "line": 58,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Quality"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 60,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -4850,7 +4931,7 @@
     },
     {
       "evidence": {
-        "line": 247,
+        "line": 254,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -6620,6 +6701,141 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Assets/SetAssetProcessingProfileHandler.cs",
       "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Assistant/AssistantPromptRenderer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/AssistantPromptRenderer.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantPromptTestRunner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/AssistantPromptTestRunner.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantProviderRegistry.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/AssistantProviderRegistry.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantProviderRequest.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/AssistantProviderRequest.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileState.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileState.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/DeterministicAssistantProvider.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/DeterministicAssistantProvider.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/DeterministicAssistantProviderFactory.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/DeterministicAssistantProviderFactory.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/IAssistantProviderFactory.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/IAssistantProviderFactory.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs",
+      "target": "namespace:Forge.Domain.Assistant"
     },
     {
       "evidence": {
@@ -10502,6 +10718,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Domain/Authoring/EditorCameraPose.cs"
       },
@@ -13572,6 +13797,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
       },
       "kind": "imports",
@@ -13927,6 +14161,24 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Workspaces/AssetProcessingProfileStore.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
@@ -15161,6 +15413,60 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Assets/InstallAssetBlueprintHandlerTests.cs",
       "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs",
+      "target": "namespace:Forge.Application.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs",
+      "target": "namespace:Forge.Application.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
     },
     {
       "evidence": {
@@ -17690,6 +17996,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs",
       "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
     },
     {
       "evidence": {
@@ -20470,6 +20785,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/AssetProcessingProfileStoreTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
@@ -25028,6 +25361,78 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Assistant.SetAssistantWorkspaceProfileHandler",
+      "target": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetAssistantWorkspaceProfileHandler",
+      "target": "model:Forge.Application.Assistant.AssistantWorkspaceProfileCommandResult"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetAssistantWorkspaceProfileHandler",
+      "target": "model:Forge.Application.Assistant.AssistantWorkspaceProfileState"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetAssistantWorkspaceProfileHandler",
+      "target": "model:Forge.Application.Assistant.SetAssistantWorkspaceProfileCommand"
+    },
+    {
+      "evidence": {
+        "line": 100,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetAssistantWorkspaceProfileHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetAssistantWorkspaceProfileHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 101,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetAssistantWorkspaceProfileHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 53,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assistant.SetAssistantWorkspaceProfileHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
       },
@@ -28169,6 +28574,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/IAssistantProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "interface:Forge.Application.Assistant.IAssistantProvider",
+      "target": "file:src/Forge.Application/Assistant/IAssistantProvider.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.EngineAdapter/World/ITerrainProvider.cs"
       },
@@ -28903,6 +29317,87 @@
       },
       "kind": "relationship",
       "source": "model:Forge.Application.Assets.SetAssetProcessingProfileCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/AssistantPromptRenderResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assistant.AssistantPromptRenderResult",
+      "target": "file:src/Forge.Application/Assistant/AssistantPromptRenderResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assistant.AssistantWorkspaceProfileCommandResult",
+      "target": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.AssistantWorkspaceProfileCommandResult",
+      "target": "model:Forge.Application.Assistant.AssistantWorkspaceProfileState"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.AssistantWorkspaceProfileCommandResult",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.AssistantWorkspaceProfileCommandResult",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.AssistantWorkspaceProfileCommandResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileState.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assistant.AssistantWorkspaceProfileState",
+      "target": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileState.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assistant.SetAssistantWorkspaceProfileCommand",
+      "target": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assistant.SetAssistantWorkspaceProfileCommand",
       "target": "model:Forge.Application.Commands.CommandId"
     },
     {
@@ -30767,6 +31262,42 @@
       "kind": "relationship",
       "source": "model:Forge.Domain.Assets.AssetVaultInstallationState",
       "target": "model:Forge.Domain.Assets.AssetCatalogItemId"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/AssistantPromptDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assistant.AssistantPromptDefinition",
+      "target": "file:src/Forge.Domain/Assistant/AssistantPromptDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/AssistantProviderDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assistant.AssistantProviderDefinition",
+      "target": "file:src/Forge.Domain/Assistant/AssistantProviderDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Domain/Assistant/AssistantProviderDefinition.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Assistant.AssistantProviderDefinition",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderKind"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/AssistantProviderKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Assistant.AssistantProviderKind",
+      "target": "file:src/Forge.Domain/Assistant/AssistantProviderKind.cs"
     },
     {
       "evidence": {
@@ -34280,6 +34811,15 @@
     },
     {
       "evidence": {
+        "line": 45,
+        "path": "src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Serialization.AssistantWorkspaceProfileDocument",
+      "target": "file:src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
         "line": 49,
         "path": "src/Forge.ModuleFormat/Serialization/AssetExternalEditJsonSerializer.cs"
       },
@@ -34375,6 +34915,24 @@
       },
       "kind": "relationship",
       "source": "model:Forge.ModuleFormat.Workspaces.AssetProcessingProfileLoadResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 92,
+        "path": "src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Workspaces.AssistantWorkspaceProfileLoadResult",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 95,
+        "path": "src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Workspaces.AssistantWorkspaceProfileLoadResult",
       "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic"
     },
     {
@@ -37250,6 +37808,159 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantPromptRenderResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantPromptRenderResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/AssistantPromptRenderer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantPromptRenderer.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantPromptTestReport.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantPromptTestReport.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/AssistantPromptTestRunner.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantPromptTestRunner.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/AssistantProviderRegistry.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantProviderRegistry.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/AssistantProviderRequest.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantProviderRequest.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantProviderResponse.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantProviderResponse.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileRevision.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileRevision.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileState.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileState.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/DeterministicAssistantProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/DeterministicAssistantProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/DeterministicAssistantProviderFactory.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/DeterministicAssistantProviderFactory.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assistant/IAssistantProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/IAssistantProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assistant/IAssistantProviderFactory.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/IAssistantProviderFactory.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assistant",
+      "target": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
       },
@@ -38726,6 +39437,24 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Assistant",
+      "target": "file:tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Assistant",
+      "target": "file:tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs"
       },
@@ -39668,6 +40397,78 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Assets",
       "target": "file:src/Forge.Domain/Assets/AssetVaultInstalledPackage.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assistant/AssistantPermissionLevel.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/AssistantPermissionLevel.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assistant/AssistantPromptChange.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/AssistantPromptChange.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assistant/AssistantPromptDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/AssistantPromptDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assistant/AssistantPromptTestCase.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/AssistantPromptTestCase.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assistant/AssistantProviderDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/AssistantProviderDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assistant/AssistantProviderKind.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/AssistantProviderKind.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/AssistantWorkspaceProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assistant",
+      "target": "file:src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
     },
     {
       "evidence": {
@@ -41624,6 +42425,15 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Assistant",
+      "target": "file:tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
       },
@@ -43461,6 +44271,15 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Serialization",
+      "target": "file:src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
       },
       "kind": "defined_in",
@@ -43874,6 +44693,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Workspaces",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
       },
@@ -43934,6 +44762,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Workspaces",
       "target": "file:src/Forge.ModuleFormat/Workspaces/AssetProcessingProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Workspaces",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
     },
     {
       "evidence": {
@@ -45521,6 +46358,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
       },
@@ -45602,7 +46448,7 @@
     },
     {
       "evidence": {
-        "line": 60,
+        "line": 62,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -52115,6 +52961,204 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Assets.InstallAssetBlueprintHandlerTests",
       "target": "type:Forge.Domain.Blueprints.BlueprintPaletteOrigin"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "target": "file:tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderDefinition"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderKind"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "target": "type:Forge.Application.Assistant.AssistantPromptRenderer"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "target": "type:Forge.Application.Assistant.AssistantPromptTestRunner"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "target": "type:Forge.Application.Assistant.AssistantProviderRegistry"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "target": "type:Forge.Application.Assistant.AssistantProviderRequest"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "target": "type:Forge.Domain.Assistant.AssistantWorkspaceProfile"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "target": "type:Forge.LiveDirector.Chat.Message"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "file:tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "handler:Forge.Application.Assistant.SetAssistantWorkspaceProfileHandler"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "model:Forge.Application.Assistant.AssistantWorkspaceProfileState"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "model:Forge.Application.Assistant.SetAssistantWorkspaceProfileCommand"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "model:Forge.Domain.Assistant.AssistantPromptDefinition"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "type:Forge.Application.Assistant.AssistantWorkspaceProfileCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "type:Forge.Application.Assistant.AssistantWorkspaceProfileRevision"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPromptChange"
+    },
+    {
+      "evidence": {
+        "line": 58,
+        "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "target": "type:Forge.Domain.Assistant.AssistantWorkspaceProfile"
     },
     {
       "evidence": {
@@ -59585,6 +60629,60 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Assets.AssetPackageManifestValidatorTests",
       "target": "validator:Forge.Domain.Assets.AssetPackageManifestValidator"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Assistant.AssistantWorkspaceProfileTests",
+      "target": "file:tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assistant.AssistantWorkspaceProfileTests",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderDefinition"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assistant.AssistantWorkspaceProfileTests",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderKind"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assistant.AssistantWorkspaceProfileTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assistant.AssistantWorkspaceProfileTests",
+      "target": "type:Forge.Domain.Assistant.AssistantWorkspaceProfile"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assistant.AssistantWorkspaceProfileTests",
+      "target": "validator:Forge.Domain.Assistant.AssistantWorkspaceProfileValidator"
     },
     {
       "evidence": {
@@ -69065,6 +70163,42 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.AssistantWorkspaceProfileStoreTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.AssistantWorkspaceProfileStoreTests",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderKind"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.AssistantWorkspaceProfileStoreTests",
+      "target": "type:Forge.Domain.Assistant.AssistantWorkspaceProfile"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.AssistantWorkspaceProfileStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.AssistantWorkspaceProfileStore"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
       },
@@ -75248,6 +76382,105 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Assistant/AssistantPromptRenderer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.AssistantPromptRenderer",
+      "target": "file:src/Forge.Application/Assistant/AssistantPromptRenderer.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/AssistantPromptTestReport.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.AssistantPromptTestReport",
+      "target": "file:src/Forge.Application/Assistant/AssistantPromptTestReport.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/AssistantPromptTestRunner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.AssistantPromptTestRunner",
+      "target": "file:src/Forge.Application/Assistant/AssistantPromptTestRunner.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/AssistantProviderRegistry.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.AssistantProviderRegistry",
+      "target": "file:src/Forge.Application/Assistant/AssistantProviderRegistry.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/AssistantProviderRequest.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.AssistantProviderRequest",
+      "target": "file:src/Forge.Application/Assistant/AssistantProviderRequest.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/AssistantProviderResponse.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.AssistantProviderResponse",
+      "target": "file:src/Forge.Application/Assistant/AssistantProviderResponse.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.AssistantWorkspaceProfileCommandHistory",
+      "target": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileRevision.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.AssistantWorkspaceProfileRevision",
+      "target": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileRevision.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Assistant/DeterministicAssistantProvider.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.DeterministicAssistantProvider",
+      "target": "file:src/Forge.Application/Assistant/DeterministicAssistantProvider.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/DeterministicAssistantProviderFactory.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.DeterministicAssistantProviderFactory",
+      "target": "file:src/Forge.Application/Assistant/DeterministicAssistantProviderFactory.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assistant/IAssistantProviderFactory.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assistant.IAssistantProviderFactory",
+      "target": "file:src/Forge.Application/Assistant/IAssistantProviderFactory.cs"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs"
       },
@@ -77162,6 +78395,42 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Assets.TextureProcessingOptions",
       "target": "file:src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/AssistantPermissionLevel.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assistant.AssistantPermissionLevel",
+      "target": "file:src/Forge.Domain/Assistant/AssistantPermissionLevel.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/AssistantPromptChange.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assistant.AssistantPromptChange",
+      "target": "file:src/Forge.Domain/Assistant/AssistantPromptChange.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/AssistantPromptTestCase.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assistant.AssistantPromptTestCase",
+      "target": "file:src/Forge.Domain/Assistant/AssistantPromptTestCase.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assistant.AssistantWorkspaceProfile",
+      "target": "file:src/Forge.Domain/Assistant/AssistantWorkspaceProfile.cs"
     },
     {
       "evidence": {
@@ -80843,6 +82112,15 @@
       "kind": "defined_in",
       "source": "type:Forge.ModuleFormat.Workspaces.AssetProcessingProfileStore",
       "target": "file:src/Forge.ModuleFormat/Workspaces/AssetProcessingProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Workspaces.AssistantWorkspaceProfileStore",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
     },
     {
       "evidence": {
@@ -84752,6 +86030,15 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.AssistantWorkspaceWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs"
       },
@@ -84914,7 +86201,7 @@
     },
     {
       "evidence": {
-        "line": 8097,
+        "line": 8246,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -85031,7 +86318,7 @@
     },
     {
       "evidence": {
-        "line": 8102,
+        "line": 8251,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -85040,7 +86327,7 @@
     },
     {
       "evidence": {
-        "line": 8107,
+        "line": 8256,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -85243,6 +86530,51 @@
       },
       "kind": "validates",
       "source": "validator:Forge.Domain.Assets.AssetProcessingProfileValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Assistant.AssistantWorkspaceProfileValidator",
+      "target": "file:src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 97,
+        "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assistant.AssistantWorkspaceProfileValidator",
+      "target": "model:Forge.Domain.Assistant.AssistantPromptDefinition"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assistant.AssistantWorkspaceProfileValidator",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderDefinition"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assistant.AssistantWorkspaceProfileValidator",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderKind"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assistant.AssistantWorkspaceProfileValidator",
       "target": "model:Forge.Domain.Validation.DomainDiagnostic"
     },
     {
@@ -85940,8 +87272,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:51715c74b2ad20a9bc9621b7dd6fc80d0516b6262ca6c0587db54057e6f9a2ab",
-    "source_file_count": 1572
+    "source_digest": "sha256:e0deb6d864a43283b8d5fcbabf7ac57ee800ef2296e53af4edc12a0b2dd5884e",
+    "source_file_count": 1605
   },
   "nodes": [
     {
@@ -86143,6 +87475,16 @@
       },
       "name": "AssetProcessingProfileJsonSerializer",
       "path": "src/Forge.ModuleFormat/Serialization/AssetProcessingProfileJsonSerializer.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.AssistantWorkspaceProfileJsonSerializer",
+      "kind": "adapter",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "AssistantWorkspaceProfileJsonSerializer",
+      "path": "src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
     },
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.BlueprintIdJsonConverter",
@@ -86847,7 +88189,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 64,
+      "line": 66,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -88835,6 +90177,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/BlueprintCatalogWindow.cs",
       "kind": "file",
       "line": 1,
@@ -90395,6 +91747,16 @@
       "path": "docs/aurora-parity/tasks/G11-T-ACCESSIBILITY-SECURITY-GOVERNANCE.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G12-A-INTEGRATED-ASSISTANT-PROVIDERS-PROMPTS.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G12-A-INTEGRATED-ASSISTANT-PROVIDERS-PROMPTS.md",
+      "path": "docs/aurora-parity/tasks/G12-A-INTEGRATED-ASSISTANT-PROVIDERS-PROMPTS.md"
+    },
+    {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
       "kind": "document",
       "line": 1,
@@ -91943,6 +93305,176 @@
       },
       "name": "SetAssetProcessingProfileHandler.cs",
       "path": "src/Forge.Application/Assets/SetAssetProcessingProfileHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantPromptRenderResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantPromptRenderResult.cs",
+      "path": "src/Forge.Application/Assistant/AssistantPromptRenderResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantPromptRenderer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantPromptRenderer.cs",
+      "path": "src/Forge.Application/Assistant/AssistantPromptRenderer.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantPromptTestReport.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantPromptTestReport.cs",
+      "path": "src/Forge.Application/Assistant/AssistantPromptTestReport.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantPromptTestRunner.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantPromptTestRunner.cs",
+      "path": "src/Forge.Application/Assistant/AssistantPromptTestRunner.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantProviderRegistry.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantProviderRegistry.cs",
+      "path": "src/Forge.Application/Assistant/AssistantProviderRegistry.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantProviderRequest.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantProviderRequest.cs",
+      "path": "src/Forge.Application/Assistant/AssistantProviderRequest.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantProviderResponse.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantProviderResponse.cs",
+      "path": "src/Forge.Application/Assistant/AssistantProviderResponse.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfileCommandHistory.cs",
+      "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfileCommandResult.cs",
+      "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileRevision.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfileRevision.cs",
+      "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileRevision.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/AssistantWorkspaceProfileState.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfileState.cs",
+      "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileState.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/DeterministicAssistantProvider.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DeterministicAssistantProvider.cs",
+      "path": "src/Forge.Application/Assistant/DeterministicAssistantProvider.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/DeterministicAssistantProviderFactory.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DeterministicAssistantProviderFactory.cs",
+      "path": "src/Forge.Application/Assistant/DeterministicAssistantProviderFactory.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/IAssistantProvider.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "IAssistantProvider.cs",
+      "path": "src/Forge.Application/Assistant/IAssistantProvider.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/IAssistantProviderFactory.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "IAssistantProviderFactory.cs",
+      "path": "src/Forge.Application/Assistant/IAssistantProviderFactory.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAssistantWorkspaceProfileCommand.cs",
+      "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetAssistantWorkspaceProfileHandler.cs",
+      "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Blueprints/BlueprintLibraryIndex.cs",
@@ -93933,6 +95465,86 @@
       },
       "name": "AssetVaultInstalledPackage.cs",
       "path": "src/Forge.Domain/Assets/AssetVaultInstalledPackage.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/AssistantPermissionLevel.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantPermissionLevel.cs",
+      "path": "src/Forge.Domain/Assistant/AssistantPermissionLevel.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/AssistantPromptChange.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantPromptChange.cs",
+      "path": "src/Forge.Domain/Assistant/AssistantPromptChange.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/AssistantPromptDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantPromptDefinition.cs",
+      "path": "src/Forge.Domain/Assistant/AssistantPromptDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/AssistantPromptTestCase.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantPromptTestCase.cs",
+      "path": "src/Forge.Domain/Assistant/AssistantPromptTestCase.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/AssistantProviderDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantProviderDefinition.cs",
+      "path": "src/Forge.Domain/Assistant/AssistantProviderDefinition.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/AssistantProviderKind.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantProviderKind.cs",
+      "path": "src/Forge.Domain/Assistant/AssistantProviderKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/AssistantWorkspaceProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfile.cs",
+      "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfileValidator.cs",
+      "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
     },
     {
       "id": "file:src/Forge.Domain/Authoring/EditorCameraBookmark.cs",
@@ -97575,6 +99187,16 @@
       "path": "src/Forge.ModuleFormat/Serialization/AssetProcessingProfileJsonSerializer.cs"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfileJsonSerializer.cs",
+      "path": "src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs",
       "kind": "file",
       "line": 1,
@@ -97693,6 +99315,16 @@
       },
       "name": "AssetProcessingProfileStore.cs",
       "path": "src/Forge.ModuleFormat/Workspaces/AssetProcessingProfileStore.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfileStore.cs",
+      "path": "src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
     },
     {
       "id": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs",
@@ -99075,6 +100707,26 @@
       "path": "tests/Forge.Application.Tests/Assets/InstallAssetBlueprintHandlerTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantPromptAndProviderTests.cs",
+      "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfileCommandTests.cs",
+      "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Blueprints/BlueprintCatalogTests.cs",
       "kind": "file",
       "line": 1,
@@ -99693,6 +101345,16 @@
       },
       "name": "AssetPackageManifestValidatorTests.cs",
       "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfileTests.cs",
+      "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs",
@@ -100713,6 +102375,16 @@
       },
       "name": "AssetProcessingProfileStoreTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetProcessingProfileStoreTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistantWorkspaceProfileStoreTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs",
@@ -104075,6 +105747,16 @@
       "path": "src/Forge.Application/Assets/SetAssetProcessingProfileHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Assistant.SetAssistantWorkspaceProfileHandler",
+      "kind": "handler",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "SetAssistantWorkspaceProfileHandler",
+      "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Blueprints.ConfigureBlueprintPaletteHandler",
       "kind": "handler",
       "line": 9,
@@ -104393,6 +106075,16 @@
       },
       "name": "PlayerController",
       "path": "apps/Forge.Runtime/Runtime/PlayerController.cs"
+    },
+    {
+      "id": "interface:Forge.Application.Assistant.IAssistantProvider",
+      "kind": "interface",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "IAssistantProvider",
+      "path": "src/Forge.Application/Assistant/IAssistantProvider.cs"
     },
     {
       "id": "interface:Forge.EngineAdapter.World.ITerrainProvider",
@@ -104723,6 +106415,46 @@
       },
       "name": "SetAssetProcessingProfileCommand",
       "path": "src/Forge.Application/Assets/SetAssetProcessingProfileCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Assistant.AssistantPromptRenderResult",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantPromptRenderResult",
+      "path": "src/Forge.Application/Assistant/AssistantPromptRenderResult.cs"
+    },
+    {
+      "id": "model:Forge.Application.Assistant.AssistantWorkspaceProfileCommandResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantWorkspaceProfileCommandResult",
+      "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandResult.cs"
+    },
+    {
+      "id": "model:Forge.Application.Assistant.AssistantWorkspaceProfileState",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantWorkspaceProfileState",
+      "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileState.cs"
+    },
+    {
+      "id": "model:Forge.Application.Assistant.SetAssistantWorkspaceProfileCommand",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "SetAssistantWorkspaceProfileCommand",
+      "path": "src/Forge.Application/Assistant/SetAssistantWorkspaceProfileCommand.cs"
     },
     {
       "id": "model:Forge.Application.Blueprints.BlueprintLibraryEntry",
@@ -105613,6 +107345,36 @@
       },
       "name": "AssetVaultInstallationState",
       "path": "src/Forge.Domain/Assets/AssetVaultInstallationState.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assistant.AssistantPromptDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "AssistantPromptDefinition",
+      "path": "src/Forge.Domain/Assistant/AssistantPromptDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assistant.AssistantProviderDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "AssistantProviderDefinition",
+      "path": "src/Forge.Domain/Assistant/AssistantProviderDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Assistant.AssistantProviderKind",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "AssistantProviderKind",
+      "path": "src/Forge.Domain/Assistant/AssistantProviderKind.cs"
     },
     {
       "id": "model:Forge.Domain.Authoring.EditorCameraBookmarkId",
@@ -107705,6 +109467,16 @@
       "path": "src/Forge.ModuleFormat/Serialization/AssetProcessingProfileJsonSerializer.cs"
     },
     {
+      "id": "model:Forge.ModuleFormat.Serialization.AssistantWorkspaceProfileDocument",
+      "kind": "model",
+      "line": 45,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "AssistantWorkspaceProfileDocument",
+      "path": "src/Forge.ModuleFormat/Serialization/AssistantWorkspaceProfileJsonSerializer.cs"
+    },
+    {
       "id": "model:Forge.ModuleFormat.Serialization.Document",
       "kind": "model",
       "line": 49,
@@ -107783,6 +109555,16 @@
       },
       "name": "AssetProcessingProfileLoadResult",
       "path": "src/Forge.ModuleFormat/Workspaces/AssetProcessingProfileStore.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Workspaces.AssistantWorkspaceProfileLoadResult",
+      "kind": "model",
+      "line": 92,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "AssistantWorkspaceProfileLoadResult",
+      "path": "src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
     },
     {
       "id": "model:Forge.ModuleFormat.Workspaces.EditorCameraProfileLoadResult",
@@ -109573,6 +111355,11 @@
       "name": "Forge.Application.Assets"
     },
     {
+      "id": "namespace:Forge.Application.Assistant",
+      "kind": "namespace",
+      "name": "Forge.Application.Assistant"
+    },
+    {
       "id": "namespace:Forge.Application.Blueprints",
       "kind": "namespace",
       "name": "Forge.Application.Blueprints"
@@ -109671,6 +111458,11 @@
       "id": "namespace:Forge.Application.Tests.Assets",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Assets"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Assistant",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Assistant"
     },
     {
       "id": "namespace:Forge.Application.Tests.Blueprints",
@@ -109783,6 +111575,11 @@
       "name": "Forge.Domain.Assets"
     },
     {
+      "id": "namespace:Forge.Domain.Assistant",
+      "kind": "namespace",
+      "name": "Forge.Domain.Assistant"
+    },
+    {
       "id": "namespace:Forge.Domain.Authoring",
       "kind": "namespace",
       "name": "Forge.Domain.Authoring"
@@ -109886,6 +111683,11 @@
       "id": "namespace:Forge.Domain.Tests.Assets",
       "kind": "namespace",
       "name": "Forge.Domain.Tests.Assets"
+    },
+    {
+      "id": "namespace:Forge.Domain.Tests.Assistant",
+      "kind": "namespace",
+      "name": "Forge.Domain.Tests.Assistant"
     },
     {
       "id": "namespace:Forge.Domain.Tests.Authoring",
@@ -112013,6 +113815,26 @@
       "path": "tests/Forge.Application.Tests/Assets/InstallAssetBlueprintHandlerTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Assistant.AssistantPromptAndProviderTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Assistant"
+      },
+      "name": "AssistantPromptAndProviderTests",
+      "path": "tests/Forge.Application.Tests/Assistant/AssistantPromptAndProviderTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Assistant.AssistantWorkspaceProfileCommandTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Assistant"
+      },
+      "name": "AssistantWorkspaceProfileCommandTests",
+      "path": "tests/Forge.Application.Tests/Assistant/AssistantWorkspaceProfileCommandTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Blueprints.BlueprintCatalogTests",
       "kind": "test",
       "line": 10,
@@ -112641,6 +114463,16 @@
       },
       "name": "AssetPackageManifestValidatorTests",
       "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
+    },
+    {
+      "id": "test:Forge.Domain.Tests.Assistant.AssistantWorkspaceProfileTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Assistant"
+      },
+      "name": "AssistantWorkspaceProfileTests",
+      "path": "tests/Forge.Domain.Tests/Assistant/AssistantWorkspaceProfileTests.cs"
     },
     {
       "id": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
@@ -113641,6 +115473,16 @@
       },
       "name": "AssetProcessingProfileStoreTests",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetProcessingProfileStoreTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Workspaces.AssistantWorkspaceProfileStoreTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Workspaces"
+      },
+      "name": "AssistantWorkspaceProfileStoreTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssistantWorkspaceProfileStoreTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Workspaces.EditorCameraProfileStoreTests",
@@ -114928,6 +116770,116 @@
       },
       "name": "GovernedAssetModelVerifier",
       "path": "src/Forge.Application/Assets/GovernedAssetModelVerifier.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.AssistantPromptRenderer",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantPromptRenderer",
+      "path": "src/Forge.Application/Assistant/AssistantPromptRenderer.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.AssistantPromptTestReport",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantPromptTestReport",
+      "path": "src/Forge.Application/Assistant/AssistantPromptTestReport.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.AssistantPromptTestRunner",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantPromptTestRunner",
+      "path": "src/Forge.Application/Assistant/AssistantPromptTestRunner.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.AssistantProviderRegistry",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantProviderRegistry",
+      "path": "src/Forge.Application/Assistant/AssistantProviderRegistry.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.AssistantProviderRequest",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantProviderRequest",
+      "path": "src/Forge.Application/Assistant/AssistantProviderRequest.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.AssistantProviderResponse",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantProviderResponse",
+      "path": "src/Forge.Application/Assistant/AssistantProviderResponse.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.AssistantWorkspaceProfileCommandHistory",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantWorkspaceProfileCommandHistory",
+      "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileCommandHistory.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.AssistantWorkspaceProfileRevision",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "AssistantWorkspaceProfileRevision",
+      "path": "src/Forge.Application/Assistant/AssistantWorkspaceProfileRevision.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.DeterministicAssistantProvider",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "DeterministicAssistantProvider",
+      "path": "src/Forge.Application/Assistant/DeterministicAssistantProvider.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.DeterministicAssistantProviderFactory",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "DeterministicAssistantProviderFactory",
+      "path": "src/Forge.Application/Assistant/DeterministicAssistantProviderFactory.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assistant.IAssistantProviderFactory",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assistant"
+      },
+      "name": "IAssistantProviderFactory",
+      "path": "src/Forge.Application/Assistant/IAssistantProviderFactory.cs"
     },
     {
       "id": "type:Forge.Application.Blueprints.BlueprintLibraryIndex",
@@ -117048,6 +119000,46 @@
       },
       "name": "TextureProcessingOptions",
       "path": "src/Forge.Domain/Assets/AssetProcessingProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assistant.AssistantPermissionLevel",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "AssistantPermissionLevel",
+      "path": "src/Forge.Domain/Assistant/AssistantPermissionLevel.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assistant.AssistantPromptChange",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "AssistantPromptChange",
+      "path": "src/Forge.Domain/Assistant/AssistantPromptChange.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assistant.AssistantPromptTestCase",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "AssistantPromptTestCase",
+      "path": "src/Forge.Domain/Assistant/AssistantPromptTestCase.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assistant.AssistantWorkspaceProfile",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "AssistantWorkspaceProfile",
+      "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Authoring.EditorCameraBookmark",
@@ -121028,6 +123020,16 @@
       },
       "name": "AssetProcessingProfileStore",
       "path": "src/Forge.ModuleFormat/Workspaces/AssetProcessingProfileStore.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Workspaces.AssistantWorkspaceProfileStore",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "AssistantWorkspaceProfileStore",
+      "path": "src/Forge.ModuleFormat/Workspaces/AssistantWorkspaceProfileStore.cs"
     },
     {
       "id": "type:Forge.ModuleFormat.Workspaces.EditorCameraProfileStore",
@@ -125140,6 +127142,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/AssetContentBrowserWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.AssistantWorkspaceWindow",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "AssistantWorkspaceWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.BlueprintCatalogWindow",
       "kind": "type",
       "line": 11,
@@ -125302,7 +127314,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 8097,
+      "line": 8246,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -125392,7 +127404,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 8102,
+      "line": 8251,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -125402,7 +127414,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 8107,
+      "line": 8256,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -125528,6 +127540,16 @@
       },
       "name": "AssetProcessingProfileValidator",
       "path": "src/Forge.Domain/Assets/AssetProcessingProfileValidator.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Assistant.AssistantWorkspaceProfileValidator",
+      "kind": "validator",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Domain.Assistant"
+      },
+      "name": "AssistantWorkspaceProfileValidator",
+      "path": "src/Forge.Domain/Assistant/AssistantWorkspaceProfileValidator.cs"
     },
     {
       "id": "validator:Forge.Domain.Dialogues.DialogueValidator",

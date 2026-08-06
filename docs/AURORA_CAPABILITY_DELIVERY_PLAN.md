@@ -42,17 +42,13 @@ Au 2 août 2026 :
 - le tracker Aurora est intégralement au statut `Researched`. Il ne reflète donc pas encore les
   fonctions déjà présentes dans le dépôt.
 
-La prochaine étape n'est plus un lot MVP : **G0 est fermé** avec un snapshot immuable, un audit des
-76 P0 Core et un tracker projet généré. **G7-01** prouve un second module générique, **G7-02** la
-coque Creator, **G7-03** le catalogue Blueprints, **G7-04** la manipulation directe, **G7-05** les
-zones indépendantes, **G7-06** le clipboard sémantique, **G7-07** la recherche globale avec
-refactoring sûr, **G7-08** la configuration du module, **G7-09** les palettes avec provenance,
-**G7-10** la caméra auteur, **G7-11** les événements Core, **G7-12** le build incrémental et
-**G7-13** la conformité de distribution, **G7-14** la navigation/validation spatiale, **G7-15** les
-diagnostics actionnables, **G7-16** le Content Browser et **G7-17** la localisation auteur ; la file
-active commence à **G7-20**. La fermeture de
-`TASKS_MVP.md` ne signifie pas
-une parité Aurora complète.
+La prochaine étape n'est plus un lot MVP : **G0 à G11 sont fermés** et leurs scénarios verticaux
+restent protégés par le gate intégré. Les lots d’assets AV1 à AV6-F livrent en plus un Vault
+gouverné, une carte extérieure 512 × 512 jouable, son rendu PBR stylisé, des personnages animés et
+une preuve réelle de retargeting inter-rigs. **G12-A** ouvre désormais les extensions 1.x avec un
+Assistant intégré, un fournisseur hors ligne déterministe, des contrats de fournisseurs
+interchangeables et des prompts versionnés testés. La fermeture de `TASKS_MVP.md` ne signifie pas
+une parité Aurora complète : la file active commence à **G12-B**.
 
 ## 3. Jalons produit
 
@@ -214,13 +210,9 @@ créateur peut modifier, exporter et jouer la Crypte sans IA et sans outil propr
 
 ### G7 — Creator Core complet P0/P1
 
-**État.** En cours. G7-01 à G7-20 sont franchis avec le second module générique, la coque Creator,
-le catalogue Blueprints, la manipulation directe, les zones indépendantes, le clipboard
-sémantique, la recherche globale et le refactoring sûr, la configuration du module, les palettes,
-la caméra auteur, les événements Core, le build incrémental, la conformité de distribution puis la
-navigation, la validation spatiale, les diagnostics actionnables, le navigateur d’assets et la
-localisation auteur, la mise à l’échelle, le pathfinding amélioré et l’espace de travail productif ;
-G7-21 est franchi ; G7-22 est la prochaine tâche.
+**État.** Fermé. Le scénario Builder, les 35 tranches Creator, la revue visuelle et le gate intégré
+prouvent les workflows Core retenus ; les capacités plus avancées restent affectées à G13 avec une
+justification explicite dans le tracker.
 
 **Domaines.** `SHELL`, `PROJECT`, `AREA`, `PALETTE`, parties Core de `PLACEABLE`, `DOOR`, `TRIGGER`,
 `WAYPOINT`, `AUDIO`, `GAMEPLAY`, `CONTENT`, `BUILD`, `QA` et `EE` indispensable.
@@ -296,8 +288,9 @@ autorisée, validée, attribuée et consultable dans l’audit.
 
 ### G11 — Contenu moderne et qualité de distribution
 
-**État.** G11-A à G11-L sont fermés le 5 août 2026. Les déplacements avancés, la roue d’actions,
-le temps tactique et les fournisseurs de combat sont disponibles ; G11-M est le prochain lot borné.
+**État.** Fermé le 5 août 2026. G11-A à G11-T couvrent contenu moderne, expérience, extensions,
+résilience, qualité, performance, accessibilité, sécurité et gouvernance. AV6-A à AV6-F complètent
+la preuve de production 3D gouvernée sur la carte extérieure réelle.
 
 **Domaines.** Reste de `CONTENT` P0/P1, `EE` P0/P1, `BUILD`, `QA`, `AREA`, `AUDIO` et `GAMEPLAY`.
 
@@ -315,6 +308,10 @@ plateformes retenues, avec budgets mesurés, provenance complète et aucune dép
 Blender au runtime.
 
 ### G12 — IA de création avancée
+
+**État.** En cours. G12-A livre l’Assistant intégré, le profil persistant, le fournisseur hors ligne
+déterministe et les prompts versionnés. G12-B doit ajouter les transports locaux explicitement
+consentis et l’index de lore gouverné avant toute génération de contenu.
 
 **Domaine.** `AI` P1/P2, après stabilisation des workflows humains correspondants.
 

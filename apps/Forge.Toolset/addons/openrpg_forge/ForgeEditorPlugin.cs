@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using Forge.Application.Areas;
+using Forge.Application.Assistant;
 using Forge.Application.Assets;
 using Forge.Application.Blueprints;
 using Forge.Application.Commands;
@@ -23,6 +24,7 @@ using Forge.Application.Quality;
 using Forge.Application.Spatial;
 using Forge.Application.Time;
 using Forge.Domain.Areas;
+using Forge.Domain.Assistant;
 using Forge.Domain.Assets;
 using Forge.Domain.Authoring;
 using Forge.Domain.Blueprints;
@@ -105,6 +107,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetAssetPackageManifestHandler _assetPackageManifestHandler = new(new SystemClock());
     private readonly InstallAssetBlueprintHandler _installAssetBlueprintHandler = new(new SystemClock());
     private readonly SetAssetExternalEditHandler _assetExternalEditHandler = new(new SystemClock());
+    private readonly SetAssistantWorkspaceProfileHandler _assistantProfileHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -194,6 +197,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private BlueprintCatalogWindow? _blueprintCatalog;
     private AssetContentBrowserWindow? _assetBrowser;
     private LocalizationWorkspaceWindow? _localizationWorkspace;
+    private AssistantWorkspaceWindow? _assistantWorkspace;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -223,6 +227,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssetProcessingProfileCommandHistory? _assetProcessingProfileHistory;
     private AssetPackageManifestCommandHistory? _assetPackageManifestHistory;
     private AssetExternalEditCommandHistory? _assetExternalEditHistory;
+    private AssistantWorkspaceProfileCommandHistory? _assistantProfileHistory;
     private Image? _forgeWindowIcon;
     private bool _playtestRunning;
     private bool _showEntityPropertiesDialogWhenReady;
@@ -302,6 +307,17 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ApplyLocalizationCatalog,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_localizationWorkspace);
+        _assistantWorkspace = new AssistantWorkspaceWindow();
+        _assistantWorkspace.Initialize(
+            () => _history?.State,
+            () => _assistantProfileHistory?.State,
+            () => _selectionContext.Current,
+            ApplyAssistantWorkspaceProfile,
+            UndoAssistantWorkspaceProfile,
+            RedoAssistantWorkspaceProfile,
+            () => _localizationWorkspace?.Open(),
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_assistantWorkspace);
         _globalSearch = new GlobalSearchWindow();
         _globalSearch.Initialize(
             () => _history?.State,
@@ -559,6 +575,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _blueprintCatalog = null;
         _assetBrowser = null;
         _localizationWorkspace = null;
+        _assistantWorkspace = null;
         _globalSearch = null;
         _moduleConfiguration = null;
         _areaWorkspace = null;
@@ -582,6 +599,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _assetProcessingProfileHistory = null;
         _assetPackageManifestHistory = null;
         _assetExternalEditHistory = null;
+        _assistantProfileHistory = null;
         GD.Print("OPENRPG_FORGE_PLUGIN_UNLOADED");
     }
 
@@ -1179,7 +1197,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         if (string.Equals(workspace, "Assistant", StringComparison.Ordinal))
         {
-            _localizationWorkspace?.Open();
+            _assistantWorkspace?.Open();
             return;
         }
 
@@ -2768,6 +2786,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _assetProcessingProfileHistory = null;
             _assetPackageManifestHistory = null;
             _assetExternalEditHistory = null;
+            _assistantProfileHistory = null;
             _activeAreaContext.Clear();
             _selectionContext.SetLocked(false);
             _selectionContext.Clear();
@@ -2808,6 +2827,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (!externalEdits.Succeeded)
         {
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDITS_INVALID {externalEdits.Diagnostics[0].Code}");
+        }
+        var assistantProfile = AssistantWorkspaceProfileStore.Load(_projectSession.RootDirectory);
+        _assistantProfileHistory = new AssistantWorkspaceProfileCommandHistory(assistantProfile.Profile);
+        if (!assistantProfile.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSISTANT_PROFILE_INVALID {assistantProfile.Diagnostics[0].Code}");
         }
         _lastSavedRevision = 0;
         _lastRecoveryRevision = 0;
@@ -2944,6 +2969,68 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         _assetProcessingProfileHistory.Undo();
+        return false;
+    }
+
+    private bool ApplyAssistantWorkspaceProfile(
+        AssistantWorkspaceProfile profile,
+        Guid planId,
+        bool dryRun)
+    {
+        if (_projectSession is null || _assistantProfileHistory is null) return false;
+        var command = new SetAssistantWorkspaceProfileCommand(
+            CommandId.From(Guid.NewGuid()),
+            planId,
+            _assistantProfileHistory.State.Revision,
+            profile,
+            AssistantPermissionLevel.Configure,
+            dryRun);
+        var result = _assistantProfileHandler.Handle(_assistantProfileHistory.State, command);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(diagnostic => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                diagnostic.Code,
+                diagnostic.Message,
+                "assistant/profile",
+                profile.Id.ToString("D"))).ToArray());
+            return false;
+        }
+        if (dryRun) return result.Patch is not null && !result.Audit.Applied;
+        var saved = AssistantWorkspaceProfileStore.Save(_projectSession.RootDirectory, result.State.Profile);
+        if (!saved.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSISTANT_PROFILE_SAVE_FAILED {saved.Diagnostics[0].Code}");
+            return false;
+        }
+        _assistantProfileHistory.Record(result);
+        GD.Print(
+            $"OPENRPG_FORGE_TOOLSET_ASSISTANT_PROFILE_SAVED provider={profile.ActiveProvider.Key} " +
+            $"prompts={profile.Prompts.Count} revision={_assistantProfileHistory.State.Revision} plan={planId:D}");
+        return true;
+    }
+
+    private bool UndoAssistantWorkspaceProfile()
+    {
+        if (_projectSession is null || _assistantProfileHistory is null || !_assistantProfileHistory.Undo())
+            return false;
+        var saved = AssistantWorkspaceProfileStore.Save(
+            _projectSession.RootDirectory,
+            _assistantProfileHistory.State.Profile);
+        if (saved.Succeeded) return true;
+        _assistantProfileHistory.Redo();
+        return false;
+    }
+
+    private bool RedoAssistantWorkspaceProfile()
+    {
+        if (_projectSession is null || _assistantProfileHistory is null || !_assistantProfileHistory.Redo())
+            return false;
+        var saved = AssistantWorkspaceProfileStore.Save(
+            _projectSession.RootDirectory,
+            _assistantProfileHistory.State.Profile);
+        if (saved.Succeeded) return true;
+        _assistantProfileHistory.Undo();
         return false;
     }
 
@@ -4263,6 +4350,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunLocalizationWorkspaceSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAssistantFoundationSmokeTest())
         {
             return;
         }
@@ -7643,6 +7735,63 @@ public partial class ForgeEditorPlugin : EditorPlugin
             $"locales={_localizationWorkspace.LocaleCount} extraction=canonical fallback=resolved " +
             "pseudo=available preview=dry-run history=restored");
         return true;
+    }
+
+    private bool RunAssistantFoundationSmokeTest()
+    {
+        if (_projectSession is null || _assistantProfileHistory is null || _assistantWorkspace is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12A_ASSISTANT_FAILED missing_workspace");
+            return false;
+        }
+
+        var originalProfile = _assistantProfileHistory.State.Profile;
+        var profilePath = Path.Combine(_projectSession.RootDirectory, "assistant", "profile.json");
+        var originalBytes = File.Exists(profilePath) ? File.ReadAllBytes(profilePath) : null;
+        try
+        {
+            if (!_assistantWorkspace.ConfigureForSmokeTest("1.1.0") ||
+                !_assistantWorkspace.PreviewForSmokeTest() ||
+                string.IsNullOrWhiteSpace(_assistantWorkspace.LastPromptHash) ||
+                _assistantWorkspace.LastPromptHash.Length != 64 ||
+                !_assistantWorkspace.LastPreviewWasOffline ||
+                !_assistantWorkspace.ApplyForSmokeTest() ||
+                _assistantProfileHistory.State.Profile.Prompts[0].Version != "1.1.0")
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12A_ASSISTANT_FAILED preview_apply");
+                return false;
+            }
+            var restored = AssistantWorkspaceProfileStore.Load(_projectSession.RootDirectory);
+            if (!restored.Succeeded || restored.Profile.Prompts[0].Version != "1.1.0" ||
+                !UndoAssistantWorkspaceProfile() ||
+                _assistantProfileHistory.State.Profile.Prompts[0].Version != originalProfile.Prompts[0].Version ||
+                !RedoAssistantWorkspaceProfile() ||
+                _assistantProfileHistory.State.Profile.Prompts[0].Version != "1.1.0" ||
+                !UndoAssistantWorkspaceProfile())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12A_ASSISTANT_FAILED persistence_history");
+                return false;
+            }
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G12A_ASSISTANT_PASS ui=context-selection-transaction " +
+                "providers=offline-openai-compatible-ollama prompts=versioned-tested " +
+                "plan=dry-run-bound permission=configure secrets=environment-only " +
+                "offline=deterministic cost=visible history=restored persistence=roundtrip");
+            return true;
+        }
+        finally
+        {
+            _assistantProfileHistory = new AssistantWorkspaceProfileCommandHistory(originalProfile);
+            if (originalBytes is null)
+            {
+                if (File.Exists(profilePath)) File.Delete(profilePath);
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(profilePath)!);
+                File.WriteAllBytes(profilePath, originalBytes);
+            }
+        }
     }
 
     private bool RunScaleAuthoringSmokeTest()

@@ -5,7 +5,8 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. AV6-F ferme maintenant le lot de production 3D : carte extérieure
+G11 Contenu moderne fermés. G12-A ouvre maintenant l’Assistant de création avancée sans dépendance
+réseau obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
@@ -529,3 +530,12 @@ déplacement temporel normalisé de 0,841 et expansion maximale des bornes de 1,
 Blender vérifie 41 os, le nom stable `run` et plusieurs poses distinctes après round-trip. Les hashes
 des deux sources CC0 du Vault sont vérifiés avant et après ; aucune source n’est modifiée. Ce profil
 prouve le couple Kenney/KayKit retenu, sans revendiquer un retargeter universel automatique.
+
+**G12-A — Assistant intégré livré** : le workspace Assistant possède désormais un profil v1
+persistant, une configuration Aurora 2026 consciente du projet, de la sélection et de la
+transaction, un fournisseur hors ligne déterministe et des contrats pour API compatible OpenAI,
+LM Studio, vLLM et Ollama. Les prompts portent version, schéma de sortie, tests, changelog et hash.
+Un plan doit être prévisualisé à la révision exacte avant toute application ; permission,
+provenance, budgets et coût restent visibles, les secrets sont seulement référencés par nom de
+variable d’environnement, et undo/redo restaure l’état. Les transports réseau réels et l’index de
+lore sont explicitement reportés à G12-B.

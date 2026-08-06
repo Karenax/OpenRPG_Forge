@@ -63,6 +63,13 @@ MCP. Le MVP est fermé ; les espaces Quêtes, Assets, Validation, l'éditeur de 
 l’enrichissement de la manipulation directe restent dans le gate **Creator Core G7**, et non dans une
 prétendue parité Aurora déjà atteinte.
 
+G7 à G11 sont désormais fermés. G12-A active le workspace Assistant dans la même identité sombre et
+braise : contexte projet/sélection/transaction à gauche, configuration du fournisseur et prompts
+versionnés au centre, prévisualisation du plan et gouvernance à droite. L’action primaire reste
+inaccessible tant qu’un dry-run lié à la révision et à l’empreinte exacte du profil n’a pas réussi.
+Le mode hors ligne déterministe est utilisable sans compte ; les secrets distants ne sont jamais
+affichés ni persistés, seulement leur nom de variable d’environnement.
+
 G7-02 installe la coque commune : neuf workspaces stables, une colonne d’exploration du projet, le
 workspace Monde au centre et un panneau contextuel pour sélection, diagnostics et logs de playtest.
 L’explorateur classe zones, entités, types de blueprints, dialogues et quêtes. La sélection est un
@@ -247,16 +254,17 @@ collisions, navigation et profils de qualité. Elle est détaillée dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md).
 
 L’état visible actuel reste double : la Crypte utilise des primitives procédurales originales pour
-prouver les workflows, tandis que Forgotten Forest assemble 22 modèles GLB CC0 gouvernés, 357
-instances MultiMesh et un relief 33 × 33 sur 128 × 128 m. G11-I apporte la fondation de relief
+prouver les workflows, tandis que Forgotten Forest est une carte extérieure canonique 512 × 512 m
+sectorisée en 64 tuiles, avec 7 112 instances MultiMesh, 39 modèles principaux, cinq personnages
+KayKit animés et un terrain de 16 641 sommets. G11-I apporte la fondation de relief
 générique, les biomes, trous, features, volumes et collisions partagés avec le runtime. AV4B y ajoute
 une rivière shader animée, quatre volumes de nage/courant et une navigation de surface réelle de
 1 990 polygones avec traversée de pont. La capture Forward+ dans
 `artifacts/verification/forgotten-forest-water-navigation-forward-plus.png` valide ce palier visuel
 local. AV5 ajoute trois ambiances spatiales PCM procédurales — vent, oiseaux et ruisseau — ainsi que
 204 particules animées de lucioles, feuilles et brume, toutes gouvernées et reconstruites sans nouvel
-asset externe. AV6-A ajoute un humanoïde skinné de 58 os et trois clips au profil de cinq entités :
-Creator joue l’idle, tandis que le runtime choisit idle/course/saut pour le joueur. Le benchmark,
-le rapport de livraison et la capture Forward+ restent bloquants. Variantes, combat animé,
-composition finale 512 × 512 et nouvelle revue artistique restent nécessaires avant d’en faire la
-direction artistique finale d’OpenRPG Forge.
+asset externe. AV6-A à AV6-F ajoutent les personnages Kenney/KayKit, 69 clips sémantiques, le combat
+animé et un retargeting réel validé par Blender. Les captures Forward+ aérienne et rapprochée, le
+benchmark et le rapport de livraison sont bloquants. Le résultat est une tranche stylisée jouable
+et gouvernée ; des textures scannées, une eau avancée et un habillage artistique manuel plus fin
+restent des améliorations de direction artistique, pas des prérequis à son fonctionnement.
