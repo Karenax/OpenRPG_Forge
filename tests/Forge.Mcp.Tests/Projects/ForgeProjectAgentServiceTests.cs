@@ -36,6 +36,31 @@ namespace Forge.Mcp.Tests.Projects;
 public sealed class ForgeProjectAgentServiceTests
 {
     [Fact]
+    public void CreatureEventResourceIsReadOnlyFilteredAndBounded()
+    {
+        using var workspace = new TestWorkspace();
+
+        var all = workspace.Project.QueryCreatureEvents();
+        var filtered = workspace.Project.QueryCreatureEvents("ash-warden", 1);
+        var missing = workspace.Project.QueryCreatureEvents("does-not-exist", 1);
+        var planned = workspace.Project.PreviewCreatureEvents(new(1, 0, filtered.Items.Single().BlueprintId,
+            ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints
+                .Single(item => item.Slug == "ash-warden-boss").CreatureEvents!));
+
+        Assert.Contains(all.Items, item => item.BlueprintSlug == "ash-warden-boss");
+        var warden = Assert.Single(filtered.Items);
+        Assert.Equal(6, warden.BindingCount);
+        Assert.Equal(1_500, warden.HeartbeatIntervalMilliseconds);
+        Assert.Equal("CombatTickCompleted", warden.CombatBoundary);
+        Assert.Contains("crypt.braziers_lit", warden.CustomEvents);
+        Assert.Empty(missing.Items);
+        Assert.True(planned.Succeeded);
+        Assert.NotNull(planned.SemanticDiff);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.QueryCreatureEvents(limit: 101));
+    }
+
+    [Fact]
     public void WorkerSecurityMcpRequiresPlanPermissionAndPersistsThenRevertsCanonicalPolicy()
     {
         using var workspace = new TestWorkspace();

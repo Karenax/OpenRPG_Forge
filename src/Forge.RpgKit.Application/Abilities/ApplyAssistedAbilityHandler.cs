@@ -106,7 +106,8 @@ public sealed class ApplyAssistedAbilityHandler
         if (owner.IsReadOnly()) throw new ArgumentException("Installed blueprint combat is read-only.");
         var updatedOwner = new BlueprintDefinition(owner.Id, owner.Slug, owner.DisplayName, owner.Kind,
             proposal.UpdatedCombat, owner.PaletteOrigin, owner.IsFavorite, owner.Provenance,
-            owner.CreaturePresentation, owner.CreatureProgression, owner.CreatureLoot, owner.CreatureRoleBehavior);
+            owner.CreaturePresentation, owner.CreatureProgression, owner.CreatureLoot, owner.CreatureRoleBehavior,
+            owner.CreatureEvents);
         var blueprints = project.Blueprints.Select(item => item.Id == owner.Id ? updatedOwner : item).ToArray();
         var currentPolicies = project.Module.RuntimePolicies;
         var currentExtensions = currentPolicies.Extensions;

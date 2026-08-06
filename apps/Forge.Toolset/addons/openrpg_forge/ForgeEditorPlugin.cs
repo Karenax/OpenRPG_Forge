@@ -130,6 +130,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetCreatureProgressionHandler _creatureProgressionHandler = new(new SystemClock());
     private readonly SetCreatureLootHandler _creatureLootHandler = new(new SystemClock());
     private readonly SetCreatureRoleBehaviorHandler _creatureRoleBehaviorHandler = new(new SystemClock());
+    private readonly SetCreatureEventsHandler _creatureEventsHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -236,6 +237,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private CreatureProgressionWindow? _creatureProgressionWindow;
     private CreatureLootWindow? _creatureLootWindow;
     private CreatureRoleBehaviorWindow? _creatureRoleBehaviorWindow;
+    private CreatureEventWindow? _creatureEventWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -489,6 +491,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_creatureRoleBehaviorWindow);
+        _creatureEventWindow = new CreatureEventWindow();
+        _creatureEventWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyCreatureEvents,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_creatureEventWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -589,6 +599,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _creatureProgressionWindow?.Open(),
             () => _creatureLootWindow?.Open(),
             () => _creatureRoleBehaviorWindow?.Open(),
+            () => _creatureEventWindow?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rpgKitAuthoringWindow);
         _networkBetaWindow = new NetworkBetaWindow();
@@ -781,6 +792,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _creatureProgressionWindow = null;
         _creatureLootWindow = null;
         _creatureRoleBehaviorWindow = null;
+        _creatureEventWindow = null;
         _loreIndexWindow = null;
         _globalSearch = null;
         _moduleConfiguration = null;
@@ -2348,6 +2360,30 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             ApplyCommand(result, "Rôle, activité et auto-level de créature enregistrés dans le projet.", null);
             _creatureRoleBehaviorWindow?.Refresh();
+        }
+
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyCreatureEvents(
+        BlueprintId blueprintId,
+        CreatureEventProfile events,
+        bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+
+        var command = new SetCreatureEventsCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            blueprintId,
+            events,
+            dryRun);
+        var result = _creatureEventsHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Événements avancés de créature enregistrés dans le projet.", null);
+            _creatureEventWindow?.Refresh();
         }
 
         return result;
@@ -5431,6 +5467,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunCreatureRoleBehaviorSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunCreatureEventSmokeTest())
         {
             return;
         }
@@ -10192,6 +10233,101 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _creatureRoleBehaviorWindow.Hide();
             if (behaviorApplied) _history.Undo();
             if (progressionApplied) _history.Undo();
+            RebuildPreview();
+            RefreshEditorControls();
+        }
+    }
+
+    private bool RunCreatureEventSmokeTest()
+    {
+        if (_history is null || _creatureEventWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13F_CREATURE_EVENTS_FAILED missing_workspace");
+            return false;
+        }
+
+        var appliedToHistory = false;
+        try
+        {
+            _creatureEventWindow.Open();
+            var visible = _creatureEventWindow.Visible;
+            _creatureEventWindow.Hide();
+            var blueprintId = _creatureEventWindow.SelectedBlueprintId;
+            if (!visible || blueprintId is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13F_CREATURE_EVENTS_FAILED selection_ui");
+                return false;
+            }
+
+            var before = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var configured = _creatureEventWindow.ConfigureForSmokeTest();
+            var previewed = configured && _creatureEventWindow.PreviewForSmokeTest();
+            var applied = previewed && _creatureEventWindow.LastCommandId != Guid.Empty &&
+                          _creatureEventWindow.LastPatchSummary.Contains("creature-event",
+                              StringComparison.OrdinalIgnoreCase) &&
+                          _creatureEventWindow.ApplyForSmokeTest();
+            if (!configured || !previewed || !applied)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13F_CREATURE_EVENTS_FAILED preview_apply_ui " +
+                    $"configured={configured} previewed={previewed} applied={applied} " +
+                    $"patch={_creatureEventWindow.LastPatchSummary} diagnostics={_creatureEventWindow.LastDiagnostics}");
+                return false;
+            }
+
+            appliedToHistory = true;
+            var blueprint = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId);
+            var profile = blueprint.CreatureEvents;
+            var heartbeat = CreatureEventRuntimeResolver.AdvanceHeartbeat(profile,
+                CreatureEventRuntimeState.Empty, 1_500, true, blueprint.Slug, required: true);
+            var suspended = CreatureEventRuntimeResolver.AdvanceHeartbeat(profile,
+                CreatureEventRuntimeState.Empty, 1_500, false, blueprint.Slug, required: true);
+            var custom = profile is null || profile.CustomEvents.Count == 0 ? null :
+                CreatureEventRuntimeResolver.Custom(profile, profile.CustomEvents[0].SchemaId,
+                    new Dictionary<string, string> { ["count"] = "3", ["source"] = blueprint.Slug });
+            var appliedJson = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(appliedJson);
+            if (profile is null || profile.Id == Guid.Empty || profile.SchemaVersion != 1 ||
+                !profile.RequiredAtRuntime || profile.CombatBoundary?.Mode != CreatureCombatBoundaryMode.CombatTickCompleted ||
+                profile.Inventory is null || profile.Rest is null || profile.Heartbeat is not { Enabled: true } ||
+                profile.Heartbeat.IntervalMilliseconds != 1_500 || profile.Heartbeat.BudgetMilliseconds != 8 ||
+                !profile.Heartbeat.SuspendOutsideInterest || profile.CustomEvents.Count != 1 ||
+                CreatureEventValidator.Validate(profile).Count != 0 || heartbeat.Dispatches.Count != 1 ||
+                heartbeat.Dispatches[0].BudgetMilliseconds != 8 || suspended.Dispatches.Count != 0 ||
+                custom?.EventName != "custom.crypt.braziers_lit" || _creatureEventWindow.SummarySectionCount != 3 ||
+                ProjectJsonSerializer.Serialize(restored) != appliedJson ||
+                restored.Blueprints.Single(item => item.Id == blueprint.Id).CreatureEvents?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13F_CREATURE_EVENTS_FAILED canonical_roundtrip_runtime_summary " +
+                    $"profile={profile is not null} heartbeat={heartbeat.Dispatches.Count} suspended={suspended.Dispatches.Count} " +
+                    $"custom={custom?.EventName} summary={_creatureEventWindow.SummarySectionCount}");
+                return false;
+            }
+
+            Undo(); appliedToHistory = false;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != before)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13F_CREATURE_EVENTS_FAILED undo");
+                return false;
+            }
+            Redo(); appliedToHistory = true;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != appliedJson)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13F_CREATURE_EVENTS_FAILED redo");
+                return false;
+            }
+            Undo(); appliedToHistory = false;
+
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13F_CREATURE_EVENTS_PASS combat=tick-or-turn " +
+                "inventory=accessed-transferred-cause-actor-result rest=duration-resources-interruptions " +
+                "heartbeat=cadence-suspension-budget-backlog custom=namespaced-typed ui=visible-empty-error-summary " +
+                "uuid=stable schema=v1 provenance=tracked forgescript=api-1.0-server transaction=identified " +
+                "dry-run=previewed audit=generated history=restored persistence=project-roundtrip runtime=optional-safe");
+            return true;
+        }
+        finally
+        {
+            _creatureEventWindow.Hide();
+            if (appliedToHistory) _history.Undo();
             RebuildPreview();
             RefreshEditorControls();
         }

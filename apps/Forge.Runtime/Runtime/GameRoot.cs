@@ -70,6 +70,7 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<Node3D, string> _hostileNames = [];
     private readonly Dictionary<Node3D, BlueprintDefinition> _hostileBlueprints = [];
     private readonly Dictionary<Node3D, IReadOnlyList<LootGrant>> _corpseLoot = [];
+    private readonly Dictionary<Node3D, CreatureEventProfile> _corpseCreatureEvents = [];
     private ProjectBlackboard _blackboard = new([], allowUndeclared: true);
     private readonly HashSet<string> _inventory = new(StringComparer.Ordinal);
     private readonly NativeForgeScriptRuntime _forgeScriptRuntime = new();
@@ -88,6 +89,8 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<Node3D, Vector3> _creatureAmbientOrigins = [];
     private readonly Dictionary<Node3D, Vector3> _creatureAmbientRotations = [];
     private readonly Dictionary<Node3D, double> _creatureAmbientPhases = [];
+    private readonly Dictionary<Node3D, CreatureEventProfile> _creatureEventProfiles = [];
+    private readonly Dictionary<Node3D, CreatureEventRuntimeState> _creatureEventStates = [];
     private readonly ForgeScriptJsonService _runtimeJson = new();
     private readonly ForgeScriptUiEventService _scriptUiEvents = new();
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
@@ -174,6 +177,12 @@ public partial class GameRoot : Node3D
     private int _animatedCharacterInstances;
     private int _combatHitAnimationCount;
     private int _combatDeathAnimationCount;
+    private int _creatureEventHeartbeatDispatchCount;
+    private int _creatureEventCombatDispatchCount;
+    private int _creatureEventInventoryDispatchCount;
+    private int _creatureEventRestDispatchCount;
+    private int _creatureEventCustomDispatchCount;
+    private long _creatureCombatBoundarySequence;
     private int _creatureAmbientTicks;
     private int _terrainVertices;
     private int _terrainTriangles;
@@ -505,6 +514,7 @@ public partial class GameRoot : Node3D
             AdvanceAreaExperience(simulationDelta);
             AdvanceCinematics(simulationDelta);
             AdvanceCreatureAmbientBehavior(simulationDelta);
+            AdvanceCreatureEvents(simulationDelta);
         }
 
         if (_player is null)
@@ -994,6 +1004,7 @@ public partial class GameRoot : Node3D
             _npc = CreateCreature(entity, ProgressionDisplayName(blueprint), new Color("4ec9b0"), blueprint.CreaturePresentation);
             _guideName = GetOverride(entity, "runtime.displayName") ?? blueprint.DisplayName;
             ConfigureCreatureRoleBehavior(_npc, blueprint);
+            ConfigureCreatureEvents(_npc, blueprint);
             return;
         }
 
@@ -1009,6 +1020,7 @@ public partial class GameRoot : Node3D
         _hostileNames.Add(creature, blueprint.DisplayName);
         _hostileBlueprints.Add(creature, blueprint);
         ConfigureCreatureRoleBehavior(creature, blueprint);
+        ConfigureCreatureEvents(creature, blueprint);
 
         if (isBoss)
         {
@@ -2199,6 +2211,60 @@ public partial class GameRoot : Node3D
         _creatureAmbientPhases.Remove(creature);
     }
 
+    private void ConfigureCreatureEvents(Node3D creature, BlueprintDefinition blueprint)
+    {
+        var profile = blueprint.CreatureEvents;
+        if (profile is null) return;
+        var diagnostics = CreatureEventValidator.Validate(profile, $"blueprints/{blueprint.Id}/creatureEvents");
+        if (diagnostics.Count > 0)
+            throw new InvalidOperationException($"Creature '{blueprint.Slug}' events are invalid: " +
+                string.Join("; ", diagnostics.Select(item => $"{item.Code}:{item.Message}")));
+        _creatureEventProfiles[creature] = profile;
+        _creatureEventStates[creature] = CreatureEventRuntimeState.Empty;
+        GD.Print($"OPENRPG_FORGE_CREATURE_EVENTS_READY blueprint={blueprint.Slug} " +
+            $"bindings={CreatureEventValidator.EnumerateBindings(profile).Count} " +
+            $"heartbeat_ms={profile.Heartbeat?.IntervalMilliseconds ?? 0} " +
+            $"budget_ms={profile.Heartbeat?.BudgetMilliseconds ?? 0} custom={profile.CustomEvents.Count}");
+    }
+
+    private void AdvanceCreatureEvents(double delta)
+    {
+        var milliseconds = Math.Max(0, (long)Math.Round(delta * 1_000, MidpointRounding.AwayFromZero));
+        foreach (var creature in _creatureEventProfiles.Keys.ToArray())
+        {
+            if (!GodotObject.IsInstanceValid(creature))
+            {
+                RemoveCreatureEvents(creature);
+                continue;
+            }
+            var profile = _creatureEventProfiles[creature];
+            var insideInterest = _player is null || creature.GlobalPosition.DistanceTo(_player.GlobalPosition) <= 40;
+            var result = CreatureEventRuntimeResolver.AdvanceHeartbeat(profile, _creatureEventStates[creature],
+                milliseconds, insideInterest, creature.Name, profile.RequiredAtRuntime);
+            _creatureEventStates[creature] = result.State;
+            foreach (var diagnostic in result.Diagnostics)
+                GD.Print($"OPENRPG_FORGE_CREATURE_EVENT_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+            foreach (var dispatch in result.Dispatches)
+            {
+                _creatureEventHeartbeatDispatchCount++;
+                DispatchCreatureEvent(dispatch);
+            }
+        }
+    }
+
+    private void DispatchCreatureEvent(CreatureEventDispatch dispatch)
+    {
+        GD.Print($"OPENRPG_FORGE_CREATURE_EVENT_DISPATCH event={dispatch.EventName} handler={dispatch.Handler} " +
+            $"authority={dispatch.Authority} budget_ms={dispatch.BudgetMilliseconds} " +
+            $"payload={string.Join(',', dispatch.Payload.OrderBy(item => item.Key).Select(item => $"{item.Key}:{item.Value}"))}");
+    }
+
+    private void RemoveCreatureEvents(Node3D creature)
+    {
+        _creatureEventProfiles.Remove(creature);
+        _creatureEventStates.Remove(creature);
+    }
+
     private static string? GetOverride(EntityInstance entity, string key) =>
         entity.Overrides.Properties.SingleOrDefault(property =>
             string.Equals(property.Key, key, StringComparison.Ordinal))?.Value;
@@ -2258,6 +2324,24 @@ public partial class GameRoot : Node3D
     {
         if (_corpseLoot.Remove(target, out var contents))
         {
+            if (_corpseCreatureEvents.Remove(target, out var creatureEvents))
+            {
+                var accessed = CreatureEventRuntimeResolver.InventoryAccessed(creatureEvents, target.Name,
+                    "player", "corpse-loot", contents.Count == 0 ? "empty" : "accepted");
+                if (accessed is not null)
+                {
+                    _creatureEventInventoryDispatchCount++;
+                    DispatchCreatureEvent(accessed);
+                }
+                foreach (var item in contents)
+                {
+                    var transferred = CreatureEventRuntimeResolver.ItemTransferred(creatureEvents, target.Name,
+                        "player", item.ItemSlug, item.Quantity, "corpse-loot", "accepted");
+                    if (transferred is null) continue;
+                    _creatureEventInventoryDispatchCount++;
+                    DispatchCreatureEvent(transferred);
+                }
+            }
             GrantLoot(contents);
             _message = contents.Count == 0
                 ? "La dépouille ne contient plus rien."
@@ -2376,6 +2460,17 @@ public partial class GameRoot : Node3D
             ability.Id,
             Time.GetTicksMsec() / 1000d,
             damageMultiplier: _resolvedDifficulty?.PlayerDamageMultiplier ?? 1);
+        if (_creatureEventProfiles.TryGetValue(hostile, out var creatureEvents))
+        {
+            var combatBoundary = CreatureEventRuntimeResolver.CombatBoundary(creatureEvents,
+                CreatureCombatBoundaryMode.CombatTickCompleted, hostile.Name, ++_creatureCombatBoundarySequence,
+                _activeCombatProvider?.ProviderId ?? "realtime");
+            if (combatBoundary is not null)
+            {
+                _creatureEventCombatDispatchCount++;
+                DispatchCreatureEvent(combatBoundary);
+            }
+        }
         var health = target.Health;
         var hostileName = _hostileNames[hostile];
         _message = $"{hostileName} subit {result.Damage} dégât(s) ({health} PV).";
@@ -2384,6 +2479,19 @@ public partial class GameRoot : Node3D
         if (hostile == _boss && health <= Math.Max(1, target.Profile.Stats.MaximumHealth / 2) && !_bossPhaseTwo)
         {
             _bossPhaseTwo = true;
+            if (_creatureEventProfiles.TryGetValue(hostile, out var bossEvents) &&
+                bossEvents.CustomEvents.FirstOrDefault(item =>
+                    string.Equals(item.QualifiedName, "crypt.braziers_lit", StringComparison.Ordinal)) is { } customSchema)
+            {
+                var custom = CreatureEventRuntimeResolver.Custom(bossEvents, customSchema.SchemaId,
+                    new Dictionary<string, string>
+                    {
+                        ["count"] = "3",
+                        ["source"] = _hostileBlueprints[hostile].Slug,
+                    });
+                _creatureEventCustomDispatchCount++;
+                DispatchCreatureEvent(custom);
+            }
             ExecuteForgeScript(_bossPhaseTwoScript, hostile);
             GD.Print("OPENRPG_FORGE_BOSS_PHASE_TWO");
         }
@@ -2409,11 +2517,13 @@ public partial class GameRoot : Node3D
             if (loot.Corpse.Created)
             {
                 var corpse = CreateLootCorpse(hostile, hostileName, loot.Corpse);
+                if (blueprint.CreatureEvents is not null) _corpseCreatureEvents[corpse] = blueprint.CreatureEvents;
                 if (hostile == _boss) _bossCorpse = corpse;
             }
 
             _characterAnimations.Remove(hostile);
             RemoveCreatureRoleBehavior(hostile);
+            RemoveCreatureEvents(hostile);
             if (reactionDuration > 0)
             {
                 var timer = GetTree().CreateTimer(reactionDuration);
@@ -2479,6 +2589,7 @@ public partial class GameRoot : Node3D
             timer.Timeout += () =>
             {
                 _corpseLoot.Remove(corpse);
+                _corpseCreatureEvents.Remove(corpse);
                 if (corpse == _bossCorpse) _bossCorpse = null;
                 if (GodotObject.IsInstanceValid(corpse)) corpse.QueueFree();
             };
@@ -3326,6 +3437,18 @@ public partial class GameRoot : Node3D
             $"deity={ambient.LoreFields["deity"]} animation={ambient.ActiveAnimationId} " +
             $"ambient_ticks={_creatureAmbientTicks} autolevel=6 seed=42");
 
+        AssertSmoke(_creatureEventProfiles.TryGetValue(_boss!, out var creatureEvents) &&
+                    CreatureEventValidator.Validate(creatureEvents).Count == 0,
+            "The authored creature-event profile did not resolve.");
+        var authoredCreatureEvents = creatureEvents ??
+            throw new InvalidOperationException("The authored creature-event profile is missing.");
+        AdvanceCreatureEvents(1.5);
+        var restCompleted = CreatureEventRuntimeResolver.RestCompleted(authoredCreatureEvents, _boss!.Name, 28_800,
+            new Dictionary<string, double> { ["health"] = 12, ["focus"] = 4 }, ["ambush"]);
+        AssertSmoke(restCompleted is not null, "RestCompleted did not produce a typed dispatch.");
+        _creatureEventRestDispatchCount++;
+        DispatchCreatureEvent(restCompleted!);
+
         InteractWith(_npc!);
         AssertSmoke(_questState == PrototypeQuestState.Active, "NPC interaction did not start the quest.");
         AssertSmoke(
@@ -3348,6 +3471,14 @@ public partial class GameRoot : Node3D
         var smokeCorpse = _corpseLoot.Keys.FirstOrDefault(GodotObject.IsInstanceValid);
         if (smokeCorpse is not null) InteractWith(smokeCorpse);
         AssertSmoke(_inventory.Contains("warden-ember"), "Data-driven boss loot was not granted.");
+        AssertSmoke(_creatureEventHeartbeatDispatchCount > 0 && _creatureEventCombatDispatchCount > 0 &&
+                    _creatureEventInventoryDispatchCount >= 2 && _creatureEventRestDispatchCount > 0 &&
+                    _creatureEventCustomDispatchCount > 0,
+            "The advanced creature-event lifecycle did not dispatch every authored event family.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G13F_CREATURE_EVENTS_PASS combat={_creatureEventCombatDispatchCount} " +
+            $"inventory={_creatureEventInventoryDispatchCount} rest={_creatureEventRestDispatchCount} " +
+            $"heartbeat={_creatureEventHeartbeatDispatchCount} custom={_creatureEventCustomDispatchCount} " +
+            $"cadence_ms={authoredCreatureEvents.Heartbeat?.IntervalMilliseconds} budget_ms={authoredCreatureEvents.Heartbeat?.BudgetMilliseconds}");
         AssertSmoke(_questState == PrototypeQuestState.Completed, "Quest was not completed.");
         AssertSmoke(_questMachine?.Completed == true, "Data-driven quest was not completed.");
 

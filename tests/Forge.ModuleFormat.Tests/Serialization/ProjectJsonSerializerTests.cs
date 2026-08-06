@@ -5,6 +5,7 @@ using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Content;
 using Forge.Domain.Creatures;
+using Forge.Domain.Lifecycle;
 using Forge.Domain.Entities;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
@@ -15,6 +16,44 @@ namespace Forge.ModuleFormat.Tests.Serialization;
 
 public sealed class ProjectJsonSerializerTests
 {
+    [Fact]
+    public void Deserialize_MigratesPreCreatureEventsFormatWithEmptyEventProfile()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreCreatureEventsFormatVersion;
+        foreach (var blueprint in document["project"]!["blueprints"]!.AsArray())
+            blueprint!.AsObject().Remove("creatureEvents");
+
+        var restored = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Null(restored.Blueprints.Single().CreatureEvents);
+        Assert.Contains($"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(restored), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SerializeAndDeserialize_RoundTripsCreatureEventBindings()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var events = CreateCreatureEvents();
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance,
+            original.CreaturePresentation, original.CreatureProgression, original.CreatureLoot,
+            original.CreatureRoleBehavior, events);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        var restoredEvents = Assert.IsType<CreatureEventProfile>(restored.Blueprints.Single().CreatureEvents);
+        Assert.Equal(CreatureCombatBoundaryMode.TurnEnded, restoredEvents.CombatBoundary!.Mode);
+        Assert.Equal(8, restoredEvents.Heartbeat!.BudgetMilliseconds);
+        Assert.Equal("crypt.braziers_lit", Assert.Single(restoredEvents.CustomEvents).QualifiedName);
+    }
+
     [Fact]
     public void Deserialize_MigratesPreCreaturePresentationFormatWithEmptyPresentation()
     {
@@ -768,6 +807,28 @@ public sealed class ProjectJsonSerializerTests
         var exception = Assert.Throws<ProjectValidationException>(() => ProjectJsonSerializer.Serialize(project));
 
         Assert.Single(exception.Diagnostics);
+    }
+
+    private static CreatureEventProfile CreateCreatureEvents()
+    {
+        static EventBinding Binding(string id, string eventName, string handler) => new(
+            Guid.Parse(id), 1, "author:test", "1.0", eventName, handler, EventAuthorityScope.Server);
+
+        return new CreatureEventProfile(
+            Guid.Parse("a1540000-0000-4000-8000-000000000001"), 1, "author:test", true,
+            new(CreatureCombatBoundaryMode.TurnEnded,
+                Binding("a1540000-0000-4000-8000-000000000002", "creature.turn_ended", "OnTurnEnded")),
+            new(
+                Binding("a1540000-0000-4000-8000-000000000003", "creature.inventory_accessed", "OnInventoryAccessed"),
+                Binding("a1540000-0000-4000-8000-000000000004", "creature.item_transferred", "OnItemTransferred")),
+            new(Binding("a1540000-0000-4000-8000-000000000005", "creature.rest_completed", "OnRestCompleted")),
+            new(true, 2_000, 8, true,
+                Binding("a1540000-0000-4000-8000-000000000006", "creature.heartbeat", "OnHeartbeat")),
+            [new(Guid.Parse("a1540000-0000-4000-8000-000000000010"), "crypt", "braziers_lit", 2,
+                new Dictionary<string, CreatureCustomFieldType> { ["count"] = CreatureCustomFieldType.Integer },
+                true, Binding("a1540000-0000-4000-8000-000000000011",
+                    "custom.crypt.braziers_lit", "OnBraziersLit"))],
+            new Dictionary<string, string>());
     }
 
     private static void RemoveEntityOverrides(JsonObject document)

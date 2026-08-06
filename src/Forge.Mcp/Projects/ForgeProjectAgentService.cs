@@ -2,6 +2,7 @@ using System.Text;
 using Forge.Application.Commands;
 using Forge.Application.Assistant;
 using Forge.Application.Assets;
+using Forge.Application.Blueprints;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Projects;
@@ -11,6 +12,7 @@ using Forge.Domain.Areas;
 using Forge.Domain.Assistant;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Creatures;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.RuntimePolicies;
@@ -23,6 +25,7 @@ using Forge.Mcp.Dialogues;
 using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
 using Forge.Mcp.Assets;
+using Forge.Mcp.Creatures;
 using Forge.Mcp.Scripts;
 using Forge.RpgKit.Application.Abilities;
 using Forge.RpgKit.Application.Dialogues;
@@ -64,6 +67,7 @@ public sealed class ForgeProjectAgentService
     private readonly ExternalWorkerSecurityPolicyCommandHistory _externalWorkerSecurityHistory;
     private readonly List<AgentDiagnostic> _externalWorkerSecurityLoadDiagnostics;
     private readonly SetEntityOverridesHandler _overridesHandler;
+    private readonly SetCreatureEventsHandler _creatureEventsHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
     private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
@@ -125,6 +129,7 @@ public sealed class ForgeProjectAgentService
         _externalWorkerSecurityLoadDiagnostics = workerSecurity.Diagnostics.Select(item =>
             new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
         _overridesHandler = new SetEntityOverridesHandler(clock);
+        _creatureEventsHandler = new SetCreatureEventsHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
         _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
@@ -185,6 +190,64 @@ public sealed class ForgeProjectAgentService
         lock (_gate)
         {
             return _history.State.Revision.Value;
+        }
+    }
+
+    public CreatureEventResource QueryCreatureEvents(string? blueprintIdOrSearch = null, int limit = 50)
+    {
+        if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        lock (_gate)
+        {
+            var filter = blueprintIdOrSearch?.Trim();
+            var items = _history.State.Project.Blueprints
+                .Where(item => item.CreatureEvents is not null)
+                .Where(item => string.IsNullOrWhiteSpace(filter) ||
+                    string.Equals(item.Id.ToString(), filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.DisplayName.Contains(filter, StringComparison.CurrentCultureIgnoreCase))
+                .OrderBy(item => item.Slug, StringComparer.Ordinal)
+                .Take(limit)
+                .Select(item =>
+                {
+                    var profile = item.CreatureEvents!;
+                    return new CreatureEventResourceItem(
+                        item.Id.ToString(), item.Slug, item.DisplayName, profile.Id.ToString("D"),
+                        profile.SchemaVersion, profile.Provenance, profile.RequiredAtRuntime,
+                        profile.CombatBoundary?.Mode.ToString(), CreatureEventValidator.EnumerateBindings(profile).Count,
+                        profile.Heartbeat?.IntervalMilliseconds ?? 0, profile.Heartbeat?.BudgetMilliseconds ?? 0,
+                        profile.Heartbeat?.SuspendOutsideInterest == true,
+                        profile.CustomEvents.Select(custom => custom.QualifiedName).ToArray());
+                }).ToArray();
+            return new CreatureEventResource(1, _history.State.Revision.Value, filter, items);
+        }
+    }
+
+    public CreatureEventPlanResult PreviewCreatureEvents(CreatureEventPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("creature.events.mcp_schema_unsupported",
+                        "Creature-event MCP request schema must be v1.", "request/schemaVersion")]);
+            BlueprintId blueprintId;
+            try
+            {
+                blueprintId = BlueprintId.Parse(request.BlueprintId);
+            }
+            catch (Exception exception) when (exception is FormatException or ArgumentException)
+            {
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("creature.events.mcp_blueprint_invalid", exception.Message,
+                        "request/blueprintId")]);
+            }
+            var result = _creatureEventsHandler.Handle(_history.State, new SetCreatureEventsCommand(
+                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), blueprintId,
+                request.Profile, DryRun: true));
+            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
+                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    $"blueprints/{blueprintId}/creatureEvents")).ToArray());
         }
     }
 

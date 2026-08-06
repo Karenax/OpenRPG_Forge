@@ -1,5 +1,6 @@
 using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
+using Forge.Domain.Lifecycle;
 using Forge.Domain.Projects;
 using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.RuntimePolicies;
@@ -8,10 +9,11 @@ using Forge.ModuleFormat.Workspaces;
 var addRuntimeExtensionSample = args.Contains("--runtime-extension-sample", StringComparer.Ordinal);
 var addCreatureLootSample = args.Contains("--creature-loot-sample", StringComparer.Ordinal);
 var addCreatureRoleBehaviorSample = args.Contains("--creature-role-behavior-sample", StringComparer.Ordinal);
+var addCreatureEventsSample = args.Contains("--creature-events-sample", StringComparer.Ordinal);
 var workspaceArguments = args.Where(argument => !argument.StartsWith("--", StringComparison.Ordinal)).ToArray();
 if (workspaceArguments.Length == 0)
 {
-    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] <workspace> [workspace ...]");
+    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] [--creature-events-sample] <workspace> [workspace ...]");
     return 2;
 }
 
@@ -28,6 +30,7 @@ foreach (var argument in workspaceArguments)
     var project = addRuntimeExtensionSample ? AddRuntimeExtensionSample(opened.Session.Project) : opened.Session.Project;
     if (addCreatureLootSample) project = AddCreatureLootSample(project);
     if (addCreatureRoleBehaviorSample) project = AddCreatureRoleBehaviorSample(project);
+    if (addCreatureEventsSample) project = AddCreatureEventsSample(project);
     var saved = opened.Session.Save(project);
     if (!saved.Succeeded)
     {
@@ -57,7 +60,8 @@ static ProjectDefinition AddCreatureLootSample(ProjectDefinition project)
             new Dictionary<string, string> { ["presentation"] = "ember-relic" });
         return new BlueprintDefinition(blueprint.Id, blueprint.Slug, blueprint.DisplayName, blueprint.Kind,
             blueprint.Combat, blueprint.PaletteOrigin, blueprint.IsFavorite, blueprint.Provenance,
-            blueprint.CreaturePresentation, blueprint.CreatureProgression, loot, blueprint.CreatureRoleBehavior);
+            blueprint.CreaturePresentation, blueprint.CreatureProgression, loot, blueprint.CreatureRoleBehavior,
+            blueprint.CreatureEvents);
     }).ToArray();
     return new ProjectDefinition(project.Id, project.Title, project.Module, blueprints, project.Areas,
         project.Dialogues, project.Quests);
@@ -102,7 +106,46 @@ static ProjectDefinition AddCreatureRoleBehaviorSample(ProjectDefinition project
             throw new InvalidOperationException("The G13-E sample profile cannot resolve its deterministic progression.");
         return new BlueprintDefinition(blueprint.Id, blueprint.Slug, blueprint.DisplayName, blueprint.Kind,
             blueprint.Combat, blueprint.PaletteOrigin, blueprint.IsFavorite, blueprint.Provenance,
-            blueprint.CreaturePresentation, preview.Result, blueprint.CreatureLoot, behavior);
+            blueprint.CreaturePresentation, preview.Result, blueprint.CreatureLoot, behavior, blueprint.CreatureEvents);
+    }).ToArray();
+    return new ProjectDefinition(project.Id, project.Title, project.Module, blueprints, project.Areas,
+        project.Dialogues, project.Quests);
+}
+
+static ProjectDefinition AddCreatureEventsSample(ProjectDefinition project)
+{
+    if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal)) return project;
+    var blueprints = project.Blueprints.Select(blueprint =>
+    {
+        if (!string.Equals(blueprint.Slug, "ash-warden-boss", StringComparison.Ordinal)) return blueprint;
+        static EventBinding Binding(string id, string eventName, string handler) => new(
+            Guid.Parse(id), 1, "sample:g13-f", "1.0", eventName, handler, EventAuthorityScope.Server);
+        var events = new CreatureEventProfile(
+            Guid.Parse("a1570000-0000-4000-8000-000000000001"), 1, "sample:g13-f", true,
+            new(CreatureCombatBoundaryMode.CombatTickCompleted,
+                Binding("a1570000-0000-4000-8000-000000000002", "creature.combat_tick_completed",
+                    "OnCombatTickCompleted")),
+            new(
+                Binding("a1570000-0000-4000-8000-000000000003", "creature.inventory_accessed",
+                    "OnInventoryAccessed"),
+                Binding("a1570000-0000-4000-8000-000000000004", "creature.item_transferred",
+                    "OnItemTransferred")),
+            new(Binding("a1570000-0000-4000-8000-000000000005", "creature.rest_completed",
+                "OnRestCompleted")),
+            new(true, 1_500, 8, true,
+                Binding("a1570000-0000-4000-8000-000000000006", "creature.heartbeat", "OnHeartbeat")),
+            [new(Guid.Parse("a1570000-0000-4000-8000-000000000010"), "crypt", "braziers_lit", 1,
+                new Dictionary<string, CreatureCustomFieldType>
+                {
+                    ["count"] = CreatureCustomFieldType.Integer,
+                    ["source"] = CreatureCustomFieldType.EntityId,
+                }, true, Binding("a1570000-0000-4000-8000-000000000011", "custom.crypt.braziers_lit",
+                    "OnBraziersLit"))],
+            new Dictionary<string, string> { ["telemetry.channel"] = "ash-warden" });
+        return new BlueprintDefinition(blueprint.Id, blueprint.Slug, blueprint.DisplayName, blueprint.Kind,
+            blueprint.Combat, blueprint.PaletteOrigin, blueprint.IsFavorite, blueprint.Provenance,
+            blueprint.CreaturePresentation, blueprint.CreatureProgression, blueprint.CreatureLoot,
+            blueprint.CreatureRoleBehavior, events);
     }).ToArray();
     return new ProjectDefinition(project.Id, project.Title, project.Module, blueprints, project.Areas,
         project.Dialogues, project.Quests);

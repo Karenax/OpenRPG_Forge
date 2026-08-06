@@ -91,7 +91,8 @@ public sealed class ConfigureBlueprintPaletteHandler
             existing.CreaturePresentation,
             existing.CreatureProgression,
             existing.CreatureLoot,
-            existing.CreatureRoleBehavior);
+            existing.CreatureRoleBehavior,
+            existing.CreatureEvents);
         var project = ReplaceBlueprint(state.Project, updated);
         var revision = state.Revision.Next();
         return new CommandResult(

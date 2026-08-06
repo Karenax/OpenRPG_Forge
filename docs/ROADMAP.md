@@ -232,8 +232,9 @@ la politique canonique des workers externes. G12 est fermé. Le plan des 135 ext
 désormais `docs/aurora-parity/G13_DELIVERY_PLAN.md` ; G13-A livre le keymap configurable, G13-B
 livre l’identité et la présentation visuelle des créatures, G13-C livre leur progression
 data-driven, G13-D ferme butin, pickpocket et cadavres avec une dépouille interactive dans le
-runtime, et G13-E livre rôle, routines ambiantes et auto-level déterministe. G13-F cible ensuite
-les événements avancés de créature.
+runtime, G13-E livre rôle, routines ambiantes et auto-level déterministe, puis G13-F ferme les
+événements avancés de créature avec bindings typés, scheduler budgété et exécution dans la Crypte.
+G13-G cible ensuite les factions avancées.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;

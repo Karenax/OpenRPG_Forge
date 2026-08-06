@@ -212,13 +212,13 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CRE-036 | OnDamaged | P0 | Implemented | G8 |
 | ORF-CRE-037 | OnPhysicalAttacked | P1 | Implemented | G8 |
 | ORF-CRE-038 | OnSpellCastAt | P1 | Implemented | G8 |
-| ORF-CRE-039 | OnCombatRoundEnd | P2 | Researched | G13 |
+| ORF-CRE-039 | OnCombatRoundEnd | P2 | Tested | G13 |
 | ORF-CRE-040 | OnBlocked | P1 | Implemented | G8 |
-| ORF-CRE-041 | OnDisturbed | P2 | Researched | G13 |
-| ORF-CRE-042 | OnRested | P2 | Researched | G13 |
+| ORF-CRE-041 | OnDisturbed | P2 | Tested | G13 |
+| ORF-CRE-042 | OnRested | P2 | Tested | G13 |
 | ORF-CRE-043 | OnDeath | P0 | Implemented | G8 |
-| ORF-CRE-044 | OnHeartbeat | P3 | Researched | G13 |
-| ORF-CRE-045 | OnUserDefined | P2 | Researched | G13 |
+| ORF-CRE-044 | OnHeartbeat | P3 | Tested | G13 |
+| ORF-CRE-045 | OnUserDefined | P2 | Tested | G13 |
 | ORF-CRE-046 | Intelligence artificielle par profil | P1 | Implemented | G8 |
 | ORF-CRE-047 | Animations ambiantes | P2 | Tested | G13 |
 | ORF-CRE-048 | Auto-level et templates | P2 | Tested | G13 |

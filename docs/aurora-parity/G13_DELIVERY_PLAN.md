@@ -62,8 +62,10 @@ capacité G13 ne peut imposer un fournisseur, un abonnement ou un asset proprié
   pickpocket et cadavres/conteneurs de butin dans un workflow cohérent.
 - [x] **G13-E** — `ORF-CRE-030`, `ORF-CRE-047`, `ORF-CRE-048` : informations de rôle,
   animations ambiantes et auto-level/templates de créature.
-- [ ] **G13-F** — `ORF-CRE-039`, `ORF-CRE-041`, `ORF-CRE-042`, `ORF-CRE-044`, `ORF-CRE-045` :
+- [x] **G13-F** — `ORF-CRE-039`, `ORF-CRE-041`, `ORF-CRE-042`, `ORF-CRE-044`, `ORF-CRE-045` :
   événements avancés de créature (fin de round, perturbation, repos, heartbeat et événement utilisateur).
+- [ ] **G13-G** — `ORF-FAC-002`, `ORF-FAC-008`, `ORF-FAC-009`, `ORF-FAC-010` : factions parentes,
+  propagation par témoins, memberships multiples et factions dynamiques.
 - [ ] **G13-G et suivants** — tranches de cinq IDs maximum, ordonnées selon les quatre pistes
   ci-dessus et consignées dans une fiche dédiée avant implémentation.
 

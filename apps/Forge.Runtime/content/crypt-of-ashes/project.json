@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.20.0",
+  "formatVersion": "1.21.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -1242,7 +1242,8 @@
         "creaturePresentation": null,
         "creatureProgression": null,
         "creatureLoot": null,
-        "creatureRoleBehavior": null
+        "creatureRoleBehavior": null,
+        "creatureEvents": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000002",
@@ -1264,7 +1265,8 @@
         "creaturePresentation": null,
         "creatureProgression": null,
         "creatureLoot": null,
-        "creatureRoleBehavior": null
+        "creatureRoleBehavior": null,
+        "creatureEvents": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000003",
@@ -1286,7 +1288,8 @@
         "creaturePresentation": null,
         "creatureProgression": null,
         "creatureLoot": null,
-        "creatureRoleBehavior": null
+        "creatureRoleBehavior": null,
+        "creatureEvents": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000004",
@@ -1319,7 +1322,8 @@
         "creaturePresentation": null,
         "creatureProgression": null,
         "creatureLoot": null,
-        "creatureRoleBehavior": null
+        "creatureRoleBehavior": null,
+        "creatureEvents": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000005",
@@ -1376,7 +1380,8 @@
         "creaturePresentation": null,
         "creatureProgression": null,
         "creatureLoot": null,
-        "creatureRoleBehavior": null
+        "creatureRoleBehavior": null,
+        "creatureEvents": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000006",
@@ -1628,6 +1633,96 @@
           "overrides": {
             "ambient.radius": "4"
           }
+        },
+        "creatureEvents": {
+          "id": "a1570000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "sample:g13-f",
+          "requiredAtRuntime": true,
+          "combatBoundary": {
+            "mode": "combatTickCompleted",
+            "binding": {
+              "id": "a1570000-0000-4000-8000-000000000002",
+              "schemaVersion": 1,
+              "provenance": "sample:g13-f",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "creature.combat_tick_completed",
+              "handler": "OnCombatTickCompleted",
+              "authority": "server"
+            }
+          },
+          "inventory": {
+            "accessed": {
+              "id": "a1570000-0000-4000-8000-000000000003",
+              "schemaVersion": 1,
+              "provenance": "sample:g13-f",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "creature.inventory_accessed",
+              "handler": "OnInventoryAccessed",
+              "authority": "server"
+            },
+            "transferred": {
+              "id": "a1570000-0000-4000-8000-000000000004",
+              "schemaVersion": 1,
+              "provenance": "sample:g13-f",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "creature.item_transferred",
+              "handler": "OnItemTransferred",
+              "authority": "server"
+            }
+          },
+          "rest": {
+            "completed": {
+              "id": "a1570000-0000-4000-8000-000000000005",
+              "schemaVersion": 1,
+              "provenance": "sample:g13-f",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "creature.rest_completed",
+              "handler": "OnRestCompleted",
+              "authority": "server"
+            }
+          },
+          "heartbeat": {
+            "enabled": true,
+            "intervalMilliseconds": 1500,
+            "budgetMilliseconds": 8,
+            "suspendOutsideInterest": true,
+            "binding": {
+              "id": "a1570000-0000-4000-8000-000000000006",
+              "schemaVersion": 1,
+              "provenance": "sample:g13-f",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "creature.heartbeat",
+              "handler": "OnHeartbeat",
+              "authority": "server"
+            }
+          },
+          "customEvents": [
+            {
+              "schemaId": "a1570000-0000-4000-8000-000000000010",
+              "namespace": "crypt",
+              "name": "braziers_lit",
+              "payloadVersion": 1,
+              "fields": {
+                "count": "integer",
+                "source": "entityId"
+              },
+              "required": true,
+              "binding": {
+                "id": "a1570000-0000-4000-8000-000000000011",
+                "schemaVersion": 1,
+                "provenance": "sample:g13-f",
+                "forgeScriptApiVersion": "1.0",
+                "eventName": "custom.crypt.braziers_lit",
+                "handler": "OnBraziersLit",
+                "authority": "server"
+              },
+              "qualifiedName": "crypt.braziers_lit"
+            }
+          ],
+          "overrides": {
+            "telemetry.channel": "ash-warden"
+          }
         }
       },
       {
@@ -1679,7 +1774,8 @@
         "creaturePresentation": null,
         "creatureProgression": null,
         "creatureLoot": null,
-        "creatureRoleBehavior": null
+        "creatureRoleBehavior": null,
+        "creatureEvents": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000008",
@@ -1701,7 +1797,8 @@
         "creaturePresentation": null,
         "creatureProgression": null,
         "creatureLoot": null,
-        "creatureRoleBehavior": null
+        "creatureRoleBehavior": null,
+        "creatureEvents": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000009",
@@ -1723,7 +1820,8 @@
         "creaturePresentation": null,
         "creatureProgression": null,
         "creatureLoot": null,
-        "creatureRoleBehavior": null
+        "creatureRoleBehavior": null,
+        "creatureEvents": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000010",
@@ -1745,7 +1843,8 @@
         "creaturePresentation": null,
         "creatureProgression": null,
         "creatureLoot": null,
-        "creatureRoleBehavior": null
+        "creatureRoleBehavior": null,
+        "creatureEvents": null
       }
     ],
     "areas": [

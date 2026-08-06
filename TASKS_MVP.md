@@ -605,7 +605,8 @@ les démonstrations Crypte des Cendres et Forgotten Forest jouables.
 - [x] G13-D : butin de créature, pickpocket et cadavres (`ORF-CRE-023`, `024`, `032`).
 - [x] G13-E : informations de rôle, animations ambiantes et auto-level/templates
   (`ORF-CRE-030`, `047`, `048`).
-- [ ] G13-F : événements avancés de créature (`ORF-CRE-039`, `041`, `042`, `044`, `045`).
+- [x] G13-F : événements avancés de créature (`ORF-CRE-039`, `041`, `042`, `044`, `045`).
+- [ ] G13-G : factions avancées (`ORF-FAC-002`, `008`, `009`, `010`).
 
 Acceptation G13-A : un auteur configure les raccourcis depuis l’écran Aurora, prévisualise le diff,
 applique la commande canonique et peut annuler/rétablir. Le round-trip `.forge/editor-keymap.json`
@@ -633,3 +634,8 @@ Acceptation G13-E : un auteur configure sans JSON champs de lore, tags, idle set
 interactions et interruptions, puis prévisualise le résultat reproductible d’un template de
 progression. Seed, diff, verrouillage manuel, dry-run, undo/redo, persistance et handle script sont
 prouvés ; la Crypte avance réellement la routine ambiante du Gardien avant le combat.
+
+Acceptation G13-F : un auteur configure sans JSON les frontières de combat, événements d’inventaire,
+repos, heartbeat avec cadence/suspension/budget et événements utilisateur namespacés/typés. La même
+commande assure dry-run, undo/redo et round-trip ; ForgeScript et MCP restent typés et sans mutation
+directe. La Crypte déclenche réellement les cinq familles tout en conservant quête, combat et butin.

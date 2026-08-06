@@ -4,6 +4,7 @@ using System.Text;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
+using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
@@ -19,6 +20,33 @@ public sealed class ModulePackageTests : IDisposable
         Path.GetTempPath(),
         "openrpg-forge-tests",
         Guid.NewGuid().ToString("N"));
+
+    [Fact]
+    public void ExportValidateAndLoad_PreservesCanonicalCreatureEvents()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var events = CreateCreatureEvents();
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance,
+            original.CreaturePresentation, original.CreatureProgression, original.CreatureLoot,
+            original.CreatureRoleBehavior, events);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+        var workspace = Path.Combine(_temporaryRoot, $"creature-events-{Guid.NewGuid():N}");
+        Assert.True(ProjectSession.Create(workspace, project).Succeeded);
+        var package = Path.Combine(_temporaryRoot, "creature-events.orpmod");
+
+        ModulePackager.Export(workspace, package);
+        var validation = ModulePackageValidator.Validate(package);
+        var loaded = ModulePackageLoader.Load(package, Path.Combine(_temporaryRoot, "creature-events-cache"));
+
+        Assert.True(validation.IsValid, JoinDiagnostics(validation));
+        var restored = Assert.IsType<CreatureEventProfile>(loaded.Project.Blueprints.Single().CreatureEvents);
+        Assert.Equal(events.Id, restored.Id);
+        Assert.Equal(8, restored.Heartbeat!.BudgetMilliseconds);
+        Assert.Equal("crypt.braziers_lit", Assert.Single(restored.CustomEvents).QualifiedName);
+    }
 
     [Fact]
     public void ExportValidateAndLoad_PreservesCreatureRoleBehaviorAndAutoLevelTemplate()
@@ -474,4 +502,26 @@ public sealed class ModulePackageTests : IDisposable
 
     private static string JoinDiagnostics(ModulePackageValidationResult validation) =>
         string.Join(Environment.NewLine, validation.Diagnostics.Select(diagnostic => diagnostic.Message));
+
+    private static CreatureEventProfile CreateCreatureEvents()
+    {
+        static EventBinding Binding(string id, string eventName, string handler) => new(
+            Guid.Parse(id), 1, "author:test", "1.0", eventName, handler, EventAuthorityScope.Server);
+
+        return new CreatureEventProfile(
+            Guid.Parse("a1550000-0000-4000-8000-000000000001"), 1, "author:test", true,
+            new(CreatureCombatBoundaryMode.TurnEnded,
+                Binding("a1550000-0000-4000-8000-000000000002", "creature.turn_ended", "OnTurnEnded")),
+            new(
+                Binding("a1550000-0000-4000-8000-000000000003", "creature.inventory_accessed", "OnInventoryAccessed"),
+                Binding("a1550000-0000-4000-8000-000000000004", "creature.item_transferred", "OnItemTransferred")),
+            new(Binding("a1550000-0000-4000-8000-000000000005", "creature.rest_completed", "OnRestCompleted")),
+            new(true, 2_000, 8, true,
+                Binding("a1550000-0000-4000-8000-000000000006", "creature.heartbeat", "OnHeartbeat")),
+            [new(Guid.Parse("a1550000-0000-4000-8000-000000000010"), "crypt", "braziers_lit", 2,
+                new Dictionary<string, CreatureCustomFieldType> { ["count"] = CreatureCustomFieldType.Integer },
+                true, Binding("a1550000-0000-4000-8000-000000000011",
+                    "custom.crypt.braziers_lit", "OnBraziersLit"))],
+            new Dictionary<string, string>());
+    }
 }

@@ -3,6 +3,7 @@ using Forge.Application.Validation;
 using Forge.Mcp;
 using Forge.Mcp.Abilities;
 using Forge.Mcp.Assets;
+using Forge.Mcp.Creatures;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
@@ -33,6 +34,16 @@ public sealed class ForgeMcpTools
     [McpServerTool]
     [Description("Returns the current transactional project revision without mutating the project.")]
     public long GetCurrentRevision() => _project.GetCurrentRevision();
+
+    [McpServerTool]
+    [Description("Returns canonical creature-event profiles filtered by blueprint ID, slug or display name without mutation.")]
+    public CreatureEventResource QueryCreatureEvents(string? blueprintIdOrSearch = null, int limit = 50) =>
+        _project.QueryCreatureEvents(blueprintIdOrSearch, limit);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a canonical creature-event mutation, returning its semantic diff without applying it.")]
+    public CreatureEventPlanResult PreviewCreatureEvents(CreatureEventPlanRequest request) =>
+        _project.PreviewCreatureEvents(request);
 
     [McpServerTool]
     [Description("Validates the project and returns structured diagnostics without mutating it.")]

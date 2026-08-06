@@ -814,6 +814,10 @@ G13-E ajoute `CreatureRoleBehaviorProfile` v1 : champs de lore sans mécanique i
 rôle, idle sets, horaires, interactions, interruptions et template d’auto-level déterministe avec
 seed, preview, diff et verrouillage manuel. L’écran spécialisé, la commande, ForgeScript, les formats
 et le runtime partagent ce contrat ; le Gardien de la Crypte exécute une routine ambiante réelle.
+G13-F ajoute `CreatureEventProfile` v1 : frontière combat tick/tour, inventaire consulté/transféré,
+repos terminé, heartbeat suspendable et budgété, événements utilisateur namespacés avec payload
+typé. L’écran spécialisé, la commande, le handle ForgeScript, la ressource MCP filtrée, les formats
+et le runtime partagent les mêmes bindings serveur ; la Crypte exécute les cinq familles.
 
 ---
 
@@ -1841,9 +1845,9 @@ Le présent paquet contient uniquement :
 
 ## Prochaine action autorisée
 
-Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-F :
-`ORF-CRE-039`, `ORF-CRE-041`, `ORF-CRE-042`, `ORF-CRE-044` et `ORF-CRE-045`, regroupées autour
-des événements avancés de créature. Chaque tranche doit
+Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-G :
+`ORF-FAC-002`, `ORF-FAC-008`, `ORF-FAC-009` et `ORF-FAC-010`, regroupées autour des factions
+avancées. Chaque tranche doit
 conserver les modules jouables, le runtime sans IA, les formats migrables et le gate intégré vert.
 
 
