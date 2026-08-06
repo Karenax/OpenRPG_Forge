@@ -6,7 +6,7 @@ Lancer l'application de création, ouvrir l'écran **Forge**, puis choisir **+ N
 un titre, une description et le nom de la première zone. Choisir **Intérieur** pour une pièce ou un
 donjon compact, ou **Extérieur** pour un terrain sculptable ; la sélection propose respectivement
 32 × 32 m ou 128 × 128 m, mais la largeur et la profondeur restent modifiables avant la création.
-Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.17.0` contenant :
+Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.18.0` contenant :
 
 ```text
 mon-module/
@@ -41,6 +41,13 @@ plan déterministe, le même manifeste et le même contrôle SHA-256.
 
 Le kit Crypte (sol, mur, porte, pilier, personnages et triggers) reste disponible dans le module de
 démonstration ; Forgotten Forest fournit le premier kit extérieur CC0 jouable.
+
+Pour une créature, ouvrir **Atelier RPG Kit**, puis **Présenter une créature** pour les portraits,
+parties du corps, couleurs, appendices et voix. **Progression & pouvoirs** ouvre ensuite les parcours
+multiclasses, axes de disposition propres au projet, compétences, talents et loadout. Chaque écran
+prévisualise la transaction, affiche les diagnostics et permet Annuler/Rétablir avant sauvegarde.
+Les pouvoirs appris ou accordés par un talent doivent déjà exister dans le profil **Combat** du
+blueprint ; le résumé latéral confirme le niveau total et la résolution des références.
 
 ## 3. Écrire les dialogues et scripts
 

@@ -893,7 +893,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         {
             root.AddChild(new Label3D
             {
-                Text = blueprint.DisplayName,
+                Text = ProgressionDisplayName(blueprint),
                 Position = new Vector3(0, 1.25f, 0),
                 Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
                 FontSize = 26,
@@ -908,6 +908,12 @@ public partial class ProjectPreview3D : SubViewportContainer
     {
         var value = presentation?.MaterialColors.FirstOrDefault(item => item.ParameterId == "primary")?.HexColor;
         return string.IsNullOrWhiteSpace(value) ? fallback : Color.FromString(value, fallback);
+    }
+
+    private static string ProgressionDisplayName(BlueprintDefinition blueprint)
+    {
+        var level = blueprint.CreatureProgression?.Tracks.Sum(item => item.Level) ?? 0;
+        return level > 0 ? $"{blueprint.DisplayName} · Niv. {level}" : blueprint.DisplayName;
     }
 
     private static void AddPresentationProxies(Node3D root, CreaturePresentationProfile? presentation)

@@ -21,6 +21,41 @@ public sealed class ModulePackageTests : IDisposable
         Guid.NewGuid().ToString("N"));
 
     [Fact]
+    public void ExportValidateAndLoad_PreservesCanonicalCreatureProgression()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var progression = new CreatureProgressionProfile(
+            Guid.Parse("a1350000-0000-4000-8000-000000000001"), 1, "author:test", "forge.generic", true, true,
+            [new("warden", "Gardien", 3, 20, 2_400, ["ember-mastery"])],
+            [new("mercy", "Impitoyable", "Miséricordieux", 0.5)],
+            [new("lore", "Savoir", "insight", 2, 10, 2, true, false, 12)],
+            [new("ember-mastery", "Maîtrise des braises", 1, 3, true,
+                [new("track", "warden", 2)], ["ember-strike"], ["combat.on-hit"])],
+            new("prepared", AbilityLoadoutMode.Prepared, 2, ["ember-strike"],
+                [new("ember-strike", 1, 2, 0.5, "focus", 1, ["empowered"])]),
+            new Dictionary<string, string> { ["xp-rate"] = "1.0" });
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance,
+            original.CreaturePresentation, progression);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+        var workspace = Path.Combine(_temporaryRoot, $"progression-{Guid.NewGuid():N}");
+        Assert.True(ProjectSession.Create(workspace, project).Succeeded);
+        var package = Path.Combine(_temporaryRoot, "progression.orpmod");
+
+        ModulePackager.Export(workspace, package);
+        var validation = ModulePackageValidator.Validate(package);
+        var loaded = ModulePackageLoader.Load(package, Path.Combine(_temporaryRoot, "progression-cache"));
+
+        Assert.True(validation.IsValid, JoinDiagnostics(validation));
+        var restored = Assert.IsType<CreatureProgressionProfile>(
+            loaded.Project.Blueprints.Single().CreatureProgression);
+        Assert.Equal(progression.Id, restored.Id);
+        Assert.Equal("ember-strike", Assert.Single(restored.Loadout.PreparedAbilities).AbilityId);
+    }
+
+    [Fact]
     public void ExportValidateAndLoad_PreservesGovernedCreaturePresentation()
     {
         var source = TestProjectFactory.CreateValid();

@@ -801,8 +801,10 @@ G13 devient la file post-1.0 active. G13-A ajoute un keymap local canonique, des
 Standard/Aurora/Blender, la recherche de commandes, la détection de conflits et l’exécution réelle
 des actions Toolset. G13-B ajoute au blueprint une présentation canonique v1 : genre/corps/pronoms,
 portraits gouvernés, corps modulaire, couleurs, ailes/queue et voix. Le Studio dédié, le viewport,
-le runtime, la sérialisation et l’export `.orpmod` partagent ce contrat. G13-C poursuivra avec la
-progression data-driven des créatures.
+le runtime, la sérialisation et l’export `.orpmod` partagent ce contrat. G13-C ajoute un profil de
+progression data-driven : pistes multiclasses, niveaux/XP, dispositions libres, compétences,
+talents et pouvoirs appris/préparés. L’écran spécialisé, la commande, le runtime, ForgeScript,
+la sérialisation et le `.orpmod` partagent cette même source de vérité.
 
 ---
 
@@ -1830,8 +1832,9 @@ Le présent paquet contient uniquement :
 
 ## Prochaine action autorisée
 
-Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-C :
-`ORF-CRE-016`, `ORF-CRE-017`, `ORF-CRE-018`, `ORF-CRE-019` et `ORF-CRE-020`. Chaque tranche doit
+Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-D :
+`ORF-CRE-023`, `ORF-CRE-024` et `ORF-CRE-032`, regroupées autour du butin, du pickpocket et des
+cadavres/conteneurs de créature. Chaque tranche doit
 conserver les modules jouables, le runtime sans IA, les formats migrables et le gate intégré vert.
 
 

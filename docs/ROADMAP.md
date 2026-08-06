@@ -229,9 +229,9 @@ la création 3D gouvernée via Blender : recette canonique, opérations typées,
 collision, validation, miniature, audit et export GLB réel, sans Python libre. G12-K ajoute les
 fournisseurs texte/image-to-3D optionnels avec licence, staging et acceptation humaine ; G12-L ferme
 la politique canonique des workers externes. G12 est fermé. Le plan des 135 extensions post-1.0 est
-désormais `docs/aurora-parity/G13_DELIVERY_PLAN.md` ; G13-A livre le keymap configurable, et G13-B
-livre l’identité et la présentation visuelle des créatures dans le blueprint canonique. G13-C cible
-ensuite leur progression data-driven.
+désormais `docs/aurora-parity/G13_DELIVERY_PLAN.md` ; G13-A livre le keymap configurable, G13-B
+livre l’identité et la présentation visuelle des créatures, et G13-C livre leur progression
+data-driven dans le blueprint canonique. G13-D cible ensuite butin, pickpocket et cadavres.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;

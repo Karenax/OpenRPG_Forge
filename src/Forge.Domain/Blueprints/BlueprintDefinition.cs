@@ -23,6 +23,8 @@ public sealed record BlueprintDefinition
 
     public CreaturePresentationProfile? CreaturePresentation { get; }
 
+    public CreatureProgressionProfile? CreatureProgression { get; }
+
     public bool IsReadOnly() => PaletteOrigin == BlueprintPaletteOrigin.InstalledPack;
 
     public BlueprintDefinition(
@@ -34,7 +36,8 @@ public sealed record BlueprintDefinition
         BlueprintPaletteOrigin paletteOrigin = BlueprintPaletteOrigin.ProjectContent,
         bool isFavorite = false,
         BlueprintProvenance? provenance = null,
-        CreaturePresentationProfile? creaturePresentation = null)
+        CreaturePresentationProfile? creaturePresentation = null,
+        CreatureProgressionProfile? creatureProgression = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -56,5 +59,13 @@ public sealed record BlueprintDefinition
         }
 
         CreaturePresentation = creaturePresentation;
+        if (creatureProgression is not null && kind is not (BlueprintKind.Creature or BlueprintKind.PlayerSpawn))
+        {
+            throw new ArgumentException(
+                "Creature progression can only be assigned to creature or player-spawn blueprints.",
+                nameof(creatureProgression));
+        }
+
+        CreatureProgression = creatureProgression;
     }
 }

@@ -24,6 +24,7 @@ public static class ProjectValidator
     public const string ArtisticStyleIdentityCode = "art.style.id_mismatch";
     public const string CrossAreaPatrolReferenceCode = "runtime.experience.patrol_reference";
     public const string DuplicateCreaturePresentationCode = "creature.presentation.uuid_duplicate";
+    public const string DuplicateCreatureProgressionCode = "creature.progression.uuid_duplicate";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -34,6 +35,7 @@ public static class ProjectValidator
         var areaIds = project.Areas.Select(area => area.Id).ToHashSet();
         var portalIds = new HashSet<PortalId>();
         var presentationIds = new HashSet<Guid>();
+        var progressionIds = new HashSet<Guid>();
 
         diagnostics.AddRange(RuntimePolicyValidator.Validate(project.Module));
 
@@ -90,6 +92,24 @@ public static class ProjectValidator
                         DuplicateCreaturePresentationCode,
                         $"Creature presentation '{blueprint.CreaturePresentation.Id}' is assigned more than once.",
                         $"{presentationPath}/id"));
+                }
+            }
+
+            if (blueprint.CreatureProgression is not null)
+            {
+                var progressionPath = $"blueprints/{blueprint.Id}/creatureProgression";
+                var availableAbilities = (blueprint.Combat?.Abilities ?? [])
+                    .Select(item => item.Slug).ToHashSet(StringComparer.Ordinal);
+                diagnostics.AddRange(CreatureProgressionValidator.Validate(
+                    blueprint.CreatureProgression,
+                    progressionPath,
+                    availableAbilities).Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
+                if (!progressionIds.Add(blueprint.CreatureProgression.Id))
+                {
+                    diagnostics.Add(new DomainDiagnostic(
+                        DuplicateCreatureProgressionCode,
+                        $"Creature progression '{blueprint.CreatureProgression.Id}' is assigned more than once.",
+                        $"{progressionPath}/id"));
                 }
             }
         }

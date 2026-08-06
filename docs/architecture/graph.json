@@ -1090,7 +1090,7 @@
     },
     {
       "evidence": {
-        "line": 42,
+        "line": 43,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1099,7 +1099,7 @@
     },
     {
       "evidence": {
-        "line": 99,
+        "line": 101,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1108,7 +1108,7 @@
     },
     {
       "evidence": {
-        "line": 48,
+        "line": 49,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1117,7 +1117,7 @@
     },
     {
       "evidence": {
-        "line": 115,
+        "line": 117,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1297,7 +1297,7 @@
     },
     {
       "evidence": {
-        "line": 120,
+        "line": 122,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1306,7 +1306,7 @@
     },
     {
       "evidence": {
-        "line": 37,
+        "line": 38,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1315,7 +1315,7 @@
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 54,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1324,7 +1324,7 @@
     },
     {
       "evidence": {
-        "line": 167,
+        "line": 169,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1657,7 +1657,7 @@
     },
     {
       "evidence": {
-        "line": 7865,
+        "line": 7907,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1666,7 +1666,7 @@
     },
     {
       "evidence": {
-        "line": 7884,
+        "line": 7926,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1675,7 +1675,7 @@
     },
     {
       "evidence": {
-        "line": 7758,
+        "line": 7800,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1684,7 +1684,7 @@
     },
     {
       "evidence": {
-        "line": 9260,
+        "line": 9302,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1693,7 +1693,7 @@
     },
     {
       "evidence": {
-        "line": 9359,
+        "line": 9401,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1702,7 +1702,7 @@
     },
     {
       "evidence": {
-        "line": 6521,
+        "line": 6563,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1711,7 +1711,7 @@
     },
     {
       "evidence": {
-        "line": 9054,
+        "line": 9096,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1954,7 +1954,7 @@
     },
     {
       "evidence": {
-        "line": 1515,
+        "line": 1517,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1963,7 +1963,7 @@
     },
     {
       "evidence": {
-        "line": 1580,
+        "line": 1582,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1972,7 +1972,7 @@
     },
     {
       "evidence": {
-        "line": 1874,
+        "line": 1877,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1981,7 +1981,7 @@
     },
     {
       "evidence": {
-        "line": 1580,
+        "line": 1582,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1990,7 +1990,7 @@
     },
     {
       "evidence": {
-        "line": 1629,
+        "line": 1631,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2017,7 +2017,7 @@
     },
     {
       "evidence": {
-        "line": 1580,
+        "line": 1582,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2026,7 +2026,7 @@
     },
     {
       "evidence": {
-        "line": 1630,
+        "line": 1632,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2035,7 +2035,7 @@
     },
     {
       "evidence": {
-        "line": 1682,
+        "line": 1684,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2044,7 +2044,7 @@
     },
     {
       "evidence": {
-        "line": 1774,
+        "line": 1776,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2062,7 +2062,7 @@
     },
     {
       "evidence": {
-        "line": 1485,
+        "line": 1487,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2071,7 +2071,7 @@
     },
     {
       "evidence": {
-        "line": 1580,
+        "line": 1582,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2080,7 +2080,7 @@
     },
     {
       "evidence": {
-        "line": 1631,
+        "line": 1633,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2089,7 +2089,7 @@
     },
     {
       "evidence": {
-        "line": 1682,
+        "line": 1684,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2098,7 +2098,7 @@
     },
     {
       "evidence": {
-        "line": 1843,
+        "line": 1846,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2161,7 +2161,7 @@
     },
     {
       "evidence": {
-        "line": 1486,
+        "line": 1488,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2179,7 +2179,7 @@
     },
     {
       "evidence": {
-        "line": 1860,
+        "line": 1863,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2530,7 +2530,7 @@
     },
     {
       "evidence": {
-        "line": 199,
+        "line": 201,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2539,7 +2539,7 @@
     },
     {
       "evidence": {
-        "line": 268,
+        "line": 270,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2548,7 +2548,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 114,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -4353,6 +4353,42 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreaturePresentationWindow.cs",
+      "target": "namespace:Forge.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs",
       "target": "namespace:Forge.Domain.Creatures"
     },
     {
@@ -8651,6 +8687,96 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs",
+      "target": "namespace:Forge.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs",
+      "target": "namespace:Forge.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
       },
       "kind": "imports",
@@ -9502,6 +9628,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Creator/SetEditorKeymapHandler.cs",
       "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creatures/CreatureProgressionScriptService.cs",
+      "target": "namespace:Forge.Domain.Creatures"
     },
     {
       "evidence": {
@@ -19109,6 +19244,96 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "target": "namespace:Forge.Application.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "target": "namespace:Forge.Application.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Combat"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
       },
       "kind": "imports",
@@ -19762,6 +19987,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs",
+      "target": "namespace:Forge.Application.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs",
+      "target": "namespace:Forge.Domain.Creatures"
     },
     {
       "evidence": {
@@ -21714,6 +21957,15 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Domain.Tests/Creatures/CreaturePresentationProfileTests.cs",
+      "target": "namespace:Forge.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs",
       "target": "namespace:Forge.Domain.Creatures"
     },
     {
@@ -30079,7 +30331,7 @@
     },
     {
       "evidence": {
-        "line": 172,
+        "line": 173,
         "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
       },
       "kind": "uses_model",
@@ -30088,7 +30340,7 @@
     },
     {
       "evidence": {
-        "line": 167,
+        "line": 168,
         "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
       },
       "kind": "uses_model",
@@ -30097,7 +30349,7 @@
     },
     {
       "evidence": {
-        "line": 173,
+        "line": 174,
         "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
       },
       "kind": "uses_model",
@@ -30151,7 +30403,7 @@
     },
     {
       "evidence": {
-        "line": 147,
+        "line": 148,
         "path": "src/Forge.Application/Blueprints/ConfigureBlueprintPaletteHandler.cs"
       },
       "kind": "uses_model",
@@ -30412,7 +30664,7 @@
     },
     {
       "evidence": {
-        "line": 86,
+        "line": 87,
         "path": "src/Forge.Application/Blueprints/SetCreaturePresentationHandler.cs"
       },
       "kind": "uses_model",
@@ -30430,7 +30682,7 @@
     },
     {
       "evidence": {
-        "line": 87,
+        "line": 88,
         "path": "src/Forge.Application/Blueprints/SetCreaturePresentationHandler.cs"
       },
       "kind": "uses_model",
@@ -30493,11 +30745,119 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 71,
         "path": "src/Forge.Application/Blueprints/SetCreaturePresentationHandler.cs"
       },
       "kind": "uses_model",
       "source": "handler:Forge.Application.Blueprints.SetCreaturePresentationHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "file:src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "model:Forge.Application.Blueprints.SetCreatureProgressionCommand"
+    },
+    {
+      "evidence": {
+        "line": 92,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 53,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 93,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 73,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
       "target": "model:Forge.Domain.Projects.ProjectDefinition"
     },
     {
@@ -30520,7 +30880,7 @@
     },
     {
       "evidence": {
-        "line": 135,
+        "line": 136,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -30529,7 +30889,7 @@
     },
     {
       "evidence": {
-        "line": 130,
+        "line": 131,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -30538,7 +30898,7 @@
     },
     {
       "evidence": {
-        "line": 136,
+        "line": 137,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -30592,7 +30952,7 @@
     },
     {
       "evidence": {
-        "line": 108,
+        "line": 109,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintHandler.cs"
       },
       "kind": "uses_model",
@@ -31078,7 +31438,7 @@
     },
     {
       "evidence": {
-        "line": 231,
+        "line": 232,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -31087,7 +31447,7 @@
     },
     {
       "evidence": {
-        "line": 228,
+        "line": 229,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -31096,7 +31456,7 @@
     },
     {
       "evidence": {
-        "line": 232,
+        "line": 233,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -31168,7 +31528,7 @@
     },
     {
       "evidence": {
-        "line": 205,
+        "line": 206,
         "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
       },
       "kind": "uses_model",
@@ -35299,6 +35659,33 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Blueprints.SetCreatureProgressionCommand",
+      "target": "file:src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.SetCreatureProgressionCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Blueprints.SetCreatureProgressionCommand",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
       },
@@ -37663,6 +38050,15 @@
       "kind": "defined_in",
       "source": "model:Forge.Domain.Creatures.CreaturePresentationDiagnostic",
       "target": "file:src/Forge.Domain/Creatures/CreaturePresentationDiagnostic.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionDiagnostic.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Creatures.CreatureProgressionDiagnostic",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionDiagnostic.cs"
     },
     {
       "evidence": {
@@ -43867,7 +44263,7 @@
     },
     {
       "evidence": {
-        "line": 3582,
+        "line": 3607,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -45541,6 +45937,24 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Blueprints",
+      "target": "file:src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs"
       },
@@ -45988,6 +46402,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Creator",
       "target": "file:src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creatures",
+      "target": "file:src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
     },
     {
       "evidence": {
@@ -47080,6 +47503,15 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Blueprints",
+      "target": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
       },
@@ -47185,6 +47617,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Tests.Creator",
       "target": "file:tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Creatures",
+      "target": "file:tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
     },
     {
       "evidence": {
@@ -48733,6 +49174,42 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Creatures",
       "target": "file:src/Forge.Domain/Creatures/CreaturePresentationValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionDiagnostic.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Creatures",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionDiagnostic.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Creatures",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionRuntimeResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Creatures",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionRuntimeResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Creatures",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionValidator.cs"
     },
     {
       "evidence": {
@@ -50380,6 +50857,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Tests.Creatures",
       "target": "file:tests/Forge.Domain.Tests/Creatures/CreaturePresentationProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Creatures",
+      "target": "file:tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
     },
     {
       "evidence": {
@@ -54784,6 +55270,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
@@ -55879,6 +56374,15 @@
       "kind": "accesses_model",
       "source": "service:Forge.Application.Combat.AreaEffectPreviewService",
       "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.Application.Creatures.CreatureProgressionScriptService",
+      "target": "file:src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
     },
     {
       "evidence": {
@@ -64684,6 +65188,222 @@
     },
     {
       "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Application.Blueprints.SetCreatureProgressionCommand"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 72,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Domain.Combat.AbilityDefinition"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Domain.Combat.AbilityEffectKind"
+    },
+    {
+      "evidence": {
+        "line": 73,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Domain.Combat.AbilityId"
+    },
+    {
+      "evidence": {
+        "line": 67,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "type:Forge.Domain.Combat.AbilityEffect"
+    },
+    {
+      "evidence": {
+        "line": 76,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "type:Forge.Domain.Combat.AbilityTargeting"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "type:Forge.Domain.Combat.AbilityVisualCue"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "type:Forge.Domain.Combat.CombatProfile"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "type:Forge.Domain.Combat.CombatStats"
+    },
+    {
+      "evidence": {
+        "line": 87,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "type:Forge.Domain.Creatures.AbilityLoadoutMode"
+    },
+    {
+      "evidence": {
+        "line": 79,
+        "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "target": "type:Forge.Domain.Creatures.CreatureProgressionProfile"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs"
       },
@@ -66580,6 +67300,60 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Creator.SemanticClipboardWorkflowTests",
       "target": "validator:Forge.Application.Spatial.PlacementValidator"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Creatures.CreatureProgressionScriptServiceTests",
+      "target": "file:tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creatures.CreatureProgressionScriptServiceTests",
+      "target": "service:Forge.Application.Creatures.CreatureProgressionScriptService"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creatures.CreatureProgressionScriptServiceTests",
+      "target": "type:Forge.Application.Creatures.CreatureProgressionHandle"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creatures.CreatureProgressionScriptServiceTests",
+      "target": "type:Forge.Domain.Creatures.AbilityLoadoutMode"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creatures.CreatureProgressionScriptServiceTests",
+      "target": "type:Forge.Domain.Creatures.CreatureProgressionProfile"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creatures.CreatureProgressionScriptServiceTests",
+      "target": "type:Forge.LiveDirector.Chat.Message"
     },
     {
       "evidence": {
@@ -72862,6 +73636,51 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Creatures.CreaturePresentationProfileTests",
       "target": "validator:Forge.Domain.Creatures.CreaturePresentationValidator"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Creatures.CreatureProgressionProfileTests",
+      "target": "file:tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Creatures.CreatureProgressionProfileTests",
+      "target": "type:Forge.Domain.Creatures.AbilityLoadoutMode"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Creatures.CreatureProgressionProfileTests",
+      "target": "type:Forge.Domain.Creatures.CreatureProgressionProfile"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Creatures.CreatureProgressionProfileTests",
+      "target": "type:Forge.Domain.Creatures.CreatureProgressionRuntimeResolver"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Creatures.CreatureProgressionProfileTests",
+      "target": "validator:Forge.Domain.Creatures.CreatureProgressionValidator"
     },
     {
       "evidence": {
@@ -79867,7 +80686,7 @@
     },
     {
       "evidence": {
-        "line": 94,
+        "line": 129,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79876,7 +80695,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 133,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79885,7 +80704,7 @@
     },
     {
       "evidence": {
-        "line": 37,
+        "line": 38,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79894,7 +80713,16 @@
     },
     {
       "evidence": {
-        "line": 329,
+        "line": 55,
+        "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Packages.ModulePackageTests",
+      "target": "model:Forge.Domain.Combat.AbilityId"
+    },
+    {
+      "evidence": {
+        "line": 364,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79903,7 +80731,7 @@
     },
     {
       "evidence": {
-        "line": 222,
+        "line": 257,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79912,7 +80740,7 @@
     },
     {
       "evidence": {
-        "line": 317,
+        "line": 352,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79921,7 +80749,7 @@
     },
     {
       "evidence": {
-        "line": 39,
+        "line": 41,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79930,7 +80758,7 @@
     },
     {
       "evidence": {
-        "line": 369,
+        "line": 404,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79939,7 +80767,7 @@
     },
     {
       "evidence": {
-        "line": 112,
+        "line": 147,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79948,7 +80776,7 @@
     },
     {
       "evidence": {
-        "line": 106,
+        "line": 141,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79957,7 +80785,7 @@
     },
     {
       "evidence": {
-        "line": 117,
+        "line": 152,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79966,7 +80794,7 @@
     },
     {
       "evidence": {
-        "line": 104,
+        "line": 139,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79975,7 +80803,7 @@
     },
     {
       "evidence": {
-        "line": 96,
+        "line": 131,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79984,7 +80812,7 @@
     },
     {
       "evidence": {
-        "line": 103,
+        "line": 138,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -79993,7 +80821,7 @@
     },
     {
       "evidence": {
-        "line": 306,
+        "line": 341,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80002,7 +80830,16 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 35,
+        "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Packages.ModulePackageTests",
+      "target": "type:Forge.Domain.Creatures.AbilityLoadoutMode"
+    },
+    {
+      "evidence": {
+        "line": 65,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80011,7 +80848,16 @@
     },
     {
       "evidence": {
-        "line": 313,
+        "line": 28,
+        "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Packages.ModulePackageTests",
+      "target": "type:Forge.Domain.Creatures.CreatureProgressionProfile"
+    },
+    {
+      "evidence": {
+        "line": 348,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80020,7 +80866,7 @@
     },
     {
       "evidence": {
-        "line": 287,
+        "line": 322,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80029,7 +80875,7 @@
     },
     {
       "evidence": {
-        "line": 316,
+        "line": 351,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80038,7 +80884,7 @@
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 78,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80047,7 +80893,7 @@
     },
     {
       "evidence": {
-        "line": 286,
+        "line": 321,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80056,7 +80902,7 @@
     },
     {
       "evidence": {
-        "line": 237,
+        "line": 272,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80065,7 +80911,7 @@
     },
     {
       "evidence": {
-        "line": 160,
+        "line": 195,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80074,7 +80920,7 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 49,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80083,7 +80929,7 @@
     },
     {
       "evidence": {
-        "line": 49,
+        "line": 47,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80092,7 +80938,7 @@
     },
     {
       "evidence": {
-        "line": 118,
+        "line": 153,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80101,7 +80947,7 @@
     },
     {
       "evidence": {
-        "line": 42,
+        "line": 44,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80110,7 +80956,7 @@
     },
     {
       "evidence": {
-        "line": 224,
+        "line": 259,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -80119,7 +80965,7 @@
     },
     {
       "evidence": {
-        "line": 50,
+        "line": 48,
         "path": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs"
       },
       "kind": "tests",
@@ -81253,7 +82099,7 @@
     },
     {
       "evidence": {
-        "line": 603,
+        "line": 650,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81262,7 +82108,7 @@
     },
     {
       "evidence": {
-        "line": 604,
+        "line": 651,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81271,7 +82117,7 @@
     },
     {
       "evidence": {
-        "line": 431,
+        "line": 478,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81280,7 +82126,7 @@
     },
     {
       "evidence": {
-        "line": 340,
+        "line": 387,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81298,7 +82144,7 @@
     },
     {
       "evidence": {
-        "line": 356,
+        "line": 403,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81307,7 +82153,16 @@
     },
     {
       "evidence": {
-        "line": 290,
+        "line": 104,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "model:Forge.Domain.Combat.AbilityId"
+    },
+    {
+      "evidence": {
+        "line": 337,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81316,7 +82171,7 @@
     },
     {
       "evidence": {
-        "line": 281,
+        "line": 328,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81325,7 +82180,7 @@
     },
     {
       "evidence": {
-        "line": 282,
+        "line": 329,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81334,7 +82189,7 @@
     },
     {
       "evidence": {
-        "line": 283,
+        "line": 330,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81343,7 +82198,7 @@
     },
     {
       "evidence": {
-        "line": 284,
+        "line": 331,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81352,7 +82207,7 @@
     },
     {
       "evidence": {
-        "line": 285,
+        "line": 332,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81361,7 +82216,7 @@
     },
     {
       "evidence": {
-        "line": 277,
+        "line": 324,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81370,7 +82225,7 @@
     },
     {
       "evidence": {
-        "line": 278,
+        "line": 325,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81379,7 +82234,7 @@
     },
     {
       "evidence": {
-        "line": 608,
+        "line": 655,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81388,7 +82243,7 @@
     },
     {
       "evidence": {
-        "line": 607,
+        "line": 654,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81397,7 +82252,7 @@
     },
     {
       "evidence": {
-        "line": 111,
+        "line": 158,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81406,7 +82261,7 @@
     },
     {
       "evidence": {
-        "line": 186,
+        "line": 233,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81415,7 +82270,7 @@
     },
     {
       "evidence": {
-        "line": 90,
+        "line": 137,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81424,7 +82279,7 @@
     },
     {
       "evidence": {
-        "line": 103,
+        "line": 150,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81433,7 +82288,7 @@
     },
     {
       "evidence": {
-        "line": 104,
+        "line": 151,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81442,7 +82297,7 @@
     },
     {
       "evidence": {
-        "line": 106,
+        "line": 153,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81451,7 +82306,7 @@
     },
     {
       "evidence": {
-        "line": 177,
+        "line": 224,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81469,7 +82324,7 @@
     },
     {
       "evidence": {
-        "line": 612,
+        "line": 659,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81478,7 +82333,7 @@
     },
     {
       "evidence": {
-        "line": 610,
+        "line": 657,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81487,7 +82342,7 @@
     },
     {
       "evidence": {
-        "line": 387,
+        "line": 434,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81496,7 +82351,7 @@
     },
     {
       "evidence": {
-        "line": 388,
+        "line": 435,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81505,7 +82360,7 @@
     },
     {
       "evidence": {
-        "line": 391,
+        "line": 438,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81514,7 +82369,7 @@
     },
     {
       "evidence": {
-        "line": 414,
+        "line": 461,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81523,7 +82378,7 @@
     },
     {
       "evidence": {
-        "line": 413,
+        "line": 460,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81532,7 +82387,7 @@
     },
     {
       "evidence": {
-        "line": 336,
+        "line": 383,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81541,7 +82396,7 @@
     },
     {
       "evidence": {
-        "line": 338,
+        "line": 385,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81550,7 +82405,7 @@
     },
     {
       "evidence": {
-        "line": 339,
+        "line": 386,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81559,7 +82414,7 @@
     },
     {
       "evidence": {
-        "line": 485,
+        "line": 532,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81568,7 +82423,7 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 118,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81577,7 +82432,7 @@
     },
     {
       "evidence": {
-        "line": 291,
+        "line": 338,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81586,7 +82441,7 @@
     },
     {
       "evidence": {
-        "line": 291,
+        "line": 338,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81595,7 +82450,7 @@
     },
     {
       "evidence": {
-        "line": 293,
+        "line": 340,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81604,12 +82459,21 @@
     },
     {
       "evidence": {
-        "line": 289,
+        "line": 336,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
       "target": "type:Forge.Domain.Content.ContentWorkspaceConfiguration"
+    },
+    {
+      "evidence": {
+        "line": 87,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "type:Forge.Domain.Creatures.AbilityLoadoutMode"
     },
     {
       "evidence": {
@@ -81622,7 +82486,16 @@
     },
     {
       "evidence": {
-        "line": 79,
+        "line": 80,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.ProjectJsonSerializerTests",
+      "target": "type:Forge.Domain.Creatures.CreatureProgressionProfile"
+    },
+    {
+      "evidence": {
+        "line": 126,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81631,7 +82504,7 @@
     },
     {
       "evidence": {
-        "line": 193,
+        "line": 240,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81640,7 +82513,7 @@
     },
     {
       "evidence": {
-        "line": 196,
+        "line": 243,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81649,7 +82522,7 @@
     },
     {
       "evidence": {
-        "line": 191,
+        "line": 238,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81658,7 +82531,7 @@
     },
     {
       "evidence": {
-        "line": 190,
+        "line": 237,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81667,7 +82540,7 @@
     },
     {
       "evidence": {
-        "line": 188,
+        "line": 235,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81676,7 +82549,7 @@
     },
     {
       "evidence": {
-        "line": 192,
+        "line": 239,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81685,7 +82558,7 @@
     },
     {
       "evidence": {
-        "line": 192,
+        "line": 239,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81694,7 +82567,7 @@
     },
     {
       "evidence": {
-        "line": 93,
+        "line": 140,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81703,7 +82576,7 @@
     },
     {
       "evidence": {
-        "line": 89,
+        "line": 136,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81712,7 +82585,7 @@
     },
     {
       "evidence": {
-        "line": 107,
+        "line": 154,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81721,7 +82594,7 @@
     },
     {
       "evidence": {
-        "line": 176,
+        "line": 223,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81730,7 +82603,7 @@
     },
     {
       "evidence": {
-        "line": 132,
+        "line": 179,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -81739,7 +82612,7 @@
     },
     {
       "evidence": {
-        "line": 617,
+        "line": 664,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs"
       },
       "kind": "tests",
@@ -90235,6 +91108,24 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creatures.CreatureProgressionHandle",
+      "target": "file:src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creatures.CreatureProgressionScriptSnapshot",
+      "target": "file:src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
+    },
+    {
+      "evidence": {
         "line": 15,
         "path": "src/Forge.Application/Entities/RuntimeEntityCopyService.cs"
       },
@@ -92260,6 +93151,24 @@
     },
     {
       "evidence": {
+        "line": 196,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.AbilityLoadout",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.AbilityLoadoutMode",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "evidence": {
         "line": 142,
         "path": "src/Forge.Domain/Creatures/CreaturePresentationProfile.cs"
       },
@@ -92296,6 +93205,42 @@
     },
     {
       "evidence": {
+        "line": 13,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.CreatureProgressionProfile",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionRuntimeResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.CreatureProgressionRuntimeResolver",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionRuntimeResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionRuntimeResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.CreatureProgressionRuntimeSnapshot",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionRuntimeResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 110,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.DispositionAxis",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "evidence": {
         "line": 140,
         "path": "src/Forge.Domain/Creatures/CreaturePresentationProfile.cs"
       },
@@ -92314,6 +93259,24 @@
     },
     {
       "evidence": {
+        "line": 176,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.PreparedAbility",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 93,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.ProgressionTrack",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "evidence": {
         "line": 114,
         "path": "src/Forge.Domain/Creatures/CreaturePresentationProfile.cs"
       },
@@ -92329,6 +93292,33 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Creatures.Resolution",
       "target": "file:src/Forge.Domain/Creatures/CreaturePresentationRuntimeResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 124,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.SkillProgression",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 143,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.TalentPrerequisite",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 152,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Creatures.TalentProgression",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
     },
     {
       "evidence": {
@@ -99676,7 +100666,7 @@
     },
     {
       "evidence": {
-        "line": 1345,
+        "line": 1370,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99685,7 +100675,7 @@
     },
     {
       "evidence": {
-        "line": 1462,
+        "line": 1487,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99694,7 +100684,7 @@
     },
     {
       "evidence": {
-        "line": 1600,
+        "line": 1625,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99703,7 +100693,7 @@
     },
     {
       "evidence": {
-        "line": 1587,
+        "line": 1612,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99721,7 +100711,7 @@
     },
     {
       "evidence": {
-        "line": 1549,
+        "line": 1574,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99730,7 +100720,7 @@
     },
     {
       "evidence": {
-        "line": 1532,
+        "line": 1557,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99739,7 +100729,7 @@
     },
     {
       "evidence": {
-        "line": 1639,
+        "line": 1664,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99748,7 +100738,7 @@
     },
     {
       "evidence": {
-        "line": 1686,
+        "line": 1711,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99757,7 +100747,7 @@
     },
     {
       "evidence": {
-        "line": 1668,
+        "line": 1693,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99766,7 +100756,7 @@
     },
     {
       "evidence": {
-        "line": 1656,
+        "line": 1681,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99775,7 +100765,7 @@
     },
     {
       "evidence": {
-        "line": 1612,
+        "line": 1637,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -99811,7 +100801,7 @@
     },
     {
       "evidence": {
-        "line": 3511,
+        "line": 3536,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -99838,7 +100828,7 @@
     },
     {
       "evidence": {
-        "line": 3550,
+        "line": 3575,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -100603,6 +101593,15 @@
     },
     {
       "evidence": {
+        "line": 11,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.CreatureProgressionWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs"
       },
@@ -100729,7 +101728,7 @@
     },
     {
       "evidence": {
-        "line": 10133,
+        "line": 10282,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -100846,7 +101845,7 @@
     },
     {
       "evidence": {
-        "line": 10138,
+        "line": 10287,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -100855,7 +101854,7 @@
     },
     {
       "evidence": {
-        "line": 10143,
+        "line": 10292,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -101395,6 +102394,33 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionValidator.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Creatures.CreatureProgressionValidator",
+      "target": "file:src/Forge.Domain/Creatures/CreatureProgressionValidator.cs"
+    },
+    {
+      "evidence": {
+        "line": 135,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Creatures.CreatureProgressionValidator",
+      "target": "model:Forge.Domain.Combat.AbilityId"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Domain/Creatures/CreatureProgressionValidator.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Creatures.CreatureProgressionValidator",
+      "target": "model:Forge.Domain.Creatures.CreatureProgressionDiagnostic"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Domain/Dialogues/DialogueValidator.cs"
       },
@@ -101827,7 +102853,7 @@
     },
     {
       "evidence": {
-        "line": 35,
+        "line": 36,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -101836,7 +102862,7 @@
     },
     {
       "evidence": {
-        "line": 113,
+        "line": 133,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -101845,7 +102871,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 29,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -101854,7 +102880,7 @@
     },
     {
       "evidence": {
-        "line": 28,
+        "line": 29,
         "path": "src/Forge.Domain/Validation/ProjectValidator.cs"
       },
       "kind": "validates",
@@ -102088,8 +103114,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:422c44f272585981c373b336ce1eec49ead29ed06ecb3dd5a55034ed2a8fc553",
-    "source_file_count": 1769
+    "source_digest": "sha256:2b466652741d4ba8dd45cda4b6982cd66b58775189bfb1edbb37ebab9068be03",
+    "source_file_count": 1781
   },
   "nodes": [
     {
@@ -105203,6 +106229,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/CreaturePresentationWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureProgressionWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/DialogueEditorWindow.cs",
       "kind": "file",
       "line": 1,
@@ -106881,6 +107917,16 @@
       },
       "name": "G13-B-CREATURE-PRESENTATION.md",
       "path": "docs/aurora-parity/tasks/G13-B-CREATURE-PRESENTATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G13-C-CREATURE-PROGRESSION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G13-C-CREATURE-PROGRESSION.md",
+      "path": "docs/aurora-parity/tasks/G13-C-CREATURE-PROGRESSION.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -109203,6 +110249,26 @@
       "path": "src/Forge.Application/Blueprints/SetCreaturePresentationHandler.cs"
     },
     {
+      "id": "file:src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetCreatureProgressionCommand.cs",
+      "path": "src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetCreatureProgressionHandler.cs",
+      "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Blueprints/UpsertBlueprintCommand.cs",
       "kind": "file",
       "line": 1,
@@ -109701,6 +110767,16 @@
       },
       "name": "SetEditorKeymapHandler.cs",
       "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creatures/CreatureProgressionScriptService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureProgressionScriptService.cs",
+      "path": "src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
     },
     {
       "id": "file:src/Forge.Application/Dialogues/SetDialogueCommand.cs",
@@ -111931,6 +113007,46 @@
       },
       "name": "CreaturePresentationValidator.cs",
       "path": "src/Forge.Domain/Creatures/CreaturePresentationValidator.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Creatures/CreatureProgressionDiagnostic.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureProgressionDiagnostic.cs",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionDiagnostic.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Creatures/CreatureProgressionProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureProgressionProfile.cs",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Creatures/CreatureProgressionRuntimeResolver.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureProgressionRuntimeResolver.cs",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionRuntimeResolver.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Creatures/CreatureProgressionValidator.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureProgressionValidator.cs",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionValidator.cs"
     },
     {
       "id": "file:src/Forge.Domain/Dialogues/DialogueAction.cs",
@@ -117093,6 +118209,16 @@
       "path": "tests/Forge.Application.Tests/Blueprints/SetCreaturePresentationHandlerTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetCreatureProgressionHandlerTests.cs",
+      "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Commands/ProjectCommandHistoryTests.cs",
       "kind": "file",
       "line": 1,
@@ -117211,6 +118337,16 @@
       },
       "name": "SemanticClipboardWorkflowTests.cs",
       "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureProgressionScriptServiceTests.cs",
+      "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.Application.Tests/Dialogues/SetDialogueHandlerTests.cs",
@@ -117831,6 +118967,16 @@
       },
       "name": "CreaturePresentationProfileTests.cs",
       "path": "tests/Forge.Domain.Tests/Creatures/CreaturePresentationProfileTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CreatureProgressionProfileTests.cs",
+      "path": "tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Dialogues/DialogueTestFactory.cs",
@@ -122413,6 +123559,16 @@
       "path": "src/Forge.Application/Blueprints/SetCreaturePresentationHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Blueprints.SetCreatureProgressionHandler",
+      "kind": "handler",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "SetCreatureProgressionHandler",
+      "path": "src/Forge.Application/Blueprints/SetCreatureProgressionHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Blueprints.UpsertBlueprintHandler",
       "kind": "handler",
       "line": 9,
@@ -123361,6 +124517,16 @@
       },
       "name": "SetCreaturePresentationCommand",
       "path": "src/Forge.Application/Blueprints/SetCreaturePresentationCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Blueprints.SetCreatureProgressionCommand",
+      "kind": "model",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Blueprints"
+      },
+      "name": "SetCreatureProgressionCommand",
+      "path": "src/Forge.Application/Blueprints/SetCreatureProgressionCommand.cs"
     },
     {
       "id": "model:Forge.Application.Blueprints.UpsertBlueprintCommand",
@@ -124631,6 +125797,16 @@
       },
       "name": "CreaturePresentationDiagnostic",
       "path": "src/Forge.Domain/Creatures/CreaturePresentationDiagnostic.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Creatures.CreatureProgressionDiagnostic",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "CreatureProgressionDiagnostic",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionDiagnostic.cs"
     },
     {
       "id": "model:Forge.Domain.Dialogues.DialogueActionKind",
@@ -128485,7 +129661,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 3582,
+      "line": 3607,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -128831,6 +130007,11 @@
       "name": "Forge.Application.Creator"
     },
     {
+      "id": "namespace:Forge.Application.Creatures",
+      "kind": "namespace",
+      "name": "Forge.Application.Creatures"
+    },
+    {
       "id": "namespace:Forge.Application.Dialogues",
       "kind": "namespace",
       "name": "Forge.Application.Dialogues"
@@ -128929,6 +130110,11 @@
       "id": "namespace:Forge.Application.Tests.Creator",
       "kind": "namespace",
       "name": "Forge.Application.Tests.Creator"
+    },
+    {
+      "id": "namespace:Forge.Application.Tests.Creatures",
+      "kind": "namespace",
+      "name": "Forge.Application.Tests.Creatures"
     },
     {
       "id": "namespace:Forge.Application.Tests.Dialogues",
@@ -130114,6 +131300,16 @@
       },
       "name": "AreaEffectPreviewService",
       "path": "src/Forge.Application/Combat/AreaEffectPreviewService.cs"
+    },
+    {
+      "id": "service:Forge.Application.Creatures.CreatureProgressionScriptService",
+      "kind": "service",
+      "line": 21,
+      "metadata": {
+        "namespace": "Forge.Application.Creatures"
+      },
+      "name": "CreatureProgressionScriptService",
+      "path": "src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
     },
     {
       "id": "service:Forge.Application.Entities.RuntimeEntityCopyService",
@@ -131606,6 +132802,16 @@
       "path": "tests/Forge.Application.Tests/Blueprints/SetCreaturePresentationHandlerTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Blueprints.SetCreatureProgressionHandlerTests",
+      "kind": "test",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Blueprints"
+      },
+      "name": "SetCreatureProgressionHandlerTests",
+      "path": "tests/Forge.Application.Tests/Blueprints/SetCreatureProgressionHandlerTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Commands.ProjectCommandHistoryTests",
       "kind": "test",
       "line": 7,
@@ -131744,6 +132950,16 @@
       },
       "name": "SemanticClipboardWorkflowTests",
       "path": "tests/Forge.Application.Tests/Creator/SemanticClipboardWorkflowTests.cs"
+    },
+    {
+      "id": "test:Forge.Application.Tests.Creatures.CreatureProgressionScriptServiceTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Creatures"
+      },
+      "name": "CreatureProgressionScriptServiceTests",
+      "path": "tests/Forge.Application.Tests/Creatures/CreatureProgressionScriptServiceTests.cs"
     },
     {
       "id": "test:Forge.Application.Tests.Dialogues.SetDialogueHandlerTests",
@@ -132354,6 +133570,16 @@
       },
       "name": "CreaturePresentationProfileTests",
       "path": "tests/Forge.Domain.Tests/Creatures/CreaturePresentationProfileTests.cs"
+    },
+    {
+      "id": "test:Forge.Domain.Tests.Creatures.CreatureProgressionProfileTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Creatures"
+      },
+      "name": "CreatureProgressionProfileTests",
+      "path": "tests/Forge.Domain.Tests/Creatures/CreatureProgressionProfileTests.cs"
     },
     {
       "id": "test:Forge.Domain.Tests.Dialogues.DialogueTestFactory",
@@ -135413,6 +136639,26 @@
       "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
     },
     {
+      "id": "type:Forge.Application.Creatures.CreatureProgressionHandle",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Creatures"
+      },
+      "name": "CreatureProgressionHandle",
+      "path": "src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creatures.CreatureProgressionScriptSnapshot",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Creatures"
+      },
+      "name": "CreatureProgressionScriptSnapshot",
+      "path": "src/Forge.Application/Creatures/CreatureProgressionScriptService.cs"
+    },
+    {
       "id": "type:Forge.Application.Entities.RuntimeEntityCopyRequest",
       "kind": "type",
       "line": 15,
@@ -137653,6 +138899,26 @@
       "path": "src/Forge.Domain/Content/DataTableThreeWayMerger.cs"
     },
     {
+      "id": "type:Forge.Domain.Creatures.AbilityLoadout",
+      "kind": "type",
+      "line": 196,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "AbilityLoadout",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Creatures.AbilityLoadoutMode",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "AbilityLoadoutMode",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
       "id": "type:Forge.Domain.Creatures.Attachment",
       "kind": "type",
       "line": 142,
@@ -137693,6 +138959,46 @@
       "path": "src/Forge.Domain/Creatures/CreaturePresentationRuntimeResolver.cs"
     },
     {
+      "id": "type:Forge.Domain.Creatures.CreatureProgressionProfile",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "CreatureProgressionProfile",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Creatures.CreatureProgressionRuntimeResolver",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "CreatureProgressionRuntimeResolver",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionRuntimeResolver.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Creatures.CreatureProgressionRuntimeSnapshot",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "CreatureProgressionRuntimeSnapshot",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionRuntimeResolver.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Creatures.DispositionAxis",
+      "kind": "type",
+      "line": 110,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "DispositionAxis",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
       "id": "type:Forge.Domain.Creatures.MaterialColor",
       "kind": "type",
       "line": 140,
@@ -137713,6 +139019,26 @@
       "path": "src/Forge.Domain/Creatures/CreaturePresentationProfile.cs"
     },
     {
+      "id": "type:Forge.Domain.Creatures.PreparedAbility",
+      "kind": "type",
+      "line": 176,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "PreparedAbility",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Creatures.ProgressionTrack",
+      "kind": "type",
+      "line": 93,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "ProgressionTrack",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
       "id": "type:Forge.Domain.Creatures.PronounSet",
       "kind": "type",
       "line": 114,
@@ -137731,6 +139057,36 @@
       },
       "name": "Resolution",
       "path": "src/Forge.Domain/Creatures/CreaturePresentationRuntimeResolver.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Creatures.SkillProgression",
+      "kind": "type",
+      "line": 124,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "SkillProgression",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Creatures.TalentPrerequisite",
+      "kind": "type",
+      "line": 143,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "TalentPrerequisite",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Creatures.TalentProgression",
+      "kind": "type",
+      "line": 152,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "TalentProgression",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Creatures.VoiceProfile",
@@ -145715,7 +147071,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeAreaChunkLoader",
       "kind": "type",
-      "line": 3511,
+      "line": 3536,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -145745,7 +147101,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 3550,
+      "line": 3575,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -146473,6 +147829,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/CreaturePresentationWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.CreatureProgressionWindow",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "CreatureProgressionWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/CreatureProgressionWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.DialogueEditorWindow",
       "kind": "type",
       "line": 9,
@@ -146605,7 +147971,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 10133,
+      "line": 10282,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -146695,7 +148061,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 10138,
+      "line": 10287,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -146705,7 +148071,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 10143,
+      "line": 10292,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -146931,6 +148297,16 @@
       },
       "name": "CreaturePresentationValidator",
       "path": "src/Forge.Domain/Creatures/CreaturePresentationValidator.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Creatures.CreatureProgressionValidator",
+      "kind": "validator",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Creatures"
+      },
+      "name": "CreatureProgressionValidator",
+      "path": "src/Forge.Domain/Creatures/CreatureProgressionValidator.cs"
     },
     {
       "id": "validator:Forge.Domain.Dialogues.DialogueValidator",

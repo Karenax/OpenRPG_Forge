@@ -66,7 +66,8 @@ public sealed class SetCreaturePresentationHandler
             return new CommandResult(true, state, command.BaseRevision, null, [], patch, inverse, CreateAudit(command, false));
 
         var updated = new BlueprintDefinition(existing.Id, existing.Slug, existing.DisplayName, existing.Kind,
-            existing.Combat, existing.PaletteOrigin, existing.IsFavorite, existing.Provenance, command.Presentation);
+            existing.Combat, existing.PaletteOrigin, existing.IsFavorite, existing.Provenance, command.Presentation,
+            existing.CreatureProgression);
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title, state.Project.Module,
             state.Project.Blueprints.Select(item => item.Id == updated.Id ? updated : item).ToArray(),
             state.Project.Areas, state.Project.Dialogues, state.Project.Quests);

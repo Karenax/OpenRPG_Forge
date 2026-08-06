@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.17.0",
+  "formatVersion": "1.18.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -1239,7 +1239,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000002",
@@ -1258,7 +1259,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000003",
@@ -1277,7 +1279,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000004",
@@ -1307,7 +1310,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000005",
@@ -1361,7 +1365,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000006",
@@ -1415,7 +1420,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000007",
@@ -1463,7 +1469,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000008",
@@ -1482,7 +1489,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000009",
@@ -1501,7 +1509,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000010",
@@ -1520,7 +1529,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       }
     ],
     "areas": [

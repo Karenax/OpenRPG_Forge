@@ -127,6 +127,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetExternalWorkerSecurityPolicyHandler _externalWorkerSecurityHandler = new(new SystemClock());
     private readonly SetEditorKeymapHandler _editorKeymapHandler = new(new SystemClock());
     private readonly SetCreaturePresentationHandler _creaturePresentationHandler = new(new SystemClock());
+    private readonly SetCreatureProgressionHandler _creatureProgressionHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -230,6 +231,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private ExternalWorkerSecurityWindow? _externalWorkerSecurityWindow;
     private EditorKeymapWindow? _editorKeymapWindow;
     private CreaturePresentationWindow? _creaturePresentationWindow;
+    private CreatureProgressionWindow? _creatureProgressionWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -459,6 +461,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_creaturePresentationWindow);
+        _creatureProgressionWindow = new CreatureProgressionWindow();
+        _creatureProgressionWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyCreatureProgression,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_creatureProgressionWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -556,6 +566,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             OpenDialogueEditor,
             () => _buildPipeline?.Open(),
             () => _creaturePresentationWindow?.Open(),
+            () => _creatureProgressionWindow?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rpgKitAuthoringWindow);
         _networkBetaWindow = new NetworkBetaWindow();
@@ -2238,6 +2249,32 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             ApplyCommand(result, "Présentation de créature enregistrée dans le projet.", null);
             _creaturePresentationWindow?.Refresh();
+        }
+
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyCreatureProgression(
+        BlueprintId blueprintId,
+        CreatureProgressionProfile progression,
+        bool dryRun)
+    {
+        if (_history is null)
+        {
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        }
+
+        var command = new SetCreatureProgressionCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            blueprintId,
+            progression,
+            dryRun);
+        var result = _creatureProgressionHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Progression de créature enregistrée dans le projet.", null);
+            _creatureProgressionWindow?.Refresh();
         }
 
         return result;
@@ -5306,6 +5343,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunCreaturePresentationSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunCreatureProgressionSmokeTest())
         {
             return;
         }
@@ -9673,6 +9715,113 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 RefreshEditorControls();
             }
             if (File.Exists(portraitPath)) File.Delete(portraitPath);
+        }
+    }
+
+    private bool RunCreatureProgressionSmokeTest()
+    {
+        if (_history is null || _creatureProgressionWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_FAILED missing_workspace");
+            return false;
+        }
+
+        var applied = false;
+        try
+        {
+            _creatureProgressionWindow.Open();
+            var visible = _creatureProgressionWindow.Visible;
+            _creatureProgressionWindow.Hide();
+            if (!visible || !_creatureProgressionWindow.ConfigureForSmokeTest())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_FAILED configure_ui");
+                return false;
+            }
+
+            var blueprintId = _creatureProgressionWindow.SelectedBlueprintId;
+            if (blueprintId is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_FAILED selection");
+                return false;
+            }
+            var originalProgression = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId).CreatureProgression;
+            if (!_creatureProgressionWindow.PreviewForSmokeTest() ||
+                _creatureProgressionWindow.LastCommandId == Guid.Empty ||
+                !_creatureProgressionWindow.LastPatchSummary.Contains("progression", StringComparison.OrdinalIgnoreCase) ||
+                !_creatureProgressionWindow.ApplyForSmokeTest())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_FAILED preview_apply_ui");
+                return false;
+            }
+
+            applied = true;
+            var blueprint = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId);
+            var profile = blueprint.CreatureProgression;
+            var availableAbilities = (blueprint.Combat?.Abilities ?? []).Select(item => item.Slug)
+                .ToHashSet(StringComparer.Ordinal);
+            var runtime = CreatureProgressionRuntimeResolver.Resolve(profile, availableAbilities, required: true);
+            var serialized = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(serialized);
+            if (profile is null || profile.Id == Guid.Empty || profile.SchemaVersion != 1 ||
+                profile.RulesetId != "forge.generic" || !profile.AllowMultipleTracks || !profile.RequiredAtRuntime ||
+                profile.Tracks.Count != 2 || profile.Tracks.Sum(item => item.Level) != 5 ||
+                profile.DispositionAxes.Count != 2 || profile.Skills.Count != 2 ||
+                profile.Skills.Single(item => item.SkillId == "lore").Expertise is not true ||
+                profile.Talents.Count != 1 || profile.Talents[0].Prerequisites.Count != 2 ||
+                profile.Loadout.Mode != AbilityLoadoutMode.Prepared || profile.Loadout.PreparedAbilities.Count != 1 ||
+                profile.Overrides.GetValueOrDefault("xp-rate") != "1.0" ||
+                !runtime.Succeeded || runtime.TotalLevel != 5 || runtime.PreparedAbilityIds.Count != 1 ||
+                CreatureProgressionValidator.Validate(profile, availableAbilityIds: availableAbilities).Count != 0 ||
+                _creatureProgressionWindow.SummarySectionCount != 5 ||
+                ProjectJsonSerializer.Serialize(restored) != serialized ||
+                restored.Blueprints.Single(item => item.Id == blueprint.Id).CreatureProgression?.Id != profile.Id)
+            {
+                GD.PrintErr(
+                    "OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_FAILED canonical_roundtrip_runtime_summary " +
+                    $"profile={profile is not null} tracks={profile?.Tracks.Count ?? -1} level={profile?.Tracks.Sum(item => item.Level) ?? -1} " +
+                    $"axes={profile?.DispositionAxes.Count ?? -1} skills={profile?.Skills.Count ?? -1} " +
+                    $"talents={profile?.Talents.Count ?? -1} prepared={profile?.Loadout.PreparedAbilities.Count ?? -1} " +
+                    $"runtime={runtime.Succeeded}/{runtime.TotalLevel} validation={CreatureProgressionValidator.Validate(profile!, availableAbilityIds: availableAbilities).Count} " +
+                    $"summary={_creatureProgressionWindow.SummarySectionCount} roundtrip={ProjectJsonSerializer.Serialize(restored) == serialized} " +
+                    $"restored={restored.Blueprints.Single(item => item.Id == blueprint.Id).CreatureProgression?.Id == profile?.Id}");
+                return false;
+            }
+
+            Undo();
+            if (_history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id).CreatureProgression?.Id !=
+                originalProgression?.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_FAILED undo");
+                return false;
+            }
+            applied = false;
+            Redo();
+            applied = true;
+            if (_history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id).CreatureProgression?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_FAILED redo");
+                return false;
+            }
+            Undo();
+            applied = false;
+
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_PASS tracks=multiclass-levels disposition=project-axes " +
+                "skills=rank-training-expertise-checks talents=prerequisites-ranks-passive-hooks " +
+                "loadout=learned-prepared-deck-cooldown-charges-resource-modifiers ruleset=data-driven " +
+                "ui=visible-empty-error-summary uuid=stable schema=v1 provenance=tracked transaction=identified " +
+                "dry-run=previewed audit=generated history=restored persistence=project-roundtrip runtime=optional-safe");
+            return true;
+        }
+        finally
+        {
+            _creatureProgressionWindow.Hide();
+            if (applied)
+            {
+                _history.Undo();
+                RebuildPreview();
+                RefreshEditorControls();
+            }
         }
     }
 

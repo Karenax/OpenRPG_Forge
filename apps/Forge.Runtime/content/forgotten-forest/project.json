@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.17.0",
+  "formatVersion": "1.18.0",
   "project": {
     "id": "85d0cc1d-acd4-7b55-90f2-a7c4e9ff6112",
     "title": "Forgotten Forest",
@@ -1003,7 +1003,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "b195a7f4-3cd2-b450-8d2a-569b600838ca",
@@ -1022,7 +1023,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "57d068d9-3e34-f15c-b04d-11d5737e82da",
@@ -1070,7 +1072,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "7a18ee76-f301-b859-9840-a7f287dcd375",
@@ -1124,7 +1127,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "875a683d-61be-705a-9643-4e4a10c77951",
@@ -1143,7 +1147,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "3c5fb808-0433-d157-b6a0-9dbe0a48e6b6",
@@ -1162,7 +1167,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "f9863573-f581-1d58-b2e3-d4e22a078224",
@@ -1181,7 +1187,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       },
       {
         "id": "64cc1039-6959-dd59-b48b-5db0a6da7484",
@@ -1200,7 +1207,8 @@
           "isAiGenerated": false,
           "modifications": []
         },
-        "creaturePresentation": null
+        "creaturePresentation": null,
+        "creatureProgression": null
       }
     ],
     "areas": [

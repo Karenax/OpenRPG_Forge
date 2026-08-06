@@ -982,7 +982,7 @@ public partial class GameRoot : Node3D
     {
         if (entity.Tags.Contains("npc", StringComparer.Ordinal) || HasRuntimeRole(entity, "guide"))
         {
-            _npc = CreateCreature(entity, blueprint.DisplayName, new Color("4ec9b0"), blueprint.CreaturePresentation);
+            _npc = CreateCreature(entity, ProgressionDisplayName(blueprint), new Color("4ec9b0"), blueprint.CreaturePresentation);
             _guideName = GetOverride(entity, "runtime.displayName") ?? blueprint.DisplayName;
             return;
         }
@@ -990,7 +990,7 @@ public partial class GameRoot : Node3D
         var isBoss = entity.Tags.Contains("boss", StringComparer.Ordinal) || HasRuntimeRole(entity, "boss");
         var creature = CreateCreature(
             entity,
-            blueprint.DisplayName,
+            ProgressionDisplayName(blueprint),
             isBoss ? new Color("d34f4f") : new Color("d68a3a"),
             blueprint.CreaturePresentation);
         var profile = blueprint.Combat
@@ -1034,7 +1034,9 @@ public partial class GameRoot : Node3D
         {
             Shape = new CapsuleShape3D { Radius = 0.45f, Height = 1.8f },
         });
-        CreateLabel(player, blueprint.Combat is null ? "AVATAR" : "HÉROS", new Color("dff3ff"), 1.5f);
+        var playerLevel = ResolveProgression(blueprint).TotalLevel;
+        CreateLabel(player, blueprint.Combat is null ? "AVATAR" : playerLevel > 0 ? $"HÉROS · NIV. {playerLevel}" : "HÉROS",
+            new Color("dff3ff"), 1.5f);
         return player;
     }
 
@@ -1126,6 +1128,29 @@ public partial class GameRoot : Node3D
     {
         var value = presentation?.MaterialColors.FirstOrDefault(item => item.ParameterId == "primary")?.HexColor;
         return string.IsNullOrWhiteSpace(value) ? fallback : Color.FromString(value, fallback);
+    }
+
+    private static string ProgressionDisplayName(BlueprintDefinition blueprint)
+    {
+        var level = ResolveProgression(blueprint).TotalLevel;
+        return level > 0 ? $"{blueprint.DisplayName} · Niv. {level}" : blueprint.DisplayName;
+    }
+
+    private static CreatureProgressionRuntimeSnapshot ResolveProgression(BlueprintDefinition blueprint)
+    {
+        var abilities = (blueprint.Combat?.Abilities ?? []).Select(item => item.Slug)
+            .ToHashSet(StringComparer.Ordinal);
+        var result = CreatureProgressionRuntimeResolver.Resolve(
+            blueprint.CreatureProgression,
+            abilities,
+            blueprint.CreatureProgression?.RequiredAtRuntime == true);
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException(string.Join("; ", result.Diagnostics.Select(item =>
+                $"{item.Code} at {item.Path}: {item.Message}")));
+        }
+
+        return result;
     }
 
     private void AddPresentationProxies(Node3D root, CreaturePresentationProfile? presentation)

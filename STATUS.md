@@ -15,7 +15,9 @@ G13 est désormais la file active. G13-A livre les raccourcis configurables avec
 Standard/Aurora/Blender, recherche, conflits, persistance locale, commande transactionnelle et
 exécution réelle des actions Toolset. G13-B livre désormais l’identité et la présentation complète
 des créatures : pronoms, portraits gouvernés, corps modulaire, couleurs, ailes/queue et voix,
-prévisualisés dans le Studio de créature et conservés dans le projet puis le `.orpmod`.
+prévisualisés dans le Studio de créature et conservés dans le projet puis le `.orpmod`. G13-C
+ajoute la progression data-driven : parcours multiclasses, dispositions libres, compétences,
+talents et pouvoirs préparés dans une interface spécialisée avec résumé des règles.
 AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
@@ -38,7 +40,7 @@ Le runtime offre une caméra orbitale et un déplacement relatif à la caméra. 
 sanctuaire par un chemin réel de 70 points. Le smoke termine dialogue, collecte, passage, boss et
 quête.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.17.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.18.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -625,6 +627,13 @@ de créature édite pronoms, portraits multi-résolution/expressions avec licenc
 corps avec rig/layer/clipping, couleurs, ailes/queue et voix avec banques, émotions, langue,
 lipsync, variantes et droits. Le viewport Creator et le runtime rendent couleurs et appendices ;
 l’export refuse les portraits absents ou dont le hash diffère.
+
+**G13-C — progression des créatures livrée** : un second profil v1 à UUID stable traverse les
+formats projet `0.6.24`, workspace `1.18.0` et `.orpmod`. L’écran Progression & pouvoirs édite
+pistes multiclasses, niveaux/XP, axes de disposition définis par le projet, compétences avec
+entraînement/expertise, talents avec prérequis/passifs/hooks et loadouts appris ou préparés. La
+commande vérifie les slugs de capacités du profil de combat, le runtime affiche le niveau et le
+handle ForgeScript reste en lecture seule.
 
 La prochaine tranche unique est **G13-C — progression des créatures** : `ORF-CRE-016`,
 `ORF-CRE-017`, `ORF-CRE-018`, `ORF-CRE-019` et `ORF-CRE-020`.

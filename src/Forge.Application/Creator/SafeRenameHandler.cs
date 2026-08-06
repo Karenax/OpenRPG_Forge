@@ -197,7 +197,8 @@ public sealed class SafeRenameHandler
                     blueprint.PaletteOrigin,
                     blueprint.IsFavorite,
                     blueprint.Provenance,
-                    blueprint.CreaturePresentation)
+                    blueprint.CreaturePresentation,
+                    blueprint.CreatureProgression)
                 : blueprint).ToArray()
             : project.Blueprints;
         var dialogues = kind == CreatorContentKind.Dialogue

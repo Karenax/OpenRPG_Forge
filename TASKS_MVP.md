@@ -601,7 +601,8 @@ les démonstrations Crypte des Cendres et Forgotten Forest jouables.
   persistance locale et exécution réelle (`ORF-SHELL-022`).
 - [x] G13-B : identité, portrait, corps, couleurs, ailes/queues et voix des créatures
   (`ORF-CRE-006`, `007`, `009`, `010`, `029`).
-- [ ] G13-C : progression de créature data-driven (`ORF-CRE-016`, `017`, `018`, `019`, `020`).
+- [x] G13-C : progression de créature data-driven (`ORF-CRE-016`, `017`, `018`, `019`, `020`).
+- [ ] G13-D : butin de créature, pickpocket et cadavres (`ORF-CRE-023`, `024`, `032`).
 
 Acceptation G13-A : un auteur configure les raccourcis depuis l’écran Aurora, prévisualise le diff,
 applique la commande canonique et peut annuler/rétablir. Le round-trip `.forge/editor-keymap.json`
@@ -613,3 +614,9 @@ portraits gouvernés, slots modulaires, couleurs, ailes/queue et voix. La même 
 prévisualisée en 3D, appliquée par commande, annulable, sérialisée dans le projet et exportée dans
 le `.orpmod`. Portrait absent ou altéré bloque l’export ; l’absence optionnelle du profil conserve
 le fallback jouable.
+
+Acceptation G13-C : un auteur configure sans JSON pistes/classes génériques, niveaux, axes de
+disposition propres au projet, compétences, talents et loadout de pouvoirs. Les références au
+profil de combat sont validées avant application ; dry-run, undo/redo, rechargement, `.orpmod`,
+résumé UI et handle ForgeScript utilisent le même profil canonique. L’absence optionnelle reste
+jouable et l’absence requise produit un diagnostic stable.

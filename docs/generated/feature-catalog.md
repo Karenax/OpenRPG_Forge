@@ -189,11 +189,11 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CRE-013 | Attributs | P1 | Implemented | G8 |
 | ORF-CRE-014 | Santé et ressources | P0 | Implemented | G8 |
 | ORF-CRE-015 | Défenses et sauvegardes | P1 | Implemented | G8 |
-| ORF-CRE-016 | Classes et niveaux | P2 | Researched | G13 |
-| ORF-CRE-017 | Alignement | P3 | Researched | G13 |
-| ORF-CRE-018 | Compétences | P2 | Researched | G13 |
-| ORF-CRE-019 | Dons et talents | P2 | Researched | G13 |
-| ORF-CRE-020 | Sorts et pouvoirs préparés | P2 | Researched | G13 |
+| ORF-CRE-016 | Classes et niveaux | P2 | Tested | G13 |
+| ORF-CRE-017 | Alignement | P3 | Tested | G13 |
+| ORF-CRE-018 | Compétences | P2 | Tested | G13 |
+| ORF-CRE-019 | Dons et talents | P2 | Tested | G13 |
+| ORF-CRE-020 | Sorts et pouvoirs préparés | P2 | Tested | G13 |
 | ORF-CRE-021 | Capacités spéciales | P1 | Implemented | G8 |
 | ORF-CRE-022 | Inventaire de créature | P1 | Implemented | G8 |
 | ORF-CRE-023 | Objets droppables | P2 | Researched | G13 |

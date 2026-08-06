@@ -493,8 +493,10 @@ tranches de une à cinq feature IDs. **G13-A** ferme `ORF-SHELL-022` avec keymap
 profils Standard/Aurora/Blender, recherche, conflits, commande transactionnelle, persistance locale
 et exécution Toolset. **G13-B** (`ORF-CRE-006`, `007`, `009`, `010`, `029`) est désormais fermée
 avec identité inclusive, portraits gouvernés, corps modulaire, couleurs, attachments, voix, UI,
-preview 3D, runtime et export canonique. La prochaine tranche est **G13-C** (`ORF-CRE-016`, `017`,
-`018`, `019`, `020`).
+preview 3D, runtime et export canonique. **G13-C** (`ORF-CRE-016`, `017`, `018`, `019`, `020`) ferme
+la progression data-driven : pistes multiclasses, axes de disposition libres, compétences,
+talents, pouvoirs préparés, UI résumée, handle ForgeScript, runtime et `.orpmod`. La prochaine
+tranche **G13-D** regroupe `ORF-CRE-023`, `024` et `032` autour du butin de créature.
 
 ## 7. Graphe de dépendances
 
