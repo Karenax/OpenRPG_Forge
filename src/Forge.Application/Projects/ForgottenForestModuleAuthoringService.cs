@@ -24,8 +24,8 @@ public sealed record ForgottenForestAuthoredModule(
 public static class ForgottenForestModuleAuthoringService
 {
     private const string AssetPrefix = "kenney:mini-forest:";
-    private const string AnimatedCharacterExternalId =
-        "kenney:animated-characters-protagonists:forest-adventurer";
+    private const string AnimatedCharacterExternalIdPrefix =
+        "kaykit:character-pack-adventures-1.0:";
     private static readonly StableIds Ids = new("f5d1ca15-4a39-46ba-a8e2-74dde7188258");
 
     public static ForgottenForestAuthoredModule Create()
@@ -73,17 +73,17 @@ public static class ForgottenForestModuleAuthoringService
         var entities = new List<EntityInstance>
         {
             Entity("spawn", "spawn", -43, -43, world, 1, ["player"],
-                AnimatedCharacterVisual(), Vector3Value.One),
+                AnimatedCharacterVisual("knight"), Vector3Value.One),
             Entity("guide", "guide", -37, -38, world, 0.08f, ["npc", "guide"],
-                AnimatedCharacterVisual(("runtime.role", "guide"), ("runtime.displayName", "Maëlys")), Vector3Value.One),
+                AnimatedCharacterVisual("mage", ("runtime.role", "guide"), ("runtime.displayName", "Maëlys")), Vector3Value.One),
             Entity("moonseed", "moonseed", -14, 13, world, 0.12f, ["quest", "item"],
                 Visual("flag", ("runtime.item", "moonseed"), ("runtime.displayName", "Graine de lune")), new(1.7f, 1.7f, 1.7f)),
             Entity("gate", "gate", 14, 18, world, 0.35f, ["gate", "solid"],
                 Visual("fence", ("runtime.displayName", "Passage des Ronces")), new(3.2f, 2.2f, 1.2f), 32),
-            Entity("scout-a", "scout", -2, 5, world, 0.08f, ["hostile"], AnimatedCharacterVisual(), Vector3Value.One),
-            Entity("scout-b", "scout", 25, 25, world, 0.08f, ["hostile"], AnimatedCharacterVisual(), Vector3Value.One),
+            Entity("scout-a", "scout", -2, 5, world, 0.08f, ["hostile"], AnimatedCharacterVisual("rogue"), Vector3Value.One),
+            Entity("scout-b", "scout", 25, 25, world, 0.08f, ["hostile"], AnimatedCharacterVisual("rogue-hooded"), Vector3Value.One),
             Entity("boss", "boss", 42, 42, world, 0.08f, ["boss", "hostile"],
-                AnimatedCharacterVisual(("runtime.role", "boss"),
+                AnimatedCharacterVisual("barbarian", ("runtime.role", "boss"),
                     ("phaseTwoScript", "scripts/root_guardian_phase_two.forge"),
                     ("deathScript", "scripts/root_guardian_death.forge")), new(1.2f, 1.2f, 1.2f)),
             Entity("exit", "exit", 51, 50, world, 0.12f, ["exit"], Visual("building-structure"), new(2.2f, 2.2f, 2.2f)),
@@ -190,8 +190,8 @@ public static class ForgottenForestModuleAuthoringService
 
     public static AssetCatalogItemId AssetId(string key) => AssetCatalogItemId.ForExternalId($"{AssetPrefix}{key}");
 
-    public static AssetCatalogItemId AnimatedCharacterAssetId() =>
-        AssetCatalogItemId.ForExternalId(AnimatedCharacterExternalId);
+    public static AssetCatalogItemId AnimatedCharacterAssetId(string key = "knight") =>
+        AssetCatalogItemId.ForExternalId($"{AnimatedCharacterExternalIdPrefix}{key}");
 
     private static BlueprintDefinition Blueprint(string slug, string name, BlueprintKind kind, CombatProfile? combat = null) =>
         new(Ids.Blueprint(slug), slug, name, kind, combat);
@@ -232,8 +232,33 @@ public static class ForgottenForestModuleAuthoringService
     private static EntityPropertyOverrides Visual(string assetKey, params (string Key, string Value)[] values) =>
         Visual(AssetId(assetKey), values);
 
-    private static EntityPropertyOverrides AnimatedCharacterVisual(params (string Key, string Value)[] values) =>
-        Visual(AnimatedCharacterAssetId(), [("runtime.animationProfile", "humanoid-basic"), .. values]);
+    private static EntityPropertyOverrides AnimatedCharacterVisual(
+        string characterKey,
+        params (string Key, string Value)[] values)
+    {
+        var clips = CharacterAnimationClips(characterKey);
+        return Visual(AnimatedCharacterAssetId(characterKey),
+        [
+            ("runtime.animationProfile", "kaykit-adventurer"),
+            ("runtime.animationIdle", clips.Idle),
+            ("runtime.animationRun", clips.Run),
+            ("runtime.animationJump", clips.Jump),
+            ("runtime.animationAttack", clips.Attack),
+            ("runtime.animationHit", clips.Hit),
+            ("runtime.animationDeath", clips.Death),
+            .. values,
+        ]);
+    }
+
+    private static CharacterClips CharacterAnimationClips(string characterKey) => characterKey switch
+    {
+        "mage" => new("Idle", "Running_A", "Jump_Full_Short", "Spellcast_Shoot", "Hit_A", "Death_A"),
+        "rogue" => new("Idle", "Running_A", "Jump_Full_Short", "1H_Melee_Attack_Stab", "Hit_A", "Death_A"),
+        "rogue-hooded" => new("Idle", "Running_A", "Jump_Full_Short", "Dualwield_Melee_Attack_Slice", "Hit_B", "Death_B"),
+        "barbarian" => new("2H_Melee_Idle", "Running_B", "Jump_Full_Short", "2H_Melee_Attack_Chop", "Hit_B", "Death_B"),
+        "knight" => new("Idle", "Running_A", "Jump_Full_Short", "1H_Melee_Attack_Slice_Horizontal", "Hit_A", "Death_A"),
+        _ => throw new ArgumentOutOfRangeException(nameof(characterKey), characterKey, "Unknown curated character key."),
+    };
 
     private static EntityPropertyOverrides Visual(
         AssetCatalogItemId assetId,
@@ -253,6 +278,14 @@ public static class ForgottenForestModuleAuthoringService
         var radians = degrees * MathF.PI / 180f;
         return new QuaternionValue(0, MathF.Sin(radians / 2f), 0, MathF.Cos(radians / 2f));
     }
+
+    private sealed record CharacterClips(
+        string Idle,
+        string Run,
+        string Jump,
+        string Attack,
+        string Hit,
+        string Death);
 
     private static AreaEnvironmentProfile CreateEnvironment()
     {

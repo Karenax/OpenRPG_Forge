@@ -79,6 +79,7 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<Guid, int> _scatterSequences = [];
     private readonly Dictionary<string, AudioStreamWav> _proceduralAudioCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _animatedCharacterClipNames = new(StringComparer.Ordinal);
+    private readonly Dictionary<Node3D, GodotAssetAnimationState> _characterAnimations = [];
     private readonly ForgeScriptJsonService _runtimeJson = new();
     private readonly ForgeScriptUiEventService _scriptUiEvents = new();
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
@@ -162,6 +163,8 @@ public partial class GameRoot : Node3D
     private GodotAssetModelLibrary? _modelLibrary;
     private int _runtimeModelInstances;
     private int _animatedCharacterInstances;
+    private int _combatHitAnimationCount;
+    private int _combatDeathAnimationCount;
     private int _terrainVertices;
     private int _terrainTriangles;
     private int _terrainCollisionShapes;
@@ -334,11 +337,13 @@ public partial class GameRoot : Node3D
         if (!Path.IsPathFullyQualified(destination) || !string.Equals(Path.GetExtension(destination), ".png",
             StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("The visual proof destination must be an absolute PNG path.", nameof(destination));
-        if (_isForgottenForestPrototype && _camera is not null)
+        if (_isForgottenForestPrototype && _camera is not null && _player is not null && _npc is not null)
         {
-            var bridge = new Vector3(2, 0, 1);
-            _camera.GlobalPosition = bridge + new Vector3(14, 12, 14);
-            _camera.LookAt(bridge + (Vector3.Up * .4f), Vector3.Up);
+            // Visual-proof framing is intentionally closer than the normal player camera so a
+            // screenshot can validate the authored character silhouettes and their shared scene.
+            var campFocus = (_player.GlobalPosition + _npc.GlobalPosition) * .5f + (Vector3.Up * .9f);
+            _camera.GlobalPosition = campFocus + new Vector3(7, 5.5f, 7);
+            _camera.LookAt(campFocus, Vector3.Up);
         }
         for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var image = GetViewport().GetTexture().GetImage();
@@ -1982,12 +1987,29 @@ public partial class GameRoot : Node3D
         }
         parent.AddChild(visual);
         _runtimeModelInstances++;
-        if (string.Equals(GetOverride(entity, RuntimeAnimationProfileProperty), "humanoid-basic", StringComparison.Ordinal))
+        var animationProfile = GetOverride(entity, RuntimeAnimationProfileProperty);
+        var animation = animationProfile switch
         {
-            var animation = GodotAssetAnimationController.Configure(visual);
+            "humanoid-basic" => GodotAssetAnimationController.Configure(visual),
+            "kaykit-adventurer" => GodotAssetAnimationController.Configure(
+                visual,
+                idle: GetOverride(entity, "runtime.animationIdle") ?? "Idle",
+                run: GetOverride(entity, "runtime.animationRun") ?? "Running_A",
+                jump: GetOverride(entity, "runtime.animationJump") ?? "Jump_Full_Short",
+                attack: GetOverride(entity, "runtime.animationAttack") ?? "1H_Melee_Attack_Slice_Horizontal",
+                hit: GetOverride(entity, "runtime.animationHit") ?? "Hit_A",
+                death: GetOverride(entity, "runtime.animationDeath") ?? "Death_A"),
+            _ => null,
+        };
+        if (animation is not null)
+        {
             GodotAssetAnimationController.Play(animation, animation.IdleClip, 0);
             _animatedCharacterInstances++;
             _animatedCharacterClipNames.UnionWith(animation.Clips);
+            if (parent is Node3D character)
+            {
+                _characterAnimations[character] = animation;
+            }
             if (parent is PlayerController player)
             {
                 player.ConfigureAnimations(animation);
@@ -2156,6 +2178,7 @@ public partial class GameRoot : Node3D
 
         var ability = _playerCombatant.Profile.Abilities.FirstOrDefault()
             ?? throw new InvalidOperationException("The player combat profile has no attack ability.");
+        _player?.PlayAttackAnimation();
         var result = CombatResolver.Cast(
             _playerCombatant,
             target,
@@ -2165,6 +2188,7 @@ public partial class GameRoot : Node3D
         var health = target.Health;
         var hostileName = _hostileNames[hostile];
         _message = $"{hostileName} subit {result.Damage} dégât(s) ({health} PV).";
+        var reactionDuration = PlayHostileCombatReaction(hostile, result.TargetDied);
 
         if (hostile == _boss && health <= Math.Max(1, target.Profile.Stats.MaximumHealth / 2) && !_bossPhaseTwo)
         {
@@ -2183,7 +2207,19 @@ public partial class GameRoot : Node3D
                 GD.Print($"OPENRPG_FORGE_LOOT_GRANTED item={drop.ItemSlug} quantity={drop.Quantity}");
             }
 
-            hostile.QueueFree();
+            _characterAnimations.Remove(hostile);
+            if (reactionDuration > 0)
+            {
+                var timer = GetTree().CreateTimer(reactionDuration);
+                timer.Timeout += () =>
+                {
+                    if (GodotObject.IsInstanceValid(hostile)) hostile.QueueFree();
+                };
+            }
+            else
+            {
+                hostile.QueueFree();
+            }
 
             if (hostile == _boss)
             {
@@ -2199,6 +2235,23 @@ public partial class GameRoot : Node3D
         }
 
         UpdateHud();
+    }
+
+    private double PlayHostileCombatReaction(Node3D hostile, bool died)
+    {
+        if (!_characterAnimations.TryGetValue(hostile, out var animation)) return 0;
+        var clip = died ? animation.DeathClip : animation.HitClip;
+        if (clip is null || !GodotAssetAnimationController.Play(animation, clip, .06, restart: true)) return 0;
+        if (died)
+        {
+            _combatDeathAnimationCount++;
+        }
+        else
+        {
+            _combatHitAnimationCount++;
+        }
+
+        return Math.Max(.05, GodotAssetAnimationController.DurationSeconds(animation, clip));
     }
 
     private void SpawnAshSpirit(Vector3 position)
@@ -3070,10 +3123,11 @@ public partial class GameRoot : Node3D
             "Forgotten Forest did not reconstruct its playable surface navigation region.");
         AssertSmoke(_surfaceNavigationBlockedTriangles > 0 && _surfaceNavigationLinks == 1,
             "River crossing policy or the authored bridge traversal is missing from surface navigation.");
-        AssertSmoke(_modelLibrary?.Count == 23, "All 22 governed Mini Forest models and the animated character must be available.");
+        AssertSmoke(_modelLibrary?.Count == 28,
+            "All 22 governed Mini Forest models, the legacy character and five KayKit variants must be available.");
         AssertSmoke(_runtimeModelInstances >= 18, "Authored entities did not use their governed 3D models.");
-        AssertSmoke(_animatedCharacterInstances == 5 && _animatedCharacterClipNames.Count >= 3,
-            "The five authored characters must expose the governed idle, run and jump clips.");
+        AssertSmoke(_animatedCharacterInstances == 5 && _animatedCharacterClipNames.Count >= 75,
+            "The five authored KayKit characters must expose the governed movement and combat clips.");
         AssertSmoke(_player is not null && _npc is not null && _keyItem is not null && _door is not null &&
             _boss is not null && _exit is not null, "The playable forest scenario is incomplete.");
         AssertSmoke(_hostiles.Count == 3, "Forgotten Forest must reconstruct two scouts and its boss.");
@@ -3174,8 +3228,8 @@ public partial class GameRoot : Node3D
             $"vfx_particles={_ambientVfxParticles} water_animated={_terrainWaterSurfaces} provenance=builtin");
         GD.Print(
             $"OPENRPG_FORGE_FORGOTTEN_FOREST_ANIMATION_PASS characters={_animatedCharacterInstances} " +
-            $"clips={_animatedCharacterClipNames.Count} rig=kenney-humanoid-58 " +
-            "source=kenney:animated-characters-protagonists");
+            $"variants=5 clips={_animatedCharacterClipNames.Count} rig=kaykit-rig-medium-41 " +
+            "source=kaykit:character-pack-adventures-1.0");
 
         InteractWith(_npc!);
         AssertSmoke(_questMachine?.CurrentState.DisplayName == "La Graine de lune",
@@ -3193,6 +3247,13 @@ public partial class GameRoot : Node3D
         AssertSmoke(_bossPhaseTwo, "The Root Guardian phase two script did not execute.");
         AssertSmoke(_bossDefeated && _questMachine?.Completed == true,
             "The Root Guardian defeat did not complete the data-driven quest.");
+        AssertSmoke(_player!.AttackAnimationCount > 0 && _combatHitAnimationCount > 0 &&
+                    _combatDeathAnimationCount == 1,
+            "Combat did not play the governed attack, hit and death animations.");
+        GD.Print(
+            $"OPENRPG_FORGE_FORGOTTEN_FOREST_COMBAT_ANIMATION_PASS " +
+            $"attack={_player.AttackAnimationCount} hit={_combatHitAnimationCount} " +
+            $"death={_combatDeathAnimationCount} clip={_player.CurrentAnimationClip}");
         _player!.GlobalPosition = _exit!.GlobalPosition;
         _escaped = true;
         GD.Print(

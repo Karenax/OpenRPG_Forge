@@ -39,14 +39,44 @@
           "schemaVersion": 1,
           "properties": [
             {
+              "key": "runtime.animationAttack",
+              "kind": "string",
+              "value": "1H_Melee_Attack_Slice_Horizontal"
+            },
+            {
+              "key": "runtime.animationDeath",
+              "kind": "string",
+              "value": "Death_A"
+            },
+            {
+              "key": "runtime.animationHit",
+              "kind": "string",
+              "value": "Hit_A"
+            },
+            {
+              "key": "runtime.animationIdle",
+              "kind": "string",
+              "value": "Idle"
+            },
+            {
+              "key": "runtime.animationJump",
+              "kind": "string",
+              "value": "Jump_Full_Short"
+            },
+            {
               "key": "runtime.animationProfile",
               "kind": "string",
-              "value": "humanoid-basic"
+              "value": "kaykit-adventurer"
+            },
+            {
+              "key": "runtime.animationRun",
+              "kind": "string",
+              "value": "Running_A"
             },
             {
               "key": "visual.asset",
               "kind": "string",
-              "value": "16946a65-ec1b-d259-aa9b-d0aedc7a7407"
+              "value": "053511fd-e165-1951-9869-6224f82b747f"
             }
           ]
         }
@@ -80,9 +110,39 @@
           "schemaVersion": 1,
           "properties": [
             {
+              "key": "runtime.animationAttack",
+              "kind": "string",
+              "value": "Spellcast_Shoot"
+            },
+            {
+              "key": "runtime.animationDeath",
+              "kind": "string",
+              "value": "Death_A"
+            },
+            {
+              "key": "runtime.animationHit",
+              "kind": "string",
+              "value": "Hit_A"
+            },
+            {
+              "key": "runtime.animationIdle",
+              "kind": "string",
+              "value": "Idle"
+            },
+            {
+              "key": "runtime.animationJump",
+              "kind": "string",
+              "value": "Jump_Full_Short"
+            },
+            {
               "key": "runtime.animationProfile",
               "kind": "string",
-              "value": "humanoid-basic"
+              "value": "kaykit-adventurer"
+            },
+            {
+              "key": "runtime.animationRun",
+              "kind": "string",
+              "value": "Running_A"
             },
             {
               "key": "runtime.displayName",
@@ -97,7 +157,7 @@
             {
               "key": "visual.asset",
               "kind": "string",
-              "value": "16946a65-ec1b-d259-aa9b-d0aedc7a7407"
+              "value": "220be95a-282c-cc52-aaf9-4fe811b32609"
             }
           ]
         }
@@ -217,14 +277,44 @@
           "schemaVersion": 1,
           "properties": [
             {
+              "key": "runtime.animationAttack",
+              "kind": "string",
+              "value": "1H_Melee_Attack_Stab"
+            },
+            {
+              "key": "runtime.animationDeath",
+              "kind": "string",
+              "value": "Death_A"
+            },
+            {
+              "key": "runtime.animationHit",
+              "kind": "string",
+              "value": "Hit_A"
+            },
+            {
+              "key": "runtime.animationIdle",
+              "kind": "string",
+              "value": "Idle"
+            },
+            {
+              "key": "runtime.animationJump",
+              "kind": "string",
+              "value": "Jump_Full_Short"
+            },
+            {
               "key": "runtime.animationProfile",
               "kind": "string",
-              "value": "humanoid-basic"
+              "value": "kaykit-adventurer"
+            },
+            {
+              "key": "runtime.animationRun",
+              "kind": "string",
+              "value": "Running_A"
             },
             {
               "key": "visual.asset",
               "kind": "string",
-              "value": "16946a65-ec1b-d259-aa9b-d0aedc7a7407"
+              "value": "b7cb21fb-b54e-835a-8f84-eea64beb294a"
             }
           ]
         }
@@ -257,14 +347,44 @@
           "schemaVersion": 1,
           "properties": [
             {
+              "key": "runtime.animationAttack",
+              "kind": "string",
+              "value": "Dualwield_Melee_Attack_Slice"
+            },
+            {
+              "key": "runtime.animationDeath",
+              "kind": "string",
+              "value": "Death_B"
+            },
+            {
+              "key": "runtime.animationHit",
+              "kind": "string",
+              "value": "Hit_B"
+            },
+            {
+              "key": "runtime.animationIdle",
+              "kind": "string",
+              "value": "Idle"
+            },
+            {
+              "key": "runtime.animationJump",
+              "kind": "string",
+              "value": "Jump_Full_Short"
+            },
+            {
               "key": "runtime.animationProfile",
               "kind": "string",
-              "value": "humanoid-basic"
+              "value": "kaykit-adventurer"
+            },
+            {
+              "key": "runtime.animationRun",
+              "kind": "string",
+              "value": "Running_A"
             },
             {
               "key": "visual.asset",
               "kind": "string",
-              "value": "16946a65-ec1b-d259-aa9b-d0aedc7a7407"
+              "value": "056fe96c-5c83-145d-98fd-0623b9350cf5"
             }
           ]
         }
@@ -308,9 +428,39 @@
               "value": "scripts/root_guardian_phase_two.forge"
             },
             {
+              "key": "runtime.animationAttack",
+              "kind": "string",
+              "value": "2H_Melee_Attack_Chop"
+            },
+            {
+              "key": "runtime.animationDeath",
+              "kind": "string",
+              "value": "Death_B"
+            },
+            {
+              "key": "runtime.animationHit",
+              "kind": "string",
+              "value": "Hit_B"
+            },
+            {
+              "key": "runtime.animationIdle",
+              "kind": "string",
+              "value": "2H_Melee_Idle"
+            },
+            {
+              "key": "runtime.animationJump",
+              "kind": "string",
+              "value": "Jump_Full_Short"
+            },
+            {
               "key": "runtime.animationProfile",
               "kind": "string",
-              "value": "humanoid-basic"
+              "value": "kaykit-adventurer"
+            },
+            {
+              "key": "runtime.animationRun",
+              "kind": "string",
+              "value": "Running_B"
             },
             {
               "key": "runtime.role",
@@ -320,7 +470,7 @@
             {
               "key": "visual.asset",
               "kind": "string",
-              "value": "16946a65-ec1b-d259-aa9b-d0aedc7a7407"
+              "value": "3bf93c4b-7df6-455c-be89-ba38d40e941c"
             }
           ]
         }

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "source_id": "kaykit",
+  "name": "KayKit",
+  "catalog_url": "https://github.com/KayKit-Game-Assets",
+  "asset_page_template": "https://github.com/KayKit-Game-Assets/{pack_id}",
+  "license": "CC0-1.0",
+  "license_verification": "Each admitted repository must contain a CC0 license at the pinned commit",
+  "license_verified_at": "2026-08-05",
+  "redistribution_allowed": true,
+  "attribution_required_for_assets": false
+}

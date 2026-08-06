@@ -16,6 +16,8 @@ la licence, l’URL de licence, la date de vérification, les fichiers télécha
 - ambientCG : assets annoncés CC0 1.0, attribution facultative.
 - Kenney : seuls les packs dont la page officielle déclare explicitement `Creative Commons CC0`
   sont téléchargés ; la page exacte sert de preuve de licence du pack.
+- KayKit : seuls les dépôts officiels épinglés dont le commit contient une licence CC0 sont admis ;
+  l’admission initiale est bornée aux cinq GLB d’Adventurers 1.0.
 
 Les enregistrements vérifiés sont dans `asset_manifests/sources/`. Cette admission concerne les
 assets téléchargés depuis les URLs officielles, pas des miroirs ou redistributions tierces.

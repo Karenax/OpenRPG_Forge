@@ -412,6 +412,12 @@ def main() -> None:
     _import_model(source)
     _apply_material_textures(options.get("materialTextures", []))
     animation_clips = _merge_animation_sources(options.get("animationSources", []))
+    has_embedded_animations = any(
+        item.type == "ARMATURE"
+        and item.animation_data is not None
+        and len(item.animation_data.nla_tracks) > 0
+        for item in bpy.context.scene.objects
+    )
     if "normalize_model" in operations:
         _normalize(options)
     if "generate_lods" in operations:
@@ -425,7 +431,9 @@ def main() -> None:
     export_options = {
         "filepath": str(output),
         "export_format": "GLB",
-        "export_apply": not animation_clips,
+        # Applying transforms during glTF export can invalidate skin animation data. Preserve both
+        # externally merged clips and runtime-ready clips already embedded in the source GLB.
+        "export_apply": not animation_clips and not has_embedded_animations,
         "export_yup": True,
         "export_extras": True,
     }

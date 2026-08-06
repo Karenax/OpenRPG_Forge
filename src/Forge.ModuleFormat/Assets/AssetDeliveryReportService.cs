@@ -18,7 +18,7 @@ public static class AssetDeliveryReportService
         int ExpectedBenchmarkCheckCount,
         string RequiredLicenseSpdx)
     {
-        public static Policy ForgottenForestAv5 { get; } = new(605, 605, 23, 22, 16, "CC0-1.0");
+        public static Policy ForgottenForestAv5 { get; } = new(605, 605, 28, 22, 16, "CC0-1.0");
     }
 
     public sealed record FileMetrics(int Files, long Bytes);

@@ -610,7 +610,7 @@ et le glisser-déposer existant créent l’entité avec `visual.asset` dans la 
 transactionnelle ; aucun nœud moteur ne devient source de vérité. Creator et runtime instancient le
 même GLB par un chargeur partagé qui confine le chemin au workspace et revérifie le SHA-256 du chunk.
 Le smoke Creator charge réellement un GLB dans le viewport, tandis que Forgotten Forest conserve la
-preuve de 18 modèles de production issus de 23 manifestes.
+preuve de 18 modèles de production issus de 28 manifestes.
 
 AV3 relie aussi les blueprints d’assets installés aux recettes de biome existantes dans Terrain
 Studio. La brosse canonique « Matériau/biome » peint le matériau de la cellule, qui sélectionne la
@@ -648,6 +648,14 @@ L’identité stable, le profil, la requête, la réponse, la miniature et l’a
 Cinq entités portent `runtime.animationProfile=humanoid-basic` ; Creator joue l’idle et le contrôleur
 runtime du joueur commute idle/course/saut. Le smoke et la capture Forward+ prouvent la tranche ;
 variantes, retargeting, combat animé et composition 512 × 512 restent hors de ce lot.
+
+AV6-B remplace ensuite la distribution dupliquée par cinq modèles KayKit Adventurers CC0 épinglés :
+chevalier, mage, voleur, voleur encapuchonné et barbare. Chaque GLB conserve un rig de 41 os et 76
+pistes ; les 69 clips de durée positive alimentent un profil sémantique commun repos/course/saut/
+attaque/impact/mort. Creator et runtime chargent les mêmes chunks gouvernés. Le smoke prouve trois
+attaques, deux impacts et une mort, 28 manifestes, 50 chunks et cinq variantes, sans modifier les
+originaux du Vault. Le retargeting entre rigs incompatibles et la composition 512 × 512 restent les
+prochains travaux de production.
 
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de

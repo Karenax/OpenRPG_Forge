@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. AV6-A livre maintenant une première carte 3D extérieure jouable,
+G11 Contenu moderne fermés. AV6-B livre maintenant une première carte 3D extérieure jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
 installe les GLB gouvernés dans la palette, les place comme vrais modèles dans le viewport et ferme
@@ -207,9 +207,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 - les diagnostics sont désormais structurés et navigables, mais les profils de validation, filtres,
   catégories, bundle d’export et correctifs propres aux futurs imports d’assets restent à livrer ;
 - la Crypte conserve des primitives procédurales originales ; Forgotten Forest possède désormais
-  modèles CC0 cohérents, eau animée, ambiance audio, VFX procéduraux et cinq personnages animés,
-  mais les variantes, animations de combat et la composition finale ne constituent pas encore une
-  direction artistique de production ;
+  modèles CC0 cohérents, eau animée, ambiance audio, VFX procéduraux et cinq personnages fantasy
+  distincts avec combat animé, mais la composition finale ne constitue pas encore une direction
+  artistique de production ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
   l'éditeur et les permissions interactives restent à faire avant un usage multi-processus général ;
 - le catalogue de blueprints ne gère pas encore versions, paramètres exposés, miniatures,
@@ -228,9 +228,10 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   désormais normalisation, collisions, LOD, miniature et audit ; le traitement massif du catalogue
   complet reste à étendre ;
 - Forgotten Forest est jouable sur le terrain générique avec végétation, bâtiments, éclairage,
-  caméra, quête, export, navigation de surface, eau animée, ambiance spatiale, VFX et animation
-  idle/course/saut. Des variantes, une animation de combat, une eau simulée avancée et la composition
-  512 × 512 restent nécessaires avant de qualifier la carte de contenu final ;
+  caméra, quête, export, navigation de surface, eau animée, ambiance spatiale, VFX, cinq silhouettes
+  et animation repos/course/saut/attaque/impact/mort. Le retargeting inter-rigs, une eau simulée
+  avancée et la composition 512 × 512 restent nécessaires avant de qualifier la carte de contenu
+  final ;
 - le workflow CI est défini, mais son exécution distante attend le premier push.
 
 ## Décisions verrouillées
@@ -484,3 +485,12 @@ second authoring réutilise les 23 assets sans relancer Blender. Le projet attri
 personnages, Creator joue l’idle et le runtime choisit idle/course/saut pour le joueur. Le smoke
 `.orpmod`, le rapport de livraison et la capture Vulkan Forward+ passent ; variantes, retargeting,
 combat animé et composition 512 × 512 restent explicitement à livrer.
+
+**AV6-B — distribution fantasy et combat animé livrés** : le pack officiel KayKit Adventurers 1.0
+est épinglé au commit `672074b73ba276876a19e8816ecdc5241817ab47`, sous CC0-1.0, avec archive
+immuable de 6 147 593 octets et SHA-256 vérifié. Blender 4.5.10 préserve les rigs de 41 os et 76
+pistes de cinq GLB distincts : Knight, Mage, Rogue, Rogue Hooded et Barbarian. Les 69 clips de durée
+positive alimentent les états sémantiques repos/course/saut/attaque/impact/mort. Creator et runtime
+emploient les mêmes assets ; le smoke joue trois attaques, deux impacts et une mort, puis termine la
+quête. L’export validé contient 28 manifestes et 50 chunks. Le retargeting entre squelettes
+incompatibles et la composition artistique 512 × 512 restent ouverts.

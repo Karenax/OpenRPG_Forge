@@ -1,6 +1,6 @@
 # État d’implémentation — Asset Vault et carte
 
-Dernière mise à jour : 5 août 2026 — tranche AV6-A.
+Dernière mise à jour : 5 août 2026 — tranche AV6-B.
 
 ## Terminé
 
@@ -93,6 +93,15 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-A.
   le smoke prouve cinq instances, trois clips, le scénario complet et une capture Forward+ ;
 - rapport de livraison étendu sans augmenter le catalogue : 23 manifestes CC0, 45 chunks,
   22 références gouvernées, 16 assets distincts utilisés et 1 334 694 octets de chunks.
+- admission bornée du pack officiel KayKit Adventurers 1.0 au commit
+  `672074b73ba276876a19e8816ecdc5241817ab47` : archive CC0 immuable, SHA-256 vérifié, cinq GLB,
+  catalogue spécialisé et manifeste de source ;
+- production Blender 4.5.10 de cinq variantes fantasy dotées chacune d’un rig de 41 os, de 76 pistes
+  et de 69 clips runtime de durée positive, avec cinq miniatures 512 × 512 et audits 100/100 ;
+- profil `kaykit-adventurer` et propriétés sémantiques repos/course/saut/attaque/impact/mort partagés
+  par le Creator et le runtime, avec trois attaques, deux impacts et une mort prouvés par le smoke ;
+- export AV6-B validé de 100 fichiers, 28 manifestes/50 chunks, 22 références gouvernées, cinq
+  personnages distincts, 28 assets/72 niveaux LOD et seize budgets runtime réussis.
 
 ## Partiellement terminé
 
@@ -101,9 +110,9 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-A.
 - normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
   conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
-- Forgotten Forest : tranche jouable, navigable, sonorisée, enrichie de VFX et dotée d’un premier
-  personnage animé ; variantes de personnages, retargeting, animations de combat, composition finale
-  et extension 512 × 512 restent des finitions de production.
+- Forgotten Forest : tranche jouable, navigable, sonorisée, enrichie de VFX et dotée de cinq
+  personnages fantasy avec combat animé ; retargeting inter-rigs, composition finale et extension
+  512 × 512 restent des finitions de production.
 
 ## Non commencé
 
@@ -117,8 +126,8 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-A.
 
 ## Prochaine action
 
-Diversifier la petite distribution de personnages et relier une animation de combat, puis préparer
-la composition 512 × 512 par secteurs sans augmenter le catalogue avant la revue visuelle prévue.
+Composer la carte 512 × 512 par secteurs en réutilisant les systèmes terrain/biome/navigation, puis
+refaire les budgets et la revue visuelle. Le retargeting inter-rigs reste un incrément séparé.
 
 ## Preuves de la tranche AV3 MCP
 

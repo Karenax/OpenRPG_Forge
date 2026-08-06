@@ -400,11 +400,17 @@ public static class CuratedAnimatedCharacterInstaller
     {
         var path = Path.Combine(workspace, "assets", "CREDITS_ASSETS.md");
         var existing = File.Exists(path) ? File.ReadAllText(path, Encoding.UTF8).TrimEnd() : "# Asset credits";
-        const string heading = "## Animated character";
+        var heading = $"## Animated character — {plan.Item.DisplayName}";
         var headingIndex = existing.IndexOf(heading, StringComparison.Ordinal);
         if (headingIndex >= 0)
         {
-            existing = existing[..headingIndex].TrimEnd();
+            var nextHeading = existing.IndexOf(
+                $"{Environment.NewLine}## ",
+                headingIndex + heading.Length,
+                StringComparison.Ordinal);
+            existing = (nextHeading < 0
+                ? existing[..headingIndex]
+                : existing.Remove(headingIndex, nextHeading - headingIndex)).TrimEnd();
         }
 
         var chunk = manifest.Chunks.Single(candidate => candidate.Role == AssetChunkRole.Model);

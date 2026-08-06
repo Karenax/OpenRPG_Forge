@@ -26,6 +26,11 @@
       "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
     },
     {
+      "line": 509,
+      "message": "Identifiant de nœud ambigu ignoré : type:Forge.ModuleFormat.Assets.SourcePack",
+      "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+    },
+    {
       "line": 86,
       "message": "Identifiant de nœud ambigu ignoré : test:Forge.Network.Tests.ManualTimeProvider",
       "path": "tests/Forge.Network.Tests/ResilienceDeterminismTests.cs"
@@ -1722,7 +1727,7 @@
     },
     {
       "evidence": {
-        "line": 654,
+        "line": 662,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1731,7 +1736,7 @@
     },
     {
       "evidence": {
-        "line": 1467,
+        "line": 1475,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1740,7 +1745,7 @@
     },
     {
       "evidence": {
-        "line": 1532,
+        "line": 1540,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1749,7 +1754,7 @@
     },
     {
       "evidence": {
-        "line": 1832,
+        "line": 1840,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1758,7 +1763,7 @@
     },
     {
       "evidence": {
-        "line": 1532,
+        "line": 1540,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1767,7 +1772,7 @@
     },
     {
       "evidence": {
-        "line": 1581,
+        "line": 1589,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1776,7 +1781,7 @@
     },
     {
       "evidence": {
-        "line": 1785,
+        "line": 1793,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1794,7 +1799,7 @@
     },
     {
       "evidence": {
-        "line": 746,
+        "line": 754,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1803,7 +1808,7 @@
     },
     {
       "evidence": {
-        "line": 1532,
+        "line": 1540,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1812,7 +1817,7 @@
     },
     {
       "evidence": {
-        "line": 1582,
+        "line": 1590,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1821,7 +1826,7 @@
     },
     {
       "evidence": {
-        "line": 1634,
+        "line": 1642,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1830,7 +1835,7 @@
     },
     {
       "evidence": {
-        "line": 1726,
+        "line": 1734,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1848,7 +1853,7 @@
     },
     {
       "evidence": {
-        "line": 1437,
+        "line": 1445,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1857,7 +1862,7 @@
     },
     {
       "evidence": {
-        "line": 1532,
+        "line": 1540,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1866,7 +1871,7 @@
     },
     {
       "evidence": {
-        "line": 1583,
+        "line": 1591,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1875,7 +1880,7 @@
     },
     {
       "evidence": {
-        "line": 1634,
+        "line": 1642,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1884,7 +1889,7 @@
     },
     {
       "evidence": {
-        "line": 1801,
+        "line": 1809,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1893,7 +1898,7 @@
     },
     {
       "evidence": {
-        "line": 653,
+        "line": 661,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1902,7 +1907,7 @@
     },
     {
       "evidence": {
-        "line": 653,
+        "line": 661,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1920,7 +1925,7 @@
     },
     {
       "evidence": {
-        "line": 746,
+        "line": 754,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1947,7 +1952,7 @@
     },
     {
       "evidence": {
-        "line": 1438,
+        "line": 1446,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1965,7 +1970,7 @@
     },
     {
       "evidence": {
-        "line": 1818,
+        "line": 1826,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2325,7 +2330,7 @@
     },
     {
       "evidence": {
-        "line": 254,
+        "line": 255,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -4854,7 +4859,7 @@
     },
     {
       "evidence": {
-        "line": 60,
+        "line": 64,
         "path": "docs/assets/ASSET_SOURCE_GOVERNANCE.md"
       },
       "kind": "references",
@@ -4863,7 +4868,7 @@
     },
     {
       "evidence": {
-        "line": 62,
+        "line": 66,
         "path": "docs/assets/ASSET_SOURCE_GOVERNANCE.md"
       },
       "kind": "references",
@@ -4872,7 +4877,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 30,
         "path": "docs/assets/ASSET_SOURCE_GOVERNANCE.md"
       },
       "kind": "references",
@@ -4899,12 +4904,30 @@
     },
     {
       "evidence": {
+        "line": 98,
+        "path": "docs/assets/AV5_DELIVERY_AND_EXTENSION.md"
+      },
+      "kind": "references",
+      "source": "file:docs/assets/AV5_DELIVERY_AND_EXTENSION.md",
+      "target": "file:docs/assets/AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md"
+    },
+    {
+      "evidence": {
         "line": 96,
         "path": "docs/assets/AV5_DELIVERY_AND_EXTENSION.md"
       },
       "kind": "references",
       "source": "file:docs/assets/AV5_DELIVERY_AND_EXTENSION.md",
       "target": "file:docs/assets/AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "docs/assets/AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md"
+      },
+      "kind": "references",
+      "source": "file:docs/assets/AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md",
+      "target": "file:docs/assets/AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md"
     },
     {
       "evidence": {
@@ -12711,6 +12734,33 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs",
+      "target": "namespace:Forge.Application.Assets"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.ModuleFormat/Build/IncrementalBuildPlan.cs"
       },
@@ -19188,6 +19238,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Assets/CuratedAssetPackInstallerTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
     },
     {
       "evidence": {
@@ -27831,7 +27890,7 @@
     },
     {
       "evidence": {
-        "line": 34,
+        "line": 46,
         "path": "src/Forge.EngineAdapter/Assets/GodotAssetAnimationController.cs"
       },
       "kind": "defined_in",
@@ -27840,7 +27899,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 48,
         "path": "src/Forge.EngineAdapter/Assets/GodotAssetAnimationController.cs"
       },
       "kind": "uses_model",
@@ -27885,7 +27944,7 @@
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 23,
         "path": "apps/Forge.Runtime/Runtime/PlayerController.cs"
       },
       "kind": "uses_model",
@@ -33357,7 +33416,7 @@
     },
     {
       "evidence": {
-        "line": 501,
+        "line": 507,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAnimatedCharacterInstaller.cs"
       },
       "kind": "defined_in",
@@ -33366,7 +33425,7 @@
     },
     {
       "evidence": {
-        "line": 515,
+        "line": 521,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAnimatedCharacterInstaller.cs"
       },
       "kind": "relationship",
@@ -33375,7 +33434,7 @@
     },
     {
       "evidence": {
-        "line": 517,
+        "line": 523,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAnimatedCharacterInstaller.cs"
       },
       "kind": "defined_in",
@@ -33546,7 +33605,7 @@
     },
     {
       "evidence": {
-        "line": 543,
+        "line": 549,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAnimatedCharacterInstaller.cs"
       },
       "kind": "defined_in",
@@ -33555,7 +33614,7 @@
     },
     {
       "evidence": {
-        "line": 546,
+        "line": 552,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAnimatedCharacterInstaller.cs"
       },
       "kind": "relationship",
@@ -33600,6 +33659,24 @@
     },
     {
       "evidence": {
+        "line": 550,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Assets.CuratedEmbeddedAnimatedCharacterInstallResult",
+      "target": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+    },
+    {
+      "evidence": {
+        "line": 553,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Assets.CuratedEmbeddedAnimatedCharacterInstallResult",
+      "target": "model:Forge.Domain.Assets.AssetCatalogItemId"
+    },
+    {
+      "evidence": {
         "line": 344,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
       },
@@ -33624,6 +33701,15 @@
       "kind": "relationship",
       "source": "model:Forge.ModuleFormat.Assets.CuratedPackDocument",
       "target": "model:Forge.ModuleFormat.Assets.CuratedModelDocument"
+    },
+    {
+      "evidence": {
+        "line": 492,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Assets.EmbeddedAnimatedCharacterDocument",
+      "target": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
     },
     {
       "evidence": {
@@ -35958,7 +36044,7 @@
     },
     {
       "evidence": {
-        "line": 3424,
+        "line": 3485,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -42600,6 +42686,15 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Assets",
+      "target": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.ModuleFormat/Assets/UntrustedAssetHeaderValidator.cs"
       },
@@ -43254,6 +43349,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Tests.Assets",
       "target": "file:tests/Forge.ModuleFormat.Tests/Assets/CuratedAssetPackInstallerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Assets",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs"
     },
     {
       "evidence": {
@@ -46299,66 +46403,12 @@
     },
     {
       "evidence": {
-        "line": 296,
-        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
-      "target": "model:Forge.Domain.Areas.AreaId"
-    },
-    {
-      "evidence": {
         "line": 161,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
       "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
       "target": "model:Forge.Domain.Areas.AreaKind"
-    },
-    {
-      "evidence": {
-        "line": 453,
-        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
-      "target": "model:Forge.Domain.Areas.BiomeLayerDefinition"
-    },
-    {
-      "evidence": {
-        "line": 429,
-        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
-      "target": "model:Forge.Domain.Areas.TerrainDefinition"
-    },
-    {
-      "evidence": {
-        "line": 469,
-        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
-      "target": "model:Forge.Domain.Areas.TerrainFeatureDefinition"
-    },
-    {
-      "evidence": {
-        "line": 470,
-        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
-      "target": "model:Forge.Domain.Areas.TerrainFeatureKind"
-    },
-    {
-      "evidence": {
-        "line": 432,
-        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
-      "target": "model:Forge.Domain.Areas.TerrainProviderKind"
     },
     {
       "evidence": {
@@ -46425,7 +46475,7 @@
     },
     {
       "evidence": {
-        "line": 244,
+        "line": 269,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46440,33 +46490,6 @@
       "kind": "accesses_model",
       "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
       "target": "model:Forge.Domain.Modules.ModuleDefinition"
-    },
-    {
-      "evidence": {
-        "line": 497,
-        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
-      "target": "model:Forge.Domain.Navigation.AreaNavigationDefinition"
-    },
-    {
-      "evidence": {
-        "line": 504,
-        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
-      "target": "model:Forge.Domain.Navigation.NavigationLinkKind"
-    },
-    {
-      "evidence": {
-        "line": 502,
-        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
-      "target": "model:Forge.Domain.Navigation.OffMeshNavigationLinkId"
     },
     {
       "evidence": {
@@ -46515,16 +46538,7 @@
     },
     {
       "evidence": {
-        "line": 311,
-        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Application.Projects.ForgottenForestModuleAuthoringService",
-      "target": "model:Forge.Domain.RuntimePolicies.AudioCueDefinition"
-    },
-    {
-      "evidence": {
-        "line": 251,
+        "line": 276,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -55974,7 +55988,7 @@
     },
     {
       "evidence": {
-        "line": 63,
+        "line": 69,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -64989,6 +65003,42 @@
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Assets.CuratedAssetPackInstallerTests",
       "target": "type:Forge.ModuleFormat.Workspaces.AssetPackageManifestStore"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.CuratedEmbeddedAnimatedCharacterInstallerTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 78,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.CuratedEmbeddedAnimatedCharacterInstallerTests",
+      "target": "type:Forge.LiveDirector.Chat.Message"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.CuratedEmbeddedAnimatedCharacterInstallerTests",
+      "target": "type:Forge.LiveDirector.World.Attack"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.CuratedEmbeddedAnimatedCharacterInstallerTests",
+      "target": "type:Forge.ModuleFormat.Assets.CuratedEmbeddedAnimatedCharacterInstaller"
     },
     {
       "evidence": {
@@ -75288,6 +75338,24 @@
     },
     {
       "evidence": {
+        "line": 282,
+        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Projects.CharacterClips",
+      "target": "file:src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 334,
+        "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Application.Projects.CharacterClips",
+      "target": "service:Forge.Application.Areas.ProceduralAmbientAudioService"
+    },
+    {
+      "evidence": {
         "line": 20,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
@@ -75324,7 +75392,7 @@
     },
     {
       "evidence": {
-        "line": 520,
+        "line": 553,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -79590,7 +79658,7 @@
     },
     {
       "evidence": {
-        "line": 529,
+        "line": 535,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAnimatedCharacterInstaller.cs"
       },
       "kind": "defined_in",
@@ -79599,7 +79667,7 @@
     },
     {
       "evidence": {
-        "line": 527,
+        "line": 533,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAnimatedCharacterInstaller.cs"
       },
       "kind": "defined_in",
@@ -79614,6 +79682,33 @@
       "kind": "defined_in",
       "source": "type:Forge.ModuleFormat.Assets.CuratedAssetPackInstaller",
       "target": "file:src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.CuratedEmbeddedAnimatedCharacterInstaller",
+      "target": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+    },
+    {
+      "evidence": {
+        "line": 531,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.CuratedEmbeddedAnimatedCharacterPlan",
+      "target": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+    },
+    {
+      "evidence": {
+        "line": 520,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.EmbeddedAnimationClips",
+      "target": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
     },
     {
       "evidence": {
@@ -79689,7 +79784,7 @@
     },
     {
       "evidence": {
-        "line": 518,
+        "line": 524,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAnimatedCharacterInstaller.cs"
       },
       "kind": "defined_in",
@@ -79704,6 +79799,15 @@
       "kind": "defined_in",
       "source": "type:Forge.ModuleFormat.Assets.SourcePack",
       "target": "file:src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
+    },
+    {
+      "evidence": {
+        "line": 509,
+        "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.SourcePack",
+      "target": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
     },
     {
       "evidence": {
@@ -83532,7 +83636,7 @@
     },
     {
       "evidence": {
-        "line": 1253,
+        "line": 1258,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83541,7 +83645,7 @@
     },
     {
       "evidence": {
-        "line": 1368,
+        "line": 1373,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83550,7 +83654,7 @@
     },
     {
       "evidence": {
-        "line": 1506,
+        "line": 1511,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83559,7 +83663,7 @@
     },
     {
       "evidence": {
-        "line": 1493,
+        "line": 1498,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83568,7 +83672,7 @@
     },
     {
       "evidence": {
-        "line": 360,
+        "line": 365,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83577,7 +83681,7 @@
     },
     {
       "evidence": {
-        "line": 1455,
+        "line": 1460,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83586,7 +83690,7 @@
     },
     {
       "evidence": {
-        "line": 1438,
+        "line": 1443,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83595,7 +83699,7 @@
     },
     {
       "evidence": {
-        "line": 1545,
+        "line": 1550,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83604,7 +83708,7 @@
     },
     {
       "evidence": {
-        "line": 1592,
+        "line": 1597,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83613,7 +83717,7 @@
     },
     {
       "evidence": {
-        "line": 1574,
+        "line": 1579,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83622,7 +83726,7 @@
     },
     {
       "evidence": {
-        "line": 1562,
+        "line": 1567,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83631,7 +83735,7 @@
     },
     {
       "evidence": {
-        "line": 1518,
+        "line": 1523,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83640,7 +83744,7 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 83,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83649,7 +83753,7 @@
     },
     {
       "evidence": {
-        "line": 83,
+        "line": 84,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83667,7 +83771,7 @@
     },
     {
       "evidence": {
-        "line": 3353,
+        "line": 3414,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -83694,7 +83798,7 @@
     },
     {
       "evidence": {
-        "line": 3392,
+        "line": 3453,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -83748,7 +83852,7 @@
     },
     {
       "evidence": {
-        "line": 135,
+        "line": 152,
         "path": "apps/Forge.Runtime/Runtime/PlayerController.cs"
       },
       "kind": "defined_in",
@@ -85413,8 +85517,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:bf1cc3642b9dfcc828cdcfa513d9afd4dd8297fc08842dc4e4888fc95ab42a76",
-    "source_file_count": 1527
+    "source_digest": "sha256:72a02a57aa7c18709bbc3ad5a370d9a71c5e68b78c7b6c3a6cc8fe670966d6b1",
+    "source_file_count": 1547
   },
   "nodes": [
     {
@@ -87438,14 +87542,14 @@
       "path": "apps/Forge.Runtime/content/forgotten-forest/.forge/build-graph.json"
     },
     {
-      "id": "file:apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-0fe0f3d29ad736df.json",
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-8ae2509357f64257.json",
       "kind": "configuration",
       "line": 1,
       "metadata": {
         "language": "configuration"
       },
-      "name": "a56d51fe-089a-995f-a4c9-59c349b0f1d8-0fe0f3d29ad736df.json",
-      "path": "apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-0fe0f3d29ad736df.json"
+      "name": "a56d51fe-089a-995f-a4c9-59c349b0f1d8-8ae2509357f64257.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-8ae2509357f64257.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/CREDITS_ASSETS.md",
@@ -87476,6 +87580,56 @@
       },
       "name": "import-profiles.json",
       "path": "apps/Forge.Runtime/content/forgotten-forest/assets/import-profiles.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kaykit-character-pack-adventures-1-0-barbarian/model.quality.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "model.quality.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kaykit-character-pack-adventures-1-0-barbarian/model.quality.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kaykit-character-pack-adventures-1-0-knight/model.quality.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "model.quality.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kaykit-character-pack-adventures-1-0-knight/model.quality.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kaykit-character-pack-adventures-1-0-mage/model.quality.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "model.quality.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kaykit-character-pack-adventures-1-0-mage/model.quality.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kaykit-character-pack-adventures-1-0-rogue-hooded/model.quality.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "model.quality.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kaykit-character-pack-adventures-1-0-rogue-hooded/model.quality.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kaykit-character-pack-adventures-1-0-rogue/model.quality.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "model.quality.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kaykit-character-pack-adventures-1-0-rogue/model.quality.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-animated-characters-protagonists-forest-adventurer/model.quality.json",
@@ -87708,6 +87862,26 @@
       "path": "apps/Forge.Runtime/content/forgotten-forest/assets/imported/kenney-mini-forest-weapon-bow/import-receipt.json"
     },
     {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/053511fd-e165-1951-9869-6224f82b747f.worker-request.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "053511fd-e165-1951-9869-6224f82b747f.worker-request.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/053511fd-e165-1951-9869-6224f82b747f.worker-request.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/056fe96c-5c83-145d-98fd-0623b9350cf5.worker-request.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "056fe96c-5c83-145d-98fd-0623b9350cf5.worker-request.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/056fe96c-5c83-145d-98fd-0623b9350cf5.worker-request.json"
+    },
+    {
       "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/16946a65-ec1b-d259-aa9b-d0aedc7a7407.worker-request.json",
       "kind": "configuration",
       "line": 1,
@@ -87716,6 +87890,36 @@
       },
       "name": "16946a65-ec1b-d259-aa9b-d0aedc7a7407.worker-request.json",
       "path": "apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/16946a65-ec1b-d259-aa9b-d0aedc7a7407.worker-request.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/220be95a-282c-cc52-aaf9-4fe811b32609.worker-request.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "220be95a-282c-cc52-aaf9-4fe811b32609.worker-request.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/220be95a-282c-cc52-aaf9-4fe811b32609.worker-request.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/3bf93c4b-7df6-455c-be89-ba38d40e941c.worker-request.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "3bf93c4b-7df6-455c-be89-ba38d40e941c.worker-request.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/3bf93c4b-7df6-455c-be89-ba38d40e941c.worker-request.json"
+    },
+    {
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/b7cb21fb-b54e-835a-8f84-eea64beb294a.worker-request.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "b7cb21fb-b54e-835a-8f84-eea64beb294a.worker-request.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/b7cb21fb-b54e-835a-8f84-eea64beb294a.worker-request.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/roundtrip/worker-response.json",
@@ -88378,6 +88582,16 @@
       "path": "asset_manifests/catalogs/cc0_3d_all.json"
     },
     {
+      "id": "file:asset_manifests/catalogs/kaykit_animated_characters.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "kaykit_animated_characters.json",
+      "path": "asset_manifests/catalogs/kaykit_animated_characters.json"
+    },
+    {
       "id": "file:asset_manifests/catalogs/kenney_3d_packs.json",
       "kind": "configuration",
       "line": 1,
@@ -88418,6 +88632,56 @@
       "path": "asset_manifests/packs/forgotten_forest_core.json"
     },
     {
+      "id": "file:asset_manifests/packs/forgotten_forest_kaykit_barbarian.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "forgotten_forest_kaykit_barbarian.json",
+      "path": "asset_manifests/packs/forgotten_forest_kaykit_barbarian.json"
+    },
+    {
+      "id": "file:asset_manifests/packs/forgotten_forest_kaykit_knight.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "forgotten_forest_kaykit_knight.json",
+      "path": "asset_manifests/packs/forgotten_forest_kaykit_knight.json"
+    },
+    {
+      "id": "file:asset_manifests/packs/forgotten_forest_kaykit_mage.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "forgotten_forest_kaykit_mage.json",
+      "path": "asset_manifests/packs/forgotten_forest_kaykit_mage.json"
+    },
+    {
+      "id": "file:asset_manifests/packs/forgotten_forest_kaykit_rogue.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "forgotten_forest_kaykit_rogue.json",
+      "path": "asset_manifests/packs/forgotten_forest_kaykit_rogue.json"
+    },
+    {
+      "id": "file:asset_manifests/packs/forgotten_forest_kaykit_rogue_hooded.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "forgotten_forest_kaykit_rogue_hooded.json",
+      "path": "asset_manifests/packs/forgotten_forest_kaykit_rogue_hooded.json"
+    },
+    {
       "id": "file:asset_manifests/packs/kenney_3d_all.json",
       "kind": "configuration",
       "line": 1,
@@ -88436,6 +88700,16 @@
       },
       "name": "ambientcg.json",
       "path": "asset_manifests/sources/ambientcg.json"
+    },
+    {
+      "id": "file:asset_manifests/sources/kaykit.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "kaykit.json",
+      "path": "asset_manifests/sources/kaykit.json"
     },
     {
       "id": "file:asset_manifests/sources/kenney.json",
@@ -88956,6 +89230,16 @@
       },
       "name": "AV5_DELIVERY_AND_EXTENSION.md",
       "path": "docs/assets/AV5_DELIVERY_AND_EXTENSION.md"
+    },
+    {
+      "id": "file:docs/assets/AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md",
+      "path": "docs/assets/AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md"
     },
     {
       "id": "file:docs/assets/AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md",
@@ -96058,6 +96342,16 @@
       "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CuratedEmbeddedAnimatedCharacterInstaller.cs",
+      "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Assets/UntrustedAssetHeaderValidator.cs",
       "kind": "file",
       "line": 1,
@@ -99446,6 +99740,16 @@
       },
       "name": "CuratedAssetPackInstallerTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedAssetPackInstallerTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "CuratedEmbeddedAnimatedCharacterInstallerTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Build/WorkspaceBuildGraphTests.cs",
@@ -103280,7 +103584,7 @@
     {
       "id": "handler:Forge.EngineAdapter.Assets.GodotAssetAnimationController",
       "kind": "handler",
-      "line": 34,
+      "line": 46,
       "metadata": {
         "namespace": "Forge.EngineAdapter.Assets"
       },
@@ -106200,7 +106504,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.AnimatedCharacterDocument",
       "kind": "model",
-      "line": 501,
+      "line": 507,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -106210,7 +106514,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.AnimationDocument",
       "kind": "model",
-      "line": 517,
+      "line": 523,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -106310,7 +106614,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.CuratedAnimatedCharacterInstallResult",
       "kind": "model",
-      "line": 543,
+      "line": 549,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -106338,6 +106642,16 @@
       "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
     },
     {
+      "id": "model:Forge.ModuleFormat.Assets.CuratedEmbeddedAnimatedCharacterInstallResult",
+      "kind": "model",
+      "line": 550,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "CuratedEmbeddedAnimatedCharacterInstallResult",
+      "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+    },
+    {
       "id": "model:Forge.ModuleFormat.Assets.CuratedModelDocument",
       "kind": "model",
       "line": 344,
@@ -106356,6 +106670,16 @@
       },
       "name": "CuratedPackDocument",
       "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Assets.EmbeddedAnimatedCharacterDocument",
+      "kind": "model",
+      "line": 492,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "EmbeddedAnimatedCharacterDocument",
+      "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
     },
     {
       "id": "model:Forge.ModuleFormat.Assets.FileDocument",
@@ -108150,7 +108474,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 3424,
+      "line": 3485,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -112179,6 +112503,16 @@
       "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedAssetPackInstallerTests.cs"
     },
     {
+      "id": "test:Forge.ModuleFormat.Tests.Assets.CuratedEmbeddedAnimatedCharacterInstallerTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Assets"
+      },
+      "name": "CuratedEmbeddedAnimatedCharacterInstallerTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedEmbeddedAnimatedCharacterInstallerTests.cs"
+    },
+    {
       "id": "test:Forge.ModuleFormat.Tests.Assets.DeliveryFixture",
       "kind": "test",
       "line": 56,
@@ -114326,6 +114660,16 @@
       "path": "src/Forge.Application/Projects/OriginalModuleAuthoringService.cs"
     },
     {
+      "id": "type:Forge.Application.Projects.CharacterClips",
+      "kind": "type",
+      "line": 282,
+      "metadata": {
+        "namespace": "Forge.Application.Projects"
+      },
+      "name": "CharacterClips",
+      "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
+    },
+    {
       "id": "type:Forge.Application.Projects.ForgottenForestAuthoredModule",
       "kind": "type",
       "line": 20,
@@ -114368,7 +114712,7 @@
     {
       "id": "type:Forge.Application.Projects.StableIds",
       "kind": "type",
-      "line": 520,
+      "line": 553,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -119038,7 +119382,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.CuratedAnimatedCharacterPlan",
       "kind": "type",
-      "line": 529,
+      "line": 535,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -119048,7 +119392,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.CuratedAnimationSource",
       "kind": "type",
-      "line": 527,
+      "line": 533,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -119064,6 +119408,36 @@
       },
       "name": "CuratedAssetPackInstaller",
       "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.CuratedEmbeddedAnimatedCharacterInstaller",
+      "kind": "type",
+      "line": 11,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "CuratedEmbeddedAnimatedCharacterInstaller",
+      "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.CuratedEmbeddedAnimatedCharacterPlan",
+      "kind": "type",
+      "line": 531,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "CuratedEmbeddedAnimatedCharacterPlan",
+      "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.EmbeddedAnimationClips",
+      "kind": "type",
+      "line": 520,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "EmbeddedAnimationClips",
+      "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
     },
     {
       "id": "type:Forge.ModuleFormat.Assets.FileMetrics",
@@ -119148,7 +119522,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.SourcePack",
       "kind": "type",
-      "line": 518,
+      "line": 524,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -123328,7 +123702,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeAreaChunkLoader",
       "kind": "type",
-      "line": 3353,
+      "line": 3414,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -123358,7 +123732,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 3392,
+      "line": 3453,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -123398,7 +123772,7 @@
     {
       "id": "type:Forge.Runtime.WaterContact",
       "kind": "type",
-      "line": 135,
+      "line": 152,
       "metadata": {
         "namespace": "Forge.Runtime"
       },

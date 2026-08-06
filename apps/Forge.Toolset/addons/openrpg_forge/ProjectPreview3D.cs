@@ -835,9 +835,24 @@ public partial class ProjectPreview3D : SubViewportContainer
                 AssetModelInstanceCount++;
                 var animationProfile = entity.Overrides.Properties.SingleOrDefault(property =>
                     string.Equals(property.Key, "runtime.animationProfile", StringComparison.Ordinal))?.Value;
-                if (string.Equals(animationProfile, "humanoid-basic", StringComparison.Ordinal))
+                string AnimationClip(string key, string fallback) =>
+                    entity.Overrides.Properties.SingleOrDefault(property =>
+                        string.Equals(property.Key, key, StringComparison.Ordinal))?.Value ?? fallback;
+                var animation = animationProfile switch
                 {
-                    var animation = GodotAssetAnimationController.Configure(model);
+                    "humanoid-basic" => GodotAssetAnimationController.Configure(model),
+                    "kaykit-adventurer" => GodotAssetAnimationController.Configure(
+                        model,
+                        idle: AnimationClip("runtime.animationIdle", "Idle"),
+                        run: AnimationClip("runtime.animationRun", "Running_A"),
+                        jump: AnimationClip("runtime.animationJump", "Jump_Full_Short"),
+                        attack: AnimationClip("runtime.animationAttack", "1H_Melee_Attack_Slice_Horizontal"),
+                        hit: AnimationClip("runtime.animationHit", "Hit_A"),
+                        death: AnimationClip("runtime.animationDeath", "Death_A")),
+                    _ => null,
+                };
+                if (animation is not null)
+                {
                     GodotAssetAnimationController.Play(animation, animation.IdleClip, 0);
                     AnimatedAssetModelInstanceCount++;
                     _animationClipNames.UnionWith(animation.Clips);

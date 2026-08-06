@@ -31,7 +31,7 @@
 - `kenney:mini-forest:weapon-arrow` — `246ca6bc-c0a5-5555-952b-12a15cb2435a` — `assets/imported/kenney-mini-forest-weapon-arrow/model.glb` — SHA-256 `d84f466836daea08ab3e954e2dd660b8bebe2f86463875173ff661fb4b606a52`
 - `kenney:mini-forest:weapon-bow` — `90c4247a-7483-475a-8e00-cb993953d00d` — `assets/imported/kenney-mini-forest-weapon-bow/model.glb` — SHA-256 `093e834c1edf85b4e2d2ee18490e21230088ba98022dad18a799b66ee8bea689`
 
-## Animated character
+## Animated character — Forgotten Forest Animated Adventurer
 
 - Pack: forgotten-forest-animated-character 1.0.0
 - Source: Kenney Animated Characters Protagonists (https://kenney.nl/assets/animated-characters-protagonists)
@@ -41,3 +41,68 @@
 - Stable identity: `kenney:animated-characters-protagonists:forest-adventurer` — `16946a65-ec1b-d259-aa9b-d0aedc7a7407`
 - Runtime GLB: `assets/imported/kenney-animated-characters-protagonists-forest-adventurer/model.glb` — SHA-256 `811b69238cfa478b50581449125617ada457802bec76100aa88d4638a6f2ec32`
 - Clips: idle (1,333 s), jump (0,5 s), run (0,667 s)
+
+## Animated character — Root Guardian Barbarian
+
+- Pack: forgotten-forest-kaykit-barbarian 1.0.0
+- Source: KayKit Character Pack Adventurers 1.0 (https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0)
+- License: CC0-1.0 (https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/blob/672074b73ba276876a19e8816ecdc5241817ab47/LICENSE.txt)
+- License verification: official source repository and governed local catalog
+- Modification: runtime-ready GLB normalized, audited and re-exported; Vault original unchanged
+- Stable identity: `kaykit:character-pack-adventures-1.0:barbarian` — `3bf93c4b-7df6-455c-be89-ba38d40e941c`
+- Runtime GLB: `assets/imported/kaykit-character-pack-adventures-1-0-barbarian/model.glb` — SHA-256 `530b7f02ef5d30b7ff200d4df2a776d55905a0ba6a97c5e2aca425ce94c4c56e`
+- Rig: kaykit-rig-medium-41 (41 bones)
+- Semantic clips: idle=2H_Melee_Idle, run=Running_B, jump=Jump_Full_Short, attack=2H_Melee_Attack_Chop, hit=Hit_B, death=Death_B
+- Available clips: 69
+
+## Animated character — Dawn Watch Knight
+
+- Pack: forgotten-forest-kaykit-knight 1.0.0
+- Source: KayKit Character Pack Adventurers 1.0 (https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0)
+- License: CC0-1.0 (https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/blob/672074b73ba276876a19e8816ecdc5241817ab47/LICENSE.txt)
+- License verification: official source repository and governed local catalog
+- Modification: runtime-ready GLB normalized, audited and re-exported; Vault original unchanged
+- Stable identity: `kaykit:character-pack-adventures-1.0:knight` — `053511fd-e165-1951-9869-6224f82b747f`
+- Runtime GLB: `assets/imported/kaykit-character-pack-adventures-1-0-knight/model.glb` — SHA-256 `df2a4c1c6efcaf47c04736b4f880f2626174a173e1a22212370860db7fdfcb4a`
+- Rig: kaykit-rig-medium-41 (41 bones)
+- Semantic clips: idle=Idle, run=Running_A, jump=Jump_Full_Short, attack=1H_Melee_Attack_Slice_Horizontal, hit=Hit_A, death=Death_A
+- Available clips: 69
+
+## Animated character — Forgotten Forest Mage
+
+- Pack: forgotten-forest-kaykit-mage 1.0.0
+- Source: KayKit Character Pack Adventurers 1.0 (https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0)
+- License: CC0-1.0 (https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/blob/672074b73ba276876a19e8816ecdc5241817ab47/LICENSE.txt)
+- License verification: official source repository and governed local catalog
+- Modification: runtime-ready GLB normalized, audited and re-exported; Vault original unchanged
+- Stable identity: `kaykit:character-pack-adventures-1.0:mage` — `220be95a-282c-cc52-aaf9-4fe811b32609`
+- Runtime GLB: `assets/imported/kaykit-character-pack-adventures-1-0-mage/model.glb` — SHA-256 `0c36eebb36df2c020355a97ea914f2aa5643dc472fa45e68706ac4cb3c454d0b`
+- Rig: kaykit-rig-medium-41 (41 bones)
+- Semantic clips: idle=Idle, run=Running_A, jump=Jump_Full_Short, attack=Spellcast_Shoot, hit=Hit_A, death=Death_A
+- Available clips: 69
+
+## Animated character — Corrupted Forest Rogue
+
+- Pack: forgotten-forest-kaykit-rogue 1.0.0
+- Source: KayKit Character Pack Adventurers 1.0 (https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0)
+- License: CC0-1.0 (https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/blob/672074b73ba276876a19e8816ecdc5241817ab47/LICENSE.txt)
+- License verification: official source repository and governed local catalog
+- Modification: runtime-ready GLB normalized, audited and re-exported; Vault original unchanged
+- Stable identity: `kaykit:character-pack-adventures-1.0:rogue` — `b7cb21fb-b54e-835a-8f84-eea64beb294a`
+- Runtime GLB: `assets/imported/kaykit-character-pack-adventures-1-0-rogue/model.glb` — SHA-256 `58e1241b640ec34ce49a3e041fd8927ace327d93c9d435dcb4e8f4c43f045f3a`
+- Rig: kaykit-rig-medium-41 (41 bones)
+- Semantic clips: idle=Idle, run=Running_A, jump=Jump_Full_Short, attack=1H_Melee_Attack_Stab, hit=Hit_A, death=Death_A
+- Available clips: 69
+
+## Animated character — Hooded Rootbound Rogue
+
+- Pack: forgotten-forest-kaykit-rogue-hooded 1.0.0
+- Source: KayKit Character Pack Adventurers 1.0 (https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0)
+- License: CC0-1.0 (https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/blob/672074b73ba276876a19e8816ecdc5241817ab47/LICENSE.txt)
+- License verification: official source repository and governed local catalog
+- Modification: runtime-ready GLB normalized, audited and re-exported; Vault original unchanged
+- Stable identity: `kaykit:character-pack-adventures-1.0:rogue-hooded` — `056fe96c-5c83-145d-98fd-0623b9350cf5`
+- Runtime GLB: `assets/imported/kaykit-character-pack-adventures-1-0-rogue-hooded/model.glb` — SHA-256 `94cb0922eb9dbdc7147fa7f11cbba3c4066e0a06debbeeaef05cf217497e29b8`
+- Rig: kaykit-rig-medium-41 (41 bones)
+- Semantic clips: idle=Idle, run=Running_A, jump=Jump_Full_Short, attack=Dualwield_Melee_Attack_Slice, hit=Hit_B, death=Death_B
+- Available clips: 69

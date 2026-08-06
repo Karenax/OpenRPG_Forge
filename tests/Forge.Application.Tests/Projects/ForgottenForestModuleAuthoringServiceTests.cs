@@ -52,13 +52,19 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         Assert.Equal(
             AssetCatalogItemId.ForExternalId("kenney:mini-forest:tree-high"),
             ForgottenForestModuleAuthoringService.AssetId("tree-high"));
-        var animatedAssetId = ForgottenForestModuleAuthoringService.AnimatedCharacterAssetId().ToString();
         var animatedEntities = area.Entities.Where(entity =>
             entity.Overrides.Properties.Any(property =>
-                property.Key == "runtime.animationProfile" && property.Value == "humanoid-basic")).ToArray();
+                property.Key == "runtime.animationProfile" && property.Value == "kaykit-adventurer")).ToArray();
         Assert.Equal(5, animatedEntities.Length);
-        Assert.All(animatedEntities, entity => Assert.Contains(entity.Overrides.Properties, property =>
-            property.Key == "visual.asset" && property.Value == animatedAssetId));
+        var expectedAnimatedAssets = new[] { "knight", "mage", "rogue", "rogue-hooded", "barbarian" }
+            .Select(key => ForgottenForestModuleAuthoringService.AnimatedCharacterAssetId(key).ToString())
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        var actualAnimatedAssets = animatedEntities
+            .Select(entity => entity.Overrides.Properties.Single(property => property.Key == "visual.asset").Value)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        Assert.Equal(expectedAnimatedAssets, actualAnimatedAssets);
         Assert.Equal(2, authored.Scripts.Count);
         Assert.Empty(ProjectValidator.Validate(project));
     }

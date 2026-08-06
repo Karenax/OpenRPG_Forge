@@ -94,3 +94,5 @@ Vault. Le catalogue reste donc figé à 605 entrées. La politique de livraison 
 et trois clips, tandis que l’ancien modèle statique reste disponible pour les modules existants.
 La preuve détaillée est décrite dans
 [`AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md`](AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md).
+La diversification fantasy et le combat animé suivants sont détaillés dans
+[`AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md`](AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md).

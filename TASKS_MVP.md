@@ -553,5 +553,6 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Valider hashes, licence, rig, clips, miniature, audit qualité et réutilisation idempotente.
 - [x] Relier le profil d’animation aux entités, au viewport Creator et au contrôleur du joueur.
 - [x] Prouver cinq personnages et trois clips dans le smoke jouable puis inspecter une capture Forward+.
-- [ ] Ajouter des variantes visuelles cohérentes, le retargeting et une animation de combat bornée.
+- [x] Ajouter cinq variantes fantasy cohérentes et une séquence combat attaque/impact/mort bornée.
+- [ ] Prouver le retargeting d’un clip entre deux rigs incompatibles, avec audit de déformation.
 - [ ] Composer la carte 512 × 512 par secteurs, puis refaire budgets, navigation et revue visuelle.

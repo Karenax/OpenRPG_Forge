@@ -9,12 +9,18 @@ public sealed class GodotAssetAnimationState
         string idleClip,
         string runClip,
         string jumpClip,
+        string? attackClip,
+        string? hitClip,
+        string? deathClip,
         IReadOnlyList<string> clips)
     {
         Player = player;
         IdleClip = idleClip;
         RunClip = runClip;
         JumpClip = jumpClip;
+        AttackClip = attackClip;
+        HitClip = hitClip;
+        DeathClip = deathClip;
         Clips = clips;
     }
 
@@ -25,6 +31,12 @@ public sealed class GodotAssetAnimationState
     public string RunClip { get; }
 
     public string JumpClip { get; }
+
+    public string? AttackClip { get; }
+
+    public string? HitClip { get; }
+
+    public string? DeathClip { get; }
 
     public IReadOnlyList<string> Clips { get; }
 
@@ -37,7 +49,10 @@ public static class GodotAssetAnimationController
         Node root,
         string idle = "idle",
         string run = "run",
-        string jump = "jump")
+        string jump = "jump",
+        string? attack = null,
+        string? hit = null,
+        string? death = null)
     {
         ArgumentNullException.ThrowIfNull(root);
         var player = FindAnimationPlayer(root) ?? throw new InvalidDataException(
@@ -51,24 +66,51 @@ public static class GodotAssetAnimationController
         var idleClip = ResolveClip(clips, idle);
         var runClip = ResolveClip(clips, run);
         var jumpClip = ResolveClip(clips, jump);
+        var attackClip = ResolveOptionalClip(clips, attack);
+        var hitClip = ResolveOptionalClip(clips, hit);
+        var deathClip = ResolveOptionalClip(clips, death);
 
         player.Active = true;
         SetLoopMode(player, idleClip, Animation.LoopModeEnum.Linear);
         SetLoopMode(player, runClip, Animation.LoopModeEnum.Linear);
         SetLoopMode(player, jumpClip, Animation.LoopModeEnum.None);
-        return new GodotAssetAnimationState(player, idleClip, runClip, jumpClip, clips);
+        SetOptionalLoopMode(player, attackClip, Animation.LoopModeEnum.None);
+        SetOptionalLoopMode(player, hitClip, Animation.LoopModeEnum.None);
+        SetOptionalLoopMode(player, deathClip, Animation.LoopModeEnum.None);
+        return new GodotAssetAnimationState(
+            player,
+            idleClip,
+            runClip,
+            jumpClip,
+            attackClip,
+            hitClip,
+            deathClip,
+            clips);
     }
 
-    public static bool Play(GodotAssetAnimationState state, string clip, double blendSeconds = .12)
+    public static bool Play(
+        GodotAssetAnimationState state,
+        string clip,
+        double blendSeconds = .12,
+        bool restart = false)
     {
         ArgumentNullException.ThrowIfNull(state);
         ArgumentException.ThrowIfNullOrWhiteSpace(clip);
         if (!state.Clips.Contains(clip, StringComparer.Ordinal)) return false;
-        if (string.Equals(state.CurrentClip, clip, StringComparison.Ordinal)) return true;
+        if (!restart && string.Equals(state.CurrentClip, clip, StringComparison.Ordinal)) return true;
 
         state.Player.Play(clip, blendSeconds);
         state.CurrentClip = clip;
         return true;
+    }
+
+    public static double DurationSeconds(GodotAssetAnimationState state, string clip)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        ArgumentException.ThrowIfNullOrWhiteSpace(clip);
+        var animation = state.Player.GetAnimation(clip) ?? throw new InvalidDataException(
+            $"AnimationPlayer could not resolve clip '{clip}'.");
+        return animation.Length;
     }
 
     private static AnimationPlayer? FindAnimationPlayer(Node node)
@@ -95,6 +137,9 @@ public static class GodotAssetAnimationController
             $"Required animation clip '{requested}' is missing. Available clips: {string.Join(", ", clips)}.");
     }
 
+    private static string? ResolveOptionalClip(IReadOnlyList<string> clips, string? requested) =>
+        string.IsNullOrWhiteSpace(requested) ? null : ResolveClip(clips, requested);
+
     private static string ClipLeaf(string clip)
     {
         var separator = clip.LastIndexOfAny(['/', '|', ':']);
@@ -106,5 +151,13 @@ public static class GodotAssetAnimationController
         var animation = player.GetAnimation(clip) ?? throw new InvalidDataException(
             $"AnimationPlayer could not resolve clip '{clip}'.");
         animation.LoopMode = loopMode;
+    }
+
+    private static void SetOptionalLoopMode(
+        AnimationPlayer player,
+        string? clip,
+        Animation.LoopModeEnum loopMode)
+    {
+        if (clip is not null) SetLoopMode(player, clip, loopMode);
     }
 }

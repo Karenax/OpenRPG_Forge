@@ -10,6 +10,7 @@ public partial class PlayerController : CharacterBody3D
     private const float Gravity = 24.0f;
     private ModuleGameplayControlProfile? _profile;
     private GodotAssetAnimationState? _animations;
+    private double _oneShotRemainingSeconds;
     private float _breath = 45;
     private float _stamina = 100;
 
@@ -25,6 +26,10 @@ public partial class PlayerController : CharacterBody3D
 
     public float StaminaRemaining => _stamina;
 
+    public int AttackAnimationCount { get; private set; }
+
+    public string? CurrentAnimationClip => _animations?.CurrentClip;
+
     public void Configure(ModuleGameplayControlProfile profile)
     {
         _profile = profile ?? throw new ArgumentNullException(nameof(profile));
@@ -38,8 +43,20 @@ public partial class PlayerController : CharacterBody3D
         GodotAssetAnimationController.Play(animations, animations.IdleClip, 0);
     }
 
+    public bool PlayAttackAnimation()
+    {
+        if (_animations?.AttackClip is not { } clip) return false;
+        if (!GodotAssetAnimationController.Play(_animations, clip, .08, restart: true)) return false;
+        _oneShotRemainingSeconds = Math.Max(
+            .05,
+            GodotAssetAnimationController.DurationSeconds(_animations, clip));
+        AttackAnimationCount++;
+        return true;
+    }
+
     public override void _PhysicsProcess(double delta)
     {
+        _oneShotRemainingSeconds = Math.Max(0, _oneShotRemainingSeconds - delta);
         if (_profile is null || ControlLocked)
         {
             Velocity = Vector3.Zero;
@@ -82,7 +99,7 @@ public partial class PlayerController : CharacterBody3D
 
     private void PlayMovementAnimation(Vector3 direction, bool airborne)
     {
-        if (_animations is null) return;
+        if (_animations is null || _oneShotRemainingSeconds > 0) return;
         var clip = airborne
             ? _animations.JumpClip
             : direction.LengthSquared() > .01f

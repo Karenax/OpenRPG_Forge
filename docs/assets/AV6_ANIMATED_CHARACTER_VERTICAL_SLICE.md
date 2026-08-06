@@ -53,6 +53,7 @@ suivant.
 
 ## Limites explicites
 
-Cette tranche ne prétend pas livrer un système complet d’animation. Restent à faire : variantes de
-peaux et silhouettes, retargeting entre rigs, blend tree, root motion, attaques/dégâts synchronisés,
-IK avancée, animation réseau et revue artistique de la future carte 512 × 512.
+Cette tranche ne prétend pas livrer un système complet d’animation. AV6-B ajoute désormais cinq
+silhouettes et les états attaque/impact/mort sur le rig KayKit commun. Le retargeting entre rigs,
+blend tree, root motion, IK avancée, animation réseau et la future carte 512 × 512 restent à livrer.
+Voir [`AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md`](AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md).

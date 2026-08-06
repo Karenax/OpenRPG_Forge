@@ -564,10 +564,38 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
             repositoryRoot,
             catalog.VaultRoot,
             created.Session.RootDirectory,
-            animatedPlan,
+            animatedPlan.RequestRelativePath,
             options.GetValueOrDefault("blender"));
     }
     var animated = CuratedAnimatedCharacterInstaller.Complete(created.Session.RootDirectory, animatedPlan);
+    var embeddedCharacters = new List<CuratedEmbeddedAnimatedCharacterInstallResult>();
+    var embeddedCharacterManifests = Directory.EnumerateFiles(
+            Path.Combine(repositoryRoot, "asset_manifests", "packs"),
+            "forgotten_forest_kaykit_*.json",
+            SearchOption.TopDirectoryOnly)
+        .Order(StringComparer.Ordinal)
+        .ToArray();
+    foreach (var embeddedManifest in embeddedCharacterManifests)
+    {
+        var embeddedPlan = CuratedEmbeddedAnimatedCharacterInstaller.Plan(
+            repositoryRoot,
+            catalog.VaultRoot,
+            created.Session.RootDirectory,
+            embeddedManifest);
+        if (!embeddedPlan.Reused)
+        {
+            RunAnimatedCharacterWorker(
+                repositoryRoot,
+                catalog.VaultRoot,
+                created.Session.RootDirectory,
+                embeddedPlan.RequestRelativePath,
+                options.GetValueOrDefault("blender"));
+        }
+
+        embeddedCharacters.Add(CuratedEmbeddedAnimatedCharacterInstaller.Complete(
+            created.Session.RootDirectory,
+            embeddedPlan));
+    }
     Console.WriteLine(JsonSerializer.Serialize(new
     {
         valid = true,
@@ -590,12 +618,25 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
             animated.Reused,
             animated.LicenseSpdx,
         },
+        animatedCharacters = embeddedCharacters.Select(character => new
+        {
+            assetId = character.AssetId.ToString(),
+            character.OutputRelativePath,
+            clipCount = character.Clips.Count,
+            character.AnimationProfile,
+            semanticClips = character.SemanticClips,
+            character.TriangleCount,
+            character.Reused,
+            character.LicenseSpdx,
+        }),
     }));
     Console.WriteLine(
         $"OPENRPG_FORGE_FORGOTTEN_FOREST_AUTHORED slug=forgotten-forest " +
         $"entities={created.Session.Project.Areas.Sum(area => area.Entities.Count)} " +
-        $"assets={installed.Entries.Count + 1} reused={installed.ReusedCount + (animated.Reused ? 1 : 0)} " +
-        $"animated={animated.AssetId} clips={string.Join(',', animated.Clips)} license={installed.LicenseSpdx}");
+        $"assets={installed.Entries.Count + 1 + embeddedCharacters.Count} " +
+        $"reused={installed.ReusedCount + (animated.Reused ? 1 : 0) + embeddedCharacters.Count(character => character.Reused)} " +
+        $"animated_variants={embeddedCharacters.Count} clips={embeddedCharacters.Min(character => character.Clips.Count)} " +
+        $"profile=kaykit-adventurer license={installed.LicenseSpdx}");
     return 0;
 }
 
@@ -603,10 +644,10 @@ static void RunAnimatedCharacterWorker(
     string repositoryRoot,
     string vaultRoot,
     string workspaceRoot,
-    CuratedAnimatedCharacterPlan plan,
+    string? requestRelativePath,
     string? configuredBlender)
 {
-    if (string.IsNullOrWhiteSpace(plan.RequestRelativePath))
+    if (string.IsNullOrWhiteSpace(requestRelativePath))
     {
         throw new InvalidOperationException("Animated character worker request is missing.");
     }
@@ -616,7 +657,7 @@ static void RunAnimatedCharacterWorker(
     if (string.IsNullOrWhiteSpace(python)) python = "python";
     var request = Path.GetFullPath(Path.Combine(
         workspaceRoot,
-        plan.RequestRelativePath.Replace('/', Path.DirectorySeparatorChar)));
+        requestRelativePath.Replace('/', Path.DirectorySeparatorChar)));
     var response = Path.GetFullPath(Path.Combine(
         workspaceRoot,
         AssetRoundTripFinalizer.ResponseRelativePath.Replace('/', Path.DirectorySeparatorChar)));

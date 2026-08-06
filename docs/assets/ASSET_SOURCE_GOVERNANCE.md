@@ -13,6 +13,7 @@ prouvés pour les fichiers exacts visés.
 | Poly Haven | modèles fournis par l’API officielle | CC0-1.0 | API et URLs officielles | `asset_manifests/sources/polyhaven.json` |
 | ambientCG | modèles 3D et archives officielles | CC0-1.0 | API v3 et URLs officielles | `asset_manifests/sources/ambientcg.json` |
 | Kenney | packs 3D dont la page exacte déclare CC0 | CC0-1.0 | page et ZIP officiel | `asset_manifests/sources/kenney.json` |
+| KayKit | dépôts officiels épinglés dont la licence du commit déclare CC0 | CC0-1.0 | dépôt et archive du commit officiel | `asset_manifests/sources/kaykit.json` |
 
 L’acceptation est bornée à ces adaptateurs, variantes et URLs. Un miroir tiers portant le même nom
 de source n’est pas accepté automatiquement.
@@ -22,6 +23,9 @@ de source n’est pas accepté automatiquement.
 | Source | Packs actuellement identifiés | Motif du mode manuel | Conditions avant catalogue |
 |---|---|---|---|
 | Quaternius | Stylized Nature MegaKit, Medieval Village Pack | Itch.io ou dossier partagé sans URL d’archive stable autorisée par l’adaptateur | téléchargement depuis la page officielle, archive intacte, SHA-256, preuve CC0 exacte, extraction sûre et revue visuelle |
+
+Le pack KayKit Adventurers 1.0 constitue la première admission bornée de KayKit : cinq GLB au
+commit `672074b73ba276876a19e8816ecdc5241817ab47`, sans admission automatique des autres dépôts.
 
 La procédure détaillée et les pages épinglées sont dans `MANUAL_DOWNLOADS_REQUIRED.md`. Aucun outil
 ne simule une validation humaine, ne contourne une page ou ne devine une URL interne.

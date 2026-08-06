@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "jobId": "b9aedada-3ad0-7959-adeb-021f390a57c6",
+  "assetId": "053511fd-e165-1951-9869-6224f82b747f",
+  "sourceRelativePath": "normalized/kaykit/character-pack-adventures-1.0/KayKit-Character-Pack-Adventures-1.0-672074b73ba276876a19e8816ecdc5241817ab47/addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb",
+  "outputRelativePath": "assets/imported/kaykit-character-pack-adventures-1-0-knight/model.glb",
+  "sourceSha256": "60428e3abc09ba83e595d256e3af8c5c976b46cdae599f0802fc82b4a3445168",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-kaykit-knight@1.0.0;source:kaykit:character-pack-adventures-1.0;archive-sha256:00777a7b9811a7c7f8dd3fda4e56604f6a93b33673d64557153f354d677b47af;model:addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb",
+  "operations": [
+    "validate_model",
+    "normalize_model",
+    "export_glb",
+    "generate_thumbnail",
+    "audit_quality"
+  ],
+  "options": {
+    "applyTransforms": true,
+    "scaleMeters": 1.0,
+    "pivot": "ground_center",
+    "lodRatios": [],
+    "generateCollision": false,
+    "animationSources": [],
+    "materialTextures": []
+  }
+}
