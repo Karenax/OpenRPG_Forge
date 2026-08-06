@@ -210,8 +210,10 @@ La tranche 128 × 128 m charge maintenant ses 22 GLB gouvernés, son scatter, so
 maillage de navigation avec traversée de pont. Le Content Browser installe maintenant un GLB vérifié
 dans la palette et le glisser-déposer l’affiche réellement dans Creator. Terrain Studio sélectionne
 ces mêmes assets dans les recettes de biome et la brosse Matériau/biome contrôle leur dispersion
-déterministe dans le viewport comme au runtime. La prochaine étape ferme les mutations IA/MCP
-d’assets, puis ajoute la finition audiovisuelle et le profilage de la carte de production.
+déterministe dans le viewport comme au runtime. Les mutations IA/MCP d’assets sont maintenant
+fermées par un triptyque plan/apply/revert transactionnel avec contrôle de licence et du GLB. La
+prochaine étape mesure la fondation multi-biome AV4A, puis ajoute la finition audiovisuelle AV5 et
+le profilage de la carte de production.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;

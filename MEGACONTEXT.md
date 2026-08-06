@@ -619,6 +619,13 @@ déterministe partagé respecte altitude, pente, trous, exclusions et distances 
 le rendent par le même `MultiMesh` et résolvent les GLB par le même manifeste vérifié. Le smoke
 Creator prouve désormais simultanément un modèle placé et une couche dispersée réellement visibles.
 
+La dernière tranche AV3 ferme la voie IA/MCP d’installation. Le MCP ne reçoit aucune écriture de
+fichier générique : il expose un plan sec versionné, puis une application et un revert nommés. Le
+plan réutilise `InstallAssetBlueprintHandler`, exige licence et identité cohérentes, manifeste valide,
+GLB canonique confiné, taille et SHA-256 conformes. L’application passe par l’historique et la
+persistance du projet, conserve un audit asset/SPDX/révision, et l’inverse refuse toute révision plus
+récente. Le pont éditeur inter-processus reste volontairement limité aux lectures.
+
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de
 `AGENTS.md`. En cas de conflit, ces sources de vérité du dépôt priment sur la spécification importée.

@@ -494,7 +494,7 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Préparer les brosses de dispersion et recettes de biome sans dupliquer les systèmes de scène :
   la peinture matériau/biome pilote les recettes existantes, les blueprints d’assets installés sont
   sélectionnables et Creator/runtime partagent le même plan déterministe et le même chargeur GLB.
-- [ ] Faire passer toute mutation IA/MCP par les commandes transactionnelles et la validation de
+- [x] Faire passer toute mutation IA/MCP par les commandes transactionnelles et la validation de
   licence.
 
 ### AV4 — Terrain générique et carte Forgotten Forest

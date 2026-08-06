@@ -47,6 +47,7 @@ public sealed class ForgeProjectAgentService
     private readonly SetRulesProfilesHandler _rulesProfilesHandler;
     private readonly SetAreaExperienceProfileHandler _areaExperienceHandler;
     private readonly SetRuntimeExtensionsHandler _runtimeExtensionsHandler;
+    private readonly InstallAssetBlueprintHandler _assetInstallHandler;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
@@ -54,6 +55,7 @@ public sealed class ForgeProjectAgentService
     private readonly Dictionary<string, StoredRulesProfilePlan> _rulesProfilePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAreaExperiencePlan> _areaExperiencePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimeExtensionPlan> _runtimeExtensionPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAssetInstallPlan> _assetInstallPlans = new(StringComparer.Ordinal);
     private readonly IClock _clock;
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
@@ -69,6 +71,7 @@ public sealed class ForgeProjectAgentService
         _rulesProfilesHandler = new SetRulesProfilesHandler(clock);
         _areaExperienceHandler = new SetAreaExperienceProfileHandler(clock);
         _runtimeExtensionsHandler = new SetRuntimeExtensionsHandler(clock);
+        _assetInstallHandler = new InstallAssetBlueprintHandler(clock);
     }
 
     public string WorkspaceDirectory => _session.RootDirectory;
@@ -920,6 +923,165 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public AgentAssetInstallPlanResult PlanAssetInstall(AgentAssetInstallPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return AssetInstallFailure(request.BaseRevision, request.AssetId,
+                    "asset_install_plan.schema_unsupported", "Asset install plan schema must be 1.");
+
+            AssetCatalogItemId assetId;
+            try
+            {
+                assetId = AssetCatalogItemId.Parse(request.AssetId);
+            }
+            catch (Exception exception) when (exception is ArgumentException or FormatException)
+            {
+                return AssetInstallFailure(request.BaseRevision, request.AssetId,
+                    "asset_install_plan.asset_invalid", exception.Message);
+            }
+
+            var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(_session.RootDirectory) ??
+                AssetCatalogLoader.FindRepositoryRoot(AppContext.BaseDirectory);
+            if (repositoryRoot is null)
+                return AssetInstallFailure(request.BaseRevision, request.AssetId,
+                    AssetCatalogLoader.CatalogMissingCode,
+                    "The OpenRPG Forge Asset Vault catalogs could not be located.");
+            var catalogLoad = AssetCatalogLoader.Load(repositoryRoot);
+            if (catalogLoad.Catalog is null)
+            {
+                var diagnostic = catalogLoad.Diagnostics.FirstOrDefault();
+                return AssetInstallFailure(request.BaseRevision, request.AssetId,
+                    diagnostic?.Code ?? AssetCatalogLoader.CatalogInvalidCode,
+                    diagnostic?.Message ?? "The Asset Vault catalog is invalid.");
+            }
+
+            var item = catalogLoad.Catalog.Items.SingleOrDefault(candidate => candidate.Id == assetId);
+            if (item is null)
+                return AssetInstallFailure(request.BaseRevision, request.AssetId,
+                    "asset_install_plan.asset_missing", $"Catalog asset '{request.AssetId}' does not exist.");
+            var manifestLoad = AssetPackageManifestStore.Load(_session.RootDirectory);
+            if (!manifestLoad.Succeeded)
+            {
+                var diagnostic = manifestLoad.Diagnostics[0];
+                return AssetInstallFailure(request.BaseRevision, request.AssetId,
+                    diagnostic.Code, diagnostic.Message);
+            }
+
+            var manifest = manifestLoad.Manifests.SingleOrDefault(candidate => candidate.AssetId == assetId);
+            if (manifest is null)
+                return AssetInstallFailure(request.BaseRevision, request.AssetId,
+                    "asset_install_plan.manifest_missing",
+                    $"Catalog asset '{item.ExternalId}' has no governed package manifest in this workspace.");
+            var command = new InstallAssetBlueprintCommand(
+                CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision),
+                item,
+                manifest,
+                DryRun: true);
+            var preview = _assetInstallHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new AgentAssetInstallPlanResult(
+                    false, null, request.BaseRevision, item.Id.ToString(), item.LicenseSpdx,
+                    preview.Patch, preview.Inverse, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+
+            var artifact = GovernedAssetModelVerifier.Verify(_session.RootDirectory, manifest);
+            if (!artifact.Succeeded)
+                return AssetInstallFailure(request.BaseRevision, item.Id.ToString(),
+                    artifact.DiagnosticCode!, artifact.DiagnosticMessage!);
+
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredAssetInstallPlan(
+                planId,
+                command,
+                preview.Patch!,
+                preview.Inverse!,
+                [AssetInstallAudit(planId, "planned", request.BaseRevision, true, item)]);
+            _assetInstallPlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public AgentAssetInstallPlanResult ApplyAssetInstallPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_assetInstallPlans.TryGetValue(planId, out var plan))
+                return AssetInstallFailure(_history.State.Revision.Value, null,
+                    "asset_install_plan.missing", $"Asset install plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AssetInstallFailure(plan.Command.BaseRevision.Value, plan.Command.Item.Id.ToString(),
+                    "asset_install_plan.already_applied", $"Asset install plan '{planId}' is already applied.");
+
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _assetInstallHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(AssetInstallAudit(planId, "apply", _history.State.Revision.Value, false,
+                    plan.Command.Item));
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = result.Diagnostics.Select(Map).ToArray(),
+                };
+            }
+
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+            {
+                plan.Audit.Add(AssetInstallAudit(planId, "apply", _history.State.Revision.Value, false,
+                    plan.Command.Item));
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            }
+
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(AssetInstallAudit(planId, "apply", plan.AppliedRevision.Value, true,
+                plan.Command.Item));
+            return ToResult(plan);
+        }
+    }
+
+    public AgentAssetInstallPlanResult RevertAssetInstallPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_assetInstallPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AssetInstallFailure(_history.State.Revision.Value, null,
+                    "asset_install_plan.not_applied", $"Asset install plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return AssetInstallFailure(plan.Command.BaseRevision.Value, plan.Command.Item.Id.ToString(),
+                    "asset_install_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return AssetInstallFailure(plan.Command.BaseRevision.Value, plan.Command.Item.Id.ToString(),
+                    "asset_install_plan.inverse_unavailable", "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return AssetInstallFailure(plan.Command.BaseRevision.Value, plan.Command.Item.Id.ToString(),
+                    "asset_install_plan.save_failed", "The reverted project could not be saved.");
+            }
+
+            plan.Reverted = true;
+            plan.Audit.Add(AssetInstallAudit(planId, "revert", undone.State.Revision.Value, true,
+                plan.Command.Item));
+            return ToResult(plan);
+        }
+    }
+
     public DialoguePlanResult PlanDialogue(DialoguePlanRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -1216,6 +1378,35 @@ public sealed class ForgeProjectAgentService
             fix.Provenance)).ToArray(),
         diagnostic.Provenance);
 
+    private AgentAssetInstallAuditEntry AssetInstallAudit(
+        string planId,
+        string action,
+        long revision,
+        bool succeeded,
+        AssetCatalogItem item) =>
+        new(planId, action, revision, _clock.UtcNow, succeeded, item.Id.ToString(), item.LicenseSpdx);
+
+    private static AgentAssetInstallPlanResult AssetInstallFailure(
+        long revision,
+        string? assetId,
+        string code,
+        string message) =>
+        new(false, null, revision, assetId, null, null, null,
+            [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static AgentAssetInstallPlanResult ToResult(StoredAssetInstallPlan plan) => new(
+        true,
+        plan.PlanId,
+        plan.Command.BaseRevision.Value,
+        plan.Command.Item.Id.ToString(),
+        plan.Command.Item.LicenseSpdx,
+        plan.Diff,
+        plan.Inverse,
+        [],
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
     private static DialoguePlanResult DialogueFailure(long revision, string code, string message) => new(
         false,
         null,
@@ -1339,6 +1530,23 @@ public sealed class ForgeProjectAgentService
 
         public bool Reverted { get; set; }
 
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAssetInstallPlan(
+        string planId,
+        InstallAssetBlueprintCommand command,
+        ProjectPatch diff,
+        ProjectPatch inverse,
+        List<AgentAssetInstallAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public InstallAssetBlueprintCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<AgentAssetInstallAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }
     }
 

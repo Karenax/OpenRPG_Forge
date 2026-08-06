@@ -187,6 +187,21 @@ public sealed class ForgeMcpTools
             installed));
 
     [McpServerTool]
+    [Description("Validates and dry-runs installation of a governed catalog asset as a project blueprint. License, manifest, identity and canonical GLB checks run before a plan is returned.")]
+    public AgentAssetInstallPlanResult PlanAssetInstall(AgentAssetInstallPlanRequest request) =>
+        _project.PlanAssetInstall(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated asset-install plan through the transactional project command bus if its base revision still matches.")]
+    public AgentAssetInstallPlanResult ApplyAssetInstallPlan(string planId) =>
+        _project.ApplyAssetInstallPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the most recently applied asset-install plan through its recorded inverse operation.")]
+    public AgentAssetInstallPlanResult RevertAssetInstallPlan(string planId) =>
+        _project.RevertAssetInstallPlan(planId);
+
+    [McpServerTool]
     [Description("Returns the versioned JSON schema used by dialogue mutation plans.")]
     public string GetDialoguePlanSchema() => DialoguePlanSchema.Json;
 

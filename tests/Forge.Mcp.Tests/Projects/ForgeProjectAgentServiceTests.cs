@@ -1,5 +1,7 @@
 using System.Text.Json;
+using Forge.Application.Assets;
 using Forge.Application.Validation;
+using Forge.Domain.Assets;
 using Forge.Domain.Areas;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Gameplay;
@@ -15,6 +17,7 @@ using Forge.Mcp.Assets;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
 using Forge.ModuleFormat.Workspaces;
+using Forge.ModuleFormat.Assets;
 
 namespace Forge.Mcp.Tests.Projects;
 
@@ -173,6 +176,76 @@ public sealed class ForgeProjectAgentServiceTests
             Assert.False(string.IsNullOrWhiteSpace(item.Author));
             Assert.NotNull(item.InstalledPackIds);
         });
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void AssetInstallPlanUsesCommandDryRunApplyPersistenceRevertAndLicenseAudit()
+    {
+        using var workspace = new TestWorkspace();
+        var item = LoadCatalogItem("ambientcg:3DApple001");
+        Assert.True(AssetPackageManifestStore.Save(
+            workspace.RootDirectory,
+            [CreateManifest(workspace.RootDirectory, item)]).Succeeded);
+
+        var planned = workspace.Project.PlanAssetInstall(
+            new AgentAssetInstallPlanRequest(1, 0, item.Id.ToString()));
+
+        Assert.True(planned.Succeeded);
+        Assert.Equal("add", planned.Diff?.Operation);
+        Assert.Equal("CC0-1.0", planned.LicenseSpdx);
+        Assert.Equal("planned", Assert.Single(planned.Audit).Action);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.DoesNotContain(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints,
+            blueprint => AssetBlueprintFactory.TryGetAssetId(blueprint, out var id) && id == item.Id);
+
+        var applied = workspace.Project.ApplyAssetInstallPlan(planned.PlanId!);
+
+        Assert.True(applied.Applied);
+        Assert.Equal(1, workspace.Project.GetCurrentRevision());
+        Assert.Contains(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints,
+            blueprint => AssetBlueprintFactory.TryGetAssetId(blueprint, out var id) && id == item.Id);
+
+        var reverted = workspace.Project.RevertAssetInstallPlan(planned.PlanId!);
+
+        Assert.True(reverted.Reverted);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(entry => entry.Action));
+        Assert.All(reverted.Audit, entry => Assert.Equal("CC0-1.0", entry.LicenseSpdx));
+        Assert.DoesNotContain(ProjectSession.Open(workspace.RootDirectory).Session!.Project.Blueprints,
+            blueprint => AssetBlueprintFactory.TryGetAssetId(blueprint, out var id) && id == item.Id);
+    }
+
+    [Fact]
+    public void AssetInstallPlanRejectsManifestWhoseLicenseDoesNotMatchTheCatalog()
+    {
+        using var workspace = new TestWorkspace();
+        var item = LoadCatalogItem("ambientcg:3DApple001");
+        Assert.True(AssetPackageManifestStore.Save(
+            workspace.RootDirectory,
+            [CreateManifest(workspace.RootDirectory, item, licenseSpdx: "MIT")]).Succeeded);
+
+        var result = workspace.Project.PlanAssetInstall(
+            new AgentAssetInstallPlanRequest(1, 0, item.Id.ToString()));
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(InstallAssetBlueprintHandler.GovernanceInvalidCode, Assert.Single(result.Diagnostics).Code);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+    }
+
+    [Fact]
+    public void AssetInstallPlanRejectsMissingGovernedModelWithoutMutation()
+    {
+        using var workspace = new TestWorkspace();
+        var item = LoadCatalogItem("ambientcg:3DApple001");
+        var manifest = CreateManifest(workspace.RootDirectory, item);
+        File.Delete(Path.Combine(workspace.RootDirectory, "assets", "imported", "mcp-plan", "model.glb"));
+        Assert.True(AssetPackageManifestStore.Save(workspace.RootDirectory, [manifest]).Succeeded);
+
+        var result = workspace.Project.PlanAssetInstall(
+            new AgentAssetInstallPlanRequest(1, 0, item.Id.ToString()));
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(GovernedAssetModelVerifier.FileMissingCode, Assert.Single(result.Diagnostics).Code);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
     }
 
@@ -474,5 +547,51 @@ public sealed class ForgeProjectAgentServiceTests
             "MCP dialogue",
             nodeId,
             [new DialogueNodeInput(nodeId, speaker, "dialogue.mcp", "A dry-run dialogue")]);
+    }
+
+    private static AssetCatalogItem LoadCatalogItem(string externalId)
+    {
+        var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(AppContext.BaseDirectory)
+            ?? throw new DirectoryNotFoundException("Asset catalog repository root was not found.");
+        var catalog = AssetCatalogLoader.Load(repositoryRoot).Catalog
+            ?? throw new InvalidOperationException("Asset catalog did not load.");
+        return catalog.Items.Single(item => item.ExternalId == externalId);
+    }
+
+    private static AssetPackageManifest CreateManifest(
+        string workspaceRoot,
+        AssetCatalogItem item,
+        string? licenseSpdx = null)
+    {
+        var relativePath = "assets/imported/mcp-plan/model.glb";
+        var absolutePath = Path.Combine(workspaceRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(Path.GetDirectoryName(absolutePath)!);
+        var content = "OpenRPG Forge governed MCP asset model"u8.ToArray();
+        File.WriteAllBytes(absolutePath, content);
+        var contentSha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(content))
+            .ToLowerInvariant();
+        var chunk = new AssetManifestChunk(
+            Guid.Parse("a83e0000-0000-4000-8000-000000000001"),
+            AssetChunkRole.Model,
+            true,
+            relativePath,
+            contentSha256,
+            content.Length,
+            content.Length,
+            AssetChunkCompression.None,
+            [AssetTargetPlatform.Any]);
+        return new AssetPackageManifest(
+            AssetPackageManifest.CurrentSchemaVersion,
+            AssetPackageManifestId.ForAsset(item.Id),
+            item.Id,
+            "mcp-test:asset-install",
+            licenseSpdx ?? item.LicenseSpdx,
+            item.ContentSha256,
+            new Dictionary<AssetTargetPlatform, long> { [AssetTargetPlatform.Any] = 4096 },
+            [chunk],
+            null,
+            null,
+            null,
+            null);
     }
 }

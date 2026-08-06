@@ -8,7 +8,8 @@ Dernière mise à jour : 5 août 2026.
 G11 Contenu moderne fermés. AV4B livre maintenant une première carte 3D extérieure jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
-installe les GLB gouvernés dans la palette et les place comme vrais modèles dans le viewport.**
+installe les GLB gouvernés dans la palette, les place comme vrais modèles dans le viewport et ferme
+leur mutation IA/MCP transactionnelle.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -438,3 +439,15 @@ Le viewport Creator fournit maintenant le résolveur de manifestes au terrain et
 de dispersion. Le smoke GLB a en outre détecté puis fermé la conversion des nœuds glTF d’import en
 maillages runtime réellement visibles. Deux tests ciblés portent la suite .NET à 715 et le smoke
 `OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_PASS` prouve un modèle manuel et deux instances dispersées.
+
+**AV3 — mutations IA/MCP fermées** : le host expose l’installation d’un asset gouverné sous la forme
+de trois outils séparés `PlanAssetInstall`, `ApplyAssetInstallPlan` et `RevertAssetInstallPlan`. Le
+plan sec exige la révision courante, un UUID du catalogue, une licence vérifiée et identique au
+manifeste, un unique chunk GLB canonique et un fichier confiné dont taille et SHA-256 correspondent.
+L’application emprunte `InstallAssetBlueprintHandler`, persiste par `ProjectSession`, alimente
+`ProjectCommandHistory` et journalise asset, SPDX, action, révision et résultat ; l’inverse refuse
+d’écraser un travail plus récent. Le pont éditeur demeure en lecture seule. Trois tests MCP portent
+la suite à 718 tests .NET et couvrent dry-run, persistance, revert, audit de licence, licence
+discordante et GLB absent sans mutation. Le gate global passe le 5 août 2026 avec 718 tests .NET,
+24 tests Python généraux, 22 tests du pipeline d’assets et le marqueur
+`OPENRPG_FORGE_VERIFICATION=PASS`.

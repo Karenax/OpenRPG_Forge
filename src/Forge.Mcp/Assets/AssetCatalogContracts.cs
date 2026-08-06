@@ -1,5 +1,7 @@
 namespace Forge.Mcp.Assets;
 
+using Forge.Application.Commands;
+
 public sealed record AgentAssetCatalogQuery(
     string? Text = null,
     string? Source = null,
@@ -44,3 +46,30 @@ public sealed record AgentAssetCatalogResult(
     IReadOnlyList<string> Categories,
     IReadOnlyList<AgentAssetCatalogItem> Items,
     IReadOnlyList<AgentDiagnostic> Diagnostics);
+
+public sealed record AgentAssetInstallPlanRequest(
+    int SchemaVersion,
+    long BaseRevision,
+    string AssetId);
+
+public sealed record AgentAssetInstallPlanResult(
+    bool Succeeded,
+    string? PlanId,
+    long BaseRevision,
+    string? AssetId,
+    string? LicenseSpdx,
+    ProjectPatch? Diff,
+    ProjectPatch? Inverse,
+    IReadOnlyList<AgentDiagnostic> Diagnostics,
+    bool Applied,
+    bool Reverted,
+    IReadOnlyList<AgentAssetInstallAuditEntry> Audit);
+
+public sealed record AgentAssetInstallAuditEntry(
+    string PlanId,
+    string Action,
+    long Revision,
+    DateTimeOffset OccurredAt,
+    bool Succeeded,
+    string AssetId,
+    string LicenseSpdx);

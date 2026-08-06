@@ -45,6 +45,9 @@ Dernière mise à jour : 5 août 2026.
 - recettes de biome prairie/roche reliées aux blueprints d’assets installés, brosse canonique de
   peinture matériau/biome, dispersion déterministe partagée par Creator/runtime et conversion glTF
   en maillage runtime validée par smoke dans le viewport ;
+- installation IA/MCP gouvernée par plan sec, application et revert séparés, avec révision, diff,
+  inverse, audit asset/SPDX, validation de licence/manifeste et contrôle physique taille/SHA-256 du
+  GLB avant toute mutation du projet ;
 - profil artistique canonique avec cible métrique, densité texel, shader, époque, réalisme et palette,
   avertissements par blueprint, édition transactionnelle et persistance versionnée ;
 - profil éditeur v2 avec échelle UI/texte, replis de polices, onglets de zones et favoris/récents.
@@ -91,5 +94,23 @@ Dernière mise à jour : 5 août 2026.
 
 ## Prochaine action
 
-Faire passer les mutations IA/MCP d’assets par les commandes transactionnelles et la validation de
-licence, puis enrichir la tranche avec animations, ambiance audio et VFX gouvernés.
+Mesurer mémoire, reconstruction, sculpture, collisions, navigation, LOD et culling sur la zone
+extérieure représentative AV4A, puis enrichir AV5 avec animations, ambiance audio et VFX gouvernés.
+
+## Preuves de la tranche AV3 MCP
+
+- builds Release de `Forge.Application`, `Forge.McpHost` et `Forge.Toolset` sans erreur ;
+- 29 tests `Forge.Mcp.Tests` : dry-run sans révision, apply persistant, revert, audit SPDX, refus de
+  licence discordante et refus d’un GLB gouverné absent ;
+- gate global validé : 718 tests .NET, 24 tests Python généraux, 22 tests du pipeline d’assets,
+  Toolset/runtime/Forward+, Blender 4.5, exports, réseau, MCP, sauvegarde/reprise et marqueur final
+  `OPENRPG_FORGE_VERIFICATION=PASS` ;
+- graphe déterministe validé à 3 965 nœuds et 9 386 relations.
+
+## Décisions et fichiers principaux
+
+- le pont éditeur par pipe reste en lecture seule ; aucune mutation parallèle n’y est ajoutée ;
+- `GovernedAssetModelVerifier` centralise le contrôle physique partagé par Creator et MCP ;
+- contrats MCP dans `AssetCatalogContracts.cs`, orchestration dans `ForgeProjectAgentService.cs` et
+  surface officielle dans `ForgeMcpTools.cs` ;
+- aucune nouvelle dépendance de production n’est introduite.

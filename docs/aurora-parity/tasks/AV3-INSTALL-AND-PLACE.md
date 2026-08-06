@@ -38,7 +38,7 @@ du moteur 3D.
 - la désinstallation d’un blueprint depuis l’UI et la migration physique de packs restent à livrer ;
 - la dispersion de masse et les recettes de biome sont fermées séparément par
   `AV3-BIOME-DISPERSION.md` ;
-- les mutations IA/MCP d’assets constituent la prochaine tranche AV3.
+- les mutations IA/MCP d’assets sont fermées séparément par `AV3-MCP-ASSET-MUTATIONS.md`.
 
 ## Critère de passage
 

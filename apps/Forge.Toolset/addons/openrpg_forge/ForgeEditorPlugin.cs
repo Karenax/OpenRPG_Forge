@@ -3095,7 +3095,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 return result.Patch is not null && !result.Audit.Applied ? blueprint : null;
             }
 
-            if (!VerifyGovernedModelArtifact(_projectSession.RootDirectory, manifest) ||
+            if (!GovernedAssetModelVerifier.Verify(_projectSession.RootDirectory, manifest).Succeeded ||
                 !ApplyCommand(
                     result,
                     $"Asset « {item.DisplayName} » installé dans la palette.",
@@ -3115,31 +3115,6 @@ public partial class ForgeEditorPlugin : EditorPlugin
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_INSTALL_FAILED asset={item.ExternalId} {exception.Message}");
             return null;
         }
-    }
-
-    private static bool VerifyGovernedModelArtifact(string workspaceRoot, AssetPackageManifest manifest)
-    {
-        var model = manifest.Chunks.SingleOrDefault(chunk =>
-            chunk.Role == AssetChunkRole.Model && chunk.Required &&
-            string.Equals(Path.GetExtension(chunk.RelativePath), ".glb", StringComparison.OrdinalIgnoreCase));
-        if (model is null || !AssetCatalogValidator.IsSafeRelativePath(model.RelativePath))
-        {
-            return false;
-        }
-
-        var root = Path.GetFullPath(workspaceRoot);
-        var rootPrefix = root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        var absolute = Path.GetFullPath(Path.Combine(
-            root,
-            model.RelativePath.Replace('/', Path.DirectorySeparatorChar)));
-        if (!absolute.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase) || !File.Exists(absolute))
-        {
-            return false;
-        }
-
-        using var stream = File.OpenRead(absolute);
-        var actual = Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
-        return string.Equals(actual, model.ContentSha256, StringComparison.OrdinalIgnoreCase);
     }
 
     private bool UndoAssetPackageManifest()
