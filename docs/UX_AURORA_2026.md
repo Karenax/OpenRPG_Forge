@@ -268,6 +268,12 @@ prévisualisé comme lot de placements, avec nombre d’entités, seed, navigati
 puis construit en une mutation atomique. L’interface ne permet l’application qu’après le dry-run
 exact ; undo/redo et MCP utilisent le même diff et la même sauvegarde canonique.
 
+G12-E ajoute **Dialogue assisté** depuis l’Assistant. Le brief personnage/synopsis/beats est séparé
+des règles de style et citations, puis du panneau graphe. Ce dernier réunit mini-carte, clés de
+localisation et placeholders, lint, coût, provenance et simulation du nœud d’entrée. La proposition
+reste en lecture seule tant que l’auteur n’a pas coché l’approbation ; le bouton d’application ne
+s’active qu’après le dry-run exact du dialogue affiché.
+
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
 échelle métrique, matériaux PBR normalisés, silhouettes lisibles, éclairage maîtrisé, LOD,
 collisions, navigation et profils de qualité. Elle est détaillée dans

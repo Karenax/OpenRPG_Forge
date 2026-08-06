@@ -27,6 +27,13 @@
           "Forge.RpgKit.Domain": "[1.0.0, )"
         }
       },
+      "forge.rpgkit.application": {
+        "type": "Project",
+        "dependencies": {
+          "Forge.Application": "[1.0.0, )",
+          "Forge.RpgKit.Domain": "[1.0.0, )"
+        }
+      },
       "forge.rpgkit.domain": {
         "type": "Project",
         "dependencies": {

@@ -57,6 +57,7 @@ using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Quality;
 using Forge.ModuleFormat.Workspaces;
+using Forge.RpgKit.Application.Dialogues;
 using Forge.Scripting;
 using Godot;
 
@@ -111,6 +112,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetLoreIndexHandler _loreIndexHandler = new(new SystemClock());
     private readonly SetAssistedAreaPlansHandler _assistedAreaPlanHandler = new(new SystemClock());
     private readonly BuildAssistedAreaPlanHandler _assistedAreaBuildHandler = new(new SystemClock());
+    private readonly ApplyAssistedDialogueHandler _assistedDialogueHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -203,6 +205,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssistantWorkspaceWindow? _assistantWorkspace;
     private LoreIndexWindow? _loreIndexWindow;
     private AssistedAreaPlanWindow? _assistedAreaPlanWindow;
+    private AssistedDialogueWindow? _assistedDialogueWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -335,6 +338,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             RedoAssistedAreaPlans,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistedAreaPlanWindow);
+        _assistedDialogueWindow = new AssistedDialogueWindow();
+        _assistedDialogueWindow.Initialize(
+            () => _history?.State,
+            () => _loreIndexHistory?.State,
+            () => _assistantProfileHistory?.State,
+            ApplyAssistedDialogue,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_assistedDialogueWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -345,6 +356,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             RedoAssistantWorkspaceProfile,
             () => _loreIndexWindow?.Open(),
             () => _assistedAreaPlanWindow?.Open(),
+            () => _assistedDialogueWindow?.Open(),
             () => _localizationWorkspace?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistantWorkspace);
@@ -3227,6 +3239,48 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool ApplyAssistedDialogue(
+        AssistedDialogueProposal proposal,
+        Guid transactionId,
+        Guid executionPlanId,
+        bool dryRun)
+    {
+        if (_projectSession is null || _history is null) return false;
+        var command = new ApplyAssistedDialogueCommand(
+            CommandId.From(Guid.NewGuid()),
+            transactionId,
+            executionPlanId,
+            _history.State.Revision,
+            proposal,
+            AssistantPermissionLevel.ApplyApprovedPlan,
+            dryRun);
+        var result = _assistedDialogueHandler.Handle(_history.State, command);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(diagnostic => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                diagnostic.Code,
+                diagnostic.Message,
+                "assistant/dialogue",
+                proposal.Dialogue.Id.ToString())).ToArray());
+            return false;
+        }
+        if (dryRun) return result.Command.Patch is not null && !result.Command.Audit.Applied;
+        var saved = _projectSession.Save(result.Command.State.Project);
+        if (!saved.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSISTED_DIALOGUE_SAVE_FAILED {saved.Diagnostics[0].Code}");
+            return false;
+        }
+        _history.Record(result.Command);
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print($"OPENRPG_FORGE_TOOLSET_ASSISTED_DIALOGUE_APPLIED dialogue={proposal.Dialogue.Id} " +
+                 $"nodes={proposal.Dialogue.Nodes.Count} revision={_history.State.Revision} " +
+                 $"transaction={transactionId:D} plan={executionPlanId:D}");
+        return true;
+    }
+
     private bool RedoAssistedAreaPlans()
     {
         if (_projectSession is null || _assistedAreaPlanHistory is null || !_assistedAreaPlanHistory.Redo()) return false;
@@ -4572,6 +4626,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssistedAreaBuildSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAssistedDialogueSmokeTest())
         {
             return;
         }
@@ -8207,6 +8266,54 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 Directory.CreateDirectory(Path.GetDirectoryName(catalogPath)!);
                 File.WriteAllBytes(catalogPath, originalCatalogBytes);
             }
+            RebuildPreview();
+            RefreshEditorControls();
+        }
+    }
+
+    private bool RunAssistedDialogueSmokeTest()
+    {
+        if (_projectSession is null || _history is null || _assistedDialogueWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12E_DIALOGUE_FAILED missing_workspace");
+            return false;
+        }
+        var originalState = _history.State;
+        var originalDialogueCount = originalState.Project.Dialogues.Count;
+        try
+        {
+            if (!_assistedDialogueWindow.ConfigureApprovedForSmokeTest() ||
+                !_assistedDialogueWindow.PreviewForSmokeTest() ||
+                _assistedDialogueWindow.LastNodeCount != 4 ||
+                _assistedDialogueWindow.LastLintCount != 0 ||
+                _assistedDialogueWindow.LastCitationCount < 1 ||
+                _assistedDialogueWindow.LastEstimatedCostUsd != 0 ||
+                !_assistedDialogueWindow.ApplyForSmokeTest() ||
+                _history.State.Project.Dialogues.Count != originalDialogueCount + 1)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12E_DIALOGUE_FAILED preview_apply");
+                return false;
+            }
+            var reopened = ProjectSession.Open(_projectSession.RootDirectory);
+            if (reopened.Session is null || reopened.Session.Project.Dialogues.Count != originalDialogueCount + 1 ||
+                !_history.Undo().Succeeded || _history.State.Project.Dialogues.Count != originalDialogueCount ||
+                !_history.Redo().Succeeded || _history.State.Project.Dialogues.Count != originalDialogueCount + 1 ||
+                !_history.Undo().Succeeded || !_projectSession.Save(_history.State.Project).Succeeded)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12E_DIALOGUE_FAILED persistence_history");
+                return false;
+            }
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G12E_DIALOGUE_PASS graph=canonical-minimap nodes=4 " +
+                "conditions=typed actions=typed style=cited localization=placeholders lint=clean " +
+                "simulation=entry-rendered provider=fake-offline cost=visible plan=dry-run-transaction " +
+                "permission=apply-approved history=restored persistence=roundtrip mcp=governed");
+            return true;
+        }
+        finally
+        {
+            _history = new ProjectCommandHistory(originalState);
+            _projectSession.Save(originalState.Project);
             RebuildPreview();
             RefreshEditorControls();
         }

@@ -99,6 +99,26 @@ public sealed class ForgeMcpTools
         _project.RevertAssistedAreaBuild(planId);
 
     [McpServerTool]
+    [Description("Uses the deterministic offline assistant to propose a sourced, localized and linted dialogue graph without mutation.")]
+    public AssistedDialogueProposalResource ProposeAssistedDialogue(AssistedDialogueProposalRequest request) =>
+        _project.ProposeAssistedDialogue(request);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an explicitly approved assisted dialogue proposal through the canonical dialogue command.")]
+    public AssistedDialogueApplyPlanResult PlanAssistedDialogue(AssistedDialogueApplyPlanRequest request) =>
+        _project.PlanAssistedDialogue(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated assisted dialogue plan and persists the canonical project.")]
+    public AssistedDialogueApplyPlanResult ApplyAssistedDialoguePlan(string planId) =>
+        _project.ApplyAssistedDialoguePlan(planId);
+
+    [McpServerTool]
+    [Description("Atomically reverts the latest assisted dialogue plan through canonical project history.")]
+    public AssistedDialogueApplyPlanResult RevertAssistedDialoguePlan(string planId) =>
+        _project.RevertAssistedDialoguePlan(planId);
+
+    [McpServerTool]
     [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]
     public RuntimePolicyResource GetRuntimePolicies(string? areaId = null) =>
         _project.GetRuntimePolicies(areaId);

@@ -21,11 +21,63 @@ using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
 using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Assets;
+using Forge.RpgKit.Application.Dialogues;
 
 namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void AssistedDialogueMcpProposesPlansPersistsAndRevertsCanonicalGraph()
+    {
+        using var workspace = new TestWorkspace();
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var speaker = project.Blueprints.First(item => item.Kind == BlueprintKind.Creature);
+        var dialoguesBefore = project.Dialogues.Count;
+        var brief = new AssistedDialogueBrief(
+            Guid.Parse("b1260000-0000-4000-8000-000000000090"),
+            "dialogue-mcp-assiste",
+            "Dialogue MCP assisté",
+            speaker.Id.Value,
+            "Le gardien révèle un secret puis demande une décision.",
+            ["Présenter le secret", "Expliquer le risque", "Demander un choix", "Conclure"],
+            ["style:crypt"],
+            ["lore:crypt-of-ashes"],
+            "fr",
+            "dialogue.mcp-assiste",
+            "@mcp-author",
+            20260805,
+            4);
+
+        var proposed = workspace.Project.ProposeAssistedDialogue(new(1, brief));
+        var approved = proposed.Proposal!.WithApproval(true, "author-approved:mcp-test:g12-e");
+        var planned = workspace.Project.PlanAssistedDialogue(new(
+            1,
+            workspace.Project.GetCurrentRevision(),
+            approved,
+            AssistantPermissionLevel.ApplyApprovedPlan));
+        var applied = workspace.Project.ApplyAssistedDialoguePlan(planned.PlanId!);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var reverted = workspace.Project.RevertAssistedDialoguePlan(planned.PlanId!);
+        var restored = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+
+        Assert.True(proposed.Succeeded);
+        Assert.True(proposed.Proposal.CanApply);
+        Assert.Equal(4, proposed.Proposal.Dialogue.Nodes.Count);
+        Assert.Single(proposed.Proposal.Citations);
+        Assert.Empty(proposed.Proposal.Lint);
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.NotNull(planned.Diff);
+        Assert.Equal(4, planned.LocalizationPlaceholders.Count);
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.Equal(dialoguesBefore + 1, persisted.Dialogues.Count);
+        Assert.True(reverted.Succeeded);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(dialoguesBefore, restored.Dialogues.Count);
+    }
+
     [Fact]
     public void AssistedAreaBuildMcpRequiresApprovalAndPersistsAtomicPlacementsWithRevert()
     {

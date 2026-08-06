@@ -215,11 +215,12 @@ fermées par un triptyque plan/apply/revert transactionnel avec contrôle de lic
 fondation multi-biome AV4A est mesurée par un benchmark runtime bloquant. AV5 ferme la livraison et
 l’ambiance ; AV6 ferme personnage skinné, variantes fantasy, combat animé, monde 512 × 512 sectorisé,
 finition PBR, habillage naturel et retargeting Kenney 58 os vers KayKit 41 os avec audit de
-déformation et round-trip GLB. G12-A à G12-D livrent ensuite l’Assistant, les prompts versionnés,
+déformation et round-trip GLB. G12-A à G12-E livrent ensuite l’Assistant, les prompts versionnés,
 les transports locaux compatibles OpenAI/Ollama, l’index de lore gouverné et le premier plan de
 crypte/village avec UI et MCP, puis sa construction approuvée par un lot atomique de commandes de
-placement validé, persistant et annulable. La prochaine tranche est G12-E, création assistée de
-dialogues via les contrats RPG existants, sans
+placement validé, persistant et annulable. G12-E livre la création assistée de dialogues via les
+contrats RPG et Core existants. La prochaine tranche est G12-F, création assistée de
+quêtes par les agrégats et validations déjà consommés par le runtime, sans
 confondre les améliorations visuelles optionnelles avec des capacités absentes.
 
 La mission complète et ses critères sont dans
