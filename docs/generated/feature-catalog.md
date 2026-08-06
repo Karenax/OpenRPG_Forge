@@ -236,16 +236,16 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-DLG-011 | Actions sur nœud | P0 | Researched | G1 |
 | ORF-DLG-012 | Assistant de scripts de dialogue | P1 | Implemented | G8 |
 | ORF-DLG-013 | Commentaires de nœud | P1 | Implemented | G8 |
-| ORF-DLG-014 | Animations de dialogue | P2 | Researched | G13 |
-| ORF-DLG-015 | Sons et voix | P2 | Researched | G13 |
-| ORF-DLG-016 | Caméra de conversation | P2 | Researched | G13 |
+| ORF-DLG-014 | Animations de dialogue | P2 | Tested | G13 |
+| ORF-DLG-015 | Sons et voix | P2 | Tested | G13 |
+| ORF-DLG-016 | Caméra de conversation | P2 | Tested | G13 |
 | ORF-DLG-017 | Scripts de fin et d’abandon | P1 | Implemented | G8 |
 | ORF-DLG-018 | Recherche dans les conversations | P1 | Implemented | G8 |
 | ORF-DLG-019 | Mise en évidence et filtres | P1 | Implemented | G8 |
-| ORF-DLG-020 | Bookmarks | P2 | Researched | G13 |
+| ORF-DLG-020 | Bookmarks | P2 | Tested | G13 |
 | ORF-DLG-021 | Mode test | P0 | Researched | G1 |
 | ORF-DLG-022 | Mémoire de conversation | P1 | Implemented | G8 |
-| ORF-DLG-023 | Interjections de compagnons | P2 | Researched | G13 |
+| ORF-DLG-023 | Interjections de compagnons | P2 | Tested | G13 |
 | ORF-DLG-024 | Checks de compétence | P1 | Implemented | G8 |
 | ORF-DLG-025 | Choix temporisés | P3 | Researched | G13 |
 | ORF-DLG-026 | Graphes imbriqués | P1 | Implemented | G8 |

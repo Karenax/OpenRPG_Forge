@@ -15,7 +15,9 @@ public partial class DialogueEditorWindow : Window
     private Func<ProjectState?>? _getState;
     private Func<DialogueDefinition, bool>? _applyDialogue;
     private Action<Window>? _brandWindow;
+    private Action<DialogueId>? _openPresentation;
     private DialogueId? _draftDialogueId;
+    private DialoguePresentationProfile? _draftPresentation;
     private DialogueNodeId? _entryNodeId;
     private int _selectedNodeIndex = -1;
     private int _selectedChoiceIndex = -1;
@@ -41,13 +43,16 @@ public partial class DialogueEditorWindow : Window
     public void Initialize(
         Func<ProjectState?> getState,
         Func<DialogueDefinition, bool> applyDialogue,
+        Action<DialogueId> openPresentation,
         Action<Window> brandWindow)
     {
         ArgumentNullException.ThrowIfNull(getState);
         ArgumentNullException.ThrowIfNull(applyDialogue);
         ArgumentNullException.ThrowIfNull(brandWindow);
+        ArgumentNullException.ThrowIfNull(openPresentation);
         _getState = getState;
         _applyDialogue = applyDialogue;
+        _openPresentation = openPresentation;
         _brandWindow = brandWindow;
         Title = "Dialogues · OpenRPG Forge";
         MinSize = new Vector2I(940, 790);
@@ -141,6 +146,9 @@ public partial class DialogueEditorWindow : Window
         };
         dialogueBar.AddChild(newDialogueButton);
         newDialogueButton.Pressed += CreateNewDialogue;
+        var presentationButton = new Button { CustomMinimumSize = new Vector2(170, 38), Text = "Mise en scène…" };
+        dialogueBar.AddChild(presentationButton);
+        presentationButton.Pressed += OpenPresentation;
         _dialogueName = new LineEdit
         {
             CustomMinimumSize = new Vector2(220, 38),
@@ -385,6 +393,7 @@ public partial class DialogueEditorWindow : Window
     private void LoadDialogue(DialogueDefinition dialogue)
     {
         _draftDialogueId = dialogue.Id;
+        _draftPresentation = dialogue.Presentation;
         _entryNodeId = dialogue.EntryNodeId;
         _dialogueName!.Text = dialogue.DisplayName;
         _dialogueSlug!.Text = dialogue.Slug;
@@ -397,6 +406,7 @@ public partial class DialogueEditorWindow : Window
     private void CreateNewDialogue()
     {
         _draftDialogueId = DialogueId.From(Guid.NewGuid());
+        _draftPresentation = null;
         _dialogueName!.Text = "Nouveau dialogue";
         _dialogueSlug!.Text = $"dialogue-{_dialogueIds.Count + 1}";
         _draftNodes.Clear();
@@ -592,7 +602,8 @@ public partial class DialogueEditorWindow : Window
                 _dialogueSlug!.Text,
                 _dialogueName!.Text,
                 _entryNodeId,
-                _draftNodes);
+                _draftNodes,
+                _draftPresentation);
             if (_applyDialogue?.Invoke(dialogue) == true)
             {
                 SetStatus("Dialogue appliqué au projet.", true);
@@ -703,6 +714,16 @@ public partial class DialogueEditorWindow : Window
         _selectedNodeIndex >= 0 && _selectedNodeIndex < _draftNodes.Count
             ? _draftNodes[_selectedNodeIndex]
             : null;
+
+    private void OpenPresentation()
+    {
+        if (_draftDialogueId is null || _getState?.Invoke()?.Project.Dialogues.All(item => item.Id != _draftDialogueId) != false)
+        {
+            SetStatus("Appliquez d’abord le dialogue avant de configurer sa mise en scène.", false, true);
+            return;
+        }
+        _openPresentation?.Invoke(_draftDialogueId);
+    }
 
     private void SetStatus(string message, bool success, bool error = false)
     {

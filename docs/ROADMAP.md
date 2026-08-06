@@ -235,7 +235,9 @@ data-driven, G13-D ferme butin, pickpocket et cadavres avec une dépouille inter
 runtime, G13-E livre rôle, routines ambiantes et auto-level déterministe, puis G13-F ferme les
 événements avancés de créature avec bindings typés, scheduler budgété et exécution dans la Crypte.
 G13-G livre ensuite les factions avancées : hiérarchie, témoins, affiliations multiples et états
-dynamiques autoritaires. G13-H cible la présentation cinématique des dialogues.
+dynamiques autoritaires. G13-H livre la présentation cinématique canonique des dialogues :
+animations, voix/sous-titres, caméra accessible, bookmarks et interjections autoritaires. La file
+est volontairement arrêtée après ce lot jusqu’à nouvelle demande.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;

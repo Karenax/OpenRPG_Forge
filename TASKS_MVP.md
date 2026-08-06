@@ -607,7 +607,7 @@ les démonstrations Crypte des Cendres et Forgotten Forest jouables.
   (`ORF-CRE-030`, `047`, `048`).
 - [x] G13-F : événements avancés de créature (`ORF-CRE-039`, `041`, `042`, `044`, `045`).
 - [x] G13-G : factions avancées (`ORF-FAC-002`, `008`, `009`, `010`).
-- [ ] G13-H : animations, voix, caméra, bookmarks et interjections de dialogue
+- [x] G13-H : animations, voix, caméra, bookmarks et interjections de dialogue
   (`ORF-DLG-014`, `015`, `016`, `020`, `023`).
 
 Acceptation G13-A : un auteur configure les raccourcis depuis l’écran Aurora, prévisualise le diff,
@@ -646,3 +646,11 @@ Acceptation G13-G : un auteur configure sans JSON les parents et héritages d’
 de témoins, plusieurs affiliations et une faction dynamique. La même commande assure validation des
 cycles, dry-run, undo/redo et round-trip projet/workspace/`.orpmod`. ForgeScript et MCP restent typés ;
 la Crypte prouve héritage, témoin, guerre → trêve, expiration et autorité serveur.
+
+Acceptation G13-H : un auteur configure sans JSON animation, voix/sous-titre, caméra accessible,
+bookmarks de revue et interjections d’un dialogue. La même commande assure dry-run, diagnostics,
+undo/redo et round-trip projet/workspace/`.orpmod`. ForgeScript et MCP restent typés ; la Crypte
+applique réellement les cinq familles à l’interaction avec Elyra, avec fallback sous-titre et
+sélection d’interjection côté serveur.
+
+Le développement s’arrête après G13-H. G13-I ne doit pas démarrer sans nouvelle demande explicite.

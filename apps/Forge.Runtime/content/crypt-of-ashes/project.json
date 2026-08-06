@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.22.0",
+  "formatVersion": "1.23.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -2153,7 +2153,100 @@
             "onEnterActions": [],
             "choices": []
           }
-        ]
+        ],
+        "presentation": {
+          "id": "d1350000-0000-4000-8000-000000000010",
+          "schemaVersion": 1,
+          "provenance": "toolset:dialogue-presentation",
+          "requiredAtRuntime": false,
+          "serverAuthoritativeInterjections": true,
+          "animationCues": [
+            {
+              "id": "29b807d0-76a0-9065-da41-a6baea086f2c",
+              "nodeId": "41000000-0000-4000-8000-000000000001",
+              "participantBlueprintId": "10000000-0000-4000-8000-000000000004",
+              "animationId": "dialogue.explain",
+              "startMilliseconds": 0,
+              "durationMilliseconds": 1800,
+              "blendMilliseconds": 180,
+              "gesture": "explain",
+              "lookAtBlueprintId": null,
+              "interruptionPolicy": "blendOut",
+              "fallbackAnimationId": "idle",
+              "provenance": "toolset:dialogue-presentation"
+            }
+          ],
+          "voiceCues": [
+            {
+              "id": "81a6afcc-be7c-5c3b-3722-4e1331ae21ef",
+              "nodeId": "41000000-0000-4000-8000-000000000001",
+              "participantBlueprintId": "10000000-0000-4000-8000-000000000004",
+              "locale": "fr-FR",
+              "resource": null,
+              "take": "elyra-crypt-01",
+              "subtitle": {
+                "key": "dialogue.elyra.entry",
+                "fallback": "La braise vous a conduit jusqu\u2019ici. Que cherchez-vous ?"
+              },
+              "lipSyncProfileId": "viseme-neutral",
+              "emotion": "concerned",
+              "durationMilliseconds": 1800,
+              "licenseSpdx": null,
+              "contentSha256": null,
+              "allowSubtitleFallback": true,
+              "provenance": "toolset:dialogue-presentation"
+            }
+          ],
+          "cameraShots": [
+            {
+              "id": "37d14326-3933-0b78-f0b7-23a53999bb00",
+              "nodeId": "41000000-0000-4000-8000-000000000001",
+              "mode": "automatic",
+              "cameraAnchorId": null,
+              "focusBlueprintId": "10000000-0000-4000-8000-000000000004",
+              "framing": "medium",
+              "fieldOfViewDegrees": 52,
+              "durationMilliseconds": 1800,
+              "blendMilliseconds": 250,
+              "cinematicBars": true,
+              "allowPlayerOverride": true,
+              "reduceMotionFallback": true,
+              "safeAreaMargin": 0.08,
+              "priority": 10,
+              "provenance": "toolset:dialogue-presentation"
+            }
+          ],
+          "bookmarks": [
+            {
+              "id": "99112ee3-cfee-9c0f-4a2c-f107baf8aa9f",
+              "nodeId": "41000000-0000-4000-8000-000000000001",
+              "name": "Accueil d\u2019Elyra",
+              "scope": "shared",
+              "reviewComment": "Valider cadrage, animation et sous-titre.",
+              "authorId": "aurora-review",
+              "deepLink": "dialogue://40000000-0000-4000-8000-000000000001/41000000-0000-4000-8000-000000000001",
+              "provenance": "toolset:dialogue-presentation"
+            }
+          ],
+          "interjectionRules": [
+            {
+              "id": "ecda2c89-e215-a32a-4ed7-4b8fb7849e02",
+              "triggerNodeId": "41000000-0000-4000-8000-000000000001",
+              "interjectionNodeId": "41000000-0000-4000-8000-000000000002",
+              "companionBlueprintId": "10000000-0000-4000-8000-000000000004",
+              "personalityTags": [
+                "guardian"
+              ],
+              "requirePresent": true,
+              "minimumRelation": 0,
+              "priority": 100,
+              "cooldownSeconds": 30,
+              "conflictGroup": "elyra-main",
+              "conflictPolicy": "highestPriority",
+              "provenance": "toolset:dialogue-presentation"
+            }
+          ]
+        }
       }
     ],
     "quests": [

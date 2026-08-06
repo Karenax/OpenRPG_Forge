@@ -55,6 +55,7 @@ public static class DialogueValidator
                 $"dialogues/{dialogue.Id}/nodes/{node.Id}"));
         }
 
+        diagnostics.AddRange(DialoguePresentationValidator.Validate(dialogue));
         return diagnostics;
     }
 }

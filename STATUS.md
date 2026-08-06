@@ -675,5 +675,13 @@ typés et bornés. Les formats projet `0.6.28`, workspace `1.22.0` et `.orpmod` 
 La Crypte résout quatre tags hérités, trois affiliations, un rapport de témoin et la transition
 guerre → trêve du Gardien, avec refus client et expiration vérifiés.
 
-La prochaine tranche unique est **G13-H — dialogues cinématiques** : `ORF-DLG-014`,
-`ORF-DLG-015`, `ORF-DLG-016`, `ORF-DLG-020` et `ORF-DLG-023`.
+**G13-H — présentation cinématique des dialogues livrée** : `DialoguePresentationProfile` relie
+animations minutées, prises vocales localisées avec sous-titre/lipsync/licence, plans automatiques
+ou ancrés accessibles, bookmarks de revue et interjections autoritaires au graphe canonique.
+L’écran à cinq onglets appelle `SetDialoguePresentationHandler`; ForgeScript et MCP restent typés et
+bornés. Les formats projet `0.6.29`, workspace `1.23.0` et `.orpmod` conservent le profil. La Crypte
+applique réellement animation, fallback vocal, cadrage, bookmark et interjection à l’échange avec
+Elyra avant de terminer la quête et le combat.
+
+Le développement est **arrêté après G13-H**. Aucune tranche G13-I ni extension suivante ne doit
+démarrer sans nouvelle demande explicite de l’utilisateur.

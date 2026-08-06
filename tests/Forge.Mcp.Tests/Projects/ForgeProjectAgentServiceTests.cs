@@ -37,6 +37,41 @@ namespace Forge.Mcp.Tests.Projects;
 public sealed class ForgeProjectAgentServiceTests
 {
     [Fact]
+    public void DialoguePresentationResourceIsFilteredBoundedAndMutationRemainsDryRun()
+    {
+        using var workspace = new TestWorkspace();
+        var dialogueId = "40000000-0000-4000-8000-000000000001";
+        var node = DialogueNodeId.Parse("41000000-0000-4000-8000-000000000001");
+        var speaker = BlueprintId.Parse("10000000-0000-4000-8000-000000000004");
+        var profile = new DialoguePresentationProfile(
+            Guid.Parse("d1330000-0000-4000-8000-000000000010"), 1, "mcp:test", false, true,
+            [new(Guid.Parse("d1330000-0000-4000-8000-000000000011"), node, speaker, "talk", 0, 900, 100,
+                DialogueGesture.Explain, null, DialogueAnimationInterruptionPolicy.BlendOut, "idle", "mcp:test")],
+            [new(Guid.Parse("d1330000-0000-4000-8000-000000000012"), node, speaker, "fr", null, "take-01",
+                new("dialogue.elyra.crypt.start", "La crypte nous écoute."), "neutral", "concerned", 900,
+                null, null, true, "mcp:test")],
+            [new(Guid.Parse("d1330000-0000-4000-8000-000000000013"), node,
+                DialogueCameraShotMode.Automatic, null, speaker, CameraFraming.Medium, 52, 900, 150,
+                true, true, true, .08f, 10, "mcp:test")], [], []);
+
+        var before = workspace.Project.QueryDialoguePresentations();
+        var planned = workspace.Project.PreviewDialoguePresentation(new(1, 0, dialogueId, profile));
+        var after = workspace.Project.QueryDialoguePresentations("elyra", 1);
+
+        var existing = Assert.Single(before.Items);
+        Assert.Equal("elyra-crypt-of-ashes", existing.Slug);
+        Assert.True(planned.Succeeded);
+        Assert.Equal("dialogues/40000000-0000-4000-8000-000000000001/presentation",
+            planned.SemanticDiff!.Path);
+        var unchanged = Assert.Single(after.Items);
+        Assert.Equal(existing.ProfileId, unchanged.ProfileId);
+        Assert.Equal(existing.InterjectionRuleCount, unchanged.InterjectionRuleCount);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.QueryDialoguePresentations(limit: 101));
+        Assert.False(workspace.Project.PreviewDialoguePresentation(new(2, 0, dialogueId, profile)).Succeeded);
+    }
+
+    [Fact]
     public void FactionResourceIsBoundedAndMutationRemainsDryRun()
     {
         using var workspace = new TestWorkspace();

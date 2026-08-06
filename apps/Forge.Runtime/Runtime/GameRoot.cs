@@ -125,6 +125,12 @@ public partial class GameRoot : Node3D
     private int _collisionCount;
     private int _spawnedAshSpiritCount;
     private int _ashNovaCueCount;
+    private int _dialogueAnimationCueCount;
+    private int _dialogueVoiceCueCount;
+    private int _dialogueCameraShotCount;
+    private int _dialogueBookmarkCount;
+    private int _dialogueInterjectionCount;
+    private bool _dialogueSubtitleFallback;
     private string _message = "Explorez la crypte.";
     private string? _moduleContentRoot;
     private string? _moduleId;
@@ -3073,6 +3079,7 @@ public partial class GameRoot : Node3D
 
         var traversal = new DialogueTraversal(_elyraDialogue);
         var start = traversal.Start();
+        ApplyDialoguePresentation(start.Node!.Id);
         var evaluator = new RuntimeConditionEvaluator(this);
         var choice = traversal.GetAvailableChoices(evaluator).FirstOrDefault();
         if (choice is null)
@@ -3084,6 +3091,51 @@ public partial class GameRoot : Node3D
         var step = traversal.Choose(choice.Id, evaluator);
         ApplyDialogueActions(step.Actions);
         _message = $"{_guideName} : {step.Node?.Text.Fallback ?? start.Node!.Text.Fallback}";
+    }
+
+    private void ApplyDialoguePresentation(DialogueNodeId nodeId)
+    {
+        if (_elyraDialogue is null) return;
+        var participant = _elyraDialogue.Nodes.First(item => item.Id == nodeId).SpeakerBlueprintId;
+        IReadOnlyList<DialogueCompanionState> companions = participant is null ? [] :
+            [new(participant, _npc is not null, 100, new HashSet<string>(["guardian"], StringComparer.Ordinal))];
+        var context = new DialoguePresentationRuntimeContext("fr-FR",
+            _elyraDialogue.Presentation?.RequiredAtRuntime == true, false, false, true,
+            DateTimeOffset.UtcNow, companions, new Dictionary<Guid, DateTimeOffset>());
+        var resolution = DialoguePresentationRuntimeResolver.Resolve(_elyraDialogue, nodeId, context);
+        foreach (var diagnostic in resolution.Diagnostics)
+            GD.PrintErr($"OPENRPG_FORGE_DIALOGUE_PRESENTATION_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        if (resolution.Diagnostics.Count > 0) return;
+
+        _dialogueAnimationCueCount += resolution.AnimationCues.Count;
+        if (_npc is not null && _characterAnimations.TryGetValue(_npc, out var animation))
+        {
+            foreach (var cue in resolution.AnimationCues)
+            {
+                var clip = animation.Clips.FirstOrDefault(item =>
+                    string.Equals(item, cue.AnimationId, StringComparison.OrdinalIgnoreCase)) ?? animation.IdleClip;
+                GodotAssetAnimationController.Play(animation, clip,
+                    Math.Max(0, cue.BlendMilliseconds) / 1000.0, restart: true);
+            }
+        }
+
+        if (resolution.VoiceCue is not null)
+        {
+            _dialogueVoiceCueCount++;
+            _dialogueSubtitleFallback = resolution.UsesSubtitleFallback;
+            GD.Print($"OPENRPG_FORGE_DIALOGUE_VOICE locale={resolution.VoiceCue.Locale} " +
+                $"take={resolution.VoiceCue.Take} fallback={resolution.UsesSubtitleFallback.ToString().ToLowerInvariant()} " +
+                $"subtitle={resolution.VoiceCue.Subtitle.Key}");
+        }
+
+        if (resolution.CameraShot is { } shot && _camera is not null)
+        {
+            _dialogueCameraShotCount++;
+            _camera.Fov = shot.FieldOfViewDegrees;
+            if (_npc is not null) _camera.LookAt(_npc.GlobalPosition + Vector3.Up, Vector3.Up);
+        }
+        _dialogueBookmarkCount += _elyraDialogue.Presentation?.Bookmarks.Count(item => item.NodeId == nodeId) ?? 0;
+        if (resolution.Interjection is not null) _dialogueInterjectionCount++;
     }
 
     private void ApplyDialogueActions(IReadOnlyList<DialogueAction> actions)
@@ -3533,6 +3585,18 @@ public partial class GameRoot : Node3D
 
         InteractWith(_npc!);
         AssertSmoke(_questState == PrototypeQuestState.Active, "NPC interaction did not start the quest.");
+        AssertSmoke(_elyraDialogue?.Presentation is { } dialoguePresentation &&
+                    DialoguePresentationValidator.Validate(_elyraDialogue).Count == 0,
+            "The authored dialogue presentation profile did not resolve.");
+        AssertSmoke(_dialogueAnimationCueCount == 1 && _dialogueVoiceCueCount == 1 &&
+                    _dialogueCameraShotCount == 1 && _dialogueBookmarkCount == 1 &&
+                    _dialogueInterjectionCount == 1 && _dialogueSubtitleFallback,
+            "Dialogue animation, voice fallback, camera, bookmark, or interjection did not execute.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G13H_DIALOGUE_PRESENTATION_PASS " +
+            $"animations={_dialogueAnimationCueCount} voices={_dialogueVoiceCueCount} " +
+            $"shots={_dialogueCameraShotCount} bookmarks={_dialogueBookmarkCount} " +
+            $"interjections={_dialogueInterjectionCount} subtitle_fallback={_dialogueSubtitleFallback.ToString().ToLowerInvariant()} " +
+            "authority=server accessibility=player-priority");
         AssertSmoke(
             _questMachine?.CurrentState.DisplayName == "Clé de braise",
             "NPC interaction did not start the data-driven quest.");

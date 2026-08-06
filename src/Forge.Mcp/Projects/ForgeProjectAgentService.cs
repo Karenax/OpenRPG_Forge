@@ -72,6 +72,7 @@ public sealed class ForgeProjectAgentService
     private readonly SetEntityOverridesHandler _overridesHandler;
     private readonly SetCreatureEventsHandler _creatureEventsHandler;
     private readonly SetFactionCatalogHandler _factionHandler;
+    private readonly SetDialoguePresentationHandler _dialoguePresentationHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
     private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
@@ -135,6 +136,7 @@ public sealed class ForgeProjectAgentService
         _overridesHandler = new SetEntityOverridesHandler(clock);
         _creatureEventsHandler = new SetCreatureEventsHandler(clock);
         _factionHandler = new SetFactionCatalogHandler(clock);
+        _dialoguePresentationHandler = new SetDialoguePresentationHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
         _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
@@ -303,6 +305,52 @@ public sealed class ForgeProjectAgentService
             return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
                 result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
                     "module/factions")).ToArray());
+        }
+    }
+
+    public DialoguePresentationResource QueryDialoguePresentations(string? dialogueIdOrSearch = null, int limit = 50)
+    {
+        if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        lock (_gate)
+        {
+            var filter = dialogueIdOrSearch?.Trim();
+            var items = _history.State.Project.Dialogues
+                .Where(item => item.Presentation is not null && (string.IsNullOrWhiteSpace(filter) ||
+                    string.Equals(item.Id.ToString(), filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.DisplayName.Contains(filter, StringComparison.CurrentCultureIgnoreCase) ||
+                    item.Presentation.Bookmarks.Any(bookmark =>
+                        bookmark.Name.Contains(filter, StringComparison.CurrentCultureIgnoreCase))))
+                .OrderBy(item => item.Slug, StringComparer.Ordinal).Take(limit)
+                .Select(item => new DialoguePresentationResourceItem(item.Id.ToString(), item.Slug,
+                    item.DisplayName, item.Presentation!.Id.ToString("D"), item.Presentation.RequiredAtRuntime,
+                    item.Presentation.ServerAuthoritativeInterjections, item.Presentation.AnimationCues.Count,
+                    item.Presentation.VoiceCues.Count, item.Presentation.CameraShots.Count,
+                    item.Presentation.Bookmarks.Count, item.Presentation.InterjectionRules.Count))
+                .ToArray();
+            return new(1, _history.State.Revision.Value, filter, items);
+        }
+    }
+
+    public DialoguePresentationPlanResult PreviewDialoguePresentation(DialoguePresentationPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("dialogue.presentation.mcp_schema_unsupported",
+                        "Dialogue presentation MCP request schema must be v1.", "request/schemaVersion")]);
+            if (!Guid.TryParse(request.DialogueId, out var parsed) || parsed == Guid.Empty)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("dialogue.presentation.mcp_id_invalid",
+                        "Dialogue ID must be a non-empty UUID.", "request/dialogueId")]);
+            var result = _dialoguePresentationHandler.Handle(_history.State,
+                new SetDialoguePresentationCommand(CommandId.From(Guid.NewGuid()),
+                    new ProjectRevision(request.BaseRevision), DialogueId.From(parsed), request.Presentation, true));
+            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
+                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    $"dialogues/{request.DialogueId}/presentation")).ToArray());
         }
     }
 

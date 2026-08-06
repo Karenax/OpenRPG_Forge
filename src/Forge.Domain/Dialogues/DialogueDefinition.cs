@@ -12,12 +12,15 @@ public sealed record DialogueDefinition
 
     public IReadOnlyList<DialogueNode> Nodes { get; }
 
+    public DialoguePresentationProfile? Presentation { get; }
+
     public DialogueDefinition(
         DialogueId id,
         string slug,
         string displayName,
         DialogueNodeId entryNodeId,
-        IReadOnlyList<DialogueNode> nodes)
+        IReadOnlyList<DialogueNode> nodes,
+        DialoguePresentationProfile? presentation = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -41,5 +44,9 @@ public sealed record DialogueDefinition
         DisplayName = displayName.Trim();
         EntryNodeId = entryNodeId;
         Nodes = materializedNodes;
+        Presentation = presentation;
     }
+
+    public DialogueDefinition WithPresentation(DialoguePresentationProfile? presentation) =>
+        new(Id, Slug, DisplayName, EntryNodeId, Nodes, presentation);
 }

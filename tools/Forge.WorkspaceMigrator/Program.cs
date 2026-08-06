@@ -1,10 +1,12 @@
 using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
+using Forge.Domain.Dialogues;
 using Forge.Domain.Factions;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Projects;
 using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Sequences;
 using Forge.ModuleFormat.Workspaces;
 
 var addRuntimeExtensionSample = args.Contains("--runtime-extension-sample", StringComparer.Ordinal);
@@ -12,10 +14,11 @@ var addCreatureLootSample = args.Contains("--creature-loot-sample", StringCompar
 var addCreatureRoleBehaviorSample = args.Contains("--creature-role-behavior-sample", StringComparer.Ordinal);
 var addCreatureEventsSample = args.Contains("--creature-events-sample", StringComparer.Ordinal);
 var addAdvancedFactionSample = args.Contains("--faction-advanced-sample", StringComparer.Ordinal);
+var addDialoguePresentationSample = args.Contains("--dialogue-presentation-sample", StringComparer.Ordinal);
 var workspaceArguments = args.Where(argument => !argument.StartsWith("--", StringComparison.Ordinal)).ToArray();
 if (workspaceArguments.Length == 0)
 {
-    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] [--creature-events-sample] [--faction-advanced-sample] <workspace> [workspace ...]");
+    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] [--creature-events-sample] [--faction-advanced-sample] [--dialogue-presentation-sample] <workspace> [workspace ...]");
     return 2;
 }
 
@@ -34,6 +37,7 @@ foreach (var argument in workspaceArguments)
     if (addCreatureRoleBehaviorSample) project = AddCreatureRoleBehaviorSample(project);
     if (addCreatureEventsSample) project = AddCreatureEventsSample(project);
     if (addAdvancedFactionSample) project = AddAdvancedFactionSample(project);
+    if (addDialoguePresentationSample) project = AddDialoguePresentationSample(project);
     var saved = opened.Session.Save(project);
     if (!saved.Succeeded)
     {
@@ -46,6 +50,40 @@ foreach (var argument in workspaceArguments)
 }
 
 return 0;
+
+static ProjectDefinition AddDialoguePresentationSample(ProjectDefinition project)
+{
+    if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal) ||
+        project.Dialogues.Count == 0) return project;
+    var dialogues = project.Dialogues.Select(dialogue =>
+    {
+        if (!string.Equals(dialogue.Slug, "elyra-crypt-of-ashes", StringComparison.Ordinal)) return dialogue;
+        var entry = dialogue.EntryNodeId;
+        var interjectionNode = dialogue.Nodes.Skip(1).FirstOrDefault()?.Id ?? entry;
+        var speaker = dialogue.Nodes.First(item => item.Id == entry).SpeakerBlueprintId
+            ?? project.Blueprints.First().Id;
+        var profile = new DialoguePresentationProfile(
+            Guid.Parse("d1350000-0000-4000-8000-000000000010"), 1, "sample:g13-h", false, true,
+            [new(Guid.Parse("d1350000-0000-4000-8000-000000000011"), entry, speaker,
+                "dialogue.explain", 0, 1800, 180, DialogueGesture.Explain, null,
+                DialogueAnimationInterruptionPolicy.BlendOut, "idle", "sample:g13-h")],
+            [new(Guid.Parse("d1350000-0000-4000-8000-000000000012"), entry, speaker, "fr-FR", null,
+                "elyra-crypt-01", dialogue.Nodes.First(item => item.Id == entry).Text,
+                "viseme-neutral", "concerned", 1800, null, null, true, "sample:g13-h")],
+            [new(Guid.Parse("d1350000-0000-4000-8000-000000000013"), entry,
+                DialogueCameraShotMode.Automatic, null, speaker, CameraFraming.Medium, 52, 1800, 250,
+                true, true, true, .08f, 10, "sample:g13-h")],
+            [new(Guid.Parse("d1350000-0000-4000-8000-000000000014"), entry, "Accueil d’Elyra",
+                DialogueBookmarkScope.Shared, "Valider cadrage, animation et sous-titre.", "aurora-review",
+                $"dialogue://{dialogue.Id}/{entry}", "sample:g13-h")],
+            [new(Guid.Parse("d1350000-0000-4000-8000-000000000015"), entry, interjectionNode, speaker,
+                ["guardian"], true, 0, 100, 30, "elyra-main",
+                DialogueInterjectionConflictPolicy.HighestPriority, "sample:g13-h")]);
+        return dialogue.WithPresentation(profile);
+    }).ToArray();
+    return new ProjectDefinition(project.Id, project.Title, project.Module, project.Blueprints, project.Areas,
+        dialogues, project.Quests);
+}
 
 static ProjectDefinition AddAdvancedFactionSample(ProjectDefinition project)
 {

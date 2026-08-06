@@ -66,10 +66,10 @@ capacité G13 ne peut imposer un fournisseur, un abonnement ou un asset proprié
   événements avancés de créature (fin de round, perturbation, repos, heartbeat et événement utilisateur).
 - [x] **G13-G** — `ORF-FAC-002`, `ORF-FAC-008`, `ORF-FAC-009`, `ORF-FAC-010` : factions parentes,
   propagation par témoins, memberships multiples et factions dynamiques.
-- [ ] **G13-H** — `ORF-DLG-014`, `ORF-DLG-015`, `ORF-DLG-016`, `ORF-DLG-020`, `ORF-DLG-023` :
+- [x] **G13-H** — `ORF-DLG-014`, `ORF-DLG-015`, `ORF-DLG-016`, `ORF-DLG-020`, `ORF-DLG-023` :
   animations, voix, caméra, bookmarks et interjections de dialogue.
-- [ ] **G13-I et suivants** — tranches de cinq IDs maximum, ordonnées selon les quatre pistes
-  ci-dessus et consignées dans une fiche dédiée avant implémentation.
+- [ ] **G13-I et suivants** — développement volontairement arrêté après G13-H ; aucune nouvelle
+  tranche ne démarre sans demande explicite de l’utilisateur.
 
 ## Gate de fermeture
 

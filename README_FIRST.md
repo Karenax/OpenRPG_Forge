@@ -33,12 +33,14 @@ Codex lit automatiquement `AGENTS.md` lorsqu’il travaille dans le dépôt. Le 
 
 Le paquet de démarrage a maintenant produit un MVP solo fonctionnel ; Creator Core G7, Aurora
 Foundation G8, Network Beta G9, Live Director G10, Contenu moderne G11 et Assistant G12 sont
-fermés. La file post-1.0 G13 avance par lots bornés. G13-A à G13-G livrent maintenant les raccourcis
+fermés. La file post-1.0 G13 avance par lots bornés. G13-A à G13-H livrent maintenant les raccourcis
 configurables, la présentation et la progression des créatures, puis le butin, le vol à la tire et
 les dépouilles interactives, les informations de rôle, les routines ambiantes et les templates
 d’auto-level déterministes, les événements avancés de créature typés et budgétés, puis les factions
-hiérarchiques, affiliations multiples, témoins et états diplomatiques dynamiques. Le prochain lot est
-**G13-H — présentation cinématique des dialogues**.
+hiérarchiques, affiliations multiples, témoins et états diplomatiques dynamiques, puis la mise en
+scène canonique des dialogues : animations, voix/sous-titres, caméra accessible, bookmarks et
+interjections autoritaires. Le développement est volontairement arrêté après **G13-H** jusqu’à
+nouvelle demande.
 
 La source de vérité de l’avancement est `STATUS.md`. La direction d’interface et le contexte
 graphique sont dans `docs/UX_AURORA_2026.md`. Le chantier Asset Vault/Forgotten Forest, sa cible

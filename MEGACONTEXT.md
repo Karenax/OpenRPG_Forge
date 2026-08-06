@@ -1849,10 +1849,10 @@ Le présent paquet contient uniquement :
 
 ## Prochaine action autorisée
 
-Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-H :
-`ORF-DLG-014`, `ORF-DLG-015`, `ORF-DLG-016`, `ORF-DLG-020` et `ORF-DLG-023`, regroupées autour de
-la présentation cinématique et des interjections de dialogue. Chaque tranche doit
-conserver les modules jouables, le runtime sans IA, les formats migrables et le gate intégré vert.
+La file G13 a livré G13-H : `ORF-DLG-014`, `ORF-DLG-015`, `ORF-DLG-016`, `ORF-DLG-020` et
+`ORF-DLG-023`, regroupées autour de la présentation cinématique et des interjections de dialogue.
+Le développement est arrêté après ce lot. Conserver les modules jouables, le runtime sans IA, les
+formats migrables et le gate intégré vert ; ne pas démarrer G13-I sans demande explicite.
 
 
 ---

@@ -13,6 +13,8 @@ public static class ProjectValidator
     public const string MissingBlueprintCode = "project.reference.blueprint_missing";
     public const string MissingEntryAreaCode = "project.reference.entry_area_missing";
     public const string MissingDialogueSpeakerBlueprintCode = "project.reference.dialogue_speaker_blueprint_missing";
+    public const string MissingDialoguePresentationBlueprintCode = "project.reference.dialogue_presentation_blueprint_missing";
+    public const string MissingDialogueCameraAnchorCode = "project.reference.dialogue_camera_anchor_missing";
     public const string DuplicatePortalCode = "area.portal.id_duplicate";
     public const string MissingPortalSourceCode = "area.portal.source_missing";
     public const string MissingPortalDestinationAreaCode = "area.portal.destination_area_missing";
@@ -43,6 +45,8 @@ public static class ProjectValidator
         var lootIds = new HashSet<Guid>();
         var roleBehaviorIds = new HashSet<Guid>();
         var creatureEventIds = new HashSet<Guid>();
+        var cameraAnchorIds = project.Areas.SelectMany(area => area.RuntimePolicies.Cinematics.CameraAnchors)
+            .Select(anchor => anchor.Id).ToHashSet();
 
         diagnostics.AddRange(RuntimePolicyValidator.Validate(project.Module));
         diagnostics.AddRange(FactionValidator.Validate(project.Module.Factions)
@@ -263,6 +267,32 @@ public static class ProjectValidator
                     MissingDialogueSpeakerBlueprintCode,
                     $"Dialogue node '{node.Id}' references missing speaker blueprint '{node.SpeakerBlueprintId}'.",
                     $"dialogues/{dialogue.Id}/nodes/{node.Id}/speakerBlueprintId"));
+            }
+
+            if (dialogue.Presentation is not { } presentation)
+                continue;
+            var presentationBlueprints = presentation.AnimationCues
+                .SelectMany(item => new[] { item.ParticipantBlueprintId, item.LookAtBlueprintId })
+                .Concat(presentation.VoiceCues.Select(item => item.ParticipantBlueprintId))
+                .Concat(presentation.CameraShots.Select(item => item.FocusBlueprintId))
+                .Concat(presentation.InterjectionRules.Select(item => item.CompanionBlueprintId))
+                .Where(item => item is not null).Cast<BlueprintId>().Distinct();
+            foreach (var blueprintId in presentationBlueprints.Where(item => !blueprintIds.Contains(item)))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    MissingDialoguePresentationBlueprintCode,
+                    $"Dialogue presentation references missing blueprint '{blueprintId}'.",
+                    $"dialogues/{dialogue.Id}/presentation/blueprints/{blueprintId}"));
+            }
+
+            foreach (var shot in presentation.CameraShots.Where(item =>
+                         item.Mode == DialogueCameraShotMode.Anchor &&
+                         item.CameraAnchorId is { } anchorId && !cameraAnchorIds.Contains(anchorId)))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    MissingDialogueCameraAnchorCode,
+                    $"Dialogue camera shot '{shot.Id}' references missing anchor '{shot.CameraAnchorId}'.",
+                    $"dialogues/{dialogue.Id}/presentation/cameraShots/{shot.Id}/cameraAnchorId"));
             }
         }
 

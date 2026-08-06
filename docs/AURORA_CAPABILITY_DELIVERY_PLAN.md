@@ -502,8 +502,9 @@ UI, persistance, script typé, fallback historique et dépouille runtime interac
 déterministe. **G13-F** est désormais fermé avec bindings combat/inventaire/repos, heartbeat budgété,
 événements personnalisés typés, UI, ForgeScript, MCP, persistance et runtime 3D. **G13-G** ferme les
 quatre exigences de factions avancées avec hiérarchie, témoins, affiliations multiples, diplomatie
-dynamique, autorité serveur, UI, formats, scripts, MCP et runtime. **G13-H** cible ensuite cinq
-exigences de présentation cinématique des dialogues.
+dynamique, autorité serveur, UI, formats, scripts, MCP et runtime. **G13-H** ferme ensuite cinq
+exigences de présentation cinématique des dialogues avec animations, voix/sous-titres, caméra,
+bookmarks et interjections autoritaires. La file est arrêtée après ce lot jusqu’à nouvelle demande.
 
 ## 7. Graphe de dépendances
 

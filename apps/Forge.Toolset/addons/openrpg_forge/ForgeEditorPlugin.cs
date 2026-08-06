@@ -134,6 +134,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetCreatureRoleBehaviorHandler _creatureRoleBehaviorHandler = new(new SystemClock());
     private readonly SetCreatureEventsHandler _creatureEventsHandler = new(new SystemClock());
     private readonly SetFactionCatalogHandler _factionHandler = new(new SystemClock());
+    private readonly SetDialoguePresentationHandler _dialoguePresentationHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -221,6 +222,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _entityPropertiesSaveButton;
     private Button? _entityPropertiesCancelButton;
     private DialogueEditorWindow? _dialogueEditor;
+    private DialoguePresentationWindow? _dialoguePresentationWindow;
     private BlueprintCatalogWindow? _blueprintCatalog;
     private AssetContentBrowserWindow? _assetBrowser;
     private LocalizationWorkspaceWindow? _localizationWorkspace;
@@ -318,8 +320,17 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _dialogueEditor.Initialize(
             () => _history?.State,
             ApplyDialogue,
+            dialogueId => _dialoguePresentationWindow?.Open(dialogueId),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_dialogueEditor);
+        _dialoguePresentationWindow = new DialoguePresentationWindow();
+        _dialoguePresentationWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyDialoguePresentation,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_dialoguePresentationWindow);
         _blueprintCatalog = new BlueprintCatalogWindow();
         _blueprintCatalog.Initialize(
             () => _history?.State,
@@ -2419,6 +2430,22 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _factionAdvancedWindow?.Refresh();
         }
 
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyDialoguePresentation(
+        DialogueId dialogueId, DialoguePresentationProfile? presentation, bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        var command = new SetDialoguePresentationCommand(CommandId.From(Guid.NewGuid()),
+            _history.State.Revision, dialogueId, presentation, dryRun);
+        var result = _dialoguePresentationHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Mise en scène du dialogue enregistrée dans le projet.", null);
+            _dialoguePresentationWindow?.Refresh(dialogueId);
+        }
         return result;
     }
 
@@ -5510,6 +5537,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAdvancedFactionSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunDialoguePresentationSmokeTest())
         {
             return;
         }
@@ -10466,6 +10498,83 @@ public partial class ForgeEditorPlugin : EditorPlugin
             if (appliedToHistory) _history.Undo();
             RebuildPreview();
             RefreshEditorControls();
+        }
+    }
+
+    private bool RunDialoguePresentationSmokeTest()
+    {
+        if (_history is null || _dialoguePresentationWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_FAILED missing_workspace");
+            return false;
+        }
+
+        try
+        {
+            var beforeRevision = _history.State.Revision;
+            var dialogueId = _history.State.Project.Dialogues.First().Id;
+            var previousProfileId = _history.State.Project.Dialogues.First(item => item.Id == dialogueId)
+                .Presentation?.Id;
+            if (!_dialoguePresentationWindow.ConfigureForSmokeTest() ||
+                !_dialoguePresentationWindow.PreviewForSmokeTest() ||
+                !_dialoguePresentationWindow.ApplyForSmokeTest())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_FAILED preview_apply_ui " +
+                    _dialoguePresentationWindow.LastDiagnostics);
+                return false;
+            }
+
+            var applied = _history.State.Project.Dialogues.First(item => item.Id == dialogueId);
+            var profile = applied.Presentation;
+            if (profile is null || DialoguePresentationValidator.Validate(applied).Count != 0 ||
+                _history.State.Revision != beforeRevision.Next())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_FAILED canonical_profile");
+                return false;
+            }
+
+            var script = new DialoguePresentationScriptService(applied);
+            var snapshot = script.Read(script.Handle);
+            var roundTrip = ProjectJsonSerializer.Deserialize(ProjectJsonSerializer.Serialize(_history.State.Project));
+            var restored = roundTrip.Dialogues.First(item => item.Id == dialogueId).Presentation;
+            if (snapshot.AnimationCueCount < 1 || snapshot.VoiceCueCount < 1 ||
+                snapshot.CameraShotCount < 1 || snapshot.BookmarkCount < 1 ||
+                restored?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_FAILED script_roundtrip");
+                return false;
+            }
+
+            Undo();
+            if (_history.State.Project.Dialogues.First(item => item.Id == dialogueId).Presentation?.Id != previousProfileId)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_FAILED undo");
+                return false;
+            }
+            Redo();
+            if (_history.State.Project.Dialogues.First(item => item.Id == dialogueId).Presentation?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_FAILED redo");
+                return false;
+            }
+
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_PASS " +
+                "animations=timing-blend-gesture-lookat-interrupt-fallback " +
+                "voice=locale-take-subtitle-lipsync-emotion-duration-license-fallback " +
+                "camera=automatic-anchor-framing-player-priority-accessible " +
+                "bookmarks=personal-shared-comment-deeplink " +
+                "interjections=personality-presence-relation-priority-cooldown-conflicts-authority " +
+                "ui=visible-empty-error-summary forgescript=typed-handle mcp=filtered-dry-run " +
+                "transaction=identified audit=generated history=restored persistence=project-workspace-package " +
+                $"runtime=optional-safe counts={profile.AnimationCues.Count}-{profile.VoiceCues.Count}-" +
+                $"{profile.CameraShots.Count}-{profile.Bookmarks.Count}-{profile.InterjectionRules.Count} " +
+                $"sections={_dialoguePresentationWindow.SummarySectionCount}");
+            return true;
+        }
+        catch (Exception exception)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_FAILED " + exception);
+            return false;
         }
     }
 

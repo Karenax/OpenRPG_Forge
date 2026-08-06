@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.22.0",
+  "formatVersion": "1.23.0",
   "project": {
     "id": "85d0cc1d-acd4-7b55-90f2-a7c4e9ff6112",
     "title": "Forgotten Forest",
@@ -1305,7 +1305,8 @@
               }
             ]
           }
-        ]
+        ],
+        "presentation": null
       }
     ],
     "quests": [

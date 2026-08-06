@@ -57,6 +57,17 @@ public sealed class ForgeMcpTools
         _project.PreviewFactions(request);
 
     [McpServerTool]
+    [Description("Returns filtered canonical dialogue presentation profiles and cue counts without mutation.")]
+    public DialoguePresentationResource QueryDialoguePresentations(
+        string? dialogueIdOrSearch = null, int limit = 50) =>
+        _project.QueryDialoguePresentations(dialogueIdOrSearch, limit);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a dialogue presentation mutation, returning its semantic diff without applying it.")]
+    public DialoguePresentationPlanResult PreviewDialoguePresentation(DialoguePresentationPlanRequest request) =>
+        _project.PreviewDialoguePresentation(request);
+
+    [McpServerTool]
     [Description("Validates the project and returns structured diagnostics without mutating it.")]
     public IReadOnlyList<AgentDiagnostic> GetProjectDiagnostics() => _project.GetDiagnostics();
 
