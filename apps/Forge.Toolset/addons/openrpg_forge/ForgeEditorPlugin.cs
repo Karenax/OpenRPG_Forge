@@ -115,6 +115,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly BuildAssistedAreaPlanHandler _assistedAreaBuildHandler = new(new SystemClock());
     private readonly ApplyAssistedDialogueHandler _assistedDialogueHandler = new(new SystemClock());
     private readonly ApplyAssistedQuestHandler _assistedQuestHandler = new(new SystemClock());
+    private readonly ApplyAssistedForgeScriptHandler _assistedForgeScriptHandler = new();
+    private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -209,6 +211,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssistedAreaPlanWindow? _assistedAreaPlanWindow;
     private AssistedDialogueWindow? _assistedDialogueWindow;
     private AssistedQuestWindow? _assistedQuestWindow;
+    private AssistedForgeScriptWindow? _assistedForgeScriptWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -357,6 +360,17 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ApplyAssistedQuest,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistedQuestWindow);
+        _assistedForgeScriptWindow = new AssistedForgeScriptWindow();
+        _assistedForgeScriptWindow.Initialize(
+            () => _projectSession,
+            () => _history?.State,
+            () => _loreIndexHistory?.State,
+            () => _assistantProfileHistory?.State,
+            ApplyAssistedForgeScript,
+            UndoAssistedForgeScript,
+            RedoAssistedForgeScript,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_assistedForgeScriptWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -369,6 +383,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _assistedAreaPlanWindow?.Open(),
             () => _assistedDialogueWindow?.Open(),
             () => _assistedQuestWindow?.Open(),
+            () => _assistedForgeScriptWindow?.Open(),
             () => _localizationWorkspace?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistantWorkspace);
@@ -3335,6 +3350,59 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool ApplyAssistedForgeScript(
+        AssistedForgeScriptProposal proposal,
+        Guid transactionId,
+        Guid executionPlanId,
+        bool dryRun)
+    {
+        if (_projectSession is null || _history is null) return false;
+        var command = new ApplyAssistedForgeScriptCommand(
+            Guid.NewGuid(),
+            transactionId,
+            executionPlanId,
+            _history.State.Revision.Value,
+            proposal,
+            AssistantPermissionLevel.ApplyApprovedPlan,
+            dryRun);
+        var result = _assistedForgeScriptHandler.Handle(
+            _projectSession.RootDirectory,
+            _history.State.Revision.Value,
+            command);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(code => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                code,
+                "La transaction ForgeScript assistée a été refusée.",
+                proposal.RelativePath,
+                proposal.ScriptId.ToString("D"))).ToArray());
+            return false;
+        }
+        if (dryRun) return result.Patch is not null && !result.Applied;
+        _assistedForgeScriptHistory.Record(result);
+        _buildPipeline?.Refresh();
+        RefreshEditorControls();
+        GD.Print($"OPENRPG_FORGE_TOOLSET_ASSISTED_SCRIPT_APPLIED path={proposal.RelativePath} " +
+                 $"api={proposal.ForgeScriptApiVersion} tests={proposal.Tests.Count} " +
+                 $"transaction={transactionId:D} plan={executionPlanId:D}");
+        return true;
+    }
+
+    private bool UndoAssistedForgeScript()
+    {
+        if (_projectSession is null || !_assistedForgeScriptHistory.Undo(_projectSession.RootDirectory)) return false;
+        _buildPipeline?.Refresh();
+        return true;
+    }
+
+    private bool RedoAssistedForgeScript()
+    {
+        if (_projectSession is null || !_assistedForgeScriptHistory.Redo(_projectSession.RootDirectory)) return false;
+        _buildPipeline?.Refresh();
+        return true;
+    }
+
     private bool RedoAssistedAreaPlans()
     {
         if (_projectSession is null || _assistedAreaPlanHistory is null || !_assistedAreaPlanHistory.Redo()) return false;
@@ -4690,6 +4758,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssistedQuestSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAssistedForgeScriptSmokeTest())
         {
             return;
         }
@@ -8424,6 +8497,57 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _projectSession.Save(originalState.Project);
             RebuildPreview();
             RefreshEditorControls();
+        }
+    }
+
+    private bool RunAssistedForgeScriptSmokeTest()
+    {
+        if (_projectSession is null || _history is null || _assistedForgeScriptWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12G_SCRIPT_FAILED missing_workspace");
+            return false;
+        }
+        var relativePath = _assistedForgeScriptWindow.SmokeRelativePath;
+        var path = AssistedForgeScriptCreationService.ResolvePath(_projectSession.RootDirectory, relativePath);
+        var original = File.Exists(path) ? File.ReadAllText(path) : null;
+        try
+        {
+            if (!_assistedForgeScriptWindow.ConfigureApprovedForSmokeTest() ||
+                !_assistedForgeScriptWindow.PreviewForSmokeTest() ||
+                !_assistedForgeScriptWindow.LastCompiled ||
+                _assistedForgeScriptWindow.LastTestCount != 3 ||
+                _assistedForgeScriptWindow.LastErrorCount != 0 ||
+                _assistedForgeScriptWindow.LastApiVersion != "1.0.0" ||
+                _assistedForgeScriptWindow.LastEstimatedCostUsd != 0 ||
+                !_assistedForgeScriptWindow.ApplyForSmokeTest() ||
+                !File.Exists(path) ||
+                !new NativeForgeScriptRuntime().Compile(File.ReadAllText(path)).Success)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12G_SCRIPT_FAILED preview_compile_test_apply");
+                return false;
+            }
+            if (!UndoAssistedForgeScript() || File.Exists(path) != (original is not null) ||
+                !RedoAssistedForgeScript() || !File.Exists(path) ||
+                !UndoAssistedForgeScript() || File.Exists(path) != (original is not null))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12G_SCRIPT_FAILED history_roundtrip");
+                return false;
+            }
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G12G_SCRIPT_PASS api=1.0.0 vm=2.38.0 source=generated-editable " +
+                "binding=typed compile=native diagnostics=structured tests=compile-api-sandbox path=confined " +
+                "provider=fake-offline cost=visible plan=dry-run-transaction permission=apply-approved " +
+                "history=restored persistence=roundtrip mcp=governed");
+            return true;
+        }
+        finally
+        {
+            ApplyAssistedForgeScriptHandler.Restore(
+                _projectSession.RootDirectory,
+                new AssistedForgeScriptFilePatch(relativePath, original, original ?? string.Empty),
+                useAfter: false);
+            _assistedForgeScriptHistory.Reset();
+            _buildPipeline?.Refresh();
         }
     }
 

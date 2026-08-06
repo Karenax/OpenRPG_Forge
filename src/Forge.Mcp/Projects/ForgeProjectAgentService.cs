@@ -1,3 +1,4 @@
+using System.Text;
 using Forge.Application.Commands;
 using Forge.Application.Assistant;
 using Forge.Application.Assets;
@@ -47,6 +48,8 @@ public sealed class ForgeProjectAgentService
     private readonly SetDialogueHandler _dialogueHandler;
     private readonly ApplyAssistedDialogueHandler _assistedDialogueHandler;
     private readonly ApplyAssistedQuestHandler _assistedQuestHandler;
+    private readonly IForgeScriptRuntime _forgeScriptRuntime;
+    private readonly ApplyAssistedForgeScriptHandler _assistedForgeScriptHandler;
     private readonly SetEntityOverridesHandler _overridesHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
@@ -65,6 +68,7 @@ public sealed class ForgeProjectAgentService
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedDialoguePlan> _assistedDialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedQuestPlan> _assistedQuestPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAssistedForgeScriptPlan> _assistedForgeScriptPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredGameplayControlPlan> _gameplayControlPlans = new(StringComparer.Ordinal);
@@ -85,6 +89,8 @@ public sealed class ForgeProjectAgentService
         _dialogueHandler = new SetDialogueHandler(clock);
         _assistedDialogueHandler = new ApplyAssistedDialogueHandler(clock);
         _assistedQuestHandler = new ApplyAssistedQuestHandler(clock);
+        _forgeScriptRuntime = new NativeForgeScriptRuntime();
+        _assistedForgeScriptHandler = new ApplyAssistedForgeScriptHandler();
         _overridesHandler = new SetEntityOverridesHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
@@ -1810,6 +1816,118 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public AssistedForgeScriptProposalResource ProposeAssistedForgeScript(AssistedForgeScriptProposalRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, null,
+                    [new AgentDiagnostic("assistant.script.request_invalid",
+                        "Assisted ForgeScript proposal schema is invalid.", "assistant/script")]);
+            try
+            {
+                var profile = AssistantWorkspaceProfile.CreateDefault();
+                var proposal = AssistedForgeScriptCreationService.ProposeAsync(
+                    request.Brief,
+                    _session.RootDirectory,
+                    _history.State.Project,
+                    _loreIndexHistory.State.Index,
+                    new DeterministicAssistantProvider(profile.ActiveProvider),
+                    profile.ActiveProvider,
+                    _forgeScriptRuntime,
+                    networkAuthorized: false,
+                    projectContentAuthorized: false).GetAwaiter().GetResult();
+                return new(proposal.Succeeded, proposal, proposal.Diagnostics.Select(MapScript).ToArray());
+            }
+            catch (Exception exception) when (exception is ArgumentException or IOException or UnauthorizedAccessException)
+            {
+                return new(false, null,
+                    [new AgentDiagnostic("assistant.script.brief_invalid", exception.Message, "assistant/script")]);
+            }
+        }
+    }
+
+    public AssistedForgeScriptApplyPlanResult PlanAssistedForgeScript(AssistedForgeScriptApplyPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
+                return AssistedForgeScriptFailure(_history.State.Revision.Value,
+                    "assistant.script.request_invalid", "Assisted ForgeScript request schema or revision is invalid.");
+            var transactionId = Guid.NewGuid();
+            var executionPlanId = Guid.NewGuid();
+            var command = new ApplyAssistedForgeScriptCommand(
+                Guid.NewGuid(), transactionId, executionPlanId, request.BaseRevision,
+                request.Proposal, request.Permission, DryRun: true);
+            var preview = _assistedForgeScriptHandler.Handle(_session.RootDirectory, _history.State.Revision.Value, command);
+            if (!preview.Succeeded || preview.Patch is null)
+                return new(false, null, transactionId.ToString("D"), request.Proposal.ScriptId.ToString("D"),
+                    request.Proposal.RelativePath, request.BaseRevision, null, "no-change",
+                    request.Proposal.ForgeScriptApiVersion, request.Proposal.EventBinding,
+                    request.Proposal.Tests.Select(item => item.Id).ToArray(),
+                    preview.Diagnostics.Select(code => new AgentDiagnostic(code, code, request.Proposal.RelativePath)).ToArray(),
+                    request.Proposal.EstimatedCostUsd, false, false, []);
+            var key = executionPlanId.ToString("D");
+            var stored = new StoredAssistedForgeScriptPlan(
+                key,
+                command,
+                preview.Patch,
+                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _assistedForgeScriptPlans.Add(key, stored);
+            return ToResult(stored);
+        }
+    }
+
+    public AssistedForgeScriptApplyPlanResult ApplyAssistedForgeScriptPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_assistedForgeScriptPlans.TryGetValue(planId, out var plan))
+                return AssistedForgeScriptFailure(_history.State.Revision.Value,
+                    "assistant.script.plan_missing", $"Assisted ForgeScript plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AssistedForgeScriptFailure(plan.Command.BaseRevision,
+                    "assistant.script.plan_already_applied", $"Assisted ForgeScript plan '{planId}' is already applied.");
+            var result = _assistedForgeScriptHandler.Handle(
+                _session.RootDirectory,
+                _history.State.Revision.Value,
+                plan.Command with { CommandId = Guid.NewGuid(), DryRun = false });
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan, result.Diagnostics.Select(code =>
+                    new AgentDiagnostic(code, code, plan.Command.Proposal.RelativePath)).ToArray());
+            }
+            plan.Applied = true;
+            plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AssistedForgeScriptApplyPlanResult RevertAssistedForgeScriptPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_assistedForgeScriptPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AssistedForgeScriptFailure(_history.State.Revision.Value,
+                    "assistant.script.plan_not_applied", $"Assisted ForgeScript plan '{planId}' is not currently applied.");
+            var path = AssistedForgeScriptCreationService.ResolvePath(_session.RootDirectory, plan.Patch.RelativePath);
+            var current = File.Exists(path) ? File.ReadAllText(path, Encoding.UTF8) : string.Empty;
+            if (!string.Equals(AssistedForgeScriptCreationService.Sha256(current),
+                    plan.Command.Proposal.SourceSha256, StringComparison.Ordinal))
+                return AssistedForgeScriptFailure(_history.State.Revision.Value,
+                    "assistant.script.revert_conflict", "ForgeScript source changed after the plan was applied.");
+            ApplyAssistedForgeScriptHandler.Restore(_session.RootDirectory, plan.Patch, useAfter: false);
+            plan.Reverted = true;
+            plan.Audit.Add(new(plan.PlanId, "revert", _history.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
     public DialoguePlanResult PlanDialogue(DialoguePlanRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -2070,6 +2188,11 @@ public sealed class ForgeProjectAgentService
 
     private static AgentDiagnostic Map(CommandDiagnostic diagnostic) => new(diagnostic.Code, diagnostic.Message);
 
+    private static AgentDiagnostic MapScript(ForgeScriptDiagnostic diagnostic) => new(
+        "assistant.script." + diagnostic.Severity.ToLowerInvariant(),
+        diagnostic.Message,
+        diagnostic.Source);
+
     private static AssetAvailability? ParseAssetAvailability(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -2225,6 +2348,53 @@ public sealed class ForgeProjectAgentService
         plan.Command.Proposal.TestScenarios.Select(item => item.Kind.ToString()).ToArray(),
         plan.Command.Proposal.EstimatedCostUsd,
         [],
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
+    private static AssistedForgeScriptApplyPlanResult AssistedForgeScriptFailure(
+        long revision,
+        string code,
+        string message) => new(
+        false,
+        null,
+        null,
+        null,
+        null,
+        revision,
+        null,
+        "no-change",
+        string.Empty,
+        string.Empty,
+        [],
+        [new AgentDiagnostic(code, message, "assistant/script")],
+        0,
+        false,
+        false,
+        []);
+
+    private static AssistedForgeScriptApplyPlanResult WithFailure(
+        StoredAssistedForgeScriptPlan plan,
+        IReadOnlyList<AgentDiagnostic> diagnostics) => ToResult(plan) with
+        {
+            Succeeded = false,
+            Diagnostics = diagnostics,
+        };
+
+    private static AssistedForgeScriptApplyPlanResult ToResult(StoredAssistedForgeScriptPlan plan) => new(
+        true,
+        plan.PlanId,
+        plan.Command.TransactionId.ToString("D"),
+        plan.Command.Proposal.ScriptId.ToString("D"),
+        plan.Command.Proposal.RelativePath,
+        plan.Command.BaseRevision,
+        plan.Patch,
+        plan.Command.Proposal.SemanticDiff,
+        plan.Command.Proposal.ForgeScriptApiVersion,
+        plan.Command.Proposal.EventBinding,
+        plan.Command.Proposal.Tests.Select(item => item.Id).ToArray(),
+        plan.Command.Proposal.Diagnostics.Select(MapScript).ToArray(),
+        plan.Command.Proposal.EstimatedCostUsd,
         plan.Applied,
         plan.Reverted,
         plan.Audit.ToArray());
@@ -2486,6 +2656,20 @@ public sealed class ForgeProjectAgentService
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAssistedForgeScriptPlan(
+        string planId,
+        ApplyAssistedForgeScriptCommand command,
+        AssistedForgeScriptFilePatch patch,
+        List<PlanAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public ApplyAssistedForgeScriptCommand Command { get; } = command;
+        public AssistedForgeScriptFilePatch Patch { get; } = patch;
+        public List<PlanAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
     }
 
     private sealed class StoredDialoguePlan(

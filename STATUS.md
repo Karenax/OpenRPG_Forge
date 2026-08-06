@@ -5,7 +5,7 @@ Dernière mise à jour : 6 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. G12-A à G12-F ouvrent maintenant l’Assistant de création avancée, ses
+G11 Contenu moderne fermés. G12-A à G12-G ouvrent maintenant l’Assistant de création avancée, ses
 fournisseurs locaux, son lore, ses plans de crypte/village, leur construction atomique et la création
 de dialogues et quêtes sourcés après approbation, sans dépendance réseau obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
@@ -570,3 +570,9 @@ quatre états, des objectifs bornés, trois transitions typées, une récompense
 chemin d'échec et cinq scénarios reproductibles. La fenêtre spécialisée affiche diff, sources,
 lint, coût et provenance ; Toolset et MCP appliquent exclusivement via la commande de quête
 canonique, avec persistance et historique réversible.
+
+**G12-G — création et réparation ForgeScript assistées livrées** : l'écran récupère l'API 1.0,
+génère une source confinée et laisse l'auteur la corriger, puis impose compilation native, version
+VM/API et exécution sandbox sous quotas avant tout dry-run. Hash avant/après, binding, diagnostics,
+tests, coût et provenance restent visibles. L'écriture `scripts/*.forge` est atomique ; UI et MCP
+partagent plan, permission et restauration du fichier antérieur.

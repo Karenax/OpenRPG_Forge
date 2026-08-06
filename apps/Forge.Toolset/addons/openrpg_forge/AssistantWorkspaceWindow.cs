@@ -19,6 +19,7 @@ public partial class AssistantWorkspaceWindow : Window
     private Action? _openAreaPlans;
     private Action? _openAssistedDialogues;
     private Action? _openAssistedQuests;
+    private Action? _openAssistedForgeScripts;
     private Action? _openLocalization;
     private Action<Window>? _brandWindow;
     private AssistantWorkspaceProfile? _source;
@@ -65,6 +66,7 @@ public partial class AssistantWorkspaceWindow : Window
         Action openAreaPlans,
         Action openAssistedDialogues,
         Action openAssistedQuests,
+        Action openAssistedForgeScripts,
         Action openLocalization,
         Action<Window> brandWindow)
     {
@@ -78,6 +80,7 @@ public partial class AssistantWorkspaceWindow : Window
         _openAreaPlans = openAreaPlans ?? throw new ArgumentNullException(nameof(openAreaPlans));
         _openAssistedDialogues = openAssistedDialogues ?? throw new ArgumentNullException(nameof(openAssistedDialogues));
         _openAssistedQuests = openAssistedQuests ?? throw new ArgumentNullException(nameof(openAssistedQuests));
+        _openAssistedForgeScripts = openAssistedForgeScripts ?? throw new ArgumentNullException(nameof(openAssistedForgeScripts));
         _openLocalization = openLocalization ?? throw new ArgumentNullException(nameof(openLocalization));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assistant de création · OpenRPG Forge";
@@ -238,6 +241,9 @@ public partial class AssistantWorkspaceWindow : Window
         var quests = new Button { Text = "Quête assistée" };
         quests.Pressed += () => _openAssistedQuests?.Invoke();
         footer.AddChild(quests);
+        var scripts = new Button { Text = "ForgeScript assisté" };
+        scripts.Pressed += () => _openAssistedForgeScripts?.Invoke();
+        footer.AddChild(scripts);
         var undo = new Button { Text = "Annuler" };
         undo.Pressed += () => { if (_undo?.Invoke() == true) Refresh(); };
         footer.AddChild(undo);

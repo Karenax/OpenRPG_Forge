@@ -24,11 +24,59 @@ using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Assets;
 using Forge.RpgKit.Application.Dialogues;
 using Forge.RpgKit.Application.Quests;
+using Forge.Scripting;
 
 namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void AssistedForgeScriptMcpProposesCompilesTestsPersistsAndRevertsSource()
+    {
+        using var workspace = new TestWorkspace();
+        var relativePath = "scripts/assisted-mcp-test.forge";
+        var absolutePath = AssistedForgeScriptCreationService.ResolvePath(workspace.RootDirectory, relativePath);
+        var brief = new AssistedForgeScriptBrief(
+            Guid.Parse("b1280000-0000-4000-8000-000000000090"),
+            relativePath,
+            "OnUse",
+            "Informer le joueur et enregistrer une variable lors de l'interaction.",
+            "ForgeScript MCP prêt.",
+            "assistant.mcp.used",
+            "true",
+            ["lore:crypt-of-ashes"],
+            ["style:brief"],
+            "@mcp-author",
+            20260806);
+
+        var proposed = workspace.Project.ProposeAssistedForgeScript(new(1, brief));
+        var approved = proposed.Proposal!.WithApproval(true, "author-approved:mcp-test:g12-g");
+        var planned = workspace.Project.PlanAssistedForgeScript(new(
+            1,
+            workspace.Project.GetCurrentRevision(),
+            approved,
+            AssistantPermissionLevel.ApplyApprovedPlan));
+        var applied = workspace.Project.ApplyAssistedForgeScriptPlan(planned.PlanId!);
+        var persisted = File.ReadAllText(absolutePath);
+        var compiled = new NativeForgeScriptRuntime().Compile(persisted);
+        var reverted = workspace.Project.RevertAssistedForgeScriptPlan(planned.PlanId!);
+
+        Assert.True(proposed.Succeeded);
+        Assert.True(proposed.Proposal.CanApply);
+        Assert.Equal("1.0.0", proposed.Proposal.ForgeScriptApiVersion);
+        Assert.Equal(3, proposed.Proposal.Tests.Count);
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.NotNull(planned.Diff);
+        Assert.Equal(3, planned.TestIds.Count);
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.True(compiled.Success);
+        Assert.True(reverted.Succeeded);
+        Assert.True(reverted.Reverted);
+        Assert.False(File.Exists(absolutePath));
+    }
+
     [Fact]
     public void AssistedQuestMcpProposesPlansPersistsAndRevertsCanonicalQuest()
     {

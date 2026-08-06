@@ -52,7 +52,8 @@ une parité Aurora complète : G12-B ferme les transports locaux et le lore, G12
 plan de zone assisté sans mutation géométrique, puis G12-D construit un plan approuvé par les mêmes
 commandes que l’édition manuelle, puis G12-E relie le graphe RPG avancé au dialogue Core avec
 citations, localisation, lint et simulation, puis G12-F livre les machines à états de quête,
-objectifs, récompenses, échec et scénarios. La file active commence à **G12-G**.
+objectifs, récompenses, échec et scénarios. G12-G ajoute la création/réparation ForgeScript compilée
+et testée avant écriture. La file active commence à **G12-H**.
 
 ## 3. Jalons produit
 
@@ -319,8 +320,8 @@ Ollama, puis l’index de lore gouverné et son contrat MCP. G12-C produit déso
 ou village contrôlé, persistant et annulable avant toute génération de géométrie. G12-D applique
 désormais un plan approuvé par un lot de placements atomique, validé, persistant et réversible. G12-E
 livre la création de dialogue assistée sur les agrégats RPG et Core existants. G12-F livre la
-création de quête assistée avec le même contrat gouverné. G12-G portera la création de ForgeScript
-assistée sans contourner le compilateur ni la sandbox.
+création de quête assistée avec le même contrat gouverné. G12-G livre la création de ForgeScript
+assistée sans contourner le compilateur ni la sandbox. G12-H portera la création de boss assistée.
 
 **Domaine.** `AI` P1/P2, après stabilisation des workflows humains correspondants.
 

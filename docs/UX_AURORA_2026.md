@@ -281,6 +281,13 @@ typées, les objectifs, la récompense, le chemin d’échec, cinq scénarios, l
 provenance et le diff. Le bouton d’application reste verrouillé jusqu’au dry-run exact du plan
 approuvé ; persistance, undo/redo et MCP consomment la même commande canonique.
 
+G12-G ajoute **ForgeScript assisté**. Le brief et le binding sont séparés de l'éditeur de source,
+puis d'un panneau de preuve qui affiche API/VM, compilation, sandbox, diagnostics, citations,
+provenance, coût, hashes et diff. L'auteur peut corriger la proposition dans l'écran sans toucher le
+fichier du module ; chaque correction invalide le plan et doit être recompilée et retestée. Appliquer
+reste verrouillé tant que la source n'est pas approuvée et verte. Annuler/rétablir restaure le vrai
+fichier `scripts/*.forge` par le même patch que MCP.
+
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
 échelle métrique, matériaux PBR normalisés, silhouettes lisibles, éclairage maîtrisé, LOD,
 collisions, navigation et profils de qualité. Elle est détaillée dans

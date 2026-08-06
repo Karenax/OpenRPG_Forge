@@ -344,6 +344,26 @@ public sealed class ForgeMcpTools
     public ForgeScriptSandboxResponse TestForgeScript(string source) => _scripts.TestInSandbox(source);
 
     [McpServerTool]
+    [Description("Uses the configured assistant to propose or repair a confined ForgeScript source, compile it and run generated sandbox tests without writing it.")]
+    public AssistedForgeScriptProposalResource ProposeAssistedForgeScript(AssistedForgeScriptProposalRequest request) =>
+        _project.ProposeAssistedForgeScript(request);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an approved, compiled and tested ForgeScript proposal at the current project revision.")]
+    public AssistedForgeScriptApplyPlanResult PlanAssistedForgeScript(AssistedForgeScriptApplyPlanRequest request) =>
+        _project.PlanAssistedForgeScript(request);
+
+    [McpServerTool]
+    [Description("Writes a previously previewed ForgeScript plan atomically inside scripts/*.forge.")]
+    public AssistedForgeScriptApplyPlanResult ApplyAssistedForgeScriptPlan(string planId) =>
+        _project.ApplyAssistedForgeScriptPlan(planId);
+
+    [McpServerTool]
+    [Description("Restores the previous source of the latest applied ForgeScript plan if no later file change occurred.")]
+    public AssistedForgeScriptApplyPlanResult RevertAssistedForgeScriptPlan(string planId) =>
+        _project.RevertAssistedForgeScriptPlan(planId);
+
+    [McpServerTool]
     [Description("Validates and dry-runs a safe ForgeScript binding to an entity override.")]
     public ScriptBindingPlanResult PlanScriptBinding(ScriptBindingPlanRequest request) =>
         _project.PlanScriptBinding(request);

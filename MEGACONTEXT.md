@@ -733,10 +733,12 @@ ciblées. Le lot actif construit une carte 3D jouable et artistiquement revue. L
   recherche à facettes, aperçu local et prévisualisation d’import sans écriture ; les détails restent
   défilables à la taille nominale et l’action braise n’est active que pour un asset gouverné.
 - l’espace **Assistant** gère le profil de fournisseur, les prompts versionnés et l'index de lore,
-  puis ouvre les plans de zone, les dialogues et les quêtes assistés. La quête spécialisée affiche
+  puis ouvre les plans de zone, les dialogues, les quêtes et ForgeScript assistés. La quête spécialisée affiche
   zone et participant, états, transitions, objectifs, récompense, échec et cinq scénarios avant une
   application approuvée, dry-run, persistante et annulable. La localisation reste un catalogue
-  canonique séparé avec filtres, replis et pseudo-localisation.
+  canonique séparé avec filtres, replis et pseudo-localisation. La surface ForgeScript affiche une
+  source corrigible, l'API/VM, la compilation, la sandbox, les diagnostics et le diff ; aucune source
+  n'est écrite avant approbation et tests verts.
 - le Monde édite l’échelle uniforme ou par axe avec valeurs précises, Ctrl + molette, contraintes,
   validation géométrique et commande atomique multi-entités.
 - la navigation calcule des routes A* déterministes avec coûts, obstacles dynamiques, récupération,
@@ -790,8 +792,8 @@ crash artifacts, santé par domaines, récupération comparée et synchronisatio
 livré le laboratoire déterministe de localisation, ForgeScript, narration et rencontres ; G11-S a
 livré réseau hostile, régression visuelle, benchmarks, budgets et profilage intégré ; G11-T a livré
 accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale. AV6 a ensuite livré la carte
-3D Forgotten Forest jouable et revue visuellement. G12-A à G12-F couvrent désormais l'Assistant,
-le lore, les plans et constructions de zone, les dialogues et les quêtes gouvernés ; G12-G est la
+3D Forgotten Forest jouable et revue visuellement. G12-A à G12-G couvrent désormais l'Assistant,
+le lore, les plans et constructions de zone, les dialogues, les quêtes et ForgeScript gouvernés ; G12-H est la
 prochaine tranche active.
 
 ---
