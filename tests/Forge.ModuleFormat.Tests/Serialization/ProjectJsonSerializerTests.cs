@@ -4,6 +4,7 @@ using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Content;
+using Forge.Domain.Creatures;
 using Forge.Domain.Entities;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
@@ -14,6 +15,48 @@ namespace Forge.ModuleFormat.Tests.Serialization;
 
 public sealed class ProjectJsonSerializerTests
 {
+    [Fact]
+    public void Deserialize_MigratesPreCreaturePresentationFormatWithEmptyPresentation()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreCreaturePresentationFormatVersion;
+        foreach (var blueprint in document["project"]!["blueprints"]!.AsArray())
+            blueprint!.AsObject().Remove("creaturePresentation");
+
+        var restored = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Null(restored.Blueprints.Single().CreaturePresentation);
+        Assert.Contains($"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(restored), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SerializeAndDeserialize_RoundTripsCreaturePresentation()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var presentation = new CreaturePresentationProfile(
+            Guid.Parse("a1320000-0000-4000-8000-000000000001"), 1, "author:test", "nonbinary", "humanoid-medium",
+            new("iel", "iel", "son", "soi"),
+            [new("neutral", "assets/portraits/warden.png", 512, 512, "CC0-1.0", new string('b', 64), "Gardien")],
+            false, "rig.humanoid", [new("head", "asset.helm", "rig.humanoid", 2, [], "hide-covered")],
+            [new("primary", "#D68A3A")], [new("back", "wings", "asset.wings", "rig.humanoid")],
+            new("voice.warden", "fr-FR", ["audio.warden"], ["angry"], "lipsync.fr-v1", ["a"], "CC0-1.0", "author-recorded"));
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance, presentation);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        var restoredPresentation = Assert.IsType<CreaturePresentationProfile>(restored.Blueprints.Single().CreaturePresentation);
+        Assert.Equal("nonbinary", restoredPresentation.GenderId);
+        Assert.Equal("asset.wings", Assert.Single(restoredPresentation.Attachments).AssetId);
+        Assert.Equal("audio.warden", Assert.Single(restoredPresentation.Voice!.AudioBankIds));
+    }
+
     [Fact]
     public void SerializeAndDeserialize_RoundTripsCanonicalDocument()
     {

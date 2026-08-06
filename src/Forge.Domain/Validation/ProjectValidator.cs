@@ -3,6 +3,7 @@ using Forge.Domain.Projects;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Quests;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Creatures;
 
 namespace Forge.Domain.Validation;
 
@@ -22,6 +23,7 @@ public static class ProjectValidator
     public const string ContentWorkspaceIdentityCode = "content.workspace.id_mismatch";
     public const string ArtisticStyleIdentityCode = "art.style.id_mismatch";
     public const string CrossAreaPatrolReferenceCode = "runtime.experience.patrol_reference";
+    public const string DuplicateCreaturePresentationCode = "creature.presentation.uuid_duplicate";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -31,6 +33,7 @@ public static class ProjectValidator
         var blueprintIds = project.Blueprints.Select(blueprint => blueprint.Id).ToHashSet();
         var areaIds = project.Areas.Select(area => area.Id).ToHashSet();
         var portalIds = new HashSet<PortalId>();
+        var presentationIds = new HashSet<Guid>();
 
         diagnostics.AddRange(RuntimePolicyValidator.Validate(project.Module));
 
@@ -73,6 +76,21 @@ public static class ProjectValidator
                     InvalidInstalledBlueprintProvenanceCode,
                     $"Installed blueprint '{blueprint.Id}' requires a pack:// source, SPDX license and SHA-256 hash.",
                     path));
+            }
+
+            if (blueprint.CreaturePresentation is not null)
+            {
+                var presentationPath = $"blueprints/{blueprint.Id}/creaturePresentation";
+                diagnostics.AddRange(CreaturePresentationValidator.Validate(
+                    blueprint.CreaturePresentation,
+                    presentationPath).Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
+                if (!presentationIds.Add(blueprint.CreaturePresentation.Id))
+                {
+                    diagnostics.Add(new DomainDiagnostic(
+                        DuplicateCreaturePresentationCode,
+                        $"Creature presentation '{blueprint.CreaturePresentation.Id}' is assigned more than once.",
+                        $"{presentationPath}/id"));
+                }
             }
         }
 

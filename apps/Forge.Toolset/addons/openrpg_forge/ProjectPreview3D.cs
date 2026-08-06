@@ -9,6 +9,7 @@ using Forge.Application.Time;
 using Forge.Domain.Authoring;
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Creatures;
 using Forge.Domain.Entities;
 using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
@@ -878,11 +879,15 @@ public partial class ProjectPreview3D : SubViewportContainer
                 Mesh = CreateMesh(blueprint.Kind, entity.Tags),
                 MaterialOverride = new StandardMaterial3D
                 {
-                    AlbedoColor = ColorFor(blueprint.Kind, entity.Tags),
+                    AlbedoColor = PresentationColor(
+                        blueprint.CreaturePresentation,
+                        ColorFor(blueprint.Kind, entity.Tags)),
                     Roughness = 0.72f,
                 },
             });
         }
+
+        AddPresentationProxies(root, blueprint.CreaturePresentation);
 
         if (blueprint.Kind is BlueprintKind.Creature or BlueprintKind.Item or BlueprintKind.Door)
         {
@@ -897,6 +902,42 @@ public partial class ProjectPreview3D : SubViewportContainer
         }
 
         return root;
+    }
+
+    private static Color PresentationColor(CreaturePresentationProfile? presentation, Color fallback)
+    {
+        var value = presentation?.MaterialColors.FirstOrDefault(item => item.ParameterId == "primary")?.HexColor;
+        return string.IsNullOrWhiteSpace(value) ? fallback : Color.FromString(value, fallback);
+    }
+
+    private static void AddPresentationProxies(Node3D root, CreaturePresentationProfile? presentation)
+    {
+        if (presentation is null) return;
+        var color = PresentationColor(presentation, new Color("d68a3a"));
+        foreach (var attachment in presentation.Attachments)
+        {
+            switch (attachment.Kind)
+            {
+                case "wings":
+                    Add(new BoxMesh { Size = new Vector3(1.15f, 0.6f, 0.08f) }, new Vector3(-0.62f, 0.68f, 0.22f), new Vector3(0, 0, 28));
+                    Add(new BoxMesh { Size = new Vector3(1.15f, 0.6f, 0.08f) }, new Vector3(0.62f, 0.68f, 0.22f), new Vector3(0, 0, -28));
+                    break;
+                case "tail":
+                    Add(new CylinderMesh { TopRadius = 0.06f, BottomRadius = 0.14f, Height = 1.1f }, new Vector3(0, 0.15f, 0.48f), new Vector3(65, 0, 0));
+                    break;
+            }
+        }
+
+        void Add(PrimitiveMesh mesh, Vector3 position, Vector3 rotation)
+        {
+            root.AddChild(new MeshInstance3D
+            {
+                Mesh = mesh,
+                Position = position,
+                RotationDegrees = rotation,
+                MaterialOverride = new StandardMaterial3D { AlbedoColor = color.Lightened(0.14f), Roughness = 0.62f },
+            });
+        }
     }
 
     private static PrimitiveMesh CreateMesh(BlueprintKind kind, IReadOnlyList<string> tags)

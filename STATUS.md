@@ -13,7 +13,9 @@ La sécurité des workers est désormais canonique : aucun outil public `exec`, 
 libre, opérations Blender allowlistées, chemins confinés, timeout et sortie bornés.
 G13 est désormais la file active. G13-A livre les raccourcis configurables avec profils
 Standard/Aurora/Blender, recherche, conflits, persistance locale, commande transactionnelle et
-exécution réelle des actions Toolset.
+exécution réelle des actions Toolset. G13-B livre désormais l’identité et la présentation complète
+des créatures : pronoms, portraits gouvernés, corps modulaire, couleurs, ailes/queue et voix,
+prévisualisés dans le Studio de créature et conservés dans le projet puis le `.orpmod`.
 AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
@@ -36,7 +38,7 @@ Le runtime offre une caméra orbitale et un déplacement relatif à la caméra. 
 sanctuaire par un chemin réel de 70 points. Le smoke termine dialogue, collecte, passage, boss et
 quête.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.16.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.17.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -617,5 +619,12 @@ attribution, état vide et diagnostics de conflit ; preview, apply, audit, persi
 undo/redo passent par `SetEditorKeymapHandler`. Le routeur appelle les actions existantes et ignore
 les champs texte. Le runtime et les `.orpmod` restent indépendants du fichier `.forge/editor-keymap.json`.
 
-La prochaine tranche unique est **G13-B — identité et représentation des créatures** :
-`ORF-CRE-006`, `ORF-CRE-007`, `ORF-CRE-009`, `ORF-CRE-010` et `ORF-CRE-029`.
+**G13-B — identité et présentation des créatures livrée** : un profil v1 à UUID stable est porté
+par le blueprint et traverse les formats projet `0.6.23`, workspace `1.17.0` et `.orpmod`. Le Studio
+de créature édite pronoms, portraits multi-résolution/expressions avec licence et hash, parties du
+corps avec rig/layer/clipping, couleurs, ailes/queue et voix avec banques, émotions, langue,
+lipsync, variantes et droits. Le viewport Creator et le runtime rendent couleurs et appendices ;
+l’export refuse les portraits absents ou dont le hash diffère.
+
+La prochaine tranche unique est **G13-C — progression des créatures** : `ORF-CRE-016`,
+`ORF-CRE-017`, `ORF-CRE-018`, `ORF-CRE-019` et `ORF-CRE-020`.

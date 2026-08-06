@@ -799,7 +799,10 @@ persistante : aucune exécution Python libre, `exec`, `eval` ou shell, opératio
 confinés et budgets réellement appliqués.
 G13 devient la file post-1.0 active. G13-A ajoute un keymap local canonique, des profils
 Standard/Aurora/Blender, la recherche de commandes, la détection de conflits et l’exécution réelle
-des actions Toolset ; G13-B poursuivra avec l’identité et la représentation visuelle des créatures.
+des actions Toolset. G13-B ajoute au blueprint une présentation canonique v1 : genre/corps/pronoms,
+portraits gouvernés, corps modulaire, couleurs, ailes/queue et voix. Le Studio dédié, le viewport,
+le runtime, la sérialisation et l’export `.orpmod` partagent ce contrat. G13-C poursuivra avec la
+progression data-driven des créatures.
 
 ---
 
@@ -1827,15 +1830,9 @@ Le présent paquet contient uniquement :
 
 ## Prochaine action autorisée
 
-Exécuter uniquement le **Prompt 1 — Initialisation contrôlée** de `PROMPTS_CODEX_HERMES.md`, puis vérifier manuellement :
-
-- le contenu généré ;
-- les versions réellement installées ;
-- la compilation ;
-- les tests ;
-- l’ouverture du projet dans Godot 4.7.1 .NET.
-
-Ne pas commencer AngelScript, MCP ou Blender avant que les fondations C# et le plugin minimal soient validés.
+Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-C :
+`ORF-CRE-016`, `ORF-CRE-017`, `ORF-CRE-018`, `ORF-CRE-019` et `ORF-CRE-020`. Chaque tranche doit
+conserver les modules jouables, le runtime sans IA, les formats migrables et le gate intégré vert.
 
 
 ---

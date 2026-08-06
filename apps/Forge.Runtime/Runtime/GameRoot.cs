@@ -19,6 +19,7 @@ using Forge.Domain.Areas;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Combat;
+using Forge.Domain.Creatures;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Gameplay;
@@ -981,7 +982,7 @@ public partial class GameRoot : Node3D
     {
         if (entity.Tags.Contains("npc", StringComparer.Ordinal) || HasRuntimeRole(entity, "guide"))
         {
-            _npc = CreateCreature(entity, blueprint.DisplayName, new Color("4ec9b0"));
+            _npc = CreateCreature(entity, blueprint.DisplayName, new Color("4ec9b0"), blueprint.CreaturePresentation);
             _guideName = GetOverride(entity, "runtime.displayName") ?? blueprint.DisplayName;
             return;
         }
@@ -990,7 +991,8 @@ public partial class GameRoot : Node3D
         var creature = CreateCreature(
             entity,
             blueprint.DisplayName,
-            isBoss ? new Color("d34f4f") : new Color("d68a3a"));
+            isBoss ? new Color("d34f4f") : new Color("d68a3a"),
+            blueprint.CreaturePresentation);
         var profile = blueprint.Combat
             ?? throw new InvalidOperationException($"Hostile blueprint '{blueprint.Slug}' has no combat profile.");
         _hostiles.Add(creature, new CombatantState(entity.Id.ToString(), profile));
@@ -1022,9 +1024,11 @@ public partial class GameRoot : Node3D
             player.AddChild(new MeshInstance3D
             {
                 Mesh = new CapsuleMesh { Radius = 0.45f, Height = 1.8f },
-                MaterialOverride = CreateMaterial(new Color("74b9ff")),
+                MaterialOverride = CreateMaterial(PresentationColor(blueprint.CreaturePresentation, new Color("74b9ff"))),
             });
         }
+
+        AddPresentationProxies(player, blueprint.CreaturePresentation);
 
         player.AddChild(new CollisionShape3D
         {
@@ -1093,7 +1097,11 @@ public partial class GameRoot : Node3D
         return root;
     }
 
-    private Node3D CreateCreature(EntityInstance entity, string displayName, Color color)
+    private Node3D CreateCreature(
+        EntityInstance entity,
+        string displayName,
+        Color color,
+        CreaturePresentationProfile? presentation)
     {
         var root = new Node3D
         {
@@ -1106,11 +1114,48 @@ public partial class GameRoot : Node3D
             root.AddChild(new MeshInstance3D
             {
                 Mesh = new CapsuleMesh { Radius = 0.5f, Height = 1.7f },
+                MaterialOverride = CreateMaterial(PresentationColor(presentation, color)),
+            });
+        }
+        AddPresentationProxies(root, presentation);
+        CreateLabel(root, displayName, Colors.White, 1.35f);
+        return root;
+    }
+
+    private static Color PresentationColor(CreaturePresentationProfile? presentation, Color fallback)
+    {
+        var value = presentation?.MaterialColors.FirstOrDefault(item => item.ParameterId == "primary")?.HexColor;
+        return string.IsNullOrWhiteSpace(value) ? fallback : Color.FromString(value, fallback);
+    }
+
+    private void AddPresentationProxies(Node3D root, CreaturePresentationProfile? presentation)
+    {
+        if (presentation is null) return;
+        var color = PresentationColor(presentation, new Color("d68a3a")).Lightened(0.14f);
+        foreach (var attachment in presentation.Attachments)
+        {
+            switch (attachment.Kind)
+            {
+                case "wings":
+                    Add(new BoxMesh { Size = new Vector3(1.15f, 0.6f, 0.08f) }, new Vector3(-0.62f, 0.68f, 0.22f), new Vector3(0, 0, 28));
+                    Add(new BoxMesh { Size = new Vector3(1.15f, 0.6f, 0.08f) }, new Vector3(0.62f, 0.68f, 0.22f), new Vector3(0, 0, -28));
+                    break;
+                case "tail":
+                    Add(new CylinderMesh { TopRadius = 0.06f, BottomRadius = 0.14f, Height = 1.1f }, new Vector3(0, 0.15f, 0.48f), new Vector3(65, 0, 0));
+                    break;
+            }
+        }
+
+        void Add(PrimitiveMesh mesh, Vector3 position, Vector3 rotation)
+        {
+            root.AddChild(new MeshInstance3D
+            {
+                Mesh = mesh,
+                Position = position,
+                RotationDegrees = rotation,
                 MaterialOverride = CreateMaterial(color),
             });
         }
-        CreateLabel(root, displayName, Colors.White, 1.35f);
-        return root;
     }
 
     private Node3D CreateItem(EntityInstance entity, string displayName, string itemSlug)

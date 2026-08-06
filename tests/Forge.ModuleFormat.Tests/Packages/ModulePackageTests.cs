@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Creatures;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
@@ -18,6 +19,67 @@ public sealed class ModulePackageTests : IDisposable
         Path.GetTempPath(),
         "openrpg-forge-tests",
         Guid.NewGuid().ToString("N"));
+
+    [Fact]
+    public void ExportValidateAndLoad_PreservesGovernedCreaturePresentation()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var portraitBytes = Encoding.UTF8.GetBytes("deterministic portrait fixture");
+        var portraitHash = Convert.ToHexString(SHA256.HashData(portraitBytes)).ToLowerInvariant();
+        var original = source.Blueprints.Single();
+        var presentation = new CreaturePresentationProfile(
+            Guid.Parse("a1330000-0000-4000-8000-000000000001"), 1, "author:test", "nonbinary", "humanoid-medium",
+            new("iel", "iel", "son", "soi"),
+            [new("neutral", "assets/portraits/warden.png", 256, 256, "CC0-1.0", portraitHash, "Gardien")],
+            false, "rig.humanoid", [], [new("primary", "#7A5CFF")],
+            [new("back", "wings", "asset.wings", "rig.humanoid")],
+            new("voice.warden", "fr-FR", ["audio.warden"], ["calm"], "lipsync.fr-v1", ["a"], "CC0-1.0", "author-recorded"));
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance, presentation);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+        var workspace = Path.Combine(_temporaryRoot, $"presentation-{Guid.NewGuid():N}");
+        var created = ProjectSession.Create(workspace, project);
+        Assert.True(created.Succeeded, string.Join("; ", created.Diagnostics.Select(item => item.Message)));
+        var portraitPath = Path.Combine(workspace, "assets", "portraits", "warden.png");
+        Directory.CreateDirectory(Path.GetDirectoryName(portraitPath)!);
+        File.WriteAllBytes(portraitPath, portraitBytes);
+        var package = Path.Combine(_temporaryRoot, "presentation.orpmod");
+
+        ModulePackager.Export(workspace, package);
+        var validation = ModulePackageValidator.Validate(package);
+        var loaded = ModulePackageLoader.Load(package, Path.Combine(_temporaryRoot, "presentation-cache"));
+
+        Assert.True(validation.IsValid, JoinDiagnostics(validation));
+        var restored = Assert.IsType<CreaturePresentationProfile>(loaded.Project.Blueprints.Single().CreaturePresentation);
+        Assert.Equal(presentation.Id, restored.Id);
+        Assert.True(File.Exists(Path.Combine(loaded.CachePath, "content", "assets", "portraits", "warden.png")));
+    }
+
+    [Fact]
+    public void Export_RejectsMissingCreaturePortraitBeforeWritingPackage()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var profile = CreaturePresentationProfile.CreateDefault(
+            Guid.Parse("a1330000-0000-4000-8000-000000000002"), "author:test");
+        profile = new CreaturePresentationProfile(profile.Id, profile.SchemaVersion, profile.Provenance,
+            profile.GenderId, profile.BodyTypeId, profile.Pronouns,
+            [new("neutral", "assets/portraits/missing.png", 256, 256, "CC0-1.0", new string('a', 64), "Missing")],
+            false, profile.RigId, profile.BodySlots, profile.MaterialColors, profile.Attachments, profile.Voice);
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance, profile);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+        var workspace = Path.Combine(_temporaryRoot, $"missing-presentation-{Guid.NewGuid():N}");
+        Assert.True(ProjectSession.Create(workspace, project).Succeeded);
+        var package = Path.Combine(_temporaryRoot, "missing-presentation.orpmod");
+
+        var exception = Assert.Throws<InvalidOperationException>(() => ModulePackager.Export(workspace, package));
+
+        Assert.Contains("missing or unsafe", exception.Message, StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
 
     [Fact]
     public void ExportValidateAndLoad_RoundTripsAtomicallyThroughCache()

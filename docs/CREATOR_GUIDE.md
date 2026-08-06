@@ -6,7 +6,7 @@ Lancer l'application de création, ouvrir l'écran **Forge**, puis choisir **+ N
 un titre, une description et le nom de la première zone. Choisir **Intérieur** pour une pièce ou un
 donjon compact, ou **Extérieur** pour un terrain sculptable ; la sélection propose respectivement
 32 × 32 m ou 128 × 128 m, mais la largeur et la profondeur restent modifiables avant la création.
-Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.16.0` contenant :
+Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.17.0` contenant :
 
 ```text
 mon-module/

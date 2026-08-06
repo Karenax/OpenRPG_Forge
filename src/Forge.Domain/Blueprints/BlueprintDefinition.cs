@@ -1,4 +1,5 @@
 using Forge.Domain.Combat;
+using Forge.Domain.Creatures;
 
 namespace Forge.Domain.Blueprints;
 
@@ -20,6 +21,8 @@ public sealed record BlueprintDefinition
 
     public BlueprintProvenance Provenance { get; }
 
+    public CreaturePresentationProfile? CreaturePresentation { get; }
+
     public bool IsReadOnly() => PaletteOrigin == BlueprintPaletteOrigin.InstalledPack;
 
     public BlueprintDefinition(
@@ -30,7 +33,8 @@ public sealed record BlueprintDefinition
         CombatProfile? combat = null,
         BlueprintPaletteOrigin paletteOrigin = BlueprintPaletteOrigin.ProjectContent,
         bool isFavorite = false,
-        BlueprintProvenance? provenance = null)
+        BlueprintProvenance? provenance = null,
+        CreaturePresentationProfile? creaturePresentation = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -44,5 +48,13 @@ public sealed record BlueprintDefinition
         PaletteOrigin = paletteOrigin;
         IsFavorite = isFavorite;
         Provenance = provenance ?? BlueprintProvenance.CreateProjectDefault(id, slug);
+        if (creaturePresentation is not null && kind is not (BlueprintKind.Creature or BlueprintKind.PlayerSpawn))
+        {
+            throw new ArgumentException(
+                "Creature presentation can only be assigned to creature or player-spawn blueprints.",
+                nameof(creaturePresentation));
+        }
+
+        CreaturePresentation = creaturePresentation;
     }
 }

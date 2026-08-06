@@ -54,9 +54,11 @@ capacité G13 ne peut imposer un fournisseur, un abonnement ou un asset proprié
 
 - [x] **G13-A** — `ORF-SHELL-022` : keymap Standard/Aurora/Blender, recherche, conflits,
   persistance, exécution et undo/redo.
-- [ ] **G13-B** — `ORF-CRE-006`, `ORF-CRE-007`, `ORF-CRE-009`, `ORF-CRE-010`, `ORF-CRE-029` :
+- [x] **G13-B** — `ORF-CRE-006`, `ORF-CRE-007`, `ORF-CRE-009`, `ORF-CRE-010`, `ORF-CRE-029` :
   identité, portrait, parties du corps, couleurs/ailes/queues et voix d’une créature.
-- [ ] **G13-C et suivants** — tranches de cinq IDs maximum, ordonnées selon les quatre pistes
+- [ ] **G13-C** — `ORF-CRE-016`, `ORF-CRE-017`, `ORF-CRE-018`, `ORF-CRE-019`, `ORF-CRE-020` :
+  classes/niveaux, alignement libre, compétences, talents et pouvoirs préparés data-driven.
+- [ ] **G13-D et suivants** — tranches de cinq IDs maximum, ordonnées selon les quatre pistes
   ci-dessus et consignées dans une fiche dédiée avant implémentation.
 
 ## Gate de fermeture

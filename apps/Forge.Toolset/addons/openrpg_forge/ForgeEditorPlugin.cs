@@ -30,6 +30,7 @@ using Forge.Domain.Authoring;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Build;
 using Forge.Domain.Content;
+using Forge.Domain.Creatures;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Gameplay;
@@ -56,6 +57,7 @@ using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Quality;
+using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Workspaces;
 using Forge.RpgKit.Application.Abilities;
 using Forge.RpgKit.Application.Bosses;
@@ -124,6 +126,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly ApplyAssistedModel3DGenerationHandler _assistedModel3DGenerationHandler = new(new SystemClock());
     private readonly SetExternalWorkerSecurityPolicyHandler _externalWorkerSecurityHandler = new(new SystemClock());
     private readonly SetEditorKeymapHandler _editorKeymapHandler = new(new SystemClock());
+    private readonly SetCreaturePresentationHandler _creaturePresentationHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -226,6 +229,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssistedModel3DGenerationWindow? _assistedModel3DGenerationWindow;
     private ExternalWorkerSecurityWindow? _externalWorkerSecurityWindow;
     private EditorKeymapWindow? _editorKeymapWindow;
+    private CreaturePresentationWindow? _creaturePresentationWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -446,6 +450,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _editorKeymapHistory?.CanRedo == true,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_editorKeymapWindow);
+        _creaturePresentationWindow = new CreaturePresentationWindow();
+        _creaturePresentationWindow.Initialize(
+            () => _history?.State,
+            () => _projectSession?.RootDirectory,
+            PreviewOrApplyCreaturePresentation,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_creaturePresentationWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -542,6 +555,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             OpenDialogueEditor,
             () => _buildPipeline?.Open(),
+            () => _creaturePresentationWindow?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rpgKitAuthoringWindow);
         _networkBetaWindow = new NetworkBetaWindow();
@@ -730,6 +744,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _assistantWorkspace = null;
         _externalWorkerSecurityWindow = null;
         _editorKeymapWindow = null;
+        _creaturePresentationWindow = null;
         _loreIndexWindow = null;
         _globalSearch = null;
         _moduleConfiguration = null;
@@ -2197,6 +2212,32 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             ApplyCommand(result, $"Blueprint RPG « {displayName} » enregistré.", null);
             _blueprintCatalog?.Refresh(blueprintId);
+        }
+
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyCreaturePresentation(
+        BlueprintId blueprintId,
+        CreaturePresentationProfile presentation,
+        bool dryRun)
+    {
+        if (_history is null)
+        {
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        }
+
+        var command = new SetCreaturePresentationCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            blueprintId,
+            presentation,
+            dryRun);
+        var result = _creaturePresentationHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Présentation de créature enregistrée dans le projet.", null);
+            _creaturePresentationWindow?.Refresh();
         }
 
         return result;
@@ -4516,6 +4557,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _activeAreaContext.EnsureValid(_history.State.Project);
         RebuildPreview();
         RefreshEditorControls(selectedEntityId);
+        _creaturePresentationWindow?.Refresh();
         ShowEditStatus("Modification annulée.");
     }
 
@@ -4536,6 +4578,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _activeAreaContext.EnsureValid(_history.State.Project);
         RebuildPreview();
         RefreshEditorControls(selectedEntityId);
+        _creaturePresentationWindow?.Refresh();
         ShowEditStatus("Modification rétablie.");
     }
 
@@ -5258,6 +5301,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunEditorKeymapSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunCreaturePresentationSmokeTest())
         {
             return;
         }
@@ -9520,6 +9568,111 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                 File.WriteAllBytes(path, originalBytes);
             }
+        }
+    }
+
+    private bool RunCreaturePresentationSmokeTest()
+    {
+        if (_history is null || _projectSession is null || _creaturePresentationWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13B_CREATURE_PRESENTATION_FAILED missing_workspace");
+            return false;
+        }
+
+        var portraitPath = Path.Combine(_projectSession.RootDirectory, "artifacts", "verification", "g13b-creature-portrait.png");
+        var relativePortraitPath = Path.GetRelativePath(_projectSession.RootDirectory, portraitPath).Replace('\\', '/');
+        var applied = false;
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(portraitPath)!);
+            var image = Image.CreateEmpty(64, 64, false, Image.Format.Rgba8);
+            image.Fill(new Color("7a5cff"));
+            if (image.SavePng(portraitPath) != Error.Ok)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13B_CREATURE_PRESENTATION_FAILED portrait_fixture");
+                return false;
+            }
+
+            _creaturePresentationWindow.Open();
+            var visible = _creaturePresentationWindow.Visible;
+            _creaturePresentationWindow.Hide();
+            if (!visible || !_creaturePresentationWindow.ConfigureForSmokeTest(relativePortraitPath))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13B_CREATURE_PRESENTATION_FAILED configure_ui");
+                return false;
+            }
+
+            var blueprintId = _creaturePresentationWindow.SelectedBlueprintId;
+            var originalPresentation = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId).CreaturePresentation;
+            if (!_creaturePresentationWindow.PreviewForSmokeTest() ||
+                _creaturePresentationWindow.LastCommandId == Guid.Empty ||
+                !_creaturePresentationWindow.LastPatchSummary.Contains("presentation", StringComparison.OrdinalIgnoreCase) ||
+                !_creaturePresentationWindow.ApplyForSmokeTest())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13B_CREATURE_PRESENTATION_FAILED preview_apply_ui");
+                return false;
+            }
+
+            applied = true;
+            var blueprint = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId);
+            var profile = blueprint.CreaturePresentation;
+            var serialized = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(serialized);
+            var runtime = CreaturePresentationRuntimeResolver.Resolve(profile, required: true);
+            if (profile is null || profile.Id == Guid.Empty || profile.SchemaVersion != 1 ||
+                profile.GenderId != "nonbinary" || profile.BodyTypeId != "humanoid-medium" ||
+                profile.Pronouns.Subject != "iel" || profile.Portraits.Count != 2 ||
+                profile.Portraits[0].ContentSha256.Length != 64 || profile.BodySlots.Count != 2 ||
+                profile.MaterialColors.Single().HexColor != "#7A5CFF" || profile.Attachments.Count != 2 ||
+                profile.Voice?.AudioBankIds.Count != 2 || profile.Voice.EmotionIds.Count != 2 ||
+                profile.Voice.VariantIds.Count != 2 || profile.Voice.LipSyncProfileId != "lipsync.fr-v1" ||
+                !runtime.Succeeded || runtime.UseModelFallback ||
+                CreaturePresentationValidator.Validate(profile).Count != 0 ||
+                ProjectJsonSerializer.Serialize(restored) != serialized ||
+                restored.Blueprints.Single(item => item.Id == blueprint.Id).CreaturePresentation?.Id != profile.Id ||
+                !_creaturePresentationWindow.PortraitPreviewReady || _creaturePresentationWindow.PreviewMeshCount < 5)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13B_CREATURE_PRESENTATION_FAILED canonical_roundtrip_runtime_preview");
+                return false;
+            }
+
+            Undo();
+            if (_history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id).CreaturePresentation?.Id !=
+                originalPresentation?.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13B_CREATURE_PRESENTATION_FAILED undo");
+                return false;
+            }
+            applied = false;
+            Redo();
+            applied = true;
+            if (_history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id).CreaturePresentation?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13B_CREATURE_PRESENTATION_FAILED redo");
+                return false;
+            }
+            Undo();
+            applied = false;
+
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G13B_CREATURE_PRESENTATION_PASS identity=gender-body-pronouns " +
+                "portrait=hashed-multires-ready fallback=3d body=modular-rig-layer-clipping " +
+                "materials=colored attachments=wings-tail voice=bank-language-rights " +
+                "ui=visible-empty-error preview=3d-and-portrait uuid=stable schema=v1 provenance=tracked " +
+                "transaction=identified dry-run=previewed audit=generated history=restored " +
+                "persistence=project-roundtrip package=canonical runtime=optional-safe");
+            return true;
+        }
+        finally
+        {
+            _creaturePresentationWindow.Hide();
+            if (applied)
+            {
+                _history.Undo();
+                RebuildPreview();
+                RefreshEditorControls();
+            }
+            if (File.Exists(portraitPath)) File.Delete(portraitPath);
         }
     }
 

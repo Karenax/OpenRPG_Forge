@@ -491,8 +491,10 @@ G7 à G12 sont désormais fermés par leurs preuves respectives. La file active 
 dans `docs/aurora-parity/G13_DELIVERY_PLAN.md` : 135 extensions P2/P3/P4, toujours livrées par
 tranches de une à cinq feature IDs. **G13-A** ferme `ORF-SHELL-022` avec keymap configurable,
 profils Standard/Aurora/Blender, recherche, conflits, commande transactionnelle, persistance locale
-et exécution Toolset. La prochaine tranche unique est **G13-B** (`ORF-CRE-006`, `007`, `009`,
-`010`, `029`).
+et exécution Toolset. **G13-B** (`ORF-CRE-006`, `007`, `009`, `010`, `029`) est désormais fermée
+avec identité inclusive, portraits gouvernés, corps modulaire, couleurs, attachments, voix, UI,
+preview 3D, runtime et export canonique. La prochaine tranche est **G13-C** (`ORF-CRE-016`, `017`,
+`018`, `019`, `020`).
 
 ## 7. Graphe de dépendances
 

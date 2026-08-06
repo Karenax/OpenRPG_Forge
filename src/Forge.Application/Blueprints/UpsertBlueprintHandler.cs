@@ -87,7 +87,8 @@ public sealed class UpsertBlueprintHandler
             existing?.Combat,
             existing?.PaletteOrigin ?? BlueprintPaletteOrigin.ProjectContent,
             existing?.IsFavorite ?? false,
-            existing?.Provenance);
+            existing?.Provenance,
+            existing?.CreaturePresentation);
         var blueprints = existing is null
             ? [.. state.Project.Blueprints, updated]
             : state.Project.Blueprints.Select(blueprint => blueprint.Id == updated.Id ? updated : blueprint).ToArray();

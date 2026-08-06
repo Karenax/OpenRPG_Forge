@@ -20,7 +20,7 @@ public sealed class AreaExperiencePersistenceTests
         Assert.Equal(area.Id.Value, restoredProject.Areas[0].RuntimePolicies.Experience.Id);
         Assert.Equal("Chargement", restoredArea.RuntimePolicies.Experience.Loading.Title);
         Assert.Contains("\"experience\"", projectJson, StringComparison.Ordinal);
-        Assert.Equal("0.6.22", ProjectJsonSerializer.CurrentFormatVersion);
+        Assert.Equal("0.6.23", ProjectJsonSerializer.CurrentFormatVersion);
         Assert.Equal("1.9.0", AreaJsonSerializer.CurrentFormatVersion);
     }
 

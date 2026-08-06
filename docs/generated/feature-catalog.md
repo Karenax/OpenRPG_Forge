@@ -179,11 +179,11 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CRE-003 | Identité et texte | P0 | Implemented | G8 |
 | ORF-CRE-004 | Rôle et défi | P1 | Implemented | G8 |
 | ORF-CRE-005 | Race, espèce et sous-type | P1 | Implemented | G8 |
-| ORF-CRE-006 | Sexe, genre et pronoms | P2 | Researched | G13 |
-| ORF-CRE-007 | Portrait et représentation UI | P2 | Researched | G13 |
+| ORF-CRE-006 | Sexe, genre et pronoms | P2 | Tested | G13 |
+| ORF-CRE-007 | Portrait et représentation UI | P2 | Tested | G13 |
 | ORF-CRE-008 | Apparence et modèle | P1 | Implemented | G8 |
-| ORF-CRE-009 | Parties du corps | P2 | Researched | G13 |
-| ORF-CRE-010 | Couleurs, ailes et queues | P2 | Researched | G13 |
+| ORF-CRE-009 | Parties du corps | P2 | Tested | G13 |
+| ORF-CRE-010 | Couleurs, ailes et queues | P2 | Tested | G13 |
 | ORF-CRE-011 | Animation set | P1 | Implemented | G8 |
 | ORF-CRE-012 | État initial et pose | P1 | Implemented | G8 |
 | ORF-CRE-013 | Attributs | P1 | Implemented | G8 |
@@ -202,7 +202,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CRE-026 | Perception | P1 | Implemented | G8 |
 | ORF-CRE-027 | Vitesse et profils de déplacement | P0 | Implemented | G8 |
 | ORF-CRE-028 | Conversation associée | P1 | Implemented | G8 |
-| ORF-CRE-029 | Voix et soundset | P2 | Researched | G13 |
+| ORF-CRE-029 | Voix et soundset | P2 | Tested | G13 |
 | ORF-CRE-030 | Divinité et informations de rôle | P3 | Researched | G13 |
 | ORF-CRE-031 | Plot, immortel et interruptibilité | P1 | Implemented | G8 |
 | ORF-CRE-032 | Cadavre et loot corpse | P2 | Researched | G13 |

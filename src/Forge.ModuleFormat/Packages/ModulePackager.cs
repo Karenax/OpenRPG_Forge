@@ -64,6 +64,8 @@ public static class ModulePackager
                 relativePath => ReadBareAreaDocument(bareProjectDirectory, relativePath));
         }
 
+        ValidateCreaturePresentationAssets(workspaceRoot, project);
+
         var complianceDiagnostics = DistributionComplianceValidator.Validate(project, target);
         if (complianceDiagnostics.Count > 0)
         {
@@ -199,6 +201,33 @@ public static class ModulePackager
         }
 
         return File.ReadAllText(path);
+    }
+
+    private static void ValidateCreaturePresentationAssets(string workspaceRoot, ProjectDefinition project)
+    {
+        var containedRoot = Path.GetFullPath(workspaceRoot).TrimEnd(Path.DirectorySeparatorChar) +
+            Path.DirectorySeparatorChar;
+        foreach (var blueprint in project.Blueprints.Where(item => item.CreaturePresentation is not null))
+        {
+            foreach (var portrait in blueprint.CreaturePresentation!.Portraits)
+            {
+                var path = Path.GetFullPath(Path.Combine(workspaceRoot,
+                    portrait.AssetPath.Replace('/', Path.DirectorySeparatorChar)));
+                if (!path.StartsWith(containedRoot, StringComparison.OrdinalIgnoreCase) || !File.Exists(path))
+                {
+                    throw new InvalidOperationException(
+                        $"Creature portrait '{portrait.AssetPath}' for blueprint '{blueprint.Id}' is missing or unsafe.");
+                }
+
+                var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(path)))
+                    .ToLowerInvariant();
+                if (!string.Equals(hash, portrait.ContentSha256, StringComparison.Ordinal))
+                {
+                    throw new InvalidOperationException(
+                        $"Creature portrait '{portrait.AssetPath}' for blueprint '{blueprint.Id}' does not match its SHA-256.");
+                }
+            }
+        }
     }
 
     private static void WriteEntry(ZipArchive archive, string path, byte[] content)
