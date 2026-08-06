@@ -1,13 +1,16 @@
+using Forge.Domain.Blueprints;
+using Forge.Domain.Creatures;
 using Forge.Domain.Projects;
 using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.RuntimePolicies;
 using Forge.ModuleFormat.Workspaces;
 
 var addRuntimeExtensionSample = args.Contains("--runtime-extension-sample", StringComparer.Ordinal);
+var addCreatureLootSample = args.Contains("--creature-loot-sample", StringComparer.Ordinal);
 var workspaceArguments = args.Where(argument => !argument.StartsWith("--", StringComparison.Ordinal)).ToArray();
 if (workspaceArguments.Length == 0)
 {
-    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] <workspace> [workspace ...]");
+    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] <workspace> [workspace ...]");
     return 2;
 }
 
@@ -22,6 +25,7 @@ foreach (var argument in workspaceArguments)
         return 3;
     }
     var project = addRuntimeExtensionSample ? AddRuntimeExtensionSample(opened.Session.Project) : opened.Session.Project;
+    if (addCreatureLootSample) project = AddCreatureLootSample(project);
     var saved = opened.Session.Save(project);
     if (!saved.Succeeded)
     {
@@ -34,6 +38,28 @@ foreach (var argument in workspaceArguments)
 }
 
 return 0;
+
+static ProjectDefinition AddCreatureLootSample(ProjectDefinition project)
+{
+    if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal)) return project;
+    var blueprints = project.Blueprints.Select(blueprint =>
+    {
+        if (!string.Equals(blueprint.Slug, "ash-warden-boss", StringComparison.Ordinal)) return blueprint;
+        var loot = new CreatureLootProfile(
+            Guid.Parse("a1430000-0000-4000-8000-000000000001"), 1, "sample:g13-d", true,
+            [new(Guid.Parse("a1430000-0000-4000-8000-000000000002"), "warden-ember", "relic", 1, 1, 1,
+                true, false, LootOwnershipMode.Party, LootInstancingMode.PerParty, null)],
+            new(false, "stealth", "awareness", 10, 10, true, "crime.theft", 30, "loot.pickpocket"),
+            new(CreatureCorpseMode.RagdollContainer, 60, "corpse.standard", "ragdoll.humanoid", true,
+                "party", 8, CorpseCleanupMode.Timed),
+            new Dictionary<string, string> { ["presentation"] = "ember-relic" });
+        return new BlueprintDefinition(blueprint.Id, blueprint.Slug, blueprint.DisplayName, blueprint.Kind,
+            blueprint.Combat, blueprint.PaletteOrigin, blueprint.IsFavorite, blueprint.Provenance,
+            blueprint.CreaturePresentation, blueprint.CreatureProgression, loot);
+    }).ToArray();
+    return new ProjectDefinition(project.Id, project.Title, project.Module, blueprints, project.Areas,
+        project.Dialogues, project.Quests);
+}
 
 static ProjectDefinition AddRuntimeExtensionSample(ProjectDefinition project)
 {

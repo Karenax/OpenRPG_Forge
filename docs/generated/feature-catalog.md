@@ -196,8 +196,8 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CRE-020 | Sorts et pouvoirs préparés | P2 | Tested | G13 |
 | ORF-CRE-021 | Capacités spéciales | P1 | Implemented | G8 |
 | ORF-CRE-022 | Inventaire de créature | P1 | Implemented | G8 |
-| ORF-CRE-023 | Objets droppables | P2 | Researched | G13 |
-| ORF-CRE-024 | Pickpocket | P3 | Researched | G13 |
+| ORF-CRE-023 | Objets droppables | P2 | Tested | G13 |
+| ORF-CRE-024 | Pickpocket | P3 | Tested | G13 |
 | ORF-CRE-025 | Faction de créature | P1 | Implemented | G8 |
 | ORF-CRE-026 | Perception | P1 | Implemented | G8 |
 | ORF-CRE-027 | Vitesse et profils de déplacement | P0 | Implemented | G8 |
@@ -205,7 +205,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CRE-029 | Voix et soundset | P2 | Tested | G13 |
 | ORF-CRE-030 | Divinité et informations de rôle | P3 | Researched | G13 |
 | ORF-CRE-031 | Plot, immortel et interruptibilité | P1 | Implemented | G8 |
-| ORF-CRE-032 | Cadavre et loot corpse | P2 | Researched | G13 |
+| ORF-CRE-032 | Cadavre et loot corpse | P2 | Tested | G13 |
 | ORF-CRE-033 | OnSpawn | P0 | Implemented | G8 |
 | ORF-CRE-034 | OnConversation | P1 | Implemented | G8 |
 | ORF-CRE-035 | OnPerception | P1 | Implemented | G8 |

@@ -128,6 +128,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetEditorKeymapHandler _editorKeymapHandler = new(new SystemClock());
     private readonly SetCreaturePresentationHandler _creaturePresentationHandler = new(new SystemClock());
     private readonly SetCreatureProgressionHandler _creatureProgressionHandler = new(new SystemClock());
+    private readonly SetCreatureLootHandler _creatureLootHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -232,6 +233,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private EditorKeymapWindow? _editorKeymapWindow;
     private CreaturePresentationWindow? _creaturePresentationWindow;
     private CreatureProgressionWindow? _creatureProgressionWindow;
+    private CreatureLootWindow? _creatureLootWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -469,6 +471,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_creatureProgressionWindow);
+        _creatureLootWindow = new CreatureLootWindow();
+        _creatureLootWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyCreatureLoot,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_creatureLootWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -567,6 +577,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _buildPipeline?.Open(),
             () => _creaturePresentationWindow?.Open(),
             () => _creatureProgressionWindow?.Open(),
+            () => _creatureLootWindow?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rpgKitAuthoringWindow);
         _networkBetaWindow = new NetworkBetaWindow();
@@ -756,6 +767,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _externalWorkerSecurityWindow = null;
         _editorKeymapWindow = null;
         _creaturePresentationWindow = null;
+        _creatureProgressionWindow = null;
+        _creatureLootWindow = null;
         _loreIndexWindow = null;
         _globalSearch = null;
         _moduleConfiguration = null;
@@ -2275,6 +2288,30 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             ApplyCommand(result, "Progression de créature enregistrée dans le projet.", null);
             _creatureProgressionWindow?.Refresh();
+        }
+
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyCreatureLoot(
+        BlueprintId blueprintId,
+        CreatureLootProfile loot,
+        bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+
+        var command = new SetCreatureLootCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            blueprintId,
+            loot,
+            dryRun);
+        var result = _creatureLootHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Politique de butin de créature enregistrée dans le projet.", null);
+            _creatureLootWindow?.Refresh();
         }
 
         return result;
@@ -5348,6 +5385,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunCreatureProgressionSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunCreatureLootSmokeTest())
         {
             return;
         }
@@ -9822,6 +9864,137 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 RebuildPreview();
                 RefreshEditorControls();
             }
+        }
+    }
+
+    private bool RunCreatureLootSmokeTest()
+    {
+        if (_history is null || _creatureLootWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13D_CREATURE_LOOT_FAILED missing_workspace");
+            return false;
+        }
+
+        var progressionApplied = false;
+        var lootApplied = false;
+        try
+        {
+            _creatureLootWindow.Open();
+            var visible = _creatureLootWindow.Visible;
+            _creatureLootWindow.Hide();
+            var blueprintId = _creatureLootWindow.SelectedBlueprintId;
+            if (!visible || blueprintId is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13D_CREATURE_LOOT_FAILED selection_ui");
+                return false;
+            }
+
+            var original = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId);
+            var originalProgressionId = original.CreatureProgression?.Id;
+            var originalLootId = original.CreatureLoot?.Id;
+            if (original.CreatureProgression is null || original.CreatureProgression.Skills.Count < 2)
+            {
+                var defaultProgression = CreatureProgressionProfile.CreateDefault(
+                    Guid.Parse("a1420000-0000-4000-8000-000000000001"), "smoke:g13-d");
+                var progression = new CreatureProgressionProfile(
+                    defaultProgression.Id, 1, defaultProgression.Provenance, defaultProgression.RulesetId,
+                    defaultProgression.AllowMultipleTracks, false, defaultProgression.Tracks,
+                    defaultProgression.DispositionAxes,
+                    [new("sleight", "Larcin", "agility", 2, 10, 2, true, false, 12),
+                     new("awareness", "Vigilance", "insight", 2, 10, 2, true, false, 10)],
+                    defaultProgression.Talents, defaultProgression.Loadout, defaultProgression.Overrides);
+                var command = new SetCreatureProgressionCommand(CommandId.From(Guid.NewGuid()),
+                    _history.State.Revision, blueprintId, progression, false);
+                if (!ApplyCommand(_creatureProgressionHandler.Handle(_history.State, command),
+                        "Préparation du test de butin.", null))
+                {
+                    GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13D_CREATURE_LOOT_FAILED progression_fixture");
+                    return false;
+                }
+                progressionApplied = true;
+            }
+
+            _creatureLootWindow.Refresh();
+            var configured = _creatureLootWindow.ConfigureForSmokeTest();
+            var previewed = configured && _creatureLootWindow.PreviewForSmokeTest();
+            var applied = previewed && _creatureLootWindow.LastCommandId != Guid.Empty &&
+                          _creatureLootWindow.LastPatchSummary.Contains("loot", StringComparison.OrdinalIgnoreCase) &&
+                          _creatureLootWindow.ApplyForSmokeTest();
+            if (!configured || !previewed || !applied)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13D_CREATURE_LOOT_FAILED preview_apply_ui " +
+                    $"configured={configured} previewed={previewed} applied={applied} " +
+                    $"patch={_creatureLootWindow.LastPatchSummary} diagnostics={_creatureLootWindow.LastDiagnostics}");
+                return false;
+            }
+
+            lootApplied = true;
+            var blueprint = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId);
+            var profile = blueprint.CreatureLoot;
+            var itemIds = (blueprint.Combat?.Loot ?? []).Select(item => item.ItemSlug).ToHashSet(StringComparer.Ordinal);
+            var skillIds = (blueprint.CreatureProgression?.Skills ?? []).Select(item => item.SkillId).ToHashSet(StringComparer.Ordinal);
+            var death = CreatureLootRuntimeResolver.ResolveDeath(profile, blueprint.Combat?.Loot ?? [], 0.2,
+                "player", "player-party", DateTimeOffset.UnixEpoch, required: true);
+            var theft = CreatureLootRuntimeResolver.ResolvePickpocket(profile!,
+                Guid.Parse("a1420000-0000-4000-8000-000000000010"), 0.2,
+                "player", "player-party", 20, 0, true, DateTimeOffset.UnixEpoch, null);
+            var serialized = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(serialized);
+            if (profile is null || profile.Id == Guid.Empty || profile.SchemaVersion != 1 || !profile.RequiredAtRuntime ||
+                profile.Entries.Count == 0 || profile.Entries.Any(item => !item.DropOnDeath || !item.Pickpocketable) ||
+                !profile.Theft.Enabled || !profile.Theft.RequireServerConsent || profile.Theft.CooldownSeconds != 30 ||
+                profile.Corpse.Mode != CreatureCorpseMode.RagdollContainer || !profile.Corpse.AllowResurrection ||
+                profile.Corpse.CleanupMode != CorpseCleanupMode.Timed ||
+                CreatureLootValidator.Validate(profile, availableItemSlugs: itemIds, availableSkillIds: skillIds).Count != 0 ||
+                !death.Succeeded || !death.Corpse.Created || death.Corpse.Contents.Count == 0 ||
+                !theft.Succeeded || theft.Grant is null || _creatureLootWindow.SummarySectionCount != 3 ||
+                ProjectJsonSerializer.Serialize(restored) != serialized ||
+                restored.Blueprints.Single(item => item.Id == blueprint.Id).CreatureLoot?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13D_CREATURE_LOOT_FAILED canonical_roundtrip_runtime_summary " +
+                    $"profile={profile is not null} entries={profile?.Entries.Count ?? -1} theft={profile?.Theft.Enabled} " +
+                    $"corpse={profile?.Corpse.Mode} death={death.Succeeded}/{death.Corpse.Contents.Count} " +
+                    $"pickpocket={theft.Succeeded} summary={_creatureLootWindow.SummarySectionCount}");
+                return false;
+            }
+
+            Undo(); lootApplied = false;
+            if (_history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id).CreatureLoot?.Id != originalLootId)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13D_CREATURE_LOOT_FAILED undo");
+                return false;
+            }
+            Redo(); lootApplied = true;
+            if (_history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id).CreatureLoot?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13D_CREATURE_LOOT_FAILED redo");
+                return false;
+            }
+            Undo(); lootApplied = false;
+            if (progressionApplied)
+            {
+                Undo(); progressionApplied = false;
+                if (_history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id).CreatureProgression?.Id != originalProgressionId)
+                {
+                    GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13D_CREATURE_LOOT_FAILED progression_restore");
+                    return false;
+                }
+            }
+
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13D_CREATURE_LOOT_PASS entries=item-slot-creature probability=bounded " +
+                "ownership=resolved instancing=shared-player-party theft=skill-perception-server-consent-crime-cooldown-audit " +
+                "corpse=container-ragdoll-lifetime-resurrection-ownership-cleanup ui=visible-empty-error-summary " +
+                "uuid=stable schema=v1 provenance=tracked transaction=identified dry-run=previewed audit=generated " +
+                "history=restored persistence=project-roundtrip runtime=legacy-safe");
+            return true;
+        }
+        finally
+        {
+            _creatureLootWindow.Hide();
+            if (lootApplied) _history.Undo();
+            if (progressionApplied) _history.Undo();
+            RebuildPreview();
+            RefreshEditorControls();
         }
     }
 

@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.18.0",
+  "formatVersion": "1.19.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -1240,7 +1240,8 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null
+        "creatureProgression": null,
+        "creatureLoot": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000002",
@@ -1260,7 +1261,8 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null
+        "creatureProgression": null,
+        "creatureLoot": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000003",
@@ -1280,7 +1282,8 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null
+        "creatureProgression": null,
+        "creatureLoot": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000004",
@@ -1311,7 +1314,8 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null
+        "creatureProgression": null,
+        "creatureLoot": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000005",
@@ -1366,7 +1370,8 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null
+        "creatureProgression": null,
+        "creatureLoot": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000006",
@@ -1421,7 +1426,52 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null
+        "creatureProgression": null,
+        "creatureLoot": {
+          "id": "a1430000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "sample:g13-d",
+          "requiredAtRuntime": true,
+          "entries": [
+            {
+              "id": "a1430000-0000-4000-8000-000000000002",
+              "itemSlug": "warden-ember",
+              "slotId": "relic",
+              "minimumQuantity": 1,
+              "maximumQuantity": 1,
+              "chance": 1,
+              "dropOnDeath": true,
+              "pickpocketable": false,
+              "ownership": "party",
+              "instancing": "perParty",
+              "fixedOwnerId": null
+            }
+          ],
+          "theft": {
+            "enabled": false,
+            "skillId": "stealth",
+            "perceptionSkillId": "awareness",
+            "difficulty": 10,
+            "perceptionDifficulty": 10,
+            "requireServerConsent": true,
+            "crimeId": "crime.theft",
+            "cooldownSeconds": 30,
+            "auditTag": "loot.pickpocket"
+          },
+          "corpse": {
+            "mode": "ragdollContainer",
+            "lifetimeSeconds": 60,
+            "containerId": "corpse.standard",
+            "ragdollProfileId": "ragdoll.humanoid",
+            "allowResurrection": true,
+            "ownershipPolicy": "party",
+            "maximumItems": 8,
+            "cleanupMode": "timed"
+          },
+          "overrides": {
+            "presentation": "ember-relic"
+          }
+        }
       },
       {
         "id": "10000000-0000-4000-8000-000000000007",
@@ -1470,7 +1520,8 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null
+        "creatureProgression": null,
+        "creatureLoot": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000008",
@@ -1490,7 +1541,8 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null
+        "creatureProgression": null,
+        "creatureLoot": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000009",
@@ -1510,7 +1562,8 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null
+        "creatureProgression": null,
+        "creatureLoot": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000010",
@@ -1530,7 +1583,8 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null
+        "creatureProgression": null,
+        "creatureLoot": null
       }
     ],
     "areas": [

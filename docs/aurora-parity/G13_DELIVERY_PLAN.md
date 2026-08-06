@@ -58,9 +58,11 @@ capacité G13 ne peut imposer un fournisseur, un abonnement ou un asset proprié
   identité, portrait, parties du corps, couleurs/ailes/queues et voix d’une créature.
 - [x] **G13-C** — `ORF-CRE-016`, `ORF-CRE-017`, `ORF-CRE-018`, `ORF-CRE-019`, `ORF-CRE-020` :
   classes/niveaux, alignement libre, compétences, talents et pouvoirs préparés data-driven.
-- [ ] **G13-D** — `ORF-CRE-023`, `ORF-CRE-024`, `ORF-CRE-032` : objets droppables,
+- [x] **G13-D** — `ORF-CRE-023`, `ORF-CRE-024`, `ORF-CRE-032` : objets droppables,
   pickpocket et cadavres/conteneurs de butin dans un workflow cohérent.
-- [ ] **G13-E et suivants** — tranches de cinq IDs maximum, ordonnées selon les quatre pistes
+- [ ] **G13-E** — `ORF-CRE-030`, `ORF-CRE-047`, `ORF-CRE-048` : informations de rôle,
+  animations ambiantes et auto-level/templates de créature.
+- [ ] **G13-F et suivants** — tranches de cinq IDs maximum, ordonnées selon les quatre pistes
   ci-dessus et consignées dans une fiche dédiée avant implémentation.
 
 ## Gate de fermeture

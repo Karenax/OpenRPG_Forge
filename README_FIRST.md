@@ -32,16 +32,11 @@ Codex lit automatiquement `AGENTS.md` lorsqu’il travaille dans le dépôt. Le 
 ## État courant du prototype
 
 Le paquet de démarrage a maintenant produit un MVP solo fonctionnel ; Creator Core G7, Aurora
-Foundation G8, Network Beta G9 et Live Director G10 sont fermés. Le chantier **G11 Contenu moderne
-et qualité de distribution** avance par lots bornés. Les incréments les plus récents sont :
-
-- **G11-E — contenu gouverné** : transferts en masse, tables typées, packs de blueprints et fusion à
-  trois voies avec dry-run et rollback ;
-- **G11-F — expérience scalable** : échelle UI/texte, replis de polices, onglets de zones,
-  favoris/récents et profil de compatibilité artistique transactionnel.
-
-Le prochain lot est **G11-G — PBR, HDR, éclairage et ciel de référence** ; il ouvre la séquence qui
-transforme les preuves 3D actuelles en véritable carte multi-biome agréable et jouable.
+Foundation G8, Network Beta G9, Live Director G10, Contenu moderne G11 et Assistant G12 sont
+fermés. La file post-1.0 G13 avance par lots bornés. G13-A à G13-D livrent maintenant les raccourcis
+configurables, la présentation et la progression des créatures, puis le butin, le vol à la tire et
+les dépouilles interactives. Le prochain lot est **G13-E — rôle, animations ambiantes et
+auto-level/templates de créature**.
 
 La source de vérité de l’avancement est `STATUS.md`. La direction d’interface et le contexte
 graphique sont dans `docs/UX_AURORA_2026.md`. Le chantier Asset Vault/Forgotten Forest, sa cible

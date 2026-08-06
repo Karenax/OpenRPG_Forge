@@ -25,6 +25,7 @@ public static class ProjectValidator
     public const string CrossAreaPatrolReferenceCode = "runtime.experience.patrol_reference";
     public const string DuplicateCreaturePresentationCode = "creature.presentation.uuid_duplicate";
     public const string DuplicateCreatureProgressionCode = "creature.progression.uuid_duplicate";
+    public const string DuplicateCreatureLootCode = "creature.loot.uuid_duplicate";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -36,6 +37,7 @@ public static class ProjectValidator
         var portalIds = new HashSet<PortalId>();
         var presentationIds = new HashSet<Guid>();
         var progressionIds = new HashSet<Guid>();
+        var lootIds = new HashSet<Guid>();
 
         diagnostics.AddRange(RuntimePolicyValidator.Validate(project.Module));
 
@@ -110,6 +112,23 @@ public static class ProjectValidator
                         DuplicateCreatureProgressionCode,
                         $"Creature progression '{blueprint.CreatureProgression.Id}' is assigned more than once.",
                         $"{progressionPath}/id"));
+                }
+            }
+
+            if (blueprint.CreatureLoot is not null)
+            {
+                var lootPath = $"blueprints/{blueprint.Id}/creatureLoot";
+                var itemSlugs = (blueprint.Combat?.Loot ?? []).Select(item => item.ItemSlug)
+                    .ToHashSet(StringComparer.Ordinal);
+                var skillIds = (blueprint.CreatureProgression?.Skills ?? []).Select(item => item.SkillId)
+                    .ToHashSet(StringComparer.Ordinal);
+                diagnostics.AddRange(CreatureLootValidator.Validate(blueprint.CreatureLoot, lootPath, itemSlugs, skillIds)
+                    .Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
+                if (!lootIds.Add(blueprint.CreatureLoot.Id))
+                {
+                    diagnostics.Add(new DomainDiagnostic(DuplicateCreatureLootCode,
+                        $"Creature loot profile '{blueprint.CreatureLoot.Id}' is assigned more than once.",
+                        $"{lootPath}/id"));
                 }
             }
         }

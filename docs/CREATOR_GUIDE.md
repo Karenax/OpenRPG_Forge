@@ -6,7 +6,7 @@ Lancer l'application de création, ouvrir l'écran **Forge**, puis choisir **+ N
 un titre, une description et le nom de la première zone. Choisir **Intérieur** pour une pièce ou un
 donjon compact, ou **Extérieur** pour un terrain sculptable ; la sélection propose respectivement
 32 × 32 m ou 128 × 128 m, mais la largeur et la profondeur restent modifiables avant la création.
-Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.18.0` contenant :
+Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.19.0` contenant :
 
 ```text
 mon-module/
@@ -49,6 +49,12 @@ prévisualise la transaction, affiche les diagnostics et permet Annuler/Rétabli
 Les pouvoirs appris ou accordés par un talent doivent déjà exister dans le profil **Combat** du
 blueprint ; le résumé latéral confirme le niveau total et la résolution des références.
 
+**Butin, vol & cadavres** configure ensuite chaque objet droppable, son slot, sa quantité, sa
+probabilité, son propriétaire et son instanciation. Les onglets suivants règlent le vol à la tire
+(compétences, perception, consentement serveur, crime et délai) puis la dépouille (conteneur,
+ragdoll, durée, résurrection et nettoyage). Un objet doit déjà figurer dans la table **Combat** de
+la créature et les compétences de vol doivent exister dans son profil **Progression**.
+
 ## 3. Écrire les dialogues et scripts
 
 **Dialogues** ouvre l'éditeur de graphe simple : nœuds localisés, choix, conditions, actions et aperçu.
@@ -72,7 +78,7 @@ une référence : aucune clé ou valeur secrète ne doit être saisie dans le pr
 
 Choisir un point de départ puis **▶ Jouer depuis ici**. Le snapshot de playtest est temporaire et la
 console Forge récupère les logs au retour. Dans la Crypte : ZQSD/flèches déplacent, E interagit,
-ESPACE attaque, F5 sauvegarde et F9 recharge le checkpoint rapide. Les fichiers `.orpsave` sont
+ESPACE attaque, E fouille aussi les dépouilles à portée, F5 sauvegarde et F9 recharge le checkpoint rapide. Les fichiers `.orpsave` sont
 atomiques, versionnés et liés à l'identité ainsi qu'au hash du module.
 
 ## 5. Exporter et valider

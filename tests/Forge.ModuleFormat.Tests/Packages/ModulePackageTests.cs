@@ -21,6 +21,38 @@ public sealed class ModulePackageTests : IDisposable
         Guid.NewGuid().ToString("N"));
 
     [Fact]
+    public void ExportValidateAndLoad_PreservesCanonicalCreatureLootLifecycle()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var loot = new CreatureLootProfile(
+            Guid.Parse("a1410000-0000-4000-8000-000000000001"), 1, "author:test", true,
+            [new(Guid.Parse("a1410000-0000-4000-8000-000000000002"), "warden-ember", "relic", 1, 1, 1,
+                true, false, LootOwnershipMode.Party, LootInstancingMode.PerParty, null)],
+            new(false, "stealth", "awareness", 10, 10, true, "crime.theft", 30, "loot.pickpocket"),
+            new(CreatureCorpseMode.RagdollContainer, 60, "corpse.standard", "ragdoll.humanoid", true,
+                "party", 8, CorpseCleanupMode.Timed), new Dictionary<string, string>());
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance,
+            original.CreaturePresentation, original.CreatureProgression, loot);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+        var workspace = Path.Combine(_temporaryRoot, $"loot-{Guid.NewGuid():N}");
+        Assert.True(ProjectSession.Create(workspace, project).Succeeded);
+        var package = Path.Combine(_temporaryRoot, "loot.orpmod");
+
+        ModulePackager.Export(workspace, package);
+        var validation = ModulePackageValidator.Validate(package);
+        var loaded = ModulePackageLoader.Load(package, Path.Combine(_temporaryRoot, "loot-cache"));
+
+        Assert.True(validation.IsValid, JoinDiagnostics(validation));
+        var restored = Assert.IsType<CreatureLootProfile>(loaded.Project.Blueprints.Single().CreatureLoot);
+        Assert.Equal(loot.Id, restored.Id);
+        Assert.Equal(CreatureCorpseMode.RagdollContainer, restored.Corpse.Mode);
+        Assert.Equal("warden-ember", Assert.Single(restored.Entries).ItemSlug);
+    }
+
+    [Fact]
     public void ExportValidateAndLoad_PreservesCanonicalCreatureProgression()
     {
         var source = TestProjectFactory.CreateValid();

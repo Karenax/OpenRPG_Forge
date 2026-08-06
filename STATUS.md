@@ -1,6 +1,6 @@
 # État du projet — OpenRPG Forge
 
-Dernière mise à jour : 6 août 2026.
+Dernière mise à jour : 5 août 2026.
 
 ## Gate actuel
 
@@ -17,7 +17,9 @@ exécution réelle des actions Toolset. G13-B livre désormais l’identité et 
 des créatures : pronoms, portraits gouvernés, corps modulaire, couleurs, ailes/queue et voix,
 prévisualisés dans le Studio de créature et conservés dans le projet puis le `.orpmod`. G13-C
 ajoute la progression data-driven : parcours multiclasses, dispositions libres, compétences,
-talents et pouvoirs préparés dans une interface spécialisée avec résumé des règles.
+talents et pouvoirs préparés dans une interface spécialisée avec résumé des règles. G13-D ferme
+ensuite le butin, le vol à la tire et les cadavres : l’atelier spécialisé partage le contrat
+canonique avec la commande, les scripts, les formats et une dépouille 3D interactive dans la Crypte.
 AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
@@ -40,7 +42,7 @@ Le runtime offre une caméra orbitale et un déplacement relatif à la caméra. 
 sanctuaire par un chemin réel de 70 points. Le smoke termine dialogue, collecte, passage, boss et
 quête.
 
-Le lancement interactif direct est validé sur le workspace scindé `1.18.0` fourni avec le
+Le lancement interactif direct est validé sur le workspace scindé `1.19.0` fourni avec le
 dépôt. `Run-Prototype.ps1` compile le runtime avant ouverture, journalise la session, et une erreur
 de chargement produit maintenant un écran de diagnostic OpenRPG Forge plutôt qu'une fenêtre grise.
 Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendamment des tests `.orpmod`.
@@ -116,14 +118,15 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
 - solution de 25 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 794 tests .NET, 24 tests Python généraux et 25 tests Python du pipeline d'assets réussis ;
-- snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
+- 865 tests .NET, 24 tests Python généraux et 30 tests Python du pipeline d'assets réussis ;
+- snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes
+  (`Designed` 1, `Implemented` 432, `Researched` 198, `Tested` 86) et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
   icônes des fenêtres Forge personnalisées puis contrôlées par le smoke test et une capture ciblée ;
 - application Forge chargée, projet ouvert, aperçu reconstruit, placement/transformation/suppression/undo/redo exécutés puis sauvegardés en mode headless ;
 - assistant Nouveau module validé : choix Intérieur/Extérieur, dimensions 2D, agrégat module, zone
-  d’entrée, sol, spawn et workspace atomique indexé au format `1.16.0` ; le gabarit extérieur active
+  d’entrée, sol, spawn et workspace atomique indexé au format `1.19.0` ; le gabarit extérieur active
   son heightmap canonique (smoke dédié 96 × 80), avec lecture/migration testée des agrégats
   `0.6.8` à `0.6.0`, `0.5.0`, `0.4.0`, `0.3.0`, `0.2.0` et `0.1.0` ;
 - propriétés locales d’instances validées : valeurs texte, booléen, entier et nombre sous schéma v1,
@@ -635,5 +638,13 @@ entraînement/expertise, talents avec prérequis/passifs/hooks et loadouts appri
 commande vérifie les slugs de capacités du profil de combat, le runtime affiche le niveau et le
 handle ForgeScript reste en lecture seule.
 
-La prochaine tranche unique est **G13-C — progression des créatures** : `ORF-CRE-016`,
-`ORF-CRE-017`, `ORF-CRE-018`, `ORF-CRE-019` et `ORF-CRE-020`.
+**G13-D — cycle de vie du butin livré** : `CreatureLootProfile` porte entrées, slots, quantités,
+probabilités, propriété et instanciation, puis sépare le vol à la tire gouverné et la politique de
+cadavre. L’écran Butin, vol & cadavres appelle `SetCreatureLootHandler` avec dry-run, diagnostics,
+audit et historique. Les formats projet `0.6.25`, workspace `1.19.0` et `.orpmod` conservent le
+profil ; un handle script en lecture seule résout mort et pickpocket. La Crypte matérialise la
+dépouille du Gardien, que le joueur fouille avec l’interaction, tandis qu’un ancien module sans
+profil conserve son butin Combat historique.
+
+La prochaine tranche unique est **G13-E — rôle et comportement de présentation** : `ORF-CRE-030`,
+`ORF-CRE-047` et `ORF-CRE-048`.

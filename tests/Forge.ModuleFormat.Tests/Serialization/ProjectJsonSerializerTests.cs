@@ -105,6 +105,56 @@ public sealed class ProjectJsonSerializerTests
     }
 
     [Fact]
+    public void Deserialize_MigratesPreCreatureLootFormatWithEmptyLootProfile()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreCreatureLootFormatVersion;
+        foreach (var blueprint in document["project"]!["blueprints"]!.AsArray())
+            blueprint!.AsObject().Remove("creatureLoot");
+
+        var restored = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Null(restored.Blueprints.Single().CreatureLoot);
+        Assert.Contains($"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(restored), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SerializeAndDeserialize_RoundTripsCreatureLootLifecycle()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var progression = new CreatureProgressionProfile(
+            Guid.Parse("a1400000-0000-4000-8000-000000000001"), 1, "author:test", "forge.generic", false, false,
+            [new("warden", "Gardien", 1, 20, 0, [])], [],
+            [new("sleight", "Larcin", "agility", 2, 10, 2, true, false, 12),
+             new("awareness", "Vigilance", "insight", 2, 10, 2, true, false, 10)],
+            [], new("standard", AbilityLoadoutMode.Learned, 0, [], []), new Dictionary<string, string>());
+        var loot = new CreatureLootProfile(
+            Guid.Parse("a1400000-0000-4000-8000-000000000002"), 1, "author:test", true,
+            [new(Guid.Parse("a1400000-0000-4000-8000-000000000003"), "warden-ember", "pouch", 1, 1, 1,
+                true, true, LootOwnershipMode.Party, LootInstancingMode.PerParty, null)],
+            new(true, "sleight", "awareness", 12, 10, true, "crime.theft", 30, "loot.pickpocket"),
+            new(CreatureCorpseMode.RagdollContainer, 45, "corpse.standard", "ragdoll.humanoid", true,
+                "party", 8, CorpseCleanupMode.Timed),
+            new Dictionary<string, string> { ["sparkle"] = "rare-only" });
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance,
+            original.CreaturePresentation, progression, loot);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        var restoredLoot = Assert.IsType<CreatureLootProfile>(restored.Blueprints.Single().CreatureLoot);
+        Assert.Equal("warden-ember", Assert.Single(restoredLoot.Entries).ItemSlug);
+        Assert.Equal("sleight", restoredLoot.Theft.SkillId);
+        Assert.Equal(CreatureCorpseMode.RagdollContainer, restoredLoot.Corpse.Mode);
+    }
+
+    [Fact]
     public void SerializeAndDeserialize_RoundTripsCanonicalDocument()
     {
         var serialized = ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid());

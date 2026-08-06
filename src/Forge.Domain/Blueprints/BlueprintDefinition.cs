@@ -25,6 +25,8 @@ public sealed record BlueprintDefinition
 
     public CreatureProgressionProfile? CreatureProgression { get; }
 
+    public CreatureLootProfile? CreatureLoot { get; }
+
     public bool IsReadOnly() => PaletteOrigin == BlueprintPaletteOrigin.InstalledPack;
 
     public BlueprintDefinition(
@@ -37,7 +39,8 @@ public sealed record BlueprintDefinition
         bool isFavorite = false,
         BlueprintProvenance? provenance = null,
         CreaturePresentationProfile? creaturePresentation = null,
-        CreatureProgressionProfile? creatureProgression = null)
+        CreatureProgressionProfile? creatureProgression = null,
+        CreatureLootProfile? creatureLoot = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -67,5 +70,13 @@ public sealed record BlueprintDefinition
         }
 
         CreatureProgression = creatureProgression;
+        if (creatureLoot is not null && kind is not (BlueprintKind.Creature or BlueprintKind.PlayerSpawn))
+        {
+            throw new ArgumentException(
+                "Creature loot can only be assigned to creature or player-spawn blueprints.",
+                nameof(creatureLoot));
+        }
+
+        CreatureLoot = creatureLoot;
     }
 }

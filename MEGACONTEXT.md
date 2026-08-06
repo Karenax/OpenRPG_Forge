@@ -805,6 +805,11 @@ le runtime, la sérialisation et l’export `.orpmod` partagent ce contrat. G13-
 progression data-driven : pistes multiclasses, niveaux/XP, dispositions libres, compétences,
 talents et pouvoirs appris/préparés. L’écran spécialisé, la commande, le runtime, ForgeScript,
 la sérialisation et le `.orpmod` partagent cette même source de vérité.
+G13-D ajoute un profil de butin v1 avec entrées, quantités, probabilités, propriété et instanciation,
+un vol à la tire validé par compétences/perception/consentement/crime/cooldown, et une politique de
+cadavre. L’atelier dédié, la commande, le script typé, les formats et le runtime partagent le même
+contrat ; la Crypte matérialise une dépouille interactive tandis que les modules sans profil gardent
+leur fallback historique.
 
 ---
 
@@ -1832,9 +1837,9 @@ Le présent paquet contient uniquement :
 
 ## Prochaine action autorisée
 
-Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-D :
-`ORF-CRE-023`, `ORF-CRE-024` et `ORF-CRE-032`, regroupées autour du butin, du pickpocket et des
-cadavres/conteneurs de créature. Chaque tranche doit
+Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-E :
+`ORF-CRE-030`, `ORF-CRE-047` et `ORF-CRE-048`, regroupées autour des informations de rôle, des
+animations ambiantes et de l’auto-level/templates de créature. Chaque tranche doit
 conserver les modules jouables, le runtime sans IA, les formats migrables et le gate intégré vert.
 
 

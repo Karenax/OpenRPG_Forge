@@ -68,6 +68,8 @@ public partial class GameRoot : Node3D
 
     private readonly Dictionary<Node3D, CombatantState> _hostiles = [];
     private readonly Dictionary<Node3D, string> _hostileNames = [];
+    private readonly Dictionary<Node3D, BlueprintDefinition> _hostileBlueprints = [];
+    private readonly Dictionary<Node3D, IReadOnlyList<LootGrant>> _corpseLoot = [];
     private ProjectBlackboard _blackboard = new([], allowUndeclared: true);
     private readonly HashSet<string> _inventory = new(StringComparer.Ordinal);
     private readonly NativeForgeScriptRuntime _forgeScriptRuntime = new();
@@ -95,6 +97,7 @@ public partial class GameRoot : Node3D
     private Node3D? _keyItem;
     private Node3D? _door;
     private Node3D? _boss;
+    private Node3D? _bossCorpse;
     private Node3D? _exit;
     private DialogueDefinition? _elyraDialogue;
     private QuestStateMachine? _questMachine;
@@ -997,6 +1000,7 @@ public partial class GameRoot : Node3D
             ?? throw new InvalidOperationException($"Hostile blueprint '{blueprint.Slug}' has no combat profile.");
         _hostiles.Add(creature, new CombatantState(entity.Id.ToString(), profile));
         _hostileNames.Add(creature, blueprint.DisplayName);
+        _hostileBlueprints.Add(creature, blueprint);
 
         if (isBoss)
         {
@@ -2175,6 +2179,7 @@ public partial class GameRoot : Node3D
         var candidates = new[] { _npc, _keyItem, _door }
             .Where(node => node is not null && GodotObject.IsInstanceValid(node))
             .Cast<Node3D>()
+            .Concat(_corpseLoot.Keys.Where(GodotObject.IsInstanceValid))
             .OrderBy(node => _player!.GlobalPosition.DistanceTo(node.GlobalPosition))
             .ToArray();
         var nearest = candidates.FirstOrDefault();
@@ -2191,6 +2196,18 @@ public partial class GameRoot : Node3D
 
     private void InteractWith(Node3D target)
     {
+        if (_corpseLoot.Remove(target, out var contents))
+        {
+            GrantLoot(contents);
+            _message = contents.Count == 0
+                ? "La dépouille ne contient plus rien."
+                : $"Vous fouillez la dépouille · {contents.Count} type(s) d’objet récupéré(s).";
+            if (target == _bossCorpse) _bossCorpse = null;
+            target.QueueFree();
+            UpdateHud();
+            return;
+        }
+
         if (target == _npc)
         {
             InteractWithGuide();
@@ -2313,12 +2330,26 @@ public partial class GameRoot : Node3D
 
         if (result.TargetDied)
         {
+            var blueprint = _hostileBlueprints[hostile];
             _hostiles.Remove(hostile);
             _hostileNames.Remove(hostile);
-            foreach (var drop in result.Loot)
+            _hostileBlueprints.Remove(hostile);
+            var loot = CreatureLootRuntimeResolver.ResolveDeath(
+                blueprint.CreatureLoot,
+                result.Loot,
+                StableLootRoll(target.Id),
+                "player",
+                "player-party",
+                DateTimeOffset.UtcNow,
+                blueprint.CreatureLoot?.RequiredAtRuntime == true);
+            if (!loot.Succeeded)
+                throw new InvalidOperationException(string.Join("; ", loot.Diagnostics.Select(item =>
+                    $"{item.Code} at {item.Path}: {item.Message}")));
+            GrantLoot(loot.Grants);
+            if (loot.Corpse.Created)
             {
-                _inventory.Add(drop.ItemSlug);
-                GD.Print($"OPENRPG_FORGE_LOOT_GRANTED item={drop.ItemSlug} quantity={drop.Quantity}");
+                var corpse = CreateLootCorpse(hostile, hostileName, loot.Corpse);
+                if (hostile == _boss) _bossCorpse = corpse;
             }
 
             _characterAnimations.Remove(hostile);
@@ -2349,6 +2380,55 @@ public partial class GameRoot : Node3D
         }
 
         UpdateHud();
+    }
+
+    private void GrantLoot(IEnumerable<LootGrant> grants)
+    {
+        foreach (var grant in grants)
+        {
+            _inventory.Add(grant.ItemSlug);
+            GD.Print($"OPENRPG_FORGE_LOOT_GRANTED item={grant.ItemSlug} quantity={grant.Quantity} " +
+                $"owner={grant.OwnerId} instance={grant.InstanceKey} cause={grant.Cause}");
+        }
+    }
+
+    private Node3D CreateLootCorpse(Node3D source, string hostileName, CreatureCorpseSnapshot snapshot)
+    {
+        var corpse = new Node3D
+        {
+            Name = $"Corpse_{SafeNodeName(hostileName)}",
+            GlobalTransform = source.GlobalTransform,
+        };
+        AddChild(corpse);
+        corpse.AddChild(new MeshInstance3D
+        {
+            Position = new Vector3(0, .18f, 0),
+            RotationDegrees = new Vector3(0, 0, 90),
+            Mesh = new CapsuleMesh { Radius = .28f, Height = 1.35f },
+            MaterialOverride = CreateMaterial(new Color("4d3545")),
+        });
+        CreateLabel(corpse, $"DÉPOUILLE · {hostileName}\n[E] Fouiller", new Color("ffd2a6"), .65f);
+        _corpseLoot[corpse] = snapshot.Contents;
+        GD.Print($"OPENRPG_FORGE_CORPSE_CREATED mode={snapshot.Mode} items={snapshot.Contents.Count} " +
+            $"ownership={snapshot.OwnershipPolicy} resurrection={snapshot.AllowResurrection}");
+        if (snapshot.ExpiresAt is { } expiresAt)
+        {
+            var delay = Math.Max(.05, (expiresAt - DateTimeOffset.UtcNow).TotalSeconds);
+            var timer = GetTree().CreateTimer(delay);
+            timer.Timeout += () =>
+            {
+                _corpseLoot.Remove(corpse);
+                if (corpse == _bossCorpse) _bossCorpse = null;
+                if (GodotObject.IsInstanceValid(corpse)) corpse.QueueFree();
+            };
+        }
+        return corpse;
+    }
+
+    private static double StableLootRoll(string combatantId)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(combatantId));
+        return BitConverter.ToUInt32(bytes, 0) / (double)uint.MaxValue;
     }
 
     private double PlayHostileCombatReaction(Node3D hostile, bool died)
@@ -3193,6 +3273,8 @@ public partial class GameRoot : Node3D
         AssertSmoke(_spawnedAshSpiritCount == 2, "ForgeScript did not spawn two ash spirits.");
         AssertSmoke(_ashNovaCueCount == 1, "ForgeScript did not emit the ash nova cue.");
         AssertSmoke(_bossDefeated, "Boss was not defeated.");
+        var smokeCorpse = _corpseLoot.Keys.FirstOrDefault(GodotObject.IsInstanceValid);
+        if (smokeCorpse is not null) InteractWith(smokeCorpse);
         AssertSmoke(_inventory.Contains("warden-ember"), "Data-driven boss loot was not granted.");
         AssertSmoke(_questState == PrototypeQuestState.Completed, "Quest was not completed.");
         AssertSmoke(_questMachine?.Completed == true, "Data-driven quest was not completed.");

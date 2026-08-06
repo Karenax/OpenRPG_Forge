@@ -30,6 +30,7 @@ public partial class RpgKitAuthoringWindow : Window
     private Action? _openScripts;
     private Action? _openCreaturePresentation;
     private Action? _openCreatureProgression;
+    private Action? _openCreatureLoot;
     private Action<Window>? _applyIcon;
     private BlueprintId _draftId = BlueprintId.From(Guid.NewGuid());
     private OptionButton? _kind;
@@ -39,9 +40,9 @@ public partial class RpgKitAuthoringWindow : Window
     private ItemList? _catalog;
     private RichTextLabel? _feedback;
 
-    public void Initialize(Func<ProjectState?> load, Func<BlueprintId, string, string, BlueprintKind, bool, CommandResult> mutate, Action undo, Action redo, Action openDialogues, Action openScripts, Action openCreaturePresentation, Action openCreatureProgression, Action<Window> applyIcon)
+    public void Initialize(Func<ProjectState?> load, Func<BlueprintId, string, string, BlueprintKind, bool, CommandResult> mutate, Action undo, Action redo, Action openDialogues, Action openScripts, Action openCreaturePresentation, Action openCreatureProgression, Action openCreatureLoot, Action<Window> applyIcon)
     {
-        _load = load; _mutate = mutate; _undo = undo; _redo = redo; _openDialogues = openDialogues; _openScripts = openScripts; _openCreaturePresentation = openCreaturePresentation; _openCreatureProgression = openCreatureProgression; _applyIcon = applyIcon;
+        _load = load; _mutate = mutate; _undo = undo; _redo = redo; _openDialogues = openDialogues; _openScripts = openScripts; _openCreaturePresentation = openCreaturePresentation; _openCreatureProgression = openCreatureProgression; _openCreatureLoot = openCreatureLoot; _applyIcon = applyIcon;
     }
 
     public override void _Ready()
@@ -71,6 +72,7 @@ public partial class RpgKitAuthoringWindow : Window
         var shortcuts = new HBoxContainer(); form.AddChild(shortcuts); AddButton(shortcuts, "Ouvrir Dialogues", () => _openDialogues?.Invoke()); AddButton(shortcuts, "Ouvrir Scripts & build", () => _openScripts?.Invoke());
         AddButton(shortcuts, "Présenter une créature", () => _openCreaturePresentation?.Invoke(), true);
         AddButton(shortcuts, "Progression & pouvoirs", () => _openCreatureProgression?.Invoke(), true);
+        AddButton(shortcuts, "Butin, vol & cadavres", () => _openCreatureLoot?.Invoke(), true);
         _feedback = new RichTextLabel { BbcodeEnabled = true, FitContent = false, SizeFlagsVertical = Control.SizeFlags.ExpandFill, CustomMinimumSize = new(0, 180) }; form.AddChild(_feedback);
     }
 

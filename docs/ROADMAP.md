@@ -230,8 +230,9 @@ collision, validation, miniature, audit et export GLB réel, sans Python libre. 
 fournisseurs texte/image-to-3D optionnels avec licence, staging et acceptation humaine ; G12-L ferme
 la politique canonique des workers externes. G12 est fermé. Le plan des 135 extensions post-1.0 est
 désormais `docs/aurora-parity/G13_DELIVERY_PLAN.md` ; G13-A livre le keymap configurable, G13-B
-livre l’identité et la présentation visuelle des créatures, et G13-C livre leur progression
-data-driven dans le blueprint canonique. G13-D cible ensuite butin, pickpocket et cadavres.
+livre l’identité et la présentation visuelle des créatures, G13-C livre leur progression
+data-driven, et G13-D ferme butin, pickpocket et cadavres avec une dépouille interactive dans le
+runtime. G13-E cible ensuite informations de rôle, animations ambiantes et auto-level/templates.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;
