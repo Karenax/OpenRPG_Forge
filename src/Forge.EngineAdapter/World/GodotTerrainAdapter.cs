@@ -14,7 +14,7 @@ public sealed record GodotTerrainBuildMetrics(
     double ScatterMilliseconds,
     long ManagedAllocatedBytes);
 
-public sealed record GodotTerrainResult(Node3D Root, int Vertices, int Triangles, int CollisionShapes,
+public sealed record GodotTerrainResult(Node3D Root, int Vertices, int Triangles, int TerrainSectors, int CollisionShapes,
     int FeatureSegments, int DebugVolumes, int FlightRouteSegments, int ScatterLayers, int ScatterInstances,
     int WaterSurfaces, int WaterVolumes, int CullingGroups, GodotTerrainBuildMetrics Metrics,
     IReadOnlyList<DomainDiagnostic> Diagnostics);
@@ -36,12 +36,29 @@ public static class GodotTerrainAdapter
         if (plan.Enabled && plan.Indices.Count > 0)
         {
             var meshStarted = Stopwatch.GetTimestamp();
-            var mesh = BuildTerrainMesh(plan);
-            root.AddChild(new MeshInstance3D { Name = "TerrainSurface", Mesh = mesh });
+            var sectors = TerrainChunkPlanBuilder.Build(world, plan);
+            var sectorRoot = new Node3D { Name = "TerrainSectors" };
+            foreach (var sector in sectors)
+            {
+                var sectorNode = new MeshInstance3D
+                {
+                    Name = $"TerrainSector_{sector.X}_{sector.Z}",
+                    Position = new Vector3(sector.Center.X, sector.Center.Y, sector.Center.Z),
+                    Mesh = BuildTerrainMesh(plan, sector.Indices, sector.Center),
+                    VisibilityRangeEnd = sector.VisibilityRangeEnd,
+                    VisibilityRangeEndMargin = MathF.Min(32, sector.VisibilityRangeEnd * .12f),
+                };
+                sectorNode.AddToGroup("forge_terrain_sector");
+                sectorNode.SetMeta("forge_sector_x", sector.X);
+                sectorNode.SetMeta("forge_sector_z", sector.Z);
+                sectorRoot.AddChild(sectorNode);
+            }
+            root.AddChild(sectorRoot);
             meshMilliseconds = Stopwatch.GetElapsedTime(meshStarted).TotalMilliseconds;
             var collisionStarted = Stopwatch.GetTimestamp();
+            var collisionMesh = BuildTerrainMesh(plan, plan.Indices, Forge.Domain.Spatial.Vector3Value.Zero);
             var body = new StaticBody3D { Name = "TerrainCollision" };
-            body.AddChild(new CollisionShape3D { Name = "TerrainShape", Shape = mesh.CreateTrimeshShape() });
+            body.AddChild(new CollisionShape3D { Name = "TerrainShape", Shape = collisionMesh.CreateTrimeshShape() });
             root.AddChild(body);
             collisionShapes = 1;
             collisionMilliseconds = Stopwatch.GetElapsedTime(collisionStarted).TotalMilliseconds;
@@ -129,21 +146,27 @@ public static class GodotTerrainAdapter
             scatterMilliseconds,
             Math.Max(0, GC.GetAllocatedBytesForCurrentThread() - allocatedBefore));
 
-        return new GodotTerrainResult(root, plan.Vertices.Count, plan.TriangleCount, collisionShapes,
+        return new GodotTerrainResult(root, plan.Vertices.Count, plan.TriangleCount, plan.ChunkCount, collisionShapes,
             featureSegments, debugVolumes, routeSegments, scatter.Layers, scatter.Instances,
             waterSurfaces, waterVolumes, scatter.CullingGroups, metrics, plan.Diagnostics);
     }
 
-    private static ArrayMesh BuildTerrainMesh(TerrainBuildPlan plan)
+    private static ArrayMesh BuildTerrainMesh(
+        TerrainBuildPlan plan,
+        IReadOnlyList<int> indices,
+        Forge.Domain.Spatial.Vector3Value origin)
     {
         var surface = new SurfaceTool();
         surface.Begin(Mesh.PrimitiveType.Triangles);
-        foreach (var index in plan.Indices)
+        foreach (var index in indices)
         {
             var vertex = plan.Vertices[index];
             surface.SetColor(new Color(vertex.AlbedoColor));
             surface.SetUV(new Vector2(vertex.U, vertex.V));
-            surface.AddVertex(new Vector3(vertex.Position.X, vertex.Position.Y, vertex.Position.Z));
+            surface.AddVertex(new Vector3(
+                vertex.Position.X - origin.X,
+                vertex.Position.Y - origin.Y,
+                vertex.Position.Z - origin.Z));
         }
         surface.GenerateNormals();
         var mesh = surface.Commit();

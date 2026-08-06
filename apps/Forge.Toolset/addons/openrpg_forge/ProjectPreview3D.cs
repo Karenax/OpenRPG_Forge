@@ -68,6 +68,7 @@ public partial class ProjectPreview3D : SubViewportContainer
     private string _reverbPreset = "unavailable";
     private int _terrainVertices;
     private int _terrainTriangles;
+    private int _terrainSectors;
     private int _terrainCollisionShapes;
     private int _terrainFeatureSegments;
     private int _terrainScatterLayers;
@@ -1345,6 +1346,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         _areaRoot!.AddChild(result.Root);
         _terrainVertices = result.Vertices;
         _terrainTriangles = result.Triangles;
+        _terrainSectors = result.TerrainSectors;
         _terrainCollisionShapes = result.CollisionShapes;
         _terrainFeatureSegments = result.FeatureSegments;
         _terrainScatterLayers = result.ScatterLayers;
@@ -1362,7 +1364,8 @@ public partial class ProjectPreview3D : SubViewportContainer
 
         GD.Print(
             $"OPENRPG_FORGE_TOOLSET_TERRAIN_APPLIED provider={profile.Terrain.Provider.ToString().ToLowerInvariant()} " +
-            $"vertices={result.Vertices} triangles={result.Triangles} collisions={result.CollisionShapes} " +
+            $"vertices={result.Vertices} triangles={result.Triangles} sectors={result.TerrainSectors} " +
+            $"collisions={result.CollisionShapes} " +
             $"features={result.FeatureSegments} volumes={result.DebugVolumes} routes={result.FlightRouteSegments} " +
             $"scatter_layers={result.ScatterLayers} scatter_instances={result.ScatterInstances} " +
             $"water_surfaces={result.WaterSurfaces} water_volumes={result.WaterVolumes} " +

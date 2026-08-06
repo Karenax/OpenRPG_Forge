@@ -62,6 +62,23 @@ public sealed record TerrainProductionBenchmarkBudget(
         MaximumNavigationMilliseconds: 2_500,
         MaximumSculptureMilliseconds: 500,
         MaximumNavigationPathMilliseconds: 5_000);
+
+    public static TerrainProductionBenchmarkBudget ProductionExterior512 { get; } = new(
+        MinimumHeightSamples: 129 * 129,
+        MinimumTerrainVertices: 129 * 129,
+        MinimumCollisionShapes: 2,
+        MinimumNavigationPolygons: 24_000,
+        MinimumLodAssets: 28,
+        MinimumLodLevels: 72,
+        MinimumCullingGroups: 3,
+        MaximumManagedAllocatedBytes: 512L * 1024 * 1024,
+        MaximumManagedHeapDeltaBytes: 512L * 1024 * 1024,
+        MaximumProcessWorkingSetDeltaBytes: 1024L * 1024 * 1024,
+        MaximumReconstructionMilliseconds: 8_000,
+        MaximumCollisionMilliseconds: 4_000,
+        MaximumNavigationMilliseconds: 5_000,
+        MaximumSculptureMilliseconds: 750,
+        MaximumNavigationPathMilliseconds: 8_000);
 }
 
 public sealed record TerrainProductionBenchmarkCheck(

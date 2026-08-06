@@ -657,6 +657,14 @@ attaques, deux impacts et une mort, 28 manifestes, 50 chunks et cinq variantes, 
 originaux du Vault. Le retargeting entre rigs incompatibles et la composition 512 × 512 restent les
 prochains travaux de production.
 
+AV6-C porte Forgotten Forest à 512 × 512 m sans format parallèle. Les 129 × 129 échantillons du
+terrain forment 64 secteurs de 64 m, chacun rendu par un mesh local doté d’une distance de visibilité.
+La composition compte cinq couches de biome, 5 564 instances MultiMesh, 39 modèles, quatre ensembles
+de landmarks, deux routes, dix segments d’eau et deux ponts. La navigation réelle couvre 32 454
+polygones et trouve un trajet de 70 points ; les seize budgets 512 × 512 passent. Une capture
+Forward+ aérienne sans HUD prouve l’étendue et la densité. Les matériaux terrain PBR et l’habillage
+artistique fin restent ouverts ; le jalon ne doit pas être présenté comme une carte finale AAA.
+
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de
 `AGENTS.md`. En cas de conflit, ces sources de vérité du dépôt priment sur la spécification importée.

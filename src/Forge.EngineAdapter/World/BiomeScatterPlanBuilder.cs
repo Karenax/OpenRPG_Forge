@@ -17,10 +17,14 @@ public static class BiomeScatterPlanBuilder
         if (!terrain.Enabled || biome.ScatterDensity <= 0 || string.IsNullOrWhiteSpace(biome.ScatterResource))
             return [];
 
+        var largeProductionSurface = terrain.Width * terrain.Depth >= 256f * 256f;
+        var maximumPlacements = biome.Tags.Contains("ground-cover", StringComparer.OrdinalIgnoreCase)
+            ? largeProductionSurface ? 2_600 : 420
+            : largeProductionSurface ? 1_600 : 220;
         var target = Math.Clamp(
             Math.Max(1, (int)Math.Round(terrain.Width * terrain.Depth / 90d * biome.ScatterDensity)),
             0,
-            biome.Tags.Contains("ground-cover", StringComparer.OrdinalIgnoreCase) ? 420 : 220);
+            maximumPlacements);
         var result = new List<BiomeScatterPlacement>(target);
         var biomeSeed = BitConverter.ToInt32(biome.Id.ToByteArray(), 0);
         var random = new StableRandom(unchecked(terrain.Seed ^ biomeSeed));

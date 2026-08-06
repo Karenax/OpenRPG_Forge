@@ -56,6 +56,7 @@ public partial class GameRoot : Node3D
     private const string SaveFileArgument = "--save-file";
     private const string LoadSaveArgument = "--load-save";
     private const string VisualCaptureArgument = "--visual-capture";
+    private const string WorldVisualCaptureArgument = "--world-visual-capture";
     private const string VisualRegressionSuiteArgument = "--g11s-visual-suite";
     private const string TerrainBenchmarkArgument = "--terrain-benchmark";
     private const float InteractionDistance = 3.0f;
@@ -167,6 +168,7 @@ public partial class GameRoot : Node3D
     private int _combatDeathAnimationCount;
     private int _terrainVertices;
     private int _terrainTriangles;
+    private int _terrainSectors;
     private int _terrainCollisionShapes;
     private int _terrainScatterLayers;
     private int _terrainScatterInstances;
@@ -198,11 +200,13 @@ public partial class GameRoot : Node3D
         var saveSmokeCreate = userArguments.Contains("--save-smoke-create", StringComparer.Ordinal);
         var saveSmokeResume = userArguments.Contains("--save-smoke-resume", StringComparer.Ordinal);
         var visualCapturePath = GetArgumentValue(userArguments, VisualCaptureArgument);
+        var worldVisualCapturePath = GetArgumentValue(userArguments, WorldVisualCaptureArgument);
         var visualRegressionSuitePath = GetArgumentValue(userArguments, VisualRegressionSuiteArgument);
         var terrainBenchmarkPath = GetArgumentValue(userArguments, TerrainBenchmarkArgument);
         var automatedTest = smokeTest || genericSmokeTest || rpgKitSmokeTest || forgottenForestSmokeTest ||
             saveSmokeCreate || saveSmokeResume ||
-            visualCapturePath is not null || visualRegressionSuitePath is not null || terrainBenchmarkPath is not null;
+            visualCapturePath is not null || worldVisualCapturePath is not null ||
+            visualRegressionSuitePath is not null || terrainBenchmarkPath is not null;
 
         try
         {
@@ -274,6 +278,11 @@ public partial class GameRoot : Node3D
             {
                 UpdateHud();
                 await CaptureVisualProofAsync(visualCapturePath);
+                return;
+            }
+            if (worldVisualCapturePath is not null)
+            {
+                await CaptureWorldVisualProofAsync(worldVisualCapturePath);
                 return;
             }
             ConfigureCinematics(project, entryArea);
@@ -352,6 +361,34 @@ public partial class GameRoot : Node3D
         if (error != Error.Ok) throw new IOException($"Visual proof could not be written: {error}.");
         GD.Print($"OPENRPG_FORGE_RUNTIME_G11P_VISUAL_PASS file={Path.GetFileName(destination)} " +
             $"size={image.GetWidth()}x{image.GetHeight()} nodes={CountTreeNodes(this)} nui=2.0 aoe=visible");
+        GetTree().Quit(0);
+    }
+
+    private async Task CaptureWorldVisualProofAsync(string destination)
+    {
+        if (!Path.IsPathFullyQualified(destination) || !string.Equals(Path.GetExtension(destination), ".png",
+                StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("The world visual proof destination must be an absolute PNG path.", nameof(destination));
+        if (!_isForgottenForestPrototype || _camera is null)
+            throw new InvalidOperationException("World visual proof currently requires Forgotten Forest.");
+
+        if (_hud is not null) _hud.Visible = false;
+        if (_actionWheel is not null) _actionWheel.Visible = false;
+        foreach (var node in FindChildren("*", "GeometryInstance3D", recursive: true, owned: false))
+        {
+            if (node is GeometryInstance3D geometry) geometry.VisibilityRangeEnd = 0;
+        }
+        _camera.Fov = 64;
+        _camera.GlobalPosition = new Vector3(150, 125, 175);
+        _camera.LookAt(new Vector3(0, 1.5f, 0), Vector3.Up);
+        for (var frame = 0; frame < 8; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        var image = GetViewport().GetTexture().GetImage();
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        if (image.SavePng(destination) != Error.Ok)
+            throw new IOException("World visual proof could not be written.");
+        GD.Print(
+            $"OPENRPG_FORGE_AV6C_WORLD_VISUAL_PASS file={Path.GetFileName(destination)} " +
+            $"size={image.GetWidth()}x{image.GetHeight()} sectors={_terrainSectors} scatter={_terrainScatterInstances}");
         GetTree().Quit(0);
     }
 
@@ -1218,6 +1255,7 @@ public partial class GameRoot : Node3D
             _modelLibrary is null ? null : _modelLibrary.ResolveScatterMesh);
         _terrainVertices = terrain.Vertices;
         _terrainTriangles = terrain.Triangles;
+        _terrainSectors = terrain.TerrainSectors;
         _terrainCollisionShapes = terrain.CollisionShapes;
         _terrainScatterLayers = terrain.ScatterLayers;
         _terrainScatterInstances = terrain.ScatterInstances;
@@ -1293,7 +1331,8 @@ public partial class GameRoot : Node3D
         var elapsed = Stopwatch.GetElapsedTime(started);
         GD.Print(
             $"OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider={profile.Terrain.Provider.ToString().ToLowerInvariant()} " +
-            $"vertices={terrain.Vertices} triangles={terrain.Triangles} collisions={terrain.CollisionShapes} " +
+            $"vertices={terrain.Vertices} triangles={terrain.Triangles} sectors={terrain.TerrainSectors} " +
+            $"collisions={terrain.CollisionShapes} " +
             $"features={terrain.FeatureSegments} volumes={terrain.DebugVolumes} routes={terrain.FlightRouteSegments} " +
             $"scatter_layers={terrain.ScatterLayers} scatter_instances={terrain.ScatterInstances} " +
             $"water_surfaces={terrain.WaterSurfaces} water_volumes={terrain.WaterVolumes} " +
@@ -3114,18 +3153,21 @@ public partial class GameRoot : Node3D
         AssertSmoke(_isForgottenForestPrototype, "The Forgotten Forest smoke test loaded another module.");
         var area = project.Areas.Single();
         AssertSmoke(area.Kind == AreaKind.Exterior, "Forgotten Forest must remain an exterior area.");
-        AssertSmoke(_terrainVertices == 33 * 33, "The authored 33 x 33 terrain grid was not reconstructed.");
+        AssertSmoke(area.Dimensions == new AreaDimensions(512, 512),
+            "Forgotten Forest must use the authored 512 x 512 production footprint.");
+        AssertSmoke(_terrainVertices == 129 * 129 && _terrainSectors == 64,
+            "The authored 129 x 129 terrain grid was not reconstructed as 64 sectors.");
         AssertSmoke(_terrainScatterLayers >= 3, "The biome scatter did not reconstruct enough visual layers.");
-        AssertSmoke(_terrainScatterInstances >= 300, "The forest is too sparse for the playable slice.");
-        AssertSmoke(_terrainWaterSurfaces == 4 && _terrainWaterVolumes == 4,
-            "Forgotten Forest must reconstruct all four animated river segments and swim volumes.");
+        AssertSmoke(_terrainScatterInstances >= 5_000, "The 512 x 512 forest is too sparse.");
+        AssertSmoke(_terrainWaterSurfaces == 10 && _terrainWaterVolumes == 10,
+            "Forgotten Forest must reconstruct all ten animated river segments and swim volumes.");
         AssertSmoke(_surfaceNavigationRegions == 1 && _surfaceNavigationPolygons > 0,
             "Forgotten Forest did not reconstruct its playable surface navigation region.");
-        AssertSmoke(_surfaceNavigationBlockedTriangles > 0 && _surfaceNavigationLinks == 1,
-            "River crossing policy or the authored bridge traversal is missing from surface navigation.");
+        AssertSmoke(_surfaceNavigationBlockedTriangles > 0 && _surfaceNavigationLinks == 2,
+            "River crossing policy or the two authored bridge traversals are missing from surface navigation.");
         AssertSmoke(_modelLibrary?.Count == 28,
             "All 22 governed Mini Forest models, the legacy character and five KayKit variants must be available.");
-        AssertSmoke(_runtimeModelInstances >= 18, "Authored entities did not use their governed 3D models.");
+        AssertSmoke(_runtimeModelInstances >= 39, "Authored sector landmarks did not use their governed 3D models.");
         AssertSmoke(_animatedCharacterInstances == 5 && _animatedCharacterClipNames.Count >= 75,
             "The five authored KayKit characters must expose the governed movement and combat clips.");
         AssertSmoke(_player is not null && _npc is not null && _keyItem is not null && _door is not null &&
@@ -3148,7 +3190,7 @@ public partial class GameRoot : Node3D
             "Forgotten Forest animated atmosphere was not reconstructed.");
         var navigationPathStarted = Stopwatch.GetTimestamp();
         var navigationPath = Array.Empty<Vector3>();
-        for (var frame = 0; frame < 8 && navigationPath.Length < 2; frame++)
+        for (var frame = 0; frame < 120 && navigationPath.Length < 2; frame++)
         {
             // NavigationServer3D synchronizes regions after the physics step. Querying it directly
             // from _Ready is timing-dependent on a cold engine launch.
@@ -3206,7 +3248,7 @@ public partial class GameRoot : Node3D
             _surfaceNavigationBuildMilliseconds,
             sculptureMilliseconds,
             navigationPathMilliseconds,
-            sculpture.Succeeded));
+            sculpture.Succeeded), TerrainProductionBenchmarkBudget.ProductionExterior512);
         if (!string.IsNullOrWhiteSpace(benchmarkPath))
         {
             WriteTerrainBenchmark(benchmarkPath, benchmark);
@@ -3257,7 +3299,7 @@ public partial class GameRoot : Node3D
         _player!.GlobalPosition = _exit!.GlobalPosition;
         _escaped = true;
         GD.Print(
-            $"OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain={_terrainVertices} " +
+            $"OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain={_terrainVertices} sectors={_terrainSectors} " +
             $"scatter_layers={_terrainScatterLayers} scatter_instances={_terrainScatterInstances} " +
             $"water_surfaces={_terrainWaterSurfaces} water_volumes={_terrainWaterVolumes} " +
             $"nav_regions={_surfaceNavigationRegions} nav_polygons={_surfaceNavigationPolygons} " +

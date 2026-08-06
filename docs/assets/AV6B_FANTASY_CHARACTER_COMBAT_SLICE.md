@@ -60,3 +60,5 @@ AV6-B ferme la diversité visuelle et le combat animé sur un rig commun. Il ne 
 retargeter une animation entre deux squelettes incompatibles. Restent également le blend tree, le
 root motion, l’IK avancée et la synchronisation réseau. La prochaine priorité artistique est la
 composition sectorisée de la carte 512 × 512, avec budgets, navigation et revue visuelle renouvelés.
+Cette composition est maintenant livrée dans
+[`AV6C_SECTORIZED_512_WORLD.md`](AV6C_SECTORIZED_512_WORLD.md).

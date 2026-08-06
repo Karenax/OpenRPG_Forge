@@ -5,7 +5,7 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. AV6-B livre maintenant une première carte 3D extérieure jouable,
+G11 Contenu moderne fermés. AV6-C livre maintenant une carte 3D extérieure 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
 installe les GLB gouvernés dans la palette, les place comme vrais modèles dans le viewport et ferme
@@ -207,9 +207,9 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
 - les diagnostics sont désormais structurés et navigables, mais les profils de validation, filtres,
   catégories, bundle d’export et correctifs propres aux futurs imports d’assets restent à livrer ;
 - la Crypte conserve des primitives procédurales originales ; Forgotten Forest possède désormais
-  modèles CC0 cohérents, eau animée, ambiance audio, VFX procéduraux et cinq personnages fantasy
-  distincts avec combat animé, mais la composition finale ne constitue pas encore une direction
-  artistique de production ;
+  modèles CC0 cohérents, eau animée, ambiance audio, VFX procéduraux, cinq personnages fantasy
+  distincts avec combat animé et une composition 512 × 512 sectorisée. Les matériaux terrain et
+  l’habillage fin ne constituent pas encore une direction artistique finale ;
 - le pont MCP sécurisé est implémenté et testé, mais son rattachement permanent au cycle de vie de
   l'éditeur et les permissions interactives restent à faire avant un usage multi-processus général ;
 - le catalogue de blueprints ne gère pas encore versions, paramètres exposés, miniatures,
@@ -227,11 +227,11 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   dédupliqué, backup de désinstallation et crédits agrégés. Une ressource ambientCG réelle franchit
   désormais normalisation, collisions, LOD, miniature et audit ; le traitement massif du catalogue
   complet reste à étendre ;
-- Forgotten Forest est jouable sur le terrain générique avec végétation, bâtiments, éclairage,
+- Forgotten Forest est jouable sur le terrain générique 512 × 512 avec végétation, bâtiments, éclairage,
   caméra, quête, export, navigation de surface, eau animée, ambiance spatiale, VFX, cinq silhouettes
   et animation repos/course/saut/attaque/impact/mort. Le retargeting inter-rigs, une eau simulée
-  avancée et la composition 512 × 512 restent nécessaires avant de qualifier la carte de contenu
-  final ;
+  avancée, les matériaux PBR et l’habillage fin restent nécessaires avant de qualifier la carte de
+  contenu final ;
 - le workflow CI est défini, mais son exécution distante attend le premier push.
 
 ## Décisions verrouillées
@@ -494,3 +494,11 @@ positive alimentent les états sémantiques repos/course/saut/attaque/impact/mor
 emploient les mêmes assets ; le smoke joue trois attaques, deux impacts et une mort, puis termine la
 quête. L’export validé contient 28 manifestes et 50 chunks. Le retargeting entre squelettes
 incompatibles et la composition artistique 512 × 512 restent ouverts.
+
+**AV6-C — monde 512 × 512 sectorisé livré** : la carte emploie 129 × 129 échantillons, 16 641
+vertices, 32 768 triangles et 64 secteurs de 64 m rendus séparément. Cinq couches produisent 5 564
+instances MultiMesh et cinq groupes de culling ; 39 modèles composent le parcours central et quatre
+ensembles de landmarks extérieurs. Dix segments de rivière et deux ponts alimentent un navmesh de
+32 454 polygones, avec un trajet moteur de 70 points. Les seize budgets passent et une capture
+Vulkan Forward+ aérienne est générée par le gate. Le sol PBR et la finition artistique par secteur
+restent explicitement ouverts.

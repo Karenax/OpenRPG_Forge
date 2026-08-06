@@ -31,7 +31,7 @@ public static class ForgottenForestModuleAuthoringService
     public static ForgottenForestAuthoredModule Create()
     {
         var areaId = Ids.Area("forgotten-forest");
-        var dimensions = new AreaDimensions(128, 128);
+        var dimensions = new AreaDimensions(512, 512);
         var world = CreateWorld(areaId, dimensions);
         var navigation = CreateNavigation(areaId, world);
         var environment = CreateEnvironment();
@@ -99,6 +99,33 @@ public static class ForgottenForestModuleAuthoringService
         AddProp(entities, world, "landmark-flag", "flag", 30, 30, new(1.7f, 1.7f, 1.7f), 0);
         AddProp(entities, world, "rock-landmark-a", "rocks-high", -27, 19, new(2.1f, 2.1f, 2.1f), 23);
         AddProp(entities, world, "rock-landmark-b", "rocks-ramp", 17, -23, new(2.4f, 2.4f, 2.4f), -32);
+
+        // The production map is composed as four readable outer sectors around the playable
+        // central quest slice. Stable entity IDs keep every landmark editable in Creator.
+        AddProp(entities, world, "grove-platform", "building-platform", -178, 162, new(2.8f, 2.8f, 2.8f), 18);
+        AddProp(entities, world, "grove-stones", "stones", -166, 151, new(3.2f, 3.2f, 3.2f), -12);
+        AddProp(entities, world, "grove-flag", "flag", -184, 147, new(2.2f, 2.2f, 2.2f), 8);
+        AddProp(entities, world, "grove-rocks", "rocks-high", -151, 177, new(3.4f, 3.4f, 3.4f), 31);
+        AddProp(entities, world, "grove-arch", "building-structure", -171, 169, new(2.4f, 2.4f, 2.4f), 18);
+
+        AddProp(entities, world, "northwatch-structure", "building-structure", 171, 163, new(3.2f, 3.2f, 3.2f), -24);
+        AddProp(entities, world, "northwatch-roof", "building-roof", 171, 163, new(3.2f, 3.2f, 3.2f), -24, 3.7f);
+        AddProp(entities, world, "northwatch-platform", "platform", 154, 174, new(2.8f, 2.8f, 2.8f), 12);
+        AddProp(entities, world, "northwatch-ladder", "ladder", 162, 160, new(2.3f, 2.3f, 2.3f), -24);
+        AddProp(entities, world, "northwatch-flag", "flag", 182, 153, new(2.4f, 2.4f, 2.4f), 0);
+
+        AddProp(entities, world, "southwest-tent", "tent", -174, -165, new(3.1f, 3.1f, 3.1f), 22);
+        AddProp(entities, world, "southwest-target", "target", -157, -174, new(2.1f, 2.1f, 2.1f), -18);
+        AddProp(entities, world, "southwest-ramp", "rocks-ramp", -188, -147, new(3.7f, 3.7f, 3.7f), 35);
+        AddProp(entities, world, "southwest-stones", "stones", -149, -151, new(3.2f, 3.2f, 3.2f), 0);
+        AddProp(entities, world, "southwest-flag", "flag", -181, -180, new(2.3f, 2.3f, 2.3f), 0);
+
+        AddProp(entities, world, "sunken-structure", "building-structure", 168, -168, new(3.3f, 3.3f, 3.3f), 26);
+        AddProp(entities, world, "sunken-roof", "building-roof", 168, -168, new(3.3f, 3.3f, 3.3f), 26, 3.8f);
+        AddProp(entities, world, "sunken-platform", "building-platform", 151, -157, new(3.0f, 3.0f, 3.0f), -8);
+        AddProp(entities, world, "sunken-rocks", "rocks-high", 184, -146, new(3.8f, 3.8f, 3.8f), -17);
+        AddProp(entities, world, "sunken-flag", "flag", 178, -181, new(2.4f, 2.4f, 2.4f), 0);
+        AddProp(entities, world, "watcher-bridge", "bridge", 71, -33, new(2.6f, 1.3f, 2.6f), 42);
 
         var dialogueEntry = Ids.DialogueNode("guide-entry");
         var dialogueBrief = Ids.DialogueNode("guide-brief");
@@ -316,7 +343,7 @@ public static class ForgottenForestModuleAuthoringService
             AreaEnvironmentClass.Natural,
             ["forest", "temperate", "outdoor", "forgotten", "vfx:forest-ambient"],
             new AreaLightingProfile(DayNightMode.AlwaysDay, 24, 0.42f, 1.55f, 5100, true, true),
-            new AreaFogProfile(FogMode.Distance, 0.0045f, 64, 185, 7),
+            new AreaFogProfile(FogMode.Distance, 0.0022f, 120, 460, 11),
             audio,
             defaults.Rendering,
             sky,
@@ -359,7 +386,7 @@ public static class ForgottenForestModuleAuthoringService
                 Ids.Guid("experience:scatter:canopy-wind"),
                 "ambient.forest.wind",
                 new Vector3Value(0, 4, 0),
-                new Vector3Value(112, 5, 112),
+                new Vector3Value(480, 8, 480),
                 false,
                 2026080501,
                 6,
@@ -373,7 +400,7 @@ public static class ForgottenForestModuleAuthoringService
                 Ids.Guid("experience:scatter:birdsong"),
                 "ambient.forest.birds",
                 new Vector3Value(0, 6, 0),
-                new Vector3Value(104, 7, 104),
+                new Vector3Value(470, 12, 470),
                 false,
                 2026080502,
                 8,
@@ -387,7 +414,7 @@ public static class ForgottenForestModuleAuthoringService
                 Ids.Guid("experience:scatter:stream"),
                 "ambient.forest.stream",
                 new Vector3Value(2, .8f, 1),
-                new Vector3Value(92, 2, 12),
+                new Vector3Value(440, 3, 24),
                 false,
                 2026080503,
                 5,
@@ -443,7 +470,8 @@ public static class ForgottenForestModuleAuthoringService
         var soilId = Stable("material:soil");
         var grassId = Stable("material:grass");
         var rockId = Stable("material:rock");
-        const int samples = 33;
+        var meadowId = Stable("material:meadow");
+        const int samples = 129;
         var heights = new float[samples * samples];
         for (var z = 0; z < samples; z++)
         {
@@ -451,11 +479,22 @@ public static class ForgottenForestModuleAuthoringService
             {
                 var nx = (x / (samples - 1f)) * 2f - 1f;
                 var nz = (z / (samples - 1f)) * 2f - 1f;
-                var ridges = MathF.Sin(nx * 5.7f + 0.8f) * 0.12f + MathF.Cos(nz * 4.9f - 0.4f) * 0.10f;
-                var detail = MathF.Sin((nx + nz) * 9.2f) * 0.035f + MathF.Cos((nx - nz) * 7.4f) * 0.03f;
-                var edgeRise = MathF.Pow(Math.Clamp(MathF.Sqrt(nx * nx + nz * nz), 0, 1), 2) * 0.18f;
-                var roadFlatten = MathF.Exp(-MathF.Pow(nx - nz, 2) * 18f) * 0.12f;
-                heights[z * samples + x] = Math.Clamp(ridges + detail + edgeRise - roadFlatten, -0.45f, 0.55f);
+                var macro = MathF.Sin(nx * 2.7f + 0.4f) * 0.11f + MathF.Cos(nz * 2.3f - 0.7f) * 0.09f;
+                var ridges = MathF.Sin(nx * 6.1f + nz * 1.4f) * 0.07f +
+                              MathF.Cos(nz * 5.3f - nx * 1.1f) * 0.065f;
+                var detail = MathF.Sin((nx + nz) * 13.2f) * 0.022f +
+                             MathF.Cos((nx - nz) * 10.4f) * 0.018f;
+                var edgeRise = MathF.Pow(Math.Clamp(MathF.Sqrt(nx * nx + nz * nz), 0, 1), 2) * 0.2f;
+                var centralValley = MathF.Exp(-((nx * nx) + (nz * nz)) * 5.5f) * 0.08f;
+                var rawHeight = macro + ridges + detail + edgeRise - centralValley;
+                var questCorridor = MathF.Exp(-MathF.Pow(nx - nz, 2) * 260f) *
+                                    MathF.Exp(-((nx * nx) + (nz * nz)) * 18f);
+                var corridorHeight = ((nx + nz) * 0.032f) - 0.035f;
+                var corridorBlend = Math.Clamp(questCorridor * .92f, 0, 1);
+                heights[z * samples + x] = Math.Clamp(
+                    rawHeight + ((corridorHeight - rawHeight) * corridorBlend),
+                    -0.48f,
+                    0.62f);
             }
         }
 
@@ -469,20 +508,24 @@ public static class ForgottenForestModuleAuthoringService
             samples,
             16,
             20260805,
-            8,
+            14,
             heights,
             [
                 new TerrainMaterialLayer(soilId, "Terre forestière", "#594431", string.Empty, 5),
                 new TerrainMaterialLayer(grassId, "Mousse et fougères", "#456b38", string.Empty, 6),
                 new TerrainMaterialLayer(rockId, "Roche humide", "#68716b", string.Empty, 4),
+                new TerrainMaterialLayer(meadowId, "Clairière dorée", "#78945b", string.Empty, 7),
             ],
             [],
             string.Empty,
             string.Empty,
             string.Empty,
-            "authored:forgotten-forest@1");
+            "authored:forgotten-forest:sectorized@2");
         var biomes = new[]
         {
+            new BiomeLayerDefinition(Stable("biome:meadow"), "Clairières", meadowId, -20, 30, 0, 5, 0, 1,
+                0.08f, $"asset:{AssetId("patch-grass")}", ["meadow", "ground-cover"], ["road", "river", "building"], 70,
+                "authored:forgotten-forest:sectorized@2"),
             new BiomeLayerDefinition(Stable("biome:canopy"), "Canopée", grassId, -20, 30, 0, 36, 0, 1,
                 0.68f, $"asset:{AssetId("tree-high")}", ["forest", "tree", "canopy"], ["road", "river", "building"], 50,
                 "authored:forgotten-forest@1"),
@@ -493,7 +536,7 @@ public static class ForgottenForestModuleAuthoringService
                 0.82f, $"asset:{AssetId("plant")}", ["forest", "ground-cover", "plant"], ["road", "river"], 30,
                 "authored:forgotten-forest@1"),
             new BiomeLayerDefinition(Stable("biome:rocks"), "Rochers", rockId, -20, 30, 10, 68, 0, 1,
-                0.18f, $"asset:{AssetId("rocks-low")}", ["rock", "ground-cover"], ["road", "river"], 20,
+                0.25f, $"asset:{AssetId("rocks-low")}", ["rock", "ground-cover"], ["road", "river"], 60,
                 "authored:forgotten-forest@1"),
         };
         Vector3Value Point(float x, float z, float lift = 0.08f) => new(x, terrain.HeightAt(x, z) + lift, z);
@@ -501,12 +544,17 @@ public static class ForgottenForestModuleAuthoringService
         {
             new TerrainFeatureDefinition(Stable("feature:trail"), TerrainFeatureDefinition.CurrentSchemaVersion,
                 "Sentier des fanions", TerrainFeatureKind.Road,
-                [Point(-52, -48), Point(-35, -34), Point(-16, -14), Point(2, 1), Point(18, 20), Point(42, 44), Point(54, 52)],
+                [Point(-232, -218), Point(-186, -174), Point(-122, -101), Point(-52, -48), Point(-35, -34),
+                    Point(-16, -14), Point(2, 1), Point(18, 20), Point(42, 44), Point(54, 52), Point(112, 96),
+                    Point(169, 151), Point(228, 210)],
                 3.4f, 0.08f, 0, TerrainFeatureCrossingPolicy.RequiresBridge, ["forest"], string.Empty,
                 "authored:forgotten-forest@1"),
             new TerrainFeatureDefinition(Stable("feature:river"), TerrainFeatureDefinition.CurrentSchemaVersion,
                 "Ruisseau d’argent", TerrainFeatureKind.River,
-                [Point(-50, 18, 0.02f), Point(-27, 10, 0.02f), Point(2, 1, 0.02f), Point(26, -8, 0.02f), Point(53, -19, 0.02f)],
+                [Point(-236, 181, 0.02f), Point(-188, 142, 0.02f), Point(-128, 88, 0.02f),
+                    Point(-50, 18, 0.02f), Point(-27, 10, 0.02f), Point(2, 1, 0.02f), Point(26, -8, 0.02f),
+                    Point(53, -19, 0.02f), Point(118, -70, 0.02f), Point(181, -126, 0.02f),
+                    Point(236, -178, 0.02f)],
                 3.2f, 0.12f, 0, TerrainFeatureCrossingPolicy.RequiresBridge, ["forest"], string.Empty,
                 "authored:forgotten-forest@1"),
             new TerrainFeatureDefinition(Stable("feature:bridge"), TerrainFeatureDefinition.CurrentSchemaVersion,
@@ -514,7 +562,30 @@ public static class ForgottenForestModuleAuthoringService
                 [Point(-2, -3, 0.34f), Point(6, 6, 0.34f)],
                 4.2f, 0.22f, 0, TerrainFeatureCrossingPolicy.Allow, ["forest"], string.Empty,
                 "authored:forgotten-forest@1"),
+            new TerrainFeatureDefinition(Stable("feature:watcher-road"), TerrainFeatureDefinition.CurrentSchemaVersion,
+                "Chemin des quatre veilleurs", TerrainFeatureKind.Road,
+                [Point(-188, 164), Point(-126, 126), Point(-68, 78), Point(0, 32), Point(72, -34),
+                    Point(126, -92), Point(171, -166)],
+                2.8f, 0.06f, 0, TerrainFeatureCrossingPolicy.Allow, ["forest"], string.Empty,
+                "authored:forgotten-forest:sectorized@2"),
+            new TerrainFeatureDefinition(Stable("feature:watcher-bridge"), TerrainFeatureDefinition.CurrentSchemaVersion,
+                "Pont des quatre veilleurs", TerrainFeatureKind.Bridge,
+                [Point(71, -40, 0.36f), Point(71, -26, 0.36f)],
+                4.4f, 0.24f, 0, TerrainFeatureCrossingPolicy.Allow, ["forest"], string.Empty,
+                "authored:forgotten-forest:sectorized@2"),
         };
+        var loading = new AreaLoadingProfile(
+            defaults.Loading.Id,
+            AreaLoadingProfile.CurrentSchemaVersion,
+            true,
+            true,
+            true,
+            1024,
+            6,
+            2,
+            3500,
+            defaults.Loading.RequiredResources,
+            "authored:forgotten-forest:sectorized@2");
         return new AreaWorldProfile(
             Stable("world"),
             AreaWorldProfile.CurrentSchemaVersion,
@@ -523,8 +594,8 @@ public static class ForgottenForestModuleAuthoringService
             features,
             defaults.VolumetricNavigation,
             defaults.FlightRoutes,
-            defaults.Loading,
-            "authored:forgotten-forest@1");
+            loading,
+            "authored:forgotten-forest:sectorized@2");
     }
 
     private static AreaNavigationDefinition CreateNavigation(AreaId areaId, AreaWorldProfile world)
@@ -540,12 +611,21 @@ public static class ForgottenForestModuleAuthoringService
             true,
             .9f,
             "authored:forgotten-forest@1");
+        var watcherCrossing = new OffMeshNavigationLink(
+            OffMeshNavigationLinkId.From(Stable("navigation:watcher-bridge-crossing")),
+            "Traversée du pont des quatre veilleurs",
+            NavigationLinkKind.Jump,
+            Point(71, -40),
+            Point(71, -26),
+            true,
+            .9f,
+            "authored:forgotten-forest:sectorized@2");
         return new AreaNavigationDefinition(
             defaults.Id,
             defaults.CellSize,
             defaults.AgentProfiles,
-            [crossing],
-            "authored:forgotten-forest@1");
+            [crossing, watcherCrossing],
+            "authored:forgotten-forest:sectorized@2");
     }
 
     private static Guid Stable(string scope) => Ids.Guid($"world:{scope}");

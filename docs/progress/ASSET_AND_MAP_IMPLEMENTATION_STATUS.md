@@ -1,6 +1,6 @@
 # État d’implémentation — Asset Vault et carte
 
-Dernière mise à jour : 5 août 2026 — tranche AV6-B.
+Dernière mise à jour : 5 août 2026 — tranche AV6-C.
 
 ## Terminé
 
@@ -102,6 +102,12 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-B.
   par le Creator et le runtime, avec trois attaques, deux impacts et une mort prouvés par le smoke ;
 - export AV6-B validé de 100 fichiers, 28 manifestes/50 chunks, 22 références gouvernées, cinq
   personnages distincts, 28 assets/72 niveaux LOD et seize budgets runtime réussis.
+- extension AV6-C du terrain canonique à 512 × 512 m : 129 × 129 échantillons, 64 secteurs de 64 m,
+  16 641 vertices et 32 768 triangles, sans scène ni format parallèle ;
+- cinq couches de biome et 5 564 instances MultiMesh, 39 modèles et quatre ensembles de landmarks,
+  avec plafonds de dispersion adaptés aux grandes surfaces mais inchangés pour les petites cartes ;
+- dix segments d’eau, deux ponts et 32 454 polygones navigables ; le trajet camp–sanctuaire de 70
+  points, les seize budgets 512 × 512 et la capture Forward+ aérienne passent.
 
 ## Partiellement terminé
 
@@ -110,9 +116,9 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-B.
 - normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
   conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
-- Forgotten Forest : tranche jouable, navigable, sonorisée, enrichie de VFX et dotée de cinq
-  personnages fantasy avec combat animé ; retargeting inter-rigs, composition finale et extension
-  512 × 512 restent des finitions de production.
+- Forgotten Forest : carte 512 × 512 jouable, navigable, sonorisée, enrichie de VFX et dotée de cinq
+  personnages fantasy avec combat animé ; retargeting inter-rigs, terrain PBR et habillage fin des
+  secteurs restent des finitions de production.
 
 ## Non commencé
 
@@ -120,14 +126,13 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-B.
   migrations/désinstallations déjà analysées par le domaine ;
 - génération de miniatures et planches contact ;
 - service de surveillance temps réel ;
-- carte Forgotten Forest finale 512 × 512 m ; la sculpture canonique, la peinture de biome, la
-  fondation terrain générique, ses routes, son bake de navigation et son eau animée sont disponibles
-  avant composition de production.
+- finition artistique de Forgotten Forest : matériaux terrain PBR, variations de feuillage,
+  éclairage atmosphérique, eau avancée et habillage rapproché des 64 secteurs.
 
 ## Prochaine action
 
-Composer la carte 512 × 512 par secteurs en réutilisant les systèmes terrain/biome/navigation, puis
-refaire les budgets et la revue visuelle. Le retargeting inter-rigs reste un incrément séparé.
+Améliorer le rendu PBR et l’habillage rapproché des secteurs sans casser les budgets 512 × 512. Le
+retargeting inter-rigs reste un incrément séparé.
 
 ## Preuves de la tranche AV3 MCP
 

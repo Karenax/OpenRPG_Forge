@@ -206,7 +206,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 76,
         "path": "src/Forge.EngineAdapter/World/GodotTerrainAdapter.cs"
       },
       "kind": "serializes",
@@ -1727,7 +1727,7 @@
     },
     {
       "evidence": {
-        "line": 662,
+        "line": 670,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1736,7 +1736,7 @@
     },
     {
       "evidence": {
-        "line": 1475,
+        "line": 1483,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1745,7 +1745,7 @@
     },
     {
       "evidence": {
-        "line": 1540,
+        "line": 1548,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1754,7 +1754,7 @@
     },
     {
       "evidence": {
-        "line": 1840,
+        "line": 1848,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1763,7 +1763,7 @@
     },
     {
       "evidence": {
-        "line": 1540,
+        "line": 1548,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1772,7 +1772,7 @@
     },
     {
       "evidence": {
-        "line": 1589,
+        "line": 1597,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1781,7 +1781,7 @@
     },
     {
       "evidence": {
-        "line": 1793,
+        "line": 1801,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1799,7 +1799,7 @@
     },
     {
       "evidence": {
-        "line": 754,
+        "line": 762,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1808,7 +1808,7 @@
     },
     {
       "evidence": {
-        "line": 1540,
+        "line": 1548,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1817,7 +1817,7 @@
     },
     {
       "evidence": {
-        "line": 1590,
+        "line": 1598,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1826,7 +1826,7 @@
     },
     {
       "evidence": {
-        "line": 1642,
+        "line": 1650,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1835,7 +1835,7 @@
     },
     {
       "evidence": {
-        "line": 1734,
+        "line": 1742,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1853,7 +1853,7 @@
     },
     {
       "evidence": {
-        "line": 1445,
+        "line": 1453,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1862,7 +1862,7 @@
     },
     {
       "evidence": {
-        "line": 1540,
+        "line": 1548,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1871,7 +1871,7 @@
     },
     {
       "evidence": {
-        "line": 1591,
+        "line": 1599,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1880,7 +1880,7 @@
     },
     {
       "evidence": {
-        "line": 1642,
+        "line": 1650,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1889,7 +1889,7 @@
     },
     {
       "evidence": {
-        "line": 1809,
+        "line": 1817,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1898,7 +1898,7 @@
     },
     {
       "evidence": {
-        "line": 661,
+        "line": 669,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1907,7 +1907,7 @@
     },
     {
       "evidence": {
-        "line": 661,
+        "line": 669,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1925,7 +1925,7 @@
     },
     {
       "evidence": {
-        "line": 754,
+        "line": 762,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1952,7 +1952,7 @@
     },
     {
       "evidence": {
-        "line": 1446,
+        "line": 1454,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1970,7 +1970,7 @@
     },
     {
       "evidence": {
-        "line": 1826,
+        "line": 1834,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -4919,6 +4919,15 @@
       "kind": "references",
       "source": "file:docs/assets/AV5_DELIVERY_AND_EXTENSION.md",
       "target": "file:docs/assets/AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "docs/assets/AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md"
+      },
+      "kind": "references",
+      "source": "file:docs/assets/AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md",
+      "target": "file:docs/assets/AV6C_SECTORIZED_512_WORLD.md"
     },
     {
       "evidence": {
@@ -11871,6 +11880,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.LiveDirector/Authentication/DirectorAuthenticationService.cs"
       },
       "kind": "imports",
@@ -18580,6 +18607,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs",
+      "target": "namespace:Forge.EngineAdapter.World"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs",
       "target": "namespace:Forge.EngineAdapter.World"
     },
     {
@@ -36044,7 +36089,7 @@
     },
     {
       "evidence": {
-        "line": 3485,
+        "line": 3527,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -41966,6 +42011,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.Tests.World",
+      "target": "file:tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "tests/Forge.EngineAdapter.Tests/World/TerrainProductionBenchmarkTests.cs"
       },
@@ -42071,6 +42125,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.EngineAdapter.World",
       "target": "file:src/Forge.EngineAdapter/World/TerrainBuildVertex.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
     },
     {
       "evidence": {
@@ -46385,7 +46448,7 @@
     },
     {
       "evidence": {
-        "line": 188,
+        "line": 215,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46394,7 +46457,7 @@
     },
     {
       "evidence": {
-        "line": 156,
+        "line": 183,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46403,7 +46466,7 @@
     },
     {
       "evidence": {
-        "line": 161,
+        "line": 188,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46412,7 +46475,7 @@
     },
     {
       "evidence": {
-        "line": 191,
+        "line": 218,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46421,7 +46484,7 @@
     },
     {
       "evidence": {
-        "line": 196,
+        "line": 223,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46457,7 +46520,7 @@
     },
     {
       "evidence": {
-        "line": 105,
+        "line": 132,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46475,7 +46538,7 @@
     },
     {
       "evidence": {
-        "line": 269,
+        "line": 296,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46484,7 +46547,7 @@
     },
     {
       "evidence": {
-        "line": 167,
+        "line": 194,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46493,7 +46556,7 @@
     },
     {
       "evidence": {
-        "line": 173,
+        "line": 200,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46502,7 +46565,7 @@
     },
     {
       "evidence": {
-        "line": 152,
+        "line": 179,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46511,7 +46574,7 @@
     },
     {
       "evidence": {
-        "line": 151,
+        "line": 178,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46520,7 +46583,7 @@
     },
     {
       "evidence": {
-        "line": 140,
+        "line": 167,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46529,7 +46592,7 @@
     },
     {
       "evidence": {
-        "line": 140,
+        "line": 167,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46538,7 +46601,7 @@
     },
     {
       "evidence": {
-        "line": 276,
+        "line": 303,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46547,7 +46610,7 @@
     },
     {
       "evidence": {
-        "line": 213,
+        "line": 240,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -46556,7 +46619,7 @@
     },
     {
       "evidence": {
-        "line": 130,
+        "line": 157,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "accesses_model",
@@ -55916,7 +55979,7 @@
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 29,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -55925,7 +55988,7 @@
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 59,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -55934,7 +55997,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 52,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -55943,7 +56006,7 @@
     },
     {
       "evidence": {
-        "line": 41,
+        "line": 44,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -55970,7 +56033,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 36,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -55979,7 +56042,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 33,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -55988,7 +56051,7 @@
     },
     {
       "evidence": {
-        "line": 69,
+        "line": 75,
         "path": "tests/Forge.Application.Tests/Projects/ForgottenForestModuleAuthoringServiceTests.cs"
       },
       "kind": "tests",
@@ -63239,6 +63302,87 @@
       "kind": "tests",
       "source": "test:Forge.EngineAdapter.Tests.World.TerrainBuildPlanBuilderTests",
       "target": "type:Forge.EngineAdapter.World.TerrainBuildPlanBuilder"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainChunkPlanBuilderTests",
+      "target": "file:tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainChunkPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainChunkPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainChunkPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.TerrainDefinition"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainChunkPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.TerrainProviderKind"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainChunkPlanBuilderTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainChunkPlanBuilderTests",
+      "target": "type:Forge.Domain.Areas.AreaWorldProfile"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainChunkPlanBuilderTests",
+      "target": "type:Forge.EngineAdapter.World.TerrainBuildPlanBuilder"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.TerrainChunkPlanBuilderTests",
+      "target": "type:Forge.EngineAdapter.World.TerrainChunkPlanBuilder"
     },
     {
       "evidence": {
@@ -75338,7 +75482,7 @@
     },
     {
       "evidence": {
-        "line": 282,
+        "line": 309,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -75347,7 +75491,7 @@
     },
     {
       "evidence": {
-        "line": 334,
+        "line": 361,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "uses_service",
@@ -75392,7 +75536,7 @@
     },
     {
       "evidence": {
-        "line": 553,
+        "line": 633,
         "path": "src/Forge.Application/Projects/ForgottenForestModuleAuthoringService.cs"
       },
       "kind": "defined_in",
@@ -78668,7 +78812,7 @@
     },
     {
       "evidence": {
-        "line": 114,
+        "line": 118,
         "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
       },
       "kind": "defined_in",
@@ -78740,7 +78884,25 @@
     },
     {
       "evidence": {
-        "line": 83,
+        "line": 6,
+        "path": "src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.TerrainChunkBuildPlan",
+      "target": "file:src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.TerrainChunkPlanBuilder",
+      "target": "file:src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 100,
         "path": "src/Forge.EngineAdapter/World/TerrainProductionBenchmark.cs"
       },
       "kind": "defined_in",
@@ -78758,7 +78920,7 @@
     },
     {
       "evidence": {
-        "line": 67,
+        "line": 84,
         "path": "src/Forge.EngineAdapter/World/TerrainProductionBenchmark.cs"
       },
       "kind": "defined_in",
@@ -78767,7 +78929,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 92,
         "path": "src/Forge.EngineAdapter/World/TerrainProductionBenchmark.cs"
       },
       "kind": "defined_in",
@@ -83636,7 +83798,7 @@
     },
     {
       "evidence": {
-        "line": 1258,
+        "line": 1296,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83645,7 +83807,7 @@
     },
     {
       "evidence": {
-        "line": 1373,
+        "line": 1412,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83654,7 +83816,7 @@
     },
     {
       "evidence": {
-        "line": 1511,
+        "line": 1550,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83663,7 +83825,7 @@
     },
     {
       "evidence": {
-        "line": 1498,
+        "line": 1537,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83672,7 +83834,7 @@
     },
     {
       "evidence": {
-        "line": 365,
+        "line": 402,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83681,7 +83843,7 @@
     },
     {
       "evidence": {
-        "line": 1460,
+        "line": 1499,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83690,7 +83852,7 @@
     },
     {
       "evidence": {
-        "line": 1443,
+        "line": 1482,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83699,7 +83861,7 @@
     },
     {
       "evidence": {
-        "line": 1550,
+        "line": 1589,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83708,7 +83870,7 @@
     },
     {
       "evidence": {
-        "line": 1597,
+        "line": 1636,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83717,7 +83879,7 @@
     },
     {
       "evidence": {
-        "line": 1579,
+        "line": 1618,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83726,7 +83888,7 @@
     },
     {
       "evidence": {
-        "line": 1567,
+        "line": 1606,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83735,7 +83897,7 @@
     },
     {
       "evidence": {
-        "line": 1523,
+        "line": 1562,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83744,7 +83906,7 @@
     },
     {
       "evidence": {
-        "line": 83,
+        "line": 84,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83753,7 +83915,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 85,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -83771,7 +83933,7 @@
     },
     {
       "evidence": {
-        "line": 3414,
+        "line": 3456,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -83798,7 +83960,7 @@
     },
     {
       "evidence": {
-        "line": 3453,
+        "line": 3495,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -85517,8 +85679,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:72a02a57aa7c18709bbc3ad5a370d9a71c5e68b78c7b6c3a6cc8fe670966d6b1",
-    "source_file_count": 1547
+    "source_digest": "sha256:330d1167688f69b02cea5dc92b156bf87d898b21e8bac8023a43758c3fdfefeb",
+    "source_file_count": 1550
   },
   "nodes": [
     {
@@ -87542,14 +87704,14 @@
       "path": "apps/Forge.Runtime/content/forgotten-forest/.forge/build-graph.json"
     },
     {
-      "id": "file:apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-8ae2509357f64257.json",
+      "id": "file:apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-aaeaa1b00d94f983.json",
       "kind": "configuration",
       "line": 1,
       "metadata": {
         "language": "configuration"
       },
-      "name": "a56d51fe-089a-995f-a4c9-59c349b0f1d8-8ae2509357f64257.json",
-      "path": "apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-8ae2509357f64257.json"
+      "name": "a56d51fe-089a-995f-a4c9-59c349b0f1d8-aaeaa1b00d94f983.json",
+      "path": "apps/Forge.Runtime/content/forgotten-forest/areas/a56d51fe-089a-995f-a4c9-59c349b0f1d8-aaeaa1b00d94f983.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/forgotten-forest/assets/CREDITS_ASSETS.md",
@@ -89240,6 +89402,16 @@
       },
       "name": "AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md",
       "path": "docs/assets/AV6B_FANTASY_CHARACTER_COMBAT_SLICE.md"
+    },
+    {
+      "id": "file:docs/assets/AV6C_SECTORIZED_512_WORLD.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "AV6C_SECTORIZED_512_WORLD.md",
+      "path": "docs/assets/AV6C_SECTORIZED_512_WORLD.md"
     },
     {
       "id": "file:docs/assets/AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md",
@@ -95762,6 +95934,16 @@
       "path": "src/Forge.EngineAdapter/World/TerrainBuildVertex.cs"
     },
     {
+      "id": "file:src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainChunkPlanBuilder.cs",
+      "path": "src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
+    },
+    {
       "id": "file:src/Forge.EngineAdapter/World/TerrainProductionBenchmark.cs",
       "kind": "file",
       "line": 1,
@@ -99460,6 +99642,16 @@
       },
       "name": "TerrainBuildPlanBuilderTests.cs",
       "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "TerrainChunkPlanBuilderTests.cs",
+      "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
     },
     {
       "id": "file:tests/Forge.EngineAdapter.Tests/World/TerrainProductionBenchmarkTests.cs",
@@ -108474,7 +108666,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 3485,
+      "line": 3527,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -112273,6 +112465,16 @@
       "path": "tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
     },
     {
+      "id": "test:Forge.EngineAdapter.Tests.World.TerrainChunkPlanBuilderTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.Tests.World"
+      },
+      "name": "TerrainChunkPlanBuilderTests",
+      "path": "tests/Forge.EngineAdapter.Tests/World/TerrainChunkPlanBuilderTests.cs"
+    },
+    {
       "id": "test:Forge.EngineAdapter.Tests.World.TerrainProductionBenchmarkTests",
       "kind": "test",
       "line": 5,
@@ -114662,7 +114864,7 @@
     {
       "id": "type:Forge.Application.Projects.CharacterClips",
       "kind": "type",
-      "line": 282,
+      "line": 309,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -114712,7 +114914,7 @@
     {
       "id": "type:Forge.Application.Projects.StableIds",
       "kind": "type",
-      "line": 553,
+      "line": 633,
       "metadata": {
         "namespace": "Forge.Application.Projects"
       },
@@ -118352,7 +118554,7 @@
     {
       "id": "type:Forge.EngineAdapter.World.StableRandom",
       "kind": "type",
-      "line": 114,
+      "line": 118,
       "metadata": {
         "namespace": "Forge.EngineAdapter.World"
       },
@@ -118430,9 +118632,29 @@
       "path": "src/Forge.EngineAdapter/World/TerrainBuildVertex.cs"
     },
     {
+      "id": "type:Forge.EngineAdapter.World.TerrainChunkBuildPlan",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "TerrainChunkBuildPlan",
+      "path": "src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
+    },
+    {
+      "id": "type:Forge.EngineAdapter.World.TerrainChunkPlanBuilder",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "TerrainChunkPlanBuilder",
+      "path": "src/Forge.EngineAdapter/World/TerrainChunkPlanBuilder.cs"
+    },
+    {
       "id": "type:Forge.EngineAdapter.World.TerrainProductionBenchmark",
       "kind": "type",
-      "line": 83,
+      "line": 100,
       "metadata": {
         "namespace": "Forge.EngineAdapter.World"
       },
@@ -118452,7 +118674,7 @@
     {
       "id": "type:Forge.EngineAdapter.World.TerrainProductionBenchmarkCheck",
       "kind": "type",
-      "line": 67,
+      "line": 84,
       "metadata": {
         "namespace": "Forge.EngineAdapter.World"
       },
@@ -118462,7 +118684,7 @@
     {
       "id": "type:Forge.EngineAdapter.World.TerrainProductionBenchmarkReport",
       "kind": "type",
-      "line": 75,
+      "line": 92,
       "metadata": {
         "namespace": "Forge.EngineAdapter.World"
       },
@@ -123702,7 +123924,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeAreaChunkLoader",
       "kind": "type",
-      "line": 3414,
+      "line": 3456,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -123732,7 +123954,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 3453,
+      "line": 3495,
       "metadata": {
         "namespace": "Forge.Runtime"
       },

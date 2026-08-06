@@ -18,14 +18,17 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
 
         Assert.Equal("forgotten-forest", project.Module.Slug);
         Assert.Equal(AreaKind.Exterior, area.Kind);
-        Assert.Equal(new AreaDimensions(128, 128), area.Dimensions);
+        Assert.Equal(new AreaDimensions(512, 512), area.Dimensions);
         Assert.True(area.World.Terrain.Enabled);
-        Assert.Equal(33 * 33, area.World.Terrain.Heights.Count);
-        Assert.Equal(4, area.World.Biomes.Count);
-        Assert.Equal(3, area.World.Features.Count);
+        Assert.Equal(129 * 129, area.World.Terrain.Heights.Count);
+        Assert.Equal(16, area.World.Terrain.ChunkSize);
+        Assert.Equal(1024, area.World.Loading.CacheBudgetMegabytes);
+        Assert.Equal(2, area.World.Loading.ChunkRadius);
+        Assert.Equal(5, area.World.Biomes.Count);
+        Assert.Equal(5, area.World.Features.Count);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.River);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.Bridge);
-        Assert.Single(area.Navigation.OffMeshLinks);
+        Assert.Equal(2, area.Navigation.OffMeshLinks.Count);
         Assert.Contains("vfx:forest-ambient", area.Environment.Tags, StringComparer.Ordinal);
         Assert.Equal(SkyProfileMode.Procedural, area.Environment.Sky.Mode);
         Assert.Equal("#4f83ad", area.Environment.Sky.ZenithColor);
@@ -42,7 +45,10 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
                 cue.ContentSha256);
             Assert.StartsWith("builtin:openrpg-forge", cue.Provenance, StringComparison.Ordinal);
         });
-        Assert.True(area.Entities.Count >= 18);
+        Assert.True(area.Entities.Count >= 39);
+        Assert.Contains(area.Entities, entity =>
+            entity.Transform.Position.X > 150 && entity.Transform.Position.Z > 150 &&
+            entity.Overrides.Properties.Any(property => property.Key == "visual.asset"));
         Assert.Contains(project.Blueprints, blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn && blueprint.Combat is not null);
         Assert.Contains(area.Entities, entity => entity.Tags.Contains("boss", StringComparer.Ordinal));
         Assert.Contains(area.Entities, entity => entity.Tags.Contains("exit", StringComparer.Ordinal));

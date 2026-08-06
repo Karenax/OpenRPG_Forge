@@ -555,4 +555,5 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Prouver cinq personnages et trois clips dans le smoke jouable puis inspecter une capture Forward+.
 - [x] Ajouter cinq variantes fantasy cohérentes et une séquence combat attaque/impact/mort bornée.
 - [ ] Prouver le retargeting d’un clip entre deux rigs incompatibles, avec audit de déformation.
-- [ ] Composer la carte 512 × 512 par secteurs, puis refaire budgets, navigation et revue visuelle.
+- [x] Composer la carte 512 × 512 en 64 secteurs, puis refaire budgets, navigation et revue visuelle.
+- [ ] Remplacer les couleurs terrain simples par une finition PBR et enrichir l’habillage fin des secteurs.
