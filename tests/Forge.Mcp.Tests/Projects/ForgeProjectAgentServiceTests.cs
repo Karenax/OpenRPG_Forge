@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Forge.Application.Assistant;
 using Forge.Application.Assets;
 using Forge.Application.Validation;
 using Forge.Domain.Assets;
@@ -24,6 +25,51 @@ namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void AssistedAreaPlanMcpProposesPersistsAndRevertsWithoutGeometryMutation()
+    {
+        using var workspace = new TestWorkspace();
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var area = project.Areas[0];
+        var blueprint = project.Blueprints[0];
+        var entitiesBefore = area.Entities.Count;
+        var brief = new AssistedAreaPlanBrief(
+            Guid.Parse("b1240000-0000-4000-8000-000000000080"),
+            area.Id.Value,
+            "Crypte MCP",
+            AssistedAreaArchetype.Crypt,
+            20260805,
+            Math.Min(64, area.Dimensions.Width),
+            Math.Min(64, area.Dimensions.Depth),
+            8,
+            [blueprint.Id.Value],
+            ["Preserve a navigable route."],
+            ["Reach the objective."],
+            [$"project:{project.Id}"],
+            "mcp-test:g12-c");
+
+        var proposal = workspace.Project.ProposeAssistedAreaPlan(new(1, brief));
+        var current = workspace.Project.GetAssistedAreaPlans();
+        var catalog = new AssistedAreaPlanCatalog(current.Catalog.Id, 1, [proposal.Plan!], "mcp-test:g12-c");
+        var planned = workspace.Project.PlanAssistedAreaPlans(new(
+            1, current.Revision, catalog, AssistantPermissionLevel.Configure));
+        var applied = workspace.Project.ApplyAssistedAreaPlan(planned.PlanId!);
+        var persisted = AssistedAreaPlanStore.Load(workspace.RootDirectory);
+        var reverted = workspace.Project.RevertAssistedAreaPlan(planned.PlanId!);
+
+        Assert.True(proposal.Succeeded);
+        Assert.False(proposal.GeometryApplied);
+        Assert.Equal(0, proposal.EstimatedCostUsd);
+        Assert.Contains("geometry-applied:false", proposal.SemanticDiff, StringComparison.Ordinal);
+        Assert.True(planned.Succeeded);
+        Assert.Equal("assistant/area-plans", planned.Diff?.Path);
+        Assert.True(applied.Applied);
+        Assert.Single(persisted.Catalog.Plans);
+        Assert.Equal(entitiesBefore, ProjectSession.Open(workspace.RootDirectory).Session!.Project.Areas[0].Entities.Count);
+        Assert.True(reverted.Reverted);
+        Assert.Empty(workspace.Project.GetAssistedAreaPlans().Catalog.Plans);
+    }
+
     [Fact]
     public void LoreIndexMcpUsesReadPlanApplyQueryAndRevertContract()
     {

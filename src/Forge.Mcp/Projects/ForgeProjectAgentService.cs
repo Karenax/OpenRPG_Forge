@@ -53,6 +53,9 @@ public sealed class ForgeProjectAgentService
     private readonly SetLoreIndexHandler _loreIndexHandler;
     private readonly LoreIndexCommandHistory _loreIndexHistory;
     private readonly List<AgentDiagnostic> _loreLoadDiagnostics;
+    private readonly SetAssistedAreaPlansHandler _areaPlanHandler;
+    private readonly AssistedAreaPlanCommandHistory _areaPlanHistory;
+    private readonly List<AgentDiagnostic> _areaPlanLoadDiagnostics;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
@@ -62,6 +65,7 @@ public sealed class ForgeProjectAgentService
     private readonly Dictionary<string, StoredRuntimeExtensionPlan> _runtimeExtensionPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssetInstallPlan> _assetInstallPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredLoreIndexPlan> _loreIndexPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAssistedAreaPlan> _areaPlans = new(StringComparer.Ordinal);
     private readonly IClock _clock;
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
@@ -82,6 +86,11 @@ public sealed class ForgeProjectAgentService
         var loreIndex = LoreIndexStore.Load(session.RootDirectory);
         _loreIndexHistory = new LoreIndexCommandHistory(loreIndex.Index);
         _loreLoadDiagnostics = loreIndex.Diagnostics.Select(item =>
+            new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
+        _areaPlanHandler = new SetAssistedAreaPlansHandler(clock);
+        var areaPlans = AssistedAreaPlanStore.Load(session.RootDirectory);
+        _areaPlanHistory = new AssistedAreaPlanCommandHistory(areaPlans.Catalog);
+        _areaPlanLoadDiagnostics = areaPlans.Diagnostics.Select(item =>
             new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
     }
 
@@ -332,6 +341,141 @@ public sealed class ForgeProjectAgentService
                 _loreIndexHistory.State.Revision.Value,
                 _clock.UtcNow,
                 true));
+            return ToResult(plan);
+        }
+    }
+
+    public AssistedAreaPlanResource GetAssistedAreaPlans()
+    {
+        lock (_gate)
+        {
+            return new AssistedAreaPlanResource(
+                1,
+                _areaPlanHistory.State.Revision.Value,
+                _areaPlanHistory.State.Catalog,
+                _areaPlanLoadDiagnostics.ToArray());
+        }
+    }
+
+    public AssistedAreaPlanProposalResource ProposeAssistedAreaPlan(AssistedAreaPlanProposalRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, null, "no-change", string.Empty, 0, 0, 0, false,
+                    [new AgentDiagnostic("assistant.area_plan.request_invalid", "Area-plan proposal schema is invalid.", "assistant/area-plans")]);
+            var profile = AssistantWorkspaceProfile.CreateDefault();
+            var proposal = AssistedAreaPlanProposalService.ProposeAsync(
+                request.Brief,
+                _history.State.Project,
+                _loreIndexHistory.State.Index,
+                new DeterministicAssistantProvider(profile.ActiveProvider),
+                profile.ActiveProvider,
+                networkAuthorized: false,
+                projectContentAuthorized: false).GetAwaiter().GetResult();
+            return new AssistedAreaPlanProposalResource(
+                proposal.Succeeded,
+                proposal.Plan,
+                proposal.SemanticDiff,
+                proposal.PromptSha256,
+                proposal.InputTokens,
+                proposal.OutputTokens,
+                proposal.EstimatedCostUsd,
+                GeometryApplied: false,
+                proposal.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, "assistant/area-plans")).ToArray());
+        }
+    }
+
+    public AssistedAreaPlanPlanResult PlanAssistedAreaPlans(AssistedAreaPlanPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
+                return AssistedAreaPlanFailure(_areaPlanHistory.State.Revision.Value,
+                    "assistant.area_plan.request_invalid", "Area-plan request schema or base revision is invalid.");
+            var planId = Guid.NewGuid();
+            var transactionId = Guid.NewGuid();
+            var command = new SetAssistedAreaPlansCommand(
+                CommandId.From(Guid.NewGuid()), transactionId, planId,
+                new AssistedAreaPlanRevision(request.BaseRevision), request.Catalog, request.Permission, DryRun: true);
+            var preview = _areaPlanHandler.Handle(_areaPlanHistory.State, command, _history.State.Project);
+            if (!preview.Succeeded || preview.Patch is null || preview.Inverse is null)
+                return new(false, null, transactionId.ToString("D"), request.BaseRevision, null, null,
+                    preview.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, "assistant/area-plans")).ToArray(),
+                    false, false, []);
+            var key = planId.ToString("D");
+            var stored = new StoredAssistedAreaPlan(
+                key, command, preview.Patch, preview.Inverse,
+                [new AssistedAreaPlanAuditEntry(key, transactionId.ToString("D"), "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _areaPlans.Add(key, stored);
+            return ToResult(stored);
+        }
+    }
+
+    public AssistedAreaPlanPlanResult ApplyAssistedAreaPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaPlans.TryGetValue(planId, out var plan))
+                return AssistedAreaPlanFailure(_areaPlanHistory.State.Revision.Value,
+                    "assistant.area_plan.plan_missing", $"Area plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AssistedAreaPlanFailure(plan.Command.BaseRevision.Value,
+                    "assistant.area_plan.plan_already_applied", $"Area plan '{planId}' is already applied.");
+            var result = _areaPlanHandler.Handle(_areaPlanHistory.State,
+                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false },
+                _history.State.Project);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, plan.Command.TransactionId.ToString("D"), "apply",
+                    _areaPlanHistory.State.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan, result.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, "assistant/area-plans")).ToArray());
+            }
+            var saved = AssistedAreaPlanStore.Save(_session.RootDirectory, result.State.Catalog);
+            if (!saved.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, plan.Command.TransactionId.ToString("D"), "apply",
+                    _areaPlanHistory.State.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            _areaPlanHistory.Record(result);
+            _areaPlanLoadDiagnostics.Clear();
+            plan.Applied = true;
+            plan.AppliedRevision = _areaPlanHistory.State.Revision.Value;
+            plan.Audit.Add(new(plan.PlanId, plan.Command.TransactionId.ToString("D"), "apply",
+                plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AssistedAreaPlanPlanResult RevertAssistedAreaPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AssistedAreaPlanFailure(_areaPlanHistory.State.Revision.Value,
+                    "assistant.area_plan.plan_not_applied", $"Area plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _areaPlanHistory.State.Revision.Value || !_areaPlanHistory.Undo())
+                return AssistedAreaPlanFailure(_areaPlanHistory.State.Revision.Value,
+                    "assistant.area_plan.revert_conflict", "Area plan is no longer the latest applied area-plan mutation.");
+            var saved = AssistedAreaPlanStore.Save(_session.RootDirectory, _areaPlanHistory.State.Catalog);
+            if (!saved.Succeeded)
+            {
+                _areaPlanHistory.Redo();
+                return WithFailure(plan, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(plan.PlanId, plan.Command.TransactionId.ToString("D"), "revert",
+                _areaPlanHistory.State.Revision.Value, _clock.UtcNow, true));
             return ToResult(plan);
         }
     }
@@ -1675,6 +1819,47 @@ public sealed class ForgeProjectAgentService
         plan.Reverted,
         plan.Audit.ToArray());
 
+    private static AssistedAreaPlanPlanResult AssistedAreaPlanFailure(
+        long revision,
+        string code,
+        string message) => new(
+        false,
+        null,
+        null,
+        revision,
+        null,
+        null,
+        [new AgentDiagnostic(code, message, "assistant/area-plans")],
+        false,
+        false,
+        []);
+
+    private static AssistedAreaPlanPlanResult WithFailure(
+        StoredAssistedAreaPlan plan,
+        IReadOnlyList<AgentDiagnostic> diagnostics) => new(
+        false,
+        plan.PlanId,
+        plan.Command.TransactionId.ToString("D"),
+        plan.Command.BaseRevision.Value,
+        plan.Diff,
+        plan.Inverse,
+        diagnostics,
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
+    private static AssistedAreaPlanPlanResult ToResult(StoredAssistedAreaPlan plan) => new(
+        true,
+        plan.PlanId,
+        plan.Command.TransactionId.ToString("D"),
+        plan.Command.BaseRevision.Value,
+        plan.Diff,
+        plan.Inverse,
+        [],
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
     private static DialoguePlanResult WithFailure(
         StoredDialoguePlan plan,
         IReadOnlyList<AgentDiagnostic> diagnostics) => new(
@@ -1802,6 +1987,23 @@ public sealed class ForgeProjectAgentService
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
         public List<LoreIndexAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAssistedAreaPlan(
+        string planId,
+        SetAssistedAreaPlansCommand command,
+        ProjectPatch diff,
+        ProjectPatch inverse,
+        List<AssistedAreaPlanAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetAssistedAreaPlansCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<AssistedAreaPlanAuditEntry> Audit { get; } = audit;
         public bool Applied { get; set; }
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }

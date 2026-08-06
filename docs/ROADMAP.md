@@ -215,9 +215,10 @@ fermées par un triptyque plan/apply/revert transactionnel avec contrôle de lic
 fondation multi-biome AV4A est mesurée par un benchmark runtime bloquant. AV5 ferme la livraison et
 l’ambiance ; AV6 ferme personnage skinné, variantes fantasy, combat animé, monde 512 × 512 sectorisé,
 finition PBR, habillage naturel et retargeting Kenney 58 os vers KayKit 41 os avec audit de
-déformation et round-trip GLB. G12-A et G12-B livrent ensuite l’Assistant, les prompts versionnés,
-les transports locaux compatibles OpenAI/Ollama et l’index de lore gouverné avec UI et MCP. La
-prochaine tranche est G12-C, plan de zone assisté sans géométrie appliquée avant validation, sans
+déformation et round-trip GLB. G12-A à G12-C livrent ensuite l’Assistant, les prompts versionnés,
+les transports locaux compatibles OpenAI/Ollama, l’index de lore gouverné et le premier plan de
+crypte/village avec UI et MCP. La prochaine tranche est G12-D, construction assistée à partir d’un
+plan humainement approuvé via les commandes AREA existantes, sans
 confondre les améliorations visuelles optionnelles avec des capacités absentes.
 
 La mission complète et ses critères sont dans

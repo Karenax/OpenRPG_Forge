@@ -60,6 +60,30 @@ public sealed class ForgeMcpTools
         _project.RevertLoreIndexPlan(planId);
 
     [McpServerTool]
+    [Description("Returns the canonical assisted area-plan catalog and its independent revision without mutation.")]
+    public AssistedAreaPlanResource GetAssistedAreaPlans() => _project.GetAssistedAreaPlans();
+
+    [McpServerTool]
+    [Description("Uses the deterministic offline assistant to propose a bounded crypt or village topology. No geometry is applied.")]
+    public AssistedAreaPlanProposalResource ProposeAssistedAreaPlan(AssistedAreaPlanProposalRequest request) =>
+        _project.ProposeAssistedAreaPlan(request);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an assisted area-plan catalog transaction without creating geometry.")]
+    public AssistedAreaPlanPlanResult PlanAssistedAreaPlans(AssistedAreaPlanPlanRequest request) =>
+        _project.PlanAssistedAreaPlans(request);
+
+    [McpServerTool]
+    [Description("Persists a previously validated area-plan transaction. It still does not create geometry.")]
+    public AssistedAreaPlanPlanResult ApplyAssistedAreaPlan(string planId) =>
+        _project.ApplyAssistedAreaPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the latest persisted assisted area-plan transaction through canonical history.")]
+    public AssistedAreaPlanPlanResult RevertAssistedAreaPlan(string planId) =>
+        _project.RevertAssistedAreaPlan(planId);
+
+    [McpServerTool]
     [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]
     public RuntimePolicyResource GetRuntimePolicies(string? areaId = null) =>
         _project.GetRuntimePolicies(areaId);

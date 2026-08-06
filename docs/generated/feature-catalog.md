@@ -17,7 +17,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-AI-011 | Audit IA | P0 | Researched | G5 |
 | ORF-AI-012 | Fournisseurs interchangeables | P1 | Tested | G12 |
 | ORF-AI-013 | Budget et confidentialité | P0 | Researched | G5 |
-| ORF-AI-014 | Création de plan de zone | P1 | Researched | G12 |
+| ORF-AI-014 | Création de plan de zone | P1 | Tested | G12 |
 | ORF-AI-015 | Construction de zone assistée | P1 | Researched | G12 |
 | ORF-AI-016 | Création de dialogue | P1 | Researched | G12 |
 | ORF-AI-017 | Création de quête | P1 | Researched | G12 |

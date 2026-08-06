@@ -16,6 +16,7 @@ public partial class AssistantWorkspaceWindow : Window
     private Func<bool>? _undo;
     private Func<bool>? _redo;
     private Action? _openLore;
+    private Action? _openAreaPlans;
     private Action? _openLocalization;
     private Action<Window>? _brandWindow;
     private AssistantWorkspaceProfile? _source;
@@ -59,6 +60,7 @@ public partial class AssistantWorkspaceWindow : Window
         Func<bool> undo,
         Func<bool> redo,
         Action openLore,
+        Action openAreaPlans,
         Action openLocalization,
         Action<Window> brandWindow)
     {
@@ -69,6 +71,7 @@ public partial class AssistantWorkspaceWindow : Window
         _undo = undo ?? throw new ArgumentNullException(nameof(undo));
         _redo = redo ?? throw new ArgumentNullException(nameof(redo));
         _openLore = openLore ?? throw new ArgumentNullException(nameof(openLore));
+        _openAreaPlans = openAreaPlans ?? throw new ArgumentNullException(nameof(openAreaPlans));
         _openLocalization = openLocalization ?? throw new ArgumentNullException(nameof(openLocalization));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assistant de création · OpenRPG Forge";
@@ -220,6 +223,9 @@ public partial class AssistantWorkspaceWindow : Window
         var lore = new Button { Text = "Index de lore" };
         lore.Pressed += () => _openLore?.Invoke();
         footer.AddChild(lore);
+        var areaPlans = new Button { Text = "Plans de zone" };
+        areaPlans.Pressed += () => _openAreaPlans?.Invoke();
+        footer.AddChild(areaPlans);
         var undo = new Button { Text = "Annuler" };
         undo.Pressed += () => { if (_undo?.Invoke() == true) Refresh(); };
         footer.AddChild(undo);

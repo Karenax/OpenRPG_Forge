@@ -126,6 +126,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11T_GOVERNANCE_PASS editor=keyboard-labels-scale-contrast-shortcuts runtime=subtitles-captions-color-input-motion-difficulty fuzz=112-cases-7-boundaries-no-crash-no-escape dependencies=approval-risk-review-audit-lifecycle'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12A_ASSISTANT_PASS ui=context-selection-transaction providers=offline-openai-compatible-ollama prompts=versioned-tested plan=dry-run-bound permission=configure secrets=environment-only offline=deterministic cost=visible history=restored persistence=roundtrip'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12B_ASSISTANT_PASS transports=openai-compatible-ollama network=explicit-loopback timeout=bounded cancellation=propagated lore=world-faction-character-timeline-terminology sources=resolved retrieval=hashed-bounded plan=dry-run-transaction permission=configure history=restored persistence=roundtrip'
+        $Markers += 'OPENRPG_FORGE_TOOLSET_G12C_AREA_PLAN_PASS archetypes=crypt-village topology=connected-deterministic kits=resolved constraints=bounded objectives=explicit lore=sourced provider=fake-offline cost=visible geometry=not-applied plan=dry-run-transaction permission=configure-approve history=restored persistence=roundtrip mcp=governed'
         $Markers += 'streaming=async-cache-cancel sculpt=raise-'
         $Markers += 'paint=material-'
         $Markers += 'brush_history=restored history=restored persistence=roundtrip'

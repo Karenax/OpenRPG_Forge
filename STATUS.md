@@ -5,8 +5,9 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. G12-A et G12-B ouvrent maintenant l’Assistant de création avancée, ses
-fournisseurs locaux et son lore sans dépendance réseau obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
+G11 Contenu moderne fermés. G12-A à G12-C ouvrent maintenant l’Assistant de création avancée, ses
+fournisseurs locaux, son lore et ses plans de crypte/village sans dépendance réseau obligatoire ni
+mutation géométrique avant approbation. AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
@@ -546,5 +547,11 @@ d’environnement, timeout, annulation, plafond de réponse et coût calculé. A
 cloud n’est requis. L’index persistant couvre bible du monde, factions, personnages, chronologie et
 terminologie ; ses sources résolvent le projet, les blueprints, dialogues et quêtes. La recherche
 produit un contexte borné, sourcé et hashé. Une fenêtre Aurora dédiée et cinq outils MCP partagent
-la même commande plan/dry-run/transaction, la même persistance et le même undo/redo. G12-C portera
-le premier plan de zone assisté, sans géométrie appliquée avant validation.
+la même commande plan/dry-run/transaction, la même persistance et le même undo/redo.
+
+**G12-C — plan de zone assisté livré** : un document canonique décrit une crypte ou un village par
+topologie connectée déterministe, kits et sources résolus, contraintes et objectifs bornés,
+coût/provenance visibles et validation humaine. Une fenêtre Aurora et cinq opérations MCP partagent
+le provider factice hors ligne, la commande transactionnelle, la persistance et l’historique. Son
+enregistrement ne modifie aucune entité de la carte ; G12-D appliquera seulement un plan
+explicitement approuvé via les commandes AREA existantes.

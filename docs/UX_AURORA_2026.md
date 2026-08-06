@@ -255,6 +255,14 @@ expose toujours l’état du temps, du combat, de la file, du mouvement, du souf
 
 ## Contexte graphique 3D
 
+G12-C ajoute **Plans de zone** depuis l’Assistant. Trois colonnes séparent le brief borné (zone,
+archétype crypte/village, seed, dimensions, kit, contraintes et objectifs), la topologie lisible et
+la gouvernance humaine. Le fournisseur actif ne produit jamais directement de nœuds moteur : le
+résultat est normalisé en document canonique, ses références sont validées, son coût et sa
+provenance restent visibles, puis le même dry-run transactionnel sert l’UI et MCP. Le bouton
+d’enregistrement conserve uniquement le plan ; aucune géométrie n’est créée avant une future
+commande de construction explicitement approuvée.
+
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
 échelle métrique, matériaux PBR normalisés, silhouettes lisibles, éclairage maîtrisé, LOD,
 collisions, navigation et profils de qualité. Elle est détaillée dans
