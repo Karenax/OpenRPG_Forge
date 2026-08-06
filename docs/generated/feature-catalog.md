@@ -681,7 +681,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-SHELL-019 | Build du module | P0 | Implemented | G7 |
 | ORF-SHELL-020 | Messages, erreurs et statut | P0 | Implemented | G7 |
 | ORF-SHELL-021 | Aide contextuelle | P1 | Implemented | G7 |
-| ORF-SHELL-022 | Raccourcis configurables | P2 | Researched | G13 |
+| ORF-SHELL-022 | Raccourcis configurables | P2 | Tested | G13 |
 | ORF-SHELL-023 | Profils d’éditeur | P1 | Implemented | G7 |
 | ORF-SHELL-024 | Sauvegarde automatique et récupération | P1 | Implemented | G7 |
 | ORF-TRG-001 | Création polygonale | P0 | Implemented | G8 |

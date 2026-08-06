@@ -797,6 +797,9 @@ le lore, les plans et constructions de zone, les dialogues, les quêtes, ForgeSc
 capacités et créations 3D gouvernés. Les workers externes possèdent une politique canonique
 persistante : aucune exécution Python libre, `exec`, `eval` ou shell, opérations typées, chemins
 confinés et budgets réellement appliqués.
+G13 devient la file post-1.0 active. G13-A ajoute un keymap local canonique, des profils
+Standard/Aurora/Blender, la recherche de commandes, la détection de conflits et l’exécution réelle
+des actions Toolset ; G13-B poursuivra avec l’identité et la représentation visuelle des créatures.
 
 ---
 

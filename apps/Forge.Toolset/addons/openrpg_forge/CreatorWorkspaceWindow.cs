@@ -16,6 +16,7 @@ public partial class CreatorWorkspaceWindow : Window
     private Func<ProjectState?>? _getState;
     private Func<EditorWorkspaceProfile>? _load;
     private Action<EditorWorkspaceProfile>? _save;
+    private Action? _openKeymap;
     private Func<ArtisticStyleProfile>? _loadArtisticStyle;
     private Func<ArtisticStyleProfile, bool>? _applyArtisticStyle;
     private Func<AreaId, bool>? _activateArea;
@@ -58,6 +59,7 @@ public partial class CreatorWorkspaceWindow : Window
         Func<ProjectState?> getState,
         Func<EditorWorkspaceProfile> load,
         Action<EditorWorkspaceProfile> save,
+        Action openKeymap,
         Func<ArtisticStyleProfile> loadArtisticStyle,
         Func<ArtisticStyleProfile, bool> applyArtisticStyle,
         Func<AreaId, bool> activateArea,
@@ -65,7 +67,7 @@ public partial class CreatorWorkspaceWindow : Window
         Func<int, float, PlacementDistribution, int, bool> repeatPlace,
         Action<Window> brand)
     {
-        _getState = getState; _load = load; _save = save;
+        _getState = getState; _load = load; _save = save; _openKeymap = openKeymap;
         _loadArtisticStyle = loadArtisticStyle; _applyArtisticStyle = applyArtisticStyle; _activateArea = activateArea;
         _applyFilter = applyFilter; _repeatPlace = repeatPlace; _brand = brand;
         Title = "Espace de travail · OpenRPG Forge";
@@ -153,6 +155,9 @@ public partial class CreatorWorkspaceWindow : Window
         _primaryFont = new LineEdit { PlaceholderText = "Police TrueType principale" }; profile.AddChild(_primaryFont);
         _fallbackFonts = new LineEdit { PlaceholderText = "Fallbacks : Noto Sans, Segoe UI…" }; profile.AddChild(_fallbackFonts);
         profile.AddChild(new Label { Text = "Le texte se recompose sans agrandir le viewport 3D.", AutowrapMode = TextServer.AutowrapMode.WordSmart });
+        var shortcuts = new Button { Text = "Configurer les raccourcis…", TooltipText = "Profils Standard, Aurora et Blender, recherche et conflits" };
+        shortcuts.Pressed += () => _openKeymap?.Invoke();
+        profile.AddChild(shortcuts);
 
         var zones = Column(columns, "ZONES OUVERTES & COMPARAISON");
         zones.AddChild(new Label { Text = "Onglets visibles (8 maximum)" });

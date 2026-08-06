@@ -226,8 +226,11 @@ créature/rencontre/capacités/phases/dialogue/loot, validé par 32 simulations 
 création de capacité autonome G12-I ajoute ciblage, coûts, effets, cues, tags IA, dépendances,
 cinq tests du résolveur de combat et équilibrage par la même transaction Toolset/MCP. G12-J livre
 la création 3D gouvernée via Blender : recette canonique, opérations typées, matériau PBR, UV, LOD,
-collision, validation, miniature, audit et export GLB réel, sans Python libre. La prochaine tranche
-est G12-K, fournisseurs text/image-to-3D optionnels avec licence, staging et acceptation humaine.
+collision, validation, miniature, audit et export GLB réel, sans Python libre. G12-K ajoute les
+fournisseurs texte/image-to-3D optionnels avec licence, staging et acceptation humaine ; G12-L ferme
+la politique canonique des workers externes. G12 est fermé. Le plan des 135 extensions post-1.0 est
+désormais `docs/aurora-parity/G13_DELIVERY_PLAN.md` ; G13-A livre le keymap configurable, et G13-B
+cible ensuite l’identité et la représentation visuelle des créatures.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;

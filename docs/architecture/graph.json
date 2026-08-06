@@ -31,6 +31,11 @@
       "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
     },
     {
+      "line": 45,
+      "message": "Identifiant de nœud ambigu ignoré : model:Forge.ModuleFormat.Serialization.Document",
+      "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+    },
+    {
       "line": 37,
       "message": "Identifiant de nœud ambigu ignoré : model:Forge.ModuleFormat.Serialization.Document",
       "path": "src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
@@ -758,6 +763,42 @@
       "kind": "serializes",
       "source": "adapter:Forge.ModuleFormat.Serialization.EditorCameraProfileJsonSerializer",
       "target": "model:Forge.ModuleFormat.Serialization.EditorCameraProfileDocument"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorKeymapProfileIdConverter",
+      "target": "file:src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 47,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+      },
+      "kind": "serializes",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorKeymapProfileIdConverter",
+      "target": "model:Forge.Domain.Authoring.EditorKeymapProfileId"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorKeymapProfileJsonSerializer",
+      "target": "file:src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+      },
+      "kind": "uses_service",
+      "source": "adapter:Forge.ModuleFormat.Serialization.EditorKeymapProfileJsonSerializer",
+      "target": "validator:Forge.Domain.Authoring.EditorKeymapProfileValidator"
     },
     {
       "evidence": {
@@ -1616,7 +1657,7 @@
     },
     {
       "evidence": {
-        "line": 7675,
+        "line": 7817,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1625,7 +1666,7 @@
     },
     {
       "evidence": {
-        "line": 7694,
+        "line": 7836,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1634,7 +1675,7 @@
     },
     {
       "evidence": {
-        "line": 7568,
+        "line": 7710,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1643,7 +1684,7 @@
     },
     {
       "evidence": {
-        "line": 9070,
+        "line": 9212,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1652,7 +1693,7 @@
     },
     {
       "evidence": {
-        "line": 9169,
+        "line": 9311,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1661,7 +1702,7 @@
     },
     {
       "evidence": {
-        "line": 6331,
+        "line": 6473,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1670,7 +1711,7 @@
     },
     {
       "evidence": {
-        "line": 8864,
+        "line": 9006,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1913,7 +1954,7 @@
     },
     {
       "evidence": {
-        "line": 1509,
+        "line": 1512,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1922,7 +1963,7 @@
     },
     {
       "evidence": {
-        "line": 1574,
+        "line": 1577,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1931,7 +1972,7 @@
     },
     {
       "evidence": {
-        "line": 1874,
+        "line": 1877,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1940,7 +1981,7 @@
     },
     {
       "evidence": {
-        "line": 1574,
+        "line": 1577,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1949,7 +1990,7 @@
     },
     {
       "evidence": {
-        "line": 1623,
+        "line": 1626,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1958,7 +1999,7 @@
     },
     {
       "evidence": {
-        "line": 1827,
+        "line": 1830,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1985,7 +2026,7 @@
     },
     {
       "evidence": {
-        "line": 1574,
+        "line": 1577,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1994,7 +2035,7 @@
     },
     {
       "evidence": {
-        "line": 1624,
+        "line": 1627,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2003,7 +2044,7 @@
     },
     {
       "evidence": {
-        "line": 1676,
+        "line": 1679,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2012,7 +2053,7 @@
     },
     {
       "evidence": {
-        "line": 1768,
+        "line": 1771,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2030,7 +2071,7 @@
     },
     {
       "evidence": {
-        "line": 1479,
+        "line": 1482,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2039,7 +2080,7 @@
     },
     {
       "evidence": {
-        "line": 1574,
+        "line": 1577,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2048,7 +2089,7 @@
     },
     {
       "evidence": {
-        "line": 1625,
+        "line": 1628,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2057,7 +2098,7 @@
     },
     {
       "evidence": {
-        "line": 1676,
+        "line": 1679,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2066,7 +2107,7 @@
     },
     {
       "evidence": {
-        "line": 1843,
+        "line": 1846,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2129,7 +2170,7 @@
     },
     {
       "evidence": {
-        "line": 1480,
+        "line": 1483,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2147,7 +2188,7 @@
     },
     {
       "evidence": {
-        "line": 1860,
+        "line": 1863,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2498,7 +2539,7 @@
     },
     {
       "evidence": {
-        "line": 194,
+        "line": 197,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2507,7 +2548,7 @@
     },
     {
       "evidence": {
-        "line": 263,
+        "line": 266,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2516,7 +2557,7 @@
     },
     {
       "evidence": {
-        "line": 107,
+        "line": 110,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2576,6 +2617,15 @@
       "kind": "references",
       "source": "file:TASKS_MVP.md",
       "target": "file:docs/audits/ASSET_AND_MAP_EXISTING_STATE.md"
+    },
+    {
+      "evidence": {
+        "line": 597,
+        "path": "TASKS_MVP.md"
+      },
+      "kind": "references",
+      "source": "file:TASKS_MVP.md",
+      "target": "file:docs/aurora-parity/G13_DELIVERY_PLAN.md"
     },
     {
       "evidence": {
@@ -4335,6 +4385,24 @@
     {
       "evidence": {
         "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs"
       },
       "kind": "imports",
@@ -5540,7 +5608,7 @@
     },
     {
       "evidence": {
-        "line": 233,
+        "line": 236,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -8961,6 +9029,42 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Application/Creator/EditorKeymapCommandHistory.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/EditorKeymapCommandHistory.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/EditorKeymapCommandResult.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/EditorKeymapPlanner.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/EditorKeymapPlanner.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/EditorKeymapState.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/EditorKeymapState.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Application/Creator/EditorWorkspaceProfilePlanner.cs"
       },
       "kind": "imports",
@@ -9200,6 +9304,51 @@
       "kind": "imports",
       "source": "file:src/Forge.Application/Creator/SemanticClipboard.cs",
       "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/SetEditorKeymapCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/SetEditorKeymapCommand.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/SetEditorKeymapHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/SetEditorKeymapHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Creator/SetEditorKeymapHandler.cs",
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
@@ -12035,6 +12184,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/Authoring/EditorDisplayFilter.cs",
       "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Authoring/EditorKeymapProfile.cs",
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -15656,6 +15814,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
       },
@@ -16129,6 +16296,24 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
@@ -19140,6 +19325,42 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs",
+      "target": "namespace:Forge.Application.Creator"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Application.Tests/Creator/EditorWorkspaceProfilePlannerTests.cs"
       },
       "kind": "imports",
@@ -21161,6 +21382,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs",
       "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs",
+      "target": "namespace:Forge.Domain.Authoring"
     },
     {
       "evidence": {
@@ -24256,6 +24486,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs",
+      "target": "namespace:Forge.Domain.Authoring"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
@@ -30569,6 +30817,78 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Creator.SetEditorKeymapHandler",
+      "target": "file:src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.SetEditorKeymapHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.SetEditorKeymapHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.SetEditorKeymapHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.SetEditorKeymapHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.SetEditorKeymapHandler",
+      "target": "model:Forge.Application.Creator.EditorKeymapCommandResult"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.SetEditorKeymapHandler",
+      "target": "model:Forge.Application.Creator.EditorKeymapState"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Creator.SetEditorKeymapHandler",
+      "target": "model:Forge.Application.Creator.SetEditorKeymapCommand"
+    },
+    {
+      "evidence": {
         "line": 10,
         "path": "src/Forge.Application/Dialogues/SetDialogueHandler.cs"
       },
@@ -35006,6 +35326,60 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.EditorKeymapCommandResult",
+      "target": "file:src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.EditorKeymapCommandResult",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.EditorKeymapCommandResult",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.EditorKeymapCommandResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.EditorKeymapCommandResult",
+      "target": "model:Forge.Application.Creator.EditorKeymapState"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creator/EditorKeymapState.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.EditorKeymapState",
+      "target": "file:src/Forge.Application/Creator/EditorKeymapState.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Creator/NavigateEditorCameraCommand.cs"
       },
@@ -35066,6 +35440,24 @@
       "kind": "defined_in",
       "source": "model:Forge.Application.Creator.SemanticClipboardKind",
       "target": "file:src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Creator.SetEditorKeymapCommand",
+      "target": "file:src/Forge.Application/Creator/SetEditorKeymapCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Creator.SetEditorKeymapCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
     },
     {
       "evidence": {
@@ -36497,6 +36889,24 @@
       "kind": "defined_in",
       "source": "model:Forge.Domain.Authoring.EditorCameraProfileId",
       "target": "file:src/Forge.Domain/Authoring/EditorCameraProfileId.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorCommandDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Authoring.EditorCommandDefinition",
+      "target": "file:src/Forge.Domain/Authoring/EditorCommandDefinition.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapProfileId.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Authoring.EditorKeymapProfileId",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeymapProfileId.cs"
     },
     {
       "evidence": {
@@ -40577,6 +40987,15 @@
     },
     {
       "evidence": {
+        "line": 45,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Serialization.Document",
+      "target": "file:src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
         "line": 37,
         "path": "src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
       },
@@ -40789,6 +41208,24 @@
       },
       "kind": "relationship",
       "source": "model:Forge.ModuleFormat.Workspaces.EditorCameraProfileLoadResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Workspaces.EditorKeymapProfileLoadResult",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 80,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Workspaces.EditorKeymapProfileLoadResult",
       "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic"
     },
     {
@@ -44978,6 +45415,51 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/EditorKeymapCommandHistory.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/EditorKeymapCommandHistory.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/EditorKeymapPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/EditorKeymapPlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Creator/EditorKeymapRevision.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/EditorKeymapRevision.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Creator/EditorKeymapState.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/EditorKeymapState.cs"
+    },
+    {
+      "evidence": {
         "line": 4,
         "path": "src/Forge.Application/Creator/EditorWorkspaceProfilePlanner.cs"
       },
@@ -45047,6 +45529,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Creator",
       "target": "file:src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/SetEditorKeymapCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Creator",
+      "target": "file:src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
     },
     {
       "evidence": {
@@ -46203,6 +46703,15 @@
     {
       "evidence": {
         "line": 5,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Creator",
+      "target": "file:tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "tests/Forge.Application.Tests/Creator/EditorWorkspaceProfilePlannerTests.cs"
       },
       "kind": "defined_in",
@@ -47318,12 +47827,75 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorCommandBinding.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorCommandBinding.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorCommandDefinition.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorCommandDefinition.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
       },
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Authoring",
       "target": "file:src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorKeyGesture.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeyGesture.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeymapCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapPreset.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeymapPreset.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapProfileId.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Authoring",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeymapProfileId.cs"
     },
     {
       "evidence": {
@@ -49259,6 +49831,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Tests.Authoring",
       "target": "file:tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Authoring",
+      "target": "file:tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
     },
     {
       "evidence": {
@@ -51242,6 +51823,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Serialization",
+      "target": "file:src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
       },
@@ -51719,6 +52309,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Workspaces",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
       },
@@ -51833,6 +52432,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Workspaces",
       "target": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Workspaces",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
     },
     {
       "evidence": {
@@ -53687,6 +54295,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Toolset.Editor",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/DistributionProfilesWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs"
     },
     {
       "evidence": {
@@ -64743,6 +65360,141 @@
     {
       "evidence": {
         "line": 8,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "file:tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "handler:Forge.Application.Creator.SetEditorKeymapHandler"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 36,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "model:Forge.Application.Creator.EditorKeymapState"
+    },
+    {
+      "evidence": {
+        "line": 63,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "model:Forge.Application.Creator.SetEditorKeymapCommand"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "type:Forge.Application.Creator.EditorKeymapCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "type:Forge.Application.Creator.EditorKeymapPlanner"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "type:Forge.Application.Creator.EditorKeymapRevision"
+    },
+    {
+      "evidence": {
+        "line": 53,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "type:Forge.Domain.Authoring.EditorKeyGesture"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "type:Forge.Domain.Authoring.EditorKeymapCatalog"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "type:Forge.Domain.Authoring.EditorKeymapPreset"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "type:Forge.Domain.Authoring.EditorKeymapProfile"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "type:Forge.LiveDirector.Scenes.Preset"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "target": "validator:Forge.Domain.Authoring.EditorKeymapProfileValidator"
+    },
+    {
+      "evidence": {
+        "line": 8,
         "path": "tests/Forge.Application.Tests/Creator/EditorWorkspaceProfilePlannerTests.cs"
       },
       "kind": "defined_in",
@@ -70940,6 +71692,87 @@
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Authoring.EditorCameraProfileTests",
       "target": "type:Forge.Domain.Authoring.EditorCameraProjection"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorKeymapProfileTests",
+      "target": "file:tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 27,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorKeymapProfileTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorKeymapProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorCommandBinding"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorKeymapProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorKeyGesture"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorKeymapProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorKeymapCatalog"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorKeymapProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorKeymapPreset"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorKeymapProfileTests",
+      "target": "type:Forge.Domain.Authoring.EditorKeymapProfile"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorKeymapProfileTests",
+      "target": "type:Forge.LiveDirector.Chat.Message"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Authoring.EditorKeymapProfileTests",
+      "target": "validator:Forge.Domain.Authoring.EditorKeymapProfileValidator"
     },
     {
       "evidence": {
@@ -81383,6 +82216,51 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorKeymapProfileStoreTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorKeymapProfileStoreTests",
+      "target": "type:Forge.Domain.Authoring.EditorKeymapPreset"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorKeymapProfileStoreTests",
+      "target": "type:Forge.Domain.Authoring.EditorKeymapProfile"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorKeymapProfileStoreTests",
+      "target": "type:Forge.LiveDirector.Scenes.Preset"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.EditorKeymapProfileStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.EditorKeymapProfileStore"
+    },
+    {
+      "evidence": {
         "line": 51,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
       },
@@ -88565,6 +89443,33 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creator/EditorKeymapCommandHistory.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.EditorKeymapCommandHistory",
+      "target": "file:src/Forge.Application/Creator/EditorKeymapCommandHistory.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Creator/EditorKeymapPlanner.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.EditorKeymapPlanner",
+      "target": "file:src/Forge.Application/Creator/EditorKeymapPlanner.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Creator/EditorKeymapRevision.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Creator.EditorKeymapRevision",
+      "target": "file:src/Forge.Application/Creator/EditorKeymapRevision.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Creator/EditorWorkspaceProfilePlanner.cs"
       },
@@ -90428,12 +91333,57 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorCommandBinding.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorCommandBinding",
+      "target": "file:src/Forge.Domain/Authoring/EditorCommandBinding.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Domain.Authoring.EditorDisplayFilter",
       "target": "file:src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorKeyGesture.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorKeyGesture",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeyGesture.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapCatalog.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorKeymapCatalog",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeymapCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapPreset.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorKeymapPreset",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeymapPreset.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Authoring.EditorKeymapProfile",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
     },
     {
       "evidence": {
@@ -94601,6 +95551,15 @@
       "kind": "defined_in",
       "source": "type:Forge.ModuleFormat.Workspaces.EditorCameraProfileStore",
       "target": "file:src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Workspaces.EditorKeymapProfileStore",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
     },
     {
       "evidence": {
@@ -98871,6 +99830,15 @@
     {
       "evidence": {
         "line": 8,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.EditorKeymapWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs"
       },
       "kind": "defined_in",
@@ -98969,7 +99937,7 @@
     },
     {
       "evidence": {
-        "line": 9770,
+        "line": 9980,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -99086,7 +100054,7 @@
     },
     {
       "evidence": {
-        "line": 9775,
+        "line": 9985,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -99095,7 +100063,7 @@
     },
     {
       "evidence": {
-        "line": 9780,
+        "line": 9990,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -99578,6 +100546,42 @@
       "kind": "validates",
       "source": "validator:Forge.Domain.Assistant.LoreIndexValidator",
       "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 89,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Authoring.EditorKeymapProfileValidator",
+      "target": "file:src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 114,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Authoring.EditorKeymapProfileValidator",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 100,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Authoring.EditorKeymapProfileValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 116,
+        "path": "src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Authoring.EditorKeymapProfileValidator",
+      "target": "model:Forge.LiveDirector.Scripting.Command"
     },
     {
       "evidence": {
@@ -100274,8 +101278,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:58a4ae6fb0ec2955cfc333f8b0e0ccee871a8568758fc2a3e64e6b023664cf8e",
-    "source_file_count": 1737
+    "source_digest": "sha256:5d56ea5199cc57c14312030c77a756b9511490236c2f1c737db36eb10eee390f",
+    "source_file_count": 1759
   },
   "nodes": [
     {
@@ -100607,6 +101611,26 @@
       },
       "name": "EditorCameraProfileJsonSerializer",
       "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.EditorKeymapProfileIdConverter",
+      "kind": "adapter",
+      "line": 47,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "EditorKeymapProfileIdConverter",
+      "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.EditorKeymapProfileJsonSerializer",
+      "kind": "adapter",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "EditorKeymapProfileJsonSerializer",
+      "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
     },
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.EditorWorkspaceProfileIdConverter",
@@ -103379,6 +104403,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/DistributionProfilesWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs",
       "kind": "file",
       "line": 1,
@@ -104449,6 +105483,16 @@
       "path": "docs/aurora-parity/G11_EVIDENCE_AUDIT_AND_PLAN.md"
     },
     {
+      "id": "file:docs/aurora-parity/G13_DELIVERY_PLAN.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G13_DELIVERY_PLAN.md",
+      "path": "docs/aurora-parity/G13_DELIVERY_PLAN.md"
+    },
+    {
       "id": "file:docs/aurora-parity/G7_CLOSURE_EVIDENCE.md",
       "kind": "document",
       "line": 1,
@@ -104997,6 +106041,16 @@
       },
       "name": "G12-L-EXTERNAL-WORKER-SECURITY.md",
       "path": "docs/aurora-parity/tasks/G12-L-EXTERNAL-WORKER-SECURITY.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G13-A-CONFIGURABLE-KEYMAP.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G13-A-CONFIGURABLE-KEYMAP.md",
+      "path": "docs/aurora-parity/tasks/G13-A-CONFIGURABLE-KEYMAP.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -107649,6 +108703,56 @@
       "path": "src/Forge.Application/Creator/EditorCameraState.cs"
     },
     {
+      "id": "file:src/Forge.Application/Creator/EditorKeymapCommandHistory.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapCommandHistory.cs",
+      "path": "src/Forge.Application/Creator/EditorKeymapCommandHistory.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/EditorKeymapCommandResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapCommandResult.cs",
+      "path": "src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/EditorKeymapPlanner.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapPlanner.cs",
+      "path": "src/Forge.Application/Creator/EditorKeymapPlanner.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/EditorKeymapRevision.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapRevision.cs",
+      "path": "src/Forge.Application/Creator/EditorKeymapRevision.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/EditorKeymapState.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapState.cs",
+      "path": "src/Forge.Application/Creator/EditorKeymapState.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Creator/EditorWorkspaceProfilePlanner.cs",
       "kind": "file",
       "line": 1,
@@ -107727,6 +108831,26 @@
       },
       "name": "SemanticClipboard.cs",
       "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/SetEditorKeymapCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetEditorKeymapCommand.cs",
+      "path": "src/Forge.Application/Creator/SetEditorKeymapCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Creator/SetEditorKeymapHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetEditorKeymapHandler.cs",
+      "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Dialogues/SetDialogueCommand.cs",
@@ -109449,6 +110573,26 @@
       "path": "src/Forge.Domain/Authoring/EditorCameraView.cs"
     },
     {
+      "id": "file:src/Forge.Domain/Authoring/EditorCommandBinding.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCommandBinding.cs",
+      "path": "src/Forge.Domain/Authoring/EditorCommandBinding.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorCommandDefinition.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorCommandDefinition.cs",
+      "path": "src/Forge.Domain/Authoring/EditorCommandDefinition.cs"
+    },
+    {
       "id": "file:src/Forge.Domain/Authoring/EditorDisplayFilter.cs",
       "kind": "file",
       "line": 1,
@@ -109457,6 +110601,56 @@
       },
       "name": "EditorDisplayFilter.cs",
       "path": "src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorKeyGesture.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeyGesture.cs",
+      "path": "src/Forge.Domain/Authoring/EditorKeyGesture.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorKeymapCatalog.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapCatalog.cs",
+      "path": "src/Forge.Domain/Authoring/EditorKeymapCatalog.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorKeymapPreset.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapPreset.cs",
+      "path": "src/Forge.Domain/Authoring/EditorKeymapPreset.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorKeymapProfile.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapProfile.cs",
+      "path": "src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Authoring/EditorKeymapProfileId.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapProfileId.cs",
+      "path": "src/Forge.Domain/Authoring/EditorKeymapProfileId.cs"
     },
     {
       "id": "file:src/Forge.Domain/Authoring/EditorRole.cs",
@@ -113189,6 +114383,16 @@
       "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapProfileJsonSerializer.cs",
+      "path": "src/Forge.ModuleFormat/Serialization/EditorKeymapProfileJsonSerializer.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs",
       "kind": "file",
       "line": 1,
@@ -113367,6 +114571,16 @@
       },
       "name": "EditorCameraProfileStore.cs",
       "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapProfileStore.cs",
+      "path": "src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
     },
     {
       "id": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs",
@@ -115059,6 +116273,16 @@
       "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapCommandTests.cs",
+      "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Creator/EditorWorkspaceProfilePlannerTests.cs",
       "kind": "file",
       "line": 1,
@@ -115637,6 +116861,16 @@
       },
       "name": "EditorCameraProfileTests.cs",
       "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapProfileTests.cs",
+      "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Authoring/EditorWorkspaceProfileTests.cs",
@@ -116707,6 +117941,16 @@
       },
       "name": "EditorCameraProfileStoreTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "EditorKeymapProfileStoreTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs",
@@ -120309,6 +121553,16 @@
       "path": "src/Forge.Application/Creator/SafeRenameHandler.cs"
     },
     {
+      "id": "handler:Forge.Application.Creator.SetEditorKeymapHandler",
+      "kind": "handler",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "SetEditorKeymapHandler",
+      "path": "src/Forge.Application/Creator/SetEditorKeymapHandler.cs"
+    },
+    {
       "id": "handler:Forge.Application.Dialogues.SetDialogueHandler",
       "kind": "handler",
       "line": 10,
@@ -121389,6 +122643,26 @@
       "path": "src/Forge.Application/Creator/EditorCameraState.cs"
     },
     {
+      "id": "model:Forge.Application.Creator.EditorKeymapCommandResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EditorKeymapCommandResult",
+      "path": "src/Forge.Application/Creator/EditorKeymapCommandResult.cs"
+    },
+    {
+      "id": "model:Forge.Application.Creator.EditorKeymapState",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EditorKeymapState",
+      "path": "src/Forge.Application/Creator/EditorKeymapState.cs"
+    },
+    {
       "id": "model:Forge.Application.Creator.NavigateEditorCameraCommand",
       "kind": "model",
       "line": 7,
@@ -121417,6 +122691,16 @@
       },
       "name": "SemanticClipboardKind",
       "path": "src/Forge.Application/Creator/SemanticClipboard.cs"
+    },
+    {
+      "id": "model:Forge.Application.Creator.SetEditorKeymapCommand",
+      "kind": "model",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "SetEditorKeymapCommand",
+      "path": "src/Forge.Application/Creator/SetEditorKeymapCommand.cs"
     },
     {
       "id": "model:Forge.Application.Dialogues.SetDialogueCommand",
@@ -122187,6 +123471,26 @@
       },
       "name": "EditorCameraProfileId",
       "path": "src/Forge.Domain/Authoring/EditorCameraProfileId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Authoring.EditorCommandDefinition",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorCommandDefinition",
+      "path": "src/Forge.Domain/Authoring/EditorCommandDefinition.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Authoring.EditorKeymapProfileId",
+      "kind": "model",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorKeymapProfileId",
+      "path": "src/Forge.Domain/Authoring/EditorKeymapProfileId.cs"
     },
     {
       "id": "model:Forge.Domain.Authoring.EditorWorkspaceProfileId",
@@ -124617,6 +125921,16 @@
       },
       "name": "EditorCameraProfileLoadResult",
       "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Workspaces.EditorKeymapProfileLoadResult",
+      "kind": "model",
+      "line": 77,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "EditorKeymapProfileLoadResult",
+      "path": "src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
     },
     {
       "id": "model:Forge.ModuleFormat.Workspaces.ExternalWorkerSecurityPolicyLoadResult",
@@ -129422,6 +130736,16 @@
       "path": "tests/Forge.Application.Tests/Creator/EditorCameraNavigationTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Creator.EditorKeymapCommandTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Creator"
+      },
+      "name": "EditorKeymapCommandTests",
+      "path": "tests/Forge.Application.Tests/Creator/EditorKeymapCommandTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Creator.EditorWorkspaceProfilePlannerTests",
       "kind": "test",
       "line": 8,
@@ -130000,6 +131324,16 @@
       },
       "name": "EditorCameraProfileTests",
       "path": "tests/Forge.Domain.Tests/Authoring/EditorCameraProfileTests.cs"
+    },
+    {
+      "id": "test:Forge.Domain.Tests.Authoring.EditorKeymapProfileTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Authoring"
+      },
+      "name": "EditorKeymapProfileTests",
+      "path": "tests/Forge.Domain.Tests/Authoring/EditorKeymapProfileTests.cs"
     },
     {
       "id": "test:Forge.Domain.Tests.Authoring.EditorWorkspaceProfileTests",
@@ -131060,6 +132394,16 @@
       },
       "name": "EditorCameraProfileStoreTests",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorCameraProfileStoreTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Workspaces.EditorKeymapProfileStoreTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Workspaces"
+      },
+      "name": "EditorKeymapProfileStoreTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorKeymapProfileStoreTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Workspaces.EditorWorkspaceProfileStoreTests",
@@ -132997,6 +134341,36 @@
       },
       "name": "EditorCameraRevision",
       "path": "src/Forge.Application/Creator/EditorCameraRevision.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.EditorKeymapCommandHistory",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EditorKeymapCommandHistory",
+      "path": "src/Forge.Application/Creator/EditorKeymapCommandHistory.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.EditorKeymapPlanner",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EditorKeymapPlanner",
+      "path": "src/Forge.Application/Creator/EditorKeymapPlanner.cs"
+    },
+    {
+      "id": "type:Forge.Application.Creator.EditorKeymapRevision",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Creator"
+      },
+      "name": "EditorKeymapRevision",
+      "path": "src/Forge.Application/Creator/EditorKeymapRevision.cs"
     },
     {
       "id": "type:Forge.Application.Creator.EditorWorkspaceProfilePlanner",
@@ -135059,6 +136433,16 @@
       "path": "src/Forge.Domain/Authoring/EditorCameraProjection.cs"
     },
     {
+      "id": "type:Forge.Domain.Authoring.EditorCommandBinding",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorCommandBinding",
+      "path": "src/Forge.Domain/Authoring/EditorCommandBinding.cs"
+    },
+    {
       "id": "type:Forge.Domain.Authoring.EditorDisplayFilter",
       "kind": "type",
       "line": 5,
@@ -135067,6 +136451,46 @@
       },
       "name": "EditorDisplayFilter",
       "path": "src/Forge.Domain/Authoring/EditorDisplayFilter.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorKeyGesture",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorKeyGesture",
+      "path": "src/Forge.Domain/Authoring/EditorKeyGesture.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorKeymapCatalog",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorKeymapCatalog",
+      "path": "src/Forge.Domain/Authoring/EditorKeymapCatalog.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorKeymapPreset",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorKeymapPreset",
+      "path": "src/Forge.Domain/Authoring/EditorKeymapPreset.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Authoring.EditorKeymapProfile",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorKeymapProfile",
+      "path": "src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Authoring.EditorRole",
@@ -139579,6 +141003,16 @@
       "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
     },
     {
+      "id": "type:Forge.ModuleFormat.Workspaces.EditorKeymapProfileStore",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "EditorKeymapProfileStore",
+      "path": "src/Forge.ModuleFormat/Workspaces/EditorKeymapProfileStore.cs"
+    },
+    {
       "id": "type:Forge.ModuleFormat.Workspaces.EditorWorkspaceProfileStore",
       "kind": "type",
       "line": 7,
@@ -143989,6 +145423,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/DistributionProfilesWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.EditorKeymapWindow",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "EditorKeymapWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/EditorKeymapWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.ExternalWorkerSecurityWindow",
       "kind": "type",
       "line": 8,
@@ -144091,7 +145535,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 9770,
+      "line": 9980,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -144181,7 +145625,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 9775,
+      "line": 9985,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -144191,7 +145635,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 9780,
+      "line": 9990,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -144397,6 +145841,16 @@
       },
       "name": "LoreIndexValidator",
       "path": "src/Forge.Domain/Assistant/LoreIndexValidator.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Authoring.EditorKeymapProfileValidator",
+      "kind": "validator",
+      "line": 89,
+      "metadata": {
+        "namespace": "Forge.Domain.Authoring"
+      },
+      "name": "EditorKeymapProfileValidator",
+      "path": "src/Forge.Domain/Authoring/EditorKeymapProfile.cs"
     },
     {
       "id": "validator:Forge.Domain.Dialogues.DialogueValidator",

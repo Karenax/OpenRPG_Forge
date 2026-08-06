@@ -123,6 +123,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly ApplyAssistedBlenderCreationHandler _assistedBlenderCreationHandler = new(new SystemClock());
     private readonly ApplyAssistedModel3DGenerationHandler _assistedModel3DGenerationHandler = new(new SystemClock());
     private readonly SetExternalWorkerSecurityPolicyHandler _externalWorkerSecurityHandler = new(new SystemClock());
+    private readonly SetEditorKeymapHandler _editorKeymapHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -224,6 +225,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssistedBlenderCreationWindow? _assistedBlenderCreationWindow;
     private AssistedModel3DGenerationWindow? _assistedModel3DGenerationWindow;
     private ExternalWorkerSecurityWindow? _externalWorkerSecurityWindow;
+    private EditorKeymapWindow? _editorKeymapWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -256,6 +258,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssistedBlenderCreationCommandHistory? _assistedBlenderCreationHistory;
     private AssistedModel3DGenerationCommandHistory? _assistedModel3DGenerationHistory;
     private ExternalWorkerSecurityPolicyCommandHistory? _externalWorkerSecurityHistory;
+    private EditorKeymapCommandHistory? _editorKeymapHistory;
     private AssistantWorkspaceProfileCommandHistory? _assistantProfileHistory;
     private LoreIndexCommandHistory? _loreIndexHistory;
     private AssistedAreaPlanCommandHistory? _assistedAreaPlanHistory;
@@ -433,6 +436,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
             RedoExternalWorkerSecurityPolicy,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_externalWorkerSecurityWindow);
+        _editorKeymapWindow = new EditorKeymapWindow();
+        _editorKeymapWindow.Initialize(
+            () => _editorKeymapHistory?.State,
+            ApplyEditorKeymap,
+            UndoEditorKeymap,
+            RedoEditorKeymap,
+            () => _editorKeymapHistory?.CanUndo == true,
+            () => _editorKeymapHistory?.CanRedo == true,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_editorKeymapWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -542,6 +555,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _history?.State,
             LoadWorkspaceProfile,
             SaveWorkspaceProfile,
+            () => _editorKeymapWindow?.Open(),
             () => _history?.State.Project.Module.ArtisticStyle ??
                   ArtisticStyleProfile.CreateDefault(Guid.Parse("10000000-0000-4000-8000-000000000001")),
             ApplyArtisticStyleProfile,
@@ -602,6 +616,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         EditorInterface.Singleton.GetEditorMainScreen().AddChild(_mainPanel);
         SetProcess(true);
+        SetProcessInput(true);
         EnsureForgeWindowTitle();
         _MakeVisible(false);
         _mainThreadActions.Enqueue(() => EditorInterface.Singleton.SetMainScreenEditor("Forge"));
@@ -633,6 +648,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     public override void _ExitTree()
     {
+        SetProcessInput(false);
         DisconnectSignals();
         if (_mainPanel is not null && GodotObject.IsInstanceValid(_mainPanel))
         {
@@ -713,6 +729,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _localizationWorkspace = null;
         _assistantWorkspace = null;
         _externalWorkerSecurityWindow = null;
+        _editorKeymapWindow = null;
         _loreIndexWindow = null;
         _globalSearch = null;
         _moduleConfiguration = null;
@@ -738,6 +755,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _assetPackageManifestHistory = null;
         _assetExternalEditHistory = null;
         _externalWorkerSecurityHistory = null;
+        _editorKeymapHistory = null;
         _assistantProfileHistory = null;
         _loreIndexHistory = null;
         GD.Print("OPENRPG_FORGE_PLUGIN_UNLOADED");
@@ -784,6 +802,47 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             _recoveryElapsed = 0;
             CaptureRecoverySnapshot();
+        }
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if (@event is not InputEventKey { Pressed: true, Echo: false } key ||
+            _mainPanel?.Visible != true || _editorKeymapHistory is null ||
+            _editorKeymapWindow?.Visible == true || IsTextEntryFocused())
+            return;
+
+        var binding = _editorKeymapHistory.State.Profile.Resolve(
+            key.Keycode.ToString(), key.CtrlPressed, key.AltPressed, key.ShiftPressed, key.MetaPressed);
+        if (binding is null || !DispatchEditorShortcut(binding.CommandId)) return;
+        GetViewport().SetInputAsHandled();
+        GD.Print($"OPENRPG_FORGE_EDITOR_SHORTCUT command={binding.CommandId} gesture={binding.Gesture.CanonicalText}");
+    }
+
+    private bool IsTextEntryFocused()
+    {
+        var focused = GetViewport().GuiGetFocusOwner();
+        return focused is LineEdit or TextEdit;
+    }
+
+    private bool DispatchEditorShortcut(string commandId)
+    {
+        switch (commandId)
+        {
+            case EditorKeymapCatalog.SaveProject: SaveProject(); return true;
+            case EditorKeymapCatalog.Undo: Undo(); return true;
+            case EditorKeymapCatalog.Redo: Redo(); return true;
+            case EditorKeymapCatalog.CopySelection: CopySelectedEntity(); return true;
+            case EditorKeymapCatalog.PasteSelection: PasteSemanticClipboard(); return true;
+            case EditorKeymapCatalog.DuplicateSelection: DuplicateSelectedEntity(); return true;
+            case EditorKeymapCatalog.DeleteSelection: DeleteSelected(); return true;
+            case EditorKeymapCatalog.FocusSelection: return _projectPreview?.FocusSelectionFromShortcut() == true;
+            case EditorKeymapCatalog.RunPlaytest: StartPlaytestFromUi(); return true;
+            case EditorKeymapCatalog.OpenSearch: OpenGlobalSearch(); return true;
+            case EditorKeymapCatalog.OpenWorld: HandleWorkspaceRequest("Monde"); return true;
+            case EditorKeymapCatalog.OpenBlueprints: HandleWorkspaceRequest("Blueprints"); return true;
+            case EditorKeymapCatalog.OpenDialogues: HandleWorkspaceRequest("Dialogues"); return true;
+            default: return false;
         }
     }
 
@@ -2926,6 +2985,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _assetProcessingProfileHistory = null;
             _assetPackageManifestHistory = null;
             _assetExternalEditHistory = null;
+            _externalWorkerSecurityHistory = null;
+            _editorKeymapHistory = null;
             _assistantProfileHistory = null;
             _loreIndexHistory = null;
             _activeAreaContext.Clear();
@@ -2976,6 +3037,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (!workerSecurity.Succeeded)
         {
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_WORKER_SECURITY_INVALID {workerSecurity.Diagnostics[0].Code}");
+        }
+        var editorKeymap = EditorKeymapProfileStore.Load(_projectSession.RootDirectory);
+        _editorKeymapHistory = new EditorKeymapCommandHistory(editorKeymap.Profile);
+        if (!editorKeymap.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_KEYMAP_INVALID {editorKeymap.Diagnostics[0].Code}");
         }
         var assistantProfile = AssistantWorkspaceProfileStore.Load(_projectSession.RootDirectory);
         _assistantProfileHistory = new AssistantWorkspaceProfileCommandHistory(assistantProfile.Profile);
@@ -3252,6 +3319,76 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _projectSession.RootDirectory, _externalWorkerSecurityHistory.State.Policy);
         if (saved.Succeeded) return true;
         _externalWorkerSecurityHistory.Undo();
+        return false;
+    }
+
+    private EditorKeymapCommandResult ApplyEditorKeymap(EditorKeymapProfile profile, bool dryRun)
+    {
+        if (_projectSession is null || _editorKeymapHistory is null)
+        {
+            var state = new EditorKeymapState(profile);
+            var command = new SetEditorKeymapCommand(
+                CommandId.From(Guid.NewGuid()), state.Revision, profile, dryRun);
+            return new EditorKeymapCommandResult(false, state, state.Revision, null,
+                [new CommandDiagnostic("authoring.keymap.workspace_missing", "Open a Forge workspace before changing shortcuts.")],
+                null, null, new AuditEntry(command.CommandId, "set_editor_keymap", DateTimeOffset.UtcNow, false));
+        }
+
+        var request = new SetEditorKeymapCommand(
+            CommandId.From(Guid.NewGuid()), _editorKeymapHistory.State.Revision, profile, dryRun);
+        var result = _editorKeymapHandler.Handle(_editorKeymapHistory.State, request);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(diagnostic => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                diagnostic.Code,
+                diagnostic.Message,
+                ".forge/editor-keymap",
+                profile.Id.ToString())).ToArray());
+            return result;
+        }
+        if (dryRun) return result;
+
+        var saved = EditorKeymapProfileStore.Save(_projectSession.RootDirectory, result.State.Profile);
+        if (!saved.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_KEYMAP_SAVE_FAILED {saved.Diagnostics[0].Code}");
+            return result with
+            {
+                Succeeded = false,
+                State = _editorKeymapHistory.State,
+                NewRevision = null,
+                Diagnostics = saved.Diagnostics.Select(diagnostic =>
+                    new CommandDiagnostic(diagnostic.Code, diagnostic.Message)).ToArray(),
+                Patch = null,
+                Inverse = null,
+                Audit = result.Audit with { Applied = false },
+            };
+        }
+
+        _editorKeymapHistory.Record(result);
+        GD.Print($"OPENRPG_FORGE_TOOLSET_KEYMAP_SAVED preset={profile.Preset} " +
+                 $"revision={_editorKeymapHistory.State.Revision.Value} command={request.CommandId}");
+        return result;
+    }
+
+    private bool UndoEditorKeymap()
+    {
+        if (_projectSession is null || _editorKeymapHistory is null || !_editorKeymapHistory.Undo())
+            return false;
+        var saved = EditorKeymapProfileStore.Save(_projectSession.RootDirectory, _editorKeymapHistory.State.Profile);
+        if (saved.Succeeded) return true;
+        _editorKeymapHistory.Redo();
+        return false;
+    }
+
+    private bool RedoEditorKeymap()
+    {
+        if (_projectSession is null || _editorKeymapHistory is null || !_editorKeymapHistory.Redo())
+            return false;
+        var saved = EditorKeymapProfileStore.Save(_projectSession.RootDirectory, _editorKeymapHistory.State.Profile);
+        if (saved.Succeeded) return true;
+        _editorKeymapHistory.Undo();
         return false;
     }
 
@@ -5116,6 +5253,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunExternalWorkerSecuritySmokeTest())
+        {
+            return;
+        }
+
+        if (!RunEditorKeymapSmokeTest())
         {
             return;
         }
@@ -9317,6 +9459,74 @@ public partial class ForgeEditorPlugin : EditorPlugin
             }
         }
     }
+
+    private bool RunEditorKeymapSmokeTest()
+    {
+        if (_projectSession is null || _editorKeymapHistory is null || _editorKeymapWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13A_KEYMAP_FAILED missing_workspace");
+            return false;
+        }
+        var originalProfile = _editorKeymapHistory.State.Profile;
+        var path = Path.Combine(_projectSession.RootDirectory,
+            EditorKeymapProfileStore.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+        var originalBytes = File.Exists(path) ? File.ReadAllBytes(path) : null;
+        try
+        {
+            if (!_editorKeymapWindow.ConfigureForSmokeTest() ||
+                !_editorKeymapWindow.PreviewForSmokeTest() ||
+                _editorKeymapWindow.LastCommandId == Guid.Empty ||
+                !_editorKeymapWindow.LastPatchSummary.Contains("searchable command bindings", StringComparison.Ordinal) ||
+                !_editorKeymapWindow.ApplyForSmokeTest())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13A_KEYMAP_FAILED preview_apply");
+                return false;
+            }
+
+            var current = _editorKeymapHistory.State.Profile;
+            var loaded = EditorKeymapProfileStore.Load(_projectSession.RootDirectory);
+            var search = current.Resolve("K", ctrl: true, alt: false, shift: true, meta: false);
+            if (!loaded.Succeeded || !HasSameEditorKeymap(loaded.Profile, current) ||
+                current.Id != EditorKeymapProfile.DefaultId ||
+                current.SchemaVersion != EditorKeymapProfile.CurrentSchemaVersion ||
+                current.Preset != EditorKeymapPreset.Custom || current.Bindings.Count != 13 ||
+                search?.CommandId != EditorKeymapCatalog.OpenSearch ||
+                EditorKeymapProfileValidator.Validate(current).Count != 0 ||
+                !DispatchEditorShortcut(EditorKeymapCatalog.OpenWorld) ||
+                !UndoEditorKeymap() || !HasSameEditorKeymap(_editorKeymapHistory.State.Profile, originalProfile) ||
+                !RedoEditorKeymap() || !HasSameEditorKeymap(_editorKeymapHistory.State.Profile, current) ||
+                !UndoEditorKeymap())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13A_KEYMAP_FAILED persistence_history_input");
+                return false;
+            }
+
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G13A_KEYMAP_PASS profiles=standard-aurora-blender " +
+                "commands=searchable bindings=13 conflicts=blocked input=executed ui=visible-empty-error " +
+                "uuid=stable schema=v1 provenance=tracked transaction=identified dry-run=previewed " +
+                "audit=generated history=restored persistence=roundtrip runtime=optional");
+            return true;
+        }
+        finally
+        {
+            _editorKeymapHistory = new EditorKeymapCommandHistory(originalProfile);
+            if (originalBytes is null)
+            {
+                if (File.Exists(path)) File.Delete(path);
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                File.WriteAllBytes(path, originalBytes);
+            }
+        }
+    }
+
+    private static bool HasSameEditorKeymap(EditorKeymapProfile left, EditorKeymapProfile right) =>
+        left.Id == right.Id && left.SchemaVersion == right.SchemaVersion && left.Preset == right.Preset &&
+        string.Equals(left.Provenance, right.Provenance, StringComparison.Ordinal) &&
+        left.Bindings.SequenceEqual(right.Bindings);
 
     private bool RunScaleAuthoringSmokeTest()
     {

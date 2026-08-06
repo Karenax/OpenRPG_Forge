@@ -11,6 +11,9 @@ de dialogues, quêtes, scripts, boss et capacités, puis les créations 3D par r
 providers texte/image optionnels, gouvernés et approuvés sans dépendance réseau obligatoire.
 La sécurité des workers est désormais canonique : aucun outil public `exec`, `eval`, shell ou Python
 libre, opérations Blender allowlistées, chemins confinés, timeout et sortie bornés.
+G13 est désormais la file active. G13-A livre les raccourcis configurables avec profils
+Standard/Aurora/Blender, recherche, conflits, persistance locale, commande transactionnelle et
+exécution réelle des actions Toolset.
 AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
@@ -607,3 +610,12 @@ l’interdiction de Python libre, `exec`, `eval`, shell, réseau et chemins non 
 l’allowlist Blender, le timeout, la taille maximale, la permission et la provenance. Le Toolset et
 MCP partagent plan, transaction, dry-run, diff, audit, application et revert ; chaque requête
 Blender embarque le profil, et le worker applique réellement les budgets avant publication.
+
+**G13-A — raccourcis configurables livrés** : un profil local v1 à UUID stable propose Standard,
+Aurora, Blender et Custom pour treize commandes recherchables. L’écran spécialisé affiche identité,
+attribution, état vide et diagnostics de conflit ; preview, apply, audit, persistance atomique et
+undo/redo passent par `SetEditorKeymapHandler`. Le routeur appelle les actions existantes et ignore
+les champs texte. Le runtime et les `.orpmod` restent indépendants du fichier `.forge/editor-keymap.json`.
+
+La prochaine tranche unique est **G13-B — identité et représentation des créatures** :
+`ORF-CRE-006`, `ORF-CRE-007`, `ORF-CRE-009`, `ORF-CRE-010` et `ORF-CRE-029`.

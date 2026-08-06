@@ -1080,6 +1080,8 @@ public partial class ProjectPreview3D : SubViewportContainer
             radius: Math.Max(2, radiusFromCenter));
     }
 
+    internal bool FocusSelectionFromShortcut() => FocusCameraSelection();
+
     private void SetCameraView(EditorCameraView view) =>
         ApplyCameraCommand(EditorCameraOperation.SetView, view: view);
 

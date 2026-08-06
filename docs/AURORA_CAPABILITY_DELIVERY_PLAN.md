@@ -487,6 +487,13 @@ Les fiches exécutées sont `docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODUL
 `docs/aurora-parity/tasks/G7-16-ASSET-CONTENT-BROWSER.md` et
 `docs/aurora-parity/tasks/G7-17-LOCALIZATION-AUTHORING.md`.
 
+G7 à G12 sont désormais fermés par leurs preuves respectives. La file active est G13, détaillée
+dans `docs/aurora-parity/G13_DELIVERY_PLAN.md` : 135 extensions P2/P3/P4, toujours livrées par
+tranches de une à cinq feature IDs. **G13-A** ferme `ORF-SHELL-022` avec keymap configurable,
+profils Standard/Aurora/Blender, recherche, conflits, commande transactionnelle, persistance locale
+et exécution Toolset. La prochaine tranche unique est **G13-B** (`ORF-CRE-006`, `007`, `009`,
+`010`, `029`).
+
 ## 7. Graphe de dépendances
 
 ```text

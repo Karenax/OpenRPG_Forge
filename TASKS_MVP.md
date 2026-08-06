@@ -590,3 +590,19 @@ Acceptation G12-L : le Toolset et MCP partagent une politique persistante, la m�
 transaction, plan, dry-run, permission, diff, audit et undo/redo. Les requêtes et le worker refusent
 `exec`, `eval`, shell, Python libre, chemins non confinés, réseau, opérations hors allowlist et
 budgets non bornés ; timeout et taille de sortie sont appliqués avant publication.
+
+## Gate post-1.0 — Extensions avancées G13
+
+Le plan borné des 135 exigences est suivi dans
+`docs/aurora-parity/G13_DELIVERY_PLAN.md`. Chaque tranche conserve une à cinq feature IDs et laisse
+les démonstrations Crypte des Cendres et Forgotten Forest jouables.
+
+- [x] G13-A : profils de raccourcis Standard/Aurora/Blender, commandes recherchables, conflits,
+  persistance locale et exécution réelle (`ORF-SHELL-022`).
+- [ ] G13-B : identité, portrait, corps, couleurs, ailes/queues et voix des créatures
+  (`ORF-CRE-006`, `007`, `009`, `010`, `029`).
+
+Acceptation G13-A : un auteur configure les raccourcis depuis l’écran Aurora, prévisualise le diff,
+applique la commande canonique et peut annuler/rétablir. Le round-trip `.forge/editor-keymap.json`
+est exact, les conflits sont refusés avec diagnostic stable, et les bindings déclenchent les actions
+Toolset existantes sans intercepter les champs texte ni entrer dans le module exporté.
