@@ -134,6 +134,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12H_BOSS_PASS creature=canonical encounter=bounded abilities=typed phases=scripted dialogue=typed rewards=loot balance=32-runs dependencies=resolved provider=fake-offline cost=visible plan=dry-run-transaction permission=apply-approved batch=atomic history=restored persistence=roundtrip mcp=governed'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12I_ABILITY_PASS targeting=typed cost=bounded effects=canonical vfx=resolved audio=resolved ai=tagged script=resolved item=optional tests=5-combat balance=visible provider=fake-offline costusd=visible plan=dry-run-transaction permission=apply-approved batch=atomic history=restored persistence=roundtrip mcp=governed'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12J_BLENDER_PASS recipe=canonical primitives=typed transforms=bounded material=pbr uv=typed lod=generated collision=generated validation=five-tests glb=export-request provider=fake-offline cost=visible python=forbidden plan=dry-run-transaction permission=apply-approved history=restored persistence=roundtrip mcp=governed'
+        $Markers += 'OPENRPG_FORGE_TOOLSET_G12K_MODEL3D_PASS provider=interchangeable offline=deterministic trellis=loopback triposr=loopback input=text-image license=cc0 staging=hashed topology=bounded provenance=receipt acceptance=human blender=typed tests=five plan=dry-run-transaction permission=apply-approved history=restored persistence=roundtrip mcp=governed'
         $Markers += 'streaming=async-cache-cancel sculpt=raise-'
         $Markers += 'paint=material-'
         $Markers += 'brush_history=restored history=restored persistence=roundtrip'
@@ -408,6 +409,9 @@ try {
     }
     Write-Output 'OPENRPG_FORGE_G11E_CONTENT_SMOKE_PASS batch=dry-run-apply collisions=preserve-both blueprints=governed'
     & (Join-Path $repositoryRoot 'scripts\Invoke-AssistedBlenderCreationSmoke.ps1') `
+        -RepositoryRoot $repositoryRoot `
+        -BlenderPath $blenderPath
+    & (Join-Path $repositoryRoot 'scripts\Invoke-AssistedModel3DGenerationSmoke.ps1') `
         -RepositoryRoot $repositoryRoot `
         -BlenderPath $blenderPath
     Invoke-CheckedDotnet @(

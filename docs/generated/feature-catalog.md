@@ -25,7 +25,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-AI-019 | Création de boss | P2 | Tested | G12 |
 | ORF-AI-020 | Création de capacité | P1 | Tested | G12 |
 | ORF-AI-021 | Création 3D via Blender | P1 | Tested | G12 |
-| ORF-AI-022 | Fournisseurs text/image-to-3D | P2 | Researched | G12 |
+| ORF-AI-022 | Fournisseurs text/image-to-3D | P2 | Tested | G12 |
 | ORF-AI-023 | Pas d’exécution Python libre | P0 | Researched | G5 |
 | ORF-AI-024 | Génération de VFX/audio/images | P3 | Researched | G13 |
 | ORF-AI-025 | Agent de test | P1 | Researched | G12 |

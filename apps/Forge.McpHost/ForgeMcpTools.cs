@@ -204,6 +204,28 @@ public sealed class ForgeMcpTools
         _project.RevertAssistedBlenderCreationPlan(planId);
 
     [McpServerTool]
+    [Description("Generates a governed text-to-3D or image-to-3D OBJ proposal through an interchangeable offline or loopback provider without writing files; returns license, provenance, topology tests, staging plan and cost.")]
+    public AssistedModel3DGenerationProposalResource ProposeAssistedModel3DGeneration(
+        AssistedModel3DGenerationProposalRequest request) =>
+        _project.ProposeAssistedModel3DGeneration(request);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an explicitly human-approved provider-generated 3D asset as one confined four-file transaction.")]
+    public AssistedModel3DGenerationApplyPlanResult PlanAssistedModel3DGeneration(
+        AssistedModel3DGenerationApplyPlanRequest request) =>
+        _project.PlanAssistedModel3DGeneration(request);
+
+    [McpServerTool]
+    [Description("Applies a previously previewed 3D provider plan and writes its OBJ staging source, governance receipt, external-edit configuration and typed Blender request atomically.")]
+    public AssistedModel3DGenerationApplyPlanResult ApplyAssistedModel3DGenerationPlan(string planId) =>
+        _project.ApplyAssistedModel3DGenerationPlan(planId);
+
+    [McpServerTool]
+    [Description("Atomically reverts the latest provider-generated 3D asset and restores every governed file.")]
+    public AssistedModel3DGenerationApplyPlanResult RevertAssistedModel3DGenerationPlan(string planId) =>
+        _project.RevertAssistedModel3DGenerationPlan(planId);
+
+    [McpServerTool]
     [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]
     public RuntimePolicyResource GetRuntimePolicies(string? areaId = null) =>
         _project.GetRuntimePolicies(areaId);

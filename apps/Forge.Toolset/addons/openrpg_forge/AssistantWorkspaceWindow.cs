@@ -23,6 +23,7 @@ public partial class AssistantWorkspaceWindow : Window
     private Action? _openAssistedBosses;
     private Action? _openAssistedAbilities;
     private Action? _openAssistedBlenderCreation;
+    private Action? _openAssistedModel3DGeneration;
     private Action? _openLocalization;
     private Action<Window>? _brandWindow;
     private AssistantWorkspaceProfile? _source;
@@ -73,6 +74,7 @@ public partial class AssistantWorkspaceWindow : Window
         Action openAssistedBosses,
         Action openAssistedAbilities,
         Action openAssistedBlenderCreation,
+        Action openAssistedModel3DGeneration,
         Action openLocalization,
         Action<Window> brandWindow)
     {
@@ -91,6 +93,8 @@ public partial class AssistantWorkspaceWindow : Window
         _openAssistedAbilities = openAssistedAbilities ?? throw new ArgumentNullException(nameof(openAssistedAbilities));
         _openAssistedBlenderCreation = openAssistedBlenderCreation ??
             throw new ArgumentNullException(nameof(openAssistedBlenderCreation));
+        _openAssistedModel3DGeneration = openAssistedModel3DGeneration ??
+            throw new ArgumentNullException(nameof(openAssistedModel3DGeneration));
         _openLocalization = openLocalization ?? throw new ArgumentNullException(nameof(openLocalization));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assistant de création · OpenRPG Forge";
@@ -263,6 +267,9 @@ public partial class AssistantWorkspaceWindow : Window
         var blender = new Button { Text = "Création 3D" };
         blender.Pressed += () => _openAssistedBlenderCreation?.Invoke();
         footer.AddChild(blender);
+        var model3D = new Button { Text = "Texte/Image vers 3D" };
+        model3D.Pressed += () => _openAssistedModel3DGeneration?.Invoke();
+        footer.AddChild(model3D);
         var undo = new Button { Text = "Annuler" };
         undo.Pressed += () => { if (_undo?.Invoke() == true) Refresh(); };
         footer.AddChild(undo);

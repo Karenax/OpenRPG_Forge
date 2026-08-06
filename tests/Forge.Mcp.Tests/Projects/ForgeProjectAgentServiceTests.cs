@@ -36,6 +36,60 @@ namespace Forge.Mcp.Tests.Projects;
 public sealed class ForgeProjectAgentServiceTests
 {
     [Fact]
+    public void AssistedModel3DMcpStagesGovernedSourceAppliesAndRevertsFourFiles()
+    {
+        using var workspace = new TestWorkspace();
+        var brief = new AssistedModel3DGenerationBrief(
+            Guid.Parse("b1330000-0000-4000-8000-000000000090"), "mcp-forge-idol", "MCP Forge Idol",
+            Model3DInputKind.Text, "A compact weathered forge idol", null,
+            Model3DProviderDefinition.CreateOffline(), new Model3DTopologyPolicy(10_000, [.5m, .25m], true),
+            ["lore:crypt-of-ashes"], ["style:readable", "performance:realtime"], "@mcp-author", 20260806);
+
+        var proposed = workspace.Project.ProposeAssistedModel3DGeneration(new(1, brief));
+        Assert.True(proposed.Succeeded,
+            string.Join(" | ", proposed.Diagnostics.Select(item => $"{item.Code}: {item.Message}")));
+        Assert.False(proposed.Proposal!.CanApply);
+        var approved = proposed.Proposal.WithApproval(true, "author-approved:mcp-test:g12-k");
+        var planned = workspace.Project.PlanAssistedModel3DGeneration(new(
+            1, proposed.BaseRevision, approved, AssistantPermissionLevel.ApplyApprovedPlan));
+        var sourcePath = AssistedModel3DGenerationService.ResolvePath(workspace.RootDirectory,
+            approved.Receipt.SourceRelativePath, "assets/staging/ai-3d/");
+        var receiptPath = AssistedModel3DGenerationService.ResolvePath(workspace.RootDirectory,
+            approved.ReceiptRelativePath, "assets/staging/ai-3d/");
+        var requestPath = Path.Combine(workspace.RootDirectory, "assets", "roundtrip",
+            $"{approved.Configuration.AssetId}.worker-request.json");
+        var externalPath = Path.Combine(workspace.RootDirectory,
+            AssetExternalEditStore.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+        var applied = workspace.Project.ApplyAssistedModel3DGenerationPlan(planned.PlanId!);
+
+        Assert.Equal(5, proposed.Proposal.Tests.Count);
+        Assert.All(proposed.Proposal.Tests, item => Assert.True(item.Passed));
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.Equal(4, planned.FileDiff.Count);
+        Assert.Equal("deterministic-offline-3d", planned.ProviderKey);
+        Assert.Equal("CC0-1.0", planned.LicenseSpdx);
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.True(File.Exists(sourcePath));
+        Assert.True(File.Exists(receiptPath));
+        Assert.True(File.Exists(requestPath));
+        Assert.True(File.Exists(externalPath));
+        Assert.Contains("\"humanAccepted\": true", File.ReadAllText(receiptPath), StringComparison.Ordinal);
+        Assert.DoesNotContain("create_primitives", File.ReadAllText(requestPath), StringComparison.Ordinal);
+
+        var reverted = workspace.Project.RevertAssistedModel3DGenerationPlan(planned.PlanId!);
+
+        Assert.True(reverted.Succeeded);
+        Assert.True(reverted.Reverted);
+        Assert.False(File.Exists(sourcePath));
+        Assert.False(File.Exists(receiptPath));
+        Assert.False(File.Exists(requestPath));
+        Assert.False(File.Exists(externalPath));
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
     public void AssistedBlenderMcpPlansPersistsTypedWorkerRequestAndRevertsAllFiles()
     {
         using var workspace = new TestWorkspace();

@@ -57,6 +57,8 @@ public sealed class ForgeProjectAgentService
     private readonly ApplyAssistedBossHandler _assistedBossHandler;
     private readonly ApplyAssistedAbilityHandler _assistedAbilityHandler;
     private readonly ApplyAssistedBlenderCreationHandler _assistedBlenderCreationHandler;
+    private readonly ApplyAssistedModel3DGenerationHandler _assistedModel3DGenerationHandler;
+    private readonly HttpClient _model3DHttpClient;
     private AssetExternalEditState _assistedBlenderState;
     private readonly SetEntityOverridesHandler _overridesHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
@@ -80,6 +82,7 @@ public sealed class ForgeProjectAgentService
     private readonly Dictionary<string, StoredAssistedBossPlan> _assistedBossPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedAbilityPlan> _assistedAbilityPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedBlenderCreationPlan> _assistedBlenderCreationPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAssistedModel3DGenerationPlan> _assistedModel3DGenerationPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredGameplayControlPlan> _gameplayControlPlans = new(StringComparer.Ordinal);
@@ -105,6 +108,11 @@ public sealed class ForgeProjectAgentService
         _assistedBossHandler = new ApplyAssistedBossHandler(clock);
         _assistedAbilityHandler = new ApplyAssistedAbilityHandler(clock);
         _assistedBlenderCreationHandler = new ApplyAssistedBlenderCreationHandler(clock);
+        _assistedModel3DGenerationHandler = new ApplyAssistedModel3DGenerationHandler(clock);
+        _model3DHttpClient = new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false })
+        {
+            Timeout = Timeout.InfiniteTimeSpan,
+        };
         var externalEdits = AssetExternalEditStore.Load(session.RootDirectory);
         _assistedBlenderState = new AssetExternalEditState(externalEdits.Configurations);
         _overridesHandler = new SetEntityOverridesHandler(clock);
@@ -2198,6 +2206,136 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public AssistedModel3DGenerationProposalResource ProposeAssistedModel3DGeneration(
+        AssistedModel3DGenerationProposalRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, _assistedBlenderState.Revision.Value, null,
+                    [new AgentDiagnostic("assistant.model3d.request_invalid",
+                        "Assisted model 3D proposal schema is invalid.", "assistant/model3d")]);
+            try
+            {
+                IModel3DGenerationProvider provider = request.Brief.Provider.Kind == Model3DProviderKind.DeterministicOffline
+                    ? new DeterministicModel3DGenerationProvider()
+                    : new LoopbackModel3DGenerationProvider(request.Brief.Provider, _model3DHttpClient,
+                        Environment.GetEnvironmentVariable);
+                var proposal = AssistedModel3DGenerationService.ProposeAsync(
+                    request.Brief, _session.RootDirectory, provider, request.NetworkAuthorized)
+                    .GetAwaiter().GetResult();
+                return new(proposal.Succeeded, _assistedBlenderState.Revision.Value, proposal,
+                    proposal.Diagnostics.Select(code => new AgentDiagnostic(code, code,
+                        $"assets/assisted-provider-3d/{proposal.Receipt.Id:D}")).ToArray());
+            }
+            catch (Model3DProviderException exception)
+            {
+                return new(false, _assistedBlenderState.Revision.Value, null,
+                    [new AgentDiagnostic(exception.Code, exception.Message, "assistant/model3d")]);
+            }
+            catch (ArgumentException exception)
+            {
+                return new(false, _assistedBlenderState.Revision.Value, null,
+                    [new AgentDiagnostic("assistant.model3d.brief_invalid", exception.Message, "assistant/model3d")]);
+            }
+        }
+    }
+
+    public AssistedModel3DGenerationApplyPlanResult PlanAssistedModel3DGeneration(
+        AssistedModel3DGenerationApplyPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
+                return AssistedModel3DFailure(_assistedBlenderState.Revision.Value,
+                    "assistant.model3d.request_invalid", "Assisted model 3D request schema or revision is invalid.");
+            var transactionId = Guid.NewGuid();
+            var executionPlanId = Guid.NewGuid();
+            var command = new ApplyAssistedModel3DGenerationCommand(
+                CommandId.From(Guid.NewGuid()), transactionId, executionPlanId,
+                new AssetExternalEditRevision(request.BaseRevision), request.Proposal, request.Permission, DryRun: true);
+            var preview = _assistedModel3DGenerationHandler.Handle(
+                _session.RootDirectory, _assistedBlenderState, command);
+            if (!preview.Succeeded)
+                return new(false, null, transactionId.ToString("D"), request.Proposal.Receipt.Id.ToString("D"),
+                    request.Proposal.Configuration.AssetId.ToString(), request.BaseRevision, preview.Patches,
+                    preview.SemanticDiff, request.Proposal.Receipt.SourceRelativePath,
+                    request.Proposal.ReceiptRelativePath, request.Proposal.Receipt.OutputRelativePath,
+                    request.Proposal.Citations, request.Proposal.Diagnostics,
+                    request.Proposal.Tests.Select(item => item.Id).ToArray(),
+                    request.Proposal.Tests.Count(item => item.Passed), request.Proposal.EstimatedCostUsd,
+                    request.Proposal.Receipt.Provider.Key, request.Proposal.Receipt.LicenseSpdx,
+                    request.Proposal.Receipt.ProviderProvenance,
+                    preview.Diagnostics.Select(code => new AgentDiagnostic(code, code, "assistant/model3d")).ToArray(),
+                    false, false, []);
+            var key = executionPlanId.ToString("D");
+            var stored = new StoredAssistedModel3DGenerationPlan(key, command, preview.Patches,
+                _assistedBlenderState.Configurations,
+                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _assistedModel3DGenerationPlans.Add(key, stored);
+            return ToResult(stored);
+        }
+    }
+
+    public AssistedModel3DGenerationApplyPlanResult ApplyAssistedModel3DGenerationPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_assistedModel3DGenerationPlans.TryGetValue(planId, out var plan))
+                return AssistedModel3DFailure(_assistedBlenderState.Revision.Value,
+                    "assistant.model3d.plan_missing", $"Assisted model 3D plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AssistedModel3DFailure(plan.Command.BaseRevision.Value,
+                    "assistant.model3d.plan_already_applied", $"Assisted model 3D plan '{planId}' is already applied.");
+            var result = _assistedModel3DGenerationHandler.Handle(_session.RootDirectory, _assistedBlenderState,
+                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, "apply", _assistedBlenderState.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan,
+                    result.Diagnostics.Select(code => new AgentDiagnostic(code, code, "assistant/model3d")).ToArray());
+            }
+            _assistedBlenderState = result.State;
+            plan.FileDiff = result.Patches;
+            plan.Applied = true;
+            plan.AppliedRevision = _assistedBlenderState.Revision.Value;
+            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AssistedModel3DGenerationApplyPlanResult RevertAssistedModel3DGenerationPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_assistedModel3DGenerationPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AssistedModel3DFailure(_assistedBlenderState.Revision.Value,
+                    "assistant.model3d.plan_not_applied", $"Assisted model 3D plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _assistedBlenderState.Revision.Value)
+                return AssistedModel3DFailure(plan.Command.BaseRevision.Value,
+                    "assistant.model3d.revert_conflict", "Only the latest assisted model 3D mutation can be reverted safely.");
+            try
+            {
+                ApplyAssistedModel3DGenerationHandler.Restore(_session.RootDirectory, plan.FileDiff, useAfter: false);
+                _assistedBlenderState = new AssetExternalEditState(
+                    plan.BeforeConfigurations, _assistedBlenderState.Revision.Next());
+                plan.Reverted = true;
+                plan.Audit.Add(new(plan.PlanId, "revert", _assistedBlenderState.Revision.Value, _clock.UtcNow, true));
+                return ToResult(plan);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+            {
+                plan.Audit.Add(new(plan.PlanId, "revert", _assistedBlenderState.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan,
+                    [new AgentDiagnostic("assistant.model3d.revert_failed", exception.Message, "assistant/model3d")]);
+            }
+        }
+    }
+
     public AssistedForgeScriptProposalResource ProposeAssistedForgeScript(AssistedForgeScriptProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -2874,6 +3012,46 @@ public sealed class ForgeProjectAgentService
         plan.Reverted,
         plan.Audit.ToArray());
 
+    private static AssistedModel3DGenerationApplyPlanResult AssistedModel3DFailure(
+        long revision,
+        string code,
+        string message) => new(
+        false, null, null, null, null, revision, [], "no-change", null, null, null, [], [], [], 0, 0,
+        null, null, null, [new AgentDiagnostic(code, message, "assistant/model3d")], false, false, []);
+
+    private static AssistedModel3DGenerationApplyPlanResult WithFailure(
+        StoredAssistedModel3DGenerationPlan plan,
+        IReadOnlyList<AgentDiagnostic> diagnostics) => ToResult(plan) with
+        {
+            Succeeded = false,
+            Diagnostics = diagnostics,
+        };
+
+    private static AssistedModel3DGenerationApplyPlanResult ToResult(StoredAssistedModel3DGenerationPlan plan) => new(
+        true,
+        plan.PlanId,
+        plan.Command.TransactionId.ToString("D"),
+        plan.Command.Proposal.Receipt.Id.ToString("D"),
+        plan.Command.Proposal.Configuration.AssetId.ToString(),
+        plan.Command.BaseRevision.Value,
+        plan.FileDiff,
+        plan.Command.Proposal.SemanticDiff,
+        plan.Command.Proposal.Receipt.SourceRelativePath,
+        plan.Command.Proposal.ReceiptRelativePath,
+        plan.Command.Proposal.Receipt.OutputRelativePath,
+        plan.Command.Proposal.Citations,
+        plan.Command.Proposal.Diagnostics,
+        plan.Command.Proposal.Tests.Select(item => item.Id).ToArray(),
+        plan.Command.Proposal.Tests.Count(item => item.Passed),
+        plan.Command.Proposal.EstimatedCostUsd,
+        plan.Command.Proposal.Receipt.Provider.Key,
+        plan.Command.Proposal.Receipt.LicenseSpdx,
+        plan.Command.Proposal.Receipt.ProviderProvenance,
+        [],
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
     private IReadOnlySet<string> AvailableForgeScripts()
     {
         var root = Path.Combine(_session.RootDirectory, "scripts");
@@ -3234,6 +3412,23 @@ public sealed class ForgeProjectAgentService
         public string PlanId { get; } = planId;
         public ApplyAssistedBlenderCreationCommand Command { get; } = command;
         public IReadOnlyList<AssistedBlenderFilePatch> FileDiff { get; set; } = fileDiff;
+        public IReadOnlyList<AssetExternalEditConfiguration> BeforeConfigurations { get; } = beforeConfigurations;
+        public List<PlanAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAssistedModel3DGenerationPlan(
+        string planId,
+        ApplyAssistedModel3DGenerationCommand command,
+        IReadOnlyList<AssistedModel3DFilePatch> fileDiff,
+        IReadOnlyList<AssetExternalEditConfiguration> beforeConfigurations,
+        List<PlanAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public ApplyAssistedModel3DGenerationCommand Command { get; } = command;
+        public IReadOnlyList<AssistedModel3DFilePatch> FileDiff { get; set; } = fileDiff;
         public IReadOnlyList<AssetExternalEditConfiguration> BeforeConfigurations { get; } = beforeConfigurations;
         public List<PlanAuditEntry> Audit { get; } = audit;
         public bool Applied { get; set; }

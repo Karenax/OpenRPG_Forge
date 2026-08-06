@@ -121,6 +121,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly ApplyAssistedBossHandler _assistedBossHandler = new(new SystemClock());
     private readonly ApplyAssistedAbilityHandler _assistedAbilityHandler = new(new SystemClock());
     private readonly ApplyAssistedBlenderCreationHandler _assistedBlenderCreationHandler = new(new SystemClock());
+    private readonly ApplyAssistedModel3DGenerationHandler _assistedModel3DGenerationHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -220,6 +221,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssistedBossWindow? _assistedBossWindow;
     private AssistedAbilityWindow? _assistedAbilityWindow;
     private AssistedBlenderCreationWindow? _assistedBlenderCreationWindow;
+    private AssistedModel3DGenerationWindow? _assistedModel3DGenerationWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -250,6 +252,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssetPackageManifestCommandHistory? _assetPackageManifestHistory;
     private AssetExternalEditCommandHistory? _assetExternalEditHistory;
     private AssistedBlenderCreationCommandHistory? _assistedBlenderCreationHistory;
+    private AssistedModel3DGenerationCommandHistory? _assistedModel3DGenerationHistory;
     private AssistantWorkspaceProfileCommandHistory? _assistantProfileHistory;
     private LoreIndexCommandHistory? _loreIndexHistory;
     private AssistedAreaPlanCommandHistory? _assistedAreaPlanHistory;
@@ -410,6 +413,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
             RedoAssistedBlenderCreation,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistedBlenderCreationWindow);
+        _assistedModel3DGenerationWindow = new AssistedModel3DGenerationWindow();
+        _assistedModel3DGenerationWindow.Initialize(
+            () => _projectSession,
+            () => _assetExternalEditHistory?.State,
+            ApplyAssistedModel3DGeneration,
+            UndoAssistedModel3DGeneration,
+            RedoAssistedModel3DGeneration,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_assistedModel3DGenerationWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -426,6 +438,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _assistedBossWindow?.Open(),
             () => _assistedAbilityWindow?.Open(),
             () => _assistedBlenderCreationWindow?.Open(),
+            () => _assistedModel3DGenerationWindow?.Open(),
             () => _localizationWorkspace?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistantWorkspace);
@@ -2939,6 +2952,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var externalEdits = AssetExternalEditStore.Load(_projectSession.RootDirectory);
         _assetExternalEditHistory = new AssetExternalEditCommandHistory(externalEdits.Configurations);
         _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(_assetExternalEditHistory.State);
+        _assistedModel3DGenerationHistory = new AssistedModel3DGenerationCommandHistory(_assetExternalEditHistory.State);
         if (!externalEdits.Succeeded)
         {
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDITS_INVALID {externalEdits.Diagnostics[0].Code}");
@@ -3566,6 +3580,57 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool ApplyAssistedModel3DGeneration(
+        AssistedModel3DGenerationProposal proposal,
+        Guid transactionId,
+        Guid executionPlanId,
+        bool dryRun)
+    {
+        if (_projectSession is null || _assetExternalEditHistory is null) return false;
+        var state = _assetExternalEditHistory.State;
+        if (_assistedModel3DGenerationHistory is null ||
+            _assistedModel3DGenerationHistory.State.Revision != state.Revision ||
+            !_assistedModel3DGenerationHistory.State.Configurations.SequenceEqual(state.Configurations))
+            _assistedModel3DGenerationHistory = new AssistedModel3DGenerationCommandHistory(state);
+        var command = new ApplyAssistedModel3DGenerationCommand(
+            CommandId.From(Guid.NewGuid()), transactionId, executionPlanId, state.Revision, proposal,
+            AssistantPermissionLevel.ApplyApprovedPlan, dryRun);
+        var result = _assistedModel3DGenerationHandler.Handle(_projectSession.RootDirectory, state, command);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(code => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error, code, code,
+                $"assets/assisted-provider-3d/{proposal.Receipt.Id:D}", proposal.Receipt.Id.ToString("D"))).ToArray());
+            return false;
+        }
+        if (dryRun) return !result.Applied && result.Patches.Count == 4;
+        _assistedModel3DGenerationHistory.Record(result);
+        _assetExternalEditHistory = new AssetExternalEditCommandHistory(result.State);
+        _assetBrowser?.Refresh();
+        GD.Print($"OPENRPG_FORGE_TOOLSET_ASSISTED_MODEL3D_APPLIED asset={proposal.Configuration.AssetId} " +
+                 $"provider={proposal.Receipt.Provider.Key} triangles={proposal.Receipt.SourceTriangleCount} " +
+                 $"transaction={transactionId:D} plan={executionPlanId:D}");
+        return true;
+    }
+
+    private bool UndoAssistedModel3DGeneration()
+    {
+        if (_projectSession is null || _assistedModel3DGenerationHistory is null ||
+            !_assistedModel3DGenerationHistory.Undo(_projectSession.RootDirectory)) return false;
+        _assetExternalEditHistory = new AssetExternalEditCommandHistory(_assistedModel3DGenerationHistory.State);
+        _assetBrowser?.Refresh();
+        return true;
+    }
+
+    private bool RedoAssistedModel3DGeneration()
+    {
+        if (_projectSession is null || _assistedModel3DGenerationHistory is null ||
+            !_assistedModel3DGenerationHistory.Redo(_projectSession.RootDirectory)) return false;
+        _assetExternalEditHistory = new AssetExternalEditCommandHistory(_assistedModel3DGenerationHistory.State);
+        _assetBrowser?.Refresh();
+        return true;
+    }
+
     private bool UndoAssistedForgeScript()
     {
         if (_projectSession is null || !_assistedForgeScriptHistory.Undo(_projectSession.RootDirectory)) return false;
@@ -3911,6 +3976,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
             _assetExternalEditHistory.Record(result);
             _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(_assetExternalEditHistory.State);
+            _assistedModel3DGenerationHistory = new AssistedModel3DGenerationCommandHistory(_assetExternalEditHistory.State);
             GD.Print(
                 $"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDIT_SAVED asset={item.ExternalId} id={configuration.Id} " +
                 $"request={request.RequestRelativePath} revision={_assetExternalEditHistory.State.Revision.Value}");
@@ -3937,6 +4003,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (saved.Succeeded)
         {
             _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(_assetExternalEditHistory.State);
+            _assistedModel3DGenerationHistory = new AssistedModel3DGenerationCommandHistory(_assetExternalEditHistory.State);
             return true;
         }
 
@@ -3957,6 +4024,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (saved.Succeeded)
         {
             _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(_assetExternalEditHistory.State);
+            _assistedModel3DGenerationHistory = new AssistedModel3DGenerationCommandHistory(_assetExternalEditHistory.State);
             return true;
         }
 
@@ -4958,6 +5026,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssistedBlenderCreationSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAssistedModel3DGenerationSmokeTest())
         {
             return;
         }
@@ -8964,6 +9037,112 @@ public partial class ForgeEditorPlugin : EditorPlugin
             }
             _assetExternalEditHistory = new AssetExternalEditCommandHistory(originalState);
             _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(originalState);
+            _assistedModel3DGenerationHistory = new AssistedModel3DGenerationCommandHistory(originalState);
+            _assetBrowser?.Refresh();
+        }
+    }
+
+    private bool RunAssistedModel3DGenerationSmokeTest()
+    {
+        if (_projectSession is null || _assetExternalEditHistory is null ||
+            _assistedModel3DGenerationWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12K_MODEL3D_FAILED missing_workspace");
+            return false;
+        }
+        var originalState = _assetExternalEditHistory.State;
+        string? sourcePath = null;
+        string? receiptPath = null;
+        string? requestPath = null;
+        string? externalPath = null;
+        string? beforeSource = null;
+        string? beforeReceipt = null;
+        string? beforeRequest = null;
+        string? beforeExternal = null;
+        static string? ReadOptional(string? path) => path is not null && File.Exists(path)
+            ? File.ReadAllText(path, Encoding.UTF8)
+            : null;
+        static void RestoreOptional(string? path, string? content)
+        {
+            if (path is null) return;
+            if (content is null) { if (File.Exists(path)) File.Delete(path); return; }
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, content, new UTF8Encoding(false));
+        }
+        try
+        {
+            if (!_assistedModel3DGenerationWindow.ConfigureApprovedForSmokeTest() ||
+                !_assistedModel3DGenerationWindow.PreviewForSmokeTest() ||
+                _assistedModel3DGenerationWindow.LastTestCount != 5 ||
+                _assistedModel3DGenerationWindow.LastPassedTestCount != 5 ||
+                _assistedModel3DGenerationWindow.LastDiagnosticCount != 0 ||
+                _assistedModel3DGenerationWindow.LastEstimatedCostUsd != 0)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12K_MODEL3D_FAILED preview_tests_cost");
+                return false;
+            }
+            sourcePath = AssistedModel3DGenerationService.ResolvePath(_projectSession.RootDirectory,
+                _assistedModel3DGenerationWindow.LastSourceRelativePath, "assets/staging/ai-3d/");
+            receiptPath = AssistedModel3DGenerationService.ResolvePath(_projectSession.RootDirectory,
+                _assistedModel3DGenerationWindow.LastReceiptRelativePath, "assets/staging/ai-3d/");
+            requestPath = Path.Combine(_projectSession.RootDirectory,
+                _assistedModel3DGenerationWindow.LastWorkerRequestRelativePath.Replace('/', Path.DirectorySeparatorChar));
+            externalPath = Path.Combine(_projectSession.RootDirectory,
+                AssetExternalEditStore.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+            beforeSource = ReadOptional(sourcePath);
+            beforeReceipt = ReadOptional(receiptPath);
+            beforeRequest = ReadOptional(requestPath);
+            beforeExternal = ReadOptional(externalPath);
+            if (!_assistedModel3DGenerationWindow.ApplyForSmokeTest() || !File.Exists(sourcePath) ||
+                !File.Exists(receiptPath) || !File.Exists(requestPath) ||
+                !File.ReadAllText(sourcePath, Encoding.UTF8).Contains("f 4 5 8", StringComparison.Ordinal) ||
+                !File.ReadAllText(receiptPath, Encoding.UTF8).Contains("\"humanAccepted\": true", StringComparison.Ordinal) ||
+                File.ReadAllText(requestPath, Encoding.UTF8).Contains("create_primitives", StringComparison.Ordinal))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12K_MODEL3D_FAILED apply_persistence");
+                return false;
+            }
+            var appliedSource = ReadOptional(sourcePath);
+            var appliedReceipt = ReadOptional(receiptPath);
+            var appliedRequest = ReadOptional(requestPath);
+            if (!UndoAssistedModel3DGeneration() || ReadOptional(sourcePath) != beforeSource ||
+                ReadOptional(receiptPath) != beforeReceipt || ReadOptional(requestPath) != beforeRequest ||
+                !RedoAssistedModel3DGeneration() || ReadOptional(sourcePath) != appliedSource ||
+                ReadOptional(receiptPath) != appliedReceipt || ReadOptional(requestPath) != appliedRequest ||
+                !UndoAssistedModel3DGeneration() || ReadOptional(sourcePath) != beforeSource ||
+                ReadOptional(receiptPath) != beforeReceipt || ReadOptional(requestPath) != beforeRequest)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12K_MODEL3D_FAILED history_roundtrip");
+                return false;
+            }
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G12K_MODEL3D_PASS provider=interchangeable offline=deterministic " +
+                "trellis=loopback triposr=loopback input=text-image license=cc0 staging=hashed topology=bounded " +
+                "provenance=receipt acceptance=human blender=typed tests=five plan=dry-run-transaction " +
+                "permission=apply-approved history=restored persistence=roundtrip mcp=governed");
+            return true;
+        }
+        finally
+        {
+            RestoreOptional(sourcePath, beforeSource);
+            RestoreOptional(receiptPath, beforeReceipt);
+            RestoreOptional(requestPath, beforeRequest);
+            RestoreOptional(externalPath, beforeExternal);
+            foreach (var directory in new[]
+            {
+                sourcePath is null ? null : Path.GetDirectoryName(sourcePath),
+                requestPath is null ? null : Path.GetDirectoryName(requestPath),
+                sourcePath is null ? null : Path.GetDirectoryName(Path.GetDirectoryName(sourcePath)),
+                sourcePath is null ? null : Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(sourcePath))),
+                externalPath is null ? null : Path.GetDirectoryName(externalPath),
+            }.Where(path => path is not null).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (Directory.Exists(directory) && !Directory.EnumerateFileSystemEntries(directory).Any())
+                    Directory.Delete(directory);
+            }
+            _assetExternalEditHistory = new AssetExternalEditCommandHistory(originalState);
+            _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(originalState);
+            _assistedModel3DGenerationHistory = new AssistedModel3DGenerationCommandHistory(originalState);
             _assetBrowser?.Refresh();
         }
     }

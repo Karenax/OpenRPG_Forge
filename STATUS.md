@@ -5,10 +5,11 @@ Dernière mise à jour : 6 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. G12-A à G12-I ouvrent maintenant l’Assistant de création avancée, ses
-fournisseurs locaux, son lore, ses plans de crypte/village, leur construction atomique et la création
-de dialogues, quêtes, scripts, boss et capacités sourcés après approbation, sans dépendance réseau
-obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
+G11 Contenu moderne fermés. G12-A à G12-K livrent maintenant l’Assistant de création avancée, ses
+fournisseurs locaux, son lore, ses plans de crypte/village, leur construction atomique, la création
+de dialogues, quêtes, scripts, boss et capacités, puis les créations 3D par recettes Blender ou
+providers texte/image optionnels, gouvernés et approuvés sans dépendance réseau obligatoire.
+AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
@@ -586,4 +587,15 @@ d'équilibrage précèdent le dry-run ; Toolset et MCP persistent ou annulent to
 tags IA, ForgeScript, item optionnel et intention d'équilibrage forment une orchestration v1
 canonique. Cinq scénarios utilisent le vrai résolveur de combat avant l'application. La fenêtre
 auteur et les quatre outils MCP partagent validation, approbation, plan exact, transaction atomique,
-persistance et undo/redo. La prochaine tranche est G12-J, création 3D gouvernée via Blender.
+persistance et undo/redo.
+
+**G12-J — création 3D Blender assistée livrée** : une recette canonique borne primitives,
+transforms, matériau PBR, UV, LOD, collision et sortie GLB. Le worker n’accepte que des opérations
+typées, jamais du Python libre. Toolset et MCP partagent approbation, dry-run, transaction de trois
+fichiers et undo/redo ; Blender réel prouve GLB, miniature et audit qualité.
+
+**G12-K — fournisseurs texte/image vers 3D livrés** : un contrat interchangeable couvre le mode
+offline déterministe et les endpoints locaux TRELLIS/TripoSR. Le loopback, le consentement réseau,
+les secrets d’environnement, CC0, provenance, staging haché, limite topologique et acceptation
+humaine sont imposés avant le lot réversible OBJ/reçu/configuration/requête. Toolset, CLI et MCP
+partagent le même handler ; Blender réel prouve 1 mesh, 2 LOD, 1 collision, miniature et GLB valide.

@@ -8,6 +8,7 @@ using Forge.Application.Projects;
 using Forge.Application.Time;
 using Forge.Application.Validation;
 using Forge.Domain.Assets;
+using Forge.Domain.Assistant;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Content;
 using Forge.Domain.Modules;
@@ -90,7 +91,7 @@ static int Run(IReadOnlyList<string> arguments)
 
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
-            "forge assets <list|install-pack|uninstall-pack|report|delivery-report|credits|prepare|roundtrip|finalize-roundtrip> ... | " +
+            "forge assets <list|install-pack|uninstall-pack|report|delivery-report|credits|prepare|roundtrip|finalize-roundtrip|generate-model3d> ... | " +
             "forge content <batch|export-blueprints|merge-table> ... | " +
             "forge docs <generate|check> | " +
             "forge readiness <validate|health|crash|recovery|sync-plan> ... | " +
@@ -777,6 +778,11 @@ static int RunAssets(IReadOnlyList<string> arguments)
         return FinalizeAssetRoundTrip(arguments);
     }
 
+    if (arguments.Count >= 2 && arguments[0] == "generate-model3d")
+    {
+        return GenerateModel3DAsset(arguments);
+    }
+
     if (arguments.Count < 2 || arguments[0] != "list")
     {
         Console.Error.WriteLine(
@@ -797,7 +803,10 @@ static int RunAssets(IReadOnlyList<string> arguments)
             "forge assets roundtrip <repository-or-workspace> <workspace> --id <external-id> " +
             "[--watch <true|false>] [--dry-run <true|false>] [--vault <directory>] | " +
             "forge assets finalize-roundtrip <repository-or-workspace> <workspace> --id <external-id> " +
-            "[--vault <directory>]");
+            "[--vault <directory>] | " +
+            "forge assets generate-model3d <workspace> --slug <slug> --name <name> --prompt <text> " +
+            "[--image <relative-path>] [--max-triangles <count>] [--lod <ratios>] [--collision <true|false>] " +
+            "[--seed <integer>] [--approve <true|false>] [--apply <true|false>]");
         return 2;
     }
 
@@ -875,6 +884,95 @@ static int RunAssets(IReadOnlyList<string> arguments)
         $"OPENRPG_FORGE_ASSET_BROWSER_PASS catalog={load.Catalog.Items.Count} results={items.Count} " +
         $"sources={browser.Sources.Count} schema={load.Catalog.SchemaVersion}");
     return load.Diagnostics.Count == 0 ? 0 : 1;
+}
+
+static int GenerateModel3DAsset(IReadOnlyList<string> arguments)
+{
+    var workspaceRoot = Path.GetFullPath(arguments[1]);
+    Directory.CreateDirectory(workspaceRoot);
+    var options = ParseOptions(arguments.Skip(2).ToArray());
+    var slug = RequireOption(options, "slug").Trim();
+    var displayName = RequireOption(options, "name").Trim();
+    var prompt = RequireOption(options, "prompt").Trim();
+    var imagePath = options.GetValueOrDefault("image")?.Trim();
+    var inputKind = string.IsNullOrWhiteSpace(imagePath) ? Model3DInputKind.Text : Model3DInputKind.Image;
+    var maximumTriangles = int.TryParse(options.GetValueOrDefault("max-triangles"), out var maximum)
+        ? maximum
+        : 10_000;
+    var seed = int.TryParse(options.GetValueOrDefault("seed"), out var parsedSeed) ? parsedSeed : 20260806;
+    var lods = (options.GetValueOrDefault("lod") ?? "0.5,0.25")
+        .Split([',', ';', ' '], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+        .Select(item => decimal.Parse(item, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+    var collision = ParseBooleanOption(options.GetValueOrDefault("collision"), true, "collision");
+    var approved = ParseBooleanOption(options.GetValueOrDefault("approve"), false, "approve");
+    var apply = ParseBooleanOption(options.GetValueOrDefault("apply"), false, "apply");
+    if (apply && !approved)
+        throw new ArgumentException("Model 3D application requires --approve true.");
+
+    var brief = new AssistedModel3DGenerationBrief(
+        StableGuid($"openrpg-forge:cli:model3d:{slug}"), slug, displayName, inputKind, prompt, imagePath,
+        Model3DProviderDefinition.CreateOffline(), new Model3DTopologyPolicy(maximumTriangles, lods, collision),
+        ["cli:explicit-prompt"], ["style:creator-supplied", "performance:realtime"], "@forge-cli", seed);
+    var proposal = AssistedModel3DGenerationService.ProposeAsync(
+        brief, workspaceRoot, new DeterministicModel3DGenerationProvider(), networkAuthorized: false)
+        .GetAwaiter().GetResult();
+    if (!proposal.Succeeded)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = proposal.Diagnostics }));
+        return 1;
+    }
+    if (approved) proposal = proposal.WithApproval(true, "author-approved:forge-cli:g12-k");
+
+    AssistedModel3DGenerationApplyResult? plan = null;
+    AssistedModel3DGenerationApplyResult? applied = null;
+    if (approved)
+    {
+        var loaded = AssetExternalEditStore.Load(workspaceRoot);
+        if (!loaded.Succeeded)
+            throw new InvalidDataException(loaded.Diagnostics[0].Message);
+        var state = new AssetExternalEditState(loaded.Configurations);
+        var handler = new ApplyAssistedModel3DGenerationHandler(new SystemClock());
+        var transactionId = StableGuid($"openrpg-forge:cli:model3d:transaction:{slug}");
+        var planId = StableGuid($"openrpg-forge:cli:model3d:plan:{slug}");
+        var command = new ApplyAssistedModel3DGenerationCommand(
+            CommandId.From(StableGuid($"openrpg-forge:cli:model3d:command:{slug}")), transactionId, planId,
+            state.Revision, proposal, AssistantPermissionLevel.ApplyApprovedPlan, DryRun: true);
+        plan = handler.Handle(workspaceRoot, state, command);
+        if (!plan.Succeeded)
+            throw new InvalidOperationException(string.Join(" | ", plan.Diagnostics));
+        if (apply)
+        {
+            applied = handler.Handle(workspaceRoot, state, command with
+            {
+                CommandId = CommandId.From(StableGuid($"openrpg-forge:cli:model3d:apply:{slug}")),
+                DryRun = false,
+            });
+            if (!applied.Succeeded)
+                throw new InvalidOperationException(string.Join(" | ", applied.Diagnostics));
+        }
+    }
+
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = true,
+        approved,
+        applied = applied?.Applied ?? false,
+        proposal.Receipt.SourceRelativePath,
+        proposal.ReceiptRelativePath,
+        proposal.Receipt.OutputRelativePath,
+        proposal.Receipt.SourceSha256,
+        proposal.Receipt.SourceTriangleCount,
+        proposal.Receipt.LicenseSpdx,
+        provider = proposal.Receipt.Provider.Key,
+        tests = proposal.Tests,
+        plan = plan?.SemanticDiff,
+        patches = plan?.Patches.Select(item => item.RelativePath),
+    }));
+    Console.WriteLine($"OPENRPG_FORGE_G12K_MODEL3D_CLI_PASS mode={(apply ? "applied" : approved ? "planned" : "preview")} " +
+                      $"provider={proposal.Receipt.Provider.Key} input={proposal.Receipt.InputKind.ToString().ToLowerInvariant()} " +
+                      $"license={proposal.Receipt.LicenseSpdx} triangles={proposal.Receipt.SourceTriangleCount} " +
+                      $"tests={proposal.Tests.Count(item => item.Passed)} staging=hashed");
+    return 0;
 }
 
 static int InstallAssetPack(IReadOnlyList<string> arguments)
@@ -1983,6 +2081,14 @@ static string HashFileSha256(string path)
 {
     using var stream = File.OpenRead(path);
     return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
+}
+
+static Guid StableGuid(string value)
+{
+    var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
+    bytes[6] = (byte)((bytes[6] & 0x0f) | 0x50);
+    bytes[8] = (byte)((bytes[8] & 0x3f) | 0x80);
+    return new Guid(bytes[..16]);
 }
 
 static string RequireOption(IReadOnlyDictionary<string, string> options, string key) =>
