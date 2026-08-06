@@ -69,6 +69,8 @@ public partial class ProjectPreview3D : SubViewportContainer
     private int _terrainTriangles;
     private int _terrainCollisionShapes;
     private int _terrainFeatureSegments;
+    private int _terrainScatterLayers;
+    private int _terrainScatterInstances;
     private int _volumetricDebugVolumes;
     private int _flightRouteSegments;
     private GodotAssetModelLibrary? _modelLibrary;
@@ -110,6 +112,10 @@ public partial class ProjectPreview3D : SubViewportContainer
     public int TerrainCollisionShapeCount => _terrainCollisionShapes;
 
     public int TerrainFeatureSegmentCount => _terrainFeatureSegments;
+
+    public int TerrainScatterLayerCount => _terrainScatterLayers;
+
+    public int TerrainScatterInstanceCount => _terrainScatterInstances;
 
     public int VolumetricDebugVolumeCount => _volumetricDebugVolumes;
 
@@ -299,6 +305,8 @@ public partial class ProjectPreview3D : SubViewportContainer
         _terrainTriangles = 0;
         _terrainCollisionShapes = 0;
         _terrainFeatureSegments = 0;
+        _terrainScatterLayers = 0;
+        _terrainScatterInstances = 0;
         _volumetricDebugVolumes = 0;
         _flightRouteSegments = 0;
         _entityNodes.Clear();
@@ -1297,7 +1305,9 @@ public partial class ProjectPreview3D : SubViewportContainer
 
     private void ApplyAreaWorld(AreaWorldProfile profile, AreaNavigationDefinition navigation)
     {
-        var result = GodotTerrainAdapter.Build(profile);
+        var result = GodotTerrainAdapter.Build(
+            profile,
+            _modelLibrary is null ? null : _modelLibrary.ResolveScatterMesh);
         var surfaceNavigation = GodotSurfaceNavigationAdapter.Build(profile, navigation);
         result.Root.AddChild(surfaceNavigation.Root);
         _areaRoot!.AddChild(result.Root);
@@ -1305,6 +1315,8 @@ public partial class ProjectPreview3D : SubViewportContainer
         _terrainTriangles = result.Triangles;
         _terrainCollisionShapes = result.CollisionShapes;
         _terrainFeatureSegments = result.FeatureSegments;
+        _terrainScatterLayers = result.ScatterLayers;
+        _terrainScatterInstances = result.ScatterInstances;
         _volumetricDebugVolumes = result.DebugVolumes;
         _flightRouteSegments = result.FlightRouteSegments;
         foreach (var diagnostic in result.Diagnostics)
@@ -1320,6 +1332,7 @@ public partial class ProjectPreview3D : SubViewportContainer
             $"OPENRPG_FORGE_TOOLSET_TERRAIN_APPLIED provider={profile.Terrain.Provider.ToString().ToLowerInvariant()} " +
             $"vertices={result.Vertices} triangles={result.Triangles} collisions={result.CollisionShapes} " +
             $"features={result.FeatureSegments} volumes={result.DebugVolumes} routes={result.FlightRouteSegments} " +
+            $"scatter_layers={result.ScatterLayers} scatter_instances={result.ScatterInstances} " +
             $"water_surfaces={result.WaterSurfaces} water_volumes={result.WaterVolumes} " +
             $"nav_regions={surfaceNavigation.Regions} nav_polygons={surfaceNavigation.Polygons} " +
             $"nav_blocked={surfaceNavigation.BlockedTriangles} nav_links={surfaceNavigation.Links}");

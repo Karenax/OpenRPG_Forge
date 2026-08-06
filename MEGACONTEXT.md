@@ -603,7 +603,7 @@ transactionnelle des manifestes pour persister dimensions X/Y/Z, métriques 3D, 
 compatibilité, miniature et rapport qualité. Le Content Browser préfère la miniature du workspace et
 affiche dimensions, triangles, score et réalisme ; un artefact altéré après le worker est refusé.
 
-L’incrément AV3 suivant ferme l’installation et le placement interactif. Depuis le Content Browser,
+L’incrément AV3 d’installation et placement interactif est fermé. Depuis le Content Browser,
 un GLB canonique gouverné peut être préparé puis installé comme blueprint ProjectContent stable et
 favori. Sa provenance conserve UUID d’asset, manifeste, auteur, SPDX et hash. Le bouton de placement
 et le glisser-déposer existant créent l’entité avec `visual.asset` dans la même commande
@@ -611,6 +611,13 @@ transactionnelle ; aucun nœud moteur ne devient source de vérité. Creator et 
 même GLB par un chargeur partagé qui confine le chemin au workspace et revérifie le SHA-256 du chunk.
 Le smoke Creator charge réellement un GLB dans le viewport, tandis que Forgotten Forest conserve la
 preuve de 18 modèles de production issus de 22 manifestes.
+
+AV3 relie aussi les blueprints d’assets installés aux recettes de biome existantes dans Terrain
+Studio. La brosse canonique « Matériau/biome » peint le matériau de la cellule, qui sélectionne la
+recette de dispersion correspondante sans créer de scène ou de format parallèle. Un planificateur
+déterministe partagé respecte altitude, pente, trous, exclusions et distances ; Creator et runtime
+le rendent par le même `MultiMesh` et résolvent les GLB par le même manifeste vérifié. Le smoke
+Creator prouve désormais simultanément un modèle placé et une couche dispersée réellement visibles.
 
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de

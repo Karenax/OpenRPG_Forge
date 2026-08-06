@@ -1,4 +1,5 @@
 #if TOOLS
+using Forge.Application.Assets;
 using Forge.Application.Areas;
 using Forge.Application.Projects;
 using Forge.Domain.Areas;
@@ -27,6 +28,10 @@ public partial class TerrainStudioWindow : Window
     private LineEdit? _rockColor;
     private SpinBox? _meadowDensity;
     private SpinBox? _rockSlope;
+    private OptionButton? _meadowScatter;
+    private OptionButton? _rockScatter;
+    private readonly List<string> _meadowScatterResources = [];
+    private readonly List<string> _rockScatterResources = [];
     private OptionButton? _brushOperation;
     private SpinBox? _brushX;
     private SpinBox? _brushZ;
@@ -162,7 +167,7 @@ public partial class TerrainStudioWindow : Window
         _brushOperation.AddItem("Abaisser", (int)TerrainBrushOperation.Lower);
         _brushOperation.AddItem("Aplanir vers Y", (int)TerrainBrushOperation.Flatten);
         _brushOperation.AddItem("Lisser", (int)TerrainBrushOperation.Smooth);
-        _brushOperation.AddItem("Peindre un matériau", (int)TerrainBrushOperation.PaintMaterial);
+        _brushOperation.AddItem("Peindre un matériau / biome", (int)TerrainBrushOperation.PaintMaterial);
         _brushOperation.AddItem("Ouvrir un trou", (int)TerrainBrushOperation.OpenHole);
         _brushOperation.AddItem("Refermer un trou", (int)TerrainBrushOperation.CloseHole);
         brush.AddChild(FieldRow("Opération", _brushOperation));
@@ -238,11 +243,15 @@ public partial class TerrainStudioWindow : Window
         var biomes = Card(columns, "RECETTES DE BIOME");
         _meadowDensity = Spin(0, 1, .45, .05);
         _rockSlope = Spin(0, 90, 32, 1);
+        _meadowScatter = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _rockScatter = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         biomes.AddChild(FieldRow("Densité prairie", _meadowDensity));
         biomes.AddChild(FieldRow("Roche dès (°)", _rockSlope));
+        biomes.AddChild(FieldRow("Asset prairie", _meadowScatter));
+        biomes.AddChild(FieldRow("Asset roche", _rockScatter));
         biomes.AddChild(new Label
         {
-            Text = "Les couches échantillonnent altitude, pente, humidité et exclusions. Elles ne possèdent jamais le terrain.",
+            Text = "Les couches échantillonnent altitude, pente, humidité et exclusions. La brosse Matériau/biome force localement la recette et sa dispersion, sans dupliquer le terrain.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
     }
@@ -422,6 +431,14 @@ public partial class TerrainStudioWindow : Window
         }
         _meadowDensity!.Value = profile.Biomes.FirstOrDefault(item => item.Tags.Contains("meadow"))?.ScatterDensity ?? .45;
         _rockSlope!.Value = profile.Biomes.FirstOrDefault(item => item.Tags.Contains("rock"))?.MinimumSlopeDegrees ?? 32;
+        PopulateScatterResourceOptions(
+            _meadowScatter!,
+            _meadowScatterResources,
+            profile.Biomes.FirstOrDefault(item => item.Tags.Contains("meadow"))?.ScatterResource ?? string.Empty);
+        PopulateScatterResourceOptions(
+            _rockScatter!,
+            _rockScatterResources,
+            profile.Biomes.FirstOrDefault(item => item.Tags.Contains("rock"))?.ScatterResource ?? string.Empty);
         _road!.ButtonPressed = profile.Features.Any(item => item.Kind == TerrainFeatureKind.Road);
         _river!.ButtonPressed = profile.Features.Any(item => item.Kind == TerrainFeatureKind.River);
         _bridge!.ButtonPressed = profile.Features.Any(item => item.Kind == TerrainFeatureKind.Bridge);
@@ -484,11 +501,13 @@ public partial class TerrainStudioWindow : Window
                 [
                     new(_current.Biomes.FirstOrDefault(item => item.Tags.Contains("meadow"))?.Id ?? Guid.NewGuid(),
                         "Prairie", grass.Id, -512, 512, 0, Math.Max(0, (float)_rockSlope!.Value), 0, 1,
-                        (float)_meadowDensity!.Value, string.Empty, ["meadow", "temperate"], ["water", "road"], 20,
+                        (float)_meadowDensity!.Value, SelectedScatterResource(_meadowScatter!, _meadowScatterResources),
+                        ["meadow", "temperate", "ground-cover"], ["water", "road"], 20,
                         "toolset:terrain-studio"),
                     new(_current.Biomes.FirstOrDefault(item => item.Tags.Contains("rock"))?.Id ?? Guid.NewGuid(),
                         "Roche", rock.Id, -512, 512, Math.Max(0, (float)_rockSlope.Value), 90, 0, 1,
-                        .08f, string.Empty, ["rock", "cliff"], ["water"], 30, "toolset:terrain-studio"),
+                        .08f, SelectedScatterResource(_rockScatter!, _rockScatterResources),
+                        ["rock", "cliff"], ["water"], 30, "toolset:terrain-studio"),
                 ];
             var features = BuildFeatures(area, _current);
             var modes = VolumetricNavigationMode.None;
@@ -596,6 +615,41 @@ public partial class TerrainStudioWindow : Window
 
     private static string ColorValue(string value, string fallback) =>
         string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+
+    private void PopulateScatterResourceOptions(OptionButton button, List<string> resources, string selectedResource)
+    {
+        button.Clear();
+        resources.Clear();
+        button.AddItem("Aucun asset · dispersion désactivée");
+        resources.Add(string.Empty);
+
+        var blueprints = _state?.Invoke()?.Project.Blueprints ?? [];
+        foreach (var blueprint in blueprints.OrderBy(candidate => candidate.DisplayName, StringComparer.CurrentCulture))
+        {
+            if (!AssetBlueprintFactory.TryGetAssetId(blueprint, out var assetId) || assetId is null) continue;
+            var resource = $"asset:{assetId}";
+            if (resources.Contains(resource, StringComparer.Ordinal)) continue;
+            button.AddItem($"{blueprint.DisplayName} · installé");
+            resources.Add(resource);
+        }
+
+        var selectedIndex = resources.FindIndex(candidate =>
+            string.Equals(candidate, selectedResource, StringComparison.Ordinal));
+        if (selectedIndex < 0 && !string.IsNullOrWhiteSpace(selectedResource))
+        {
+            button.AddItem($"Manquant · {selectedResource}");
+            resources.Add(selectedResource);
+            selectedIndex = resources.Count - 1;
+        }
+
+        button.Selected = Math.Max(0, selectedIndex);
+    }
+
+    private static string SelectedScatterResource(OptionButton button, IReadOnlyList<string> resources)
+    {
+        var selected = button.Selected;
+        return selected >= 0 && selected < resources.Count ? resources[selected] : string.Empty;
+    }
 
     private static HBoxContainer Tab(TabContainer tabs, string name)
     {

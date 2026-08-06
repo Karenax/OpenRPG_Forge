@@ -491,7 +491,9 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Ajouter installation à la demande, glisser-déposer et intégration au placement existant :
   un asset GLB gouverné devient un blueprint ProjectContent favori, le placement conserve
   `visual.asset` dans la même commande et Creator/runtime partagent le chargeur avec contrôle SHA-256.
-- [ ] Préparer les brosses de dispersion et recettes de biome sans dupliquer les systèmes de scène.
+- [x] Préparer les brosses de dispersion et recettes de biome sans dupliquer les systèmes de scène :
+  la peinture matériau/biome pilote les recettes existantes, les blueprints d’assets installés sont
+  sélectionnables et Creator/runtime partagent le même plan déterministe et le même chargeur GLB.
 - [ ] Faire passer toute mutation IA/MCP par les commandes transactionnelles et la validation de
   licence.
 

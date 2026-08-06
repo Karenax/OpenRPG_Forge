@@ -36,7 +36,9 @@ du moteur 3D.
 
 - une source OBJ en staging doit terminer son round-trip Blender avant installation ;
 - la désinstallation d’un blueprint depuis l’UI et la migration physique de packs restent à livrer ;
-- la dispersion de masse et les recettes de biome constituent la prochaine tranche AV3.
+- la dispersion de masse et les recettes de biome sont fermées séparément par
+  `AV3-BIOME-DISPERSION.md` ;
+- les mutations IA/MCP d’assets constituent la prochaine tranche AV3.
 
 ## Critère de passage
 

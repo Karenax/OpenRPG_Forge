@@ -6,6 +6,8 @@ namespace Forge.EngineAdapter.Assets;
 
 public sealed class GodotAssetModelLibrary
 {
+    private static readonly object ImporterMeshConversionLock = new();
+    private static GltfDocumentExtensionConvertImporterMesh? _importerMeshConversion;
     private readonly string _contentRoot;
     private readonly string _contentRootPrefix;
     private readonly IReadOnlyDictionary<AssetCatalogItemId, AssetPackageManifest> _manifests;
@@ -89,6 +91,7 @@ public sealed class GodotAssetModelLibrary
 
     private static PackedScene LoadRuntimeGltf(string absolute)
     {
+        EnsureImporterMeshConversionRegistered();
         var document = new GltfDocument();
         var state = new GltfState();
         var error = document.AppendFromFile(absolute, state);
@@ -102,6 +105,17 @@ public sealed class GodotAssetModelLibrary
         if (error != Error.Ok)
             throw new InvalidDataException($"GLB runtime scene packing failed for '{absolute}' with error {error}.");
         return packed;
+    }
+
+    private static void EnsureImporterMeshConversionRegistered()
+    {
+        lock (ImporterMeshConversionLock)
+        {
+            if (_importerMeshConversion is not null) return;
+            var extension = new GltfDocumentExtensionConvertImporterMesh();
+            GltfDocument.RegisterGltfDocumentExtension(extension, firstPriority: true);
+            _importerMeshConversion = extension;
+        }
     }
 
     private string ResolveContained(string relativePath)

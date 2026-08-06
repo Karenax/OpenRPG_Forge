@@ -43,6 +43,7 @@ using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
+using Forge.EngineAdapter.Assets;
 using Forge.EngineAdapter.Rendering;
 using Forge.EngineAdapter.World;
 using Forge.ModuleFormat.Build;
@@ -6188,13 +6189,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
             [new TerrainHoleDefinition(Guid.Parse("d1190000-0000-4000-8000-000000000005"),
                 "Entrée de grotte", 2, 3, 1, 1, "smoke:g11-i")],
             string.Empty, string.Empty, string.Empty, "smoke:g11-i");
+        const string meadowScatter = "asset:11111111-1111-5111-8111-111111111111";
+        const string rockScatter = "asset:22222222-2222-5222-8222-222222222222";
         IReadOnlyList<BiomeLayerDefinition> biomes =
         [
             new(Guid.Parse("d1190000-0000-4000-8000-000000000006"), "Prairie", grass.Id,
-                -512, 512, 0, 32, 0, 1, .45f, string.Empty, ["meadow", "temperate"], ["water", "road"], 20,
+                -512, 512, 0, 32, 0, 1, .45f, meadowScatter, ["meadow", "temperate"], ["water", "road"], 20,
                 "smoke:g11-i"),
             new(Guid.Parse("d1190000-0000-4000-8000-000000000007"), "Roche", rock.Id,
-                -512, 512, 28, 90, 0, 1, .08f, string.Empty, ["rock", "cliff"], ["water"], 30,
+                -512, 512, 28, 90, 0, 1, .08f, rockScatter, ["rock", "cliff"], ["water"], 30,
                 "smoke:g11-i"),
         ];
         var road = new TerrainFeatureDefinition(
@@ -6259,6 +6262,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (!path.Succeeded || sculptedSamples == 0 || paintedCells == 0 ||
             terrainPlan.Vertices.Count != 81 || terrainPlan.TriangleCount != 126 ||
             applied.Biomes.Count != 2 || applied.Features.Count != 3 || applied.FlightRoutes.Count != 1 ||
+            applied.Biomes.Single(candidate => candidate.Tags.Contains("meadow")).ScatterResource != meadowScatter ||
+            applied.Biomes.Single(candidate => candidate.Tags.Contains("rock")).ScatterResource != rockScatter ||
             applied.Loading.CacheBudgetMegabytes != 768 ||
             _projectPreview.TerrainVertexCount != 81 || _projectPreview.TerrainTriangleCount != 126 ||
             _projectPreview.TerrainCollisionShapeCount != 1 || _projectPreview.TerrainFeatureSegmentCount != 3 ||
@@ -6279,6 +6284,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 !restored.Terrain.Heights.SequenceEqual(applied.Terrain.Heights) ||
                 !restored.Terrain.MaterialPaint.SequenceEqual(applied.Terrain.MaterialPaint) ||
                 restored.Biomes.Count != 2 || restored.Features.Count != 3 ||
+                restored.Biomes.Single(candidate => candidate.Tags.Contains("meadow")).ScatterResource != meadowScatter ||
+                restored.Biomes.Single(candidate => candidate.Tags.Contains("rock")).ScatterResource != rockScatter ||
                 restored.VolumetricNavigation.Obstacles.Count != 1 || restored.FlightRoutes.Count != 1 ||
                 restored.Loading.CacheBudgetMegabytes != 768)
             {
@@ -6327,7 +6334,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             $"OPENRPG_FORGE_TOOLSET_G11I_TERRAIN_PASS provider=heightmap vertices=81 triangles=126 " +
             $"holes=1 biomes=2 features=3 volumes=3 flight_path={path.Points.Count} streaming=async-cache-cancel " +
             $"sculpt=raise-{sculptedSamples} paint=material-{paintedCells} brush_history=restored " +
-            "history=restored persistence=roundtrip");
+            "history=restored persistence=roundtrip recipes=asset-preserved");
         return true;
     }
 
@@ -7453,6 +7460,34 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var blueprint = AssetBlueprintFactory.Create(item, manifest);
         var sourceProject = _history.State.Project;
         var sourceArea = GetActiveArea();
+        var scatterSource = AreaWorldProfile.CreateDefault(sourceArea.Id, AreaKind.Exterior, sourceArea.Dimensions);
+        var scatterMaterial = scatterSource.Terrain.MaterialLayers.Single(candidate => candidate.Name == "Prairie");
+        var scatterBiome = new BiomeLayerDefinition(
+            Guid.Parse("a83d0000-0000-4000-8000-000000000003"),
+            "Prairie gouvernée AV3",
+            scatterMaterial.Id,
+            -512,
+            512,
+            0,
+            90,
+            0,
+            1,
+            .35f,
+            $"asset:{assetId}",
+            ["ground-cover", "meadow"],
+            [],
+            20,
+            "toolset-smoke:av3");
+        var scatterWorld = new AreaWorldProfile(
+            scatterSource.Id,
+            scatterSource.SchemaVersion,
+            scatterSource.Terrain,
+            [scatterBiome],
+            [],
+            scatterSource.VolumetricNavigation,
+            [],
+            scatterSource.Loading,
+            "toolset-smoke:av3");
         var entity = new EntityInstance(
             EntityId.From(Guid.Parse("a83d0000-0000-4000-8000-000000000002")),
             blueprint.Id,
@@ -7466,11 +7501,34 @@ public partial class ForgeEditorPlugin : EditorPlugin
             sourceProject.Title,
             sourceProject.Module,
             [blueprint],
-            [sourceArea.WithEntities([entity])],
+            [sourceArea.WithWorld(scatterWorld).WithEntities([entity])],
             sourceProject.Dialogues,
             sourceProject.Quests);
         var state = new ProjectState(project, new ProjectRevision(0));
         var manifests = new AssetPackageManifestState([manifest]);
+        var plannedScatter = BiomeScatterPlanBuilder.Build(scatterWorld, scatterBiome);
+        var smokeLibrary = new GodotAssetModelLibrary(root, manifests.Manifests);
+        var resolvedScatterMesh = smokeLibrary.ResolveScatterMesh(scatterBiome.ScatterResource);
+        if (plannedScatter.Count == 0 || resolvedScatterMesh is null)
+        {
+            var modelTree = "unavailable";
+            if (resolvedScatterMesh is null)
+            {
+                var instance = smokeLibrary.Instantiate(assetId.ToString());
+                try
+                {
+                    modelTree = DescribeSmokeNodeTree(instance);
+                }
+                finally
+                {
+                    instance.Free();
+                }
+            }
+            GD.PrintErr(
+                "OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_FAILED scatter_preflight " +
+                $"planned={plannedScatter.Count} manifests={manifests.Manifests.Count} tree={modelTree}");
+            return false;
+        }
         var areaId = project.Areas.First().Id;
         var preview = new ProjectPreview3D { Visible = false };
         _mainPanel.AddChild(preview);
@@ -7487,17 +7545,21 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 (_, _) => null,
                 (_, _) => { });
             preview.Rebuild(project);
-            if (preview.AssetModelInstanceCount != 1)
+            if (preview.AssetModelInstanceCount != 1 || preview.TerrainScatterLayerCount != 1 ||
+                preview.TerrainScatterInstanceCount <= 0)
             {
                 GD.PrintErr(
-                    "OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_FAILED expected=1 " +
-                    $"loaded={preview.AssetModelInstanceCount}");
+                    "OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_FAILED expected_models=1 expected_scatter=1+ " +
+                    $"loaded={preview.AssetModelInstanceCount} scatter_layers={preview.TerrainScatterLayerCount} " +
+                    $"scatter_instances={preview.TerrainScatterInstanceCount}");
                 return false;
             }
 
             GD.Print(
                 $"OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_PASS models={preview.AssetModelInstanceCount} " +
-                $"manifests={manifests.Manifests.Count} visual=governed-glb hash=verified preview=editor");
+                $"manifests={manifests.Manifests.Count} scatter_layers={preview.TerrainScatterLayerCount} " +
+                $"scatter_instances={preview.TerrainScatterInstanceCount} visual=governed-glb hash=verified " +
+                "preview=editor biome_brush=canonical");
             return true;
         }
         finally
@@ -7538,6 +7600,21 @@ public partial class ForgeEditorPlugin : EditorPlugin
         writer.Write((ushort)1);
         writer.Write((ushort)2);
         writer.Write((ushort)0);
+    }
+
+    private static string DescribeSmokeNodeTree(Node root)
+    {
+        var nodes = new List<string>();
+        void Visit(Node node)
+        {
+            nodes.Add(node is MeshInstance3D mesh
+                ? $"{node.GetType().Name}[mesh={mesh.Mesh?.GetType().Name ?? "null"}]"
+                : node.GetType().Name);
+            foreach (Node child in node.GetChildren()) Visit(child);
+        }
+
+        Visit(root);
+        return string.Join(",", nodes);
     }
 
     private bool RunLocalizationWorkspaceSmokeTest()

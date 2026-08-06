@@ -33,6 +33,12 @@ une commande indépendante : les boutons Annuler/Rétablir restaurent le heightm
 viewport, les couleurs de matériau, les collisions et la navigation sont reconstruits depuis ce même
 document canonique.
 
+Dans l’onglet **Terrain & biomes**, les champs **Asset prairie** et **Asset roche** proposent les
+modèles gouvernés installés depuis le Content Browser. Une cellule peinte avec la brosse
+**Matériau / biome** force localement la recette correspondante et sa dispersion ; une cellule
+automatique continue d’utiliser altitude, pente et exclusions. L’aperçu et le jeu utilisent le même
+plan déterministe, le même manifeste et le même contrôle SHA-256.
+
 Le kit Crypte (sol, mur, porte, pilier, personnages et triggers) reste disponible dans le module de
 démonstration ; Forgotten Forest fournit le premier kit extérieur CC0 jouable.
 

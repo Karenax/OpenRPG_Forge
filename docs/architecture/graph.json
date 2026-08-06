@@ -133,24 +133,6 @@
     },
     {
       "evidence": {
-        "line": 63,
-        "path": "src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
-      },
-      "kind": "serializes",
-      "source": "adapter:Forge.EngineAdapter.World.GodotBiomeScatterAdapter",
-      "target": "model:Forge.Domain.Areas.BiomeLayerDefinition"
-    },
-    {
-      "evidence": {
-        "line": 111,
-        "path": "src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
-      },
-      "kind": "serializes",
-      "source": "adapter:Forge.EngineAdapter.World.GodotBiomeScatterAdapter",
-      "target": "model:Forge.Domain.Areas.TerrainDefinition"
-    },
-    {
-      "evidence": {
         "line": 10,
         "path": "src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
       },
@@ -1447,7 +1429,7 @@
     },
     {
       "evidence": {
-        "line": 63,
+        "line": 64,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1456,7 +1438,7 @@
     },
     {
       "evidence": {
-        "line": 6840,
+        "line": 6847,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1465,7 +1447,7 @@
     },
     {
       "evidence": {
-        "line": 6859,
+        "line": 6866,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1474,7 +1456,7 @@
     },
     {
       "evidence": {
-        "line": 6733,
+        "line": 6740,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1483,7 +1465,7 @@
     },
     {
       "evidence": {
-        "line": 5502,
+        "line": 5503,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1717,7 +1699,7 @@
     },
     {
       "evidence": {
-        "line": 617,
+        "line": 624,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1726,7 +1708,7 @@
     },
     {
       "evidence": {
-        "line": 1430,
+        "line": 1437,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1735,7 +1717,7 @@
     },
     {
       "evidence": {
-        "line": 1495,
+        "line": 1502,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1744,7 +1726,7 @@
     },
     {
       "evidence": {
-        "line": 1795,
+        "line": 1802,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1753,7 +1735,7 @@
     },
     {
       "evidence": {
-        "line": 1495,
+        "line": 1502,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1762,7 +1744,7 @@
     },
     {
       "evidence": {
-        "line": 1544,
+        "line": 1551,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1771,7 +1753,7 @@
     },
     {
       "evidence": {
-        "line": 1748,
+        "line": 1755,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1789,7 +1771,7 @@
     },
     {
       "evidence": {
-        "line": 709,
+        "line": 716,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1798,7 +1780,7 @@
     },
     {
       "evidence": {
-        "line": 1495,
+        "line": 1502,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1807,7 +1789,7 @@
     },
     {
       "evidence": {
-        "line": 1545,
+        "line": 1552,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1816,7 +1798,7 @@
     },
     {
       "evidence": {
-        "line": 1597,
+        "line": 1604,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1825,7 +1807,7 @@
     },
     {
       "evidence": {
-        "line": 1689,
+        "line": 1696,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1843,7 +1825,7 @@
     },
     {
       "evidence": {
-        "line": 1400,
+        "line": 1407,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1852,7 +1834,7 @@
     },
     {
       "evidence": {
-        "line": 1495,
+        "line": 1502,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1861,7 +1843,7 @@
     },
     {
       "evidence": {
-        "line": 1546,
+        "line": 1553,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1870,7 +1852,7 @@
     },
     {
       "evidence": {
-        "line": 1597,
+        "line": 1604,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1879,7 +1861,7 @@
     },
     {
       "evidence": {
-        "line": 1764,
+        "line": 1771,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1888,7 +1870,7 @@
     },
     {
       "evidence": {
-        "line": 616,
+        "line": 623,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1897,7 +1879,7 @@
     },
     {
       "evidence": {
-        "line": 616,
+        "line": 623,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1915,7 +1897,7 @@
     },
     {
       "evidence": {
-        "line": 709,
+        "line": 716,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1942,7 +1924,7 @@
     },
     {
       "evidence": {
-        "line": 1401,
+        "line": 1408,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1960,7 +1942,7 @@
     },
     {
       "evidence": {
-        "line": 1781,
+        "line": 1788,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -4062,7 +4044,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.EngineAdapter.Rendering"
+      "target": "namespace:Forge.EngineAdapter.Assets"
     },
     {
       "evidence": {
@@ -4071,16 +4053,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.EngineAdapter.World"
-    },
-    {
-      "evidence": {
-        "line": 49,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
+      "target": "namespace:Forge.EngineAdapter.Rendering"
     },
     {
       "evidence": {
@@ -4089,7 +4062,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Build"
+      "target": "namespace:Forge.EngineAdapter.World"
     },
     {
       "evidence": {
@@ -4098,7 +4071,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Content"
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Build"
     },
     {
       "evidence": {
@@ -4107,7 +4089,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Distribution"
+      "target": "namespace:Forge.ModuleFormat.Content"
     },
     {
       "evidence": {
@@ -4116,16 +4098,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Navigation"
-    },
-    {
-      "evidence": {
-        "line": 54,
-        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Packages"
+      "target": "namespace:Forge.ModuleFormat.Distribution"
     },
     {
       "evidence": {
@@ -4134,7 +4107,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Playtesting"
+      "target": "namespace:Forge.ModuleFormat.Navigation"
     },
     {
       "evidence": {
@@ -4143,7 +4116,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Quality"
+      "target": "namespace:Forge.ModuleFormat.Packages"
+    },
+    {
+      "evidence": {
+        "line": 54,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Playtesting"
     },
     {
       "evidence": {
@@ -4152,11 +4134,20 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
-      "target": "namespace:Forge.ModuleFormat.Workspaces"
+      "target": "namespace:Forge.ModuleFormat.Quality"
     },
     {
       "evidence": {
         "line": 57,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 58,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -4660,7 +4651,7 @@
     },
     {
       "evidence": {
-        "line": 2,
+        "line": 3,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
       },
       "kind": "imports",
@@ -4669,12 +4660,12 @@
     },
     {
       "evidence": {
-        "line": 3,
+        "line": 2,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs",
-      "target": "namespace:Forge.Application.Projects"
+      "target": "namespace:Forge.Application.Assets"
     },
     {
       "evidence": {
@@ -4683,11 +4674,20 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs",
-      "target": "namespace:Forge.Domain.Areas"
+      "target": "namespace:Forge.Application.Projects"
     },
     {
       "evidence": {
         "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
       },
       "kind": "imports",
@@ -4741,7 +4741,7 @@
     },
     {
       "evidence": {
-        "line": 216,
+        "line": 217,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -4981,6 +4981,15 @@
       "kind": "references",
       "source": "file:docs/aurora-parity/README.md",
       "target": "file:docs/aurora-parity/PROJECT_GAP_REPORT.md"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "docs/aurora-parity/tasks/AV3-INSTALL-AND-PLACE.md"
+      },
+      "kind": "references",
+      "source": "file:docs/aurora-parity/tasks/AV3-INSTALL-AND-PLACE.md",
+      "target": "file:docs/aurora-parity/tasks/AV3-BIOME-DISPERSION.md"
     },
     {
       "evidence": {
@@ -11442,6 +11451,24 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.EngineAdapter/Spatial/EngineValueConverter.cs",
+      "target": "namespace:Forge.Domain.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs",
       "target": "namespace:Forge.Domain.Spatial"
     },
     {
@@ -18184,6 +18211,24 @@
       "kind": "imports",
       "source": "file:tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs",
       "target": "namespace:Forge.EngineAdapter.Spatial"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs",
+      "target": "namespace:Forge.EngineAdapter.World"
     },
     {
       "evidence": {
@@ -41299,6 +41344,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.Tests.World",
+      "target": "file:tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
       },
@@ -41314,6 +41368,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.EngineAdapter.Tests.World",
       "target": "file:tests/Forge.EngineAdapter.Tests/World/TerrainBuildPlanBuilderTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.EngineAdapter.World",
+      "target": "file:src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
     },
     {
       "evidence": {
@@ -44611,7 +44674,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 60,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -44755,7 +44818,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
       },
       "kind": "defined_in",
@@ -62215,6 +62278,87 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.EngineAdapter.Tests.World.BiomeScatterPlanBuilderTests",
+      "target": "file:tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 50,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.BiomeScatterPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.BiomeScatterPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.AreaKind"
+    },
+    {
+      "evidence": {
+        "line": 73,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.BiomeScatterPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.BiomeLayerDefinition"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.BiomeScatterPlanBuilderTests",
+      "target": "model:Forge.Domain.Areas.TerrainDefinition"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.BiomeScatterPlanBuilderTests",
+      "target": "type:Forge.Domain.Areas.AreaDimensions"
+    },
+    {
+      "evidence": {
+        "line": 48,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.BiomeScatterPlanBuilderTests",
+      "target": "type:Forge.Domain.Areas.AreaWorldProfile"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.BiomeScatterPlanBuilderTests",
+      "target": "type:Forge.Domain.Areas.TerrainMaterialPaintCell"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.EngineAdapter.Tests.World.BiomeScatterPlanBuilderTests",
+      "target": "type:Forge.EngineAdapter.World.BiomeScatterPlanBuilder"
+    },
+    {
+      "evidence": {
         "line": 8,
         "path": "tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs"
       },
@@ -77426,6 +77570,24 @@
     {
       "evidence": {
         "line": 6,
+        "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.BiomeScatterPlacement",
+      "target": "file:src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.EngineAdapter.World.BiomeScatterPlanBuilder",
+      "target": "file:src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs"
       },
       "kind": "defined_in",
@@ -77434,12 +77596,12 @@
     },
     {
       "evidence": {
-        "line": 138,
-        "path": "src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
+        "line": 114,
+        "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.EngineAdapter.World.StableRandom",
-      "target": "file:src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
+      "target": "file:src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
     },
     {
       "evidence": {
@@ -83023,7 +83185,7 @@
     },
     {
       "evidence": {
-        "line": 8045,
+        "line": 8122,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -83140,7 +83302,7 @@
     },
     {
       "evidence": {
-        "line": 8050,
+        "line": 8127,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -83149,7 +83311,7 @@
     },
     {
       "evidence": {
-        "line": 8055,
+        "line": 8132,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -83158,7 +83320,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 11,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/TerrainStudioWindow.cs"
       },
       "kind": "defined_in",
@@ -84049,8 +84211,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:e5baf98c7c805794d16ad91fc0b837d3ac02da66a5d7066b200beaab8048bc25",
-    "source_file_count": 1504
+    "source_digest": "sha256:e4c190d9f88dbf7e5b1ca7e8a7e19f91e56f327ebe128ba4a0fa6fd64c21000d",
+    "source_file_count": 1507
   },
   "nodes": [
     {
@@ -84936,7 +85098,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 63,
+      "line": 64,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -87712,6 +87874,16 @@
       },
       "name": "AV2-NORMALIZATION-QUALITY.md",
       "path": "docs/aurora-parity/tasks/AV2-NORMALIZATION-QUALITY.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/AV3-BIOME-DISPERSION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "AV3-BIOME-DISPERSION.md",
+      "path": "docs/aurora-parity/tasks/AV3-BIOME-DISPERSION.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/AV3-INSTALL-AND-PLACE.md",
@@ -93854,6 +94026,16 @@
       "path": "src/Forge.EngineAdapter/Spatial/EngineValueConverter.cs"
     },
     {
+      "id": "file:src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BiomeScatterPlanBuilder.cs",
+      "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
+    },
+    {
       "id": "file:src/Forge.EngineAdapter/World/CanonicalTerrainProvider.cs",
       "kind": "file",
       "line": 1,
@@ -97572,6 +97754,16 @@
       },
       "name": "EngineValueConverterTests.cs",
       "path": "tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "BiomeScatterPlanBuilderTests.cs",
+      "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
     },
     {
       "id": "file:tests/Forge.EngineAdapter.Tests/World/SurfaceNavigationPlanBuilderTests.cs",
@@ -110185,6 +110377,16 @@
       "path": "tests/Forge.EngineAdapter.Tests/Spatial/EngineValueConverterTests.cs"
     },
     {
+      "id": "test:Forge.EngineAdapter.Tests.World.BiomeScatterPlanBuilderTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.Tests.World"
+      },
+      "name": "BiomeScatterPlanBuilderTests",
+      "path": "tests/Forge.EngineAdapter.Tests/World/BiomeScatterPlanBuilderTests.cs"
+    },
+    {
       "id": "test:Forge.EngineAdapter.Tests.World.SurfaceNavigationPlanBuilderTests",
       "kind": "test",
       "line": 8,
@@ -116152,6 +116354,26 @@
       "path": "src/Forge.EngineAdapter/Rendering/AreaRenderPlanBuilder.cs"
     },
     {
+      "id": "type:Forge.EngineAdapter.World.BiomeScatterPlacement",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "BiomeScatterPlacement",
+      "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
+    },
+    {
+      "id": "type:Forge.EngineAdapter.World.BiomeScatterPlanBuilder",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.EngineAdapter.World"
+      },
+      "name": "BiomeScatterPlanBuilder",
+      "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
+    },
+    {
       "id": "type:Forge.EngineAdapter.World.CanonicalTerrainProvider",
       "kind": "type",
       "line": 6,
@@ -116164,12 +116386,12 @@
     {
       "id": "type:Forge.EngineAdapter.World.StableRandom",
       "kind": "type",
-      "line": 138,
+      "line": 114,
       "metadata": {
         "namespace": "Forge.EngineAdapter.World"
       },
       "name": "StableRandom",
-      "path": "src/Forge.EngineAdapter/World/GodotBiomeScatterAdapter.cs"
+      "path": "src/Forge.EngineAdapter/World/BiomeScatterPlanBuilder.cs"
     },
     {
       "id": "type:Forge.EngineAdapter.World.SurfaceNavigationLinkPlan",
@@ -122044,7 +122266,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 8045,
+      "line": 8122,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -122134,7 +122356,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 8050,
+      "line": 8127,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -122144,7 +122366,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 8055,
+      "line": 8132,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -122154,7 +122376,7 @@
     {
       "id": "type:Forge.Toolset.Editor.TerrainStudioWindow",
       "kind": "type",
-      "line": 10,
+      "line": 11,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

@@ -428,3 +428,13 @@ transaction les tags de style et l’override `visual.asset`. Creator et runtime
 un modèle invalide reste visible sous forme de placeholder avec diagnostic. Le smoke moteur charge
 un GLB autonome réel dans le viewport sans erreur et le runtime Forgotten Forest continue de prouver
 18 instances issues de 22 manifestes. Cinq tests supplémentaires portent la suite .NET à 713.
+
+**AV3 — brosses de biome et dispersion fermées** : Terrain Studio réutilise la brosse canonique
+« Matériau/biome » et les `BiomeLayerDefinition` existantes. Les recettes prairie et roche peuvent
+désormais choisir un blueprint d’asset installé sans perdre une référence manquante à la sauvegarde.
+Le planificateur déterministe partagé respecte altitude, pente, trous, exclusions de features,
+distance minimale et peinture de matériau ; Creator et runtime le rendent par le même `MultiMesh`.
+Le viewport Creator fournit maintenant le résolveur de manifestes au terrain et expose ses compteurs
+de dispersion. Le smoke GLB a en outre détecté puis fermé la conversion des nœuds glTF d’import en
+maillages runtime réellement visibles. Deux tests ciblés portent la suite .NET à 715 et le smoke
+`OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_PASS` prouve un modèle manuel et deux instances dispersées.
