@@ -562,3 +562,16 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   une preuve Forward+ réelle partagée entre Creator et runtime.
 - [x] Enrichir l’habillage rapproché des secteurs avec une sélection plus variée de modèles et textures
   gouvernés, puis refaire une passe de direction artistique.
+
+## Gate post-MVP — Assistant de création avancée G12
+
+- [x] G12-A/B : Assistant intégré, fournisseurs locaux optionnels, prompts versionnés et lore gouverné.
+- [x] G12-C/D : plans de crypte/village et construction atomique approuvée.
+- [x] G12-E/F : dialogues et quêtes sourcés, simulés, persistants et réversibles.
+- [x] G12-G : création/réparation ForgeScript compilée et testée avant écriture.
+- [x] G12-H : boss canonique multi-domaines validé par 32 simulations.
+- [x] G12-I : capacité canonique validée par cinq scénarios du résolveur de combat.
+- [ ] G12-J : création 3D gouvernée via Blender (`ORF-AI-021`).
+
+Acceptation G12-I : le Toolset et MCP partagent la même proposition, le même dry-run, la même
+transaction et le même undo/redo pour le profil de combat et son document runtime.

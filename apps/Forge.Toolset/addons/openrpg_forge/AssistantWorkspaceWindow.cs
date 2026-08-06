@@ -21,6 +21,7 @@ public partial class AssistantWorkspaceWindow : Window
     private Action? _openAssistedQuests;
     private Action? _openAssistedForgeScripts;
     private Action? _openAssistedBosses;
+    private Action? _openAssistedAbilities;
     private Action? _openLocalization;
     private Action<Window>? _brandWindow;
     private AssistantWorkspaceProfile? _source;
@@ -69,6 +70,7 @@ public partial class AssistantWorkspaceWindow : Window
         Action openAssistedQuests,
         Action openAssistedForgeScripts,
         Action openAssistedBosses,
+        Action openAssistedAbilities,
         Action openLocalization,
         Action<Window> brandWindow)
     {
@@ -84,6 +86,7 @@ public partial class AssistantWorkspaceWindow : Window
         _openAssistedQuests = openAssistedQuests ?? throw new ArgumentNullException(nameof(openAssistedQuests));
         _openAssistedForgeScripts = openAssistedForgeScripts ?? throw new ArgumentNullException(nameof(openAssistedForgeScripts));
         _openAssistedBosses = openAssistedBosses ?? throw new ArgumentNullException(nameof(openAssistedBosses));
+        _openAssistedAbilities = openAssistedAbilities ?? throw new ArgumentNullException(nameof(openAssistedAbilities));
         _openLocalization = openLocalization ?? throw new ArgumentNullException(nameof(openLocalization));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assistant de création · OpenRPG Forge";
@@ -250,6 +253,9 @@ public partial class AssistantWorkspaceWindow : Window
         var bosses = new Button { Text = "Boss assisté" };
         bosses.Pressed += () => _openAssistedBosses?.Invoke();
         footer.AddChild(bosses);
+        var abilities = new Button { Text = "Capacité assistée" };
+        abilities.Pressed += () => _openAssistedAbilities?.Invoke();
+        footer.AddChild(abilities);
         var undo = new Button { Text = "Annuler" };
         undo.Pressed += () => { if (_undo?.Invoke() == true) Refresh(); };
         footer.AddChild(undo);

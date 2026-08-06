@@ -6,6 +6,7 @@ using Forge.Domain.Assets;
 using Forge.Domain.Areas;
 using Forge.Domain.Assistant;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Combat;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Gameplay;
 using Forge.Domain.Projects;
@@ -15,6 +16,7 @@ using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
+using Forge.Mcp.Abilities;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
@@ -24,6 +26,7 @@ using Forge.Mcp.Scripts;
 using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Assets;
 using Forge.RpgKit.Application.Dialogues;
+using Forge.RpgKit.Application.Abilities;
 using Forge.RpgKit.Application.Bosses;
 using Forge.RpgKit.Application.Quests;
 using Forge.Scripting;
@@ -32,6 +35,68 @@ namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void AssistedAbilityMcpTestsPersistsCanonicalCombatMutationAndRevertsIt()
+    {
+        using var workspace = new TestWorkspace();
+        var scriptsDirectory = Path.Combine(workspace.RootDirectory, "scripts");
+        Directory.CreateDirectory(scriptsDirectory);
+        File.WriteAllText(Path.Combine(scriptsDirectory, "assisted_ability.forge"), "void main() {}\n");
+        var before = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var owner = before.Blueprints.First(item => item.Combat is not null && !item.IsReadOnly());
+        var item = before.Blueprints.FirstOrDefault(candidate => candidate.Kind == BlueprintKind.Item);
+        var beforeAbilityCount = before.Blueprints.Where(candidate => candidate.Combat is not null)
+            .Sum(candidate => candidate.Combat!.Abilities.Count);
+        var brief = new AssistedAbilityBrief(
+            Guid.Parse("b1300000-0000-4000-8000-000000000090"), owner.Id.Value,
+            "lance-mcp", "Lance MCP", 0, 5, AbilityTargeting.SingleEnemy,
+            [new AbilityEffect(AbilityEffectKind.Damage, 16)],
+            "vfx.ability.mcp-lance", "audio.ability.mcp-lance", "scripts/assisted_ability.forge",
+            item?.Slug, new HashSet<string>(["ranged", "finisher"], StringComparer.Ordinal),
+            "Attaque concentrée avec un coût et une recharge lisibles.",
+            ["lore:crypt-of-ashes"], ["style:crypt", "combat:telegraphed"], "@mcp-author", 20260806);
+
+        var proposed = workspace.Project.ProposeAssistedAbility(new(1, brief));
+        Assert.True(proposed.Proposal?.CanApply == true,
+            string.Join(" | ", proposed.Proposal?.Diagnostics.Select(diagnostic =>
+                $"{diagnostic.Code}: {diagnostic.Message}") ?? []));
+        var approved = proposed.Proposal!.WithApproval(true, "author-approved:mcp-test:g12-i");
+        var planned = workspace.Project.PlanAssistedAbility(new(1, workspace.Project.GetCurrentRevision(), approved,
+            AssistantPermissionLevel.ApplyApprovedPlan));
+        Assert.True(planned.Succeeded,
+            string.Join(" | ", planned.Diagnostics.Select(diagnostic => $"{diagnostic.Code}: {diagnostic.Message}")));
+        var applied = workspace.Project.ApplyAssistedAbilityPlan(planned.PlanId!);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var reverted = workspace.Project.RevertAssistedAbilityPlan(planned.PlanId!);
+        var restored = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+
+        Assert.True(proposed.Succeeded);
+        Assert.True(proposed.Proposal.CanApply);
+        Assert.Equal(5, proposed.Proposal.Tests.Count);
+        Assert.All(proposed.Proposal.Tests, scenario => Assert.True(scenario.Passed));
+        Assert.True(proposed.Proposal.Balance.Passed);
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.NotNull(planned.Diff);
+        Assert.Equal(5, planned.PassedTests);
+        Assert.True(planned.BalancePassed);
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.Equal(beforeAbilityCount + 1, persisted.Blueprints.Where(candidate => candidate.Combat is not null)
+            .Sum(candidate => candidate.Combat!.Abilities.Count));
+        Assert.Equal(before.Module.RuntimePolicies.Extensions.JsonDocuments.Count + 1,
+            persisted.Module.RuntimePolicies.Extensions.JsonDocuments.Count);
+        Assert.Contains(persisted.Module.RuntimePolicies.Extensions.JsonDocuments,
+            document => document.Key == "ability.lance-mcp" &&
+                        document.InitialValue.Contains("\"tests\"", StringComparison.Ordinal));
+        Assert.True(reverted.Succeeded);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(beforeAbilityCount, restored.Blueprints.Where(candidate => candidate.Combat is not null)
+            .Sum(candidate => candidate.Combat!.Abilities.Count));
+        Assert.Equal(before.Module.RuntimePolicies.Extensions.JsonDocuments.Count,
+            restored.Module.RuntimePolicies.Extensions.JsonDocuments.Count);
+    }
+
     [Fact]
     public void AssistedBossMcpProposesSimulatesPersistsAtomicPackageAndRevertsIt()
     {

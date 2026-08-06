@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Forge.Application.Validation;
 using Forge.Mcp;
+using Forge.Mcp.Abilities;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Bosses;
@@ -159,6 +160,26 @@ public sealed class ForgeMcpTools
     [Description("Atomically reverts the latest assisted boss package through canonical project history.")]
     public AssistedBossApplyPlanResult RevertAssistedBossPlan(string planId) =>
         _project.RevertAssistedBossPlan(planId);
+
+    [McpServerTool]
+    [Description("Uses the deterministic offline assistant to create a canonical combat ability with targeting, costs, effects, cues, AI tags, dependencies, five combat tests and balance notes without mutation.")]
+    public AssistedAbilityProposalResource ProposeAssistedAbility(AssistedAbilityProposalRequest request) =>
+        _project.ProposeAssistedAbility(request);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an explicitly approved assisted ability through the canonical project command.")]
+    public AssistedAbilityApplyPlanResult PlanAssistedAbility(AssistedAbilityApplyPlanRequest request) =>
+        _project.PlanAssistedAbility(request);
+
+    [McpServerTool]
+    [Description("Applies a previously previewed ability and persists its owner combat profile and runtime orchestration document atomically.")]
+    public AssistedAbilityApplyPlanResult ApplyAssistedAbilityPlan(string planId) =>
+        _project.ApplyAssistedAbilityPlan(planId);
+
+    [McpServerTool]
+    [Description("Atomically reverts the latest assisted ability through canonical project history.")]
+    public AssistedAbilityApplyPlanResult RevertAssistedAbilityPlan(string planId) =>
+        _project.RevertAssistedAbilityPlan(planId);
 
     [McpServerTool]
     [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]

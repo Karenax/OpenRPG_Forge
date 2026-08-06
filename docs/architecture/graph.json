@@ -1588,7 +1588,7 @@
     },
     {
       "evidence": {
-        "line": 69,
+        "line": 70,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -1597,7 +1597,7 @@
     },
     {
       "evidence": {
-        "line": 7382,
+        "line": 7442,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1606,7 +1606,7 @@
     },
     {
       "evidence": {
-        "line": 7401,
+        "line": 7461,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1615,7 +1615,7 @@
     },
     {
       "evidence": {
-        "line": 7275,
+        "line": 7335,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1624,7 +1624,7 @@
     },
     {
       "evidence": {
-        "line": 6038,
+        "line": 6098,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1633,7 +1633,7 @@
     },
     {
       "evidence": {
-        "line": 8571,
+        "line": 8631,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -2461,7 +2461,7 @@
     },
     {
       "evidence": {
-        "line": 190,
+        "line": 191,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2470,7 +2470,7 @@
     },
     {
       "evidence": {
-        "line": 259,
+        "line": 260,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2479,7 +2479,7 @@
     },
     {
       "evidence": {
-        "line": 103,
+        "line": 104,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2574,16 +2574,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
-      "target": "namespace:Forge.Mcp.Assets"
-    },
-    {
-      "evidence": {
-        "line": 6,
-        "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
-      "target": "namespace:Forge.Mcp.Bosses"
+      "target": "namespace:Forge.Mcp.Abilities"
     },
     {
       "evidence": {
@@ -2592,16 +2583,7 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
-    },
-    {
-      "evidence": {
-        "line": 8,
-        "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
-      },
-      "kind": "imports",
-      "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
-      "target": "namespace:Forge.Mcp.Projects"
+      "target": "namespace:Forge.Mcp.Assets"
     },
     {
       "evidence": {
@@ -2610,7 +2592,16 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
-      "target": "namespace:Forge.Mcp.Quests"
+      "target": "namespace:Forge.Mcp.Bosses"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
     },
     {
       "evidence": {
@@ -2619,11 +2610,29 @@
       },
       "kind": "imports",
       "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
+      "target": "namespace:Forge.Mcp.Projects"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
+      "target": "namespace:Forge.Mcp.Quests"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.McpHost/ForgeMcpTools.cs",
       "target": "namespace:Forge.Mcp.Scripts"
     },
     {
       "evidence": {
-        "line": 11,
+        "line": 12,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "imports",
@@ -2632,7 +2641,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 11,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "imports",
@@ -3556,6 +3565,69 @@
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs",
       "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs",
+      "target": "namespace:Forge.Application.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs",
+      "target": "namespace:Forge.Domain.Combat"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs",
+      "target": "namespace:Forge.RpgKit.Application.Abilities"
     },
     {
       "evidence": {
@@ -4657,6 +4729,15 @@
     },
     {
       "evidence": {
+        "line": 60,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs",
+      "target": "namespace:Forge.RpgKit.Application.Abilities"
+    },
+    {
+      "evidence": {
         "line": 61,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
@@ -4666,7 +4747,7 @@
     },
     {
       "evidence": {
-        "line": 60,
+        "line": 62,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -4675,7 +4756,7 @@
     },
     {
       "evidence": {
-        "line": 62,
+        "line": 63,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -4684,7 +4765,7 @@
     },
     {
       "evidence": {
-        "line": 63,
+        "line": 64,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "imports",
@@ -5305,7 +5386,7 @@
     },
     {
       "evidence": {
-        "line": 230,
+        "line": 232,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -5314,7 +5395,7 @@
     },
     {
       "evidence": {
-        "line": 302,
+        "line": 309,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -13396,6 +13477,42 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs",
+      "target": "namespace:Forge.RpgKit.Application.Abilities"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
       },
@@ -13720,39 +13837,12 @@
     },
     {
       "evidence": {
-        "line": 24,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Assets"
-    },
-    {
-      "evidence": {
-        "line": 22,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Bosses"
-    },
-    {
-      "evidence": {
         "line": 21,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
-    },
-    {
-      "evidence": {
-        "line": 23,
-        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
-      },
-      "kind": "imports",
-      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.Mcp.Quests"
+      "target": "namespace:Forge.Mcp.Abilities"
     },
     {
       "evidence": {
@@ -13761,11 +13851,47 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Assets"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Bosses"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.Mcp.Quests"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
       "target": "namespace:Forge.Mcp.Scripts"
     },
     {
       "evidence": {
-        "line": 32,
+        "line": 34,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -13774,7 +13900,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 35,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -13783,7 +13909,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 32,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -13792,7 +13918,7 @@
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 31,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -13806,16 +13932,16 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.RpgKit.Application.Bosses"
+      "target": "namespace:Forge.RpgKit.Application.Abilities"
     },
     {
       "evidence": {
-        "line": 26,
+        "line": 29,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
-      "target": "namespace:Forge.RpgKit.Application.Dialogues"
+      "target": "namespace:Forge.RpgKit.Application.Bosses"
     },
     {
       "evidence": {
@@ -13824,11 +13950,20 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
+      "target": "namespace:Forge.RpgKit.Application.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs",
       "target": "namespace:Forge.RpgKit.Application.Quests"
     },
     {
       "evidence": {
-        "line": 31,
+        "line": 33,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "imports",
@@ -15647,6 +15782,150 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs",
+      "target": "namespace:Forge.Domain.RuntimeExtensions"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs",
+      "target": "namespace:Forge.Application.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs",
+      "target": "namespace:Forge.Domain.Combat"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs",
+      "target": "namespace:Forge.Domain.RuntimeExtensions"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Abilities"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.RpgKit.Application/Bosses/ApplyAssistedBossHandler.cs"
       },
       "kind": "imports",
@@ -16165,6 +16444,24 @@
       "kind": "imports",
       "source": "file:src/Forge.RpgKit.Application/Triggers/TriggerShapeAuthoringService.cs",
       "target": "namespace:Forge.RpgKit.Domain.Triggers"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs",
+      "target": "namespace:Forge.Domain.Combat"
     },
     {
       "evidence": {
@@ -21546,7 +21843,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Dialogues"
+      "target": "namespace:Forge.Domain.Combat"
     },
     {
       "evidence": {
@@ -21555,7 +21852,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Gameplay"
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -21564,25 +21861,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Projects"
-    },
-    {
-      "evidence": {
-        "line": 14,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "imports",
-      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Rules"
-    },
-    {
-      "evidence": {
-        "line": 13,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "imports",
-      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.RuntimeExtensions"
+      "target": "namespace:Forge.Domain.Gameplay"
     },
     {
       "evidence": {
@@ -21591,7 +21870,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.RuntimePolicies"
+      "target": "namespace:Forge.Domain.Projects"
     },
     {
       "evidence": {
@@ -21600,7 +21879,25 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Sequences"
+      "target": "namespace:Forge.Domain.Rules"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Domain.RuntimeExtensions"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Domain.RuntimePolicies"
     },
     {
       "evidence": {
@@ -21609,7 +21906,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Spatial"
+      "target": "namespace:Forge.Domain.Sequences"
     },
     {
       "evidence": {
@@ -21618,25 +21915,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Domain.Validation"
-    },
-    {
-      "evidence": {
-        "line": 21,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "imports",
-      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Assets"
-    },
-    {
-      "evidence": {
-        "line": 19,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "imports",
-      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Bosses"
+      "target": "namespace:Forge.Domain.Spatial"
     },
     {
       "evidence": {
@@ -21645,25 +21924,16 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Dialogues"
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
-        "line": 22,
+        "line": 19,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Projects"
-    },
-    {
-      "evidence": {
-        "line": 20,
-        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
-      },
-      "kind": "imports",
-      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Quests"
+      "target": "namespace:Forge.Mcp.Abilities"
     },
     {
       "evidence": {
@@ -21672,16 +21942,25 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.Mcp.Scripts"
+      "target": "namespace:Forge.Mcp.Assets"
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 21,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.ModuleFormat.Assets"
+      "target": "namespace:Forge.Mcp.Bosses"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
     },
     {
       "evidence": {
@@ -21690,7 +21969,25 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.ModuleFormat.Workspaces"
+      "target": "namespace:Forge.Mcp.Projects"
+    },
+    {
+      "evidence": {
+        "line": 22,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Quests"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.Mcp.Scripts"
     },
     {
       "evidence": {
@@ -21699,7 +21996,7 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.RpgKit.Application.Bosses"
+      "target": "namespace:Forge.ModuleFormat.Assets"
     },
     {
       "evidence": {
@@ -21708,7 +22005,25 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
-      "target": "namespace:Forge.RpgKit.Application.Dialogues"
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Application.Abilities"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Application.Bosses"
     },
     {
       "evidence": {
@@ -21717,11 +22032,20 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Application.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs",
       "target": "namespace:Forge.RpgKit.Application.Quests"
     },
     {
       "evidence": {
-        "line": 29,
+        "line": 32,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "imports",
@@ -23518,6 +23842,96 @@
       "kind": "imports",
       "source": "file:tests/Forge.Network.Tests/WorldAuthorityTests.cs",
       "target": "namespace:Forge.Network.World"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "target": "namespace:Forge.Application.Projects"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "target": "namespace:Forge.Domain.Areas"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "target": "namespace:Forge.Domain.Blueprints"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "target": "namespace:Forge.Domain.Combat"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "target": "namespace:Forge.Domain.Projects"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Application.Abilities"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "target": "namespace:Forge.RpgKit.Domain.Abilities"
     },
     {
       "evidence": {
@@ -31324,6 +31738,105 @@
     },
     {
       "evidence": {
+        "line": 32,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 128,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 81,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 107,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 57,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "model:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityCommand"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "target": "model:Forge.RpgKit.Application.Abilities.AssistedAbilityApplyResult"
+    },
+    {
+      "evidence": {
         "line": 31,
         "path": "src/Forge.RpgKit.Application/Bosses/ApplyAssistedBossHandler.cs"
       },
@@ -37012,6 +37525,51 @@
     },
     {
       "evidence": {
+        "line": 21,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Abilities.AssistedAbilityApplyPlanResult",
+      "target": "file:src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 28,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Abilities.AssistedAbilityApplyPlanResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Abilities.AssistedAbilityApplyPlanResult",
+      "target": "model:Forge.Domain.Combat.AbilityId"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Abilities.AssistedAbilityApplyPlanResult",
+      "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 41,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Abilities.AssistedAbilityApplyPlanResult",
+      "target": "model:Forge.Mcp.Dialogues.PlanAuditEntry"
+    },
+    {
+      "evidence": {
         "line": 13,
         "path": "src/Forge.Mcp/AgentDiagnostic.cs"
       },
@@ -37381,7 +37939,7 @@
     },
     {
       "evidence": {
-        "line": 3072,
+        "line": 3274,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -37390,7 +37948,7 @@
     },
     {
       "evidence": {
-        "line": 3074,
+        "line": 3276,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "relationship",
@@ -39019,6 +39577,60 @@
     },
     {
       "evidence": {
+        "line": 15,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityCommand",
+      "target": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Application.Abilities.AssistedAbilityApplyResult",
+      "target": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Abilities.AssistedAbilityApplyResult",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Abilities.AssistedAbilityApplyResult",
+      "target": "model:Forge.Application.Commands.CommandResult"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Application.Abilities.AssistedAbilityApplyResult",
+      "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
         "line": 14,
         "path": "src/Forge.RpgKit.Application/Bosses/ApplyAssistedBossHandler.cs"
       },
@@ -39421,6 +40033,51 @@
       "kind": "defined_in",
       "source": "model:Forge.RpgKit.Application.Triggers.TriggerShapeEditResult",
       "target": "file:src/Forge.RpgKit.Application/Triggers/TriggerShapeAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 38,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Abilities.AbilityDiagnostic",
+      "target": "file:src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationDefinition",
+      "target": "file:src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationDefinition",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationDefinition",
+      "target": "model:Forge.Domain.Combat.AbilityDefinition"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.RpgKit.Domain.Abilities.AbilityTestKind",
+      "target": "file:src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
     },
     {
       "evidence": {
@@ -47875,6 +48532,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Mcp.Abilities",
+      "target": "file:src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Mcp/Assets/AssetCatalogContracts.cs"
       },
@@ -47983,7 +48649,7 @@
     },
     {
       "evidence": {
-        "line": 34,
+        "line": 36,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -48118,7 +48784,7 @@
     },
     {
       "evidence": {
-        "line": 30,
+        "line": 33,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -48154,7 +48820,7 @@
     },
     {
       "evidence": {
-        "line": 13,
+        "line": 14,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "defined_in",
@@ -49810,6 +50476,24 @@
     },
     {
       "evidence": {
+        "line": 12,
+        "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Application.Abilities",
+      "target": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Application.Abilities",
+      "target": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "src/Forge.RpgKit.Application/Bosses/ApplyAssistedBossHandler.cs"
       },
@@ -49924,6 +50608,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Application.Triggers",
       "target": "file:src/Forge.RpgKit.Application/Triggers/TriggerShapeAuthoringService.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Abilities",
+      "target": "file:src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
     },
     {
       "evidence": {
@@ -50275,6 +50968,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.RpgKit.Domain.Scripting",
       "target": "file:src/Forge.RpgKit.Domain/Scripting/ScriptWorldService.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.RpgKit.Domain.Tests.Abilities",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
     },
     {
       "evidence": {
@@ -51025,6 +51727,15 @@
     },
     {
       "evidence": {
+        "line": 10,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAreaPlanWindow.cs"
       },
@@ -51151,7 +51862,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 66,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -53059,7 +53770,7 @@
     },
     {
       "evidence": {
-        "line": 37,
+        "line": 39,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -53068,7 +53779,7 @@
     },
     {
       "evidence": {
-        "line": 1468,
+        "line": 1473,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53077,7 +53788,7 @@
     },
     {
       "evidence": {
-        "line": 517,
+        "line": 522,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53086,7 +53797,7 @@
     },
     {
       "evidence": {
-        "line": 424,
+        "line": 429,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53095,7 +53806,7 @@
     },
     {
       "evidence": {
-        "line": 237,
+        "line": 242,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53104,7 +53815,7 @@
     },
     {
       "evidence": {
-        "line": 2315,
+        "line": 2445,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53113,7 +53824,7 @@
     },
     {
       "evidence": {
-        "line": 238,
+        "line": 243,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53122,7 +53833,7 @@
     },
     {
       "evidence": {
-        "line": 2081,
+        "line": 2211,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53131,7 +53842,7 @@
     },
     {
       "evidence": {
-        "line": 2243,
+        "line": 2373,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53140,7 +53851,7 @@
     },
     {
       "evidence": {
-        "line": 92,
+        "line": 96,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53149,7 +53860,7 @@
     },
     {
       "evidence": {
-        "line": 1157,
+        "line": 1162,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53158,7 +53869,7 @@
     },
     {
       "evidence": {
-        "line": 839,
+        "line": 844,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53167,7 +53878,7 @@
     },
     {
       "evidence": {
-        "line": 941,
+        "line": 946,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53176,7 +53887,7 @@
     },
     {
       "evidence": {
-        "line": 1050,
+        "line": 1055,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53185,7 +53896,7 @@
     },
     {
       "evidence": {
-        "line": 1256,
+        "line": 1261,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53194,7 +53905,7 @@
     },
     {
       "evidence": {
-        "line": 704,
+        "line": 709,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53203,7 +53914,7 @@
     },
     {
       "evidence": {
-        "line": 708,
+        "line": 713,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53212,7 +53923,7 @@
     },
     {
       "evidence": {
-        "line": 1425,
+        "line": 1430,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53221,7 +53932,7 @@
     },
     {
       "evidence": {
-        "line": 2278,
+        "line": 2408,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53230,7 +53941,7 @@
     },
     {
       "evidence": {
-        "line": 2284,
+        "line": 2414,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53239,7 +53950,7 @@
     },
     {
       "evidence": {
-        "line": 2293,
+        "line": 2423,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53248,7 +53959,7 @@
     },
     {
       "evidence": {
-        "line": 2070,
+        "line": 2200,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53257,7 +53968,7 @@
     },
     {
       "evidence": {
-        "line": 2268,
+        "line": 2398,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53266,7 +53977,7 @@
     },
     {
       "evidence": {
-        "line": 2271,
+        "line": 2401,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53275,7 +53986,7 @@
     },
     {
       "evidence": {
-        "line": 2231,
+        "line": 2361,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53284,7 +53995,7 @@
     },
     {
       "evidence": {
-        "line": 2240,
+        "line": 2370,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53293,7 +54004,7 @@
     },
     {
       "evidence": {
-        "line": 2337,
+        "line": 2467,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53302,7 +54013,7 @@
     },
     {
       "evidence": {
-        "line": 287,
+        "line": 292,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53311,7 +54022,16 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 1982,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Abilities.AssistedAbilityApplyPlanResult"
+    },
+    {
+      "evidence": {
+        "line": 69,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53320,7 +54040,7 @@
     },
     {
       "evidence": {
-        "line": 1336,
+        "line": 1341,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53329,7 +54049,7 @@
     },
     {
       "evidence": {
-        "line": 2358,
+        "line": 2488,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53338,7 +54058,7 @@
     },
     {
       "evidence": {
-        "line": 1416,
+        "line": 1421,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53347,7 +54067,7 @@
     },
     {
       "evidence": {
-        "line": 1856,
+        "line": 1861,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53356,7 +54076,7 @@
     },
     {
       "evidence": {
-        "line": 1606,
+        "line": 1611,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53365,7 +54085,7 @@
     },
     {
       "evidence": {
-        "line": 2057,
+        "line": 2187,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53374,7 +54094,7 @@
     },
     {
       "evidence": {
-        "line": 1631,
+        "line": 1636,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53383,7 +54103,7 @@
     },
     {
       "evidence": {
-        "line": 1165,
+        "line": 1170,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53392,7 +54112,7 @@
     },
     {
       "evidence": {
-        "line": 1142,
+        "line": 1147,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53401,7 +54121,7 @@
     },
     {
       "evidence": {
-        "line": 506,
+        "line": 511,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53410,7 +54130,7 @@
     },
     {
       "evidence": {
-        "line": 436,
+        "line": 441,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53419,7 +54139,7 @@
     },
     {
       "evidence": {
-        "line": 414,
+        "line": 419,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53428,7 +54148,7 @@
     },
     {
       "evidence": {
-        "line": 857,
+        "line": 862,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53437,7 +54157,7 @@
     },
     {
       "evidence": {
-        "line": 831,
+        "line": 836,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53446,7 +54166,7 @@
     },
     {
       "evidence": {
-        "line": 122,
+        "line": 127,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53455,7 +54175,7 @@
     },
     {
       "evidence": {
-        "line": 949,
+        "line": 954,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53464,7 +54184,7 @@
     },
     {
       "evidence": {
-        "line": 933,
+        "line": 938,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53473,7 +54193,7 @@
     },
     {
       "evidence": {
-        "line": 266,
+        "line": 271,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53482,7 +54202,7 @@
     },
     {
       "evidence": {
-        "line": 223,
+        "line": 228,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53491,7 +54211,7 @@
     },
     {
       "evidence": {
-        "line": 1058,
+        "line": 1063,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53500,7 +54220,7 @@
     },
     {
       "evidence": {
-        "line": 1036,
+        "line": 1041,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53509,7 +54229,7 @@
     },
     {
       "evidence": {
-        "line": 1264,
+        "line": 1269,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53518,7 +54238,7 @@
     },
     {
       "evidence": {
-        "line": 1248,
+        "line": 1253,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53527,7 +54247,7 @@
     },
     {
       "evidence": {
-        "line": 725,
+        "line": 730,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53536,7 +54256,7 @@
     },
     {
       "evidence": {
-        "line": 693,
+        "line": 698,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53545,7 +54265,7 @@
     },
     {
       "evidence": {
-        "line": 1730,
+        "line": 1735,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53554,7 +54274,7 @@
     },
     {
       "evidence": {
-        "line": 1977,
+        "line": 2107,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53563,7 +54283,7 @@
     },
     {
       "evidence": {
-        "line": 2202,
+        "line": 2332,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53572,7 +54292,7 @@
     },
     {
       "evidence": {
-        "line": 1987,
+        "line": 2117,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53581,7 +54301,16 @@
     },
     {
       "evidence": {
-        "line": 1866,
+        "line": 1992,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityCommand"
+    },
+    {
+      "evidence": {
+        "line": 1871,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53590,7 +54319,7 @@
     },
     {
       "evidence": {
-        "line": 1616,
+        "line": 1621,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53599,7 +54328,7 @@
     },
     {
       "evidence": {
-        "line": 1740,
+        "line": 1745,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -53608,7 +54337,7 @@
     },
     {
       "evidence": {
-        "line": 2317,
+        "line": 2447,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -54181,6 +54910,105 @@
       "kind": "accesses_model",
       "source": "service:Forge.Network.World.ZoneInstanceService",
       "target": "model:Forge.Network.World.ZoneInstance"
+    },
+    {
+      "evidence": {
+        "line": 63,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 105,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "model:Forge.Application.Assistant.AssistantPromptRenderResult"
+    },
+    {
+      "evidence": {
+        "line": 75,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "model:Forge.Domain.Assistant.AssistantProviderDefinition"
+    },
+    {
+      "evidence": {
+        "line": 72,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "model:Forge.Domain.Assistant.LoreIndexDefinition"
+    },
+    {
+      "evidence": {
+        "line": 132,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 126,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "model:Forge.Domain.Combat.AbilityDefinition"
+    },
+    {
+      "evidence": {
+        "line": 104,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "model:Forge.Domain.Combat.AbilityId"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 151,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "model:Forge.Domain.RuntimeExtensions.RuntimeJsonDocumentDefinition"
+    },
+    {
+      "evidence": {
+        "line": 137,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "model:Forge.RpgKit.Domain.Abilities.AbilityDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 129,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "target": "model:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationDefinition"
     },
     {
       "evidence": {
@@ -54847,6 +55675,69 @@
       "kind": "accesses_model",
       "source": "service:Forge.RpgKit.Application.Triggers.TriggerShapeAuthoringService",
       "target": "model:Forge.RpgKit.Application.Triggers.TriggerShapeEditResult"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "service:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationService",
+      "target": "file:src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 276,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationService",
+      "target": "model:Forge.Domain.Combat.AbilityDefinition"
+    },
+    {
+      "evidence": {
+        "line": 243,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationService",
+      "target": "model:Forge.Domain.Combat.AbilityEffectKind"
+    },
+    {
+      "evidence": {
+        "line": 252,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationService",
+      "target": "model:Forge.Domain.Combat.CombatantState"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationService",
+      "target": "model:Forge.RpgKit.Domain.Abilities.AbilityDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationService",
+      "target": "model:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationDefinition"
+    },
+    {
+      "evidence": {
+        "line": 98,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationService",
+      "target": "model:Forge.RpgKit.Domain.Abilities.AbilityTestKind"
     },
     {
       "evidence": {
@@ -72337,7 +73228,7 @@
     },
     {
       "evidence": {
-        "line": 33,
+        "line": 36,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "defined_in",
@@ -72346,7 +73237,7 @@
     },
     {
       "evidence": {
-        "line": 596,
+        "line": 661,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72355,7 +73246,7 @@
     },
     {
       "evidence": {
-        "line": 488,
+        "line": 553,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72364,7 +73255,7 @@
     },
     {
       "evidence": {
-        "line": 489,
+        "line": 554,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72373,7 +73264,7 @@
     },
     {
       "evidence": {
-        "line": 950,
+        "line": 1015,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72382,7 +73273,7 @@
     },
     {
       "evidence": {
-        "line": 347,
+        "line": 412,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72391,7 +73282,7 @@
     },
     {
       "evidence": {
-        "line": 350,
+        "line": 415,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72400,7 +73291,7 @@
     },
     {
       "evidence": {
-        "line": 358,
+        "line": 423,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72409,7 +73300,7 @@
     },
     {
       "evidence": {
-        "line": 45,
+        "line": 47,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72418,7 +73309,16 @@
     },
     {
       "evidence": {
-        "line": 842,
+        "line": 53,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "model:Forge.Domain.Combat.AbilityEffectKind"
+    },
+    {
+      "evidence": {
+        "line": 907,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72427,7 +73327,7 @@
     },
     {
       "evidence": {
-        "line": 493,
+        "line": 558,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72436,7 +73336,7 @@
     },
     {
       "evidence": {
-        "line": 354,
+        "line": 419,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72445,7 +73345,7 @@
     },
     {
       "evidence": {
-        "line": 789,
+        "line": 854,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72454,7 +73354,7 @@
     },
     {
       "evidence": {
-        "line": 765,
+        "line": 830,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72463,7 +73363,7 @@
     },
     {
       "evidence": {
-        "line": 636,
+        "line": 701,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72472,7 +73372,7 @@
     },
     {
       "evidence": {
-        "line": 672,
+        "line": 737,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72481,7 +73381,7 @@
     },
     {
       "evidence": {
-        "line": 676,
+        "line": 741,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72490,7 +73390,7 @@
     },
     {
       "evidence": {
-        "line": 678,
+        "line": 743,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72499,7 +73399,7 @@
     },
     {
       "evidence": {
-        "line": 677,
+        "line": 742,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72508,7 +73408,7 @@
     },
     {
       "evidence": {
-        "line": 677,
+        "line": 742,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72517,7 +73417,7 @@
     },
     {
       "evidence": {
-        "line": 681,
+        "line": 746,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72526,7 +73426,7 @@
     },
     {
       "evidence": {
-        "line": 681,
+        "line": 746,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72535,7 +73435,7 @@
     },
     {
       "evidence": {
-        "line": 673,
+        "line": 738,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72544,7 +73444,7 @@
     },
     {
       "evidence": {
-        "line": 673,
+        "line": 738,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72553,7 +73453,7 @@
     },
     {
       "evidence": {
-        "line": 503,
+        "line": 568,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72562,7 +73462,7 @@
     },
     {
       "evidence": {
-        "line": 96,
+        "line": 161,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72571,7 +73471,7 @@
     },
     {
       "evidence": {
-        "line": 565,
+        "line": 630,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72580,7 +73480,7 @@
     },
     {
       "evidence": {
-        "line": 613,
+        "line": 678,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72589,7 +73489,7 @@
     },
     {
       "evidence": {
-        "line": 250,
+        "line": 315,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72598,7 +73498,7 @@
     },
     {
       "evidence": {
-        "line": 412,
+        "line": 477,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72607,7 +73507,7 @@
     },
     {
       "evidence": {
-        "line": 917,
+        "line": 982,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72616,7 +73516,7 @@
     },
     {
       "evidence": {
-        "line": 946,
+        "line": 1011,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72625,7 +73525,7 @@
     },
     {
       "evidence": {
-        "line": 940,
+        "line": 1005,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72634,7 +73534,7 @@
     },
     {
       "evidence": {
-        "line": 938,
+        "line": 1003,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72643,7 +73543,7 @@
     },
     {
       "evidence": {
-        "line": 926,
+        "line": 991,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72652,7 +73552,7 @@
     },
     {
       "evidence": {
-        "line": 947,
+        "line": 1012,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72661,7 +73561,7 @@
     },
     {
       "evidence": {
-        "line": 60,
+        "line": 65,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72670,7 +73570,7 @@
     },
     {
       "evidence": {
-        "line": 254,
+        "line": 319,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72679,7 +73579,7 @@
     },
     {
       "evidence": {
-        "line": 268,
+        "line": 333,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72688,7 +73588,25 @@
     },
     {
       "evidence": {
-        "line": 706,
+        "line": 53,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Combat.AbilityEffect"
+    },
+    {
+      "evidence": {
+        "line": 52,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.Domain.Combat.AbilityTargeting"
+    },
+    {
+      "evidence": {
+        "line": 771,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72697,7 +73615,7 @@
     },
     {
       "evidence": {
-        "line": 708,
+        "line": 773,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72706,7 +73624,7 @@
     },
     {
       "evidence": {
-        "line": 705,
+        "line": 770,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72715,7 +73633,7 @@
     },
     {
       "evidence": {
-        "line": 704,
+        "line": 769,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72724,7 +73642,7 @@
     },
     {
       "evidence": {
-        "line": 741,
+        "line": 806,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72733,7 +73651,7 @@
     },
     {
       "evidence": {
-        "line": 741,
+        "line": 806,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72742,7 +73660,7 @@
     },
     {
       "evidence": {
-        "line": 740,
+        "line": 805,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72751,7 +73669,7 @@
     },
     {
       "evidence": {
-        "line": 734,
+        "line": 799,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72760,7 +73678,7 @@
     },
     {
       "evidence": {
-        "line": 735,
+        "line": 800,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72769,7 +73687,7 @@
     },
     {
       "evidence": {
-        "line": 737,
+        "line": 802,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72778,7 +73696,7 @@
     },
     {
       "evidence": {
-        "line": 735,
+        "line": 800,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72787,7 +73705,7 @@
     },
     {
       "evidence": {
-        "line": 789,
+        "line": 854,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72796,7 +73714,7 @@
     },
     {
       "evidence": {
-        "line": 791,
+        "line": 856,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72805,7 +73723,7 @@
     },
     {
       "evidence": {
-        "line": 767,
+        "line": 832,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72814,7 +73732,7 @@
     },
     {
       "evidence": {
-        "line": 642,
+        "line": 707,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72823,7 +73741,7 @@
     },
     {
       "evidence": {
-        "line": 636,
+        "line": 701,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72832,7 +73750,7 @@
     },
     {
       "evidence": {
-        "line": 640,
+        "line": 705,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72841,7 +73759,7 @@
     },
     {
       "evidence": {
-        "line": 675,
+        "line": 740,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72850,7 +73768,7 @@
     },
     {
       "evidence": {
-        "line": 674,
+        "line": 739,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72859,7 +73777,7 @@
     },
     {
       "evidence": {
-        "line": 683,
+        "line": 748,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72868,7 +73786,7 @@
     },
     {
       "evidence": {
-        "line": 679,
+        "line": 744,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72877,7 +73795,7 @@
     },
     {
       "evidence": {
-        "line": 679,
+        "line": 744,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72886,7 +73804,7 @@
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 45,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72895,7 +73813,16 @@
     },
     {
       "evidence": {
-        "line": 175,
+        "line": 62,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.LiveDirector.Chat.Message"
+    },
+    {
+      "evidence": {
+        "line": 240,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72904,7 +73831,7 @@
     },
     {
       "evidence": {
-        "line": 524,
+        "line": 589,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72913,7 +73840,7 @@
     },
     {
       "evidence": {
-        "line": 557,
+        "line": 622,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72922,7 +73849,7 @@
     },
     {
       "evidence": {
-        "line": 865,
+        "line": 930,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72931,7 +73858,7 @@
     },
     {
       "evidence": {
-        "line": 901,
+        "line": 966,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72940,7 +73867,7 @@
     },
     {
       "evidence": {
-        "line": 812,
+        "line": 877,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72949,7 +73876,7 @@
     },
     {
       "evidence": {
-        "line": 769,
+        "line": 834,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72958,7 +73885,7 @@
     },
     {
       "evidence": {
-        "line": 684,
+        "line": 749,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72967,7 +73894,7 @@
     },
     {
       "evidence": {
-        "line": 712,
+        "line": 777,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72976,7 +73903,7 @@
     },
     {
       "evidence": {
-        "line": 366,
+        "line": 431,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72985,7 +73912,7 @@
     },
     {
       "evidence": {
-        "line": 744,
+        "line": 809,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -72994,7 +73921,7 @@
     },
     {
       "evidence": {
-        "line": 794,
+        "line": 859,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73003,7 +73930,7 @@
     },
     {
       "evidence": {
-        "line": 643,
+        "line": 708,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73012,7 +73939,7 @@
     },
     {
       "evidence": {
-        "line": 883,
+        "line": 948,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73021,7 +73948,7 @@
     },
     {
       "evidence": {
-        "line": 919,
+        "line": 984,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73030,7 +73957,7 @@
     },
     {
       "evidence": {
-        "line": 552,
+        "line": 617,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73039,7 +73966,7 @@
     },
     {
       "evidence": {
-        "line": 325,
+        "line": 390,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73048,7 +73975,7 @@
     },
     {
       "evidence": {
-        "line": 97,
+        "line": 162,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73057,7 +73984,7 @@
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 45,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73066,7 +73993,16 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 50,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.RpgKit.Application.Abilities.AssistedAbilityBrief"
+    },
+    {
+      "evidence": {
+        "line": 111,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73075,7 +74011,7 @@
     },
     {
       "evidence": {
-        "line": 198,
+        "line": 263,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73084,7 +74020,7 @@
     },
     {
       "evidence": {
-        "line": 146,
+        "line": 211,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73093,7 +74029,7 @@
     },
     {
       "evidence": {
-        "line": 119,
+        "line": 184,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73102,7 +74038,7 @@
     },
     {
       "evidence": {
-        "line": 872,
+        "line": 937,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -73111,7 +74047,7 @@
     },
     {
       "evidence": {
-        "line": 506,
+        "line": 571,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -78742,6 +79678,258 @@
       "kind": "tests",
       "source": "test:Forge.Network.Tests.WorldAuthorityTests",
       "target": "type:Forge.Network.World.ZoneTemplate"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 66,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Application.Projects.ProjectState"
+    },
+    {
+      "evidence": {
+        "line": 132,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Domain.Areas.AreaDefinition"
+    },
+    {
+      "evidence": {
+        "line": 132,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Domain.Areas.AreaId"
+    },
+    {
+      "evidence": {
+        "line": 134,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintDefinition"
+    },
+    {
+      "evidence": {
+        "line": 134,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintId"
+    },
+    {
+      "evidence": {
+        "line": 51,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Domain.Blueprints.BlueprintKind"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Domain.Combat.AbilityDefinition"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Domain.Combat.AbilityEffectKind"
+    },
+    {
+      "evidence": {
+        "line": 130,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Domain.Projects.ProjectDefinition"
+    },
+    {
+      "evidence": {
+        "line": 139,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.Domain.Projects.ProjectId"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "model:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityCommand"
+    },
+    {
+      "evidence": {
+        "line": 20,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService"
+    },
+    {
+      "evidence": {
+        "line": 49,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "service:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationService"
+    },
+    {
+      "evidence": {
+        "line": 110,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "type:Forge.Application.Commands.ProjectCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 65,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "type:Forge.Application.Projects.ProjectRevision"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 147,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "type:Forge.Domain.Combat.AbilityEffect"
+    },
+    {
+      "evidence": {
+        "line": 40,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "type:Forge.Domain.Combat.AbilityTargeting"
+    },
+    {
+      "evidence": {
+        "line": 136,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "type:Forge.Domain.Combat.CombatProfile"
+    },
+    {
+      "evidence": {
+        "line": 136,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "type:Forge.Domain.Combat.CombatStats"
+    },
+    {
+      "evidence": {
+        "line": 143,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "type:Forge.RpgKit.Application.Abilities.AssistedAbilityBrief"
+    },
+    {
+      "evidence": {
+        "line": 70,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "target": "type:Forge.RpgKit.Application.Abilities.AssistedAbilityProposal"
+    },
+    {
+      "evidence": {
+        "line": 154,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.FixedClock",
+      "target": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 154,
+        "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.RpgKit.Domain.Tests.Abilities.FixedClock",
+      "target": "type:Forge.Application.Time.IClock"
     },
     {
       "evidence": {
@@ -88492,6 +89680,33 @@
     },
     {
       "evidence": {
+        "line": 15,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Abilities.AssistedAbilityApplyPlanRequest",
+      "target": "file:src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Abilities.AssistedAbilityProposalRequest",
+      "target": "file:src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Abilities.AssistedAbilityProposalResource",
+      "target": "file:src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Mcp/AgentDiagnostic.cs"
       },
@@ -88879,7 +90094,7 @@
     },
     {
       "evidence": {
-        "line": 3045,
+        "line": 3247,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88888,7 +90103,7 @@
     },
     {
       "evidence": {
-        "line": 2965,
+        "line": 3167,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88897,7 +90112,16 @@
     },
     {
       "evidence": {
-        "line": 2938,
+        "line": 3048,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.StoredAssistedAbilityPlan",
+      "target": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3140,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88906,7 +90130,7 @@
     },
     {
       "evidence": {
-        "line": 2921,
+        "line": 3123,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88915,7 +90139,7 @@
     },
     {
       "evidence": {
-        "line": 2846,
+        "line": 3031,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88924,7 +90148,7 @@
     },
     {
       "evidence": {
-        "line": 2812,
+        "line": 2997,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88933,7 +90157,7 @@
     },
     {
       "evidence": {
-        "line": 2863,
+        "line": 3065,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88942,7 +90166,7 @@
     },
     {
       "evidence": {
-        "line": 2829,
+        "line": 3014,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88951,7 +90175,7 @@
     },
     {
       "evidence": {
-        "line": 3006,
+        "line": 3208,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88960,7 +90184,7 @@
     },
     {
       "evidence": {
-        "line": 2877,
+        "line": 3079,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88969,7 +90193,7 @@
     },
     {
       "evidence": {
-        "line": 3019,
+        "line": 3221,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88978,7 +90202,7 @@
     },
     {
       "evidence": {
-        "line": 2904,
+        "line": 3106,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88987,7 +90211,7 @@
     },
     {
       "evidence": {
-        "line": 3032,
+        "line": 3234,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -88996,7 +90220,7 @@
     },
     {
       "evidence": {
-        "line": 3058,
+        "line": 3260,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -89005,7 +90229,7 @@
     },
     {
       "evidence": {
-        "line": 2982,
+        "line": 3184,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -89140,7 +90364,7 @@
     },
     {
       "evidence": {
-        "line": 17,
+        "line": 18,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "defined_in",
@@ -89149,7 +90373,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "uses_service",
@@ -89158,7 +90382,7 @@
     },
     {
       "evidence": {
-        "line": 20,
+        "line": 21,
         "path": "apps/Forge.McpHost/ForgeMcpTools.cs"
       },
       "kind": "uses_service",
@@ -91021,6 +92245,24 @@
     },
     {
       "evidence": {
+        "line": 14,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Application.Abilities.AssistedAbilityBrief",
+      "target": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 34,
+        "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Application.Abilities.AssistedAbilityProposal",
+      "target": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+    },
+    {
+      "evidence": {
         "line": 19,
         "path": "src/Forge.RpgKit.Application/Bosses/AssistedBossCreationService.cs"
       },
@@ -91108,6 +92350,24 @@
       "kind": "defined_in",
       "source": "type:Forge.RpgKit.Application.Quests.AssistedQuestProposal",
       "target": "file:src/Forge.RpgKit.Application/Quests/AssistedQuestCreationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Abilities.AbilityBalanceReport",
+      "target": "file:src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+    },
+    {
+      "evidence": {
+        "line": 16,
+        "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.RpgKit.Domain.Abilities.AbilityTestScenario",
+      "target": "file:src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
     },
     {
       "evidence": {
@@ -94144,6 +95404,24 @@
     },
     {
       "evidence": {
+        "line": 13,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.AssistedAbilityWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 271,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+      },
+      "kind": "uses_service",
+      "source": "type:Forge.Toolset.Editor.AssistedAbilityWindow",
+      "target": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService"
+    },
+    {
+      "evidence": {
         "line": 9,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAreaPlanWindow.cs"
       },
@@ -94414,7 +95692,7 @@
     },
     {
       "evidence": {
-        "line": 9124,
+        "line": 9245,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -94531,7 +95809,7 @@
     },
     {
       "evidence": {
-        "line": 9129,
+        "line": 9250,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -94540,7 +95818,7 @@
     },
     {
       "evidence": {
-        "line": 9134,
+        "line": 9255,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -95629,8 +96907,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:abcd9caff17a0891910704ab6db4f82a700db2555c3abd5e201349533d3e2357",
-    "source_file_count": 1693
+    "source_digest": "sha256:ea5ce4d4888b02162612e89a1b627095844eb50e4f2c4fa10497c6c9d4023d77",
+    "source_file_count": 1700
   },
   "nodes": [
     {
@@ -96566,7 +97844,7 @@
     {
       "id": "component:Forge.Toolset.Editor.ForgeEditorPlugin",
       "kind": "component",
-      "line": 69,
+      "line": 70,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -98564,6 +99842,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistedAbilityWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/AssistedAreaPlanWindow.cs",
       "kind": "file",
       "line": 1,
@@ -100262,6 +101550,16 @@
       },
       "name": "G12-H-ASSISTED-BOSS-CREATION.md",
       "path": "docs/aurora-parity/tasks/G12-H-ASSISTED-BOSS-CREATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G12-I-ASSISTED-ABILITY-CREATION.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G12-I-ASSISTED-ABILITY-CREATION.md",
+      "path": "docs/aurora-parity/tasks/G12-I-ASSISTED-ABILITY-CREATION.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -107224,6 +108522,16 @@
       "path": "src/Forge.LiveDirector/packages.lock.json"
     },
     {
+      "id": "file:src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistedAbilityContracts.cs",
+      "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+    },
+    {
       "id": "file:src/Forge.Mcp/AgentDiagnostic.cs",
       "kind": "file",
       "line": 1,
@@ -108834,6 +110142,26 @@
       "path": "src/Forge.Network/packages.lock.json"
     },
     {
+      "id": "file:src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ApplyAssistedAbilityHandler.cs",
+      "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistedAbilityCreationService.cs",
+      "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+    },
+    {
       "id": "file:src/Forge.RpgKit.Application/Bosses/ApplyAssistedBossHandler.cs",
       "kind": "file",
       "line": 1,
@@ -108982,6 +110310,16 @@
       },
       "name": "packages.lock.json",
       "path": "src/Forge.RpgKit.Application/packages.lock.json"
+    },
+    {
+      "id": "file:src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AbilityOrchestrationService.cs",
+      "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
     },
     {
       "id": "file:src/Forge.RpgKit.Domain/Bosses/BossOrchestrationService.cs",
@@ -111792,6 +113130,16 @@
       },
       "name": "packages.lock.json",
       "path": "tests/Forge.Network.Tests/packages.lock.json"
+    },
+    {
+      "id": "file:tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssistedAbilityCreationServiceTests.cs",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
     },
     {
       "id": "file:tests/Forge.RpgKit.Domain.Tests/Bosses/AssistedBossCreationServiceTests.cs",
@@ -115364,6 +116712,16 @@
       "path": "src/Forge.Network/Events/ServerEventBus.cs"
     },
     {
+      "id": "handler:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityHandler",
+      "kind": "handler",
+      "line": 32,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Abilities"
+      },
+      "name": "ApplyAssistedAbilityHandler",
+      "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+    },
+    {
       "id": "handler:Forge.RpgKit.Application.Bosses.ApplyAssistedBossHandler",
       "kind": "handler",
       "line": 31,
@@ -118284,6 +119642,16 @@
       "path": "src/Forge.LiveDirector/World/LiveProgressionWorldService.cs"
     },
     {
+      "id": "model:Forge.Mcp.Abilities.AssistedAbilityApplyPlanResult",
+      "kind": "model",
+      "line": 21,
+      "metadata": {
+        "namespace": "Forge.Mcp.Abilities"
+      },
+      "name": "AssistedAbilityApplyPlanResult",
+      "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+    },
+    {
       "id": "model:Forge.Mcp.AgentDiagnostic",
       "kind": "model",
       "line": 13,
@@ -118436,7 +119804,7 @@
     {
       "id": "model:Forge.Mcp.Projects.ForgeProjectAgentOpenResult",
       "kind": "model",
-      "line": 3072,
+      "line": 3274,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -119444,6 +120812,26 @@
       "path": "src/Forge.Network/World/WorldModels.cs"
     },
     {
+      "id": "model:Forge.RpgKit.Application.Abilities.ApplyAssistedAbilityCommand",
+      "kind": "model",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Abilities"
+      },
+      "name": "ApplyAssistedAbilityCommand",
+      "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Application.Abilities.AssistedAbilityApplyResult",
+      "kind": "model",
+      "line": 24,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Abilities"
+      },
+      "name": "AssistedAbilityApplyResult",
+      "path": "src/Forge.RpgKit.Application/Abilities/ApplyAssistedAbilityHandler.cs"
+    },
+    {
       "id": "model:Forge.RpgKit.Application.Bosses.ApplyAssistedBossCommand",
       "kind": "model",
       "line": 14,
@@ -119642,6 +121030,36 @@
       },
       "name": "TriggerShapeEditResult",
       "path": "src/Forge.RpgKit.Application/Triggers/TriggerShapeAuthoringService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Abilities.AbilityDiagnostic",
+      "kind": "model",
+      "line": 38,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Abilities"
+      },
+      "name": "AbilityDiagnostic",
+      "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationDefinition",
+      "kind": "model",
+      "line": 26,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Abilities"
+      },
+      "name": "AbilityOrchestrationDefinition",
+      "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+    },
+    {
+      "id": "model:Forge.RpgKit.Domain.Abilities.AbilityTestKind",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Abilities"
+      },
+      "name": "AbilityTestKind",
+      "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
     },
     {
       "id": "model:Forge.RpgKit.Domain.Bosses.BossDiagnostic",
@@ -121642,6 +123060,11 @@
       "name": "Forge.Mcp"
     },
     {
+      "id": "namespace:Forge.Mcp.Abilities",
+      "kind": "namespace",
+      "name": "Forge.Mcp.Abilities"
+    },
+    {
       "id": "namespace:Forge.Mcp.Assets",
       "kind": "namespace",
       "name": "Forge.Mcp.Assets"
@@ -121937,6 +123360,11 @@
       "name": "Forge.Network.World"
     },
     {
+      "id": "namespace:Forge.RpgKit.Application.Abilities",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Application.Abilities"
+    },
+    {
       "id": "namespace:Forge.RpgKit.Application.Bosses",
       "kind": "namespace",
       "name": "Forge.RpgKit.Application.Bosses"
@@ -121980,6 +123408,11 @@
       "id": "namespace:Forge.RpgKit.Application.Triggers",
       "kind": "namespace",
       "name": "Forge.RpgKit.Application.Triggers"
+    },
+    {
+      "id": "namespace:Forge.RpgKit.Domain.Abilities",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Abilities"
     },
     {
       "id": "namespace:Forge.RpgKit.Domain.Bosses",
@@ -122040,6 +123473,11 @@
       "id": "namespace:Forge.RpgKit.Domain.Scripting",
       "kind": "namespace",
       "name": "Forge.RpgKit.Domain.Scripting"
+    },
+    {
+      "id": "namespace:Forge.RpgKit.Domain.Tests.Abilities",
+      "kind": "namespace",
+      "name": "Forge.RpgKit.Domain.Tests.Abilities"
     },
     {
       "id": "namespace:Forge.RpgKit.Domain.Tests.Bosses",
@@ -122679,7 +124117,7 @@
     {
       "id": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
       "kind": "service",
-      "line": 37,
+      "line": 39,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -122937,6 +124375,16 @@
       "path": "src/Forge.Network/World/ZoneInstanceService.cs"
     },
     {
+      "id": "service:Forge.RpgKit.Application.Abilities.AssistedAbilityCreationService",
+      "kind": "service",
+      "line": 63,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Abilities"
+      },
+      "name": "AssistedAbilityCreationService",
+      "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+    },
+    {
       "id": "service:Forge.RpgKit.Application.Bosses.AssistedBossCreationService",
       "kind": "service",
       "line": 66,
@@ -123015,6 +124463,16 @@
       },
       "name": "TriggerShapeAuthoringService",
       "path": "src/Forge.RpgKit.Application/Triggers/TriggerShapeAuthoringService.cs"
+    },
+    {
+      "id": "service:Forge.RpgKit.Domain.Abilities.AbilityOrchestrationService",
+      "kind": "service",
+      "line": 40,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Abilities"
+      },
+      "name": "AbilityOrchestrationService",
+      "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
     },
     {
       "id": "service:Forge.RpgKit.Domain.Bosses.BossOrchestrationService",
@@ -124949,7 +126407,7 @@
     {
       "id": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
       "kind": "test",
-      "line": 33,
+      "line": 36,
       "metadata": {
         "namespace": "Forge.Mcp.Tests.Projects"
       },
@@ -125615,6 +127073,26 @@
       },
       "name": "WorldAuthorityTests",
       "path": "tests/Forge.Network.Tests/WorldAuthorityTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Abilities.AssistedAbilityCreationServiceTests",
+      "kind": "test",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Abilities"
+      },
+      "name": "AssistedAbilityCreationServiceTests",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
+    },
+    {
+      "id": "test:Forge.RpgKit.Domain.Tests.Abilities.FixedClock",
+      "kind": "test",
+      "line": 154,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Tests.Abilities"
+      },
+      "name": "FixedClock",
+      "path": "tests/Forge.RpgKit.Domain.Tests/Abilities/AssistedAbilityCreationServiceTests.cs"
     },
     {
       "id": "test:Forge.RpgKit.Domain.Tests.Bosses.AssistedBossCreationServiceTests",
@@ -131784,6 +133262,36 @@
       "path": "src/Forge.LiveDirector/World/LiveGroupCommandService.cs"
     },
     {
+      "id": "type:Forge.Mcp.Abilities.AssistedAbilityApplyPlanRequest",
+      "kind": "type",
+      "line": 15,
+      "metadata": {
+        "namespace": "Forge.Mcp.Abilities"
+      },
+      "name": "AssistedAbilityApplyPlanRequest",
+      "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Abilities.AssistedAbilityProposalRequest",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Mcp.Abilities"
+      },
+      "name": "AssistedAbilityProposalRequest",
+      "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Abilities.AssistedAbilityProposalResource",
+      "kind": "type",
+      "line": 10,
+      "metadata": {
+        "namespace": "Forge.Mcp.Abilities"
+      },
+      "name": "AssistedAbilityProposalResource",
+      "path": "src/Forge.Mcp/Abilities/AssistedAbilityContracts.cs"
+    },
+    {
       "id": "type:Forge.Mcp.AgentQuickFix",
       "kind": "type",
       "line": 3,
@@ -132206,7 +133714,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAreaExperiencePlan",
       "kind": "type",
-      "line": 3045,
+      "line": 3247,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132216,7 +133724,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssetInstallPlan",
       "kind": "type",
-      "line": 2965,
+      "line": 3167,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132224,9 +133732,19 @@
       "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
     },
     {
+      "id": "type:Forge.Mcp.Projects.StoredAssistedAbilityPlan",
+      "kind": "type",
+      "line": 3048,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "StoredAssistedAbilityPlan",
+      "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAreaBuildPlan",
       "kind": "type",
-      "line": 2938,
+      "line": 3140,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132236,7 +133754,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAreaPlan",
       "kind": "type",
-      "line": 2921,
+      "line": 3123,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132246,7 +133764,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedBossPlan",
       "kind": "type",
-      "line": 2846,
+      "line": 3031,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132256,7 +133774,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedDialoguePlan",
       "kind": "type",
-      "line": 2812,
+      "line": 2997,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132266,7 +133784,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedForgeScriptPlan",
       "kind": "type",
-      "line": 2863,
+      "line": 3065,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132276,7 +133794,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedQuestPlan",
       "kind": "type",
-      "line": 2829,
+      "line": 3014,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132286,7 +133804,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredCinematicPlan",
       "kind": "type",
-      "line": 3006,
+      "line": 3208,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132296,7 +133814,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredDialoguePlan",
       "kind": "type",
-      "line": 2877,
+      "line": 3079,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132306,7 +133824,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredGameplayControlPlan",
       "kind": "type",
-      "line": 3019,
+      "line": 3221,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132316,7 +133834,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredLoreIndexPlan",
       "kind": "type",
-      "line": 2904,
+      "line": 3106,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132326,7 +133844,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRulesProfilePlan",
       "kind": "type",
-      "line": 3032,
+      "line": 3234,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132336,7 +133854,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimeExtensionPlan",
       "kind": "type",
-      "line": 3058,
+      "line": 3260,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132346,7 +133864,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimePolicyPlan",
       "kind": "type",
-      "line": 2982,
+      "line": 3184,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -132496,7 +134014,7 @@
     {
       "id": "type:Forge.McpHost.ForgeMcpTools",
       "kind": "type",
-      "line": 17,
+      "line": 18,
       "metadata": {
         "namespace": "Forge.McpHost"
       },
@@ -134454,6 +135972,26 @@
       "path": "src/Forge.Network/World/WorldModels.cs"
     },
     {
+      "id": "type:Forge.RpgKit.Application.Abilities.AssistedAbilityBrief",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Abilities"
+      },
+      "name": "AssistedAbilityBrief",
+      "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Application.Abilities.AssistedAbilityProposal",
+      "kind": "type",
+      "line": 34,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Application.Abilities"
+      },
+      "name": "AssistedAbilityProposal",
+      "path": "src/Forge.RpgKit.Application/Abilities/AssistedAbilityCreationService.cs"
+    },
+    {
       "id": "type:Forge.RpgKit.Application.Bosses.AssistedBossBrief",
       "kind": "type",
       "line": 19,
@@ -134552,6 +136090,26 @@
       },
       "name": "AssistedQuestProposal",
       "path": "src/Forge.RpgKit.Application/Quests/AssistedQuestCreationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Abilities.AbilityBalanceReport",
+      "kind": "type",
+      "line": 18,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Abilities"
+      },
+      "name": "AbilityBalanceReport",
+      "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
+    },
+    {
+      "id": "type:Forge.RpgKit.Domain.Abilities.AbilityTestScenario",
+      "kind": "type",
+      "line": 16,
+      "metadata": {
+        "namespace": "Forge.RpgKit.Domain.Abilities"
+      },
+      "name": "AbilityTestScenario",
+      "path": "src/Forge.RpgKit.Domain/Abilities/AbilityOrchestrationService.cs"
     },
     {
       "id": "type:Forge.RpgKit.Domain.Bosses.BossBalanceReport",
@@ -137764,6 +139322,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistantWorkspaceWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.AssistedAbilityWindow",
+      "kind": "type",
+      "line": 13,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "AssistedAbilityWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/AssistedAbilityWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.AssistedAreaPlanWindow",
       "kind": "type",
       "line": 9,
@@ -137986,7 +139554,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 9124,
+      "line": 9245,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -138076,7 +139644,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 9129,
+      "line": 9250,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -138086,7 +139654,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 9134,
+      "line": 9255,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

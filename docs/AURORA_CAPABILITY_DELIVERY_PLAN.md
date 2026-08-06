@@ -54,7 +54,8 @@ commandes que l’édition manuelle, puis G12-E relie le graphe RPG avancé au d
 citations, localisation, lint et simulation, puis G12-F livre les machines à états de quête,
 objectifs, récompenses, échec et scénarios. G12-G ajoute la création/réparation ForgeScript compilée
 et testée avant écriture. G12-H compose maintenant un boss canonique multi-domaines, simule son
-équilibrage et applique son lot atomique. La file active commence à **G12-I**.
+équilibrage et applique son lot atomique. G12-I crée désormais une capacité autonome, résout ses
+dépendances et la soumet à cinq tests du résolveur de combat. La file active commence à **G12-J**.
 
 ## 3. Jalons produit
 
@@ -324,7 +325,9 @@ livre la création de dialogue assistée sur les agrégats RPG et Core existants
 création de quête assistée avec le même contrat gouverné. G12-G livre la création de ForgeScript
 assistée sans contourner le compilateur ni la sandbox. G12-H livre la création de boss assistée :
 créature, combat, capacités, rencontre, phases, scripts, dialogue, loot et 32 simulations sont liés
-par un seul lot persistant et réversible. G12-I portera la création de capacité autonome.
+par un seul lot persistant et réversible. G12-I livre la création de capacité autonome : ciblage,
+coût, recharge, effets, cues, tags IA, ForgeScript, item optionnel, cinq tests combat et équilibrage
+sont liés par un seul lot persistant et réversible. G12-J portera la création 3D via Blender.
 
 **Domaine.** `AI` P1/P2, après stabilisation des workflows humains correspondants.
 

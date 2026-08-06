@@ -296,6 +296,13 @@ et les 32 simulations. Le bouton reste verrouillé tant que les dépendances ne 
 que le lot exact n'a pas été approuvé et prévisualisé. Blueprint, dialogue et document runtime sont
 sauvegardés, annulés et rétablis ensemble par la même commande que MCP.
 
+G12-I ajoute **Capacité assistée** dans le même pied de page. La première colonne définit porteur,
+nom, ciblage, effet, coût, recharge, magnitude et cues. La seconde résout ForgeScript, item
+optionnel, tags IA, intention d'équilibrage, style, citations et approbation. La troisième montre
+les cinq scénarios du résolveur de combat, le score d'équilibrage, la provenance, le coût, les
+diagnostics et le diff. Une édition invalide immédiatement le plan ; profil de combat et document
+runtime ne sont sauvegardés qu'ensemble, après dry-run exact, par la même commande que MCP.
+
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
 échelle métrique, matériaux PBR normalisés, silhouettes lisibles, éclairage maîtrisé, LOD,
 collisions, navigation et profils de qualité. Elle est détaillée dans

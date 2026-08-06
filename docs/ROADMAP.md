@@ -223,7 +223,9 @@ contrats RPG et Core existants. G12-F livre la création assistée de quêtes pa
 validations déjà consommés par le runtime. G12-G livre la création et réparation ForgeScript avec
 compilation et sandbox obligatoires. G12-H livre la création de boss gouvernée comme un lot atomique
 créature/rencontre/capacités/phases/dialogue/loot, validé par 32 simulations et partagé avec MCP. La
-prochaine tranche est G12-I, création de capacité autonome, sans confondre les améliorations visuelles
+création de capacité autonome G12-I ajoute ciblage, coûts, effets, cues, tags IA, dépendances,
+cinq tests du résolveur de combat et équilibrage par la même transaction Toolset/MCP. La prochaine
+tranche est G12-J, création 3D gouvernée via Blender, sans confondre les améliorations visuelles
 optionnelles avec des capacités absentes.
 
 La mission complète et ses critères sont dans

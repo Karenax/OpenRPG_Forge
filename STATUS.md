@@ -5,9 +5,10 @@ Dernière mise à jour : 6 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. G12-A à G12-G ouvrent maintenant l’Assistant de création avancée, ses
+G11 Contenu moderne fermés. G12-A à G12-I ouvrent maintenant l’Assistant de création avancée, ses
 fournisseurs locaux, son lore, ses plans de crypte/village, leur construction atomique et la création
-de dialogues et quêtes sourcés après approbation, sans dépendance réseau obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
+de dialogues, quêtes, scripts, boss et capacités sourcés après approbation, sans dépendance réseau
+obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
@@ -105,7 +106,7 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
 - solution de 25 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 774 tests .NET, 24 tests Python généraux et 25 tests Python du pipeline d'assets réussis ;
+- 794 tests .NET, 24 tests Python généraux et 25 tests Python du pipeline d'assets réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes et matrice de
   gates contrôlés par le gate global ;
 - splash OpenRPG_Forge configuré et validé en PNG dans les deux applications, barres de titre et
@@ -576,3 +577,13 @@ génère une source confinée et laisse l'auteur la corriger, puis impose compil
 VM/API et exécution sandbox sous quotas avant tout dry-run. Hash avant/après, binding, diagnostics,
 tests, coût et provenance restent visibles. L'écriture `scripts/*.forge` est atomique ; UI et MCP
 partagent plan, permission et restauration du fichier antérieur.
+
+**G12-H — création de boss assistée livrée** : un lot canonique relie blueprint de créature,
+combat, capacités, rencontre, phases, ForgeScripts, dialogue et loot. Trente-deux simulations
+d'équilibrage précèdent le dry-run ; Toolset et MCP persistent ou annulent tout le paquet ensemble.
+
+**G12-I — création de capacité assistée livrée** : ciblage, coût, recharge, effets, VFX, audio,
+tags IA, ForgeScript, item optionnel et intention d'équilibrage forment une orchestration v1
+canonique. Cinq scénarios utilisent le vrai résolveur de combat avant l'application. La fenêtre
+auteur et les quatre outils MCP partagent validation, approbation, plan exact, transaction atomique,
+persistance et undo/redo. La prochaine tranche est G12-J, création 3D gouvernée via Blender.
