@@ -129,6 +129,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12C_AREA_PLAN_PASS archetypes=crypt-village topology=connected-deterministic kits=resolved constraints=bounded objectives=explicit lore=sourced provider=fake-offline cost=visible geometry=not-applied plan=dry-run-transaction permission=configure-approve history=restored persistence=roundtrip mcp=governed'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12D_AREA_BUILD_PASS placements=batch-manual-commands seed=preserved geometry=validated navigation=no-regression lighting=validated approval=required plan=dry-run-transaction permission=apply-approved atomic=true history=restored persistence=roundtrip mcp=governed'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G12E_DIALOGUE_PASS graph=canonical-minimap nodes=4 conditions=typed actions=typed style=cited localization=placeholders lint=clean simulation=entry-rendered provider=fake-offline cost=visible plan=dry-run-transaction permission=apply-approved history=restored persistence=roundtrip mcp=governed'
+        $Markers += 'OPENRPG_FORGE_TOOLSET_G12F_QUEST_PASS participants=resolved states=4 objectives=bounded transitions=3 rewards=progression failure=explicit tests=5-scenarios style=cited lint=clean provider=fake-offline cost=visible plan=dry-run-transaction permission=apply-approved history=restored persistence=roundtrip mcp=governed'
         $Markers += 'streaming=async-cache-cancel sculpt=raise-'
         $Markers += 'paint=material-'
         $Markers += 'brush_history=restored history=restored persistence=roundtrip'

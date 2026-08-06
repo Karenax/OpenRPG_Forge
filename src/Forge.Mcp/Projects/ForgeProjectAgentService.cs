@@ -18,9 +18,11 @@ using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
+using Forge.Mcp.Quests;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Scripts;
 using Forge.RpgKit.Application.Dialogues;
+using Forge.RpgKit.Application.Quests;
 using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Quality;
 using Forge.Scripting;
@@ -44,6 +46,7 @@ public sealed class ForgeProjectAgentService
     private readonly ProjectCommandHistory _history;
     private readonly SetDialogueHandler _dialogueHandler;
     private readonly ApplyAssistedDialogueHandler _assistedDialogueHandler;
+    private readonly ApplyAssistedQuestHandler _assistedQuestHandler;
     private readonly SetEntityOverridesHandler _overridesHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
@@ -61,6 +64,7 @@ public sealed class ForgeProjectAgentService
     private readonly List<AgentDiagnostic> _areaPlanLoadDiagnostics;
     private readonly Dictionary<string, StoredDialoguePlan> _dialoguePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedDialoguePlan> _assistedDialoguePlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAssistedQuestPlan> _assistedQuestPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredGameplayControlPlan> _gameplayControlPlans = new(StringComparer.Ordinal);
@@ -80,6 +84,7 @@ public sealed class ForgeProjectAgentService
         _history = new ProjectCommandHistory(new ProjectState(session.Project, new ProjectRevision(0)));
         _dialogueHandler = new SetDialogueHandler(clock);
         _assistedDialogueHandler = new ApplyAssistedDialogueHandler(clock);
+        _assistedQuestHandler = new ApplyAssistedQuestHandler(clock);
         _overridesHandler = new SetEntityOverridesHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
@@ -1680,6 +1685,131 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public AssistedQuestProposalResource ProposeAssistedQuest(AssistedQuestProposalRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, null,
+                    [new AgentDiagnostic("assistant.quest.request_invalid",
+                        "Assisted quest proposal schema is invalid.", "assistant/quest")]);
+            try
+            {
+                var profile = AssistantWorkspaceProfile.CreateDefault();
+                var proposal = AssistedQuestCreationService.ProposeAsync(
+                    request.Brief,
+                    _history.State.Project,
+                    _loreIndexHistory.State.Index,
+                    new DeterministicAssistantProvider(profile.ActiveProvider),
+                    profile.ActiveProvider,
+                    networkAuthorized: false,
+                    projectContentAuthorized: false).GetAwaiter().GetResult();
+                return new(proposal.Succeeded, proposal,
+                    proposal.Lint.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            catch (ArgumentException exception)
+            {
+                return new(false, null,
+                    [new AgentDiagnostic("assistant.quest.brief_invalid", exception.Message, "assistant/quest")]);
+            }
+        }
+    }
+
+    public AssistedQuestApplyPlanResult PlanAssistedQuest(AssistedQuestApplyPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
+                return AssistedQuestFailure(_history.State.Revision.Value,
+                    "assistant.quest.request_invalid", "Assisted quest request schema or revision is invalid.");
+            var transactionId = Guid.NewGuid();
+            var executionPlanId = Guid.NewGuid();
+            var command = new ApplyAssistedQuestCommand(
+                CommandId.From(Guid.NewGuid()), transactionId, executionPlanId,
+                new ProjectRevision(request.BaseRevision), request.Proposal, request.Permission, DryRun: true);
+            var preview = _assistedQuestHandler.Handle(_history.State, command);
+            if (!preview.Succeeded || preview.Command.Patch is null || preview.Command.Inverse is null)
+                return new(false, null, transactionId.ToString("D"), request.Proposal.Quest.Id.ToString(),
+                    request.BaseRevision, null, null, "no-change", request.Proposal.Citations,
+                    request.Proposal.Lint.Select(item => item.Code).ToArray(),
+                    request.Proposal.TestScenarios.Select(item => item.Kind.ToString()).ToArray(),
+                    request.Proposal.EstimatedCostUsd, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var key = executionPlanId.ToString("D");
+            var stored = new StoredAssistedQuestPlan(
+                key,
+                command,
+                preview.Command.Patch,
+                preview.Command.Inverse,
+                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _assistedQuestPlans.Add(key, stored);
+            return ToResult(stored);
+        }
+    }
+
+    public AssistedQuestApplyPlanResult ApplyAssistedQuestPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_assistedQuestPlans.TryGetValue(planId, out var plan))
+                return AssistedQuestFailure(_history.State.Revision.Value,
+                    "assistant.quest.plan_missing", $"Assisted quest plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AssistedQuestFailure(plan.Command.BaseRevision.Value,
+                    "assistant.quest.plan_already_applied", $"Assisted quest plan '{planId}' is already applied.");
+            var result = _assistedQuestHandler.Handle(
+                _history.State,
+                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan, result.Diagnostics.Select(Map).ToArray());
+            }
+            var saved = _session.Save(result.Command.State.Project);
+            if (!saved.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return WithFailure(plan, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            _history.Record(result.Command);
+            plan.Applied = true;
+            plan.AppliedRevision = _history.State.Revision.Value;
+            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AssistedQuestApplyPlanResult RevertAssistedQuestPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_assistedQuestPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AssistedQuestFailure(_history.State.Revision.Value,
+                    "assistant.quest.plan_not_applied", $"Assisted quest plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return AssistedQuestFailure(plan.Command.BaseRevision.Value,
+                    "assistant.quest.revert_conflict", "Only the latest project mutation can be reverted safely.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return AssistedQuestFailure(plan.Command.BaseRevision.Value,
+                    "assistant.quest.inverse_unavailable", "The assisted quest inverse is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return WithFailure(plan, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(plan.PlanId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
     public DialoguePlanResult PlanDialogue(DialoguePlanRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -2052,6 +2182,53 @@ public sealed class ForgeProjectAgentService
         plan.Reverted,
         plan.Audit.ToArray());
 
+    private static AssistedQuestApplyPlanResult AssistedQuestFailure(
+        long revision,
+        string code,
+        string message) => new(
+        false,
+        null,
+        null,
+        null,
+        revision,
+        null,
+        null,
+        "no-change",
+        [],
+        [],
+        [],
+        0,
+        [new AgentDiagnostic(code, message, "assistant/quest")],
+        false,
+        false,
+        []);
+
+    private static AssistedQuestApplyPlanResult WithFailure(
+        StoredAssistedQuestPlan plan,
+        IReadOnlyList<AgentDiagnostic> diagnostics) => ToResult(plan) with
+        {
+            Succeeded = false,
+            Diagnostics = diagnostics,
+        };
+
+    private static AssistedQuestApplyPlanResult ToResult(StoredAssistedQuestPlan plan) => new(
+        true,
+        plan.PlanId,
+        plan.Command.TransactionId.ToString("D"),
+        plan.Command.Proposal.Quest.Id.ToString(),
+        plan.Command.BaseRevision.Value,
+        plan.Diff,
+        plan.Inverse,
+        plan.Command.Proposal.SemanticDiff,
+        plan.Command.Proposal.Citations,
+        plan.Command.Proposal.Lint.Select(item => item.Code).ToArray(),
+        plan.Command.Proposal.TestScenarios.Select(item => item.Kind.ToString()).ToArray(),
+        plan.Command.Proposal.EstimatedCostUsd,
+        [],
+        plan.Applied,
+        plan.Reverted,
+        plan.Audit.ToArray());
+
     private static DialoguePlanResult DialogueFailure(long revision, string code, string message) => new(
         false,
         null,
@@ -2286,6 +2463,23 @@ public sealed class ForgeProjectAgentService
     {
         public string PlanId { get; } = planId;
         public ApplyAssistedDialogueCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<PlanAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAssistedQuestPlan(
+        string planId,
+        ApplyAssistedQuestCommand command,
+        ProjectPatch diff,
+        ProjectPatch inverse,
+        List<PlanAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public ApplyAssistedQuestCommand Command { get; } = command;
         public ProjectPatch Diff { get; } = diff;
         public ProjectPatch Inverse { get; } = inverse;
         public List<PlanAuditEntry> Audit { get; } = audit;

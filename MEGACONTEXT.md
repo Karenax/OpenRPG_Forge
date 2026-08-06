@@ -732,9 +732,11 @@ ciblées. Le lot actif construit une carte 3D jouable et artistiquement revue. L
 - l’espace **Assets** charge 605 entrées depuis le Vault externe avec UUID, hash, licence, provenance,
   recherche à facettes, aperçu local et prévisualisation d’import sans écriture ; les détails restent
   défilables à la taille nominale et l’action braise n’est active que pour un asset gouverné.
-- l’espace **Assistant** extrait métadonnées, dialogues et quêtes dans un catalogue de localisation
-  canonique, filtre par clé et langue, prévisualise replis et pseudo-localisation puis applique les
-  traductions par commande transactionnelle annulable.
+- l’espace **Assistant** gère le profil de fournisseur, les prompts versionnés et l'index de lore,
+  puis ouvre les plans de zone, les dialogues et les quêtes assistés. La quête spécialisée affiche
+  zone et participant, états, transitions, objectifs, récompense, échec et cinq scénarios avant une
+  application approuvée, dry-run, persistante et annulable. La localisation reste un catalogue
+  canonique séparé avec filtres, replis et pseudo-localisation.
 - le Monde édite l’échelle uniforme ou par axe avec valeurs précises, Ctrl + molette, contraintes,
   validation géométrique et commande atomique multi-entités.
 - la navigation calcule des routes A* déterministes avec coûts, obstacles dynamiques, récupération,
@@ -787,8 +789,10 @@ compilateur incrémental instrumenté et documentation générée ; G11-Q a livr
 crash artifacts, santé par domaines, récupération comparée et synchronisation vérifiée ; G11-R a
 livré le laboratoire déterministe de localisation, ForgeScript, narration et rencontres ; G11-S a
 livré réseau hostile, régression visuelle, benchmarks, budgets et profilage intégré ; G11-T a livré
-accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale. La prochaine tranche produit
-une vraie carte 3D jouable, agréable et revue visuellement avant les extensions IA G12.
+accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale. AV6 a ensuite livré la carte
+3D Forgotten Forest jouable et revue visuellement. G12-A à G12-F couvrent désormais l'Assistant,
+le lore, les plans et constructions de zone, les dialogues et les quêtes gouvernés ; G12-G est la
+prochaine tranche active.
 
 ---
 

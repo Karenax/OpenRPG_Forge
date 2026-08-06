@@ -16,17 +16,72 @@ using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Forge.Mcp.Dialogues;
+using Forge.Mcp.Quests;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
 using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Assets;
 using Forge.RpgKit.Application.Dialogues;
+using Forge.RpgKit.Application.Quests;
 
 namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void AssistedQuestMcpProposesPlansPersistsAndRevertsCanonicalQuest()
+    {
+        using var workspace = new TestWorkspace();
+        var project = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var area = project.Areas[0];
+        var participant = project.Blueprints.First(item => item.Kind == BlueprintKind.Creature);
+        var questsBefore = project.Quests.Count;
+        var brief = new AssistedQuestBrief(
+            Guid.Parse("b1270000-0000-4000-8000-000000000090"),
+            "quete-mcp-assistee",
+            "Quête MCP assistée",
+            area.Id.Value,
+            participant.Id.Value,
+            "Le gardien demande de récupérer les braises avant l'effondrement.",
+            ["Trouver les braises", "Revenir auprès du gardien"],
+            ["lore:crypt-of-ashes"],
+            ["style:crypt"],
+            "quest.mcp-assistee",
+            "@mcp-author",
+            20260806,
+            250);
+
+        var proposed = workspace.Project.ProposeAssistedQuest(new(1, brief));
+        var approved = proposed.Proposal!.WithApproval(true, "author-approved:mcp-test:g12-f");
+        var planned = workspace.Project.PlanAssistedQuest(new(
+            1,
+            workspace.Project.GetCurrentRevision(),
+            approved,
+            AssistantPermissionLevel.ApplyApprovedPlan));
+        var applied = workspace.Project.ApplyAssistedQuestPlan(planned.PlanId!);
+        var persisted = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+        var reverted = workspace.Project.RevertAssistedQuestPlan(planned.PlanId!);
+        var restored = ProjectSession.Open(workspace.RootDirectory).Session!.Project;
+
+        Assert.True(proposed.Succeeded);
+        Assert.True(proposed.Proposal.CanApply);
+        Assert.Equal(4, proposed.Proposal.Quest.States.Count);
+        Assert.Equal(3, proposed.Proposal.Quest.Transitions.Count);
+        Assert.Equal(5, proposed.Proposal.TestScenarios.Count);
+        Assert.Empty(proposed.Proposal.Lint);
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.NotNull(planned.Diff);
+        Assert.Equal(5, planned.TestScenarios.Count);
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.Equal(questsBefore + 1, persisted.Quests.Count);
+        Assert.True(reverted.Succeeded);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(questsBefore, restored.Quests.Count);
+    }
+
     [Fact]
     public void AssistedDialogueMcpProposesPlansPersistsAndRevertsCanonicalGraph()
     {

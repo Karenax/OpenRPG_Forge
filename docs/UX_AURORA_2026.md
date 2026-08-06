@@ -274,6 +274,13 @@ localisation et placeholders, lint, coût, provenance et simulation du nœud d�
 reste en lecture seule tant que l’auteur n’a pas coché l’approbation ; le bouton d’application ne
 s’active qu’après le dry-run exact du dialogue affiché.
 
+G12-F ajoute **Quête assistée** depuis le même pied de page. La colonne de brief sélectionne zone et
+participant, puis saisit synopsis, objectifs, localisation, seed et progression. La gouvernance
+sépare style, citations et approbation. Le panneau résultat expose les quatre états, les transitions
+typées, les objectifs, la récompense, le chemin d’échec, cinq scénarios, le lint, le coût, la
+provenance et le diff. Le bouton d’application reste verrouillé jusqu’au dry-run exact du plan
+approuvé ; persistance, undo/redo et MCP consomment la même commande canonique.
+
 La cible environnementale complète est une direction cohérente de type *stylized realism*, avec
 échelle métrique, matériaux PBR normalisés, silhouettes lisibles, éclairage maîtrisé, LOD,
 collisions, navigation et profils de qualité. Elle est détaillée dans

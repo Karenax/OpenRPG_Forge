@@ -58,6 +58,7 @@ using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Quality;
 using Forge.ModuleFormat.Workspaces;
 using Forge.RpgKit.Application.Dialogues;
+using Forge.RpgKit.Application.Quests;
 using Forge.Scripting;
 using Godot;
 
@@ -113,6 +114,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetAssistedAreaPlansHandler _assistedAreaPlanHandler = new(new SystemClock());
     private readonly BuildAssistedAreaPlanHandler _assistedAreaBuildHandler = new(new SystemClock());
     private readonly ApplyAssistedDialogueHandler _assistedDialogueHandler = new(new SystemClock());
+    private readonly ApplyAssistedQuestHandler _assistedQuestHandler = new(new SystemClock());
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
     private readonly ActiveAreaContext _activeAreaContext = new();
@@ -206,6 +208,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private LoreIndexWindow? _loreIndexWindow;
     private AssistedAreaPlanWindow? _assistedAreaPlanWindow;
     private AssistedDialogueWindow? _assistedDialogueWindow;
+    private AssistedQuestWindow? _assistedQuestWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -346,6 +349,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ApplyAssistedDialogue,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistedDialogueWindow);
+        _assistedQuestWindow = new AssistedQuestWindow();
+        _assistedQuestWindow.Initialize(
+            () => _history?.State,
+            () => _loreIndexHistory?.State,
+            () => _assistantProfileHistory?.State,
+            ApplyAssistedQuest,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_assistedQuestWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -357,6 +368,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _loreIndexWindow?.Open(),
             () => _assistedAreaPlanWindow?.Open(),
             () => _assistedDialogueWindow?.Open(),
+            () => _assistedQuestWindow?.Open(),
             () => _localizationWorkspace?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistantWorkspace);
@@ -3281,6 +3293,48 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool ApplyAssistedQuest(
+        AssistedQuestProposal proposal,
+        Guid transactionId,
+        Guid executionPlanId,
+        bool dryRun)
+    {
+        if (_projectSession is null || _history is null) return false;
+        var command = new ApplyAssistedQuestCommand(
+            CommandId.From(Guid.NewGuid()),
+            transactionId,
+            executionPlanId,
+            _history.State.Revision,
+            proposal,
+            AssistantPermissionLevel.ApplyApprovedPlan,
+            dryRun);
+        var result = _assistedQuestHandler.Handle(_history.State, command);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(diagnostic => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                diagnostic.Code,
+                diagnostic.Message,
+                "assistant/quest",
+                proposal.Quest.Id.ToString())).ToArray());
+            return false;
+        }
+        if (dryRun) return result.Command.Patch is not null && !result.Command.Audit.Applied;
+        var saved = _projectSession.Save(result.Command.State.Project);
+        if (!saved.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSISTED_QUEST_SAVE_FAILED {saved.Diagnostics[0].Code}");
+            return false;
+        }
+        _history.Record(result.Command);
+        RebuildPreview();
+        RefreshEditorControls();
+        GD.Print($"OPENRPG_FORGE_TOOLSET_ASSISTED_QUEST_APPLIED quest={proposal.Quest.Id} " +
+                 $"objectives={proposal.AdvancedQuest.Objectives.Count} revision={_history.State.Revision} " +
+                 $"transaction={transactionId:D} plan={executionPlanId:D}");
+        return true;
+    }
+
     private bool RedoAssistedAreaPlans()
     {
         if (_projectSession is null || _assistedAreaPlanHistory is null || !_assistedAreaPlanHistory.Redo()) return false;
@@ -4631,6 +4685,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssistedDialogueSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAssistedQuestSmokeTest())
         {
             return;
         }
@@ -8308,6 +8367,55 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 "conditions=typed actions=typed style=cited localization=placeholders lint=clean " +
                 "simulation=entry-rendered provider=fake-offline cost=visible plan=dry-run-transaction " +
                 "permission=apply-approved history=restored persistence=roundtrip mcp=governed");
+            return true;
+        }
+        finally
+        {
+            _history = new ProjectCommandHistory(originalState);
+            _projectSession.Save(originalState.Project);
+            RebuildPreview();
+            RefreshEditorControls();
+        }
+    }
+
+    private bool RunAssistedQuestSmokeTest()
+    {
+        if (_projectSession is null || _history is null || _assistedQuestWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12F_QUEST_FAILED missing_workspace");
+            return false;
+        }
+        var originalState = _history.State;
+        var originalQuestCount = originalState.Project.Quests.Count;
+        try
+        {
+            if (!_assistedQuestWindow.ConfigureApprovedForSmokeTest() ||
+                !_assistedQuestWindow.PreviewForSmokeTest() ||
+                _assistedQuestWindow.LastStateCount != 4 ||
+                _assistedQuestWindow.LastObjectiveCount < 1 ||
+                _assistedQuestWindow.LastScenarioCount != 5 ||
+                _assistedQuestWindow.LastLintCount != 0 ||
+                _assistedQuestWindow.LastEstimatedCostUsd != 0 ||
+                !_assistedQuestWindow.ApplyForSmokeTest() ||
+                _history.State.Project.Quests.Count != originalQuestCount + 1)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12F_QUEST_FAILED preview_apply");
+                return false;
+            }
+            var reopened = ProjectSession.Open(_projectSession.RootDirectory);
+            if (reopened.Session is null || reopened.Session.Project.Quests.Count != originalQuestCount + 1 ||
+                !_history.Undo().Succeeded || _history.State.Project.Quests.Count != originalQuestCount ||
+                !_history.Redo().Succeeded || _history.State.Project.Quests.Count != originalQuestCount + 1 ||
+                !_history.Undo().Succeeded || !_projectSession.Save(_history.State.Project).Succeeded)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12F_QUEST_FAILED persistence_history");
+                return false;
+            }
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G12F_QUEST_PASS participants=resolved states=4 objectives=bounded " +
+                "transitions=3 rewards=progression failure=explicit tests=5-scenarios style=cited lint=clean " +
+                "provider=fake-offline cost=visible plan=dry-run-transaction permission=apply-approved " +
+                "history=restored persistence=roundtrip mcp=governed");
             return true;
         }
         finally

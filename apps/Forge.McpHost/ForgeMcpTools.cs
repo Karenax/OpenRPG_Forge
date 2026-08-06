@@ -3,6 +3,7 @@ using Forge.Application.Validation;
 using Forge.Mcp;
 using Forge.Mcp.Assets;
 using Forge.Mcp.Dialogues;
+using Forge.Mcp.Quests;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
 using Forge.Scripting;
@@ -117,6 +118,26 @@ public sealed class ForgeMcpTools
     [Description("Atomically reverts the latest assisted dialogue plan through canonical project history.")]
     public AssistedDialogueApplyPlanResult RevertAssistedDialoguePlan(string planId) =>
         _project.RevertAssistedDialoguePlan(planId);
+
+    [McpServerTool]
+    [Description("Uses the deterministic offline assistant to propose a sourced, linted quest with objectives, rewards, failure paths and test scenarios without mutation.")]
+    public AssistedQuestProposalResource ProposeAssistedQuest(AssistedQuestProposalRequest request) =>
+        _project.ProposeAssistedQuest(request);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs an explicitly approved assisted quest proposal through the canonical quest command.")]
+    public AssistedQuestApplyPlanResult PlanAssistedQuest(AssistedQuestApplyPlanRequest request) =>
+        _project.PlanAssistedQuest(request);
+
+    [McpServerTool]
+    [Description("Applies a previously validated assisted quest plan and persists the canonical project.")]
+    public AssistedQuestApplyPlanResult ApplyAssistedQuestPlan(string planId) =>
+        _project.ApplyAssistedQuestPlan(planId);
+
+    [McpServerTool]
+    [Description("Atomically reverts the latest assisted quest plan through canonical project history.")]
+    public AssistedQuestApplyPlanResult RevertAssistedQuestPlan(string planId) =>
+        _project.RevertAssistedQuestPlan(planId);
 
     [McpServerTool]
     [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]

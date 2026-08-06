@@ -1,13 +1,13 @@
 # État du projet — OpenRPG Forge
 
-Dernière mise à jour : 5 août 2026.
+Dernière mise à jour : 6 août 2026.
 
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. G12-A à G12-E ouvrent maintenant l’Assistant de création avancée, ses
+G11 Contenu moderne fermés. G12-A à G12-F ouvrent maintenant l’Assistant de création avancée, ses
 fournisseurs locaux, son lore, ses plans de crypte/village, leur construction atomique et la création
-de dialogues sourcés après approbation, sans dépendance réseau obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
+de dialogues et quêtes sourcés après approbation, sans dépendance réseau obligatoire. AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
@@ -555,3 +555,18 @@ coût/provenance visibles et validation humaine. Une fenêtre Aurora et cinq op�
 le provider factice hors ligne, la commande transactionnelle, la persistance et l’historique. Son
 enregistrement ne modifie aucune entité de la carte ; G12-D appliquera seulement un plan
 explicitement approuvé via les commandes AREA existantes.
+
+**G12-D — construction de zone assistée livrée** : un plan approuvé devient un lot atomique de
+placements par les mêmes commandes que l'édition manuelle. Seed, géométrie, navigation et éclairage
+sont validés avant le dry-run ; persistance, MCP et undo/redo partagent le même diff et inverse.
+
+**G12-E — création de dialogue assistée livrée** : le graphe RPG avancé est normalisé vers le
+dialogue Core avec participants, conditions/actions typées, citations, règles de style, clés de
+localisation, lint et simulation du nœud d'entrée. L'UI et MCP imposent approbation, permission et
+dry-run exact avant sauvegarde.
+
+**G12-F — création de quête assistée livrée** : la proposition relie participant et zone résolus à
+quatre états, des objectifs bornés, trois transitions typées, une récompense de progression, un
+chemin d'échec et cinq scénarios reproductibles. La fenêtre spécialisée affiche diff, sources,
+lint, coût et provenance ; Toolset et MCP appliquent exclusivement via la commande de quête
+canonique, avec persistance et historique réversible.

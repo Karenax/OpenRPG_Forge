@@ -51,7 +51,8 @@ interchangeables et des prompts versionnés testés. La fermeture de `TASKS_MVP.
 une parité Aurora complète : G12-B ferme les transports locaux et le lore, G12-C livre le premier
 plan de zone assisté sans mutation géométrique, puis G12-D construit un plan approuvé par les mêmes
 commandes que l’édition manuelle, puis G12-E relie le graphe RPG avancé au dialogue Core avec
-citations, localisation, lint et simulation. La file active commence à **G12-F**.
+citations, localisation, lint et simulation, puis G12-F livre les machines à états de quête,
+objectifs, récompenses, échec et scénarios. La file active commence à **G12-G**.
 
 ## 3. Jalons produit
 
@@ -317,8 +318,9 @@ déterministe et les prompts versionnés. G12-B ajoute les transports locaux com
 Ollama, puis l’index de lore gouverné et son contrat MCP. G12-C produit désormais un plan de crypte
 ou village contrôlé, persistant et annulable avant toute génération de géométrie. G12-D applique
 désormais un plan approuvé par un lot de placements atomique, validé, persistant et réversible. G12-E
-livre la création de dialogue assistée sur les agrégats RPG et Core existants. G12-F portera la
-création de quête assistée avec le même contrat gouverné.
+livre la création de dialogue assistée sur les agrégats RPG et Core existants. G12-F livre la
+création de quête assistée avec le même contrat gouverné. G12-G portera la création de ForgeScript
+assistée sans contourner le compilateur ni la sandbox.
 
 **Domaine.** `AI` P1/P2, après stabilisation des workflows humains correspondants.
 
