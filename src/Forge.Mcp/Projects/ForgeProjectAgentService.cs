@@ -58,8 +58,11 @@ public sealed class ForgeProjectAgentService
     private readonly ApplyAssistedAbilityHandler _assistedAbilityHandler;
     private readonly ApplyAssistedBlenderCreationHandler _assistedBlenderCreationHandler;
     private readonly ApplyAssistedModel3DGenerationHandler _assistedModel3DGenerationHandler;
+    private readonly SetExternalWorkerSecurityPolicyHandler _externalWorkerSecurityHandler;
     private readonly HttpClient _model3DHttpClient;
     private AssetExternalEditState _assistedBlenderState;
+    private readonly ExternalWorkerSecurityPolicyCommandHistory _externalWorkerSecurityHistory;
+    private readonly List<AgentDiagnostic> _externalWorkerSecurityLoadDiagnostics;
     private readonly SetEntityOverridesHandler _overridesHandler;
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
@@ -83,6 +86,7 @@ public sealed class ForgeProjectAgentService
     private readonly Dictionary<string, StoredAssistedAbilityPlan> _assistedAbilityPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedBlenderCreationPlan> _assistedBlenderCreationPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedModel3DGenerationPlan> _assistedModel3DGenerationPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredExternalWorkerSecurityPlan> _externalWorkerSecurityPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredGameplayControlPlan> _gameplayControlPlans = new(StringComparer.Ordinal);
@@ -109,12 +113,17 @@ public sealed class ForgeProjectAgentService
         _assistedAbilityHandler = new ApplyAssistedAbilityHandler(clock);
         _assistedBlenderCreationHandler = new ApplyAssistedBlenderCreationHandler(clock);
         _assistedModel3DGenerationHandler = new ApplyAssistedModel3DGenerationHandler(clock);
+        _externalWorkerSecurityHandler = new SetExternalWorkerSecurityPolicyHandler(clock);
         _model3DHttpClient = new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false })
         {
             Timeout = Timeout.InfiniteTimeSpan,
         };
         var externalEdits = AssetExternalEditStore.Load(session.RootDirectory);
         _assistedBlenderState = new AssetExternalEditState(externalEdits.Configurations);
+        var workerSecurity = ExternalWorkerSecurityPolicyStore.Load(session.RootDirectory);
+        _externalWorkerSecurityHistory = new ExternalWorkerSecurityPolicyCommandHistory(workerSecurity.Policy);
+        _externalWorkerSecurityLoadDiagnostics = workerSecurity.Diagnostics.Select(item =>
+            new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
         _overridesHandler = new SetEntityOverridesHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
@@ -2336,6 +2345,130 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public ExternalWorkerSecurityResource GetExternalWorkerSecurity()
+    {
+        lock (_gate)
+        {
+            return new(
+                ExternalWorkerSecurityPolicy.CurrentSchemaVersion,
+                _externalWorkerSecurityHistory.State.Revision.Value,
+                _externalWorkerSecurityHistory.State.Policy,
+                _externalWorkerSecurityLoadDiagnostics.ToArray());
+        }
+    }
+
+    public ExternalWorkerSecurityPlanResult PlanExternalWorkerSecurity(ExternalWorkerSecurityPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1 || request.BaseRevision < 0)
+                return ExternalWorkerSecurityFailure(_externalWorkerSecurityHistory.State.Revision.Value,
+                    "asset.worker_security.request_invalid", "Worker security request schema or revision is invalid.");
+            var transactionId = Guid.NewGuid();
+            var planId = Guid.NewGuid();
+            var command = new SetExternalWorkerSecurityPolicyCommand(
+                CommandId.From(transactionId),
+                planId,
+                new ExternalWorkerSecurityPolicyRevision(request.BaseRevision),
+                request.Policy,
+                request.Permission,
+                DryRun: true);
+            var preview = _externalWorkerSecurityHandler.Handle(_externalWorkerSecurityHistory.State, command);
+            if (!preview.Succeeded)
+                return new(false, null, transactionId.ToString("D"), request.BaseRevision, null,
+                    preview.Patch, preview.Inverse, 0,
+                    preview.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, "assets/worker-security")).ToArray(),
+                    false, false, []);
+            var key = planId.ToString("D");
+            var stored = new StoredExternalWorkerSecurityPlan(
+                key,
+                transactionId.ToString("D"),
+                command,
+                preview.Patch!,
+                preview.Inverse!,
+                [new PlanAuditEntry(key, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _externalWorkerSecurityPlans.Add(key, stored);
+            return ToResult(stored);
+        }
+    }
+
+    public ExternalWorkerSecurityPlanResult ApplyExternalWorkerSecurityPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_externalWorkerSecurityPlans.TryGetValue(planId, out var plan))
+                return ExternalWorkerSecurityFailure(_externalWorkerSecurityHistory.State.Revision.Value,
+                    "asset.worker_security.plan_missing", $"Worker security plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return ExternalWorkerSecurityFailure(plan.Command.BaseRevision.Value,
+                    "asset.worker_security.plan_already_applied", $"Worker security plan '{planId}' is already applied.");
+            var result = _externalWorkerSecurityHandler.Handle(
+                _externalWorkerSecurityHistory.State,
+                plan.Command with { DryRun = false });
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, "apply", _externalWorkerSecurityHistory.State.Revision.Value,
+                    _clock.UtcNow, false));
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = result.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, "assets/worker-security")).ToArray(),
+                };
+            }
+            var saved = ExternalWorkerSecurityPolicyStore.Save(_session.RootDirectory, result.State.Policy);
+            if (!saved.Succeeded)
+            {
+                plan.Audit.Add(new(plan.PlanId, "apply", _externalWorkerSecurityHistory.State.Revision.Value,
+                    _clock.UtcNow, false));
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            }
+            _externalWorkerSecurityHistory.Record(result);
+            _externalWorkerSecurityLoadDiagnostics.Clear();
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new(plan.PlanId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public ExternalWorkerSecurityPlanResult RevertExternalWorkerSecurityPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_externalWorkerSecurityPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return ExternalWorkerSecurityFailure(_externalWorkerSecurityHistory.State.Revision.Value,
+                    "asset.worker_security.plan_not_applied", $"Worker security plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _externalWorkerSecurityHistory.State.Revision.Value)
+                return ExternalWorkerSecurityFailure(plan.Command.BaseRevision.Value,
+                    "asset.worker_security.revert_conflict", "Only the latest worker security mutation can be reverted safely.");
+            if (!_externalWorkerSecurityHistory.Undo())
+                return ExternalWorkerSecurityFailure(plan.Command.BaseRevision.Value,
+                    "asset.worker_security.inverse_unavailable", "Worker security inverse operation is unavailable.");
+            var saved = ExternalWorkerSecurityPolicyStore.Save(
+                _session.RootDirectory, _externalWorkerSecurityHistory.State.Policy);
+            if (!saved.Succeeded)
+            {
+                _externalWorkerSecurityHistory.Redo();
+                return ExternalWorkerSecurityFailure(plan.Command.BaseRevision.Value,
+                    "asset.worker_security.save_failed", "Reverted worker security policy could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(plan.PlanId, "revert", _externalWorkerSecurityHistory.State.Revision.Value,
+                _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
     public AssistedForgeScriptProposalResource ProposeAssistedForgeScript(AssistedForgeScriptProposalRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -3052,6 +3185,17 @@ public sealed class ForgeProjectAgentService
         plan.Reverted,
         plan.Audit.ToArray());
 
+    private static ExternalWorkerSecurityPlanResult ExternalWorkerSecurityFailure(
+        long revision,
+        string code,
+        string message) =>
+        new(false, null, null, revision, null, null, null, 0,
+            [new AgentDiagnostic(code, message, "assets/worker-security")], false, false, []);
+
+    private static ExternalWorkerSecurityPlanResult ToResult(StoredExternalWorkerSecurityPlan plan) =>
+        new(true, plan.PlanId, plan.TransactionId, plan.Command.BaseRevision.Value, plan.AppliedRevision,
+            plan.Diff, plan.Inverse, 0, [], plan.Applied, plan.Reverted, plan.Audit.ToArray());
+
     private IReadOnlySet<string> AvailableForgeScripts()
     {
         var root = Path.Combine(_session.RootDirectory, "scripts");
@@ -3430,6 +3574,25 @@ public sealed class ForgeProjectAgentService
         public ApplyAssistedModel3DGenerationCommand Command { get; } = command;
         public IReadOnlyList<AssistedModel3DFilePatch> FileDiff { get; set; } = fileDiff;
         public IReadOnlyList<AssetExternalEditConfiguration> BeforeConfigurations { get; } = beforeConfigurations;
+        public List<PlanAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredExternalWorkerSecurityPlan(
+        string planId,
+        string transactionId,
+        SetExternalWorkerSecurityPolicyCommand command,
+        ProjectPatch diff,
+        ProjectPatch inverse,
+        List<PlanAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public string TransactionId { get; } = transactionId;
+        public SetExternalWorkerSecurityPolicyCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
         public List<PlanAuditEntry> Audit { get; } = audit;
         public bool Applied { get; set; }
         public bool Reverted { get; set; }

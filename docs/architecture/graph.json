@@ -31,12 +31,17 @@
       "path": "src/Forge.ModuleFormat/Assets/CuratedEmbeddedAnimatedCharacterInstaller.cs"
     },
     {
+      "line": 37,
+      "message": "Identifiant de nœud ambigu ignoré : model:Forge.ModuleFormat.Serialization.Document",
+      "path": "src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
+    },
+    {
       "line": 131,
       "message": "Identifiant de nœud ambigu ignoré : test:Forge.Application.Tests.Assistant.TestContext",
       "path": "tests/Forge.Application.Tests/Assistant/AssistedQuestCreationWorkflowTests.cs"
     },
     {
-      "line": 138,
+      "line": 145,
       "message": "Identifiant de nœud ambigu ignoré : test:Forge.ModuleFormat.Tests.Assets.FixedClock",
       "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedModel3DGenerationTests.cs"
     },
@@ -423,15 +428,6 @@
     },
     {
       "evidence": {
-        "line": 17,
-        "path": "src/Forge.ModuleFormat/Serialization/AssetExternalEditJsonSerializer.cs"
-      },
-      "kind": "serializes",
-      "source": "adapter:Forge.ModuleFormat.Serialization.AssetExternalEditJsonSerializer",
-      "target": "model:Forge.ModuleFormat.Serialization.Document"
-    },
-    {
-      "evidence": {
         "line": 42,
         "path": "src/Forge.ModuleFormat/Serialization/AssetExternalEditJsonSerializer.cs"
       },
@@ -807,6 +803,24 @@
       "kind": "serializes",
       "source": "adapter:Forge.ModuleFormat.Serialization.EntityIdJsonConverter",
       "target": "model:Forge.Domain.Entities.EntityId"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "adapter:Forge.ModuleFormat.Serialization.ExternalWorkerSecurityPolicyJsonSerializer",
+      "target": "file:src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
+      },
+      "kind": "uses_service",
+      "source": "adapter:Forge.ModuleFormat.Serialization.ExternalWorkerSecurityPolicyJsonSerializer",
+      "target": "validator:Forge.Domain.Assets.ExternalWorkerSecurityPolicyValidator"
     },
     {
       "evidence": {
@@ -1602,7 +1616,7 @@
     },
     {
       "evidence": {
-        "line": 7590,
+        "line": 7675,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1611,7 +1625,7 @@
     },
     {
       "evidence": {
-        "line": 7609,
+        "line": 7694,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1620,7 +1634,7 @@
     },
     {
       "evidence": {
-        "line": 7483,
+        "line": 7568,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1629,7 +1643,7 @@
     },
     {
       "evidence": {
-        "line": 8985,
+        "line": 9070,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1638,7 +1652,7 @@
     },
     {
       "evidence": {
-        "line": 9084,
+        "line": 9169,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1647,7 +1661,7 @@
     },
     {
       "evidence": {
-        "line": 6246,
+        "line": 6331,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1656,7 +1670,7 @@
     },
     {
       "evidence": {
-        "line": 8779,
+        "line": 8864,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1899,7 +1913,7 @@
     },
     {
       "evidence": {
-        "line": 1507,
+        "line": 1509,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1908,7 +1922,7 @@
     },
     {
       "evidence": {
-        "line": 1572,
+        "line": 1574,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1917,7 +1931,7 @@
     },
     {
       "evidence": {
-        "line": 1872,
+        "line": 1874,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1926,7 +1940,7 @@
     },
     {
       "evidence": {
-        "line": 1572,
+        "line": 1574,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1935,7 +1949,7 @@
     },
     {
       "evidence": {
-        "line": 1621,
+        "line": 1623,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1944,7 +1958,7 @@
     },
     {
       "evidence": {
-        "line": 1825,
+        "line": 1827,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1971,7 +1985,7 @@
     },
     {
       "evidence": {
-        "line": 1572,
+        "line": 1574,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1980,7 +1994,7 @@
     },
     {
       "evidence": {
-        "line": 1622,
+        "line": 1624,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1989,7 +2003,7 @@
     },
     {
       "evidence": {
-        "line": 1674,
+        "line": 1676,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1998,7 +2012,7 @@
     },
     {
       "evidence": {
-        "line": 1766,
+        "line": 1768,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2016,7 +2030,7 @@
     },
     {
       "evidence": {
-        "line": 1477,
+        "line": 1479,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2025,7 +2039,7 @@
     },
     {
       "evidence": {
-        "line": 1572,
+        "line": 1574,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2034,7 +2048,7 @@
     },
     {
       "evidence": {
-        "line": 1623,
+        "line": 1625,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2043,7 +2057,7 @@
     },
     {
       "evidence": {
-        "line": 1674,
+        "line": 1676,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2052,7 +2066,7 @@
     },
     {
       "evidence": {
-        "line": 1841,
+        "line": 1843,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2115,7 +2129,7 @@
     },
     {
       "evidence": {
-        "line": 1478,
+        "line": 1480,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2133,7 +2147,7 @@
     },
     {
       "evidence": {
-        "line": 1858,
+        "line": 1860,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2484,7 +2498,7 @@
     },
     {
       "evidence": {
-        "line": 192,
+        "line": 194,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2493,7 +2507,7 @@
     },
     {
       "evidence": {
-        "line": 261,
+        "line": 263,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2502,7 +2516,7 @@
     },
     {
       "evidence": {
-        "line": 105,
+        "line": 107,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -4317,6 +4331,24 @@
       "kind": "imports",
       "source": "file:apps/Forge.Toolset/addons/openrpg_forge/DistributionProfilesWindow.cs",
       "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs",
+      "target": "namespace:Forge.Application.Assets"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs"
+      },
+      "kind": "imports",
+      "source": "file:apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs",
+      "target": "namespace:Forge.Domain.Assets"
     },
     {
       "evidence": {
@@ -7083,6 +7115,33 @@
     },
     {
       "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandHistory.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandHistory.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyState.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyState.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "src/Forge.Application/Assets/GovernedAssetModelVerifier.cs"
       },
@@ -7313,6 +7372,60 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.Application/Assets/SetAssetProcessingProfileHandler.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs",
+      "target": "namespace:Forge.Application.Time"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs",
       "target": "namespace:Forge.Domain.Assets"
     },
     {
@@ -11845,6 +11958,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs",
+      "target": "namespace:Forge.Domain.Validation"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Domain/Assets/Model3DGeneration.cs"
       },
       "kind": "imports",
@@ -13744,6 +13875,42 @@
     {
       "evidence": {
         "line": 1,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs",
+      "target": "namespace:Forge.Mcp.Dialogues"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "src/Forge.Mcp/Bosses/AssistedBossContracts.cs"
       },
       "kind": "imports",
@@ -14653,6 +14820,15 @@
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAnimatedCharacterInstaller.cs"
       },
       "kind": "imports",
@@ -15490,6 +15666,15 @@
     {
       "evidence": {
         "line": 2,
+        "path": "src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 2,
         "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
       },
       "kind": "imports",
@@ -15962,6 +16147,24 @@
       },
       "kind": "imports",
       "source": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs",
+      "target": "namespace:Forge.ModuleFormat.Serialization"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs",
       "target": "namespace:Forge.ModuleFormat.Serialization"
     },
     {
@@ -17763,6 +17966,51 @@
       "kind": "imports",
       "source": "file:tests/Forge.Application.Tests/Assets/AssetProcessingProfileCommandTests.cs",
       "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs",
+      "target": "namespace:Forge.Application.Assets"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs",
+      "target": "namespace:Forge.Application.Commands"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs",
+      "target": "namespace:Forge.Application.Tests.Entities"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
     },
     {
       "evidence": {
@@ -20845,6 +21093,24 @@
     {
       "evidence": {
         "line": 1,
+        "path": "tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs",
+      "target": "namespace:Forge.Domain.Assistant"
+    },
+    {
+      "evidence": {
+        "line": 1,
         "path": "tests/Forge.Domain.Tests/Assets/Model3DGenerationTests.cs"
       },
       "kind": "imports",
@@ -22752,6 +23018,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedAnimatedCharacterInstallerTests.cs"
       },
@@ -24026,6 +24301,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Workspaces"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs",
       "target": "namespace:Forge.ModuleFormat.Workspaces"
     },
     {
@@ -26964,7 +27257,7 @@
     },
     {
       "evidence": {
-        "line": 97,
+        "line": 178,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26973,7 +27266,7 @@
     },
     {
       "evidence": {
-        "line": 44,
+        "line": 125,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26982,7 +27275,16 @@
     },
     {
       "evidence": {
-        "line": 592,
+        "line": 48,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._default_security_policy",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 686,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -26991,7 +27293,7 @@
     },
     {
       "evidence": {
-        "line": 191,
+        "line": 272,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27000,7 +27302,7 @@
     },
     {
       "evidence": {
-        "line": 136,
+        "line": 217,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27009,7 +27311,7 @@
     },
     {
       "evidence": {
-        "line": 197,
+        "line": 278,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27018,7 +27320,7 @@
     },
     {
       "evidence": {
-        "line": 58,
+        "line": 139,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27027,7 +27329,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 147,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27036,7 +27338,7 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 151,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27045,7 +27347,7 @@
     },
     {
       "evidence": {
-        "line": 212,
+        "line": 293,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27054,7 +27356,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 156,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27063,7 +27365,7 @@
     },
     {
       "evidence": {
-        "line": 184,
+        "line": 265,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27072,7 +27374,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 165,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27081,7 +27383,16 @@
     },
     {
       "evidence": {
-        "line": 206,
+        "line": 65,
+        "path": "tools/asset_pipeline/blender_worker.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_worker._validate_security_policy",
+      "target": "file:tools/asset_pipeline/blender_worker.py"
+    },
+    {
+      "evidence": {
+        "line": 287,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27090,7 +27401,7 @@
     },
     {
       "evidence": {
-        "line": 577,
+        "line": 671,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27099,7 +27410,7 @@
     },
     {
       "evidence": {
-        "line": 597,
+        "line": 691,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27108,7 +27419,7 @@
     },
     {
       "evidence": {
-        "line": 772,
+        "line": 882,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -27117,7 +27428,7 @@
     },
     {
       "evidence": {
-        "line": 307,
+        "line": 388,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -28742,6 +29053,78 @@
       },
       "kind": "uses_model",
       "source": "handler:Forge.Application.Assets.SetAssetProcessingProfileHandler",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler",
+      "target": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler",
+      "target": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyCommandResult"
+    },
+    {
+      "evidence": {
+        "line": 24,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler",
+      "target": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyState"
+    },
+    {
+      "evidence": {
+        "line": 25,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler",
+      "target": "model:Forge.Application.Assets.SetExternalWorkerSecurityPolicyCommand"
+    },
+    {
+      "evidence": {
+        "line": 80,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 81,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 42,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "uses_model",
+      "source": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler",
       "target": "model:Forge.Application.Commands.ProjectPatch"
     },
     {
@@ -33552,6 +33935,60 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyCommandResult",
+      "target": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyCommandResult",
+      "target": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyState"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyCommandResult",
+      "target": "model:Forge.Application.Commands.AuditEntry"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyCommandResult",
+      "target": "model:Forge.Application.Commands.CommandDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 12,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyCommandResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyState.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyState",
+      "target": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyState.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "src/Forge.Application/Assets/InstallAssetBlueprintCommand.cs"
       },
@@ -33620,6 +34057,24 @@
       },
       "kind": "relationship",
       "source": "model:Forge.Application.Assets.SetAssetProcessingProfileCommand",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 7,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Application.Assets.SetExternalWorkerSecurityPolicyCommand",
+      "target": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Application.Assets.SetExternalWorkerSecurityPolicyCommand",
       "target": "model:Forge.Application.Commands.CommandId"
     },
     {
@@ -34485,15 +34940,6 @@
       "kind": "relationship",
       "source": "model:Forge.Application.Creator.CreatorSearchResult",
       "target": "model:Forge.Application.Creator.CreatorSearchDocument"
-    },
-    {
-      "evidence": {
-        "line": 72,
-        "path": "src/Forge.Application/Creator/CreatorSearchDocument.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.Application.Creator.CreatorSearchResult",
-      "target": "model:Forge.ModuleFormat.Serialization.Document"
     },
     {
       "evidence": {
@@ -38574,6 +39020,42 @@
     },
     {
       "evidence": {
+        "line": 20,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Mcp.Assets.ExternalWorkerSecurityPlanResult",
+      "target": "file:src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Assets.ExternalWorkerSecurityPlanResult",
+      "target": "model:Forge.Application.Commands.ProjectPatch"
+    },
+    {
+      "evidence": {
+        "line": 29,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Assets.ExternalWorkerSecurityPlanResult",
+      "target": "model:Forge.Mcp.AgentDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 32,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Mcp.Assets.ExternalWorkerSecurityPlanResult",
+      "target": "model:Forge.Mcp.Dialogues.PlanAuditEntry"
+    },
+    {
+      "evidence": {
         "line": 21,
         "path": "src/Forge.Mcp/Bosses/AssistedBossContracts.cs"
       },
@@ -38871,7 +39353,7 @@
     },
     {
       "evidence": {
-        "line": 3648,
+        "line": 3811,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -38880,7 +39362,7 @@
     },
     {
       "evidence": {
-        "line": 3650,
+        "line": 3813,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "relationship",
@@ -39249,15 +39731,6 @@
     },
     {
       "evidence": {
-        "line": 7,
-        "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.Mcp.Scripts.ScriptInteropResult",
-      "target": "model:Forge.ModuleFormat.Serialization.Document"
-    },
-    {
-      "evidence": {
         "line": 9,
         "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
       },
@@ -39591,7 +40064,7 @@
     },
     {
       "evidence": {
-        "line": 198,
+        "line": 245,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -39600,7 +40073,7 @@
     },
     {
       "evidence": {
-        "line": 200,
+        "line": 247,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -39609,7 +40082,7 @@
     },
     {
       "evidence": {
-        "line": 202,
+        "line": 249,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "relationship",
@@ -40104,6 +40577,15 @@
     },
     {
       "evidence": {
+        "line": 37,
+        "path": "src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Serialization.Document",
+      "target": "file:src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
+    },
+    {
+      "evidence": {
         "line": 34,
         "path": "src/Forge.ModuleFormat/Serialization/EditorCameraProfileJsonSerializer.cs"
       },
@@ -40307,6 +40789,24 @@
       },
       "kind": "relationship",
       "source": "model:Forge.ModuleFormat.Workspaces.EditorCameraProfileLoadResult",
+      "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Workspaces.ExternalWorkerSecurityPolicyLoadResult",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 80,
+        "path": "src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Workspaces.ExternalWorkerSecurityPolicyLoadResult",
       "target": "model:Forge.ModuleFormat.Workspaces.ProjectSessionDiagnostic"
     },
     {
@@ -40884,15 +41384,6 @@
       "kind": "defined_in",
       "source": "model:Forge.RpgKit.Application.Items.InventoryEditResult",
       "target": "file:src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
-    },
-    {
-      "evidence": {
-        "line": 7,
-        "path": "src/Forge.RpgKit.Application/Items/InventoryAuthoringService.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.RpgKit.Application.Items.InventoryEditResult",
-      "target": "model:Forge.ModuleFormat.Serialization.Document"
     },
     {
       "evidence": {
@@ -42750,15 +43241,6 @@
     },
     {
       "evidence": {
-        "line": 8,
-        "path": "src/Forge.Scripting/ForgeScriptUiEventService.cs"
-      },
-      "kind": "relationship",
-      "source": "model:Forge.Scripting.ScriptUiEvent",
-      "target": "model:Forge.ModuleFormat.Serialization.Document"
-    },
-    {
-      "evidence": {
         "line": 20,
         "path": "src/Forge.Scripting/ForgeScriptQualityService.cs"
       },
@@ -43434,6 +43916,42 @@
     },
     {
       "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandHistory.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assets",
+      "target": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandHistory.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assets",
+      "target": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyRevision.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assets",
+      "target": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyRevision.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyState.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assets",
+      "target": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyState.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Application/Assets/GovernedAssetModelVerifier.cs"
       },
@@ -43557,6 +44075,24 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Application.Assets",
       "target": "file:src/Forge.Application/Assets/SetAssetProcessingProfileHandler.cs"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assets",
+      "target": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Assets",
+      "target": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
     },
     {
       "evidence": {
@@ -45477,6 +46013,15 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Application.Tests.Assets",
+      "target": "file:tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.Application.Tests/Assets/InstallAssetBlueprintHandlerTests.cs"
       },
@@ -46518,6 +47063,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Assets",
       "target": "file:src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Assets",
+      "target": "file:src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
     },
     {
       "evidence": {
@@ -48654,6 +49208,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Assets",
+      "target": "file:tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+    },
+    {
+      "evidence": {
         "line": 2,
         "path": "tests/Forge.Domain.Tests/Assets/Model3DGenerationTests.cs"
       },
@@ -49717,6 +50280,15 @@
     {
       "evidence": {
         "line": 5,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Mcp.Assets",
+      "target": "file:src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
         "path": "src/Forge.Mcp/Bosses/AssistedBossContracts.cs"
       },
       "kind": "defined_in",
@@ -50103,7 +50675,7 @@
     },
     {
       "evidence": {
-        "line": 5,
+        "line": 6,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -50680,6 +51252,15 @@
     {
       "evidence": {
         "line": 3,
+        "path": "src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Serialization",
+      "target": "file:src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs"
       },
       "kind": "defined_in",
@@ -50814,7 +51395,7 @@
     },
     {
       "evidence": {
-        "line": 4,
+        "line": 5,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "defined_in",
@@ -51148,6 +51729,15 @@
     {
       "evidence": {
         "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Workspaces",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
       },
       "kind": "defined_in",
@@ -51252,6 +51842,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Workspaces",
       "target": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Workspaces",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
     },
     {
       "evidence": {
@@ -53088,6 +53687,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Toolset.Editor",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/DistributionProfilesWindow.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Toolset.Editor",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs"
     },
     {
       "evidence": {
@@ -55017,7 +55625,7 @@
     },
     {
       "evidence": {
-        "line": 62,
+        "line": 63,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55026,7 +55634,7 @@
     },
     {
       "evidence": {
-        "line": 1487,
+        "line": 1496,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55035,7 +55643,16 @@
     },
     {
       "evidence": {
-        "line": 536,
+        "line": 2370,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Application.Assets.SetExternalWorkerSecurityPolicyCommand"
+    },
+    {
+      "evidence": {
+        "line": 545,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55044,7 +55661,7 @@
     },
     {
       "evidence": {
-        "line": 443,
+        "line": 452,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55053,7 +55670,7 @@
     },
     {
       "evidence": {
-        "line": 256,
+        "line": 265,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55062,7 +55679,7 @@
     },
     {
       "evidence": {
-        "line": 2709,
+        "line": 2842,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55071,7 +55688,7 @@
     },
     {
       "evidence": {
-        "line": 257,
+        "line": 266,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55080,7 +55697,7 @@
     },
     {
       "evidence": {
-        "line": 2475,
+        "line": 2608,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55089,7 +55706,7 @@
     },
     {
       "evidence": {
-        "line": 2637,
+        "line": 2770,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55098,7 +55715,7 @@
     },
     {
       "evidence": {
-        "line": 102,
+        "line": 106,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55107,7 +55724,7 @@
     },
     {
       "evidence": {
-        "line": 1176,
+        "line": 1185,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55116,7 +55733,7 @@
     },
     {
       "evidence": {
-        "line": 858,
+        "line": 867,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55125,7 +55742,7 @@
     },
     {
       "evidence": {
-        "line": 960,
+        "line": 969,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55134,7 +55751,7 @@
     },
     {
       "evidence": {
-        "line": 1069,
+        "line": 1078,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55143,7 +55760,7 @@
     },
     {
       "evidence": {
-        "line": 1275,
+        "line": 1284,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55152,7 +55769,7 @@
     },
     {
       "evidence": {
-        "line": 723,
+        "line": 732,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55161,7 +55778,7 @@
     },
     {
       "evidence": {
-        "line": 727,
+        "line": 736,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55170,7 +55787,7 @@
     },
     {
       "evidence": {
-        "line": 1444,
+        "line": 1453,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55179,7 +55796,7 @@
     },
     {
       "evidence": {
-        "line": 2221,
+        "line": 2230,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55188,7 +55805,7 @@
     },
     {
       "evidence": {
-        "line": 2672,
+        "line": 2805,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55197,7 +55814,7 @@
     },
     {
       "evidence": {
-        "line": 2678,
+        "line": 2811,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55206,7 +55823,7 @@
     },
     {
       "evidence": {
-        "line": 2687,
+        "line": 2820,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55215,7 +55832,7 @@
     },
     {
       "evidence": {
-        "line": 2464,
+        "line": 2597,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55224,7 +55841,7 @@
     },
     {
       "evidence": {
-        "line": 2662,
+        "line": 2795,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55233,7 +55850,7 @@
     },
     {
       "evidence": {
-        "line": 2665,
+        "line": 2798,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55242,7 +55859,7 @@
     },
     {
       "evidence": {
-        "line": 2625,
+        "line": 2758,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55251,7 +55868,7 @@
     },
     {
       "evidence": {
-        "line": 2634,
+        "line": 2767,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55260,7 +55877,7 @@
     },
     {
       "evidence": {
-        "line": 2731,
+        "line": 2864,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55269,7 +55886,7 @@
     },
     {
       "evidence": {
-        "line": 306,
+        "line": 315,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55278,7 +55895,7 @@
     },
     {
       "evidence": {
-        "line": 2109,
+        "line": 2118,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55287,7 +55904,7 @@
     },
     {
       "evidence": {
-        "line": 1996,
+        "line": 2005,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55296,7 +55913,7 @@
     },
     {
       "evidence": {
-        "line": 73,
+        "line": 65,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55305,7 +55922,7 @@
     },
     {
       "evidence": {
-        "line": 1355,
+        "line": 1364,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55314,7 +55931,7 @@
     },
     {
       "evidence": {
-        "line": 2752,
+        "line": 2885,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55323,7 +55940,7 @@
     },
     {
       "evidence": {
-        "line": 1435,
+        "line": 1444,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55332,7 +55949,7 @@
     },
     {
       "evidence": {
-        "line": 2119,
+        "line": 2128,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55341,7 +55958,7 @@
     },
     {
       "evidence": {
-        "line": 2245,
+        "line": 2254,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55350,7 +55967,16 @@
     },
     {
       "evidence": {
-        "line": 1875,
+        "line": 2360,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "accesses_model",
+      "source": "service:Forge.Mcp.Projects.ForgeProjectAgentService",
+      "target": "model:Forge.Mcp.Assets.ExternalWorkerSecurityPlanResult"
+    },
+    {
+      "evidence": {
+        "line": 1884,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55359,7 +55985,7 @@
     },
     {
       "evidence": {
-        "line": 1625,
+        "line": 1634,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55368,7 +55994,7 @@
     },
     {
       "evidence": {
-        "line": 2451,
+        "line": 2584,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55377,7 +56003,7 @@
     },
     {
       "evidence": {
-        "line": 1650,
+        "line": 1659,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55386,7 +56012,7 @@
     },
     {
       "evidence": {
-        "line": 1184,
+        "line": 1193,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55395,7 +56021,7 @@
     },
     {
       "evidence": {
-        "line": 1161,
+        "line": 1170,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55404,7 +56030,7 @@
     },
     {
       "evidence": {
-        "line": 525,
+        "line": 534,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55413,7 +56039,7 @@
     },
     {
       "evidence": {
-        "line": 455,
+        "line": 464,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55422,7 +56048,7 @@
     },
     {
       "evidence": {
-        "line": 433,
+        "line": 442,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55431,7 +56057,7 @@
     },
     {
       "evidence": {
-        "line": 876,
+        "line": 885,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55440,7 +56066,7 @@
     },
     {
       "evidence": {
-        "line": 850,
+        "line": 859,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55449,7 +56075,7 @@
     },
     {
       "evidence": {
-        "line": 141,
+        "line": 150,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55458,7 +56084,7 @@
     },
     {
       "evidence": {
-        "line": 968,
+        "line": 977,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55467,7 +56093,7 @@
     },
     {
       "evidence": {
-        "line": 952,
+        "line": 961,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55476,7 +56102,7 @@
     },
     {
       "evidence": {
-        "line": 285,
+        "line": 294,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55485,7 +56111,7 @@
     },
     {
       "evidence": {
-        "line": 242,
+        "line": 251,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55494,7 +56120,7 @@
     },
     {
       "evidence": {
-        "line": 1077,
+        "line": 1086,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55503,7 +56129,7 @@
     },
     {
       "evidence": {
-        "line": 1055,
+        "line": 1064,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55512,7 +56138,7 @@
     },
     {
       "evidence": {
-        "line": 1283,
+        "line": 1292,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55521,7 +56147,7 @@
     },
     {
       "evidence": {
-        "line": 1267,
+        "line": 1276,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55530,7 +56156,7 @@
     },
     {
       "evidence": {
-        "line": 744,
+        "line": 753,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55539,7 +56165,7 @@
     },
     {
       "evidence": {
-        "line": 712,
+        "line": 721,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55548,7 +56174,7 @@
     },
     {
       "evidence": {
-        "line": 1749,
+        "line": 1758,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55557,7 +56183,7 @@
     },
     {
       "evidence": {
-        "line": 2371,
+        "line": 2504,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55566,7 +56192,7 @@
     },
     {
       "evidence": {
-        "line": 2596,
+        "line": 2729,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55575,7 +56201,7 @@
     },
     {
       "evidence": {
-        "line": 2130,
+        "line": 2139,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55584,7 +56210,7 @@
     },
     {
       "evidence": {
-        "line": 2256,
+        "line": 2265,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55593,7 +56219,7 @@
     },
     {
       "evidence": {
-        "line": 2381,
+        "line": 2514,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55602,7 +56228,7 @@
     },
     {
       "evidence": {
-        "line": 2006,
+        "line": 2015,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55611,7 +56237,7 @@
     },
     {
       "evidence": {
-        "line": 1885,
+        "line": 1894,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55620,7 +56246,7 @@
     },
     {
       "evidence": {
-        "line": 1635,
+        "line": 1644,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55629,7 +56255,7 @@
     },
     {
       "evidence": {
-        "line": 1759,
+        "line": 1768,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -55638,7 +56264,7 @@
     },
     {
       "evidence": {
-        "line": 2711,
+        "line": 2844,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -58590,15 +59216,6 @@
     },
     {
       "evidence": {
-        "line": 18,
-        "path": "src/Forge.Scripting/ForgeScriptUiEventService.cs"
-      },
-      "kind": "accesses_model",
-      "source": "service:Forge.Scripting.ForgeScriptUiEventService",
-      "target": "model:Forge.ModuleFormat.Serialization.Document"
-    },
-    {
-      "evidence": {
         "line": 27,
         "path": "src/Forge.Scripting/ForgeScriptUiEventService.cs"
       },
@@ -60666,6 +61283,123 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Assets.AssetProcessingProfileCommandTests",
       "target": "validator:Forge.Domain.Assets.AssetProcessingProfileValidator"
+    },
+    {
+      "evidence": {
+        "line": 9,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "file:tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyState"
+    },
+    {
+      "evidence": {
+        "line": 43,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "model:Forge.Application.Assets.SetExternalWorkerSecurityPolicyCommand"
+    },
+    {
+      "evidence": {
+        "line": 44,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "model:Forge.Application.Commands.CommandId"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "model:Forge.LiveDirector.Scripting.Command"
+    },
+    {
+      "evidence": {
+        "line": 17,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "type:Forge.Application.Assets.ExternalWorkerSecurityPolicyCommandHistory"
+    },
+    {
+      "evidence": {
+        "line": 46,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "type:Forge.Application.Assets.ExternalWorkerSecurityPolicyRevision"
+    },
+    {
+      "evidence": {
+        "line": 75,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "type:Forge.Domain.Assets.ExternalWorkerSecurityPolicy"
+    },
+    {
+      "evidence": {
+        "line": 45,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "type:Forge.LiveDirector.Chat.Message"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "type:Forge.ModuleFormat.Assets.Policy"
+    },
+    {
+      "evidence": {
+        "line": 55,
+        "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "target": "validator:Forge.Domain.Assets.ExternalWorkerSecurityPolicyValidator"
     },
     {
       "evidence": {
@@ -63573,15 +64307,6 @@
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Creator.CreatorSearchAndRenameTests",
       "target": "model:Forge.Domain.Spatial.TransformValue"
-    },
-    {
-      "evidence": {
-        "line": 34,
-        "path": "tests/Forge.Application.Tests/Creator/CreatorSearchAndRenameTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.Application.Tests.Creator.CreatorSearchAndRenameTests",
-      "target": "model:Forge.ModuleFormat.Serialization.Document"
     },
     {
       "evidence": {
@@ -69876,6 +70601,51 @@
     },
     {
       "evidence": {
+        "line": 6,
+        "path": "tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Assets.ExternalWorkerSecurityPolicyTests",
+      "target": "file:tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.ExternalWorkerSecurityPolicyTests",
+      "target": "type:Forge.Domain.Assets.AssetExternalOperation"
+    },
+    {
+      "evidence": {
+        "line": 11,
+        "path": "tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.ExternalWorkerSecurityPolicyTests",
+      "target": "type:Forge.Domain.Assets.ExternalWorkerSecurityPolicy"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.ExternalWorkerSecurityPolicyTests",
+      "target": "type:Forge.Domain.Assistant.AssistantPermissionLevel"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.ExternalWorkerSecurityPolicyTests",
+      "target": "validator:Forge.Domain.Assets.ExternalWorkerSecurityPolicyValidator"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "tests/Forge.Domain.Tests/Assets/Model3DGenerationTests.cs"
       },
@@ -74817,7 +75587,7 @@
     },
     {
       "evidence": {
-        "line": 769,
+        "line": 832,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74826,7 +75596,16 @@
     },
     {
       "evidence": {
-        "line": 661,
+        "line": 62,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler"
+    },
+    {
+      "evidence": {
+        "line": 724,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74835,7 +75614,7 @@
     },
     {
       "evidence": {
-        "line": 662,
+        "line": 725,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74844,7 +75623,7 @@
     },
     {
       "evidence": {
-        "line": 1123,
+        "line": 1186,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74853,7 +75632,7 @@
     },
     {
       "evidence": {
-        "line": 103,
+        "line": 165,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74862,7 +75641,7 @@
     },
     {
       "evidence": {
-        "line": 99,
+        "line": 161,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74871,7 +75650,7 @@
     },
     {
       "evidence": {
-        "line": 101,
+        "line": 163,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74880,7 +75659,7 @@
     },
     {
       "evidence": {
-        "line": 44,
+        "line": 100,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74889,7 +75668,7 @@
     },
     {
       "evidence": {
-        "line": 45,
+        "line": 101,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74898,7 +75677,7 @@
     },
     {
       "evidence": {
-        "line": 520,
+        "line": 583,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74907,7 +75686,7 @@
     },
     {
       "evidence": {
-        "line": 523,
+        "line": 586,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74916,7 +75695,7 @@
     },
     {
       "evidence": {
-        "line": 531,
+        "line": 594,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74925,7 +75704,7 @@
     },
     {
       "evidence": {
-        "line": 155,
+        "line": 218,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74934,7 +75713,7 @@
     },
     {
       "evidence": {
-        "line": 161,
+        "line": 224,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74943,7 +75722,7 @@
     },
     {
       "evidence": {
-        "line": 1015,
+        "line": 1078,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74952,7 +75731,7 @@
     },
     {
       "evidence": {
-        "line": 666,
+        "line": 729,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74961,7 +75740,7 @@
     },
     {
       "evidence": {
-        "line": 527,
+        "line": 590,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74970,7 +75749,7 @@
     },
     {
       "evidence": {
-        "line": 962,
+        "line": 1025,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74979,7 +75758,7 @@
     },
     {
       "evidence": {
-        "line": 938,
+        "line": 1001,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74988,7 +75767,7 @@
     },
     {
       "evidence": {
-        "line": 809,
+        "line": 872,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -74997,7 +75776,7 @@
     },
     {
       "evidence": {
-        "line": 845,
+        "line": 908,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75006,7 +75785,7 @@
     },
     {
       "evidence": {
-        "line": 849,
+        "line": 912,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75015,7 +75794,7 @@
     },
     {
       "evidence": {
-        "line": 851,
+        "line": 914,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75024,7 +75803,7 @@
     },
     {
       "evidence": {
-        "line": 850,
+        "line": 913,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75033,7 +75812,7 @@
     },
     {
       "evidence": {
-        "line": 850,
+        "line": 913,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75042,7 +75821,7 @@
     },
     {
       "evidence": {
-        "line": 854,
+        "line": 917,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75051,7 +75830,7 @@
     },
     {
       "evidence": {
-        "line": 854,
+        "line": 917,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75060,7 +75839,7 @@
     },
     {
       "evidence": {
-        "line": 846,
+        "line": 909,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75069,7 +75848,7 @@
     },
     {
       "evidence": {
-        "line": 846,
+        "line": 909,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75078,7 +75857,7 @@
     },
     {
       "evidence": {
-        "line": 676,
+        "line": 739,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75087,7 +75866,7 @@
     },
     {
       "evidence": {
-        "line": 113,
+        "line": 175,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75096,7 +75875,7 @@
     },
     {
       "evidence": {
-        "line": 55,
+        "line": 111,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75105,7 +75884,7 @@
     },
     {
       "evidence": {
-        "line": 269,
+        "line": 332,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75114,7 +75893,7 @@
     },
     {
       "evidence": {
-        "line": 738,
+        "line": 801,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75123,7 +75902,7 @@
     },
     {
       "evidence": {
-        "line": 786,
+        "line": 849,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75132,7 +75911,7 @@
     },
     {
       "evidence": {
-        "line": 423,
+        "line": 486,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75141,7 +75920,7 @@
     },
     {
       "evidence": {
-        "line": 585,
+        "line": 648,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75150,7 +75929,7 @@
     },
     {
       "evidence": {
-        "line": 1090,
+        "line": 1153,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75159,7 +75938,7 @@
     },
     {
       "evidence": {
-        "line": 1119,
+        "line": 1182,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75168,7 +75947,7 @@
     },
     {
       "evidence": {
-        "line": 1113,
+        "line": 1176,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75177,7 +75956,7 @@
     },
     {
       "evidence": {
-        "line": 134,
+        "line": 197,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75186,7 +75965,7 @@
     },
     {
       "evidence": {
-        "line": 1111,
+        "line": 1174,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75195,7 +75974,7 @@
     },
     {
       "evidence": {
-        "line": 1099,
+        "line": 1162,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75204,7 +75983,7 @@
     },
     {
       "evidence": {
-        "line": 1120,
+        "line": 1183,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75213,7 +75992,7 @@
     },
     {
       "evidence": {
-        "line": 103,
+        "line": 165,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75222,7 +76001,7 @@
     },
     {
       "evidence": {
-        "line": 104,
+        "line": 166,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75231,7 +76010,7 @@
     },
     {
       "evidence": {
-        "line": 102,
+        "line": 164,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75240,7 +76019,7 @@
     },
     {
       "evidence": {
-        "line": 45,
+        "line": 101,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75249,7 +76028,7 @@
     },
     {
       "evidence": {
-        "line": 54,
+        "line": 53,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75258,7 +76037,7 @@
     },
     {
       "evidence": {
-        "line": 427,
+        "line": 490,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75267,7 +76046,7 @@
     },
     {
       "evidence": {
-        "line": 441,
+        "line": 504,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75276,7 +76055,7 @@
     },
     {
       "evidence": {
-        "line": 161,
+        "line": 224,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75285,7 +76064,7 @@
     },
     {
       "evidence": {
-        "line": 160,
+        "line": 223,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75294,7 +76073,7 @@
     },
     {
       "evidence": {
-        "line": 879,
+        "line": 942,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75303,7 +76082,7 @@
     },
     {
       "evidence": {
-        "line": 881,
+        "line": 944,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75312,7 +76091,7 @@
     },
     {
       "evidence": {
-        "line": 878,
+        "line": 941,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75321,7 +76100,7 @@
     },
     {
       "evidence": {
-        "line": 877,
+        "line": 940,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75330,7 +76109,7 @@
     },
     {
       "evidence": {
-        "line": 914,
+        "line": 977,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75339,7 +76118,7 @@
     },
     {
       "evidence": {
-        "line": 914,
+        "line": 977,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75348,7 +76127,7 @@
     },
     {
       "evidence": {
-        "line": 913,
+        "line": 976,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75357,7 +76136,7 @@
     },
     {
       "evidence": {
-        "line": 907,
+        "line": 970,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75366,7 +76145,7 @@
     },
     {
       "evidence": {
-        "line": 908,
+        "line": 971,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75375,7 +76154,7 @@
     },
     {
       "evidence": {
-        "line": 910,
+        "line": 973,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75384,7 +76163,7 @@
     },
     {
       "evidence": {
-        "line": 908,
+        "line": 971,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75393,7 +76172,7 @@
     },
     {
       "evidence": {
-        "line": 962,
+        "line": 1025,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75402,7 +76181,7 @@
     },
     {
       "evidence": {
-        "line": 964,
+        "line": 1027,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75411,7 +76190,7 @@
     },
     {
       "evidence": {
-        "line": 940,
+        "line": 1003,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75420,7 +76199,7 @@
     },
     {
       "evidence": {
-        "line": 815,
+        "line": 878,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75429,7 +76208,7 @@
     },
     {
       "evidence": {
-        "line": 809,
+        "line": 872,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75438,7 +76217,7 @@
     },
     {
       "evidence": {
-        "line": 813,
+        "line": 876,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75447,7 +76226,7 @@
     },
     {
       "evidence": {
-        "line": 848,
+        "line": 911,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75456,7 +76235,7 @@
     },
     {
       "evidence": {
-        "line": 847,
+        "line": 910,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75465,7 +76244,7 @@
     },
     {
       "evidence": {
-        "line": 856,
+        "line": 919,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75474,7 +76253,7 @@
     },
     {
       "evidence": {
-        "line": 852,
+        "line": 915,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75483,7 +76262,7 @@
     },
     {
       "evidence": {
-        "line": 852,
+        "line": 915,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75492,7 +76271,7 @@
     },
     {
       "evidence": {
-        "line": 153,
+        "line": 216,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75501,7 +76280,7 @@
     },
     {
       "evidence": {
-        "line": 50,
+        "line": 106,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75510,7 +76289,7 @@
     },
     {
       "evidence": {
-        "line": 348,
+        "line": 411,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75519,7 +76298,7 @@
     },
     {
       "evidence": {
-        "line": 697,
+        "line": 760,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75528,7 +76307,7 @@
     },
     {
       "evidence": {
-        "line": 730,
+        "line": 793,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75537,7 +76316,7 @@
     },
     {
       "evidence": {
-        "line": 1038,
+        "line": 1101,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75546,7 +76325,7 @@
     },
     {
       "evidence": {
-        "line": 1074,
+        "line": 1137,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75555,7 +76334,7 @@
     },
     {
       "evidence": {
-        "line": 985,
+        "line": 1048,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75564,7 +76343,7 @@
     },
     {
       "evidence": {
-        "line": 942,
+        "line": 1005,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75573,7 +76352,7 @@
     },
     {
       "evidence": {
-        "line": 857,
+        "line": 920,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75582,7 +76361,7 @@
     },
     {
       "evidence": {
-        "line": 885,
+        "line": 948,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75591,7 +76370,7 @@
     },
     {
       "evidence": {
-        "line": 539,
+        "line": 602,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75600,7 +76379,7 @@
     },
     {
       "evidence": {
-        "line": 917,
+        "line": 980,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75609,7 +76388,7 @@
     },
     {
       "evidence": {
-        "line": 967,
+        "line": 1030,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75618,7 +76397,7 @@
     },
     {
       "evidence": {
-        "line": 816,
+        "line": 879,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75627,7 +76406,7 @@
     },
     {
       "evidence": {
-        "line": 1056,
+        "line": 1119,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75636,7 +76415,7 @@
     },
     {
       "evidence": {
-        "line": 1092,
+        "line": 1155,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75645,7 +76424,7 @@
     },
     {
       "evidence": {
-        "line": 96,
+        "line": 158,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75654,7 +76433,7 @@
     },
     {
       "evidence": {
-        "line": 42,
+        "line": 98,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75663,7 +76442,16 @@
     },
     {
       "evidence": {
-        "line": 62,
+        "line": 43,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.ModuleFormat.Assets.Policy"
+    },
+    {
+      "evidence": {
+        "line": 118,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75672,7 +76460,7 @@
     },
     {
       "evidence": {
-        "line": 725,
+        "line": 788,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75681,7 +76469,7 @@
     },
     {
       "evidence": {
-        "line": 498,
+        "line": 561,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75690,7 +76478,7 @@
     },
     {
       "evidence": {
-        "line": 270,
+        "line": 333,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75699,7 +76487,16 @@
     },
     {
       "evidence": {
-        "line": 153,
+        "line": 50,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.ExternalWorkerSecurityPolicyStore"
+    },
+    {
+      "evidence": {
+        "line": 216,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75708,7 +76505,7 @@
     },
     {
       "evidence": {
-        "line": 158,
+        "line": 221,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75717,7 +76514,7 @@
     },
     {
       "evidence": {
-        "line": 219,
+        "line": 282,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75726,7 +76523,7 @@
     },
     {
       "evidence": {
-        "line": 371,
+        "line": 434,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75735,7 +76532,7 @@
     },
     {
       "evidence": {
-        "line": 319,
+        "line": 382,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75744,7 +76541,7 @@
     },
     {
       "evidence": {
-        "line": 292,
+        "line": 355,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75753,7 +76550,16 @@
     },
     {
       "evidence": {
-        "line": 1045,
+        "line": 63,
+        "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Mcp.Tests.Projects.ForgeProjectAgentServiceTests",
+      "target": "validator:Forge.Domain.Assets.ExternalWorkerSecurityPolicyValidator"
+    },
+    {
+      "evidence": {
+        "line": 1108,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -75762,7 +76568,7 @@
     },
     {
       "evidence": {
-        "line": 679,
+        "line": 742,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -76356,7 +77162,7 @@
     },
     {
       "evidence": {
-        "line": 134,
+        "line": 141,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedModel3DGenerationTests.cs"
       },
       "kind": "tests",
@@ -76401,7 +77207,7 @@
     },
     {
       "evidence": {
-        "line": 135,
+        "line": 142,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedModel3DGenerationTests.cs"
       },
       "kind": "tests",
@@ -76419,7 +77225,7 @@
     },
     {
       "evidence": {
-        "line": 132,
+        "line": 139,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedModel3DGenerationTests.cs"
       },
       "kind": "tests",
@@ -76437,7 +77243,7 @@
     },
     {
       "evidence": {
-        "line": 7,
+        "line": 8,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "defined_in",
@@ -76446,7 +77252,7 @@
     },
     {
       "evidence": {
-        "line": 10,
+        "line": 11,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -76455,7 +77261,7 @@
     },
     {
       "evidence": {
-        "line": 89,
+        "line": 136,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -76464,7 +77270,7 @@
     },
     {
       "evidence": {
-        "line": 91,
+        "line": 138,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -76473,7 +77279,7 @@
     },
     {
       "evidence": {
-        "line": 86,
+        "line": 133,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -76482,7 +77288,7 @@
     },
     {
       "evidence": {
-        "line": 99,
+        "line": 55,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -76491,7 +77297,7 @@
     },
     {
       "evidence": {
-        "line": 97,
+        "line": 144,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -76500,7 +77306,7 @@
     },
     {
       "evidence": {
-        "line": 106,
+        "line": 153,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -76509,7 +77315,25 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 51,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.BlenderWorkerRequestStoreTests",
+      "target": "type:Forge.Domain.Assets.ExternalWorkerSecurityPolicy"
+    },
+    {
+      "evidence": {
+        "line": 64,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.BlenderWorkerRequestStoreTests",
+      "target": "type:Forge.LiveDirector.Chat.Message"
+    },
+    {
+      "evidence": {
+        "line": 93,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
@@ -76518,12 +77342,21 @@
     },
     {
       "evidence": {
-        "line": 23,
+        "line": 24,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Assets.BlenderWorkerRequestStoreTests",
       "target": "type:Forge.ModuleFormat.Assets.BlenderWorkerRequestStore"
+    },
+    {
+      "evidence": {
+        "line": 77,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/BlenderWorkerRequestStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.BlenderWorkerRequestStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.ExternalWorkerSecurityPolicyStore"
     },
     {
       "evidence": {
@@ -76680,7 +77513,7 @@
     },
     {
       "evidence": {
-        "line": 138,
+        "line": 145,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedModel3DGenerationTests.cs"
       },
       "kind": "defined_in",
@@ -76698,7 +77531,7 @@
     },
     {
       "evidence": {
-        "line": 138,
+        "line": 145,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/AssistedModel3DGenerationTests.cs"
       },
       "kind": "tests",
@@ -80632,6 +81465,42 @@
     {
       "evidence": {
         "line": 6,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.ExternalWorkerSecurityPolicyStoreTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 31,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.ExternalWorkerSecurityPolicyStoreTests",
+      "target": "type:Forge.Domain.Assets.ExternalWorkerSecurityPolicy"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.ExternalWorkerSecurityPolicyStoreTests",
+      "target": "type:Forge.ModuleFormat.Assets.Policy"
+    },
+    {
+      "evidence": {
+        "line": 19,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.ExternalWorkerSecurityPolicyStoreTests",
+      "target": "type:Forge.ModuleFormat.Workspaces.ExternalWorkerSecurityPolicyStore"
+    },
+    {
+      "evidence": {
+        "line": 6,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs"
       },
       "kind": "defined_in",
@@ -84537,15 +85406,6 @@
     },
     {
       "evidence": {
-        "line": 12,
-        "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
-      },
-      "kind": "tests",
-      "source": "test:Forge.RpgKit.Domain.Tests.Items.InventoryAuthoringServiceTests",
-      "target": "model:Forge.ModuleFormat.Serialization.Document"
-    },
-    {
-      "evidence": {
         "line": 10,
         "path": "tests/Forge.RpgKit.Domain.Tests/Items/InventoryAuthoringServiceTests.cs"
       },
@@ -87156,6 +88016,24 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandHistory.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assets.ExternalWorkerSecurityPolicyCommandHistory",
+      "target": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandHistory.cs"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyRevision.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Application.Assets.ExternalWorkerSecurityPolicyRevision",
+      "target": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyRevision.cs"
+    },
+    {
+      "evidence": {
         "line": 81,
         "path": "src/Forge.Application/Assets/GovernedAssetModelVerifier.cs"
       },
@@ -89367,6 +90245,15 @@
       "kind": "defined_in",
       "source": "type:Forge.Domain.Assets.CreditSource",
       "target": "file:src/Forge.Domain/Assets/AssetCreditCatalog.cs"
+    },
+    {
+      "evidence": {
+        "line": 6,
+        "path": "src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.ExternalWorkerSecurityPolicy",
+      "target": "file:src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
     },
     {
       "evidence": {
@@ -91944,6 +92831,24 @@
     },
     {
       "evidence": {
+        "line": 14,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Assets.ExternalWorkerSecurityPlanRequest",
+      "target": "file:src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Assets.ExternalWorkerSecurityResource",
+      "target": "file:src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+    },
+    {
+      "evidence": {
         "line": 15,
         "path": "src/Forge.Mcp/Bosses/AssistedBossContracts.cs"
       },
@@ -92295,7 +93200,7 @@
     },
     {
       "evidence": {
-        "line": 3621,
+        "line": 3784,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92304,7 +93209,7 @@
     },
     {
       "evidence": {
-        "line": 3541,
+        "line": 3704,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92313,7 +93218,7 @@
     },
     {
       "evidence": {
-        "line": 3388,
+        "line": 3532,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92322,7 +93227,7 @@
     },
     {
       "evidence": {
-        "line": 3514,
+        "line": 3677,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92331,7 +93236,7 @@
     },
     {
       "evidence": {
-        "line": 3497,
+        "line": 3660,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92340,7 +93245,7 @@
     },
     {
       "evidence": {
-        "line": 3405,
+        "line": 3549,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92349,7 +93254,7 @@
     },
     {
       "evidence": {
-        "line": 3371,
+        "line": 3515,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92358,7 +93263,7 @@
     },
     {
       "evidence": {
-        "line": 3337,
+        "line": 3481,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92367,7 +93272,7 @@
     },
     {
       "evidence": {
-        "line": 3439,
+        "line": 3602,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92376,7 +93281,7 @@
     },
     {
       "evidence": {
-        "line": 3422,
+        "line": 3566,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92385,7 +93290,7 @@
     },
     {
       "evidence": {
-        "line": 3354,
+        "line": 3498,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92394,7 +93299,7 @@
     },
     {
       "evidence": {
-        "line": 3582,
+        "line": 3745,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92403,7 +93308,7 @@
     },
     {
       "evidence": {
-        "line": 3453,
+        "line": 3616,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92412,7 +93317,16 @@
     },
     {
       "evidence": {
-        "line": 3595,
+        "line": 3583,
+        "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Mcp.Projects.StoredExternalWorkerSecurityPlan",
+      "target": "file:src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
+      "evidence": {
+        "line": 3758,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92421,7 +93335,7 @@
     },
     {
       "evidence": {
-        "line": 3480,
+        "line": 3643,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92430,7 +93344,7 @@
     },
     {
       "evidence": {
-        "line": 3608,
+        "line": 3771,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92439,7 +93353,7 @@
     },
     {
       "evidence": {
-        "line": 3634,
+        "line": 3797,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92448,7 +93362,7 @@
     },
     {
       "evidence": {
-        "line": 3558,
+        "line": 3721,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -92781,7 +93695,7 @@
     },
     {
       "evidence": {
-        "line": 190,
+        "line": 237,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -92790,7 +93704,7 @@
     },
     {
       "evidence": {
-        "line": 192,
+        "line": 239,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -92799,7 +93713,7 @@
     },
     {
       "evidence": {
-        "line": 176,
+        "line": 223,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -92808,7 +93722,7 @@
     },
     {
       "evidence": {
-        "line": 163,
+        "line": 195,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
@@ -92817,11 +93731,20 @@
     },
     {
       "evidence": {
-        "line": 8,
+        "line": 9,
         "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.ModuleFormat.Assets.BlenderWorkerRequestStore",
+      "target": "file:src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 208,
+        "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.BlenderWorkerSecurityPolicy",
       "target": "file:src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
     },
     {
@@ -93687,6 +94610,15 @@
       "kind": "defined_in",
       "source": "type:Forge.ModuleFormat.Workspaces.EditorWorkspaceProfileStore",
       "target": "file:src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Workspaces.ExternalWorkerSecurityPolicyStore",
+      "target": "file:src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
     },
     {
       "evidence": {
@@ -97938,6 +98870,15 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.ExternalWorkerSecurityWindow",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs"
+    },
+    {
+      "evidence": {
         "line": 11,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs"
       },
@@ -98028,7 +98969,7 @@
     },
     {
       "evidence": {
-        "line": 9599,
+        "line": 9770,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -98145,7 +99086,7 @@
     },
     {
       "evidence": {
-        "line": 9604,
+        "line": 9775,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -98154,7 +99095,7 @@
     },
     {
       "evidence": {
-        "line": 9609,
+        "line": 9780,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -98208,7 +99149,7 @@
     },
     {
       "evidence": {
-        "line": 37,
+        "line": 41,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -98456,6 +99397,24 @@
       },
       "kind": "validates",
       "source": "validator:Forge.Domain.Assets.AssistedBlenderCreationValidator",
+      "target": "model:Forge.Domain.Validation.DomainDiagnostic"
+    },
+    {
+      "evidence": {
+        "line": 72,
+        "path": "src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
+      },
+      "kind": "defined_in",
+      "source": "validator:Forge.Domain.Assets.ExternalWorkerSecurityPolicyValidator",
+      "target": "file:src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
+    },
+    {
+      "evidence": {
+        "line": 97,
+        "path": "src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
+      },
+      "kind": "validates",
+      "source": "validator:Forge.Domain.Assets.ExternalWorkerSecurityPolicyValidator",
       "target": "model:Forge.Domain.Validation.DomainDiagnostic"
     },
     {
@@ -99315,8 +100274,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:1f3fe1e237d0422b29f2f0dbbc13eec73db5794ebe8426a92195752c90c7d65e",
-    "source_file_count": 1722
+    "source_digest": "sha256:58a4ae6fb0ec2955cfc333f8b0e0ccee871a8568758fc2a3e64e6b023664cf8e",
+    "source_file_count": 1737
   },
   "nodes": [
     {
@@ -99678,6 +100637,16 @@
       },
       "name": "EntityIdJsonConverter",
       "path": "src/Forge.ModuleFormat/Serialization/OpaqueIdJsonConverters.cs"
+    },
+    {
+      "id": "adapter:Forge.ModuleFormat.Serialization.ExternalWorkerSecurityPolicyJsonSerializer",
+      "kind": "adapter",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Serialization"
+      },
+      "name": "ExternalWorkerSecurityPolicyJsonSerializer",
+      "path": "src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
     },
     {
       "id": "adapter:Forge.ModuleFormat.Serialization.LocalizationCatalogIdJsonConverter",
@@ -102410,6 +103379,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/DistributionProfilesWindow.cs"
     },
     {
+      "id": "file:apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityWindow.cs",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs"
+    },
+    {
       "id": "file:apps/Forge.Toolset/addons/openrpg_forge/ForgeCreatorShell.cs",
       "kind": "file",
       "line": 1,
@@ -104010,6 +104989,16 @@
       "path": "docs/aurora-parity/tasks/G12-K-TEXT-IMAGE-TO-3D-PROVIDERS.md"
     },
     {
+      "id": "file:docs/aurora-parity/tasks/G12-L-EXTERNAL-WORKER-SECURITY.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G12-L-EXTERNAL-WORKER-SECURITY.md",
+      "path": "docs/aurora-parity/tasks/G12-L-EXTERNAL-WORKER-SECURITY.md"
+    },
+    {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
       "kind": "document",
       "line": 1,
@@ -105480,6 +106469,46 @@
       "path": "src/Forge.Application/Assets/DeterministicModel3DGenerationProvider.cs"
     },
     {
+      "id": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandHistory.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityPolicyCommandHistory.cs",
+      "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandHistory.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityPolicyCommandResult.cs",
+      "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyRevision.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityPolicyRevision.cs",
+      "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyRevision.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assets/ExternalWorkerSecurityPolicyState.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityPolicyState.cs",
+      "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyState.cs"
+    },
+    {
       "id": "file:src/Forge.Application/Assets/GovernedAssetModelVerifier.cs",
       "kind": "file",
       "line": 1,
@@ -105618,6 +106647,26 @@
       },
       "name": "SetAssetProcessingProfileHandler.cs",
       "path": "src/Forge.Application/Assets/SetAssetProcessingProfileHandler.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetExternalWorkerSecurityPolicyCommand.cs",
+      "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs"
+    },
+    {
+      "id": "file:src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "SetExternalWorkerSecurityPolicyHandler.cs",
+      "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
     },
     {
       "id": "file:src/Forge.Application/Assistant/AssistantPromptRenderResult.cs",
@@ -108118,6 +109167,16 @@
       },
       "name": "AssistedBlenderCreation.cs",
       "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityPolicy.cs",
+      "path": "src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
     },
     {
       "id": "file:src/Forge.Domain/Assets/Model3DGeneration.cs",
@@ -111100,6 +112159,16 @@
       "path": "src/Forge.Mcp/Assets/AssistedModel3DGenerationContracts.cs"
     },
     {
+      "id": "file:src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityContracts.cs",
+      "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+    },
+    {
       "id": "file:src/Forge.Mcp/Bosses/AssistedBossContracts.cs",
       "kind": "file",
       "line": 1,
@@ -112130,6 +113199,16 @@
       "path": "src/Forge.ModuleFormat/Serialization/EditorWorkspaceProfileJsonSerializer.cs"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityPolicyJsonSerializer.cs",
+      "path": "src/Forge.ModuleFormat/Serialization/ExternalWorkerSecurityPolicyJsonSerializer.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Serialization/LoreIndexJsonSerializer.cs",
       "kind": "file",
       "line": 1,
@@ -112298,6 +113377,16 @@
       },
       "name": "EditorWorkspaceProfileStore.cs",
       "path": "src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+    },
+    {
+      "id": "file:src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityPolicyStore.cs",
+      "path": "src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
     },
     {
       "id": "file:src/Forge.ModuleFormat/Workspaces/LoreIndexStore.cs",
@@ -113760,6 +114849,16 @@
       "path": "tests/Forge.Application.Tests/Assets/AssetProcessingProfileCommandTests.cs"
     },
     {
+      "id": "file:tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityPolicyCommandTests.cs",
+      "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+    },
+    {
       "id": "file:tests/Forge.Application.Tests/Assets/InstallAssetBlueprintHandlerTests.cs",
       "kind": "file",
       "line": 1,
@@ -114478,6 +115577,16 @@
       },
       "name": "AssetPackageManifestValidatorTests.cs",
       "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityPolicyTests.cs",
+      "path": "tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Assets/Model3DGenerationTests.cs",
@@ -115608,6 +116717,16 @@
       },
       "name": "EditorWorkspaceProfileStoreTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "ExternalWorkerSecurityPolicyStoreTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Workspaces/LoreIndexStoreTests.cs",
@@ -118412,7 +119531,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._canonicalize_png",
       "kind": "function",
-      "line": 97,
+      "line": 178,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118422,7 +119541,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._contained",
       "kind": "function",
-      "line": 44,
+      "line": 125,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118430,9 +119549,19 @@
       "path": "tools/asset_pipeline/blender_worker.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._default_security_policy",
+      "kind": "function",
+      "line": 48,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_default_security_policy",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._encode_bridge_payload",
       "kind": "function",
-      "line": 592,
+      "line": 686,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118442,7 +119571,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._number",
       "kind": "function",
-      "line": 191,
+      "line": 272,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118452,7 +119581,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._quality_report",
       "kind": "function",
-      "line": 136,
+      "line": 217,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118462,7 +119591,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._safe_name",
       "kind": "function",
-      "line": 197,
+      "line": 278,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118472,7 +119601,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._sha256",
       "kind": "function",
-      "line": 58,
+      "line": 139,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118482,7 +119611,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._sidecar_path",
       "kind": "function",
-      "line": 66,
+      "line": 147,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118492,7 +119621,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._sidecar_relative",
       "kind": "function",
-      "line": 70,
+      "line": 151,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118502,7 +119631,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._validate_creation_recipe",
       "kind": "function",
-      "line": 212,
+      "line": 293,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118512,7 +119641,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._validate_glb",
       "kind": "function",
-      "line": 75,
+      "line": 156,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118522,7 +119651,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._validate_hash",
       "kind": "function",
-      "line": 184,
+      "line": 265,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118532,7 +119661,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._validate_png",
       "kind": "function",
-      "line": 84,
+      "line": 165,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118540,9 +119669,19 @@
       "path": "tools/asset_pipeline/blender_worker.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_worker._validate_security_policy",
+      "kind": "function",
+      "line": 65,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_worker"
+      },
+      "name": "_validate_security_policy",
+      "path": "tools/asset_pipeline/blender_worker.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_worker._vector",
       "kind": "function",
-      "line": 206,
+      "line": 287,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118552,7 +119691,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._write_json_atomically",
       "kind": "function",
-      "line": 577,
+      "line": 671,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118562,7 +119701,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.execute",
       "kind": "function",
-      "line": 597,
+      "line": 691,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118572,7 +119711,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.main",
       "kind": "function",
-      "line": 772,
+      "line": 882,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -118582,7 +119721,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.validate_request",
       "kind": "function",
-      "line": 307,
+      "line": 388,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -119028,6 +120167,16 @@
       },
       "name": "SetAssetProcessingProfileHandler",
       "path": "src/Forge.Application/Assets/SetAssetProcessingProfileHandler.cs"
+    },
+    {
+      "id": "handler:Forge.Application.Assets.SetExternalWorkerSecurityPolicyHandler",
+      "kind": "handler",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "SetExternalWorkerSecurityPolicyHandler",
+      "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyHandler.cs"
     },
     {
       "id": "handler:Forge.Application.Assistant.BuildAssistedAreaPlanHandler",
@@ -119770,6 +120919,26 @@
       "path": "src/Forge.Application/Assets/AssetProcessingProfileState.cs"
     },
     {
+      "id": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyCommandResult",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "ExternalWorkerSecurityPolicyCommandResult",
+      "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandResult.cs"
+    },
+    {
+      "id": "model:Forge.Application.Assets.ExternalWorkerSecurityPolicyState",
+      "kind": "model",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "ExternalWorkerSecurityPolicyState",
+      "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyState.cs"
+    },
+    {
       "id": "model:Forge.Application.Assets.InstallAssetBlueprintCommand",
       "kind": "model",
       "line": 7,
@@ -119808,6 +120977,16 @@
       },
       "name": "SetAssetProcessingProfileCommand",
       "path": "src/Forge.Application/Assets/SetAssetProcessingProfileCommand.cs"
+    },
+    {
+      "id": "model:Forge.Application.Assets.SetExternalWorkerSecurityPolicyCommand",
+      "kind": "model",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "SetExternalWorkerSecurityPolicyCommand",
+      "path": "src/Forge.Application/Assets/SetExternalWorkerSecurityPolicyCommand.cs"
     },
     {
       "id": "model:Forge.Application.Assistant.AssistantPromptRenderResult",
@@ -122490,6 +123669,16 @@
       "path": "src/Forge.Mcp/Assets/AssistedModel3DGenerationContracts.cs"
     },
     {
+      "id": "model:Forge.Mcp.Assets.ExternalWorkerSecurityPlanResult",
+      "kind": "model",
+      "line": 20,
+      "metadata": {
+        "namespace": "Forge.Mcp.Assets"
+      },
+      "name": "ExternalWorkerSecurityPlanResult",
+      "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+    },
+    {
       "id": "model:Forge.Mcp.Bosses.AssistedBossApplyPlanResult",
       "kind": "model",
       "line": 21,
@@ -122602,7 +123791,7 @@
     {
       "id": "model:Forge.Mcp.Projects.ForgeProjectAgentOpenResult",
       "kind": "model",
-      "line": 3648,
+      "line": 3811,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -122932,7 +124121,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.BlenderWorkerRequestDiagnostic",
       "kind": "model",
-      "line": 198,
+      "line": 245,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -122942,7 +124131,7 @@
     {
       "id": "model:Forge.ModuleFormat.Assets.BlenderWorkerRequestSaveResult",
       "kind": "model",
-      "line": 200,
+      "line": 247,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -123428,6 +124617,16 @@
       },
       "name": "EditorCameraProfileLoadResult",
       "path": "src/Forge.ModuleFormat/Workspaces/EditorCameraProfileStore.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Workspaces.ExternalWorkerSecurityPolicyLoadResult",
+      "kind": "model",
+      "line": 77,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "ExternalWorkerSecurityPolicyLoadResult",
+      "path": "src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
     },
     {
       "id": "model:Forge.ModuleFormat.Workspaces.LoreIndexLoadResult",
@@ -127953,6 +129152,16 @@
       "path": "tests/Forge.Application.Tests/Assets/AssetProcessingProfileCommandTests.cs"
     },
     {
+      "id": "test:Forge.Application.Tests.Assets.ExternalWorkerSecurityPolicyCommandTests",
+      "kind": "test",
+      "line": 9,
+      "metadata": {
+        "namespace": "Forge.Application.Tests.Assets"
+      },
+      "name": "ExternalWorkerSecurityPolicyCommandTests",
+      "path": "tests/Forge.Application.Tests/Assets/ExternalWorkerSecurityPolicyCommandTests.cs"
+    },
+    {
       "id": "test:Forge.Application.Tests.Assets.InstallAssetBlueprintHandlerTests",
       "kind": "test",
       "line": 10,
@@ -128733,6 +129942,16 @@
       "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Assets.ExternalWorkerSecurityPolicyTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Assets"
+      },
+      "name": "ExternalWorkerSecurityPolicyTests",
+      "path": "tests/Forge.Domain.Tests/Assets/ExternalWorkerSecurityPolicyTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Assets.Model3DGenerationTests",
       "kind": "test",
       "line": 5,
@@ -129435,7 +130654,7 @@
     {
       "id": "test:Forge.ModuleFormat.Tests.Assets.BlenderWorkerRequestStoreTests",
       "kind": "test",
-      "line": 7,
+      "line": 8,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Tests.Assets"
       },
@@ -129851,6 +131070,16 @@
       },
       "name": "EditorWorkspaceProfileStoreTests",
       "path": "tests/Forge.ModuleFormat.Tests/Workspaces/EditorWorkspaceProfileStoreTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Workspaces.ExternalWorkerSecurityPolicyStoreTests",
+      "kind": "test",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Workspaces"
+      },
+      "name": "ExternalWorkerSecurityPolicyStoreTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Workspaces/ExternalWorkerSecurityPolicyStoreTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Workspaces.LoreIndexStoreTests",
@@ -131158,6 +132387,26 @@
       },
       "name": "DeterministicModel3DGenerationProvider",
       "path": "src/Forge.Application/Assets/DeterministicModel3DGenerationProvider.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assets.ExternalWorkerSecurityPolicyCommandHistory",
+      "kind": "type",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "ExternalWorkerSecurityPolicyCommandHistory",
+      "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyCommandHistory.cs"
+    },
+    {
+      "id": "type:Forge.Application.Assets.ExternalWorkerSecurityPolicyRevision",
+      "kind": "type",
+      "line": 3,
+      "metadata": {
+        "namespace": "Forge.Application.Assets"
+      },
+      "name": "ExternalWorkerSecurityPolicyRevision",
+      "path": "src/Forge.Application/Assets/ExternalWorkerSecurityPolicyRevision.cs"
     },
     {
       "id": "type:Forge.Application.Assets.GovernedAssetModelVerification",
@@ -133608,6 +134857,16 @@
       },
       "name": "CreditSource",
       "path": "src/Forge.Domain/Assets/AssetCreditCatalog.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.ExternalWorkerSecurityPolicy",
+      "kind": "type",
+      "line": 6,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "ExternalWorkerSecurityPolicy",
+      "path": "src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
     },
     {
       "id": "type:Forge.Domain.Assets.Model3DGenerationReceipt",
@@ -136430,6 +137689,26 @@
       "path": "src/Forge.Mcp/Assets/AssistedModel3DGenerationContracts.cs"
     },
     {
+      "id": "type:Forge.Mcp.Assets.ExternalWorkerSecurityPlanRequest",
+      "kind": "type",
+      "line": 14,
+      "metadata": {
+        "namespace": "Forge.Mcp.Assets"
+      },
+      "name": "ExternalWorkerSecurityPlanRequest",
+      "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+    },
+    {
+      "id": "type:Forge.Mcp.Assets.ExternalWorkerSecurityResource",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Mcp.Assets"
+      },
+      "name": "ExternalWorkerSecurityResource",
+      "path": "src/Forge.Mcp/Assets/ExternalWorkerSecurityContracts.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Bosses.AssistedBossApplyPlanRequest",
       "kind": "type",
       "line": 15,
@@ -136812,7 +138091,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAreaExperiencePlan",
       "kind": "type",
-      "line": 3621,
+      "line": 3784,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136822,7 +138101,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssetInstallPlan",
       "kind": "type",
-      "line": 3541,
+      "line": 3704,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136832,7 +138111,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAbilityPlan",
       "kind": "type",
-      "line": 3388,
+      "line": 3532,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136842,7 +138121,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAreaBuildPlan",
       "kind": "type",
-      "line": 3514,
+      "line": 3677,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136852,7 +138131,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAreaPlan",
       "kind": "type",
-      "line": 3497,
+      "line": 3660,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136862,7 +138141,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedBlenderCreationPlan",
       "kind": "type",
-      "line": 3405,
+      "line": 3549,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136872,7 +138151,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedBossPlan",
       "kind": "type",
-      "line": 3371,
+      "line": 3515,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136882,7 +138161,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedDialoguePlan",
       "kind": "type",
-      "line": 3337,
+      "line": 3481,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136892,7 +138171,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedForgeScriptPlan",
       "kind": "type",
-      "line": 3439,
+      "line": 3602,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136902,7 +138181,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedModel3DGenerationPlan",
       "kind": "type",
-      "line": 3422,
+      "line": 3566,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136912,7 +138191,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedQuestPlan",
       "kind": "type",
-      "line": 3354,
+      "line": 3498,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136922,7 +138201,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredCinematicPlan",
       "kind": "type",
-      "line": 3582,
+      "line": 3745,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136932,7 +138211,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredDialoguePlan",
       "kind": "type",
-      "line": 3453,
+      "line": 3616,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136940,9 +138219,19 @@
       "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
     },
     {
+      "id": "type:Forge.Mcp.Projects.StoredExternalWorkerSecurityPlan",
+      "kind": "type",
+      "line": 3583,
+      "metadata": {
+        "namespace": "Forge.Mcp.Projects"
+      },
+      "name": "StoredExternalWorkerSecurityPlan",
+      "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
+    },
+    {
       "id": "type:Forge.Mcp.Projects.StoredGameplayControlPlan",
       "kind": "type",
-      "line": 3595,
+      "line": 3758,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136952,7 +138241,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredLoreIndexPlan",
       "kind": "type",
-      "line": 3480,
+      "line": 3643,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136962,7 +138251,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRulesProfilePlan",
       "kind": "type",
-      "line": 3608,
+      "line": 3771,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136972,7 +138261,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimeExtensionPlan",
       "kind": "type",
-      "line": 3634,
+      "line": 3797,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -136982,7 +138271,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimePolicyPlan",
       "kind": "type",
-      "line": 3558,
+      "line": 3721,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -137322,7 +138611,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerAnimationSource",
       "kind": "type",
-      "line": 190,
+      "line": 237,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -137332,7 +138621,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerMaterialTextureSource",
       "kind": "type",
-      "line": 192,
+      "line": 239,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -137342,7 +138631,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerOptions",
       "kind": "type",
-      "line": 176,
+      "line": 223,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -137352,7 +138641,7 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerRequest",
       "kind": "type",
-      "line": 163,
+      "line": 195,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
@@ -137362,11 +138651,21 @@
     {
       "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerRequestStore",
       "kind": "type",
-      "line": 8,
+      "line": 9,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Assets"
       },
       "name": "BlenderWorkerRequestStore",
+      "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.BlenderWorkerSecurityPolicy",
+      "kind": "type",
+      "line": 208,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "BlenderWorkerSecurityPolicy",
       "path": "src/Forge.ModuleFormat/Assets/BlenderWorkerRequestStore.cs"
     },
     {
@@ -138288,6 +139587,16 @@
       },
       "name": "EditorWorkspaceProfileStore",
       "path": "src/Forge.ModuleFormat/Workspaces/EditorWorkspaceProfileStore.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Workspaces.ExternalWorkerSecurityPolicyStore",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Workspaces"
+      },
+      "name": "ExternalWorkerSecurityPolicyStore",
+      "path": "src/Forge.ModuleFormat/Workspaces/ExternalWorkerSecurityPolicyStore.cs"
     },
     {
       "id": "type:Forge.ModuleFormat.Workspaces.LoreIndexStore",
@@ -142680,6 +143989,16 @@
       "path": "apps/Forge.Toolset/addons/openrpg_forge/DistributionProfilesWindow.cs"
     },
     {
+      "id": "type:Forge.Toolset.Editor.ExternalWorkerSecurityWindow",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "ExternalWorkerSecurityWindow",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/ExternalWorkerSecurityWindow.cs"
+    },
+    {
       "id": "type:Forge.Toolset.Editor.ForgeCreatorShell",
       "kind": "type",
       "line": 11,
@@ -142772,7 +144091,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 9599,
+      "line": 9770,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -142862,7 +144181,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 9604,
+      "line": 9775,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -142872,7 +144191,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 9609,
+      "line": 9780,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -142932,7 +144251,7 @@
     {
       "id": "type:tools.asset_pipeline.blender_worker.WorkerError",
       "kind": "type",
-      "line": 37,
+      "line": 41,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -143028,6 +144347,16 @@
       },
       "name": "AssistedBlenderCreationValidator",
       "path": "src/Forge.Domain/Assets/AssistedBlenderCreation.cs"
+    },
+    {
+      "id": "validator:Forge.Domain.Assets.ExternalWorkerSecurityPolicyValidator",
+      "kind": "validator",
+      "line": 72,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "ExternalWorkerSecurityPolicyValidator",
+      "path": "src/Forge.Domain/Assets/ExternalWorkerSecurityPolicy.cs"
     },
     {
       "id": "validator:Forge.Domain.Assets.Model3DGenerationValidator",

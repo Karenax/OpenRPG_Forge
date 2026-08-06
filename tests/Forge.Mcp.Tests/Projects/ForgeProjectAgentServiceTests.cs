@@ -36,6 +36,62 @@ namespace Forge.Mcp.Tests.Projects;
 public sealed class ForgeProjectAgentServiceTests
 {
     [Fact]
+    public void WorkerSecurityMcpRequiresPlanPermissionAndPersistsThenRevertsCanonicalPolicy()
+    {
+        using var workspace = new TestWorkspace();
+        var current = workspace.Project.GetExternalWorkerSecurity();
+        var updated = current.Policy with
+        {
+            MaximumJobSeconds = 180,
+            MaximumOutputBytes = 256L * 1024 * 1024,
+            Provenance = "mcp:g12-l:test",
+        };
+        var path = Path.Combine(workspace.RootDirectory,
+            ExternalWorkerSecurityPolicyStore.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+
+        var denied = workspace.Project.PlanExternalWorkerSecurity(new(
+            1, current.Revision, updated, AssistantPermissionLevel.Propose));
+        var unsafePlan = workspace.Project.PlanExternalWorkerSecurity(new(
+            1, current.Revision, updated with { DenyShell = false }, AssistantPermissionLevel.Configure));
+        var missing = workspace.Project.ApplyExternalWorkerSecurityPlan(Guid.NewGuid().ToString("D"));
+        var planned = workspace.Project.PlanExternalWorkerSecurity(new(
+            1, current.Revision, updated, AssistantPermissionLevel.Configure));
+
+        Assert.Empty(current.Diagnostics);
+        Assert.True(current.Policy.DenyFreeFormPython);
+        Assert.Equal(SetExternalWorkerSecurityPolicyHandler.PermissionDeniedCode, Assert.Single(denied.Diagnostics).Code);
+        Assert.Equal(ExternalWorkerSecurityPolicyValidator.UnsafeExecutionCode, Assert.Single(unsafePlan.Diagnostics).Code);
+        Assert.Equal("asset.worker_security.plan_missing", Assert.Single(missing.Diagnostics).Code);
+        Assert.True(planned.Succeeded);
+        Assert.False(planned.Applied);
+        Assert.NotNull(planned.SemanticDiff);
+        Assert.NotNull(planned.Inverse);
+        Assert.False(string.IsNullOrWhiteSpace(planned.PlanId));
+        Assert.False(string.IsNullOrWhiteSpace(planned.TransactionId));
+        Assert.Equal(0, planned.EstimatedCostUsd);
+        Assert.False(File.Exists(path));
+
+        var applied = workspace.Project.ApplyExternalWorkerSecurityPlan(planned.PlanId!);
+        var reloaded = ExternalWorkerSecurityPolicyStore.Load(workspace.RootDirectory);
+
+        Assert.True(applied.Succeeded);
+        Assert.True(applied.Applied);
+        Assert.True(File.Exists(path));
+        Assert.True(reloaded.Succeeded);
+        Assert.Equal(180, reloaded.Policy.MaximumJobSeconds);
+        Assert.True(reloaded.Policy.DenyShell);
+        Assert.False(reloaded.Policy.NetworkAllowed);
+
+        var reverted = workspace.Project.RevertExternalWorkerSecurityPlan(planned.PlanId!);
+        var restored = ExternalWorkerSecurityPolicyStore.Load(workspace.RootDirectory);
+
+        Assert.True(reverted.Succeeded);
+        Assert.True(reverted.Reverted);
+        Assert.Equal(300, restored.Policy.MaximumJobSeconds);
+        Assert.Equal(["planned", "apply", "revert"], reverted.Audit.Select(item => item.Action));
+    }
+
+    [Fact]
     public void AssistedModel3DMcpStagesGovernedSourceAppliesAndRevertsFourFiles()
     {
         using var workspace = new TestWorkspace();
@@ -76,7 +132,13 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(File.Exists(requestPath));
         Assert.True(File.Exists(externalPath));
         Assert.Contains("\"humanAccepted\": true", File.ReadAllText(receiptPath), StringComparison.Ordinal);
-        Assert.DoesNotContain("create_primitives", File.ReadAllText(requestPath), StringComparison.Ordinal);
+        using (var requestDocument = JsonDocument.Parse(File.ReadAllText(requestPath)))
+        {
+            Assert.DoesNotContain(requestDocument.RootElement.GetProperty("operations").EnumerateArray(),
+                item => item.GetString() == "create_primitives");
+            Assert.True(requestDocument.RootElement.GetProperty("securityPolicy")
+                .GetProperty("denyFreeFormPython").GetBoolean());
+        }
 
         var reverted = workspace.Project.RevertAssistedModel3DGenerationPlan(planned.PlanId!);
 
@@ -129,6 +191,7 @@ public sealed class ForgeProjectAgentServiceTests
         Assert.True(File.Exists(requestPath));
         Assert.True(File.Exists(externalPath));
         Assert.Contains("\"create_primitives\"", File.ReadAllText(requestPath), StringComparison.Ordinal);
+        Assert.Contains("\"denyShell\": true", File.ReadAllText(requestPath), StringComparison.Ordinal);
         Assert.Contains("\"kind\": \"cylinder\"", File.ReadAllText(recipePath), StringComparison.Ordinal);
         Assert.Single(AssetExternalEditStore.Load(workspace.RootDirectory).Configurations,
             item => item.Operations.Contains(AssetExternalOperation.CreatePrimitives));

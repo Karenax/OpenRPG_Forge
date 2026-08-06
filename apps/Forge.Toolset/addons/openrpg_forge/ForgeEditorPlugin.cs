@@ -122,6 +122,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly ApplyAssistedAbilityHandler _assistedAbilityHandler = new(new SystemClock());
     private readonly ApplyAssistedBlenderCreationHandler _assistedBlenderCreationHandler = new(new SystemClock());
     private readonly ApplyAssistedModel3DGenerationHandler _assistedModel3DGenerationHandler = new(new SystemClock());
+    private readonly SetExternalWorkerSecurityPolicyHandler _externalWorkerSecurityHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -222,6 +223,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssistedAbilityWindow? _assistedAbilityWindow;
     private AssistedBlenderCreationWindow? _assistedBlenderCreationWindow;
     private AssistedModel3DGenerationWindow? _assistedModel3DGenerationWindow;
+    private ExternalWorkerSecurityWindow? _externalWorkerSecurityWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -253,6 +255,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AssetExternalEditCommandHistory? _assetExternalEditHistory;
     private AssistedBlenderCreationCommandHistory? _assistedBlenderCreationHistory;
     private AssistedModel3DGenerationCommandHistory? _assistedModel3DGenerationHistory;
+    private ExternalWorkerSecurityPolicyCommandHistory? _externalWorkerSecurityHistory;
     private AssistantWorkspaceProfileCommandHistory? _assistantProfileHistory;
     private LoreIndexCommandHistory? _loreIndexHistory;
     private AssistedAreaPlanCommandHistory? _assistedAreaPlanHistory;
@@ -422,6 +425,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             RedoAssistedModel3DGeneration,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistedModel3DGenerationWindow);
+        _externalWorkerSecurityWindow = new ExternalWorkerSecurityWindow();
+        _externalWorkerSecurityWindow.Initialize(
+            () => _externalWorkerSecurityHistory?.State,
+            ApplyExternalWorkerSecurityPolicy,
+            UndoExternalWorkerSecurityPolicy,
+            RedoExternalWorkerSecurityPolicy,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_externalWorkerSecurityWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -439,6 +450,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _assistedAbilityWindow?.Open(),
             () => _assistedBlenderCreationWindow?.Open(),
             () => _assistedModel3DGenerationWindow?.Open(),
+            () => _externalWorkerSecurityWindow?.Open(),
             () => _localizationWorkspace?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assistantWorkspace);
@@ -700,6 +712,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _assetBrowser = null;
         _localizationWorkspace = null;
         _assistantWorkspace = null;
+        _externalWorkerSecurityWindow = null;
         _loreIndexWindow = null;
         _globalSearch = null;
         _moduleConfiguration = null;
@@ -724,6 +737,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _assetProcessingProfileHistory = null;
         _assetPackageManifestHistory = null;
         _assetExternalEditHistory = null;
+        _externalWorkerSecurityHistory = null;
         _assistantProfileHistory = null;
         _loreIndexHistory = null;
         GD.Print("OPENRPG_FORGE_PLUGIN_UNLOADED");
@@ -2957,6 +2971,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_EXTERNAL_EDITS_INVALID {externalEdits.Diagnostics[0].Code}");
         }
+        var workerSecurity = ExternalWorkerSecurityPolicyStore.Load(_projectSession.RootDirectory);
+        _externalWorkerSecurityHistory = new ExternalWorkerSecurityPolicyCommandHistory(workerSecurity.Policy);
+        if (!workerSecurity.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_WORKER_SECURITY_INVALID {workerSecurity.Diagnostics[0].Code}");
+        }
         var assistantProfile = AssistantWorkspaceProfileStore.Load(_projectSession.RootDirectory);
         _assistantProfileHistory = new AssistantWorkspaceProfileCommandHistory(assistantProfile.Profile);
         if (!assistantProfile.Succeeded)
@@ -3172,6 +3192,66 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _assistantProfileHistory.State.Profile);
         if (saved.Succeeded) return true;
         _assistantProfileHistory.Undo();
+        return false;
+    }
+
+    private bool ApplyExternalWorkerSecurityPolicy(
+        ExternalWorkerSecurityPolicy policy,
+        Guid transactionId,
+        Guid planId,
+        bool dryRun)
+    {
+        if (_projectSession is null || _externalWorkerSecurityHistory is null) return false;
+        var command = new SetExternalWorkerSecurityPolicyCommand(
+            CommandId.From(transactionId),
+            planId,
+            _externalWorkerSecurityHistory.State.Revision,
+            policy,
+            AssistantPermissionLevel.Configure,
+            dryRun);
+        var result = _externalWorkerSecurityHandler.Handle(_externalWorkerSecurityHistory.State, command);
+        if (!result.Succeeded)
+        {
+            _creatorShell?.SetDiagnostics(result.Diagnostics.Select(diagnostic => CreatorDiagnostic.Create(
+                CreatorDiagnosticSeverity.Error,
+                diagnostic.Code,
+                diagnostic.Message,
+                "assets/worker-security",
+                policy.Id.ToString("D"))).ToArray());
+            return false;
+        }
+        if (dryRun) return result.Patch is not null && result.Inverse is not null && !result.Audit.Applied;
+        var saved = ExternalWorkerSecurityPolicyStore.Save(_projectSession.RootDirectory, result.State.Policy);
+        if (!saved.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_WORKER_SECURITY_SAVE_FAILED {saved.Diagnostics[0].Code}");
+            return false;
+        }
+        _externalWorkerSecurityHistory.Record(result);
+        GD.Print($"OPENRPG_FORGE_TOOLSET_WORKER_SECURITY_SAVED policy={policy.Id:D} " +
+                 $"revision={_externalWorkerSecurityHistory.State.Revision.Value} transaction={transactionId:D} plan={planId:D}");
+        return true;
+    }
+
+    private bool UndoExternalWorkerSecurityPolicy()
+    {
+        if (_projectSession is null || _externalWorkerSecurityHistory is null ||
+            !_externalWorkerSecurityHistory.Undo()) return false;
+        var saved = ExternalWorkerSecurityPolicyStore.Save(
+            _projectSession.RootDirectory, _externalWorkerSecurityHistory.State.Policy);
+        if (saved.Succeeded) return true;
+        _externalWorkerSecurityHistory.Redo();
+        return false;
+    }
+
+    private bool RedoExternalWorkerSecurityPolicy()
+    {
+        if (_projectSession is null || _externalWorkerSecurityHistory is null ||
+            !_externalWorkerSecurityHistory.Redo()) return false;
+        var saved = ExternalWorkerSecurityPolicyStore.Save(
+            _projectSession.RootDirectory, _externalWorkerSecurityHistory.State.Policy);
+        if (saved.Succeeded) return true;
+        _externalWorkerSecurityHistory.Undo();
         return false;
     }
 
@@ -5031,6 +5111,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunAssistedModel3DGenerationSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunExternalWorkerSecuritySmokeTest())
         {
             return;
         }
@@ -9097,7 +9182,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 !File.Exists(receiptPath) || !File.Exists(requestPath) ||
                 !File.ReadAllText(sourcePath, Encoding.UTF8).Contains("f 4 5 8", StringComparison.Ordinal) ||
                 !File.ReadAllText(receiptPath, Encoding.UTF8).Contains("\"humanAccepted\": true", StringComparison.Ordinal) ||
-                File.ReadAllText(requestPath, Encoding.UTF8).Contains("create_primitives", StringComparison.Ordinal))
+                !GeneratedModelRequestUsesSafeTypedOperations(requestPath))
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12K_MODEL3D_FAILED apply_persistence");
                 return false;
@@ -9144,6 +9229,92 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _assistedBlenderCreationHistory = new AssistedBlenderCreationCommandHistory(originalState);
             _assistedModel3DGenerationHistory = new AssistedModel3DGenerationCommandHistory(originalState);
             _assetBrowser?.Refresh();
+        }
+    }
+
+    private static bool GeneratedModelRequestUsesSafeTypedOperations(string path)
+    {
+        try
+        {
+            using var document = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path, Encoding.UTF8));
+            var root = document.RootElement;
+            var operations = root.GetProperty("operations").EnumerateArray()
+                .Select(item => item.GetString()).ToArray();
+            var policy = root.GetProperty("securityPolicy");
+            return !operations.Contains("create_primitives", StringComparer.Ordinal) &&
+                   policy.GetProperty("denyFreeFormPython").GetBoolean() &&
+                   policy.GetProperty("denyShell").GetBoolean() &&
+                   policy.GetProperty("denyEval").GetBoolean() &&
+                   !policy.GetProperty("networkAllowed").GetBoolean();
+        }
+        catch (Exception exception) when (exception is IOException or System.Text.Json.JsonException)
+        {
+            return false;
+        }
+    }
+
+    private bool RunExternalWorkerSecuritySmokeTest()
+    {
+        if (_projectSession is null || _externalWorkerSecurityHistory is null ||
+            _externalWorkerSecurityWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12L_WORKER_SECURITY_FAILED missing_workspace");
+            return false;
+        }
+        var originalPolicy = _externalWorkerSecurityHistory.State.Policy;
+        var path = Path.Combine(_projectSession.RootDirectory,
+            ExternalWorkerSecurityPolicyStore.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+        var originalBytes = File.Exists(path) ? File.ReadAllBytes(path) : null;
+        try
+        {
+            if (!_externalWorkerSecurityWindow.ConfigureForSmokeTest() ||
+                !_externalWorkerSecurityWindow.PreviewForSmokeTest() ||
+                _externalWorkerSecurityWindow.LastTransactionId == Guid.Empty ||
+                _externalWorkerSecurityWindow.LastPlanId == Guid.Empty ||
+                _externalWorkerSecurityWindow.LastEstimatedCostUsd != 0 ||
+                !_externalWorkerSecurityWindow.LastSemanticDiff.Contains("execution arbitraire=interdite", StringComparison.Ordinal) ||
+                !_externalWorkerSecurityWindow.ApplyForSmokeTest() ||
+                _externalWorkerSecurityHistory.State.Policy.MaximumJobSeconds != 180)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12L_WORKER_SECURITY_FAILED preview_apply");
+                return false;
+            }
+
+            var loaded = ExternalWorkerSecurityPolicyStore.Load(_projectSession.RootDirectory);
+            if (!loaded.Succeeded || loaded.Policy.MaximumJobSeconds != 180 ||
+                !loaded.Policy.DenyFreeFormPython || !loaded.Policy.DenyShell || !loaded.Policy.DenyEval ||
+                loaded.Policy.NetworkAllowed || !loaded.Policy.RequireContainedPaths ||
+                !File.ReadAllText(path, Encoding.UTF8).Contains("\"denyFreeFormPython\": true", StringComparison.Ordinal) ||
+                !UndoExternalWorkerSecurityPolicy() ||
+                _externalWorkerSecurityHistory.State.Policy.MaximumJobSeconds != originalPolicy.MaximumJobSeconds ||
+                !RedoExternalWorkerSecurityPolicy() ||
+                _externalWorkerSecurityHistory.State.Policy.MaximumJobSeconds != 180 ||
+                !UndoExternalWorkerSecurityPolicy())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12L_WORKER_SECURITY_FAILED persistence_history");
+                return false;
+            }
+
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_G12L_WORKER_SECURITY_PASS policy=canonical uuid=stable schema=v1 " +
+                "python=forbidden exec=forbidden eval=forbidden shell=forbidden paths=confined network=denied " +
+                "operations=typed timeout=bounded output=bounded ui=visible-empty-error cost=zero " +
+                "transaction=identified plan=dry-run-bound permission=configure audit=generated " +
+                "history=restored persistence=roundtrip mcp=governed");
+            return true;
+        }
+        finally
+        {
+            _externalWorkerSecurityHistory = new ExternalWorkerSecurityPolicyCommandHistory(originalPolicy);
+            if (originalBytes is null)
+            {
+                if (File.Exists(path)) File.Delete(path);
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                File.WriteAllBytes(path, originalBytes);
+            }
         }
     }
 

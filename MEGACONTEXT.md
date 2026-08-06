@@ -792,9 +792,11 @@ crash artifacts, santé par domaines, récupération comparée et synchronisatio
 livré le laboratoire déterministe de localisation, ForgeScript, narration et rencontres ; G11-S a
 livré réseau hostile, régression visuelle, benchmarks, budgets et profilage intégré ; G11-T a livré
 accessibilité éditeur/runtime, fuzzing sécurité et gouvernance finale. AV6 a ensuite livré la carte
-3D Forgotten Forest jouable et revue visuellement. G12-A à G12-G couvrent désormais l'Assistant,
-le lore, les plans et constructions de zone, les dialogues, les quêtes et ForgeScript gouvernés ; G12-H est la
-prochaine tranche active.
+3D Forgotten Forest jouable et revue visuellement. G12-A à G12-L couvrent désormais l'Assistant,
+le lore, les plans et constructions de zone, les dialogues, les quêtes, ForgeScript, les boss,
+capacités et créations 3D gouvernés. Les workers externes possèdent une politique canonique
+persistante : aucune exécution Python libre, `exec`, `eval` ou shell, opérations typées, chemins
+confinés et budgets réellement appliqués.
 
 ---
 

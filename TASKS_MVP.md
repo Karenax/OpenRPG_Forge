@@ -573,6 +573,7 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] G12-I : capacité canonique validée par cinq scénarios du résolveur de combat.
 - [x] G12-J : création 3D gouvernée via Blender (`ORF-AI-021`).
 - [x] G12-K : fournisseurs text/image-to-3D optionnels, staging, licence et acceptation humaine (`ORF-AI-022`).
+- [x] G12-L : politique canonique des workers externes, allowlist Blender et interdiction de Python libre (`ORF-AI-023`).
 
 Acceptation G12-I : le Toolset et MCP partagent la même proposition, le même dry-run, la même
 transaction et le même undo/redo pour le profil de combat et son document runtime.
@@ -584,3 +585,8 @@ miniature, audit et GLB sans accepter de Python libre.
 Acceptation G12-K : le provider offline, TRELLIS local et TripoSR local partagent un contrat borné.
 Le Toolset, la CLI et MCP présentent licence, provenance, staging, topologie, coût et diff avant
 acceptation humaine ; le lot OBJ/reçu/configuration/requête Blender est atomique et réversible.
+
+Acceptation G12-L : le Toolset et MCP partagent une politique persistante, la même commande avec
+transaction, plan, dry-run, permission, diff, audit et undo/redo. Les requêtes et le worker refusent
+`exec`, `eval`, shell, Python libre, chemins non confinés, réseau, opérations hors allowlist et
+budgets non bornés ; timeout et taille de sortie sont appliqués avant publication.

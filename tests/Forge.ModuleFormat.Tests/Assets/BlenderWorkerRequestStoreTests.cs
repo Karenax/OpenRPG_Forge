@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Forge.Domain.Assets;
 using Forge.ModuleFormat.Assets;
+using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.ModuleFormat.Tests.Assets;
 
@@ -37,7 +38,53 @@ public sealed class BlenderWorkerRequestStoreTests : IDisposable
         Assert.Empty(document.RootElement.GetProperty("options").GetProperty("animationSources").EnumerateArray());
         Assert.Empty(document.RootElement.GetProperty("options").GetProperty("materialTextures").EnumerateArray());
         Assert.False(secondJson.Contains("script", StringComparison.OrdinalIgnoreCase));
-        Assert.False(secondJson.Contains("python", StringComparison.OrdinalIgnoreCase));
+        Assert.True(document.RootElement.GetProperty("securityPolicy").GetProperty("denyFreeFormPython").GetBoolean());
+        Assert.True(document.RootElement.GetProperty("securityPolicy").GetProperty("denyShell").GetBoolean());
+        Assert.True(document.RootElement.GetProperty("securityPolicy").GetProperty("denyEval").GetBoolean());
+        Assert.False(document.RootElement.GetProperty("securityPolicy").GetProperty("networkAllowed").GetBoolean());
+        Assert.Equal(300, document.RootElement.GetProperty("securityPolicy").GetProperty("maximumJobSeconds").GetInt32());
+    }
+
+    [Fact]
+    public void RejectsOperationDisabledByCanonicalPolicy()
+    {
+        var policy = ExternalWorkerSecurityPolicy.CreateDefault() with
+        {
+            AllowedBlenderOperations =
+            [
+                AssetExternalOperation.ValidateModel,
+                AssetExternalOperation.NormalizeModel,
+                AssetExternalOperation.ExportGlb,
+            ],
+        };
+
+        var result = BlenderWorkerRequestStore.Save(_root, Configuration(), securityPolicy: policy);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("GenerateThumbnail", Assert.Single(result.Diagnostics).Message, StringComparison.Ordinal);
+        Assert.Equal("assets/worker-security/allowedBlenderOperations", result.Diagnostics[0].Path);
+    }
+
+    [Fact]
+    public void LoadsCanonicalWorkspacePolicyIntoEveryWorkerRequest()
+    {
+        var policy = ExternalWorkerSecurityPolicy.CreateDefault() with
+        {
+            MaximumJobSeconds = 77,
+            MaximumOutputBytes = 64L * 1024 * 1024,
+            Provenance = "author:g12-l:request",
+        };
+        Assert.True(ExternalWorkerSecurityPolicyStore.Save(_root, policy).Succeeded);
+
+        var result = BlenderWorkerRequestStore.Save(_root, Configuration());
+        using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            _root, result.RequestRelativePath!.Replace('/', Path.DirectorySeparatorChar))));
+        var embedded = document.RootElement.GetProperty("securityPolicy");
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(77, embedded.GetProperty("maximumJobSeconds").GetInt32());
+        Assert.Equal(64L * 1024 * 1024, embedded.GetProperty("maximumOutputBytes").GetInt64());
+        Assert.Equal("author:g12-l:request", embedded.GetProperty("provenance").GetString());
     }
 
     [Fact]

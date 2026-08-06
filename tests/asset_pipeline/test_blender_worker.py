@@ -67,6 +67,20 @@ class BlenderWorkerTests(unittest.TestCase):
                 "animationSources": [],
                 "materialTextures": [],
             },
+            "securityPolicy": {
+                "schemaVersion": 1,
+                "id": "a1230000-0000-4000-8000-000000000001",
+                "denyFreeFormPython": True,
+                "denyShell": True,
+                "denyEval": True,
+                "requireContainedPaths": True,
+                "networkAllowed": False,
+                "maximumJobSeconds": 300,
+                "maximumOutputBytes": 512 * 1024 * 1024,
+                "allowedBlenderOperations": sorted(worker.ALLOWED_OPERATIONS),
+                "requiredPermission": "configure",
+                "provenance": "test:g12-l",
+            },
         }
 
     def retarget_profile(self):
@@ -151,7 +165,8 @@ class BlenderWorkerTests(unittest.TestCase):
         self.assertTrue(response["valid"])
         self.assertFalse(response["executed"])
         self.assertEqual("cylinder", normalized["options"]["creationRecipe"]["primitives"][0]["kind"])
-        self.assertNotIn("python", json.dumps(normalized).lower())
+        self.assertTrue(normalized["securityPolicy"]["denyFreeFormPython"])
+        self.assertNotIn("script", normalized)
 
         document["options"]["creationRecipe"]["primitives"][0]["kind"] = "python"
         with self.assertRaises(worker.WorkerError) as context:
@@ -272,6 +287,55 @@ class BlenderWorkerTests(unittest.TestCase):
             worker.validate_request(arbitrary, self.sources, self.workspace)
         self.assertEqual("asset.worker.operation_forbidden", context.exception.code)
 
+    def test_rejects_exec_eval_shell_fields_and_unsafe_policy(self):
+        for field in ("python", "exec", "eval", "shell", "script", "command"):
+            document = self.request()
+            document[field] = "arbitrary payload"
+            with self.assertRaises(worker.WorkerError) as context:
+                worker.validate_request(document, self.sources, self.workspace)
+            self.assertEqual("asset.worker.request_field_forbidden", context.exception.code)
+
+        for field, unsafe in (
+            ("denyFreeFormPython", False),
+            ("denyShell", False),
+            ("denyEval", False),
+            ("requireContainedPaths", False),
+            ("networkAllowed", True),
+        ):
+            document = self.request()
+            document["securityPolicy"][field] = unsafe
+            with self.assertRaises(worker.WorkerError):
+                worker.validate_request(document, self.sources, self.workspace)
+
+    def test_policy_limits_operations_timeout_and_output_size(self):
+        disabled = self.request()
+        disabled["securityPolicy"]["allowedBlenderOperations"].remove("generate_thumbnail")
+        with self.assertRaises(worker.WorkerError) as context:
+            worker.validate_request(disabled, self.sources, self.workspace)
+        self.assertEqual("asset.worker.operation_disabled", context.exception.code)
+
+        blender = self.root / "blender.exe"
+        blender.write_bytes(b"stub")
+        document = self.request()
+        document["operations"] = ["validate_model", "export_glb"]
+        document["securityPolicy"]["maximumJobSeconds"] = 17
+        document["securityPolicy"]["maximumOutputBytes"] = 1024 * 1024
+        normalized = worker.validate_request(document, self.sources, self.workspace)
+        output_path = pathlib.Path(normalized["_outputPath"])
+
+        def run(command, **kwargs):
+            self.assertEqual(17, kwargs["timeout"])
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            body = b"x" * (1024 * 1024)
+            pathlib.Path(command[-5]).write_bytes(struct.pack("<4sII", b"glTF", 2, 12 + len(body)) + body)
+            return worker.subprocess.CompletedProcess(command, 0, stdout="Blender quit", stderr="")
+
+        with mock.patch.object(worker.subprocess, "run", side_effect=run):
+            with self.assertRaises(worker.WorkerError) as context:
+                worker.execute(normalized, blender, self.root / "response.json", False)
+        self.assertEqual("asset.worker.output_too_large", context.exception.code)
+        self.assertFalse(output_path.exists())
+
     def test_reports_missing_blender_without_writing_output(self):
         normalized = worker.validate_request(self.request(), self.sources, self.workspace)
         with self.assertRaises(worker.WorkerError) as context:
@@ -363,6 +427,21 @@ class BlenderWorkerTests(unittest.TestCase):
 
         self.assertEqual("asset.worker.blender_failed", context.exception.code)
         self.assertIn("Traceback", str(context.exception))
+
+    def test_execute_maps_process_timeout_to_stable_policy_diagnostic(self):
+        blender = self.root / "blender.exe"
+        blender.write_bytes(b"stub")
+        document = self.request()
+        document["securityPolicy"]["maximumJobSeconds"] = 19
+        normalized = worker.validate_request(document, self.sources, self.workspace)
+
+        with mock.patch.object(worker.subprocess, "run",
+                               side_effect=worker.subprocess.TimeoutExpired([str(blender)], 19)):
+            with self.assertRaises(worker.WorkerError) as context:
+                worker.execute(normalized, blender, self.root / "response.json", False)
+
+        self.assertEqual("asset.worker.timeout", context.exception.code)
+        self.assertIn("19 second", str(context.exception))
 
     def test_cli_writes_stable_diagnostic_for_hash_mismatch(self):
         request_path = self.root / "request.json"

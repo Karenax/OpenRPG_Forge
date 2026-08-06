@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Forge.Domain.Assets;
+using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.ModuleFormat.Assets;
 
@@ -13,11 +14,23 @@ public static class BlenderWorkerRequestStore
     public static BlenderWorkerRequestSaveResult Save(
         string workspaceRoot,
         AssetExternalEditConfiguration configuration,
-        BlenderWorkerOptions? options = null)
+        BlenderWorkerOptions? options = null,
+        ExternalWorkerSecurityPolicy? securityPolicy = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workspaceRoot);
         ArgumentNullException.ThrowIfNull(configuration);
         options ??= BlenderWorkerOptions.Default;
+        if (securityPolicy is null)
+        {
+            var loadedPolicy = ExternalWorkerSecurityPolicyStore.Load(workspaceRoot);
+            if (!loadedPolicy.Succeeded)
+                return new(null, loadedPolicy.Diagnostics.Select(item =>
+                    new BlenderWorkerRequestDiagnostic(WriteFailedCode, item.Message, item.Path ?? string.Empty)).ToArray());
+            securityPolicy = loadedPolicy.Policy;
+        }
+        var policyDiagnostic = ExternalWorkerSecurityPolicyValidator.Validate(securityPolicy).FirstOrDefault();
+        if (policyDiagnostic is not null)
+            return new(null, [new(WriteFailedCode, policyDiagnostic.Message, policyDiagnostic.Path)]);
         var diagnostics = AssetExternalEditValidator.Validate(configuration);
         var optionDiagnostic = ValidateOptions(options);
         if (optionDiagnostic is not null)
@@ -31,6 +44,12 @@ public static class BlenderWorkerRequestStore
                 : diagnostics[0].Message;
             return new(null, [new(WriteFailedCode, message, configuration.OutputRelativePath)]);
         }
+        var forbiddenOperation = configuration.Operations.FirstOrDefault(operation =>
+            !securityPolicy.AllowedBlenderOperations.Contains(operation));
+        if (configuration.Operations.Any(operation => !securityPolicy.AllowedBlenderOperations.Contains(operation)))
+            return new(null, [new(WriteFailedCode,
+                $"Operation '{forbiddenOperation}' is disabled by the canonical worker security policy.",
+                "assets/worker-security/allowedBlenderOperations")]);
         var createsPrimitives = configuration.Operations.Contains(AssetExternalOperation.CreatePrimitives);
         if (createsPrimitives != (options.CreationRecipe is not null) ||
             options.CreationRecipe is not null &&
@@ -57,7 +76,20 @@ public static class BlenderWorkerRequestStore
                 configuration.LicenseSpdx,
                 configuration.ModificationProvenance,
                 configuration.Operations.Select(ToWorkerOperation).ToArray(),
-                options);
+                options,
+                new BlenderWorkerSecurityPolicy(
+                    securityPolicy.SchemaVersion,
+                    securityPolicy.Id,
+                    securityPolicy.DenyFreeFormPython,
+                    securityPolicy.DenyShell,
+                    securityPolicy.DenyEval,
+                    securityPolicy.RequireContainedPaths,
+                    securityPolicy.NetworkAllowed,
+                    securityPolicy.MaximumJobSeconds,
+                    securityPolicy.MaximumOutputBytes,
+                    securityPolicy.AllowedBlenderOperations.Select(ToWorkerOperation).ToArray(),
+                    securityPolicy.RequiredPermission,
+                    securityPolicy.Provenance));
             WriteAtomically(path, JsonSerializer.Serialize(request, JsonOptions));
             return new(relativePath, []);
         }
@@ -170,7 +202,22 @@ public static class BlenderWorkerRequestStore
         string LicenseSpdx,
         string Provenance,
         IReadOnlyList<string> Operations,
-        BlenderWorkerOptions Options);
+        BlenderWorkerOptions Options,
+        BlenderWorkerSecurityPolicy SecurityPolicy);
+
+    private sealed record BlenderWorkerSecurityPolicy(
+        int SchemaVersion,
+        Guid Id,
+        bool DenyFreeFormPython,
+        bool DenyShell,
+        bool DenyEval,
+        bool RequireContainedPaths,
+        bool NetworkAllowed,
+        int MaximumJobSeconds,
+        long MaximumOutputBytes,
+        IReadOnlyList<string> AllowedBlenderOperations,
+        Forge.Domain.Assistant.AssistantPermissionLevel RequiredPermission,
+        string Provenance);
 }
 
 public sealed record BlenderWorkerOptions(

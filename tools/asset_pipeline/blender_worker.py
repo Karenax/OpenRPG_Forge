@@ -32,6 +32,10 @@ ALLOWED_ANIMATION_EXTENSIONS = {".fbx"}
 ALLOWED_TEXTURE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
 ALLOWED_PIVOTS = {"keep", "ground_center", "object_center"}
 HASH_LENGTH = 64
+MINIMUM_JOB_SECONDS = 5
+MAXIMUM_JOB_SECONDS = 900
+MINIMUM_OUTPUT_BYTES = 1024 * 1024
+MAXIMUM_OUTPUT_BYTES = 2 * 1024 * 1024 * 1024
 
 
 class WorkerError(Exception):
@@ -39,6 +43,83 @@ class WorkerError(Exception):
         super().__init__(message)
         self.code = code
         self.path = path
+
+
+def _default_security_policy() -> dict:
+    return {
+        "schemaVersion": 1,
+        "id": "a1230000-0000-4000-8000-000000000001",
+        "denyFreeFormPython": True,
+        "denyShell": True,
+        "denyEval": True,
+        "requireContainedPaths": True,
+        "networkAllowed": False,
+        "maximumJobSeconds": 300,
+        "maximumOutputBytes": 512 * 1024 * 1024,
+        "allowedBlenderOperations": sorted(ALLOWED_OPERATIONS),
+        "requiredPermission": "configure",
+        "provenance": "openrpg-forge:g12-l:secure-worker-default",
+    }
+
+
+def _validate_security_policy(value: object) -> dict:
+    if value is None:
+        return _default_security_policy()
+    if not isinstance(value, dict):
+        raise WorkerError("asset.worker.security_policy_invalid", "securityPolicy must be an object.", "securityPolicy")
+    expected = set(_default_security_policy())
+    if set(value) != expected:
+        raise WorkerError(
+            "asset.worker.security_policy_invalid",
+            "securityPolicy fields must match the versioned contract exactly.",
+            "securityPolicy",
+        )
+    if value.get("schemaVersion") != 1:
+        raise WorkerError("asset.worker.security_schema_unsupported", "Unsupported security policy schema.",
+                          "securityPolicy.schemaVersion")
+    try:
+        policy_id = str(uuid.UUID(str(value.get("id", ""))))
+    except ValueError as error:
+        raise WorkerError("asset.worker.security_id_invalid", "Security policy ID must be a UUID.",
+                          "securityPolicy.id") from error
+    safety_flags = ("denyFreeFormPython", "denyShell", "denyEval", "requireContainedPaths")
+    if any(value.get(flag) is not True for flag in safety_flags):
+        raise WorkerError("asset.worker.unsafe_execution_forbidden",
+                          "Free-form Python, shell, eval and unconfined paths must remain forbidden.",
+                          "securityPolicy.execution")
+    if value.get("networkAllowed") is not False:
+        raise WorkerError("asset.worker.network_forbidden", "Blender worker network access is forbidden.",
+                          "securityPolicy.networkAllowed")
+    timeout = value.get("maximumJobSeconds")
+    if isinstance(timeout, bool) or not isinstance(timeout, int) or not MINIMUM_JOB_SECONDS <= timeout <= MAXIMUM_JOB_SECONDS:
+        raise WorkerError("asset.worker.timeout_invalid", "Worker timeout is outside the safe bounds.",
+                          "securityPolicy.maximumJobSeconds")
+    output_limit = value.get("maximumOutputBytes")
+    if (isinstance(output_limit, bool) or not isinstance(output_limit, int)
+            or not MINIMUM_OUTPUT_BYTES <= output_limit <= MAXIMUM_OUTPUT_BYTES):
+        raise WorkerError("asset.worker.output_limit_invalid", "Worker output limit is outside the safe bounds.",
+                          "securityPolicy.maximumOutputBytes")
+    allowed = value.get("allowedBlenderOperations")
+    if (not isinstance(allowed, list) or not allowed or len(set(allowed)) != len(allowed)
+            or any(not isinstance(item, str) or item not in ALLOWED_OPERATIONS for item in allowed)
+            or "validate_model" not in allowed or "export_glb" not in allowed):
+        raise WorkerError("asset.worker.security_operations_invalid",
+                          "Security policy must contain unique typed operations plus validation and GLB export.",
+                          "securityPolicy.allowedBlenderOperations")
+    permission = value.get("requiredPermission")
+    if permission not in {"configure", "applyApprovedPlan"}:
+        raise WorkerError("asset.worker.security_permission_invalid", "Security changes require Configure permission.",
+                          "securityPolicy.requiredPermission")
+    provenance = value.get("provenance")
+    if not isinstance(provenance, str) or not provenance.strip() or len(provenance) > 512:
+        raise WorkerError("asset.worker.security_provenance_missing", "Security policy provenance is required.",
+                          "securityPolicy.provenance")
+    return {
+        **value,
+        "id": policy_id,
+        "allowedBlenderOperations": list(allowed),
+        "provenance": provenance.strip(),
+    }
 
 
 def _contained(root: pathlib.Path, relative: str, *, output: bool = False) -> pathlib.Path:
@@ -309,6 +390,15 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
         raise WorkerError("asset.worker.request_invalid", "Worker request must be a JSON object.")
     if document.get("schemaVersion") != SCHEMA_VERSION:
         raise WorkerError("asset.worker.schema_unsupported", "Unsupported worker request schema.", "schemaVersion")
+    allowed_fields = {
+        "schemaVersion", "jobId", "assetId", "sourceRelativePath", "outputRelativePath", "sourceSha256",
+        "licenseSpdx", "provenance", "operations", "options", "securityPolicy",
+    }
+    unknown_fields = set(document) - allowed_fields
+    if unknown_fields:
+        raise WorkerError("asset.worker.request_field_forbidden",
+                          f"Unknown worker request field: {sorted(unknown_fields)[0]}.", "request")
+    security_policy = _validate_security_policy(document.get("securityPolicy"))
     try:
         job_id = str(uuid.UUID(str(document.get("jobId", ""))))
     except ValueError as error:
@@ -322,6 +412,9 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
         name = str(operation).strip().lower()
         if name not in ALLOWED_OPERATIONS:
             raise WorkerError("asset.worker.operation_forbidden", f"Operation '{name}' is not allowed.", "operations")
+        if name not in security_policy["allowedBlenderOperations"]:
+            raise WorkerError("asset.worker.operation_disabled",
+                              f"Operation '{name}' is disabled by the canonical security policy.", "operations")
         if name not in normalized_operations:
             normalized_operations.append(name)
 
@@ -558,6 +651,7 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
         "licenseSpdx": str(document.get("licenseSpdx", "")).strip(),
         "provenance": str(document.get("provenance", "")).strip(),
         "operations": normalized_operations,
+        "securityPolicy": security_policy,
         "options": {
             "applyTransforms": bool(options.get("applyTransforms", True)),
             "scaleMeters": float(scale),
@@ -689,7 +783,13 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
         _encode_bridge_payload(bridge_options),
     ]
     try:
-        completed = subprocess.run(command, capture_output=True, text=True, timeout=900, check=False)
+        completed = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            timeout=request["securityPolicy"]["maximumJobSeconds"],
+            check=False,
+        )
         detail = (completed.stderr or completed.stdout or "").strip()
         if completed.returncode != 0 or "Traceback" in (completed.stderr or ""):
             raise WorkerError(
@@ -702,6 +802,10 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
                 raise WorkerError("asset.worker.blender_failed", detail[-2000:], request["outputRelativePath"])
             raise WorkerError("asset.worker.output_missing", "Blender did not produce the requested GLB.", request["outputRelativePath"])
         _validate_glb(temporary_output_path)
+        if temporary_output_path.stat().st_size > request["securityPolicy"]["maximumOutputBytes"]:
+            raise WorkerError("asset.worker.output_too_large",
+                              "Blender output exceeds the canonical security policy limit.",
+                              request["outputRelativePath"])
         if _sha256(source_path) != source_hash_before:
             raise WorkerError("asset.worker.source_modified", "External worker modified the immutable source.", request["sourceRelativePath"])
         for immutable_path, immutable_hash, immutable_relative in immutable_sources:
@@ -743,6 +847,12 @@ def execute(request: dict, blender: pathlib.Path, response_path: pathlib.Path, v
             os.replace(temporary_preview_path, preview_path)
         if quality is not None:
             os.replace(temporary_quality_path, quality_path)
+    except subprocess.TimeoutExpired as error:
+        raise WorkerError(
+            "asset.worker.timeout",
+            f"Blender exceeded the canonical {request['securityPolicy']['maximumJobSeconds']} second timeout.",
+            request["outputRelativePath"],
+        ) from error
     finally:
         for temporary_path in temporary_paths:
             if temporary_path.exists():

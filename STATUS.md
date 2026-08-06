@@ -5,10 +5,12 @@ Dernière mise à jour : 6 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. G12-A à G12-K livrent maintenant l’Assistant de création avancée, ses
+G11 Contenu moderne fermés. G12-A à G12-L livrent maintenant l’Assistant de création avancée, ses
 fournisseurs locaux, son lore, ses plans de crypte/village, leur construction atomique, la création
 de dialogues, quêtes, scripts, boss et capacités, puis les créations 3D par recettes Blender ou
 providers texte/image optionnels, gouvernés et approuvés sans dépendance réseau obligatoire.
+La sécurité des workers est désormais canonique : aucun outil public `exec`, `eval`, shell ou Python
+libre, opérations Blender allowlistées, chemins confinés, timeout et sortie bornés.
 AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
@@ -599,3 +601,9 @@ offline déterministe et les endpoints locaux TRELLIS/TripoSR. Le loopback, le c
 les secrets d’environnement, CC0, provenance, staging haché, limite topologique et acceptation
 humaine sont imposés avant le lot réversible OBJ/reçu/configuration/requête. Toolset, CLI et MCP
 partagent le même handler ; Blender réel prouve 1 mesh, 2 LOD, 1 collision, miniature et GLB valide.
+
+**G12-L — sécurité canonique des workers externes livrée** : un profil v1 à UUID stable persiste
+l’interdiction de Python libre, `exec`, `eval`, shell, réseau et chemins non confinés, ainsi que
+l’allowlist Blender, le timeout, la taille maximale, la permission et la provenance. Le Toolset et
+MCP partagent plan, transaction, dry-run, diff, audit, application et revert ; chaque requête
+Blender embarque le profil, et le worker applique réellement les budgets avant publication.

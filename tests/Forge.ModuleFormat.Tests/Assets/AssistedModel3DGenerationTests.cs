@@ -81,7 +81,14 @@ public sealed class AssistedModel3DGenerationTests : IDisposable
         var request = File.ReadAllText(Path.Combine(_root, "assets", "roundtrip",
             $"{proposal.Configuration.AssetId}.worker-request.json"));
         Assert.Contains("assets/staging/ai-3d/forge-idol/forge-idol.obj", request, StringComparison.Ordinal);
-        Assert.DoesNotContain("create_primitives", request, StringComparison.Ordinal);
+        using (var requestDocument = System.Text.Json.JsonDocument.Parse(request))
+        {
+            Assert.DoesNotContain(requestDocument.RootElement.GetProperty("operations").EnumerateArray(),
+                item => item.GetString() == "create_primitives");
+            Assert.Contains(requestDocument.RootElement.GetProperty("securityPolicy")
+                    .GetProperty("allowedBlenderOperations").EnumerateArray(),
+                item => item.GetString() == "create_primitives");
+        }
         Assert.True(history.Undo(_root));
         Assert.All(applied.Patches, patch => Assert.False(File.Exists(Path.Combine(_root,
             patch.RelativePath.Replace('/', Path.DirectorySeparatorChar)))));

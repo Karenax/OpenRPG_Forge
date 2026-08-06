@@ -226,6 +226,26 @@ public sealed class ForgeMcpTools
         _project.RevertAssistedModel3DGenerationPlan(planId);
 
     [McpServerTool]
+    [Description("Returns the canonical external-worker security policy, including the typed Blender allowlist, confined-path rule, timeout, output cap, permission and provenance. No exec, eval, shell or free-form Python tool is exposed.")]
+    public ExternalWorkerSecurityResource GetExternalWorkerSecurity() =>
+        _project.GetExternalWorkerSecurity();
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a canonical external-worker security policy. Requires a bounded revision and Configure permission; it never writes during planning.")]
+    public ExternalWorkerSecurityPlanResult PlanExternalWorkerSecurity(ExternalWorkerSecurityPlanRequest request) =>
+        _project.PlanExternalWorkerSecurity(request);
+
+    [McpServerTool]
+    [Description("Applies only a previously validated worker-security plan bound to its transaction and revision; arbitrary execution remains impossible.")]
+    public ExternalWorkerSecurityPlanResult ApplyExternalWorkerSecurityPlan(string planId) =>
+        _project.ApplyExternalWorkerSecurityPlan(planId);
+
+    [McpServerTool]
+    [Description("Reverts the latest applied worker-security plan through its canonical inverse operation.")]
+    public ExternalWorkerSecurityPlanResult RevertExternalWorkerSecurityPlan(string planId) =>
+        _project.RevertExternalWorkerSecurityPlan(planId);
+
+    [McpServerTool]
     [Description("Returns the canonical module and selected-area runtime policies without mutating the project.")]
     public RuntimePolicyResource GetRuntimePolicies(string? areaId = null) =>
         _project.GetRuntimePolicies(areaId);
