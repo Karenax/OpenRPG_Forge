@@ -537,6 +537,91 @@ try {
         Write-Output 'asset-import-smoke skipped: external Vault fixtures unavailable.'
     }
 
+    $retargetTargetSource = Join-Path `
+        $assetVault `
+        'normalized\kaykit\character-pack-adventures-1.0\KayKit-Character-Pack-Adventures-1.0-672074b73ba276876a19e8816ecdc5241817ab47\addons\kaykit_character_pack_adventures\Characters\gltf\Knight.glb'
+    $retargetAnimationSource = Join-Path `
+        $assetVault `
+        'normalized\kenney\animated-characters-protagonists\Animations\run.fbx'
+    $retargetRequest = Join-Path `
+        $repositoryRoot `
+        'asset_manifests\retarget\kenney-run-to-kaykit-knight.json'
+    if ((Test-Path -LiteralPath $retargetTargetSource -PathType Leaf) -and
+        (Test-Path -LiteralPath $retargetAnimationSource -PathType Leaf) -and
+        (Test-Path -LiteralPath $retargetRequest -PathType Leaf)) {
+        $retargetTargetHash = (Get-FileHash -LiteralPath $retargetTargetSource -Algorithm SHA256).Hash
+        $retargetAnimationHash = (Get-FileHash -LiteralPath $retargetAnimationSource -Algorithm SHA256).Hash
+        $retargetResponse = Join-Path $artifactRoot 'retarget\worker-response.json'
+        $retargetWorkerArguments = @(
+            (Join-Path $repositoryRoot 'tools\asset_pipeline\blender_worker.py'),
+            '--request', $retargetRequest,
+            '--response', $retargetResponse,
+            '--source-root', $assetVault,
+            '--workspace-root', $repositoryRoot)
+        if ($blenderPath) {
+            $retargetWorkerArguments += @('--blender', $blenderPath)
+        }
+        else {
+            $retargetWorkerArguments += '--validate-only'
+        }
+        Invoke-CheckedPython $retargetWorkerArguments
+        $retargetResult = Get-Content -LiteralPath $retargetResponse -Raw | ConvertFrom-Json
+        if (-not $retargetResult.valid) {
+            throw 'The governed AV6-F retarget request is invalid.'
+        }
+        if ($blenderPath) {
+            $retargetOutput = Join-Path $repositoryRoot 'artifacts\verification\retarget\kenney-run-to-kaykit-knight.glb'
+            $retargetQuality = Join-Path $repositoryRoot 'artifacts\verification\retarget\kenney-run-to-kaykit-knight.quality.json'
+            if (-not $retargetResult.executed -or
+                -not (Test-Path -LiteralPath $retargetOutput -PathType Leaf) -or
+                -not (Test-Path -LiteralPath $retargetQuality -PathType Leaf)) {
+                throw 'The AV6-F Blender worker did not produce its governed retarget artifacts.'
+            }
+            $retargetAudit = @($retargetResult.quality.metrics.retargetAudits)
+            $retargetFailedChecks = @($retargetResult.quality.checks | Where-Object { $_.status -eq 'fail' })
+            if (-not $retargetResult.quality.passed -or
+                $retargetFailedChecks.Count -ne 0 -or
+                $retargetAudit.Count -ne 1 -or
+                $retargetAudit[0].sourceBoneCount -ne 58 -or
+                $retargetAudit[0].targetBoneCount -ne 41 -or
+                $retargetAudit[0].mappedBoneCount -ne 19 -or
+                $retargetAudit[0].sampledFrames.Count -ne 9 -or
+                $retargetAudit[0].sampledVertexCount -le 0 -or
+                $retargetAudit[0].invalidCoordinateCount -ne 0 -or
+                $retargetAudit[0].maximumNormalizedTemporalDisplacement -lt 0.001 -or
+                $retargetAudit[0].maximumBoundsExpansion -gt 3.0) {
+                throw 'The AV6-F deformation audit did not prove a stable animated inter-rig transfer.'
+            }
+            $retargetRoundTripOutput = & $blenderPath `
+                '--background' `
+                '--factory-startup' `
+                '--disable-autoexec' `
+                '--python' (Join-Path $repositoryRoot 'tools\asset_pipeline\blender_retarget_validator.py') `
+                '--' $retargetOutput 'run' '41' 2>&1
+            $retargetRoundTripExit = $LASTEXITCODE
+            $retargetRoundTripOutput | Write-Output
+            if ($retargetRoundTripExit -ne 0 -or
+                ($retargetRoundTripOutput -join "`n") -notmatch 'OPENRPG_FORGE_AV6F_RETARGET_GLB_PASS') {
+                throw 'The exported AV6-F GLB failed its Blender round-trip animation validation.'
+            }
+            if ($retargetTargetHash -ne (Get-FileHash -LiteralPath $retargetTargetSource -Algorithm SHA256).Hash -or
+                $retargetAnimationHash -ne (Get-FileHash -LiteralPath $retargetAnimationSource -Algorithm SHA256).Hash) {
+                throw 'The AV6-F worker modified an immutable Vault source.'
+            }
+            Write-Output (
+                "OPENRPG_FORGE_AV6F_RETARGET_PASS source=58 target=41 mapped=19 " +
+                "frames=$($retargetAudit[0].sampledFrames.Count) vertices=$($retargetAudit[0].sampledVertexCount) " +
+                "temporal=$($retargetAudit[0].maximumNormalizedTemporalDisplacement) " +
+                "bounds=$($retargetAudit[0].maximumBoundsExpansion) roundtrip=3-poses")
+        }
+        else {
+            Write-Output 'AV6-F retarget request validated; Blender execution skipped because Blender is unavailable.'
+        }
+    }
+    else {
+        Write-Output 'AV6-F retarget smoke skipped: external CC0 rig fixtures unavailable.'
+    }
+
     $runtimePath = Join-Path $repositoryRoot 'apps\Forge.Runtime'
     $plainRuntimeLog = Join-Path $artifactRoot 'runtime-plain-launch.log'
     Invoke-ForgeEngineMarkerTest `

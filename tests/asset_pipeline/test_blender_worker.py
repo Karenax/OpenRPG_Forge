@@ -69,6 +69,32 @@ class BlenderWorkerTests(unittest.TestCase):
             },
         }
 
+    def retarget_profile(self):
+        return {
+            "profileId": "source58-to-target41-v1",
+            "sourceRig": "source-rig-58",
+            "targetRig": "target-rig-41",
+            "sourceBoneCount": 58,
+            "targetBoneCount": 41,
+            "rootMotionTarget": "root",
+            "minimumMappedBoneRatio": 0.25,
+            "maximumBoundsExpansion": 2.5,
+            "bones": {
+                "root": "SourceRoot",
+                "hips": "SourceHips",
+                "spine": "SourceSpine",
+                "chest": "SourceChest",
+                "head": "SourceHead",
+                "upperarm.l": "SourceUpperArmL",
+                "lowerarm.l": "SourceLowerArmL",
+                "wrist.l": "SourceWristL",
+                "upperarm.r": "SourceUpperArmR",
+                "lowerarm.r": "SourceLowerArmR",
+                "wrist.r": "SourceWristR",
+                "upperleg.l": "SourceUpperLegL",
+            },
+        }
+
     def test_validate_only_preserves_source_and_normalizes_typed_request(self):
         document = self.request()
         before = self.source.read_bytes()
@@ -109,6 +135,47 @@ class BlenderWorkerTests(unittest.TestCase):
         with self.assertRaises(worker.WorkerError) as context:
             worker.validate_request(document, self.sources, self.workspace)
         self.assertEqual("asset.worker.path_unsafe", context.exception.code)
+
+    def test_validates_typed_one_to_one_retarget_profile(self):
+        animation = self.sources / "run.fbx"
+        animation.write_bytes(b"fbx run animation")
+        document = self.request()
+        document["options"]["animationSources"] = [{
+            "name": "run",
+            "relativePath": "run.fbx",
+            "contentSha256": hashlib.sha256(animation.read_bytes()).hexdigest(),
+        }]
+        document["options"]["retargetProfile"] = self.retarget_profile()
+
+        normalized = worker.validate_request(document, self.sources, self.workspace)
+
+        self.assertEqual("source58-to-target41-v1", normalized["options"]["retargetProfile"]["profileId"])
+        self.assertEqual(12, len(normalized["options"]["retargetProfile"]["bones"]))
+        self.assertEqual("SourceRoot", normalized["options"]["retargetProfile"]["bones"]["root"])
+
+        document["options"]["retargetProfile"]["bones"]["hips"] = "SourceRoot"
+        with self.assertRaises(worker.WorkerError) as context:
+            worker.validate_request(document, self.sources, self.workspace)
+        self.assertEqual("asset.worker.retarget_map_invalid", context.exception.code)
+
+    def test_rejects_unused_or_under_specified_retarget_profile(self):
+        document = self.request()
+        document["options"]["retargetProfile"] = self.retarget_profile()
+        with self.assertRaises(worker.WorkerError) as context:
+            worker.validate_request(document, self.sources, self.workspace)
+        self.assertEqual("asset.worker.retarget_profile_unused", context.exception.code)
+
+        animation = self.sources / "run.fbx"
+        animation.write_bytes(b"fbx run animation")
+        document["options"]["animationSources"] = [{
+            "name": "run",
+            "relativePath": "run.fbx",
+            "contentSha256": hashlib.sha256(animation.read_bytes()).hexdigest(),
+        }]
+        document["options"]["retargetProfile"]["bones"].pop("upperleg.l")
+        with self.assertRaises(worker.WorkerError) as context:
+            worker.validate_request(document, self.sources, self.workspace)
+        self.assertEqual("asset.worker.retarget_map_invalid", context.exception.code)
 
     def test_thumbnail_canonicalization_removes_nondeterministic_metadata(self):
         first = self.root / "first.png"

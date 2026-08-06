@@ -213,8 +213,10 @@ ces mêmes assets dans les recettes de biome et la brosse Matériau/biome contr�
 déterministe dans le viewport comme au runtime. Les mutations IA/MCP d’assets sont maintenant
 fermées par un triptyque plan/apply/revert transactionnel avec contrôle de licence et du GLB. La
 fondation multi-biome AV4A est mesurée par un benchmark runtime bloquant. AV5 ferme la livraison et
-l’ambiance ; AV6-A prouve un personnage skinné, trois clips gouvernés et leur lecture dans Creator et
-runtime. La suite bornée porte les variantes, le combat animé et la composition 512 × 512 par secteurs.
+l’ambiance ; AV6 ferme personnage skinné, variantes fantasy, combat animé, monde 512 × 512 sectorisé,
+finition PBR, habillage naturel et retargeting Kenney 58 os vers KayKit 41 os avec audit de
+déformation et round-trip GLB. La suite revient aux gates produit Aurora et à l’enrichissement du
+Creator sans confondre les améliorations visuelles optionnelles avec des capacités absentes.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;

@@ -227,6 +227,7 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
         "generateCollision",
         "animationSources",
         "materialTextures",
+        "retargetProfile",
     }
     if unknown_options:
         raise WorkerError(
@@ -275,6 +276,119 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
             "contentSha256": _validate_hash(source.get("contentSha256"), f"{root}.contentSha256"),
             "_absolutePath": str(absolute),
         })
+
+    retarget_profile = options.get("retargetProfile")
+    normalized_retarget = None
+    if retarget_profile is not None:
+        required_profile_fields = {
+            "profileId",
+            "sourceRig",
+            "targetRig",
+            "sourceBoneCount",
+            "targetBoneCount",
+            "rootMotionTarget",
+            "minimumMappedBoneRatio",
+            "maximumBoundsExpansion",
+            "bones",
+        }
+        if not isinstance(retarget_profile, dict) or set(retarget_profile) != required_profile_fields:
+            raise WorkerError(
+                "asset.worker.retarget_profile_invalid",
+                "retargetProfile fields are invalid.",
+                "options.retargetProfile",
+            )
+
+        def safe_rig_identifier(value: object, field: str) -> str:
+            normalized = str(value or "").strip()
+            if (
+                not normalized
+                or len(normalized) > 96
+                or any(not (character.isascii() and (character.isalnum() or character in "-_.")) for character in normalized)
+            ):
+                raise WorkerError(
+                    "asset.worker.retarget_identifier_invalid",
+                    f"{field} must be a safe identifier.",
+                    field,
+                )
+            return normalized
+
+        source_bone_count = retarget_profile.get("sourceBoneCount")
+        target_bone_count = retarget_profile.get("targetBoneCount")
+        if (
+            isinstance(source_bone_count, bool)
+            or not isinstance(source_bone_count, int)
+            or not 1 <= source_bone_count <= 1024
+            or isinstance(target_bone_count, bool)
+            or not isinstance(target_bone_count, int)
+            or not 1 <= target_bone_count <= 1024
+        ):
+            raise WorkerError(
+                "asset.worker.retarget_bone_count_invalid",
+                "Retarget rig bone counts must be integers in [1, 1024].",
+                "options.retargetProfile",
+            )
+        minimum_ratio = retarget_profile.get("minimumMappedBoneRatio")
+        maximum_expansion = retarget_profile.get("maximumBoundsExpansion")
+        if (
+            isinstance(minimum_ratio, bool)
+            or not isinstance(minimum_ratio, (int, float))
+            or not 0.1 <= float(minimum_ratio) <= 1.0
+            or isinstance(maximum_expansion, bool)
+            or not isinstance(maximum_expansion, (int, float))
+            or not 1.0 <= float(maximum_expansion) <= 10.0
+        ):
+            raise WorkerError(
+                "asset.worker.retarget_threshold_invalid",
+                "Retarget audit thresholds are outside policy.",
+                "options.retargetProfile",
+            )
+        bones = retarget_profile.get("bones")
+        if not isinstance(bones, dict) or len(bones) < 12:
+            raise WorkerError(
+                "asset.worker.retarget_map_invalid",
+                "Retarget maps must contain at least twelve governed bone pairs.",
+                "options.retargetProfile.bones",
+            )
+        normalized_bones = {}
+        source_names = set()
+        for target_name, source_name in bones.items():
+            normalized_target = safe_rig_identifier(target_name, "options.retargetProfile.bones")
+            normalized_source = safe_rig_identifier(source_name, f"options.retargetProfile.bones.{normalized_target}")
+            if normalized_target in normalized_bones or normalized_source in source_names:
+                raise WorkerError(
+                    "asset.worker.retarget_map_invalid",
+                    "Retarget bone pairs must be one-to-one.",
+                    "options.retargetProfile.bones",
+                )
+            normalized_bones[normalized_target] = normalized_source
+            source_names.add(normalized_source)
+        root_motion_target = safe_rig_identifier(
+            retarget_profile.get("rootMotionTarget"),
+            "options.retargetProfile.rootMotionTarget",
+        )
+        if root_motion_target not in normalized_bones:
+            raise WorkerError(
+                "asset.worker.retarget_map_invalid",
+                "rootMotionTarget must identify a mapped target bone.",
+                "options.retargetProfile.rootMotionTarget",
+            )
+        if not animation_sources:
+            raise WorkerError(
+                "asset.worker.retarget_profile_unused",
+                "retargetProfile requires at least one animation source.",
+                "options.retargetProfile",
+            )
+        normalized_retarget = {
+            "profileId": safe_rig_identifier(retarget_profile.get("profileId"), "options.retargetProfile.profileId"),
+            "sourceRig": safe_rig_identifier(retarget_profile.get("sourceRig"), "options.retargetProfile.sourceRig"),
+            "targetRig": safe_rig_identifier(retarget_profile.get("targetRig"), "options.retargetProfile.targetRig"),
+            "sourceBoneCount": source_bone_count,
+            "targetBoneCount": target_bone_count,
+            "rootMotionTarget": root_motion_target,
+            "minimumMappedBoneRatio": float(minimum_ratio),
+            "maximumBoundsExpansion": float(maximum_expansion),
+            "bones": dict(sorted(normalized_bones.items())),
+        }
 
     material_textures = options.get("materialTextures", [])
     if not isinstance(material_textures, list):
@@ -326,6 +440,7 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
             "generateCollision": bool(options.get("generateCollision", False)),
             "animationSources": normalized_animations,
             "materialTextures": normalized_textures,
+            "retargetProfile": normalized_retarget,
         },
         "_sourcePath": str(source_path),
         "_outputPath": str(output_path),

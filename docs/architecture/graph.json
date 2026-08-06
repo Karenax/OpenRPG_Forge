@@ -2357,7 +2357,7 @@
     },
     {
       "evidence": {
-        "line": 187,
+        "line": 188,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2366,7 +2366,7 @@
     },
     {
       "evidence": {
-        "line": 255,
+        "line": 257,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2375,7 +2375,7 @@
     },
     {
       "evidence": {
-        "line": 100,
+        "line": 101,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -4841,7 +4841,7 @@
     },
     {
       "evidence": {
-        "line": 220,
+        "line": 222,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -4973,6 +4973,15 @@
       "kind": "references",
       "source": "file:docs/assets/AV6D_PROCEDURAL_PBR_FINISH.md",
       "target": "file:docs/assets/AV6E_NATURE_DRESSING.md"
+    },
+    {
+      "evidence": {
+        "line": 10,
+        "path": "docs/assets/AV6F_INTER_RIG_RETARGETING.md"
+      },
+      "kind": "references",
+      "source": "file:docs/assets/AV6F_INTER_RIG_RETARGETING.md",
+      "target": "file:asset_manifests/retarget/kenney-run-to-kaykit-knight.json"
     },
     {
       "evidence": {
@@ -23084,7 +23093,7 @@
     },
     {
       "evidence": {
-        "line": 270,
+        "line": 486,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -23093,7 +23102,16 @@
     },
     {
       "evidence": {
-        "line": 160,
+        "line": 176,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._audit_retarget_deformation",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 376,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -23111,7 +23129,7 @@
     },
     {
       "evidence": {
-        "line": 186,
+        "line": 402,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -23120,7 +23138,7 @@
     },
     {
       "evidence": {
-        "line": 170,
+        "line": 386,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -23138,7 +23156,7 @@
     },
     {
       "evidence": {
-        "line": 194,
+        "line": 410,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -23147,7 +23165,7 @@
     },
     {
       "evidence": {
-        "line": 85,
+        "line": 273,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -23156,7 +23174,7 @@
     },
     {
       "evidence": {
-        "line": 140,
+        "line": 356,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -23165,7 +23183,16 @@
     },
     {
       "evidence": {
-        "line": 198,
+        "line": 102,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._raw_mesh_diagonal",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 414,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
@@ -23183,12 +23210,75 @@
     },
     {
       "evidence": {
-        "line": 409,
+        "line": 111,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._reset_pose",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 119,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._retarget_action",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 95,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._rig_height",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 85,
+        "path": "tools/asset_pipeline/blender_bridge_entry.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_bridge_entry._skinned_meshes",
+      "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 661,
         "path": "tools/asset_pipeline/blender_bridge_entry.py"
       },
       "kind": "defined_in",
       "source": "function:tools.asset_pipeline.blender_bridge_entry.main",
       "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 13,
+        "path": "tools/asset_pipeline/blender_retarget_validator.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_retarget_validator._arguments",
+      "target": "file:tools/asset_pipeline/blender_retarget_validator.py"
+    },
+    {
+      "evidence": {
+        "line": 21,
+        "path": "tools/asset_pipeline/blender_retarget_validator.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_retarget_validator._pose_signature",
+      "target": "file:tools/asset_pipeline/blender_retarget_validator.py"
+    },
+    {
+      "evidence": {
+        "line": 30,
+        "path": "tools/asset_pipeline/blender_retarget_validator.py"
+      },
+      "kind": "defined_in",
+      "source": "function:tools.asset_pipeline.blender_retarget_validator.main",
+      "target": "file:tools/asset_pipeline/blender_retarget_validator.py"
     },
     {
       "evidence": {
@@ -23210,7 +23300,7 @@
     },
     {
       "evidence": {
-        "line": 350,
+        "line": 465,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -23282,7 +23372,7 @@
     },
     {
       "evidence": {
-        "line": 335,
+        "line": 450,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -23291,7 +23381,7 @@
     },
     {
       "evidence": {
-        "line": 355,
+        "line": 470,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -23300,7 +23390,7 @@
     },
     {
       "evidence": {
-        "line": 521,
+        "line": 636,
         "path": "tools/asset_pipeline/blender_worker.py"
       },
       "kind": "defined_in",
@@ -36509,6 +36599,15 @@
       "kind": "defined_in",
       "source": "module:tools.asset_pipeline.blender_bridge_entry",
       "target": "file:tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tools/asset_pipeline/blender_retarget_validator.py"
+      },
+      "kind": "defined_in",
+      "source": "module:tools.asset_pipeline.blender_retarget_validator",
+      "target": "file:tools/asset_pipeline/blender_retarget_validator.py"
     },
     {
       "evidence": {
@@ -85841,8 +85940,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:ed28f03cf0ac88978caf5c73bfeb778a952412c62597eb1223314aa8b2043762",
-    "source_file_count": 1569
+    "source_digest": "sha256:51715c74b2ad20a9bc9621b7dd6fc80d0516b6262ca6c0587db54057e6f9a2ab",
+    "source_file_count": 1572
   },
   "nodes": [
     {
@@ -89176,6 +89275,16 @@
       "path": "asset_manifests/packs/kenney_3d_all.json"
     },
     {
+      "id": "file:asset_manifests/retarget/kenney-run-to-kaykit-knight.json",
+      "kind": "configuration",
+      "line": 1,
+      "metadata": {
+        "language": "configuration"
+      },
+      "name": "kenney-run-to-kaykit-knight.json",
+      "path": "asset_manifests/retarget/kenney-run-to-kaykit-knight.json"
+    },
+    {
       "id": "file:asset_manifests/sources/ambientcg.json",
       "kind": "configuration",
       "line": 1,
@@ -89754,6 +89863,16 @@
       },
       "name": "AV6E_NATURE_DRESSING.md",
       "path": "docs/assets/AV6E_NATURE_DRESSING.md"
+    },
+    {
+      "id": "file:docs/assets/AV6F_INTER_RIG_RETARGETING.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "AV6F_INTER_RIG_RETARGETING.md",
+      "path": "docs/assets/AV6F_INTER_RIG_RETARGETING.md"
     },
     {
       "id": "file:docs/assets/AV6_ANIMATED_CHARACTER_VERTICAL_SLICE.md",
@@ -102416,6 +102535,16 @@
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
+      "id": "file:tools/asset_pipeline/blender_retarget_validator.py",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "python"
+      },
+      "name": "blender_retarget_validator.py",
+      "path": "tools/asset_pipeline/blender_retarget_validator.py"
+    },
+    {
       "id": "file:tools/asset_pipeline/blender_worker.py",
       "kind": "file",
       "line": 1,
@@ -103158,7 +103287,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._audit",
       "kind": "function",
-      "line": 270,
+      "line": 486,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -103166,9 +103295,19 @@
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._audit_retarget_deformation",
+      "kind": "function",
+      "line": 176,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_audit_retarget_deformation",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._bounds",
       "kind": "function",
-      "line": 160,
+      "line": 376,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -103188,7 +103327,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._generate_collision",
       "kind": "function",
-      "line": 186,
+      "line": 402,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -103198,7 +103337,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._generate_lods",
       "kind": "function",
-      "line": 170,
+      "line": 386,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -103218,7 +103357,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._look_at",
       "kind": "function",
-      "line": 194,
+      "line": 410,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -103228,7 +103367,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._merge_animation_sources",
       "kind": "function",
-      "line": 85,
+      "line": 273,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -103238,7 +103377,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._normalize",
       "kind": "function",
-      "line": 140,
+      "line": 356,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -103246,9 +103385,19 @@
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._raw_mesh_diagonal",
+      "kind": "function",
+      "line": 102,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_raw_mesh_diagonal",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_bridge_entry._render_thumbnail",
       "kind": "function",
-      "line": 198,
+      "line": 414,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
@@ -103266,14 +103415,84 @@
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
     },
     {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._reset_pose",
+      "kind": "function",
+      "line": 111,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_reset_pose",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._retarget_action",
+      "kind": "function",
+      "line": 119,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_retarget_action",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._rig_height",
+      "kind": "function",
+      "line": 95,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_rig_height",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.blender_bridge_entry._skinned_meshes",
+      "kind": "function",
+      "line": 85,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_bridge_entry"
+      },
+      "name": "_skinned_meshes",
+      "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
       "id": "function:tools.asset_pipeline.blender_bridge_entry.main",
       "kind": "function",
-      "line": 409,
+      "line": 661,
       "metadata": {
         "module": "tools.asset_pipeline.blender_bridge_entry"
       },
       "name": "main",
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.blender_retarget_validator._arguments",
+      "kind": "function",
+      "line": 13,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_retarget_validator"
+      },
+      "name": "_arguments",
+      "path": "tools/asset_pipeline/blender_retarget_validator.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.blender_retarget_validator._pose_signature",
+      "kind": "function",
+      "line": 21,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_retarget_validator"
+      },
+      "name": "_pose_signature",
+      "path": "tools/asset_pipeline/blender_retarget_validator.py"
+    },
+    {
+      "id": "function:tools.asset_pipeline.blender_retarget_validator.main",
+      "kind": "function",
+      "line": 30,
+      "metadata": {
+        "module": "tools.asset_pipeline.blender_retarget_validator"
+      },
+      "name": "main",
+      "path": "tools/asset_pipeline/blender_retarget_validator.py"
     },
     {
       "id": "function:tools.asset_pipeline.blender_worker._canonicalize_png",
@@ -103298,7 +103517,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._encode_bridge_payload",
       "kind": "function",
-      "line": 350,
+      "line": 465,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -103378,7 +103597,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker._write_json_atomically",
       "kind": "function",
-      "line": 335,
+      "line": 450,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -103388,7 +103607,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.execute",
       "kind": "function",
-      "line": 355,
+      "line": 470,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -103398,7 +103617,7 @@
     {
       "id": "function:tools.asset_pipeline.blender_worker.main",
       "kind": "function",
-      "line": 521,
+      "line": 636,
       "metadata": {
         "module": "tools.asset_pipeline.blender_worker"
       },
@@ -109307,6 +109526,13 @@
       "line": 1,
       "name": "tools.asset_pipeline.blender_bridge_entry",
       "path": "tools/asset_pipeline/blender_bridge_entry.py"
+    },
+    {
+      "id": "module:tools.asset_pipeline.blender_retarget_validator",
+      "kind": "module",
+      "line": 1,
+      "name": "tools.asset_pipeline.blender_retarget_validator",
+      "path": "tools/asset_pipeline/blender_retarget_validator.py"
     },
     {
       "id": "module:tools.asset_pipeline.blender_worker",

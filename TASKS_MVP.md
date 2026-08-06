@@ -554,7 +554,9 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Relier le profil d’animation aux entités, au viewport Creator et au contrôleur du joueur.
 - [x] Prouver cinq personnages et trois clips dans le smoke jouable puis inspecter une capture Forward+.
 - [x] Ajouter cinq variantes fantasy cohérentes et une séquence combat attaque/impact/mort bornée.
-- [ ] Prouver le retargeting d’un clip entre deux rigs incompatibles, avec audit de déformation.
+- [x] Prouver le retargeting d’un clip entre deux rigs incompatibles, avec audit de déformation :
+  course Kenney 58 os vers chevalier KayKit 41 os, 19 articulations mappées, 9 poses et 63 216
+  sommets contrôlés, puis réouverture du GLB exporté dans Blender.
 - [x] Composer la carte 512 × 512 en 64 secteurs, puis refaire budgets, navigation et revue visuelle.
 - [x] Remplacer les couleurs terrain simples par une finition PBR procédurale, des routes continues et
   une preuve Forward+ réelle partagée entre Creator et runtime.

@@ -82,9 +82,197 @@ def _apply_material_textures(sources: list[dict]) -> None:
             tree.links.new(texture.outputs["Alpha"], principled.inputs["Alpha"])
 
 
-def _merge_animation_sources(sources: list[dict]) -> list[str]:
+def _skinned_meshes(armature) -> list:
+    return [
+        item for item in bpy.context.scene.objects
+        if item.type == "MESH" and (
+            item.parent == armature
+            or any(modifier.type == "ARMATURE" and modifier.object == armature for modifier in item.modifiers)
+        )
+    ]
+
+
+def _rig_height(armature) -> float:
+    points = [coordinate for bone in armature.data.bones for coordinate in (bone.head_local, bone.tail_local)]
+    if not points:
+        return 1.0
+    return max(0.0001, max(point.z for point in points) - min(point.z for point in points))
+
+
+def _raw_mesh_diagonal(meshes: list) -> float:
+    points = [item.matrix_world @ vertex.co for item in meshes for vertex in item.data.vertices]
+    if not points:
+        return 0.0
+    minimum = Vector((min(point.x for point in points), min(point.y for point in points), min(point.z for point in points)))
+    maximum = Vector((max(point.x for point in points), max(point.y for point in points), max(point.z for point in points)))
+    return max(0.000001, (maximum - minimum).length)
+
+
+def _reset_pose(armature) -> None:
+    for bone in armature.pose.bones:
+        bone.location = (0.0, 0.0, 0.0)
+        bone.rotation_mode = "QUATERNION"
+        bone.rotation_quaternion = (1.0, 0.0, 0.0, 0.0)
+        bone.scale = (1.0, 1.0, 1.0)
+
+
+def _retarget_action(target, source_armature, source_action, clip_name: str, profile: dict):
+    target_bones = {bone.name for bone in target.data.bones}
+    source_bones = {bone.name for bone in source_armature.data.bones}
+    if len(target_bones) != int(profile["targetBoneCount"]):
+        raise ValueError(
+            f"Retarget profile '{profile['profileId']}' expected {profile['targetBoneCount']} target bones, "
+            f"found {len(target_bones)}.")
+    if len(source_bones) != int(profile["sourceBoneCount"]):
+        raise ValueError(
+            f"Retarget profile '{profile['profileId']}' expected {profile['sourceBoneCount']} source bones, "
+            f"found {len(source_bones)}.")
+    mapping = profile["bones"]
+    missing_targets = sorted(set(mapping) - target_bones)
+    missing_sources = sorted(set(mapping.values()) - source_bones)
+    if missing_targets or missing_sources:
+        raise ValueError(
+            f"Retarget profile '{profile['profileId']}' does not match imported rigs; "
+            f"missing targets={missing_targets[:3]} sources={missing_sources[:3]}.")
+
+    frame_start = int(math.floor(source_action.frame_range[0]))
+    frame_end = int(math.ceil(source_action.frame_range[1]))
+    if frame_end < frame_start:
+        raise ValueError(f"Animation '{clip_name}' has an invalid frame range.")
+    source_action.use_fake_user = True
+    source_armature.animation_data_clear()
+    source_armature.animation_data_create()
+    source_armature.animation_data.action = source_action
+    if len(source_action.slots) == 1:
+        source_armature.animation_data.action_slot = source_action.slots[0]
+    target.animation_data_create()
+    action = bpy.data.actions.new(clip_name)
+    action.use_fake_user = True
+    target.animation_data.action = action
+    translation_scale = _rig_height(target) / _rig_height(source_armature)
+    root_motion_target = profile["rootMotionTarget"]
+
+    for frame in range(frame_start, frame_end + 1):
+        bpy.context.scene.frame_set(frame)
+        _reset_pose(target)
+        bpy.context.view_layer.update()
+        for target_name, source_name in mapping.items():
+            source_pose = source_armature.pose.bones[source_name]
+            target_pose = target.pose.bones[target_name]
+            source_basis = source_pose.matrix_basis.copy()
+            target_pose.rotation_mode = "QUATERNION"
+            target_pose.rotation_quaternion = source_basis.to_quaternion().normalized()
+            if target_name == root_motion_target:
+                target_pose.location = source_basis.to_translation() * translation_scale
+                target_pose.keyframe_insert(data_path="location", frame=frame, group=target_name)
+            target_pose.keyframe_insert(data_path="rotation_quaternion", frame=frame, group=target_name)
+        bpy.context.view_layer.update()
+
+    source_armature.animation_data.action = None
+    target.animation_data.action = None
+    return action, frame_start, frame_end, translation_scale
+
+
+def _audit_retarget_deformation(
+    target,
+    clip_name: str,
+    frame_start: int,
+    frame_end: int,
+    reference_diagonal: float,
+    profile: dict,
+    translation_scale: float,
+) -> dict:
+    meshes = _skinned_meshes(target)
+    sample_count = min(9, max(1, frame_end - frame_start + 1))
+    if sample_count == 1:
+        frames = [frame_start]
+    else:
+        frames = sorted({
+            round(frame_start + index * (frame_end - frame_start) / (sample_count - 1))
+            for index in range(sample_count)
+        })
+    invalid_coordinates = 0
+    sampled_vertices = 0
+    maximum_expansion = 0.0
+    minimum_expansion = float("inf")
+    maximum_displacement = 0.0
+    maximum_temporal_displacement = 0.0
+    first_sample_points = None
+    rest_positions = [item.matrix_world @ vertex.co for item in meshes for vertex in item.data.vertices]
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    for frame in frames:
+        bpy.context.scene.frame_set(frame)
+        bpy.context.view_layer.update()
+        points = []
+        for item in meshes:
+            evaluated = item.evaluated_get(depsgraph)
+            evaluated_mesh = evaluated.to_mesh()
+            try:
+                points.extend(evaluated.matrix_world @ vertex.co for vertex in evaluated_mesh.vertices)
+            finally:
+                evaluated.to_mesh_clear()
+        sampled_vertices += len(points)
+        invalid_coordinates += sum(
+            1 for point in points if any(not math.isfinite(component) for component in point)
+        )
+        finite_points = [
+            point for point in points if all(math.isfinite(component) for component in point)
+        ]
+        if finite_points and reference_diagonal > 0:
+            minimum = Vector((
+                min(point.x for point in finite_points),
+                min(point.y for point in finite_points),
+                min(point.z for point in finite_points),
+            ))
+            maximum = Vector((
+                max(point.x for point in finite_points),
+                max(point.y for point in finite_points),
+                max(point.z for point in finite_points),
+            ))
+            ratio = (maximum - minimum).length / reference_diagonal
+            maximum_expansion = max(maximum_expansion, ratio)
+            minimum_expansion = min(minimum_expansion, ratio)
+            if len(rest_positions) == len(points):
+                maximum_displacement = max(
+                    maximum_displacement,
+                    max((point - rest).length / reference_diagonal for point, rest in zip(points, rest_positions)),
+                )
+            if first_sample_points is None:
+                first_sample_points = [point.copy() for point in points]
+            elif len(first_sample_points) == len(points):
+                maximum_temporal_displacement = max(
+                    maximum_temporal_displacement,
+                    max((point - first).length / reference_diagonal for point, first in zip(points, first_sample_points)),
+                )
+    if minimum_expansion == float("inf"):
+        minimum_expansion = 0.0
+    target_bone_count = len(target.data.bones)
+    mapped_ratio = len(profile["bones"]) / max(1, target_bone_count)
+    return {
+        "profileId": profile["profileId"],
+        "clip": clip_name,
+        "sourceRig": profile["sourceRig"],
+        "targetRig": profile["targetRig"],
+        "sourceBoneCount": int(profile["sourceBoneCount"]),
+        "targetBoneCount": target_bone_count,
+        "mappedBoneCount": len(profile["bones"]),
+        "mappedTargetRatio": round(mapped_ratio, 6),
+        "frameStart": frame_start,
+        "frameEnd": frame_end,
+        "sampledFrames": frames,
+        "sampledVertexCount": sampled_vertices,
+        "invalidCoordinateCount": invalid_coordinates,
+        "rootMotionScale": round(translation_scale, 6),
+        "minimumBoundsRatio": round(minimum_expansion, 6),
+        "maximumBoundsExpansion": round(maximum_expansion, 6),
+        "maximumNormalizedVertexDisplacement": round(maximum_displacement, 6),
+        "maximumNormalizedTemporalDisplacement": round(maximum_temporal_displacement, 6),
+    }
+
+
+def _merge_animation_sources(sources: list[dict], retarget_profile: dict | None = None) -> tuple[list[str], list[dict]]:
     if not sources:
-        return []
+        return [], []
     targets = [item for item in bpy.context.scene.objects if item.type == "ARMATURE"]
     if len(targets) != 1:
         raise ValueError("Animated model must contain exactly one target armature.")
@@ -93,7 +281,12 @@ def _merge_animation_sources(sources: list[dict]) -> list[str]:
     if not target_bones:
         raise ValueError("Animated model target armature has no bones.")
 
+    target_meshes = _skinned_meshes(target)
+    reference_diagonal = _raw_mesh_diagonal(target_meshes)
     selected_actions = []
+    retarget_jobs = []
+    target.animation_data_clear()
+    _reset_pose(target)
     for source in sources:
         clip_name = str(source.get("name", "")).strip().lower()
         path = pathlib.Path(str(source.get("path", "")))
@@ -105,7 +298,7 @@ def _merge_animation_sources(sources: list[dict]) -> list[str]:
         if len(imported_armatures) != 1:
             raise ValueError(f"Animation '{clip_name}' must contain exactly one armature.")
         source_bones = {bone.name for bone in imported_armatures[0].data.bones}
-        if source_bones != target_bones:
+        if source_bones != target_bones and retarget_profile is None:
             missing = sorted(target_bones - source_bones)[:3]
             extra = sorted(source_bones - target_bones)[:3]
             raise ValueError(f"Animation '{clip_name}' rig differs from target; missing={missing} extra={extra}.")
@@ -117,9 +310,20 @@ def _merge_animation_sources(sources: list[dict]) -> list[str]:
         if len(candidates) != 1:
             raise ValueError(
                 f"Animation '{clip_name}' did not expose one matching action: {[action.name for action in imported_actions]}")
-        action = candidates[0]
-        action.name = clip_name
-        action.use_fake_user = True
+        source_action = candidates[0]
+        if source_bones != target_bones:
+            action, frame_start, frame_end, translation_scale = _retarget_action(
+                target,
+                imported_armatures[0],
+                source_action,
+                clip_name,
+                retarget_profile,
+            )
+            retarget_jobs.append((clip_name, frame_start, frame_end, translation_scale))
+        else:
+            action = source_action
+            action.name = clip_name
+            action.use_fake_user = True
         selected_actions.append(action)
         for item in imported_objects:
             bpy.data.objects.remove(item, do_unlink=True)
@@ -134,7 +338,19 @@ def _merge_animation_sources(sources: list[dict]) -> list[str]:
         track.name = action.name
         strip = track.strips.new(action.name, int(action.frame_range[0]), action)
         strip.extrapolation = "NOTHING"
-    return [action.name for action in selected_actions]
+    retarget_audits = [
+        _audit_retarget_deformation(
+            target,
+            clip_name,
+            frame_start,
+            frame_end,
+            reference_diagonal,
+            retarget_profile,
+            translation_scale,
+        )
+        for clip_name, frame_start, frame_end, translation_scale in retarget_jobs
+    ]
+    return [action.name for action in selected_actions], retarget_audits
 
 
 def _normalize(options: dict) -> None:
@@ -267,7 +483,7 @@ def _render_thumbnail(path: pathlib.Path) -> None:
                 item.hide_render = value
 
 
-def _audit(options: dict, operations: list[str], preview: pathlib.Path) -> dict:
+def _audit(options: dict, operations: list[str], preview: pathlib.Path, retarget_audits: list[dict]) -> dict:
     base_meshes = [
         item for item in bpy.context.scene.objects
         if item.type == "MESH" and "_LOD" not in item.name and not item.name.endswith("-col")
@@ -381,6 +597,40 @@ def _audit(options: dict, operations: list[str], preview: pathlib.Path) -> dict:
               "Animated character must contain one non-empty armature.")
         check("asset.quality.animation_clips_present", animation_clips == expected_animation_clips,
               "Every governed animation clip must be embedded with its stable name.")
+    retarget_profile = options.get("retargetProfile")
+    if retarget_profile is not None:
+        mapped_ratios = [item["mappedTargetRatio"] for item in retarget_audits]
+        maximum_expansions = [item["maximumBoundsExpansion"] for item in retarget_audits]
+        minimum_ratios = [item["minimumBoundsRatio"] for item in retarget_audits]
+        invalid_coordinates = sum(item["invalidCoordinateCount"] for item in retarget_audits)
+        temporal_displacements = [item["maximumNormalizedTemporalDisplacement"] for item in retarget_audits]
+        check(
+            "asset.quality.retarget_profile_applied",
+            len(retarget_audits) == len(expected_animation_clips),
+            "Every incompatible animation source must use the governed retarget profile.",
+        )
+        check(
+            "asset.quality.retarget_mapping_coverage",
+            bool(mapped_ratios) and min(mapped_ratios) >= float(retarget_profile["minimumMappedBoneRatio"]),
+            "Retarget mapping coverage must meet the governed target-rig threshold.",
+        )
+        check(
+            "asset.quality.retarget_deformation_finite",
+            bool(retarget_audits) and invalid_coordinates == 0,
+            "Retargeted skin deformation must contain only finite vertex coordinates.",
+        )
+        check(
+            "asset.quality.retarget_deformation_bounds",
+            bool(maximum_expansions)
+            and max(maximum_expansions) <= float(retarget_profile["maximumBoundsExpansion"])
+            and min(minimum_ratios) >= 0.25,
+            "Retargeted skin bounds must neither explode nor collapse across sampled frames.",
+        )
+        check(
+            "asset.quality.retarget_motion_present",
+            bool(temporal_displacements) and min(temporal_displacements) >= 0.001,
+            "Retargeted clips must produce measurable temporal skin motion.",
+        )
 
     return {
         "schemaVersion": 1,
@@ -401,6 +651,8 @@ def _audit(options: dict, operations: list[str], preview: pathlib.Path) -> dict:
             "animationClipCount": len(animation_clips),
             "animationClips": animation_clips,
             "animationDurationsSeconds": animation_durations,
+            "retargetAuditCount": len(retarget_audits),
+            "retargetAudits": retarget_audits,
         },
         "checks": checks,
     }
@@ -411,7 +663,10 @@ def main() -> None:
     _reset()
     _import_model(source)
     _apply_material_textures(options.get("materialTextures", []))
-    animation_clips = _merge_animation_sources(options.get("animationSources", []))
+    animation_clips, retarget_audits = _merge_animation_sources(
+        options.get("animationSources", []),
+        options.get("retargetProfile"),
+    )
     has_embedded_animations = any(
         item.type == "ARMATURE"
         and item.animation_data is not None
@@ -426,7 +681,7 @@ def main() -> None:
         _generate_collision()
     if "generate_thumbnail" in operations:
         _render_thumbnail(preview)
-    quality = _audit(options, operations, preview)
+    quality = _audit(options, operations, preview, retarget_audits)
     output.parent.mkdir(parents=True, exist_ok=True)
     export_options = {
         "filepath": str(output),

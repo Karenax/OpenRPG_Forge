@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "jobId": "6f92b28e-a3da-4c37-9410-5539c70903a1",
+  "assetId": "openrpg-forge:retarget:kenney-run-to-kaykit-knight",
+  "sourceRelativePath": "normalized/kaykit/character-pack-adventures-1.0/KayKit-Character-Pack-Adventures-1.0-672074b73ba276876a19e8816ecdc5241817ab47/addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb",
+  "outputRelativePath": "artifacts/verification/retarget/kenney-run-to-kaykit-knight.glb",
+  "sourceSha256": "60428e3abc09ba83e595d256e3af8c5c976b46cdae599f0802fc82b4a3445168",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "asset-catalog:kaykit:character-pack-adventures-1.0+kenney:animated-characters-protagonists",
+  "operations": [
+    "validate_model",
+    "export_glb",
+    "generate_thumbnail",
+    "audit_quality"
+  ],
+  "options": {
+    "applyTransforms": false,
+    "scaleMeters": 1.0,
+    "pivot": "keep",
+    "lodRatios": [],
+    "generateCollision": false,
+    "animationSources": [
+      {
+        "name": "run",
+        "relativePath": "normalized/kenney/animated-characters-protagonists/Animations/run.fbx",
+        "contentSha256": "e635461fc8dace85ec67a7f7941e949a7c3f108b51ae4d2da1557e6e01749df8"
+      }
+    ],
+    "materialTextures": [],
+    "retargetProfile": {
+      "profileId": "kenney58-to-kaykit41-v1",
+      "sourceRig": "kenney-protagonist-58",
+      "targetRig": "kaykit-adventurer-41",
+      "sourceBoneCount": 58,
+      "targetBoneCount": 41,
+      "rootMotionTarget": "root",
+      "minimumMappedBoneRatio": 0.45,
+      "maximumBoundsExpansion": 3.0,
+      "bones": {
+        "root": "HipsCtrl",
+        "hips": "Hips",
+        "spine": "Spine",
+        "chest": "UpperChest",
+        "head": "Head",
+        "upperarm.l": "LeftArm",
+        "lowerarm.l": "LeftForeArm",
+        "wrist.l": "LeftHand",
+        "upperarm.r": "RightArm",
+        "lowerarm.r": "RightForeArm",
+        "wrist.r": "RightHand",
+        "upperleg.l": "LeftUpLeg",
+        "lowerleg.l": "LeftLeg",
+        "foot.l": "LeftFoot",
+        "toes.l": "LeftToes",
+        "upperleg.r": "RightUpLeg",
+        "lowerleg.r": "RightLeg",
+        "foot.r": "RightFoot",
+        "toes.r": "RightToes"
+      }
+    }
+  }
+}

@@ -5,7 +5,8 @@ Dernière mise à jour : 5 août 2026.
 ## Gate actuel
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
-G11 Contenu moderne fermés. AV6-E livre maintenant une carte 3D extérieure 512 × 512 jouable,
+G11 Contenu moderne fermés. AV6-F ferme maintenant le lot de production 3D : carte extérieure
+512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
 cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles,
 installe les GLB gouvernés dans la palette, les place comme vrais modèles dans le viewport et ferme
@@ -227,12 +228,13 @@ Le rapport détaillé est dans `docs/ENVIRONMENT.md`.
   dédupliqué, backup de désinstallation et crédits agrégés. Une ressource ambientCG réelle franchit
   désormais normalisation, collisions, LOD, miniature et audit ; le traitement massif du catalogue
   complet reste à étendre ;
-- Forgotten Forest est jouable sur le terrain générique 512 × 512 avec végétation, bâtiments, éclairage,
-  caméra, quête, export, navigation de surface, eau animée, ambiance spatiale, VFX, cinq silhouettes
-  et animation repos/course/saut/attaque/impact/mort. Le retargeting inter-rigs, une eau simulée
-  avancée, les matériaux PBR et l’habillage fin restent nécessaires avant de qualifier la carte de
-  contenu final ;
-- le workflow CI est défini, mais son exécution distante attend le premier push.
+- Forgotten Forest est jouable sur le terrain générique 512 × 512 avec végétation, bâtiments,
+  éclairage, caméra, quête, export, navigation de surface, eau animée, ambiance spatiale, VFX,
+  cinq silhouettes, matériaux PBR procéduraux et animation repos/course/saut/attaque/impact/mort.
+  Le retargeting inter-rigs possède désormais une preuve Blender reproductible ; eau avancée,
+  textures photogrammétriques et placement artistique manuel restent des améliorations visuelles ;
+- le workflow CI est défini et les gates locaux sont bloquants ; son état distant reste suivi
+  séparément de la preuve locale reproductible.
 
 ## Décisions verrouillées
 
@@ -516,5 +518,14 @@ dans le Vault ajoutent cinq silhouettes d’arbres, buissons, plantes, champigno
 bois mort et rochers. Les 17 recettes déterministes produisent 7 112 instances avec 40 manifestes,
 62 chunks, 56 références gouvernées et 108 niveaux LOD. Les captures Forward+ aérienne et rapprochée
 montrent la variété réelle ; navigation, quête, boss et caméra orbitale restent valides. Le rendu
-demeure stylisé : textures photogrammétriques, eau avancée, placement artistique manuel fin et
-retargeting inter-rigs ne sont pas revendiqués.
+demeure stylisé : textures photogrammétriques, eau avancée et placement artistique manuel fin restent
+des améliorations futures. Le retargeting inter-rigs est fermé séparément par AV6-F.
+
+**AV6-F — retargeting inter-rigs gouverné livré** : une requête immuable transfère le clip `run`
+Kenney d’un squelette de 58 os vers le chevalier KayKit de 41 os avec un profil typé de 19 paires
+univoques. Blender 4.5.10 produit un GLB de 413 616 octets contenant le clip de 0,667 s. L’audit
+échantillonne 9 poses et 63 216 sommets : zéro coordonnée non finie, couverture cible de 46,34 %,
+déplacement temporel normalisé de 0,841 et expansion maximale des bornes de 1,089. Un second import
+Blender vérifie 41 os, le nom stable `run` et plusieurs poses distinctes après round-trip. Les hashes
+des deux sources CC0 du Vault sont vérifiés avant et après ; aucune source n’est modifiée. Ce profil
+prouve le couple Kenney/KayKit retenu, sans revendiquer un retargeter universel automatique.
