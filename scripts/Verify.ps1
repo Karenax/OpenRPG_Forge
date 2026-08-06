@@ -488,6 +488,25 @@ try {
                 $roundTripQualityResult.scores.overall -le 0) {
                 throw 'The Blender thumbnail or quality report is invalid.'
             }
+            Invoke-ForgeCliMarkerTest `
+                -Arguments @('run', '--project', $cliProject, '--configuration', 'Release', '--no-build', '--',
+                    'assets', 'finalize-roundtrip', $repositoryRoot, $assetImportSmoke,
+                    '--id', 'ambientcg:3DApple001', '--vault', $assetVault) `
+                -Marker 'OPENRPG_FORGE_ASSET_ROUNDTRIP_FINALIZE_PASS asset=ambientcg:3DApple001 triangles=500 variants=1 score=99'
+            $manifestDocument = Get-Content `
+                -LiteralPath (Join-Path $assetImportSmoke 'assets\asset-manifests.json') `
+                -Raw | ConvertFrom-Json
+            $appleManifest = @($manifestDocument.manifests | Where-Object {
+                $_.assetId -eq '96ce5ad8-a1e9-8255-99ce-11cf8d593506'
+            })
+            if ($appleManifest.Count -ne 1 -or
+                $appleManifest[0].modelMetadata.metrics.triangleCount -ne 500 -or
+                $appleManifest[0].modelMetadata.metrics.qualityScore -ne 99 -or
+                $appleManifest[0].modelMetadata.variants.Count -ne 1 -or
+                $appleManifest[0].modelMetadata.compatibility.shaderFamily -ne 'pbr-metallic-roughness' -or
+                $appleManifest[0].chunks[0].relativePath -ne 'assets/imported/ambientcg-3dapple001/model.glb') {
+                throw 'The finalized asset manifest did not persist the governed 3D metadata.'
+            }
             Write-Output (
                 "OPENRPG_FORGE_G11C_BLENDER_SMOKE_PASS bytes=$($roundTripOutputBytes.Length) " +
                 "sha256=$($roundTripResult.outputSha256)")
@@ -495,6 +514,9 @@ try {
                 "OPENRPG_FORGE_AV2_NORMALIZATION_SMOKE_PASS preview=$($roundTripPreviewBytes.Length) " +
                 "triangles=$($roundTripQualityResult.metrics.triangleCount) " +
                 "score=$($roundTripQualityResult.scores.overall)")
+            Write-Output (
+                "OPENRPG_FORGE_AV3_MANIFEST_METADATA_SMOKE_PASS styles=$($appleManifest[0].modelMetadata.styles.Count) " +
+                "variants=$($appleManifest[0].modelMetadata.variants.Count) triangles=500 score=99")
         }
         if ($modelSourceHash -ne (Get-FileHash -LiteralPath $modelSource -Algorithm SHA256).Hash -or
             $textureSourceHash -ne (Get-FileHash -LiteralPath $textureSource -Algorithm SHA256).Hash -or

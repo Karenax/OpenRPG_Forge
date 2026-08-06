@@ -88,7 +88,7 @@ static int Run(IReadOnlyList<string> arguments)
 
         Console.Error.WriteLine(
             "Usage: forge package <export|validate|load|analyze|compliance|keygen|sign|verify-signature|delta|apply-delta|bundle|spatial|diagnose> ... | " +
-            "forge assets <list|install-pack|uninstall-pack|report|credits|prepare|roundtrip> ... | " +
+            "forge assets <list|install-pack|uninstall-pack|report|credits|prepare|roundtrip|finalize-roundtrip> ... | " +
             "forge content <batch|export-blueprints|merge-table> ... | " +
             "forge docs <generate|check> | " +
             "forge readiness <validate|health|crash|recovery|sync-plan> ... | " +
@@ -605,6 +605,11 @@ static int RunAssets(IReadOnlyList<string> arguments)
         return ConfigureAssetRoundTrip(arguments);
     }
 
+    if (arguments.Count >= 3 && arguments[0] == "finalize-roundtrip")
+    {
+        return FinalizeAssetRoundTrip(arguments);
+    }
+
     if (arguments.Count < 2 || arguments[0] != "list")
     {
         Console.Error.WriteLine(
@@ -620,7 +625,9 @@ static int RunAssets(IReadOnlyList<string> arguments)
             "forge assets prepare <repository-or-workspace> <workspace> --id <external-id> " +
             "[--kind <model|texture>] [--vfx <true|false>] [--vault <directory>] | " +
             "forge assets roundtrip <repository-or-workspace> <workspace> --id <external-id> " +
-            "[--watch <true|false>] [--dry-run <true|false>] [--vault <directory>]");
+            "[--watch <true|false>] [--dry-run <true|false>] [--vault <directory>] | " +
+            "forge assets finalize-roundtrip <repository-or-workspace> <workspace> --id <external-id> " +
+            "[--vault <directory>]");
         return 2;
     }
 
@@ -1166,6 +1173,112 @@ static int ConfigureAssetRoundTrip(IReadOnlyList<string> arguments)
     Console.WriteLine(
         $"OPENRPG_FORGE_ASSET_ROUNDTRIP_PASS asset={item.ExternalId} dryrun={dryRun.ToString().ToLowerInvariant()} " +
         $"operations={configuration.Operations.Count} request={request?.RequestRelativePath ?? "none"}");
+    return 0;
+}
+
+static int FinalizeAssetRoundTrip(IReadOnlyList<string> arguments)
+{
+    var options = ParseOptions(arguments.Skip(3).ToArray());
+    if (!options.TryGetValue("id", out var externalId) || string.IsNullOrWhiteSpace(externalId))
+    {
+        throw new ArgumentException("Asset round-trip finalization requires --id <external-id>.");
+    }
+
+    var start = Path.GetFullPath(arguments[1]);
+    var workspaceRoot = Path.GetFullPath(arguments[2]);
+    var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(start)
+        ?? throw new DirectoryNotFoundException("OpenRPG Forge repository root was not found.");
+    var load = AssetCatalogLoader.Load(repositoryRoot, options.GetValueOrDefault("vault"));
+    if (load.Catalog is null || load.Diagnostics.Count > 0)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = load.Diagnostics }));
+        return 1;
+    }
+
+    var item = load.Catalog.Items.SingleOrDefault(candidate =>
+        string.Equals(candidate.ExternalId, externalId, StringComparison.OrdinalIgnoreCase));
+    var manifests = AssetPackageManifestStore.Load(workspaceRoot);
+    var edits = AssetExternalEditStore.Load(workspaceRoot);
+    if (item is null || !manifests.Succeeded || !edits.Succeeded)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = false,
+            diagnostics = item is null
+                ? new object[] { new { code = "asset.roundtrip.asset_missing", path = externalId } }
+                : manifests.Diagnostics.Cast<object>().Concat(edits.Diagnostics).ToArray(),
+        }));
+        return 1;
+    }
+
+    var manifest = manifests.Manifests.SingleOrDefault(candidate => candidate.AssetId == item.Id);
+    var configuration = edits.Configurations.SingleOrDefault(candidate => candidate.AssetId == item.Id);
+    if (manifest is null || configuration is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = false,
+            diagnostics = new[]
+            {
+                new
+                {
+                    code = manifest is null
+                        ? "asset.roundtrip.manifest_missing"
+                        : "asset.roundtrip.configuration_missing",
+                    path = $"assets/{item.Id}",
+                },
+            },
+        }));
+        return 1;
+    }
+
+    var finalized = AssetRoundTripFinalizer.Finalize(workspaceRoot, item, manifest, configuration);
+    if (!finalized.Succeeded)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = finalized.Diagnostics }));
+        return 1;
+    }
+
+    var state = new AssetPackageManifestState(manifests.Manifests);
+    var command = new SetAssetPackageManifestCommand(
+        CommandId.From(Guid.NewGuid()),
+        state.Revision,
+        finalized.Manifest!,
+        DryRun: false);
+    var authored = new SetAssetPackageManifestHandler(new SystemClock()).Handle(state, command);
+    if (!authored.Succeeded)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = authored.Diagnostics }));
+        return 1;
+    }
+
+    var saved = AssetPackageManifestStore.Save(workspaceRoot, authored.State.Manifests);
+    if (!saved.Succeeded)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = saved.Diagnostics }));
+        return 1;
+    }
+
+    var metadata = finalized.Manifest!.ModelMetadata!;
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = true,
+        asset = item.ExternalId,
+        manifest = finalized.Manifest.Id.ToString(),
+        dimensions = metadata.Dimensions,
+        metrics = metadata.Metrics,
+        metadata.Styles,
+        metadata.Variants,
+        metadata.Compatibility,
+        preview = metadata.PreviewRelativePath,
+        qualityReport = metadata.QualityReportRelativePath,
+        revision = authored.NewRevision?.Value,
+        diagnostics = Array.Empty<object>(),
+    }));
+    Console.WriteLine(
+        $"OPENRPG_FORGE_ASSET_ROUNDTRIP_FINALIZE_PASS asset={item.ExternalId} " +
+        $"triangles={metadata.Metrics.TriangleCount} variants={metadata.Variants.Count} " +
+        $"score={metadata.Metrics.QualityScore}");
     return 0;
 }
 

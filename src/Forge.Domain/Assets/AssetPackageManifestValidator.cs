@@ -15,6 +15,7 @@ public static class AssetPackageManifestValidator
     public const string AnimationInvalidCode = "asset.manifest.animation_invalid";
     public const string VfxInvalidCode = "asset.manifest.vfx_invalid";
     public const string LodInvalidCode = "asset.manifest.lod_invalid";
+    public const string ModelMetadataInvalidCode = "asset.manifest.model_metadata_invalid";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(AssetPackageManifest manifest)
     {
@@ -70,6 +71,7 @@ public static class AssetPackageManifestValidator
         ValidateAnimation(manifest.Animation, chunkIds, root, diagnostics);
         ValidateVfx(manifest.Vfx, chunkIds, root, diagnostics);
         ValidateLod(manifest.Lod, chunkIds, root, diagnostics);
+        ValidateModelMetadata(manifest.ModelMetadata, chunkIds, root, diagnostics);
         return diagnostics;
     }
 
@@ -212,6 +214,56 @@ public static class AssetPackageManifestValidator
         foreach (var level in levels)
         {
             ValidateReference(lod.Required, level.ChunkId, chunkIds, $"{root}/lod/levels/{level.Level}/chunkId", diagnostics);
+        }
+    }
+
+    private static void ValidateModelMetadata(
+        AssetModelMetadata? metadata,
+        IReadOnlySet<Guid> chunkIds,
+        string root,
+        ICollection<DomainDiagnostic> diagnostics)
+    {
+        if (metadata is null)
+        {
+            return;
+        }
+
+        var dimensions = metadata.Dimensions;
+        var metrics = metadata.Metrics;
+        var variants = metadata.Variants ?? [];
+        var compatibility = metadata.Compatibility;
+        var invalid = dimensions is null ||
+            dimensions.ExtentXMeters is <= 0 or > 1000 ||
+            dimensions.ExtentYMeters is <= 0 or > 1000 ||
+            dimensions.ExtentZMeters is <= 0 or > 1000 ||
+            metrics is null || metrics.BaseMeshCount <= 0 || metrics.VertexCount <= 0 || metrics.TriangleCount <= 0 ||
+            metrics.MaterialCount < 0 || metrics.TextureCount < 0 || metrics.LodMeshCount < 0 ||
+            metrics.CollisionMeshCount < 0 || metrics.QualityScore is < 0 or > 100 ||
+            metadata.Styles is null || metadata.Styles.Count == 0 ||
+            metadata.Styles.Any(string.IsNullOrWhiteSpace) ||
+            metadata.Styles.Distinct(StringComparer.OrdinalIgnoreCase).Count() != metadata.Styles.Count ||
+            variants.Count == 0 || variants.Any(variant =>
+                string.IsNullOrWhiteSpace(variant.Key) || string.IsNullOrWhiteSpace(variant.DisplayName) ||
+                variant.ModelChunkId == Guid.Empty || !chunkIds.Contains(variant.ModelChunkId) ||
+                variant.Platforms is null || variant.Platforms.Count == 0 ||
+                variant.Platforms.Distinct().Count() != variant.Platforms.Count ||
+                variant.Tags is null || variant.Tags.Any(string.IsNullOrWhiteSpace)) ||
+            variants.Select(variant => variant.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count() != variants.Count ||
+            compatibility is null || string.IsNullOrWhiteSpace(compatibility.ShaderFamily) ||
+            compatibility.MetersPerUnit is < 0.001m or > 1000m ||
+            compatibility.TargetTexelDensity is < 16 or > 8192 ||
+            compatibility.Platforms is null || compatibility.Platforms.Count == 0 ||
+            compatibility.Platforms.Distinct().Count() != compatibility.Platforms.Count ||
+            !AssetCatalogValidator.IsSafeRelativePath(metadata.PreviewRelativePath) ||
+            !IsSha256(metadata.PreviewContentSha256) || metadata.PreviewBytes <= 0 ||
+            !AssetCatalogValidator.IsSafeRelativePath(metadata.QualityReportRelativePath) ||
+            !IsSha256(metadata.QualityReportContentSha256);
+        if (invalid)
+        {
+            diagnostics.Add(new(
+                ModelMetadataInvalidCode,
+                "Model metadata requires valid dimensions, metrics, styles, variants, compatibility and governed sidecars.",
+                $"{root}/modelMetadata"));
         }
     }
 

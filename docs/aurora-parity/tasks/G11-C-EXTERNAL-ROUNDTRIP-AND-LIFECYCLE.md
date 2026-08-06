@@ -20,8 +20,8 @@
 - sélection de variantes par plateforme et validation de parité des rôles requis ;
 - plans purs de migration et désinstallation : code hôte de confiance, dry-run, sauvegarde,
   changelog, analyse des dépendants, remplacement et refus si l’impact reste non résolu ;
-- commande CLI `assets roundtrip` et surface Content Browser avec état vide, surveillance,
-  configuration Blender et undo/redo.
+- commandes CLI `assets roundtrip` et `assets finalize-roundtrip`, puis surface Content Browser avec
+  état vide, surveillance, configuration Blender, métriques finales et undo/redo.
 
 ## Preuves
 
@@ -40,6 +40,8 @@
   variables sont retirées pour rendre son SHA-256 reproductible ;
 - l’audit réel compte 500 triangles, deux LOD, une collision, aucune texture manquante et produit un
   score global de 99/100 ;
+- le finaliseur persiste dimensions, métriques, styles, variante, compatibilité et preuves de sidecars
+  après vérification transactionnelle ;
 - `scripts/Verify.ps1` exécute ce round-trip lorsque Blender est détecté et émet
   `OPENRPG_FORGE_G11C_BLENDER_SMOKE_PASS` et `OPENRPG_FORGE_AV2_NORMALIZATION_SMOKE_PASS` ; sans
   Blender, il conserve le mode validation confiné.

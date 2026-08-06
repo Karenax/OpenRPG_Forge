@@ -115,7 +115,52 @@ internal static class AssetPackageManifestJsonSerializer
                 {
                     Levels = (manifest.Lod.Levels ?? []).OrderBy(level => level.Level).ToArray(),
                 },
+            ModelMetadata = NormalizeModelMetadata(manifest.ModelMetadata),
         };
+
+    private static AssetModelMetadata? NormalizeModelMetadata(AssetModelMetadata? metadata)
+    {
+        if (metadata is null)
+        {
+            return null;
+        }
+
+        return metadata with
+        {
+            Styles = (metadata.Styles ?? [])
+                .Select(value => value.Trim().ToLowerInvariant())
+                .Where(value => value.Length > 0)
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal)
+                .ToArray(),
+            Variants = (metadata.Variants ?? [])
+                .Select(variant => variant with
+                {
+                    Key = variant.Key.Trim().ToLowerInvariant(),
+                    DisplayName = variant.DisplayName.Trim(),
+                    Platforms = (variant.Platforms ?? []).Distinct().Order().ToArray(),
+                    Tags = (variant.Tags ?? [])
+                        .Select(value => value.Trim().ToLowerInvariant())
+                        .Where(value => value.Length > 0)
+                        .Distinct(StringComparer.Ordinal)
+                        .Order(StringComparer.Ordinal)
+                        .ToArray(),
+                })
+                .OrderBy(variant => variant.Key, StringComparer.Ordinal)
+                .ToArray(),
+            Compatibility = metadata.Compatibility is null
+                ? null!
+                : metadata.Compatibility with
+                {
+                    ShaderFamily = metadata.Compatibility.ShaderFamily.Trim().ToLowerInvariant(),
+                    Platforms = (metadata.Compatibility.Platforms ?? []).Distinct().Order().ToArray(),
+                },
+            PreviewRelativePath = metadata.PreviewRelativePath?.Replace('\\', '/').Trim() ?? string.Empty,
+            PreviewContentSha256 = metadata.PreviewContentSha256?.Trim().ToLowerInvariant() ?? string.Empty,
+            QualityReportRelativePath = metadata.QualityReportRelativePath?.Replace('\\', '/').Trim() ?? string.Empty,
+            QualityReportContentSha256 = metadata.QualityReportContentSha256?.Trim().ToLowerInvariant() ?? string.Empty,
+        };
+    }
 
     private sealed record AssetPackageManifestDocument(
         string FormatVersion,

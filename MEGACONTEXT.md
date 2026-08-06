@@ -597,6 +597,12 @@ puis écrit un audit JSON. Cet audit inventorie géométrie, triangles, matéria
 normales, collision et LOD ; il calcule les six scores demandés et bloque les erreurs structurelles.
 Le tout est vérifié sur un OBJ CC0 réel sans modifier le Vault.
 
+AV3 relie désormais cette preuve au manifeste distribué. La commande `assets finalize-roundtrip`
+contrôle identité du job, confinement, hashes, licence et provenance, puis passe par la commande
+transactionnelle des manifestes pour persister dimensions X/Y/Z, métriques 3D, styles, variante,
+compatibilité, miniature et rapport qualité. Le Content Browser préfère la miniature du workspace et
+affiche dimensions, triangles, score et réalisme ; un artefact altéré après le worker est refusé.
+
 Le noyau artistique redistribué avec Forge vise CC0. Les autres licences et dépendances restent
 soumises à `docs/ASSET_LICENSES.md`, `docs/ASSET_CONVENTIONS.md`, aux ADR et aux règles de
 `AGENTS.md`. En cas de conflit, ces sources de vérité du dépôt priment sur la spécification importée.

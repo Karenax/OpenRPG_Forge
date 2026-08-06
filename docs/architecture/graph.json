@@ -1258,6 +1258,15 @@
     },
     {
       "evidence": {
+        "line": 307,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "defined_in",
+      "source": "component:Forge.ModuleFormat.Assets.WorkerPreview",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "evidence": {
         "line": 32,
         "path": "src/Forge.ModuleFormat/Workspaces/RecoverySnapshotStore.cs"
       },
@@ -1447,7 +1456,7 @@
     },
     {
       "evidence": {
-        "line": 6709,
+        "line": 6710,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1456,7 +1465,7 @@
     },
     {
       "evidence": {
-        "line": 6728,
+        "line": 6729,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1465,7 +1474,7 @@
     },
     {
       "evidence": {
-        "line": 6602,
+        "line": 6603,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1474,7 +1483,7 @@
     },
     {
       "evidence": {
-        "line": 5371,
+        "line": 5372,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1708,7 +1717,7 @@
     },
     {
       "evidence": {
-        "line": 602,
+        "line": 608,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1717,7 +1726,7 @@
     },
     {
       "evidence": {
-        "line": 1415,
+        "line": 1421,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1726,7 +1735,7 @@
     },
     {
       "evidence": {
-        "line": 1480,
+        "line": 1486,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1735,7 +1744,7 @@
     },
     {
       "evidence": {
-        "line": 1780,
+        "line": 1786,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1744,7 +1753,7 @@
     },
     {
       "evidence": {
-        "line": 1480,
+        "line": 1486,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1753,7 +1762,7 @@
     },
     {
       "evidence": {
-        "line": 1529,
+        "line": 1535,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1762,7 +1771,7 @@
     },
     {
       "evidence": {
-        "line": 1733,
+        "line": 1739,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1780,7 +1789,7 @@
     },
     {
       "evidence": {
-        "line": 694,
+        "line": 700,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1789,7 +1798,7 @@
     },
     {
       "evidence": {
-        "line": 1480,
+        "line": 1486,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1798,7 +1807,7 @@
     },
     {
       "evidence": {
-        "line": 1530,
+        "line": 1536,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1807,7 +1816,7 @@
     },
     {
       "evidence": {
-        "line": 1582,
+        "line": 1588,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1816,7 +1825,7 @@
     },
     {
       "evidence": {
-        "line": 1674,
+        "line": 1680,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1834,7 +1843,7 @@
     },
     {
       "evidence": {
-        "line": 1385,
+        "line": 1391,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1843,7 +1852,7 @@
     },
     {
       "evidence": {
-        "line": 1480,
+        "line": 1486,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1852,7 +1861,7 @@
     },
     {
       "evidence": {
-        "line": 1531,
+        "line": 1537,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1861,7 +1870,7 @@
     },
     {
       "evidence": {
-        "line": 1582,
+        "line": 1588,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1870,7 +1879,7 @@
     },
     {
       "evidence": {
-        "line": 1749,
+        "line": 1755,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1879,7 +1888,7 @@
     },
     {
       "evidence": {
-        "line": 601,
+        "line": 607,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1888,7 +1897,7 @@
     },
     {
       "evidence": {
-        "line": 601,
+        "line": 607,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1906,7 +1915,7 @@
     },
     {
       "evidence": {
-        "line": 694,
+        "line": 700,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1933,7 +1942,7 @@
     },
     {
       "evidence": {
-        "line": 1386,
+        "line": 1392,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -1951,7 +1960,7 @@
     },
     {
       "evidence": {
-        "line": 1766,
+        "line": 1772,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2302,7 +2311,7 @@
     },
     {
       "evidence": {
-        "line": 185,
+        "line": 186,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2311,7 +2320,7 @@
     },
     {
       "evidence": {
-        "line": 249,
+        "line": 250,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -2320,7 +2329,7 @@
     },
     {
       "evidence": {
-        "line": 98,
+        "line": 99,
         "path": "STATUS.md"
       },
       "kind": "references",
@@ -12202,6 +12211,15 @@
     },
     {
       "evidence": {
+        "line": 3,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.ModuleFormat/Assets/AssetVaultPackageMutationPlan.cs"
       },
@@ -18516,6 +18534,24 @@
       },
       "kind": "imports",
       "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetImportExecutorTests.cs",
+      "target": "namespace:Forge.ModuleFormat.Assets"
+    },
+    {
+      "evidence": {
+        "line": 3,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs",
+      "target": "namespace:Forge.Domain.Assets"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs",
       "target": "namespace:Forge.ModuleFormat.Assets"
     },
     {
@@ -32605,6 +32641,33 @@
     },
     {
       "evidence": {
+        "line": 339,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Assets.AssetRoundTripFinalizeDiagnostic",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "evidence": {
+        "line": 341,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.ModuleFormat.Assets.AssetRoundTripFinalizeResult",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "evidence": {
+        "line": 343,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.ModuleFormat.Assets.AssetRoundTripFinalizeResult",
+      "target": "model:Forge.ModuleFormat.Assets.AssetRoundTripFinalizeDiagnostic"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.ModuleFormat/Assets/AssetVaultPackageMutationResult.cs"
       },
@@ -33064,7 +33127,7 @@
     },
     {
       "evidence": {
-        "line": 120,
+        "line": 165,
         "path": "src/Forge.ModuleFormat/Serialization/AssetPackageManifestJsonSerializer.cs"
       },
       "kind": "defined_in",
@@ -41488,6 +41551,15 @@
     },
     {
       "evidence": {
+        "line": 4,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Assets",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.ModuleFormat/Assets/AssetVaultPackageMutationPlan.cs"
       },
@@ -42142,6 +42214,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.ModuleFormat.Tests.Assets",
       "target": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetImportExecutorTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 5,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.ModuleFormat.Tests.Assets",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
     },
     {
       "evidence": {
@@ -57751,7 +57832,7 @@
     },
     {
       "evidence": {
-        "line": 55,
+        "line": 74,
         "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
       },
       "kind": "tests",
@@ -57760,7 +57841,7 @@
     },
     {
       "evidence": {
-        "line": 62,
+        "line": 81,
         "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
       },
       "kind": "tests",
@@ -57769,7 +57850,16 @@
     },
     {
       "evidence": {
-        "line": 92,
+        "line": 124,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.AssetPackageManifestValidatorTests",
+      "target": "type:Forge.Domain.Assets.ArtisticRealism"
+    },
+    {
+      "evidence": {
+        "line": 111,
         "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
       },
       "kind": "tests",
@@ -57778,7 +57868,7 @@
     },
     {
       "evidence": {
-        "line": 87,
+        "line": 106,
         "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
       },
       "kind": "tests",
@@ -57787,7 +57877,7 @@
     },
     {
       "evidence": {
-        "line": 79,
+        "line": 98,
         "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
       },
       "kind": "tests",
@@ -57796,7 +57886,7 @@
     },
     {
       "evidence": {
-        "line": 73,
+        "line": 92,
         "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
       },
       "kind": "tests",
@@ -57805,7 +57895,7 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 103,
         "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
       },
       "kind": "tests",
@@ -57814,12 +57904,21 @@
     },
     {
       "evidence": {
-        "line": 81,
+        "line": 100,
         "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Assets.AssetPackageManifestValidatorTests",
       "target": "type:Forge.Domain.Assets.AssetCollisionManifest"
+    },
+    {
+      "evidence": {
+        "line": 122,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.AssetPackageManifestValidatorTests",
+      "target": "type:Forge.Domain.Assets.AssetCompatibilityManifest"
     },
     {
       "evidence": {
@@ -57832,7 +57931,7 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 90,
         "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
       },
       "kind": "tests",
@@ -57841,7 +57940,34 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 64,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.AssetPackageManifestValidatorTests",
+      "target": "type:Forge.Domain.Assets.AssetModelDimensions"
+    },
+    {
+      "evidence": {
+        "line": 117,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.AssetPackageManifestValidatorTests",
+      "target": "type:Forge.Domain.Assets.AssetModelMetadata"
+    },
+    {
+      "evidence": {
+        "line": 119,
+        "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Assets.AssetPackageManifestValidatorTests",
+      "target": "type:Forge.Domain.Assets.AssetModelMetrics"
+    },
+    {
+      "evidence": {
+        "line": 78,
         "path": "tests/Forge.Domain.Tests/Assets/AssetPackageManifestValidatorTests.cs"
       },
       "kind": "tests",
@@ -62971,6 +63097,42 @@
     },
     {
       "evidence": {
+        "line": 8,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssetRoundTripFinalizerTests",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 35,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssetRoundTripFinalizerTests",
+      "target": "type:Forge.Domain.Assets.ArtisticRealism"
+    },
+    {
+      "evidence": {
+        "line": 15,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssetRoundTripFinalizerTests",
+      "target": "type:Forge.ModuleFormat.Assets.AssetRoundTripFinalizer"
+    },
+    {
+      "evidence": {
+        "line": 39,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.AssetRoundTripFinalizerTests",
+      "target": "validator:Forge.Domain.Assets.AssetPackageManifestValidator"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetVaultPackageStoreTests.cs"
       },
@@ -63139,6 +63301,177 @@
       "kind": "tests",
       "source": "test:Forge.ModuleFormat.Tests.Assets.CuratedAssetPackInstallerTests",
       "target": "type:Forge.ModuleFormat.Workspaces.AssetPackageManifestStore"
+    },
+    {
+      "evidence": {
+        "line": 59,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 84,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "model:Forge.Domain.Assets.AssetCatalogItemId"
+    },
+    {
+      "evidence": {
+        "line": 142,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "model:Forge.Domain.Assets.AssetExternalEditId"
+    },
+    {
+      "evidence": {
+        "line": 109,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "model:Forge.Domain.Assets.AssetPackageManifestId"
+    },
+    {
+      "evidence": {
+        "line": 101,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetAvailability"
+    },
+    {
+      "evidence": {
+        "line": 69,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetCatalogItem"
+    },
+    {
+      "evidence": {
+        "line": 126,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetChunkCompression"
+    },
+    {
+      "evidence": {
+        "line": 120,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetChunkRole"
+    },
+    {
+      "evidence": {
+        "line": 131,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetCollisionGeneration"
+    },
+    {
+      "evidence": {
+        "line": 128,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetCollisionManifest"
+    },
+    {
+      "evidence": {
+        "line": 73,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetExternalEditConfiguration"
+    },
+    {
+      "evidence": {
+        "line": 152,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetExternalOperation"
+    },
+    {
+      "evidence": {
+        "line": 150,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetExternalTool"
+    },
+    {
+      "evidence": {
+        "line": 136,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetLodManifest"
+    },
+    {
+      "evidence": {
+        "line": 118,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetManifestChunk"
+    },
+    {
+      "evidence": {
+        "line": 71,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetPackageManifest"
+    },
+    {
+      "evidence": {
+        "line": 114,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.Domain.Assets.AssetTargetPlatform"
+    },
+    {
+      "evidence": {
+        "line": 190,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.ModuleFormat.Assets.AssetRoundTripFinalizer"
+    },
+    {
+      "evidence": {
+        "line": 195,
+        "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "target": "type:Forge.ModuleFormat.Assets.BlenderWorkerRequestStore"
     },
     {
       "evidence": {
@@ -66319,7 +66652,7 @@
     },
     {
       "evidence": {
-        "line": 53,
+        "line": 57,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "tests",
@@ -66328,7 +66661,7 @@
     },
     {
       "evidence": {
-        "line": 57,
+        "line": 61,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "tests",
@@ -66337,7 +66670,16 @@
     },
     {
       "evidence": {
-        "line": 74,
+        "line": 96,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.AssetPackageManifestStoreTests",
+      "target": "type:Forge.Domain.Assets.ArtisticRealism"
+    },
+    {
+      "evidence": {
+        "line": 78,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "tests",
@@ -66346,7 +66688,7 @@
     },
     {
       "evidence": {
-        "line": 68,
+        "line": 72,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "tests",
@@ -66355,7 +66697,7 @@
     },
     {
       "evidence": {
-        "line": 79,
+        "line": 83,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "tests",
@@ -66364,7 +66706,7 @@
     },
     {
       "evidence": {
-        "line": 76,
+        "line": 80,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "tests",
@@ -66373,7 +66715,16 @@
     },
     {
       "evidence": {
-        "line": 84,
+        "line": 94,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.AssetPackageManifestStoreTests",
+      "target": "type:Forge.Domain.Assets.AssetCompatibilityManifest"
+    },
+    {
+      "evidence": {
+        "line": 88,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "tests",
@@ -66382,7 +66733,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 70,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "tests",
@@ -66391,7 +66742,34 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 90,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.AssetPackageManifestStoreTests",
+      "target": "type:Forge.Domain.Assets.AssetModelDimensions"
+    },
+    {
+      "evidence": {
+        "line": 89,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.AssetPackageManifestStoreTests",
+      "target": "type:Forge.Domain.Assets.AssetModelMetadata"
+    },
+    {
+      "evidence": {
+        "line": 91,
+        "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Workspaces.AssetPackageManifestStoreTests",
+      "target": "type:Forge.Domain.Assets.AssetModelMetrics"
+    },
+    {
+      "evidence": {
+        "line": 55,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "tests",
@@ -66400,7 +66778,7 @@
     },
     {
       "evidence": {
-        "line": 62,
+        "line": 66,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "tests",
@@ -66814,7 +67192,7 @@
     },
     {
       "evidence": {
-        "line": 87,
+        "line": 108,
         "path": "tests/Forge.ModuleFormat.Tests/Workspaces/AssetPackageManifestStoreTests.cs"
       },
       "kind": "defined_in",
@@ -74194,6 +74572,15 @@
     },
     {
       "evidence": {
+        "line": 152,
+        "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.AssetCompatibilityManifest",
+      "target": "file:src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Assets/AssetCreditCatalog.cs"
       },
@@ -74266,6 +74653,33 @@
     },
     {
       "evidence": {
+        "line": 130,
+        "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.AssetModelDimensions",
+      "target": "file:src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
+      "evidence": {
+        "line": 160,
+        "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.AssetModelMetadata",
+      "target": "file:src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
+      "evidence": {
+        "line": 135,
+        "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.AssetModelMetrics",
+      "target": "file:src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
+      "evidence": {
         "line": 5,
         "path": "src/Forge.Domain/Assets/AssetPackageLifecycle.cs"
       },
@@ -74275,7 +74689,7 @@
     },
     {
       "evidence": {
-        "line": 130,
+        "line": 172,
         "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
       },
       "kind": "defined_in",
@@ -74370,6 +74784,15 @@
       },
       "kind": "defined_in",
       "source": "type:Forge.Domain.Assets.AssetTargetPlatform",
+      "target": "file:src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
+      "evidence": {
+        "line": 145,
+        "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Assets.AssetVariantManifest",
       "target": "file:src/Forge.Domain/Assets/AssetPackageManifest.cs"
     },
     {
@@ -77146,6 +77569,15 @@
     },
     {
       "evidence": {
+        "line": 7,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.AssetRoundTripFinalizer",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "evidence": {
         "line": 6,
         "path": "src/Forge.ModuleFormat/Assets/AssetVaultPackageMutationPlan.cs"
       },
@@ -77218,12 +77650,57 @@
     },
     {
       "evidence": {
+        "line": 326,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.QualityMetrics",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "evidence": {
+        "line": 316,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.QualityReport",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "evidence": {
+        "line": 336,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.QualityScores",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "evidence": {
         "line": 345,
         "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.ModuleFormat.Assets.SourcePack",
       "target": "file:src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
+    },
+    {
+      "evidence": {
+        "line": 314,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.WorkerQuality",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "evidence": {
+        "line": 294,
+        "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.ModuleFormat.Assets.WorkerResponse",
+      "target": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
     },
     {
       "evidence": {
@@ -81880,7 +82357,7 @@
     },
     {
       "evidence": {
-        "line": 7759,
+        "line": 7760,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -81997,7 +82474,7 @@
     },
     {
       "evidence": {
-        "line": 7764,
+        "line": 7765,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -82006,7 +82483,7 @@
     },
     {
       "evidence": {
-        "line": 7769,
+        "line": 7770,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -82159,7 +82636,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 20,
         "path": "src/Forge.Domain/Assets/AssetPackageManifestValidator.cs"
       },
       "kind": "validates",
@@ -82906,8 +83383,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:08eca66aaaed3442235f9f4eca4184bbf17248414fcb84141b2b49c7f2e0d22b",
-    "source_file_count": 1495
+    "source_digest": "sha256:346529e94272d1652397e4ce72393a36810f1f205dcf853aced4d0d30f4fb7c8",
+    "source_file_count": 1498
   },
   "nodes": [
     {
@@ -83579,6 +84056,16 @@
       },
       "name": "ScriptBindingPreview",
       "path": "src/Forge.Mcp/Scripts/ForgeScriptInteropService.cs"
+    },
+    {
+      "id": "component:Forge.ModuleFormat.Assets.WorkerPreview",
+      "kind": "component",
+      "line": 307,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "WorkerPreview",
+      "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
     },
     {
       "id": "component:Forge.ModuleFormat.Workspaces.RecoveryRestorePreview",
@@ -86569,6 +87056,16 @@
       },
       "name": "AV2-NORMALIZATION-QUALITY.md",
       "path": "docs/aurora-parity/tasks/AV2-NORMALIZATION-QUALITY.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/AV3-MANIFEST-METADATA.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "AV3-MANIFEST-METADATA.md",
+      "path": "docs/aurora-parity/tasks/AV3-MANIFEST-METADATA.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G10-A-LIVE-DIRECTOR-FOUNDATION.md",
@@ -93231,6 +93728,16 @@
       "path": "src/Forge.ModuleFormat/Assets/AssetImportExecutor.cs"
     },
     {
+      "id": "file:src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetRoundTripFinalizer.cs",
+      "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
       "id": "file:src/Forge.ModuleFormat/Assets/AssetVaultPackageMutationPlan.cs",
       "kind": "file",
       "line": 1,
@@ -96569,6 +97076,16 @@
       },
       "name": "AssetImportExecutorTests.cs",
       "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetImportExecutorTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "AssetRoundTripFinalizerTests.cs",
+      "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
     },
     {
       "id": "file:tests/Forge.ModuleFormat.Tests/Assets/AssetVaultPackageStoreTests.cs",
@@ -103301,6 +103818,26 @@
       "path": "src/Forge.ModuleFormat/Assets/AssetImportExecutor.cs"
     },
     {
+      "id": "model:Forge.ModuleFormat.Assets.AssetRoundTripFinalizeDiagnostic",
+      "kind": "model",
+      "line": 339,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssetRoundTripFinalizeDiagnostic",
+      "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "id": "model:Forge.ModuleFormat.Assets.AssetRoundTripFinalizeResult",
+      "kind": "model",
+      "line": 341,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssetRoundTripFinalizeResult",
+      "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
       "id": "model:Forge.ModuleFormat.Assets.AssetVaultPackageMutationResult",
       "kind": "model",
       "line": 6,
@@ -103593,7 +104130,7 @@
     {
       "id": "model:Forge.ModuleFormat.Serialization.AssetPackageManifestDocument",
       "kind": "model",
-      "line": 120,
+      "line": 165,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Serialization"
       },
@@ -109052,6 +109589,16 @@
       "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetImportExecutorTests.cs"
     },
     {
+      "id": "test:Forge.ModuleFormat.Tests.Assets.AssetRoundTripFinalizerTests",
+      "kind": "test",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Assets"
+      },
+      "name": "AssetRoundTripFinalizerTests",
+      "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
+    },
+    {
       "id": "test:Forge.ModuleFormat.Tests.Assets.AssetVaultPackageStoreTests",
       "kind": "test",
       "line": 7,
@@ -109080,6 +109627,16 @@
       },
       "name": "CuratedAssetPackInstallerTests",
       "path": "tests/Forge.ModuleFormat.Tests/Assets/CuratedAssetPackInstallerTests.cs"
+    },
+    {
+      "id": "test:Forge.ModuleFormat.Tests.Assets.RoundTripFixture",
+      "kind": "test",
+      "line": 59,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Tests.Assets"
+      },
+      "name": "RoundTripFixture",
+      "path": "tests/Forge.ModuleFormat.Tests/Assets/AssetRoundTripFinalizerTests.cs"
     },
     {
       "id": "test:Forge.ModuleFormat.Tests.Build.WorkspaceBuildGraphTests",
@@ -109424,7 +109981,7 @@
     {
       "id": "test:Forge.ModuleFormat.Tests.Workspaces.TemporaryWorkspace",
       "kind": "test",
-      "line": 87,
+      "line": 108,
       "metadata": {
         "namespace": "Forge.ModuleFormat.Tests.Workspaces"
       },
@@ -112379,6 +112936,16 @@
       "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
     },
     {
+      "id": "type:Forge.Domain.Assets.AssetCompatibilityManifest",
+      "kind": "type",
+      "line": 152,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetCompatibilityManifest",
+      "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
       "id": "type:Forge.Domain.Assets.AssetCreditCatalog",
       "kind": "type",
       "line": 3,
@@ -112459,6 +113026,36 @@
       "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
     },
     {
+      "id": "type:Forge.Domain.Assets.AssetModelDimensions",
+      "kind": "type",
+      "line": 130,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetModelDimensions",
+      "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.AssetModelMetadata",
+      "kind": "type",
+      "line": 160,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetModelMetadata",
+      "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.AssetModelMetrics",
+      "kind": "type",
+      "line": 135,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetModelMetrics",
+      "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
       "id": "type:Forge.Domain.Assets.AssetPackageInstallation",
       "kind": "type",
       "line": 5,
@@ -112471,7 +113068,7 @@
     {
       "id": "type:Forge.Domain.Assets.AssetPackageManifest",
       "kind": "type",
-      "line": 130,
+      "line": 172,
       "metadata": {
         "namespace": "Forge.Domain.Assets"
       },
@@ -112576,6 +113173,16 @@
         "namespace": "Forge.Domain.Assets"
       },
       "name": "AssetTargetPlatform",
+      "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Assets.AssetVariantManifest",
+      "kind": "type",
+      "line": 145,
+      "metadata": {
+        "namespace": "Forge.Domain.Assets"
+      },
+      "name": "AssetVariantManifest",
       "path": "src/Forge.Domain/Assets/AssetPackageManifest.cs"
     },
     {
@@ -115589,6 +116196,16 @@
       "path": "src/Forge.ModuleFormat/Assets/AssetImportExecutor.cs"
     },
     {
+      "id": "type:Forge.ModuleFormat.Assets.AssetRoundTripFinalizer",
+      "kind": "type",
+      "line": 7,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "AssetRoundTripFinalizer",
+      "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
       "id": "type:Forge.ModuleFormat.Assets.AssetVaultMutationOperation",
       "kind": "type",
       "line": 6,
@@ -115669,6 +116286,36 @@
       "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
     },
     {
+      "id": "type:Forge.ModuleFormat.Assets.QualityMetrics",
+      "kind": "type",
+      "line": 326,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "QualityMetrics",
+      "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.QualityReport",
+      "kind": "type",
+      "line": 316,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "QualityReport",
+      "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.QualityScores",
+      "kind": "type",
+      "line": 336,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "QualityScores",
+      "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
       "id": "type:Forge.ModuleFormat.Assets.SourcePack",
       "kind": "type",
       "line": 345,
@@ -115677,6 +116324,26 @@
       },
       "name": "SourcePack",
       "path": "src/Forge.ModuleFormat/Assets/CuratedAssetPackInstaller.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.WorkerQuality",
+      "kind": "type",
+      "line": 314,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "WorkerQuality",
+      "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
+    },
+    {
+      "id": "type:Forge.ModuleFormat.Assets.WorkerResponse",
+      "kind": "type",
+      "line": 294,
+      "metadata": {
+        "namespace": "Forge.ModuleFormat.Assets"
+      },
+      "name": "WorkerResponse",
+      "path": "src/Forge.ModuleFormat/Assets/AssetRoundTripFinalizer.cs"
     },
     {
       "id": "type:Forge.ModuleFormat.Build.ExternalPackage",
@@ -120591,7 +121258,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 7759,
+      "line": 7760,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -120681,7 +121348,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 7764,
+      "line": 7765,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -120691,7 +121358,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 7769,
+      "line": 7770,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

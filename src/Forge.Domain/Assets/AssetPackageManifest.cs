@@ -127,6 +127,48 @@ public sealed record AssetLodManifest(
     decimal CrossFadeSeconds,
     IReadOnlyList<AssetLodLevelManifest> Levels);
 
+public sealed record AssetModelDimensions(
+    decimal ExtentXMeters,
+    decimal ExtentYMeters,
+    decimal ExtentZMeters);
+
+public sealed record AssetModelMetrics(
+    int BaseMeshCount,
+    int VertexCount,
+    int TriangleCount,
+    int MaterialCount,
+    int TextureCount,
+    int LodMeshCount,
+    int CollisionMeshCount,
+    int QualityScore);
+
+public sealed record AssetVariantManifest(
+    string Key,
+    string DisplayName,
+    Guid ModelChunkId,
+    IReadOnlyList<AssetTargetPlatform> Platforms,
+    IReadOnlyList<string> Tags);
+
+public sealed record AssetCompatibilityManifest(
+    string ShaderFamily,
+    ArtisticRealism Realism,
+    decimal MetersPerUnit,
+    int TargetTexelDensity,
+    IReadOnlyList<AssetTargetPlatform> Platforms,
+    bool RuntimeImportVerified);
+
+public sealed record AssetModelMetadata(
+    AssetModelDimensions Dimensions,
+    AssetModelMetrics Metrics,
+    IReadOnlyList<string> Styles,
+    IReadOnlyList<AssetVariantManifest> Variants,
+    AssetCompatibilityManifest Compatibility,
+    string PreviewRelativePath,
+    string PreviewContentSha256,
+    long PreviewBytes,
+    string QualityReportRelativePath,
+    string QualityReportContentSha256);
+
 public sealed record AssetPackageManifest(
     int SchemaVersion,
     AssetPackageManifestId Id,
@@ -139,7 +181,8 @@ public sealed record AssetPackageManifest(
     AssetCollisionManifest? Collision,
     AssetAnimationManifest? Animation,
     AssetVfxManifest? Vfx,
-    AssetLodManifest? Lod)
+    AssetLodManifest? Lod,
+    AssetModelMetadata? ModelMetadata = null)
 {
     public const int CurrentSchemaVersion = 1;
 }

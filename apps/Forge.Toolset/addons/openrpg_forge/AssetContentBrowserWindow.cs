@@ -9,6 +9,7 @@ namespace Forge.Toolset.Editor;
 public partial class AssetContentBrowserWindow : Window
 {
     private Func<string>? _getRepositoryRoot;
+    private Func<string?>? _getWorkspaceRoot;
     private Func<AssetProcessingProfileState?>? _getProfileState;
     private Func<AssetProcessingProfile, bool, bool>? _applyProfile;
     private Func<bool>? _undoProfile;
@@ -69,13 +70,17 @@ public partial class AssetContentBrowserWindow : Window
 
     public int SourceCount => _browser?.Sources.Count ?? 0;
 
-    public bool SelectedHasPreviewMetadata => !string.IsNullOrWhiteSpace(_selectedItem?.RelativePreviewPath) ||
-        !string.IsNullOrWhiteSpace(_selectedItem?.ThumbnailUrl);
+    public bool SelectedHasPreviewMetadata =>
+        _selectedItem is not null &&
+        (!string.IsNullOrWhiteSpace(_getManifestState?.Invoke()?.Find(_selectedItem.Id)?.ModelMetadata?.PreviewRelativePath) ||
+         !string.IsNullOrWhiteSpace(_selectedItem.RelativePreviewPath) ||
+         !string.IsNullOrWhiteSpace(_selectedItem.ThumbnailUrl));
 
     public bool SelectedCanPlanImport => _selectedItem?.CanPlanImport == true;
 
     public void Initialize(
         Func<string> getRepositoryRoot,
+        Func<string?> getWorkspaceRoot,
         Func<AssetProcessingProfileState?> getProfileState,
         Func<AssetProcessingProfile, bool, bool> applyProfile,
         Func<bool> undoProfile,
@@ -91,6 +96,7 @@ public partial class AssetContentBrowserWindow : Window
         Action<Window> brandWindow)
     {
         _getRepositoryRoot = getRepositoryRoot ?? throw new ArgumentNullException(nameof(getRepositoryRoot));
+        _getWorkspaceRoot = getWorkspaceRoot ?? throw new ArgumentNullException(nameof(getWorkspaceRoot));
         _getProfileState = getProfileState ?? throw new ArgumentNullException(nameof(getProfileState));
         _applyProfile = applyProfile ?? throw new ArgumentNullException(nameof(applyProfile));
         _undoProfile = undoProfile ?? throw new ArgumentNullException(nameof(undoProfile));
@@ -562,9 +568,10 @@ public partial class AssetContentBrowserWindow : Window
             $"Catégories · {string.Join(", ", item.Categories)}\nTags · {string.Join(", ", item.Tags.Take(12))}\n" +
             $"État · {FormatAvailability(item.Availability)}\n" +
             $"Packs installés · {(item.Installed ? string.Join(", ", item.InstalledPackIds) : "aucun")}";
+        var metadata = _getManifestState?.Invoke()?.Find(item.Id)?.ModelMetadata;
         _assetPaths!.Text =
             $"Modèle · {item.RelativeModelPath ?? "non catalogué"}\n" +
-            $"Aperçu · {item.RelativePreviewPath ?? item.ThumbnailUrl ?? "indisponible"}";
+            $"Aperçu · {metadata?.PreviewRelativePath ?? item.RelativePreviewPath ?? item.ThumbnailUrl ?? "indisponible"}";
         _planImport!.Disabled = !item.CanPlanImport;
         RefreshProfileControls();
         RefreshManifestControls();
@@ -579,26 +586,46 @@ public partial class AssetContentBrowserWindow : Window
         _previewPlaceholder.Text = item.ThumbnailUrl is not null
             ? "Aperçu distant catalogué\nMiniature locale non installée"
             : "Aperçu local indisponible\nMétadonnées prêtes";
+        var metadata = _getManifestState?.Invoke()?.Find(item.Id)?.ModelMetadata;
+        var workspaceRoot = _getWorkspaceRoot?.Invoke();
+        if (metadata is not null && !string.IsNullOrWhiteSpace(workspaceRoot) &&
+            TryLoadPreview(workspaceRoot, metadata.PreviewRelativePath))
+        {
+            _previewPlaceholder.Text = "Miniature Blender gouvernée";
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(item.RelativePreviewPath) ||
             !AssetCatalogValidator.IsSafeRelativePath(item.RelativePreviewPath))
         {
             return;
         }
 
-        var path = Path.Combine(vaultRoot, item.RelativePreviewPath.Replace('/', Path.DirectorySeparatorChar));
+        TryLoadPreview(vaultRoot, item.RelativePreviewPath);
+    }
+
+    private bool TryLoadPreview(string root, string relativePath)
+    {
+        if (!AssetCatalogValidator.IsSafeRelativePath(relativePath))
+        {
+            return false;
+        }
+
+        var path = Path.Combine(root, relativePath.Replace('/', Path.DirectorySeparatorChar));
         if (!File.Exists(path))
         {
-            return;
+            return false;
         }
 
         var image = Image.LoadFromFile(path);
         if (image.IsEmpty())
         {
-            return;
+            return false;
         }
 
-        _preview.Texture = ImageTexture.CreateFromImage(image);
-        _previewPlaceholder.Visible = false;
+        _preview!.Texture = ImageTexture.CreateFromImage(image);
+        _previewPlaceholder!.Visible = false;
+        return true;
     }
 
     private bool PreviewImport()
@@ -883,13 +910,28 @@ public partial class AssetContentBrowserWindow : Window
         }
 
         var manifest = _getManifestState?.Invoke()?.Find(_selectedItem.Id);
-        _manifestSummary.Text = manifest is null
-            ? "Aucun manifeste enregistré · la préparation restera confinée au projet"
-            : $"{manifest.Id} · {manifest.Chunks.Count} chunk · " +
-              $"collision {(manifest.Collision is null ? "non" : "oui")} · " +
-              $"animation {(manifest.Animation is null ? "non" : "oui")} · " +
-              $"VFX {(manifest.Vfx is null ? "non" : "oui")} · " +
-              $"LOD {manifest.Lod?.Levels.Count ?? 0}";
+        if (manifest is null)
+        {
+            _manifestSummary.Text = "Aucun manifeste enregistré · la préparation restera confinée au projet";
+        }
+        else if (manifest.ModelMetadata is { } metadata)
+        {
+            _manifestSummary.Text =
+                $"{manifest.Id} · {manifest.Chunks.Count} chunk · " +
+                $"{metadata.Dimensions.ExtentXMeters:0.##} × {metadata.Dimensions.ExtentYMeters:0.##} × " +
+                $"{metadata.Dimensions.ExtentZMeters:0.##} m · {metadata.Metrics.TriangleCount:N0} triangles · " +
+                $"qualité {metadata.Metrics.QualityScore}/100 · {metadata.Variants.Count} variante · " +
+                $"{metadata.Compatibility.Realism} · {string.Join(", ", metadata.Styles.Take(5))}";
+        }
+        else
+        {
+            _manifestSummary.Text =
+                $"{manifest.Id} · {manifest.Chunks.Count} chunk · " +
+                $"collision {(manifest.Collision is null ? "non" : "oui")} · " +
+                $"animation {(manifest.Animation is null ? "non" : "oui")} · " +
+                $"VFX {(manifest.Vfx is null ? "non" : "oui")} · " +
+                $"LOD {manifest.Lod?.Levels.Count ?? 0}";
+        }
         _includeVfx!.ButtonPressed = manifest?.Vfx is not null;
         _prepareManifestButton!.Disabled = !_selectedItem.CanPlanImport;
         var state = _getManifestState?.Invoke();

@@ -277,6 +277,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _assetBrowser = new AssetContentBrowserWindow();
         _assetBrowser.Initialize(
             GetRepositoryRoot,
+            () => _projectSession?.RootDirectory,
             () => _assetProcessingProfileHistory?.State,
             ApplyAssetProcessingProfile,
             UndoAssetProcessingProfile,

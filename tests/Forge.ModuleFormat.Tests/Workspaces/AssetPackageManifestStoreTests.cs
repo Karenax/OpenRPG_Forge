@@ -30,7 +30,11 @@ public sealed class AssetPackageManifestStoreTests
         var second = File.ReadAllText(Path.Combine(fixture.Root, AssetPackageManifestStore.RelativePath));
 
         Assert.True(loaded.Succeeded);
-        Assert.Equal(manifest.Id, Assert.Single(loaded.Manifests).Id);
+        var reloaded = Assert.Single(loaded.Manifests);
+        Assert.Equal(manifest.Id, reloaded.Id);
+        Assert.Equal(2400, reloaded.ModelMetadata!.Metrics.TriangleCount);
+        Assert.Equal(["forest", "stylized"], reloaded.ModelMetadata.Styles);
+        Assert.Equal("default", Assert.Single(reloaded.ModelMetadata.Variants).Key);
         Assert.Equal(first, second);
     }
 
@@ -81,7 +85,24 @@ public sealed class AssetPackageManifestStoreTests
                 [AssetTargetPlatform.Windows]),
             null,
             null,
-            new AssetLodManifest(false, 0.1m, [new(0, chunkId, 1m, 1000)]));
+            new AssetLodManifest(false, 0.1m, [new(0, chunkId, 1m, 1000)]),
+            new AssetModelMetadata(
+                new AssetModelDimensions(1.2m, 3.4m, 1.1m),
+                new AssetModelMetrics(1, 1200, 2400, 2, 4, 0, 1, 94),
+                ["stylized", "forest"],
+                [new("default", "Tree", chunkId, [AssetTargetPlatform.Windows], ["forest"])],
+                new AssetCompatibilityManifest(
+                    "pbr-metallic-roughness",
+                    ArtisticRealism.Stylized,
+                    1m,
+                    1024,
+                    [AssetTargetPlatform.Windows],
+                    false),
+                "assets/imported/test/model.preview.png",
+                new string('c', 64),
+                2048,
+                "assets/imported/test/model.quality.json",
+                new string('d', 64)));
     }
 
     private sealed class TemporaryWorkspace : IDisposable

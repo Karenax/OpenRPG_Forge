@@ -6,8 +6,9 @@ Dernière mise à jour : 5 août 2026.
 
 **MVP solo validé ; G7 Creator Core, G8 Aurora Foundation, G9 Network Beta, G10 Live Director et
 G11 Contenu moderne fermés. AV4B livre maintenant une première carte 3D extérieure jouable,
-exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault et AV2 sécurise le
-cycle de vie des acquisitions ainsi que leur normalisation 3D.**
+exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
+cycle de vie des acquisitions et leur normalisation 3D, puis AV3 persiste les métriques réelles dans
+les manifestes et le Content Browser.**
 
 Les fichiers de contexte, les règles persistantes, le backlog et les ADR initiaux sont intégrés. La
 solution C# cible .NET 10, l’application Forge se charge dans le moteur 3D et le runtime reconstruit la
@@ -410,3 +411,10 @@ L’audit vérifie géométrie, normales, textures, matériaux, dimensions, pivo
 collision, LOD et miniature, puis calcule les scores licence, confiance source, technique, visuel,
 performance, métadonnées et global. La preuve réelle `ambientcg:3DApple001` donne 500 triangles,
 2 LOD, 1 collision, une miniature 512 × 512 revue visuellement et un score global de 99/100.
+
+**AV3 — métadonnées de manifeste fermées** : le finaliseur C# vérifie la réponse du worker, les
+hashes et tailles du GLB et de la miniature, l’identité du job, la licence, la provenance et l’audit
+avant d’appliquer le manifeste par la commande transactionnelle commune. Dimensions X/Y/Z, métriques,
+styles, variante, compatibilité et sidecars deviennent persistants. Creator préfère la miniature du
+workspace et affiche dimensions, triangles, score et réalisme. Trois tests portent la suite .NET à
+708 ; le gate réel réutilise `ambientcg:3DApple001` et refuse toute sortie altérée après le worker.
