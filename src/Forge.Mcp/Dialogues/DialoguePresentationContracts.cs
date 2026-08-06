@@ -20,7 +20,10 @@ public sealed record DialoguePresentationResourceItem(
     int VoiceCueCount,
     int CameraShotCount,
     int BookmarkCount,
-    int InterjectionRuleCount);
+    int InterjectionRuleCount,
+    int TimedChoiceCount,
+    int VariantSetCount,
+    int VariantCount);
 
 public sealed record DialoguePresentationPlanRequest(
     int SchemaVersion,

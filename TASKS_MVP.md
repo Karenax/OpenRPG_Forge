@@ -609,6 +609,8 @@ les démonstrations Crypte des Cendres et Forgotten Forest jouables.
 - [x] G13-G : factions avancées (`ORF-FAC-002`, `008`, `009`, `010`).
 - [x] G13-H : animations, voix, caméra, bookmarks et interjections de dialogue
   (`ORF-DLG-014`, `015`, `016`, `020`, `023`).
+- [x] G13-I : choix temporisés accessibles et variantes procédurales déterministes
+  (`ORF-DLG-025`, `027`).
 
 Acceptation G13-A : un auteur configure les raccourcis depuis l’écran Aurora, prévisualise le diff,
 applique la commande canonique et peut annuler/rétablir. Le round-trip `.forge/editor-keymap.json`
@@ -653,4 +655,9 @@ undo/redo et round-trip projet/workspace/`.orpmod`. ForgeScript et MCP restent t
 applique réellement les cinq familles à l’interaction avec Elyra, avec fallback sous-titre et
 sélection d’interjection côté serveur.
 
-Le développement s’arrête après G13-H. G13-I ne doit pas démarrer sans nouvelle demande explicite.
+Acceptation G13-I : un auteur configure sans JSON timer, choix par défaut, pause accessible, révision
+serveur, hook de timeout et variantes localisées conditionnelles/pondérées. Simulation, commande,
+dry-run, undo/redo, persistance, ForgeScript et MCP partagent le même profil. La Crypte prouve
+timeout, pause, seed stable et anti-répétition tout en conservant son smoke jouable.
+
+Le développement s’arrête après G13-I. G13-J ne doit pas démarrer sans nouvelle demande explicite.

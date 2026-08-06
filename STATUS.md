@@ -683,5 +683,12 @@ bornés. Les formats projet `0.6.29`, workspace `1.23.0` et `.orpmod` conservent
 applique réellement animation, fallback vocal, cadrage, bookmark et interjection à l’échange avec
 Elyra avant de terminer la quête et le combat.
 
-Le développement est **arrêté après G13-H**. Aucune tranche G13-I ni extension suivante ne doit
+**G13-I — dialogues adaptatifs livrés** : le même profil canonique porte maintenant choix temporisés
+et `VariantSet`. Timer, choix par défaut, pause accessible, autorité/révision serveur et script de
+timeout sont validés avec seed SHA-256, conditions typées, poids, anti-répétition et localisation.
+L’écran possède sept onglets et une simulation ; ForgeScript et MCP réutilisent leurs frontières
+typées. Les formats projet `0.6.30`, workspace `1.24.0` et `.orpmod` migrent depuis G13-H. La Crypte
+prouve timeout, pause, choix, variante et seed avant de terminer son parcours jouable.
+
+Le développement est **arrêté après G13-I**. Aucune tranche G13-J ni extension suivante ne doit
 démarrer sans nouvelle demande explicite de l’utilisateur.

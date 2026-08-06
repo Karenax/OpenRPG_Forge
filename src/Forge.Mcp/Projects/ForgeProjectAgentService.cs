@@ -320,13 +320,19 @@ public sealed class ForgeProjectAgentService
                     item.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
                     item.DisplayName.Contains(filter, StringComparison.CurrentCultureIgnoreCase) ||
                     item.Presentation.Bookmarks.Any(bookmark =>
-                        bookmark.Name.Contains(filter, StringComparison.CurrentCultureIgnoreCase))))
+                        bookmark.Name.Contains(filter, StringComparison.CurrentCultureIgnoreCase)) ||
+                    item.Presentation.VariantSets.Any(set =>
+                        set.Key.Contains(filter, StringComparison.OrdinalIgnoreCase) || set.Variants.Any(variant =>
+                            variant.Text.Key.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                            variant.Text.Fallback.Contains(filter, StringComparison.CurrentCultureIgnoreCase)))))
                 .OrderBy(item => item.Slug, StringComparer.Ordinal).Take(limit)
                 .Select(item => new DialoguePresentationResourceItem(item.Id.ToString(), item.Slug,
                     item.DisplayName, item.Presentation!.Id.ToString("D"), item.Presentation.RequiredAtRuntime,
                     item.Presentation.ServerAuthoritativeInterjections, item.Presentation.AnimationCues.Count,
                     item.Presentation.VoiceCues.Count, item.Presentation.CameraShots.Count,
-                    item.Presentation.Bookmarks.Count, item.Presentation.InterjectionRules.Count))
+                    item.Presentation.Bookmarks.Count, item.Presentation.InterjectionRules.Count,
+                    item.Presentation.TimedChoices.Count, item.Presentation.VariantSets.Count,
+                    item.Presentation.VariantSets.Sum(set => set.Variants.Count)))
                 .ToArray();
             return new(1, _history.State.Revision.Value, filter, items);
         }

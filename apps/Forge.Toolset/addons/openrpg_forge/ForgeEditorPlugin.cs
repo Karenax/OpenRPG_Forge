@@ -10517,7 +10517,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 .Presentation?.Id;
             if (!_dialoguePresentationWindow.ConfigureForSmokeTest() ||
                 !_dialoguePresentationWindow.PreviewForSmokeTest() ||
-                !_dialoguePresentationWindow.ApplyForSmokeTest())
+                !_dialoguePresentationWindow.ApplyForSmokeTest() ||
+                !_dialoguePresentationWindow.SimulateForSmokeTest())
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_FAILED preview_apply_ui " +
                     _dialoguePresentationWindow.LastDiagnostics);
@@ -10539,6 +10540,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var restored = roundTrip.Dialogues.First(item => item.Id == dialogueId).Presentation;
             if (snapshot.AnimationCueCount < 1 || snapshot.VoiceCueCount < 1 ||
                 snapshot.CameraShotCount < 1 || snapshot.BookmarkCount < 1 ||
+                snapshot.TimedChoiceCount < 1 || snapshot.VariantSetCount < 1 || snapshot.VariantCount < 2 ||
                 restored?.Id != profile.Id)
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_FAILED script_roundtrip");
@@ -10569,6 +10571,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 $"runtime=optional-safe counts={profile.AnimationCues.Count}-{profile.VoiceCues.Count}-" +
                 $"{profile.CameraShots.Count}-{profile.Bookmarks.Count}-{profile.InterjectionRules.Count} " +
                 $"sections={_dialoguePresentationWindow.SummarySectionCount}");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13I_ADAPTIVE_DIALOGUE_PASS " +
+                "timed=optional-default-accessibility-pause-server-revision-timeout-script " +
+                "variants=conditional-weighted-seeded-anti-repeat-localized " +
+                "ui=visible-empty-error-summary-simulation forgescript=typed-handle mcp=filtered-dry-run " +
+                "transaction=identified audit=generated history=restored persistence=project-workspace-package " +
+                $"counts={profile.TimedChoices.Count}-{profile.VariantSets.Count}-" +
+                $"{profile.VariantSets.Sum(item => item.Variants.Count)} sections={_dialoguePresentationWindow.SummarySectionCount}");
             return true;
         }
         catch (Exception exception)

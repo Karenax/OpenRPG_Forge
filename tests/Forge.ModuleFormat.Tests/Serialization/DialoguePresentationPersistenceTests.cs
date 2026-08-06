@@ -23,15 +23,17 @@ public sealed class DialoguePresentationPersistenceTests : IDisposable
         var created = ProjectSession.Create(workspace, project);
         var reopened = ProjectSession.Open(workspace);
 
-        Assert.Contains("\"formatVersion\": \"0.6.29\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.30\"", json, StringComparison.Ordinal);
         Assert.Equal(json, ProjectJsonSerializer.Serialize(restored));
         Assert.True(created.Succeeded);
         Assert.True(reopened.Succeeded);
         Assert.Equal(json, ProjectJsonSerializer.Serialize(reopened.Session!.Project));
-        Assert.Contains("\"formatVersion\": \"1.23.0\"",
+        Assert.Contains("\"formatVersion\": \"1.24.0\"",
             File.ReadAllText(reopened.Session.ProjectFilePath), StringComparison.Ordinal);
         Assert.Equal("dialogue://6393019c-06c3-466c-ab93-9b4093368f36/3f92330b-c513-437e-9444-6e0dbbe8e555",
             restored.Dialogues[0].Presentation!.Bookmarks[0].DeepLink);
+        Assert.Single(restored.Dialogues[0].Presentation!.TimedChoices);
+        Assert.Equal(2, Assert.Single(restored.Dialogues[0].Presentation!.VariantSets).Variants.Count);
     }
 
     [Fact]
@@ -48,6 +50,23 @@ public sealed class DialoguePresentationPersistenceTests : IDisposable
         Assert.Null(Assert.Single(restored.Dialogues).Presentation);
     }
 
+    [Fact]
+    public void PreviousPresentationFormatMigratesAdaptiveCollectionsToEmpty()
+    {
+        var source = CompleteProject();
+        var node = JsonNode.Parse(ProjectJsonSerializer.Serialize(source))!.AsObject();
+        node["formatVersion"] = ProjectJsonSerializer.PreAdaptiveDialogueFormatVersion;
+        var presentation = node["project"]!.AsObject()["dialogues"]!.AsArray()[0]!.AsObject()["presentation"]!.AsObject();
+        presentation.Remove("timedChoices");
+        presentation.Remove("variantSets");
+
+        var restored = ProjectJsonSerializer.Deserialize(node.ToJsonString());
+
+        Assert.Empty(restored.Dialogues[0].Presentation!.TimedChoices);
+        Assert.Empty(restored.Dialogues[0].Presentation!.VariantSets);
+        Assert.Single(restored.Dialogues[0].Presentation!.AnimationCues);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_temporaryRoot)) Directory.Delete(_temporaryRoot, true);
@@ -59,6 +78,7 @@ public sealed class DialoguePresentationPersistenceTests : IDisposable
         var dialogue = source.Dialogues[0];
         var node = dialogue.EntryNodeId;
         var speaker = dialogue.Nodes[0].SpeakerBlueprintId!;
+        var choice = dialogue.Nodes[0].Choices[0].Id;
         var profile = new DialoguePresentationProfile(
             Guid.Parse("d1320000-0000-4000-8000-000000000010"), 1, "author:test", false, true,
             [new(Guid.Parse("d1320000-0000-4000-8000-000000000011"), node, speaker, "talk.warning", 0,
@@ -72,7 +92,16 @@ public sealed class DialoguePresentationPersistenceTests : IDisposable
                 true, true, true, .08f, 20, "author:test")],
             [new(Guid.Parse("d1320000-0000-4000-8000-000000000014"), node, "Warden warning",
                 DialogueBookmarkScope.Shared, "Approve timing and framing.", "reviewer",
-                $"dialogue://{dialogue.Id}/{node}", "author:test")], []);
+                $"dialogue://{dialogue.Id}/{node}", "author:test")], [],
+            [new(Guid.Parse("d1320000-0000-4000-8000-000000000015"), node, 4_000, choice,
+                DialogueTimedChoicePausePolicy.AccessibilityOnly, DialogueRuntimeAuthorityScope.Server, 3,
+                "dialogue.timeout.warning", "server:test", "author:test")],
+            [new(Guid.Parse("d1320000-0000-4000-8000-000000000016"), node, "warden-warning",
+                DialogueVariantSeedScope.ServerRevision, 9, 1, DialogueRuntimeAuthorityScope.Server, true,
+                [new(Guid.Parse("d1320000-0000-4000-8000-000000000017"),
+                    new("dialogue.warden.warning.a", "Do not enter."), 2, [], "author:test"),
+                 new(Guid.Parse("d1320000-0000-4000-8000-000000000018"),
+                    new("dialogue.warden.warning.b", "Turn back."), 1, [], "author:test")], "author:test")]);
         return new(source.Id, source.Title, source.Module, source.Blueprints, source.Areas,
             [dialogue.WithPresentation(profile)], source.Quests);
     }

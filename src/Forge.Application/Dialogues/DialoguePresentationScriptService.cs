@@ -13,7 +13,10 @@ public sealed record DialoguePresentationScriptSnapshot(
     int VoiceCueCount,
     int CameraShotCount,
     int BookmarkCount,
-    int InterjectionRuleCount);
+    int InterjectionRuleCount,
+    int TimedChoiceCount,
+    int VariantSetCount,
+    int VariantCount);
 
 /// <summary>Typed, read-first ForgeScript boundary for dialogue presentation.</summary>
 public sealed class DialoguePresentationScriptService
@@ -39,7 +42,8 @@ public sealed class DialoguePresentationScriptService
         var profile = EnsureHandle(handle);
         return new(handle, profile.Provenance, profile.RequiredAtRuntime,
             profile.ServerAuthoritativeInterjections, profile.AnimationCues.Count, profile.VoiceCues.Count,
-            profile.CameraShots.Count, profile.Bookmarks.Count, profile.InterjectionRules.Count);
+            profile.CameraShots.Count, profile.Bookmarks.Count, profile.InterjectionRules.Count,
+            profile.TimedChoices.Count, profile.VariantSets.Count, profile.VariantSets.Sum(item => item.Variants.Count));
     }
 
     public DialoguePresentationResolution Resolve(
@@ -47,6 +51,17 @@ public sealed class DialoguePresentationScriptService
     {
         EnsureHandle(handle);
         return DialoguePresentationRuntimeResolver.Resolve(_dialogue, nodeId, context);
+    }
+
+    public DialogueAdaptiveResolution ResolveAdaptive(
+        DialoguePresentationHandle handle,
+        DialogueNodeId nodeId,
+        int elapsedMilliseconds,
+        DialogueAdaptiveRuntimeContext context,
+        IDialogueConditionEvaluator? evaluator = null)
+    {
+        EnsureHandle(handle);
+        return DialogueAdaptiveRuntimeResolver.Resolve(_dialogue, nodeId, elapsedMilliseconds, context, evaluator);
     }
 
     private DialoguePresentationProfile EnsureHandle(DialoguePresentationHandle handle)

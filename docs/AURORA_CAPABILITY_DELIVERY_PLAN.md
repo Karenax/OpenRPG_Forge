@@ -504,7 +504,9 @@ déterministe. **G13-F** est désormais fermé avec bindings combat/inventaire/r
 quatre exigences de factions avancées avec hiérarchie, témoins, affiliations multiples, diplomatie
 dynamique, autorité serveur, UI, formats, scripts, MCP et runtime. **G13-H** ferme ensuite cinq
 exigences de présentation cinématique des dialogues avec animations, voix/sous-titres, caméra,
-bookmarks et interjections autoritaires. La file est arrêtée après ce lot jusqu’à nouvelle demande.
+bookmarks et interjections autoritaires. **G13-I** ferme les choix temporisés accessibles et les
+variantes conditionnelles/pondérées déterministes. La file est arrêtée après ce lot jusqu’à nouvelle
+demande.
 
 ## 7. Graphe de dépendances
 

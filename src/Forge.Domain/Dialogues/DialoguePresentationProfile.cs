@@ -43,17 +43,49 @@ public enum DialogueInterjectionConflictPolicy
     SuppressAll,
 }
 
-public sealed record DialoguePresentationProfile(
-    Guid Id,
-    int SchemaVersion,
-    string Provenance,
-    bool RequiredAtRuntime,
-    bool ServerAuthoritativeInterjections,
-    IReadOnlyList<DialogueAnimationCue> AnimationCues,
-    IReadOnlyList<DialogueVoiceCue> VoiceCues,
-    IReadOnlyList<DialogueCameraShot> CameraShots,
-    IReadOnlyList<DialogueBookmark> Bookmarks,
-    IReadOnlyList<DialogueInterjectionRule> InterjectionRules);
+public sealed record DialoguePresentationProfile
+{
+    public Guid Id { get; init; }
+    public int SchemaVersion { get; init; }
+    public string Provenance { get; init; }
+    public bool RequiredAtRuntime { get; init; }
+    public bool ServerAuthoritativeInterjections { get; init; }
+    public IReadOnlyList<DialogueAnimationCue> AnimationCues { get; init; }
+    public IReadOnlyList<DialogueVoiceCue> VoiceCues { get; init; }
+    public IReadOnlyList<DialogueCameraShot> CameraShots { get; init; }
+    public IReadOnlyList<DialogueBookmark> Bookmarks { get; init; }
+    public IReadOnlyList<DialogueInterjectionRule> InterjectionRules { get; init; }
+    public IReadOnlyList<DialogueTimedChoiceRule> TimedChoices { get; init; }
+    public IReadOnlyList<DialogueVariantSet> VariantSets { get; init; }
+
+    public DialoguePresentationProfile(
+        Guid id,
+        int schemaVersion,
+        string provenance,
+        bool requiredAtRuntime,
+        bool serverAuthoritativeInterjections,
+        IReadOnlyList<DialogueAnimationCue> animationCues,
+        IReadOnlyList<DialogueVoiceCue> voiceCues,
+        IReadOnlyList<DialogueCameraShot> cameraShots,
+        IReadOnlyList<DialogueBookmark> bookmarks,
+        IReadOnlyList<DialogueInterjectionRule> interjectionRules,
+        IReadOnlyList<DialogueTimedChoiceRule>? timedChoices = null,
+        IReadOnlyList<DialogueVariantSet>? variantSets = null)
+    {
+        Id = id;
+        SchemaVersion = schemaVersion;
+        Provenance = provenance;
+        RequiredAtRuntime = requiredAtRuntime;
+        ServerAuthoritativeInterjections = serverAuthoritativeInterjections;
+        AnimationCues = animationCues?.ToArray() ?? [];
+        VoiceCues = voiceCues?.ToArray() ?? [];
+        CameraShots = cameraShots?.ToArray() ?? [];
+        Bookmarks = bookmarks?.ToArray() ?? [];
+        InterjectionRules = interjectionRules?.ToArray() ?? [];
+        TimedChoices = timedChoices?.ToArray() ?? [];
+        VariantSets = variantSets?.ToArray() ?? [];
+    }
+}
 
 public sealed record DialogueAnimationCue(
     Guid Id,
@@ -124,6 +156,58 @@ public sealed record DialogueInterjectionRule(
     int CooldownSeconds,
     string ConflictGroup,
     DialogueInterjectionConflictPolicy ConflictPolicy,
+    string Provenance);
+
+public enum DialogueRuntimeAuthorityScope
+{
+    Local,
+    Server,
+}
+
+public enum DialogueTimedChoicePausePolicy
+{
+    Never,
+    AccessibilityOnly,
+    Always,
+}
+
+public sealed record DialogueTimedChoiceRule(
+    Guid Id,
+    DialogueNodeId NodeId,
+    int DurationMilliseconds,
+    DialogueChoiceId DefaultChoiceId,
+    DialogueTimedChoicePausePolicy PausePolicy,
+    DialogueRuntimeAuthorityScope AuthorityScope,
+    long ServerRevision,
+    string? TimeoutScriptId,
+    string AuditActorId,
+    string Provenance);
+
+public enum DialogueVariantSeedScope
+{
+    Dialogue,
+    Node,
+    Session,
+    ServerRevision,
+}
+
+public sealed record DialogueTextVariant(
+    Guid Id,
+    LocalizedText Text,
+    int Weight,
+    IReadOnlyList<DialogueCondition> Conditions,
+    string Provenance);
+
+public sealed record DialogueVariantSet(
+    Guid Id,
+    DialogueNodeId NodeId,
+    string Key,
+    DialogueVariantSeedScope SeedScope,
+    int SeedOffset,
+    int AntiRepeatWindow,
+    DialogueRuntimeAuthorityScope AuthorityScope,
+    bool RequiredAtRuntime,
+    IReadOnlyList<DialogueTextVariant> Variants,
     string Provenance);
 
 public sealed record DialogueCompanionState(

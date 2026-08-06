@@ -103,6 +103,52 @@ public static class DialoguePresentationValidator
                     "Interjection personality, relation, priority, cooldown, conflict, or provenance is invalid.", path));
         }
 
+        foreach (var group in profile.TimedChoices.GroupBy(item => item.NodeId).Where(item => item.Count() > 1))
+            diagnostics.Add(new("dialogue.timed_choice.node_duplicate",
+                "A dialogue node can define only one timed-choice rule.", $"{root}/timedChoices/{group.Key}"));
+        foreach (var rule in profile.TimedChoices)
+        {
+            var path = $"{root}/timedChoices/{rule.Id}";
+            AddUuid(rule.Id, path, uuids, diagnostics);
+            CheckNode(rule.NodeId, nodes, path, diagnostics);
+            var node = dialogue.Nodes.SingleOrDefault(item => item.Id == rule.NodeId);
+            if (node is not null && node.Choices.All(item => item.Id != rule.DefaultChoiceId))
+                diagnostics.Add(new("dialogue.timed_choice.default_missing",
+                    "Timed-choice default must reference a choice on the same node.", $"{path}/defaultChoiceId"));
+            if (rule.DurationMilliseconds is < 500 or > 300_000 || rule.ServerRevision < 0 ||
+                rule.AuthorityScope == DialogueRuntimeAuthorityScope.Server && rule.ServerRevision == 0 ||
+                string.IsNullOrWhiteSpace(rule.AuditActorId) || string.IsNullOrWhiteSpace(rule.Provenance) ||
+                rule.TimeoutScriptId is not null && !IsSafeIdentifier(rule.TimeoutScriptId))
+                diagnostics.Add(new("dialogue.timed_choice.invalid",
+                    "Timed-choice duration, authority revision, timeout script, audit identity, or provenance is invalid.", path));
+        }
+
+        foreach (var group in profile.VariantSets.GroupBy(item => item.NodeId).Where(item => item.Count() > 1))
+            diagnostics.Add(new("dialogue.variant.node_duplicate",
+                "A dialogue node can define only one procedural variant set.", $"{root}/variantSets/{group.Key}"));
+        foreach (var set in profile.VariantSets)
+        {
+            var path = $"{root}/variantSets/{set.Id}";
+            AddUuid(set.Id, path, uuids, diagnostics);
+            CheckNode(set.NodeId, nodes, path, diagnostics);
+            if (string.IsNullOrWhiteSpace(set.Key) || set.SeedOffset is < -1_000_000 or > 1_000_000 ||
+                set.AntiRepeatWindow is < 0 or > 16 || set.Variants.Count is < 1 or > 64 ||
+                string.IsNullOrWhiteSpace(set.Provenance))
+                diagnostics.Add(new("dialogue.variant_set.invalid",
+                    "Variant key, seed offset, anti-repeat window, variants, or provenance is invalid.", path));
+            var localizationKeys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var variant in set.Variants)
+            {
+                var variantPath = $"{path}/variants/{variant.Id}";
+                AddUuid(variant.Id, variantPath, uuids, diagnostics);
+                if (variant.Weight is < 1 or > 10_000 || string.IsNullOrWhiteSpace(variant.Provenance) ||
+                    !localizationKeys.Add(variant.Text.Key) || variant.Conditions.Any(item =>
+                        string.IsNullOrWhiteSpace(item.Key) || item.ExpectedValue is null))
+                    diagnostics.Add(new("dialogue.variant.invalid",
+                        "Variant weight, localization key, typed conditions, or provenance is invalid.", variantPath));
+            }
+        }
+
         return diagnostics;
     }
 
@@ -127,4 +173,7 @@ public static class DialoguePresentationValidator
         !value.Contains('\\') && !Uri.TryCreate(value, UriKind.Absolute, out _);
 
     private static bool IsSha256(string? value) => value is { Length: 64 } && value.All(Uri.IsHexDigit);
+
+    private static bool IsSafeIdentifier(string value) => value.Length <= 160 &&
+        value.All(character => char.IsLetterOrDigit(character) || character is '.' or '_' or '-' or '/' or ':');
 }

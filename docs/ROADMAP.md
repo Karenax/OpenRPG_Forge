@@ -236,7 +236,8 @@ runtime, G13-E livre rôle, routines ambiantes et auto-level déterministe, puis
 événements avancés de créature avec bindings typés, scheduler budgété et exécution dans la Crypte.
 G13-G livre ensuite les factions avancées : hiérarchie, témoins, affiliations multiples et états
 dynamiques autoritaires. G13-H livre la présentation cinématique canonique des dialogues :
-animations, voix/sous-titres, caméra accessible, bookmarks et interjections autoritaires. La file
+animations, voix/sous-titres, caméra accessible, bookmarks et interjections autoritaires. G13-I
+ajoute choix temporisés accessibles et variantes conditionnelles/pondérées déterministes. La file
 est volontairement arrêtée après ce lot jusqu’à nouvelle demande.
 
 La mission complète et ses critères sont dans

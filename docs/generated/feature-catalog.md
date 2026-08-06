@@ -247,9 +247,9 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-DLG-022 | Mémoire de conversation | P1 | Implemented | G8 |
 | ORF-DLG-023 | Interjections de compagnons | P2 | Tested | G13 |
 | ORF-DLG-024 | Checks de compétence | P1 | Implemented | G8 |
-| ORF-DLG-025 | Choix temporisés | P3 | Researched | G13 |
+| ORF-DLG-025 | Choix temporisés | P3 | Tested | G13 |
 | ORF-DLG-026 | Graphes imbriqués | P1 | Implemented | G8 |
-| ORF-DLG-027 | Variantes procédurales | P2 | Researched | G13 |
+| ORF-DLG-027 | Variantes procédurales | P2 | Tested | G13 |
 | ORF-DLG-028 | Relations et conséquences | P1 | Implemented | G8 |
 | ORF-DLG-029 | Validation structurelle | P0 | Researched | G1 |
 | ORF-DLG-030 | Couverture de branches | P1 | Implemented | G8 |

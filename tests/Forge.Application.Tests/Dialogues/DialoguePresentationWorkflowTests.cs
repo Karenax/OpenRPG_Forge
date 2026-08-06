@@ -27,6 +27,8 @@ public sealed class DialoguePresentationWorkflowTests
 
         Assert.True(preview.Succeeded);
         Assert.Contains("1 animation", preview.Patch!.Summary, StringComparison.Ordinal);
+        Assert.Contains("1 timed choice", preview.Patch.Summary, StringComparison.Ordinal);
+        Assert.Contains("1 variant set", preview.Patch.Summary, StringComparison.Ordinal);
         Assert.Equal(profile.Id, history.State.Project.Dialogues[0].Presentation!.Id);
         Assert.True(history.Undo().Succeeded);
         Assert.Null(history.State.Project.Dialogues[0].Presentation);
@@ -61,9 +63,18 @@ public sealed class DialoguePresentationWorkflowTests
         var service = new DialoguePresentationScriptService(scripted);
 
         var snapshot = service.Read(service.Handle);
+        var adaptive = service.ResolveAdaptive(service.Handle, dialogue.EntryNodeId, 3_001,
+            new DialogueAdaptiveRuntimeContext("fr", true, 2, false, false, 42,
+                Guid.Parse("d1310000-0000-4000-8000-000000000030"),
+                new Dictionary<Guid, IReadOnlyList<Guid>>()));
 
         Assert.Equal(1, snapshot.AnimationCueCount);
         Assert.Equal(1, snapshot.BookmarkCount);
+        Assert.Equal(1, snapshot.TimedChoiceCount);
+        Assert.Equal(1, snapshot.VariantSetCount);
+        Assert.Equal(2, snapshot.VariantCount);
+        Assert.True(adaptive.TimedChoice!.TimedOut);
+        Assert.NotNull(adaptive.Variant);
         Assert.Throws<InvalidOperationException>(() => service.Read(service.Handle with { Id = Guid.NewGuid() }));
     }
 
@@ -74,8 +85,11 @@ public sealed class DialoguePresentationWorkflowTests
         var speaker = BlueprintId.From(Guid.Parse("d1310000-0000-4000-8000-000000000002"));
         var blueprint = new BlueprintDefinition(speaker, "elyra", "Elyra", BlueprintKind.Creature);
         var node = DialogueNodeId.From(Guid.Parse("d1310000-0000-4000-8000-000000000003"));
+        var choice = DialogueChoiceId.From(Guid.Parse("d1310000-0000-4000-8000-000000000005"));
         var dialogue = new DialogueDefinition(DialogueId.From(Guid.Parse("d1310000-0000-4000-8000-000000000004")),
-            "elyra", "Elyra", node, [new(node, speaker, new("dialogue.elyra", "Bonjour."))]);
+            "elyra", "Elyra", node,
+            [new(node, speaker, new("dialogue.elyra", "Bonjour."), choices:
+                [new(choice, new("dialogue.elyra.answer", "Continuer."))])]);
         var profile = new DialoguePresentationProfile(Guid.Parse("d1310000-0000-4000-8000-000000000010"),
             1, "author:test", false, true,
             [new(Guid.Parse("d1310000-0000-4000-8000-000000000011"), node, speaker, "talk", 0, 1000, 100,
@@ -87,7 +101,16 @@ public sealed class DialoguePresentationWorkflowTests
                 false, true, true, .05f, 1, "author:test")],
             [new(Guid.Parse("d1310000-0000-4000-8000-000000000014"), node, "Accueil",
                 DialogueBookmarkScope.Personal, null, "tester", $"dialogue://{dialogue.Id}/{node}", "author:test")],
-            []);
+            [],
+            [new(Guid.Parse("d1310000-0000-4000-8000-000000000015"), node, 3_000, choice,
+                DialogueTimedChoicePausePolicy.AccessibilityOnly, DialogueRuntimeAuthorityScope.Server, 2,
+                "dialogue.timeout", "tester", "author:test")],
+            [new(Guid.Parse("d1310000-0000-4000-8000-000000000016"), node, "greeting",
+                DialogueVariantSeedScope.Session, 1, 1, DialogueRuntimeAuthorityScope.Server, true,
+                [new(Guid.Parse("d1310000-0000-4000-8000-000000000017"),
+                    new("dialogue.elyra.warm", "Bienvenue."), 2, [], "author:test"),
+                 new(Guid.Parse("d1310000-0000-4000-8000-000000000018"),
+                    new("dialogue.elyra.calm", "Bonjour."), 1, [], "author:test")], "author:test")]);
         var project = new ProjectDefinition(ProjectId.From(Guid.Parse("d1310000-0000-4000-8000-000000000020")),
             "Dialogue presentation", [blueprint], [area], [dialogue]);
         return (new(project, new ProjectRevision(2)), dialogue, profile);

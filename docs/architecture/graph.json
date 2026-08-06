@@ -1090,7 +1090,7 @@
     },
     {
       "evidence": {
-        "line": 48,
+        "line": 49,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1099,7 +1099,7 @@
     },
     {
       "evidence": {
-        "line": 111,
+        "line": 113,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1108,7 +1108,7 @@
     },
     {
       "evidence": {
-        "line": 54,
+        "line": 55,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1117,7 +1117,7 @@
     },
     {
       "evidence": {
-        "line": 127,
+        "line": 129,
         "path": "src/Forge.ModuleFormat/Serialization/ProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1297,7 +1297,7 @@
     },
     {
       "evidence": {
-        "line": 132,
+        "line": 134,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1306,7 +1306,7 @@
     },
     {
       "evidence": {
-        "line": 43,
+        "line": 44,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1315,7 +1315,7 @@
     },
     {
       "evidence": {
-        "line": 59,
+        "line": 60,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "serializes",
@@ -1324,7 +1324,7 @@
     },
     {
       "evidence": {
-        "line": 179,
+        "line": 181,
         "path": "src/Forge.ModuleFormat/Serialization/WorkspaceProjectJsonSerializer.cs"
       },
       "kind": "uses_service",
@@ -1675,7 +1675,7 @@
     },
     {
       "evidence": {
-        "line": 10536,
+        "line": 10537,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "uses_service",
@@ -1990,7 +1990,7 @@
     },
     {
       "evidence": {
-        "line": 1894,
+        "line": 1895,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2116,7 +2116,7 @@
     },
     {
       "evidence": {
-        "line": 1863,
+        "line": 1864,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2197,7 +2197,7 @@
     },
     {
       "evidence": {
-        "line": 1880,
+        "line": 1881,
         "path": "MEGACONTEXT.md"
       },
       "kind": "references",
@@ -2314,7 +2314,7 @@
     },
     {
       "evidence": {
-        "line": 51,
+        "line": 52,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2323,7 +2323,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 67,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2350,7 +2350,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 66,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2368,7 +2368,7 @@
     },
     {
       "evidence": {
-        "line": 69,
+        "line": 70,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2395,7 +2395,7 @@
     },
     {
       "evidence": {
-        "line": 45,
+        "line": 46,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2404,7 +2404,7 @@
     },
     {
       "evidence": {
-        "line": 67,
+        "line": 68,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2413,7 +2413,7 @@
     },
     {
       "evidence": {
-        "line": 101,
+        "line": 102,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2431,7 +2431,7 @@
     },
     {
       "evidence": {
-        "line": 68,
+        "line": 69,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2440,7 +2440,7 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 72,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2449,7 +2449,7 @@
     },
     {
       "evidence": {
-        "line": 76,
+        "line": 77,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2458,7 +2458,7 @@
     },
     {
       "evidence": {
-        "line": 102,
+        "line": 103,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2467,7 +2467,7 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 71,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2476,7 +2476,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 73,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2485,7 +2485,7 @@
     },
     {
       "evidence": {
-        "line": 74,
+        "line": 75,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2494,7 +2494,7 @@
     },
     {
       "evidence": {
-        "line": 73,
+        "line": 74,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2503,7 +2503,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 76,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2512,16 +2512,7 @@
     },
     {
       "evidence": {
-        "line": 46,
-        "path": "README_FIRST.md"
-      },
-      "kind": "references",
-      "source": "file:README_FIRST.md",
-      "target": "file:docs/UX_AURORA_2026.md"
-    },
-    {
-      "evidence": {
-        "line": 77,
+        "line": 47,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -2535,11 +2526,20 @@
       },
       "kind": "references",
       "source": "file:README_FIRST.md",
-      "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+      "target": "file:docs/UX_AURORA_2026.md"
     },
     {
       "evidence": {
         "line": 79,
+        "path": "README_FIRST.md"
+      },
+      "kind": "references",
+      "source": "file:README_FIRST.md",
+      "target": "file:docs/assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md"
+    },
+    {
+      "evidence": {
+        "line": 80,
         "path": "README_FIRST.md"
       },
       "kind": "references",
@@ -5959,7 +5959,7 @@
     },
     {
       "evidence": {
-        "line": 243,
+        "line": 244,
         "path": "docs/ROADMAP.md"
       },
       "kind": "references",
@@ -5968,7 +5968,7 @@
     },
     {
       "evidence": {
-        "line": 316,
+        "line": 323,
         "path": "docs/UX_AURORA_2026.md"
       },
       "kind": "references",
@@ -13291,6 +13291,15 @@
       "kind": "imports",
       "source": "file:src/Forge.Domain/Creatures/CreatureLootRuntimeResolver.cs",
       "target": "namespace:Forge.Domain.Combat"
+    },
+    {
+      "evidence": {
+        "line": 4,
+        "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+      },
+      "kind": "imports",
+      "source": "file:src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs",
+      "target": "namespace:Forge.Domain.Validation"
     },
     {
       "evidence": {
@@ -23470,6 +23479,15 @@
       "kind": "imports",
       "source": "file:tests/Forge.Domain.Tests/Creatures/CreatureRoleBehaviorProfileTests.cs",
       "target": "namespace:Forge.Domain.Creatures"
+    },
+    {
+      "evidence": {
+        "line": 1,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "imports",
+      "source": "file:tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs",
+      "target": "namespace:Forge.Domain.Dialogues"
     },
     {
       "evidence": {
@@ -33805,7 +33823,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 66,
         "path": "src/Forge.Application/Dialogues/SetDialoguePresentationHandler.cs"
       },
       "kind": "uses_model",
@@ -33823,7 +33841,7 @@
     },
     {
       "evidence": {
-        "line": 66,
+        "line": 67,
         "path": "src/Forge.Application/Dialogues/SetDialoguePresentationHandler.cs"
       },
       "kind": "uses_model",
@@ -33841,7 +33859,7 @@
     },
     {
       "evidence": {
-        "line": 50,
+        "line": 51,
         "path": "src/Forge.Application/Dialogues/SetDialoguePresentationHandler.cs"
       },
       "kind": "uses_model",
@@ -40546,7 +40564,7 @@
     },
     {
       "evidence": {
-        "line": 129,
+        "line": 213,
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
       },
       "kind": "defined_in",
@@ -40555,7 +40573,7 @@
     },
     {
       "evidence": {
-        "line": 130,
+        "line": 214,
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
       },
       "kind": "relationship",
@@ -40615,6 +40633,24 @@
       "kind": "defined_in",
       "source": "model:Forge.Domain.Dialogues.DialogueNodeId",
       "target": "file:src/Forge.Domain/Dialogues/DialogueNodeId.cs"
+    },
+    {
+      "evidence": {
+        "line": 18,
+        "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "model:Forge.Domain.Dialogues.DialogueTimedChoiceRuntimeState",
+      "target": "file:src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 23,
+        "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+      },
+      "kind": "relationship",
+      "source": "model:Forge.Domain.Dialogues.DialogueTimedChoiceRuntimeState",
+      "target": "model:Forge.Domain.Dialogues.DialogueChoiceId"
     },
     {
       "evidence": {
@@ -43039,7 +43075,7 @@
     },
     {
       "evidence": {
-        "line": 31,
+        "line": 34,
         "path": "src/Forge.Mcp/Dialogues/DialoguePresentationContracts.cs"
       },
       "kind": "defined_in",
@@ -43048,7 +43084,7 @@
     },
     {
       "evidence": {
-        "line": 34,
+        "line": 37,
         "path": "src/Forge.Mcp/Dialogues/DialoguePresentationContracts.cs"
       },
       "kind": "relationship",
@@ -43057,7 +43093,7 @@
     },
     {
       "evidence": {
-        "line": 36,
+        "line": 39,
         "path": "src/Forge.Mcp/Dialogues/DialoguePresentationContracts.cs"
       },
       "kind": "relationship",
@@ -43273,7 +43309,7 @@
     },
     {
       "evidence": {
-        "line": 3977,
+        "line": 3983,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -43282,7 +43318,7 @@
     },
     {
       "evidence": {
-        "line": 3979,
+        "line": 3985,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "relationship",
@@ -46936,7 +46972,7 @@
     },
     {
       "evidence": {
-        "line": 4055,
+        "line": 4096,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -52255,6 +52291,15 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Dialogues",
+      "target": "file:src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+    },
+    {
+      "evidence": {
         "line": 1,
         "path": "src/Forge.Domain/Dialogues/DialogueChoice.cs"
       },
@@ -53980,6 +54025,15 @@
       "kind": "defined_in",
       "source": "namespace:Forge.Domain.Tests.Creatures",
       "target": "file:tests/Forge.Domain.Tests/Creatures/CreatureRoleBehaviorProfileTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 2,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "namespace:Forge.Domain.Tests.Dialogues",
+      "target": "file:tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
     },
     {
       "evidence": {
@@ -59662,7 +59716,7 @@
     },
     {
       "evidence": {
-        "line": 19,
+        "line": 22,
         "path": "src/Forge.Application/Dialogues/DialoguePresentationScriptService.cs"
       },
       "kind": "defined_in",
@@ -59671,7 +59725,7 @@
     },
     {
       "evidence": {
-        "line": 21,
+        "line": 24,
         "path": "src/Forge.Application/Dialogues/DialoguePresentationScriptService.cs"
       },
       "kind": "accesses_model",
@@ -59680,7 +59734,7 @@
     },
     {
       "evidence": {
-        "line": 55,
+        "line": 70,
         "path": "src/Forge.Application/Dialogues/DialoguePresentationScriptService.cs"
       },
       "kind": "accesses_model",
@@ -59689,7 +59743,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 50,
         "path": "src/Forge.Application/Dialogues/DialoguePresentationScriptService.cs"
       },
       "kind": "accesses_model",
@@ -60625,7 +60679,7 @@
     },
     {
       "evidence": {
-        "line": 1662,
+        "line": 1668,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60634,7 +60688,7 @@
     },
     {
       "evidence": {
-        "line": 2536,
+        "line": 2542,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60643,7 +60697,7 @@
     },
     {
       "evidence": {
-        "line": 711,
+        "line": 717,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60652,7 +60706,7 @@
     },
     {
       "evidence": {
-        "line": 618,
+        "line": 624,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60661,7 +60715,7 @@
     },
     {
       "evidence": {
-        "line": 431,
+        "line": 437,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60679,7 +60733,7 @@
     },
     {
       "evidence": {
-        "line": 3008,
+        "line": 3014,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60697,7 +60751,7 @@
     },
     {
       "evidence": {
-        "line": 2774,
+        "line": 2780,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60706,7 +60760,7 @@
     },
     {
       "evidence": {
-        "line": 349,
+        "line": 355,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60715,7 +60769,7 @@
     },
     {
       "evidence": {
-        "line": 2936,
+        "line": 2942,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60742,7 +60796,7 @@
     },
     {
       "evidence": {
-        "line": 1351,
+        "line": 1357,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60751,7 +60805,7 @@
     },
     {
       "evidence": {
-        "line": 1033,
+        "line": 1039,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60760,7 +60814,7 @@
     },
     {
       "evidence": {
-        "line": 1135,
+        "line": 1141,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60769,7 +60823,7 @@
     },
     {
       "evidence": {
-        "line": 1244,
+        "line": 1250,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60778,7 +60832,7 @@
     },
     {
       "evidence": {
-        "line": 1450,
+        "line": 1456,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60787,7 +60841,7 @@
     },
     {
       "evidence": {
-        "line": 898,
+        "line": 904,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60796,7 +60850,7 @@
     },
     {
       "evidence": {
-        "line": 902,
+        "line": 908,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60805,7 +60859,7 @@
     },
     {
       "evidence": {
-        "line": 1619,
+        "line": 1625,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60814,7 +60868,7 @@
     },
     {
       "evidence": {
-        "line": 2396,
+        "line": 2402,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60832,7 +60886,7 @@
     },
     {
       "evidence": {
-        "line": 2977,
+        "line": 2983,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60841,7 +60895,7 @@
     },
     {
       "evidence": {
-        "line": 2986,
+        "line": 2992,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60850,7 +60904,7 @@
     },
     {
       "evidence": {
-        "line": 2763,
+        "line": 2769,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60859,7 +60913,7 @@
     },
     {
       "evidence": {
-        "line": 344,
+        "line": 350,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60868,7 +60922,7 @@
     },
     {
       "evidence": {
-        "line": 2964,
+        "line": 2970,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60877,7 +60931,7 @@
     },
     {
       "evidence": {
-        "line": 2924,
+        "line": 2930,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60886,7 +60940,7 @@
     },
     {
       "evidence": {
-        "line": 2933,
+        "line": 2939,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60895,7 +60949,7 @@
     },
     {
       "evidence": {
-        "line": 3030,
+        "line": 3036,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60904,7 +60958,7 @@
     },
     {
       "evidence": {
-        "line": 481,
+        "line": 487,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60913,7 +60967,7 @@
     },
     {
       "evidence": {
-        "line": 2284,
+        "line": 2290,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60922,7 +60976,7 @@
     },
     {
       "evidence": {
-        "line": 2171,
+        "line": 2177,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60940,7 +60994,7 @@
     },
     {
       "evidence": {
-        "line": 1530,
+        "line": 1536,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60949,7 +61003,7 @@
     },
     {
       "evidence": {
-        "line": 3051,
+        "line": 3057,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60958,7 +61012,7 @@
     },
     {
       "evidence": {
-        "line": 1610,
+        "line": 1616,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60967,7 +61021,7 @@
     },
     {
       "evidence": {
-        "line": 2294,
+        "line": 2300,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60976,7 +61030,7 @@
     },
     {
       "evidence": {
-        "line": 2420,
+        "line": 2426,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60985,7 +61039,7 @@
     },
     {
       "evidence": {
-        "line": 2526,
+        "line": 2532,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -60994,7 +61048,7 @@
     },
     {
       "evidence": {
-        "line": 2050,
+        "line": 2056,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61012,7 +61066,7 @@
     },
     {
       "evidence": {
-        "line": 1800,
+        "line": 1806,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61021,7 +61075,7 @@
     },
     {
       "evidence": {
-        "line": 2750,
+        "line": 2756,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61030,7 +61084,7 @@
     },
     {
       "evidence": {
-        "line": 335,
+        "line": 341,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61039,7 +61093,7 @@
     },
     {
       "evidence": {
-        "line": 1825,
+        "line": 1831,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61057,7 +61111,7 @@
     },
     {
       "evidence": {
-        "line": 1359,
+        "line": 1365,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61066,7 +61120,7 @@
     },
     {
       "evidence": {
-        "line": 1336,
+        "line": 1342,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61075,7 +61129,7 @@
     },
     {
       "evidence": {
-        "line": 700,
+        "line": 706,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61084,7 +61138,7 @@
     },
     {
       "evidence": {
-        "line": 630,
+        "line": 636,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61093,7 +61147,7 @@
     },
     {
       "evidence": {
-        "line": 608,
+        "line": 614,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61102,7 +61156,7 @@
     },
     {
       "evidence": {
-        "line": 1051,
+        "line": 1057,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61111,7 +61165,7 @@
     },
     {
       "evidence": {
-        "line": 1025,
+        "line": 1031,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61129,7 +61183,7 @@
     },
     {
       "evidence": {
-        "line": 1143,
+        "line": 1149,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61138,7 +61192,7 @@
     },
     {
       "evidence": {
-        "line": 1127,
+        "line": 1133,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61147,7 +61201,7 @@
     },
     {
       "evidence": {
-        "line": 460,
+        "line": 466,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61156,7 +61210,7 @@
     },
     {
       "evidence": {
-        "line": 417,
+        "line": 423,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61165,7 +61219,7 @@
     },
     {
       "evidence": {
-        "line": 1252,
+        "line": 1258,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61174,7 +61228,7 @@
     },
     {
       "evidence": {
-        "line": 1230,
+        "line": 1236,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61183,7 +61237,7 @@
     },
     {
       "evidence": {
-        "line": 1458,
+        "line": 1464,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61192,7 +61246,7 @@
     },
     {
       "evidence": {
-        "line": 1442,
+        "line": 1448,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61201,7 +61255,7 @@
     },
     {
       "evidence": {
-        "line": 919,
+        "line": 925,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61210,7 +61264,7 @@
     },
     {
       "evidence": {
-        "line": 887,
+        "line": 893,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61219,7 +61273,7 @@
     },
     {
       "evidence": {
-        "line": 1924,
+        "line": 1930,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61228,7 +61282,7 @@
     },
     {
       "evidence": {
-        "line": 2670,
+        "line": 2676,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61237,7 +61291,7 @@
     },
     {
       "evidence": {
-        "line": 2895,
+        "line": 2901,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61246,7 +61300,7 @@
     },
     {
       "evidence": {
-        "line": 2305,
+        "line": 2311,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61255,7 +61309,7 @@
     },
     {
       "evidence": {
-        "line": 2431,
+        "line": 2437,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61264,7 +61318,7 @@
     },
     {
       "evidence": {
-        "line": 2680,
+        "line": 2686,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61273,7 +61327,7 @@
     },
     {
       "evidence": {
-        "line": 2181,
+        "line": 2187,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61282,7 +61336,7 @@
     },
     {
       "evidence": {
-        "line": 2060,
+        "line": 2066,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61291,7 +61345,7 @@
     },
     {
       "evidence": {
-        "line": 1810,
+        "line": 1816,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61300,7 +61354,7 @@
     },
     {
       "evidence": {
-        "line": 1934,
+        "line": 1940,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -61309,7 +61363,7 @@
     },
     {
       "evidence": {
-        "line": 3010,
+        "line": 3016,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "accesses_model",
@@ -71587,7 +71641,7 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 81,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71596,7 +71650,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 83,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71605,7 +71659,7 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 83,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71614,7 +71668,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 86,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71623,7 +71677,7 @@
     },
     {
       "evidence": {
-        "line": 74,
+        "line": 85,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71632,7 +71686,7 @@
     },
     {
       "evidence": {
-        "line": 75,
+        "line": 86,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71641,7 +71695,16 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 88,
+        "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Dialogues.DialoguePresentationWorkflowTests",
+      "target": "model:Forge.Domain.Dialogues.DialogueChoiceId"
+    },
+    {
+      "evidence": {
+        "line": 81,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71650,7 +71713,7 @@
     },
     {
       "evidence": {
-        "line": 46,
+        "line": 48,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71659,7 +71722,7 @@
     },
     {
       "evidence": {
-        "line": 76,
+        "line": 87,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71668,7 +71731,7 @@
     },
     {
       "evidence": {
-        "line": 91,
+        "line": 114,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71677,7 +71740,7 @@
     },
     {
       "evidence": {
-        "line": 91,
+        "line": 114,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71686,7 +71749,7 @@
     },
     {
       "evidence": {
-        "line": 61,
+        "line": 63,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71704,7 +71767,7 @@
     },
     {
       "evidence": {
-        "line": 93,
+        "line": 116,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71713,7 +71776,16 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 67,
+        "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Dialogues.DialoguePresentationWorkflowTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueAdaptiveRuntimeContext"
+    },
+    {
+      "evidence": {
+        "line": 96,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71722,7 +71794,7 @@
     },
     {
       "evidence": {
-        "line": 89,
+        "line": 103,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71731,7 +71803,7 @@
     },
     {
       "evidence": {
-        "line": 86,
+        "line": 100,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71740,7 +71812,7 @@
     },
     {
       "evidence": {
-        "line": 82,
+        "line": 96,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71749,7 +71821,7 @@
     },
     {
       "evidence": {
-        "line": 70,
+        "line": 81,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
@@ -71758,12 +71830,48 @@
     },
     {
       "evidence": {
-        "line": 86,
+        "line": 106,
+        "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Dialogues.DialoguePresentationWorkflowTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueRuntimeAuthorityScope"
+    },
+    {
+      "evidence": {
+        "line": 106,
+        "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Dialogues.DialoguePresentationWorkflowTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueTimedChoicePausePolicy"
+    },
+    {
+      "evidence": {
+        "line": 109,
+        "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Dialogues.DialoguePresentationWorkflowTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueVariantSeedScope"
+    },
+    {
+      "evidence": {
+        "line": 100,
         "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
       },
       "kind": "tests",
       "source": "test:Forge.Application.Tests.Dialogues.DialoguePresentationWorkflowTests",
       "target": "type:Forge.Domain.Sequences.CameraFraming"
+    },
+    {
+      "evidence": {
+        "line": 109,
+        "path": "tests/Forge.Application.Tests/Dialogues/DialoguePresentationWorkflowTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Application.Tests.Dialogues.DialoguePresentationWorkflowTests",
+      "target": "type:Forge.LiveDirector.Authentication.Session"
     },
     {
       "evidence": {
@@ -78535,6 +78643,105 @@
     },
     {
       "evidence": {
+        "line": 5,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "file:tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 68,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "model:Forge.Domain.Dialogues.DialogueChoiceId"
+    },
+    {
+      "evidence": {
+        "line": 102,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "model:Forge.Domain.Dialogues.DialogueConditionKind"
+    },
+    {
+      "evidence": {
+        "line": 113,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "model:Forge.Domain.Dialogues.DialogueDefinition"
+    },
+    {
+      "evidence": {
+        "line": 142,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueAdaptiveRuntimeContext"
+    },
+    {
+      "evidence": {
+        "line": 14,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueAdaptiveRuntimeResolver"
+    },
+    {
+      "evidence": {
+        "line": 123,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueRuntimeAuthorityScope"
+    },
+    {
+      "evidence": {
+        "line": 123,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueTimedChoicePausePolicy"
+    },
+    {
+      "evidence": {
+        "line": 129,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueVariantSeedScope"
+    },
+    {
+      "evidence": {
+        "line": 129,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "type:Forge.LiveDirector.Authentication.Session"
+    },
+    {
+      "evidence": {
+        "line": 82,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "target": "validator:Forge.Domain.Dialogues.DialoguePresentationValidator"
+    },
+    {
+      "evidence": {
         "line": 7,
         "path": "tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs"
       },
@@ -78918,6 +79125,42 @@
       },
       "kind": "tests",
       "source": "test:Forge.Domain.Tests.Dialogues.TestEvaluator",
+      "target": "type:Forge.Domain.Dialogues.IDialogueConditionEvaluator"
+    },
+    {
+      "evidence": {
+        "line": 146,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "defined_in",
+      "source": "test:Forge.Domain.Tests.Dialogues.VariableEvaluator",
+      "target": "file:tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+    },
+    {
+      "evidence": {
+        "line": 148,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.VariableEvaluator",
+      "target": "model:Forge.Domain.Dialogues.DialogueConditionKind"
+    },
+    {
+      "evidence": {
+        "line": 148,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.VariableEvaluator",
+      "target": "type:Forge.Domain.Dialogues.DialogueCondition"
+    },
+    {
+      "evidence": {
+        "line": 146,
+        "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.Domain.Tests.Dialogues.VariableEvaluator",
       "target": "type:Forge.Domain.Dialogues.IDialogueConditionEvaluator"
     },
     {
@@ -82999,7 +83242,7 @@
     },
     {
       "evidence": {
-        "line": 923,
+        "line": 928,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83008,7 +83251,7 @@
     },
     {
       "evidence": {
-        "line": 153,
+        "line": 158,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83017,7 +83260,7 @@
     },
     {
       "evidence": {
-        "line": 815,
+        "line": 820,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83026,7 +83269,7 @@
     },
     {
       "evidence": {
-        "line": 816,
+        "line": 821,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83035,7 +83278,7 @@
     },
     {
       "evidence": {
-        "line": 1277,
+        "line": 1282,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83044,7 +83287,7 @@
     },
     {
       "evidence": {
-        "line": 256,
+        "line": 261,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83053,7 +83296,7 @@
     },
     {
       "evidence": {
-        "line": 252,
+        "line": 257,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83062,7 +83305,7 @@
     },
     {
       "evidence": {
-        "line": 254,
+        "line": 259,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83071,7 +83314,7 @@
     },
     {
       "evidence": {
-        "line": 191,
+        "line": 196,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83080,7 +83323,7 @@
     },
     {
       "evidence": {
-        "line": 192,
+        "line": 197,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83089,7 +83332,7 @@
     },
     {
       "evidence": {
-        "line": 674,
+        "line": 679,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83098,7 +83341,7 @@
     },
     {
       "evidence": {
-        "line": 677,
+        "line": 682,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83107,7 +83350,7 @@
     },
     {
       "evidence": {
-        "line": 685,
+        "line": 690,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83125,7 +83368,7 @@
     },
     {
       "evidence": {
-        "line": 309,
+        "line": 314,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83134,7 +83377,7 @@
     },
     {
       "evidence": {
-        "line": 315,
+        "line": 320,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83143,7 +83386,7 @@
     },
     {
       "evidence": {
-        "line": 1169,
+        "line": 1174,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83161,7 +83404,7 @@
     },
     {
       "evidence": {
-        "line": 820,
+        "line": 825,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83170,7 +83413,7 @@
     },
     {
       "evidence": {
-        "line": 681,
+        "line": 686,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83179,7 +83422,7 @@
     },
     {
       "evidence": {
-        "line": 1116,
+        "line": 1121,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83188,7 +83431,7 @@
     },
     {
       "evidence": {
-        "line": 1092,
+        "line": 1097,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83197,7 +83440,7 @@
     },
     {
       "evidence": {
-        "line": 963,
+        "line": 968,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83206,7 +83449,7 @@
     },
     {
       "evidence": {
-        "line": 999,
+        "line": 1004,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83215,7 +83458,7 @@
     },
     {
       "evidence": {
-        "line": 1003,
+        "line": 1008,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83224,7 +83467,7 @@
     },
     {
       "evidence": {
-        "line": 1005,
+        "line": 1010,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83233,7 +83476,7 @@
     },
     {
       "evidence": {
-        "line": 1004,
+        "line": 1009,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83242,7 +83485,7 @@
     },
     {
       "evidence": {
-        "line": 1004,
+        "line": 1009,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83251,7 +83494,7 @@
     },
     {
       "evidence": {
-        "line": 1008,
+        "line": 1013,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83260,7 +83503,7 @@
     },
     {
       "evidence": {
-        "line": 1008,
+        "line": 1013,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83269,7 +83512,7 @@
     },
     {
       "evidence": {
-        "line": 1000,
+        "line": 1005,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83278,7 +83521,7 @@
     },
     {
       "evidence": {
-        "line": 1000,
+        "line": 1005,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83287,7 +83530,7 @@
     },
     {
       "evidence": {
-        "line": 830,
+        "line": 835,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83296,7 +83539,7 @@
     },
     {
       "evidence": {
-        "line": 266,
+        "line": 271,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83305,7 +83548,7 @@
     },
     {
       "evidence": {
-        "line": 202,
+        "line": 207,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83314,7 +83557,7 @@
     },
     {
       "evidence": {
-        "line": 423,
+        "line": 428,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83323,7 +83566,7 @@
     },
     {
       "evidence": {
-        "line": 892,
+        "line": 897,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83332,7 +83575,7 @@
     },
     {
       "evidence": {
-        "line": 940,
+        "line": 945,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83341,7 +83584,7 @@
     },
     {
       "evidence": {
-        "line": 577,
+        "line": 582,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83350,7 +83593,7 @@
     },
     {
       "evidence": {
-        "line": 739,
+        "line": 744,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83359,7 +83602,7 @@
     },
     {
       "evidence": {
-        "line": 1244,
+        "line": 1249,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83368,7 +83611,7 @@
     },
     {
       "evidence": {
-        "line": 1273,
+        "line": 1278,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83377,7 +83620,7 @@
     },
     {
       "evidence": {
-        "line": 1267,
+        "line": 1272,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83386,7 +83629,7 @@
     },
     {
       "evidence": {
-        "line": 288,
+        "line": 293,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83395,7 +83638,7 @@
     },
     {
       "evidence": {
-        "line": 1265,
+        "line": 1270,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83404,7 +83647,7 @@
     },
     {
       "evidence": {
-        "line": 1253,
+        "line": 1258,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83413,7 +83656,7 @@
     },
     {
       "evidence": {
-        "line": 1274,
+        "line": 1279,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83422,7 +83665,7 @@
     },
     {
       "evidence": {
-        "line": 256,
+        "line": 261,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83431,7 +83674,7 @@
     },
     {
       "evidence": {
-        "line": 257,
+        "line": 262,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83440,7 +83683,7 @@
     },
     {
       "evidence": {
-        "line": 255,
+        "line": 260,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83449,7 +83692,7 @@
     },
     {
       "evidence": {
-        "line": 192,
+        "line": 197,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83458,7 +83701,7 @@
     },
     {
       "evidence": {
-        "line": 144,
+        "line": 149,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83467,7 +83710,7 @@
     },
     {
       "evidence": {
-        "line": 581,
+        "line": 586,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83476,7 +83719,7 @@
     },
     {
       "evidence": {
-        "line": 595,
+        "line": 600,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83485,7 +83728,7 @@
     },
     {
       "evidence": {
-        "line": 315,
+        "line": 320,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83494,7 +83737,7 @@
     },
     {
       "evidence": {
-        "line": 314,
+        "line": 319,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83539,7 +83782,7 @@
     },
     {
       "evidence": {
-        "line": 85,
+        "line": 90,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83548,7 +83791,7 @@
     },
     {
       "evidence": {
-        "line": 80,
+        "line": 85,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83557,7 +83800,7 @@
     },
     {
       "evidence": {
-        "line": 1033,
+        "line": 1038,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83566,7 +83809,7 @@
     },
     {
       "evidence": {
-        "line": 1035,
+        "line": 1040,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83575,7 +83818,7 @@
     },
     {
       "evidence": {
-        "line": 1032,
+        "line": 1037,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83584,7 +83827,7 @@
     },
     {
       "evidence": {
-        "line": 1031,
+        "line": 1036,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83593,7 +83836,7 @@
     },
     {
       "evidence": {
-        "line": 1068,
+        "line": 1073,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83602,7 +83845,7 @@
     },
     {
       "evidence": {
-        "line": 1068,
+        "line": 1073,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83611,7 +83854,7 @@
     },
     {
       "evidence": {
-        "line": 1067,
+        "line": 1072,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83620,7 +83863,7 @@
     },
     {
       "evidence": {
-        "line": 1061,
+        "line": 1066,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83629,7 +83872,7 @@
     },
     {
       "evidence": {
-        "line": 1062,
+        "line": 1067,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83638,7 +83881,7 @@
     },
     {
       "evidence": {
-        "line": 1064,
+        "line": 1069,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83647,7 +83890,7 @@
     },
     {
       "evidence": {
-        "line": 1062,
+        "line": 1067,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83656,7 +83899,7 @@
     },
     {
       "evidence": {
-        "line": 1116,
+        "line": 1121,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83665,7 +83908,7 @@
     },
     {
       "evidence": {
-        "line": 1118,
+        "line": 1123,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83674,7 +83917,7 @@
     },
     {
       "evidence": {
-        "line": 1094,
+        "line": 1099,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83683,7 +83926,7 @@
     },
     {
       "evidence": {
-        "line": 969,
+        "line": 974,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83692,7 +83935,7 @@
     },
     {
       "evidence": {
-        "line": 963,
+        "line": 968,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83701,7 +83944,7 @@
     },
     {
       "evidence": {
-        "line": 967,
+        "line": 972,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83710,7 +83953,7 @@
     },
     {
       "evidence": {
-        "line": 1002,
+        "line": 1007,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83728,7 +83971,7 @@
     },
     {
       "evidence": {
-        "line": 1010,
+        "line": 1015,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83737,7 +83980,7 @@
     },
     {
       "evidence": {
-        "line": 1006,
+        "line": 1011,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83746,7 +83989,7 @@
     },
     {
       "evidence": {
-        "line": 1006,
+        "line": 1011,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83755,7 +83998,7 @@
     },
     {
       "evidence": {
-        "line": 113,
+        "line": 118,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83764,7 +84007,7 @@
     },
     {
       "evidence": {
-        "line": 197,
+        "line": 202,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83773,7 +84016,7 @@
     },
     {
       "evidence": {
-        "line": 502,
+        "line": 507,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83782,7 +84025,7 @@
     },
     {
       "evidence": {
-        "line": 851,
+        "line": 856,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83791,7 +84034,7 @@
     },
     {
       "evidence": {
-        "line": 884,
+        "line": 889,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83800,7 +84043,7 @@
     },
     {
       "evidence": {
-        "line": 1192,
+        "line": 1197,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83809,7 +84052,7 @@
     },
     {
       "evidence": {
-        "line": 1228,
+        "line": 1233,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83818,7 +84061,7 @@
     },
     {
       "evidence": {
-        "line": 1139,
+        "line": 1144,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83827,7 +84070,7 @@
     },
     {
       "evidence": {
-        "line": 1096,
+        "line": 1101,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83836,7 +84079,7 @@
     },
     {
       "evidence": {
-        "line": 1011,
+        "line": 1016,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83845,7 +84088,7 @@
     },
     {
       "evidence": {
-        "line": 1039,
+        "line": 1044,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83854,7 +84097,7 @@
     },
     {
       "evidence": {
-        "line": 693,
+        "line": 698,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83863,7 +84106,7 @@
     },
     {
       "evidence": {
-        "line": 1071,
+        "line": 1076,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83872,7 +84115,7 @@
     },
     {
       "evidence": {
-        "line": 1121,
+        "line": 1126,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83881,7 +84124,7 @@
     },
     {
       "evidence": {
-        "line": 970,
+        "line": 975,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83890,7 +84133,7 @@
     },
     {
       "evidence": {
-        "line": 1210,
+        "line": 1215,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83899,7 +84142,7 @@
     },
     {
       "evidence": {
-        "line": 1246,
+        "line": 1251,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83908,7 +84151,7 @@
     },
     {
       "evidence": {
-        "line": 249,
+        "line": 254,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83917,7 +84160,7 @@
     },
     {
       "evidence": {
-        "line": 189,
+        "line": 194,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83926,7 +84169,7 @@
     },
     {
       "evidence": {
-        "line": 134,
+        "line": 139,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83935,7 +84178,7 @@
     },
     {
       "evidence": {
-        "line": 209,
+        "line": 214,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83944,7 +84187,7 @@
     },
     {
       "evidence": {
-        "line": 879,
+        "line": 884,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83953,7 +84196,7 @@
     },
     {
       "evidence": {
-        "line": 652,
+        "line": 657,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83962,7 +84205,7 @@
     },
     {
       "evidence": {
-        "line": 424,
+        "line": 429,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83971,7 +84214,7 @@
     },
     {
       "evidence": {
-        "line": 141,
+        "line": 146,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83980,7 +84223,7 @@
     },
     {
       "evidence": {
-        "line": 113,
+        "line": 118,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83989,7 +84232,7 @@
     },
     {
       "evidence": {
-        "line": 312,
+        "line": 317,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -83998,7 +84241,7 @@
     },
     {
       "evidence": {
-        "line": 373,
+        "line": 378,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -84007,7 +84250,7 @@
     },
     {
       "evidence": {
-        "line": 525,
+        "line": 530,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -84016,7 +84259,7 @@
     },
     {
       "evidence": {
-        "line": 473,
+        "line": 478,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -84025,7 +84268,7 @@
     },
     {
       "evidence": {
-        "line": 446,
+        "line": 451,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -84034,7 +84277,7 @@
     },
     {
       "evidence": {
-        "line": 154,
+        "line": 159,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -84043,7 +84286,7 @@
     },
     {
       "evidence": {
-        "line": 1199,
+        "line": 1204,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -84052,7 +84295,7 @@
     },
     {
       "evidence": {
-        "line": 833,
+        "line": 838,
         "path": "tests/Forge.Mcp.Tests/Projects/ForgeProjectAgentServiceTests.cs"
       },
       "kind": "tests",
@@ -87265,7 +87508,7 @@
     },
     {
       "evidence": {
-        "line": 56,
+        "line": 75,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/DialoguePresentationPersistenceTests.cs"
       },
       "kind": "tests",
@@ -87274,7 +87517,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 85,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/DialoguePresentationPersistenceTests.cs"
       },
       "kind": "tests",
@@ -87283,7 +87526,7 @@
     },
     {
       "evidence": {
-        "line": 74,
+        "line": 94,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/DialoguePresentationPersistenceTests.cs"
       },
       "kind": "tests",
@@ -87292,7 +87535,7 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 91,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/DialoguePresentationPersistenceTests.cs"
       },
       "kind": "tests",
@@ -87301,7 +87544,7 @@
     },
     {
       "evidence": {
-        "line": 65,
+        "line": 85,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/DialoguePresentationPersistenceTests.cs"
       },
       "kind": "tests",
@@ -87310,7 +87553,7 @@
     },
     {
       "evidence": {
-        "line": 62,
+        "line": 82,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/DialoguePresentationPersistenceTests.cs"
       },
       "kind": "tests",
@@ -87319,7 +87562,34 @@
     },
     {
       "evidence": {
-        "line": 71,
+        "line": 97,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/DialoguePresentationPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.DialoguePresentationPersistenceTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueRuntimeAuthorityScope"
+    },
+    {
+      "evidence": {
+        "line": 97,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/DialoguePresentationPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.DialoguePresentationPersistenceTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueTimedChoicePausePolicy"
+    },
+    {
+      "evidence": {
+        "line": 100,
+        "path": "tests/Forge.ModuleFormat.Tests/Serialization/DialoguePresentationPersistenceTests.cs"
+      },
+      "kind": "tests",
+      "source": "test:Forge.ModuleFormat.Tests.Serialization.DialoguePresentationPersistenceTests",
+      "target": "type:Forge.Domain.Dialogues.DialogueVariantSeedScope"
+    },
+    {
+      "evidence": {
+        "line": 91,
         "path": "tests/Forge.ModuleFormat.Tests/Serialization/DialoguePresentationPersistenceTests.cs"
       },
       "kind": "tests",
@@ -99352,7 +99622,34 @@
     },
     {
       "evidence": {
-        "line": 58,
+        "line": 32,
+        "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Dialogues.DialogueAdaptiveResolution",
+      "target": "file:src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 8,
+        "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Dialogues.DialogueAdaptiveRuntimeContext",
+      "target": "file:src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 37,
+        "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Dialogues.DialogueAdaptiveRuntimeResolver",
+      "target": "file:src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 90,
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
       },
       "kind": "defined_in",
@@ -99370,7 +99667,7 @@
     },
     {
       "evidence": {
-        "line": 105,
+        "line": 137,
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
       },
       "kind": "defined_in",
@@ -99388,7 +99685,7 @@
     },
     {
       "evidence": {
-        "line": 88,
+        "line": 120,
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
       },
       "kind": "defined_in",
@@ -99442,7 +99739,7 @@
     },
     {
       "evidence": {
-        "line": 115,
+        "line": 147,
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
       },
       "kind": "defined_in",
@@ -99469,7 +99766,7 @@
     },
     {
       "evidence": {
-        "line": 145,
+        "line": 229,
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
       },
       "kind": "defined_in",
@@ -99478,7 +99775,7 @@
     },
     {
       "evidence": {
-        "line": 135,
+        "line": 219,
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
       },
       "kind": "defined_in",
@@ -99496,12 +99793,48 @@
     },
     {
       "evidence": {
+        "line": 161,
+        "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Dialogues.DialogueRuntimeAuthorityScope",
+      "target": "file:src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+    },
+    {
+      "evidence": {
         "line": 3,
         "path": "src/Forge.Domain/Dialogues/DialogueStep.cs"
       },
       "kind": "defined_in",
       "source": "type:Forge.Domain.Dialogues.DialogueStep",
       "target": "file:src/Forge.Domain/Dialogues/DialogueStep.cs"
+    },
+    {
+      "evidence": {
+        "line": 194,
+        "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Dialogues.DialogueTextVariant",
+      "target": "file:src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 167,
+        "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Dialogues.DialogueTimedChoicePausePolicy",
+      "target": "file:src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 174,
+        "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Dialogues.DialogueTimedChoiceRule",
+      "target": "file:src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
     },
     {
       "evidence": {
@@ -99514,7 +99847,34 @@
     },
     {
       "evidence": {
-        "line": 72,
+        "line": 186,
+        "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Dialogues.DialogueVariantSeedScope",
+      "target": "file:src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 26,
+        "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Dialogues.DialogueVariantSelection",
+      "target": "file:src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+    },
+    {
+      "evidence": {
+        "line": 201,
+        "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Domain.Dialogues.DialogueVariantSet",
+      "target": "file:src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+    },
+    {
+      "evidence": {
+        "line": 104,
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
       },
       "kind": "defined_in",
@@ -102007,7 +102367,7 @@
     },
     {
       "evidence": {
-        "line": 25,
+        "line": 28,
         "path": "src/Forge.Mcp/Dialogues/DialoguePresentationContracts.cs"
       },
       "kind": "defined_in",
@@ -102259,7 +102619,7 @@
     },
     {
       "evidence": {
-        "line": 3950,
+        "line": 3956,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102268,7 +102628,7 @@
     },
     {
       "evidence": {
-        "line": 3870,
+        "line": 3876,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102277,7 +102637,7 @@
     },
     {
       "evidence": {
-        "line": 3698,
+        "line": 3704,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102286,7 +102646,7 @@
     },
     {
       "evidence": {
-        "line": 3843,
+        "line": 3849,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102295,7 +102655,7 @@
     },
     {
       "evidence": {
-        "line": 3826,
+        "line": 3832,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102304,7 +102664,7 @@
     },
     {
       "evidence": {
-        "line": 3715,
+        "line": 3721,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102313,7 +102673,7 @@
     },
     {
       "evidence": {
-        "line": 3681,
+        "line": 3687,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102322,7 +102682,7 @@
     },
     {
       "evidence": {
-        "line": 3647,
+        "line": 3653,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102331,7 +102691,7 @@
     },
     {
       "evidence": {
-        "line": 3768,
+        "line": 3774,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102340,7 +102700,7 @@
     },
     {
       "evidence": {
-        "line": 3732,
+        "line": 3738,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102349,7 +102709,7 @@
     },
     {
       "evidence": {
-        "line": 3664,
+        "line": 3670,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102358,7 +102718,7 @@
     },
     {
       "evidence": {
-        "line": 3911,
+        "line": 3917,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102367,7 +102727,7 @@
     },
     {
       "evidence": {
-        "line": 3782,
+        "line": 3788,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102376,7 +102736,7 @@
     },
     {
       "evidence": {
-        "line": 3749,
+        "line": 3755,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102385,7 +102745,7 @@
     },
     {
       "evidence": {
-        "line": 3924,
+        "line": 3930,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102394,7 +102754,7 @@
     },
     {
       "evidence": {
-        "line": 3809,
+        "line": 3815,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102403,7 +102763,7 @@
     },
     {
       "evidence": {
-        "line": 3937,
+        "line": 3943,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102412,7 +102772,7 @@
     },
     {
       "evidence": {
-        "line": 3963,
+        "line": 3969,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -102421,7 +102781,7 @@
     },
     {
       "evidence": {
-        "line": 3887,
+        "line": 3893,
         "path": "src/Forge.Mcp/Projects/ForgeProjectAgentService.cs"
       },
       "kind": "defined_in",
@@ -106966,7 +107326,7 @@
     },
     {
       "evidence": {
-        "line": 1409,
+        "line": 1412,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -106975,7 +107335,7 @@
     },
     {
       "evidence": {
-        "line": 1526,
+        "line": 1529,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -106984,7 +107344,7 @@
     },
     {
       "evidence": {
-        "line": 1664,
+        "line": 1667,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -106993,7 +107353,7 @@
     },
     {
       "evidence": {
-        "line": 1651,
+        "line": 1654,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -107002,7 +107362,7 @@
     },
     {
       "evidence": {
-        "line": 437,
+        "line": 440,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -107011,7 +107371,7 @@
     },
     {
       "evidence": {
-        "line": 1613,
+        "line": 1616,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -107020,7 +107380,7 @@
     },
     {
       "evidence": {
-        "line": 1596,
+        "line": 1599,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -107029,7 +107389,7 @@
     },
     {
       "evidence": {
-        "line": 1703,
+        "line": 1706,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -107038,7 +107398,7 @@
     },
     {
       "evidence": {
-        "line": 1750,
+        "line": 1753,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -107047,7 +107407,7 @@
     },
     {
       "evidence": {
-        "line": 1732,
+        "line": 1735,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -107056,7 +107416,7 @@
     },
     {
       "evidence": {
-        "line": 1720,
+        "line": 1723,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -107065,7 +107425,7 @@
     },
     {
       "evidence": {
-        "line": 1676,
+        "line": 1679,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "uses_service",
@@ -107101,7 +107461,7 @@
     },
     {
       "evidence": {
-        "line": 3984,
+        "line": 4025,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -107128,7 +107488,7 @@
     },
     {
       "evidence": {
-        "line": 4023,
+        "line": 4064,
         "path": "apps/Forge.Runtime/Runtime/GameRoot.cs"
       },
       "kind": "defined_in",
@@ -108073,7 +108433,7 @@
     },
     {
       "evidence": {
-        "line": 11035,
+        "line": 11044,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -108088,6 +108448,15 @@
       "kind": "defined_in",
       "source": "type:Forge.Toolset.Editor.PlaytestProcessRunner",
       "target": "file:apps/Forge.Toolset/addons/openrpg_forge/PlaytestProcessRunner.cs"
+    },
+    {
+      "evidence": {
+        "line": 422,
+        "path": "apps/Forge.Toolset/addons/openrpg_forge/DialoguePresentationWindow.cs"
+      },
+      "kind": "defined_in",
+      "source": "type:Forge.Toolset.Editor.PreviewConditionEvaluator",
+      "target": "file:apps/Forge.Toolset/addons/openrpg_forge/DialoguePresentationWindow.cs"
     },
     {
       "evidence": {
@@ -108190,7 +108559,7 @@
     },
     {
       "evidence": {
-        "line": 11040,
+        "line": 11049,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -108199,7 +108568,7 @@
     },
     {
       "evidence": {
-        "line": 11045,
+        "line": 11054,
         "path": "apps/Forge.Toolset/addons/openrpg_forge/ForgeEditorPlugin.cs"
       },
       "kind": "defined_in",
@@ -108838,7 +109207,7 @@
     },
     {
       "evidence": {
-        "line": 109,
+        "line": 155,
         "path": "src/Forge.Domain/Dialogues/DialoguePresentationValidator.cs"
       },
       "kind": "validates",
@@ -109549,8 +109918,8 @@
       "python"
     ],
     "schema_version": 1,
-    "source_digest": "sha256:35551b66c01f8151b2798234f8841bd94310e7a5cccaf44bfef253df1fbdaace",
-    "source_file_count": 1853
+    "source_digest": "sha256:593cf07151325878b675db19f3016645f4ff030d12bff6a8d419f435b3a2e1ce",
+    "source_file_count": 1849
   },
   "nodes": [
     {
@@ -111534,46 +111903,6 @@
       "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/editor-profile.json"
     },
     {
-      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-394d319a-dd83-5cd2-b35a-c13926de43ce.json",
-      "kind": "configuration",
-      "line": 1,
-      "metadata": {
-        "language": "configuration"
-      },
-      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-394d319a-dd83-5cd2-b35a-c13926de43ce.json",
-      "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-394d319a-dd83-5cd2-b35a-c13926de43ce.json"
-    },
-    {
-      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-70dff235-6e20-5e94-a5b2-2c1731b3e3a9.json",
-      "kind": "configuration",
-      "line": 1,
-      "metadata": {
-        "language": "configuration"
-      },
-      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-70dff235-6e20-5e94-a5b2-2c1731b3e3a9.json",
-      "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-70dff235-6e20-5e94-a5b2-2c1731b3e3a9.json"
-    },
-    {
-      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-a572da33-4c97-599a-8201-983e4efc820b.json",
-      "kind": "configuration",
-      "line": 1,
-      "metadata": {
-        "language": "configuration"
-      },
-      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-a572da33-4c97-599a-8201-983e4efc820b.json",
-      "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-a572da33-4c97-599a-8201-983e4efc820b.json"
-    },
-    {
-      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-e469de5f-d1a1-5682-9b20-94d1ebf51cf3.json",
-      "kind": "configuration",
-      "line": 1,
-      "metadata": {
-        "language": "configuration"
-      },
-      "name": "93b6f81b-49eb-4e3d-a156-08ad78529525-e469de5f-d1a1-5682-9b20-94d1ebf51cf3.json",
-      "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/navigation/93b6f81b-49eb-4e3d-a156-08ad78529525-e469de5f-d1a1-5682-9b20-94d1ebf51cf3.json"
-    },
-    {
       "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/.forge/quality/governance-report.json",
       "kind": "configuration",
       "line": 1,
@@ -111612,46 +111941,6 @@
       },
       "name": "visual-review-manifest.json",
       "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/quality/visual-reviews/visual-review-manifest.json"
-    },
-    {
-      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/.forge/recovery/20260806T141441898Z-r00000130-8a73b9d6.json",
-      "kind": "configuration",
-      "line": 1,
-      "metadata": {
-        "language": "configuration"
-      },
-      "name": "20260806T141441898Z-r00000130-8a73b9d6.json",
-      "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/recovery/20260806T141441898Z-r00000130-8a73b9d6.json"
-    },
-    {
-      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/.forge/recovery/20260806T144744078Z-r00000126-09782106.json",
-      "kind": "configuration",
-      "line": 1,
-      "metadata": {
-        "language": "configuration"
-      },
-      "name": "20260806T144744078Z-r00000126-09782106.json",
-      "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/recovery/20260806T144744078Z-r00000126-09782106.json"
-    },
-    {
-      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/.forge/recovery/20260806T145215507Z-r00000132-09782106.json",
-      "kind": "configuration",
-      "line": 1,
-      "metadata": {
-        "language": "configuration"
-      },
-      "name": "20260806T145215507Z-r00000132-09782106.json",
-      "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/recovery/20260806T145215507Z-r00000132-09782106.json"
-    },
-    {
-      "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/.forge/recovery/journal.json",
-      "kind": "configuration",
-      "line": 1,
-      "metadata": {
-        "language": "configuration"
-      },
-      "name": "journal.json",
-      "path": "apps/Forge.Runtime/content/crypt-of-ashes/.forge/recovery/journal.json"
     },
     {
       "id": "file:apps/Forge.Runtime/content/crypt-of-ashes/areas/93b6f81b-49eb-4e3d-a156-08ad78529525-4a34115af9ab6cfe.json",
@@ -113554,6 +113843,16 @@
       "path": "docs/ADR/ADR-0037-canonical-dialogue-presentation.md"
     },
     {
+      "id": "file:docs/ADR/ADR-0038-deterministic-adaptive-dialogue.md",
+      "kind": "decision",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "ADR-0038-deterministic-adaptive-dialogue.md",
+      "path": "docs/ADR/ADR-0038-deterministic-adaptive-dialogue.md"
+    },
+    {
       "id": "file:docs/ARCHITECTURE.md",
       "kind": "document",
       "line": 1,
@@ -114532,6 +114831,16 @@
       },
       "name": "G13-H-DIALOGUE-PRESENTATION.md",
       "path": "docs/aurora-parity/tasks/G13-H-DIALOGUE-PRESENTATION.md"
+    },
+    {
+      "id": "file:docs/aurora-parity/tasks/G13-I-ADAPTIVE-DIALOGUE.md",
+      "kind": "document",
+      "line": 1,
+      "metadata": {
+        "language": "markdown"
+      },
+      "name": "G13-I-ADAPTIVE-DIALOGUE.md",
+      "path": "docs/aurora-parity/tasks/G13-I-ADAPTIVE-DIALOGUE.md"
     },
     {
       "id": "file:docs/aurora-parity/tasks/G7-01-GENERIC-SECOND-MODULE.md",
@@ -119942,6 +120251,16 @@
       },
       "name": "DialogueActionKind.cs",
       "path": "src/Forge.Domain/Dialogues/DialogueActionKind.cs"
+    },
+    {
+      "id": "file:src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DialogueAdaptiveRuntimeResolver.cs",
+      "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
     },
     {
       "id": "file:src/Forge.Domain/Dialogues/DialogueChoice.cs",
@@ -126092,6 +126411,16 @@
       },
       "name": "CreatureRoleBehaviorProfileTests.cs",
       "path": "tests/Forge.Domain.Tests/Creatures/CreatureRoleBehaviorProfileTests.cs"
+    },
+    {
+      "id": "file:tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs",
+      "kind": "file",
+      "line": 1,
+      "metadata": {
+        "language": "csharp"
+      },
+      "name": "DialogueAdaptivePresentationTests.cs",
+      "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
     },
     {
       "id": "file:tests/Forge.Domain.Tests/Dialogues/DialoguePresentationTests.cs",
@@ -133166,7 +133495,7 @@
     {
       "id": "model:Forge.Domain.Dialogues.DialogueCompanionState",
       "kind": "model",
-      "line": 129,
+      "line": 213,
       "metadata": {
         "namespace": "Forge.Domain.Dialogues"
       },
@@ -133212,6 +133541,16 @@
       },
       "name": "DialogueNodeId",
       "path": "src/Forge.Domain/Dialogues/DialogueNodeId.cs"
+    },
+    {
+      "id": "model:Forge.Domain.Dialogues.DialogueTimedChoiceRuntimeState",
+      "kind": "model",
+      "line": 18,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueTimedChoiceRuntimeState",
+      "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
     },
     {
       "id": "model:Forge.Domain.Entities.EntityId",
@@ -134576,7 +134915,7 @@
     {
       "id": "model:Forge.Mcp.Dialogues.DialoguePresentationPlanResult",
       "kind": "model",
-      "line": 31,
+      "line": 34,
       "metadata": {
         "namespace": "Forge.Mcp.Dialogues"
       },
@@ -134676,7 +135015,7 @@
     {
       "id": "model:Forge.Mcp.Projects.ForgeProjectAgentOpenResult",
       "kind": "model",
-      "line": 3977,
+      "line": 3983,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -137106,7 +137445,7 @@
     {
       "id": "model:Forge.Runtime.PrototypeQuestState",
       "kind": "model",
-      "line": 4055,
+      "line": 4096,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -138819,7 +139158,7 @@
     {
       "id": "service:Forge.Application.Dialogues.DialoguePresentationScriptService",
       "kind": "service",
-      "line": 19,
+      "line": 22,
       "metadata": {
         "namespace": "Forge.Application.Dialogues"
       },
@@ -141257,6 +141596,16 @@
       "path": "tests/Forge.Domain.Tests/Creatures/CreatureRoleBehaviorProfileTests.cs"
     },
     {
+      "id": "test:Forge.Domain.Tests.Dialogues.DialogueAdaptivePresentationTests",
+      "kind": "test",
+      "line": 5,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Dialogues"
+      },
+      "name": "DialogueAdaptivePresentationTests",
+      "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
+    },
+    {
       "id": "test:Forge.Domain.Tests.Dialogues.DialoguePresentationTests",
       "kind": "test",
       "line": 7,
@@ -141305,6 +141654,16 @@
       },
       "name": "TestEvaluator",
       "path": "tests/Forge.Domain.Tests/Dialogues/DialogueTraversalTests.cs"
+    },
+    {
+      "id": "test:Forge.Domain.Tests.Dialogues.VariableEvaluator",
+      "kind": "test",
+      "line": 146,
+      "metadata": {
+        "namespace": "Forge.Domain.Tests.Dialogues"
+      },
+      "name": "VariableEvaluator",
+      "path": "tests/Forge.Domain.Tests/Dialogues/DialogueAdaptivePresentationTests.cs"
     },
     {
       "id": "test:Forge.Domain.Tests.Entities.EntityIdTests",
@@ -147294,9 +147653,39 @@
       "path": "src/Forge.Domain/Dialogues/DialogueAction.cs"
     },
     {
+      "id": "type:Forge.Domain.Dialogues.DialogueAdaptiveResolution",
+      "kind": "type",
+      "line": 32,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueAdaptiveResolution",
+      "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Dialogues.DialogueAdaptiveRuntimeContext",
+      "kind": "type",
+      "line": 8,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueAdaptiveRuntimeContext",
+      "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Dialogues.DialogueAdaptiveRuntimeResolver",
+      "kind": "type",
+      "line": 37,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueAdaptiveRuntimeResolver",
+      "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+    },
+    {
       "id": "type:Forge.Domain.Dialogues.DialogueAnimationCue",
       "kind": "type",
-      "line": 58,
+      "line": 90,
       "metadata": {
         "namespace": "Forge.Domain.Dialogues"
       },
@@ -147316,7 +147705,7 @@
     {
       "id": "type:Forge.Domain.Dialogues.DialogueBookmark",
       "kind": "type",
-      "line": 105,
+      "line": 137,
       "metadata": {
         "namespace": "Forge.Domain.Dialogues"
       },
@@ -147336,7 +147725,7 @@
     {
       "id": "type:Forge.Domain.Dialogues.DialogueCameraShot",
       "kind": "type",
-      "line": 88,
+      "line": 120,
       "metadata": {
         "namespace": "Forge.Domain.Dialogues"
       },
@@ -147396,7 +147785,7 @@
     {
       "id": "type:Forge.Domain.Dialogues.DialogueInterjectionRule",
       "kind": "type",
-      "line": 115,
+      "line": 147,
       "metadata": {
         "namespace": "Forge.Domain.Dialogues"
       },
@@ -147426,7 +147815,7 @@
     {
       "id": "type:Forge.Domain.Dialogues.DialoguePresentationResolution",
       "kind": "type",
-      "line": 145,
+      "line": 229,
       "metadata": {
         "namespace": "Forge.Domain.Dialogues"
       },
@@ -147436,7 +147825,7 @@
     {
       "id": "type:Forge.Domain.Dialogues.DialoguePresentationRuntimeContext",
       "kind": "type",
-      "line": 135,
+      "line": 219,
       "metadata": {
         "namespace": "Forge.Domain.Dialogues"
       },
@@ -147454,6 +147843,16 @@
       "path": "src/Forge.Domain/Dialogues/DialoguePresentationRuntimeResolver.cs"
     },
     {
+      "id": "type:Forge.Domain.Dialogues.DialogueRuntimeAuthorityScope",
+      "kind": "type",
+      "line": 161,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueRuntimeAuthorityScope",
+      "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+    },
+    {
       "id": "type:Forge.Domain.Dialogues.DialogueStep",
       "kind": "type",
       "line": 3,
@@ -147462,6 +147861,36 @@
       },
       "name": "DialogueStep",
       "path": "src/Forge.Domain/Dialogues/DialogueStep.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Dialogues.DialogueTextVariant",
+      "kind": "type",
+      "line": 194,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueTextVariant",
+      "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Dialogues.DialogueTimedChoicePausePolicy",
+      "kind": "type",
+      "line": 167,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueTimedChoicePausePolicy",
+      "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Dialogues.DialogueTimedChoiceRule",
+      "kind": "type",
+      "line": 174,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueTimedChoiceRule",
+      "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
     },
     {
       "id": "type:Forge.Domain.Dialogues.DialogueTraversal",
@@ -147474,9 +147903,39 @@
       "path": "src/Forge.Domain/Dialogues/DialogueTraversal.cs"
     },
     {
+      "id": "type:Forge.Domain.Dialogues.DialogueVariantSeedScope",
+      "kind": "type",
+      "line": 186,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueVariantSeedScope",
+      "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Dialogues.DialogueVariantSelection",
+      "kind": "type",
+      "line": 26,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueVariantSelection",
+      "path": "src/Forge.Domain/Dialogues/DialogueAdaptiveRuntimeResolver.cs"
+    },
+    {
+      "id": "type:Forge.Domain.Dialogues.DialogueVariantSet",
+      "kind": "type",
+      "line": 201,
+      "metadata": {
+        "namespace": "Forge.Domain.Dialogues"
+      },
+      "name": "DialogueVariantSet",
+      "path": "src/Forge.Domain/Dialogues/DialoguePresentationProfile.cs"
+    },
+    {
       "id": "type:Forge.Domain.Dialogues.DialogueVoiceCue",
       "kind": "type",
-      "line": 72,
+      "line": 104,
       "metadata": {
         "namespace": "Forge.Domain.Dialogues"
       },
@@ -150196,7 +150655,7 @@
     {
       "id": "type:Forge.Mcp.Dialogues.DialoguePresentationPlanRequest",
       "kind": "type",
-      "line": 25,
+      "line": 28,
       "metadata": {
         "namespace": "Forge.Mcp.Dialogues"
       },
@@ -150476,7 +150935,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAreaExperiencePlan",
       "kind": "type",
-      "line": 3950,
+      "line": 3956,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150486,7 +150945,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssetInstallPlan",
       "kind": "type",
-      "line": 3870,
+      "line": 3876,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150496,7 +150955,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAbilityPlan",
       "kind": "type",
-      "line": 3698,
+      "line": 3704,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150506,7 +150965,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAreaBuildPlan",
       "kind": "type",
-      "line": 3843,
+      "line": 3849,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150516,7 +150975,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedAreaPlan",
       "kind": "type",
-      "line": 3826,
+      "line": 3832,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150526,7 +150985,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedBlenderCreationPlan",
       "kind": "type",
-      "line": 3715,
+      "line": 3721,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150536,7 +150995,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedBossPlan",
       "kind": "type",
-      "line": 3681,
+      "line": 3687,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150546,7 +151005,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedDialoguePlan",
       "kind": "type",
-      "line": 3647,
+      "line": 3653,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150556,7 +151015,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedForgeScriptPlan",
       "kind": "type",
-      "line": 3768,
+      "line": 3774,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150566,7 +151025,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedModel3DGenerationPlan",
       "kind": "type",
-      "line": 3732,
+      "line": 3738,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150576,7 +151035,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredAssistedQuestPlan",
       "kind": "type",
-      "line": 3664,
+      "line": 3670,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150586,7 +151045,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredCinematicPlan",
       "kind": "type",
-      "line": 3911,
+      "line": 3917,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150596,7 +151055,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredDialoguePlan",
       "kind": "type",
-      "line": 3782,
+      "line": 3788,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150606,7 +151065,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredExternalWorkerSecurityPlan",
       "kind": "type",
-      "line": 3749,
+      "line": 3755,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150616,7 +151075,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredGameplayControlPlan",
       "kind": "type",
-      "line": 3924,
+      "line": 3930,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150626,7 +151085,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredLoreIndexPlan",
       "kind": "type",
-      "line": 3809,
+      "line": 3815,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150636,7 +151095,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRulesProfilePlan",
       "kind": "type",
-      "line": 3937,
+      "line": 3943,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150646,7 +151105,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimeExtensionPlan",
       "kind": "type",
-      "line": 3963,
+      "line": 3969,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -150656,7 +151115,7 @@
     {
       "id": "type:Forge.Mcp.Projects.StoredRuntimePolicyPlan",
       "kind": "type",
-      "line": 3887,
+      "line": 3893,
       "metadata": {
         "namespace": "Forge.Mcp.Projects"
       },
@@ -155576,7 +156035,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeAreaChunkLoader",
       "kind": "type",
-      "line": 3984,
+      "line": 4025,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -155606,7 +156065,7 @@
     {
       "id": "type:Forge.Runtime.RuntimeConditionEvaluator",
       "kind": "type",
-      "line": 4023,
+      "line": 4064,
       "metadata": {
         "namespace": "Forge.Runtime"
       },
@@ -156526,7 +156985,7 @@
     {
       "id": "type:Forge.Toolset.Editor.NewModuleCreationOutcome",
       "kind": "type",
-      "line": 11035,
+      "line": 11044,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -156542,6 +157001,16 @@
       },
       "name": "PlaytestProcessRunner",
       "path": "apps/Forge.Toolset/addons/openrpg_forge/PlaytestProcessRunner.cs"
+    },
+    {
+      "id": "type:Forge.Toolset.Editor.PreviewConditionEvaluator",
+      "kind": "type",
+      "line": 422,
+      "metadata": {
+        "namespace": "Forge.Toolset.Editor"
+      },
+      "name": "PreviewConditionEvaluator",
+      "path": "apps/Forge.Toolset/addons/openrpg_forge/DialoguePresentationWindow.cs"
     },
     {
       "id": "type:Forge.Toolset.Editor.ProjectPreview3D",
@@ -156616,7 +157085,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeDialogueConditionEvaluator",
       "kind": "type",
-      "line": 11040,
+      "line": 11049,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },
@@ -156626,7 +157095,7 @@
     {
       "id": "type:Forge.Toolset.Editor.SmokeQuestConditionEvaluator",
       "kind": "type",
-      "line": 11045,
+      "line": 11054,
       "metadata": {
         "namespace": "Forge.Toolset.Editor"
       },

@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.23.0",
+  "formatVersion": "1.24.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -2243,6 +2243,61 @@
               "cooldownSeconds": 30,
               "conflictGroup": "elyra-main",
               "conflictPolicy": "highestPriority",
+              "provenance": "toolset:dialogue-presentation"
+            }
+          ],
+          "timedChoices": [
+            {
+              "id": "9dd7961f-1b22-3d87-024a-1af798fe9a11",
+              "nodeId": "41000000-0000-4000-8000-000000000001",
+              "durationMilliseconds": 7000,
+              "defaultChoiceId": "42000000-0000-4000-8000-000000000003",
+              "pausePolicy": "accessibilityOnly",
+              "authorityScope": "server",
+              "serverRevision": 1,
+              "timeoutScriptId": "dialogue.timeout.accept-quest",
+              "auditActorId": "sample-author",
+              "provenance": "toolset:dialogue-presentation"
+            }
+          ],
+          "variantSets": [
+            {
+              "id": "be3376e2-d12d-5fec-61fb-41d857e682c9",
+              "nodeId": "41000000-0000-4000-8000-000000000001",
+              "key": "elyra-opening",
+              "seedScope": "session",
+              "seedOffset": 17,
+              "antiRepeatWindow": 1,
+              "authorityScope": "server",
+              "requiredAtRuntime": true,
+              "variants": [
+                {
+                  "id": "21bdf78b-561a-1703-fd23-e60e6806ccd2",
+                  "text": {
+                    "key": "dialogue.elyra.entry.variant.calm",
+                    "fallback": "La braise vous a conduit jusqu\u2019ici. La crypte \u00E9coute votre r\u00E9ponse."
+                  },
+                  "weight": 3,
+                  "conditions": [],
+                  "provenance": "toolset:dialogue-presentation"
+                },
+                {
+                  "id": "1356d04e-74b5-9fe1-d65f-44d18a4da6b2",
+                  "text": {
+                    "key": "dialogue.elyra.entry.variant.ember",
+                    "fallback": "La braise fr\u00E9mit : le Gardien sait que vous \u00EAtes ici."
+                  },
+                  "weight": 1,
+                  "conditions": [
+                    {
+                      "kind": "variableEquals",
+                      "key": "warden.awake",
+                      "expectedValue": "true"
+                    }
+                  ],
+                  "provenance": "toolset:dialogue-presentation"
+                }
+              ],
               "provenance": "toolset:dialogue-presentation"
             }
           ]

@@ -68,7 +68,9 @@ capacité G13 ne peut imposer un fournisseur, un abonnement ou un asset proprié
   propagation par témoins, memberships multiples et factions dynamiques.
 - [x] **G13-H** — `ORF-DLG-014`, `ORF-DLG-015`, `ORF-DLG-016`, `ORF-DLG-020`, `ORF-DLG-023` :
   animations, voix, caméra, bookmarks et interjections de dialogue.
-- [ ] **G13-I et suivants** — développement volontairement arrêté après G13-H ; aucune nouvelle
+- [x] **G13-I** — `ORF-DLG-025`, `ORF-DLG-027` : choix temporisés accessibles et variantes
+  conditionnelles/pondérées déterministes.
+- [ ] **G13-J et suivants** — développement volontairement arrêté après G13-I ; aucune nouvelle
   tranche ne démarre sans demande explicite de l’utilisateur.
 
 ## Gate de fermeture

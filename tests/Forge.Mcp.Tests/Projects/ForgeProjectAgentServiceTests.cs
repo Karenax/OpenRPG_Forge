@@ -57,6 +57,7 @@ public sealed class ForgeProjectAgentServiceTests
         var before = workspace.Project.QueryDialoguePresentations();
         var planned = workspace.Project.PreviewDialoguePresentation(new(1, 0, dialogueId, profile));
         var after = workspace.Project.QueryDialoguePresentations("elyra", 1);
+        var byVariant = workspace.Project.QueryDialoguePresentations("elyra-opening", 1);
 
         var existing = Assert.Single(before.Items);
         Assert.Equal("elyra-crypt-of-ashes", existing.Slug);
@@ -66,6 +67,10 @@ public sealed class ForgeProjectAgentServiceTests
         var unchanged = Assert.Single(after.Items);
         Assert.Equal(existing.ProfileId, unchanged.ProfileId);
         Assert.Equal(existing.InterjectionRuleCount, unchanged.InterjectionRuleCount);
+        Assert.Equal(1, existing.TimedChoiceCount);
+        Assert.Equal(1, existing.VariantSetCount);
+        Assert.Equal(2, existing.VariantCount);
+        Assert.Equal(existing.ProfileId, Assert.Single(byVariant.Items).ProfileId);
         Assert.Equal(0, workspace.Project.GetCurrentRevision());
         Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.QueryDialoguePresentations(limit: 101));
         Assert.False(workspace.Project.PreviewDialoguePresentation(new(2, 0, dialogueId, profile)).Succeeded);

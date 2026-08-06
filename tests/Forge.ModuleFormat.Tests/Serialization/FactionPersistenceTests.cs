@@ -22,7 +22,7 @@ public sealed class FactionPersistenceTests : IDisposable
         var json = ProjectJsonSerializer.Serialize(project);
         var restored = ProjectJsonSerializer.Deserialize(json);
 
-        Assert.Contains("\"formatVersion\": \"0.6.29\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.30\"", json, StringComparison.Ordinal);
         Assert.Equal(json, ProjectJsonSerializer.Serialize(restored));
         Assert.Equal("Ember Pilgrim", restored.Module.Factions.Advanced!.Memberships[1].CoverIdentity);
         Assert.Equal(FactionDiplomacyStatus.War,
@@ -45,7 +45,7 @@ public sealed class FactionPersistenceTests : IDisposable
         Assert.True(reopened.Succeeded);
         Assert.Equal(ProjectJsonSerializer.Serialize(project),
             ProjectJsonSerializer.Serialize(reopened.Session!.Project));
-        Assert.Contains("\"formatVersion\": \"1.23.0\"",
+        Assert.Contains("\"formatVersion\": \"1.24.0\"",
             File.ReadAllText(reopened.Session.ProjectFilePath), StringComparison.Ordinal);
     }
 

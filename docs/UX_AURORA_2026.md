@@ -253,6 +253,13 @@ planification, permissions multijoueur et fournisseur de combat. Dans le jeu, `T
 `P` gèle puis rejoue la file planifiée, `T` active le ralenti et `M` change de fournisseur. Le HUD
 expose toujours l’état du temps, du combat, de la file, du mouvement, du souffle et de l’endurance.
 
+Les dialogues adaptatifs gardent le temps lisible sans pression visuelle agressive : l’auteur voit
+deux onglets dédiés, un résumé de validation et une simulation timer/variante. La future présentation
+joueur réservera un anneau de progression fin autour de la zone de choix, un libellé numérique
+accessible et un état pause explicite ; couleur et animation ne seront jamais les seuls signaux. Les
+variantes montrent leur clé de localisation, poids, conditions, seed et historique anti-répétition,
+afin qu’un changement procédural reste explicable et reproductible.
+
 ## Contexte graphique 3D
 
 G12-C ajoute **Plans de zone** depuis l’Assistant. Trois colonnes séparent le brief borné (zone,

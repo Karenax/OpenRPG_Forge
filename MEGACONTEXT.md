@@ -1849,10 +1849,11 @@ Le présent paquet contient uniquement :
 
 ## Prochaine action autorisée
 
-La file G13 a livré G13-H : `ORF-DLG-014`, `ORF-DLG-015`, `ORF-DLG-016`, `ORF-DLG-020` et
-`ORF-DLG-023`, regroupées autour de la présentation cinématique et des interjections de dialogue.
-Le développement est arrêté après ce lot. Conserver les modules jouables, le runtime sans IA, les
-formats migrables et le gate intégré vert ; ne pas démarrer G13-I sans demande explicite.
+La file G13 a livré G13-I : `ORF-DLG-025` et `ORF-DLG-027` ajoutent au profil de présentation les
+choix temporisés accessibles et les variantes conditionnelles/pondérées déterministes. G13-H reste
+la fondation animation, voix, caméra, bookmarks et interjections. Le développement est arrêté après
+G13-I. Conserver les modules jouables, le runtime sans IA, les formats migrables et le gate intégré
+vert ; ne pas démarrer G13-J sans demande explicite.
 
 
 ---

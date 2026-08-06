@@ -46,7 +46,8 @@ public sealed class SetDialoguePresentationHandler
             ? $"Clear presentation for dialogue '{current.DisplayName}'."
             : $"Set {profile.AnimationCues.Count} animation(s), {profile.VoiceCues.Count} voice cue(s), " +
               $"{profile.CameraShots.Count} shot(s), {profile.Bookmarks.Count} bookmark(s), and " +
-              $"{profile.InterjectionRules.Count} interjection(s).";
+              $"{profile.InterjectionRules.Count} interjection(s), {profile.TimedChoices.Count} timed choice(s), and " +
+              $"{profile.VariantSets.Count} variant set(s).";
         var patch = new ProjectPatch("replace", $"dialogues/{command.DialogueId}/presentation", summary);
         var inverse = new ProjectPatch("replace", $"dialogues/{command.DialogueId}/presentation",
             current.Presentation is null ? "Restore empty presentation." : "Restore previous presentation profile.");

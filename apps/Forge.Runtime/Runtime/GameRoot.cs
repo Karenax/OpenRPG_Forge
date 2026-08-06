@@ -130,6 +130,9 @@ public partial class GameRoot : Node3D
     private int _dialogueCameraShotCount;
     private int _dialogueBookmarkCount;
     private int _dialogueInterjectionCount;
+    private int _dialogueTimedChoiceCount;
+    private int _dialogueVariantCount;
+    private string? _dialogueVariantKey;
     private bool _dialogueSubtitleFallback;
     private string _message = "Explorez la crypte.";
     private string? _moduleContentRoot;
@@ -3079,23 +3082,25 @@ public partial class GameRoot : Node3D
 
         var traversal = new DialogueTraversal(_elyraDialogue);
         var start = traversal.Start();
-        ApplyDialoguePresentation(start.Node!.Id);
         var evaluator = new RuntimeConditionEvaluator(this);
+        var variantText = ApplyDialoguePresentation(start.Node!.Id, evaluator);
         var choice = traversal.GetAvailableChoices(evaluator).FirstOrDefault();
         if (choice is null)
         {
-            _message = $"{_guideName} : {start.Node!.Text.Fallback}";
+            _message = $"{_guideName} : {variantText ?? start.Node!.Text.Fallback}";
             return;
         }
 
         var step = traversal.Choose(choice.Id, evaluator);
         ApplyDialogueActions(step.Actions);
-        _message = $"{_guideName} : {step.Node?.Text.Fallback ?? start.Node!.Text.Fallback}";
+        var destination = step.Node?.Text.Fallback ?? start.Node!.Text.Fallback;
+        _message = variantText is null ? $"{_guideName} : {destination}" :
+            $"{_guideName} : {variantText} → {destination}";
     }
 
-    private void ApplyDialoguePresentation(DialogueNodeId nodeId)
+    private string? ApplyDialoguePresentation(DialogueNodeId nodeId, IDialogueConditionEvaluator evaluator)
     {
-        if (_elyraDialogue is null) return;
+        if (_elyraDialogue is null) return null;
         var participant = _elyraDialogue.Nodes.First(item => item.Id == nodeId).SpeakerBlueprintId;
         IReadOnlyList<DialogueCompanionState> companions = participant is null ? [] :
             [new(participant, _npc is not null, 100, new HashSet<string>(["guardian"], StringComparer.Ordinal))];
@@ -3105,7 +3110,7 @@ public partial class GameRoot : Node3D
         var resolution = DialoguePresentationRuntimeResolver.Resolve(_elyraDialogue, nodeId, context);
         foreach (var diagnostic in resolution.Diagnostics)
             GD.PrintErr($"OPENRPG_FORGE_DIALOGUE_PRESENTATION_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
-        if (resolution.Diagnostics.Count > 0) return;
+        if (resolution.Diagnostics.Count > 0) return null;
 
         _dialogueAnimationCueCount += resolution.AnimationCues.Count;
         if (_npc is not null && _characterAnimations.TryGetValue(_npc, out var animation))
@@ -3136,7 +3141,23 @@ public partial class GameRoot : Node3D
         }
         _dialogueBookmarkCount += _elyraDialogue.Presentation?.Bookmarks.Count(item => item.NodeId == nodeId) ?? 0;
         if (resolution.Interjection is not null) _dialogueInterjectionCount++;
+
+        var adaptive = DialogueAdaptiveRuntimeResolver.Resolve(_elyraDialogue, nodeId, 0,
+            AdaptiveDialogueContext(), evaluator);
+        foreach (var diagnostic in adaptive.Diagnostics)
+            GD.PrintErr($"OPENRPG_FORGE_ADAPTIVE_DIALOGUE_DIAGNOSTIC code={diagnostic.Code} path={diagnostic.Path}");
+        if (adaptive.Diagnostics.Count > 0) return null;
+        if (adaptive.TimedChoice is not null) _dialogueTimedChoiceCount++;
+        if (adaptive.Variant is null) return null;
+        _dialogueVariantCount++;
+        _dialogueVariantKey = adaptive.Variant.Variant.Text.Key;
+        GD.Print($"OPENRPG_FORGE_DIALOGUE_VARIANT set={adaptive.Variant.Set.Key} " +
+            $"key={_dialogueVariantKey} locale={adaptive.Variant.Locale} roll={adaptive.Variant.DeterministicRoll}");
+        return adaptive.Variant.Variant.Text.Fallback;
     }
+
+    private DialogueAdaptiveRuntimeContext AdaptiveDialogueContext() => new("fr-FR", true, 1, false, false, 2026,
+        _elyraDialogue?.Id.Value ?? Guid.Empty, new Dictionary<Guid, IReadOnlyList<Guid>>());
 
     private void ApplyDialogueActions(IReadOnlyList<DialogueAction> actions)
     {
@@ -3585,8 +3606,9 @@ public partial class GameRoot : Node3D
 
         InteractWith(_npc!);
         AssertSmoke(_questState == PrototypeQuestState.Active, "NPC interaction did not start the quest.");
-        AssertSmoke(_elyraDialogue?.Presentation is { } dialoguePresentation &&
-                    DialoguePresentationValidator.Validate(_elyraDialogue).Count == 0,
+        var dialoguePresentation = _elyraDialogue?.Presentation;
+        AssertSmoke(dialoguePresentation is not null &&
+                    DialoguePresentationValidator.Validate(_elyraDialogue!).Count == 0,
             "The authored dialogue presentation profile did not resolve.");
         AssertSmoke(_dialogueAnimationCueCount == 1 && _dialogueVoiceCueCount == 1 &&
                     _dialogueCameraShotCount == 1 && _dialogueBookmarkCount == 1 &&
@@ -3597,6 +3619,25 @@ public partial class GameRoot : Node3D
             $"shots={_dialogueCameraShotCount} bookmarks={_dialogueBookmarkCount} " +
             $"interjections={_dialogueInterjectionCount} subtitle_fallback={_dialogueSubtitleFallback.ToString().ToLowerInvariant()} " +
             "authority=server accessibility=player-priority");
+        var timedRule = AssertSingle(dialoguePresentation!.TimedChoices);
+        var adaptiveTimeout = DialogueAdaptiveRuntimeResolver.Resolve(_elyraDialogue!, _elyraDialogue!.EntryNodeId,
+            timedRule.DurationMilliseconds + 1, AdaptiveDialogueContext(), new RuntimeConditionEvaluator(this));
+        AssertSmoke(adaptiveTimeout.Diagnostics.Count == 0 && adaptiveTimeout.TimedChoice is
+        { TimedOut: true, SelectedChoiceId: not null, TimeoutScriptId: not null } &&
+            adaptiveTimeout.Variant is not null && _dialogueTimedChoiceCount == 1 && _dialogueVariantCount == 1 &&
+            !string.IsNullOrWhiteSpace(_dialogueVariantKey),
+            "Timed choice or deterministic localized variant did not execute.");
+        var accessibilityPause = DialogueAdaptiveRuntimeResolver.Resolve(_elyraDialogue!, _elyraDialogue!.EntryNodeId,
+            timedRule.DurationMilliseconds + 1,
+            AdaptiveDialogueContext() with { PauseRequested = true, AccessibilityPauseRequested = true },
+            new RuntimeConditionEvaluator(this));
+        AssertSmoke(accessibilityPause.TimedChoice is { Paused: true, TimedOut: false },
+            "The accessible timed-choice pause did not suspend timeout selection.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13I_ADAPTIVE_DIALOGUE_PASS " +
+            $"timed={_dialogueTimedChoiceCount} default={adaptiveTimeout.TimedChoice!.SelectedChoiceId} " +
+            $"timeout_script={adaptiveTimeout.TimedChoice.TimeoutScriptId} pause=accessible " +
+            $"variants={_dialogueVariantCount} key={_dialogueVariantKey} " +
+            $"roll={adaptiveTimeout.Variant!.DeterministicRoll} authority=server revision=1 seed=2026");
         AssertSmoke(
             _questMachine?.CurrentState.DisplayName == "Clé de braise",
             "NPC interaction did not start the data-driven quest.");
