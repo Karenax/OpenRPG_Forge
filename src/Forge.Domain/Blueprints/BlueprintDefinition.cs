@@ -27,6 +27,8 @@ public sealed record BlueprintDefinition
 
     public CreatureLootProfile? CreatureLoot { get; }
 
+    public CreatureRoleBehaviorProfile? CreatureRoleBehavior { get; }
+
     public bool IsReadOnly() => PaletteOrigin == BlueprintPaletteOrigin.InstalledPack;
 
     public BlueprintDefinition(
@@ -40,7 +42,8 @@ public sealed record BlueprintDefinition
         BlueprintProvenance? provenance = null,
         CreaturePresentationProfile? creaturePresentation = null,
         CreatureProgressionProfile? creatureProgression = null,
-        CreatureLootProfile? creatureLoot = null)
+        CreatureLootProfile? creatureLoot = null,
+        CreatureRoleBehaviorProfile? creatureRoleBehavior = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -78,5 +81,13 @@ public sealed record BlueprintDefinition
         }
 
         CreatureLoot = creatureLoot;
+        if (creatureRoleBehavior is not null && kind is not (BlueprintKind.Creature or BlueprintKind.PlayerSpawn))
+        {
+            throw new ArgumentException(
+                "Creature role and behavior can only be assigned to creature or player-spawn blueprints.",
+                nameof(creatureRoleBehavior));
+        }
+
+        CreatureRoleBehavior = creatureRoleBehavior;
     }
 }

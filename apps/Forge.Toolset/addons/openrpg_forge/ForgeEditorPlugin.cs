@@ -129,6 +129,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetCreaturePresentationHandler _creaturePresentationHandler = new(new SystemClock());
     private readonly SetCreatureProgressionHandler _creatureProgressionHandler = new(new SystemClock());
     private readonly SetCreatureLootHandler _creatureLootHandler = new(new SystemClock());
+    private readonly SetCreatureRoleBehaviorHandler _creatureRoleBehaviorHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -234,6 +235,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private CreaturePresentationWindow? _creaturePresentationWindow;
     private CreatureProgressionWindow? _creatureProgressionWindow;
     private CreatureLootWindow? _creatureLootWindow;
+    private CreatureRoleBehaviorWindow? _creatureRoleBehaviorWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
@@ -479,6 +481,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_creatureLootWindow);
+        _creatureRoleBehaviorWindow = new CreatureRoleBehaviorWindow();
+        _creatureRoleBehaviorWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyCreatureRoleBehavior,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_creatureRoleBehaviorWindow);
         _assistantWorkspace = new AssistantWorkspaceWindow();
         _assistantWorkspace.Initialize(
             () => _history?.State,
@@ -578,6 +588,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _creaturePresentationWindow?.Open(),
             () => _creatureProgressionWindow?.Open(),
             () => _creatureLootWindow?.Open(),
+            () => _creatureRoleBehaviorWindow?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rpgKitAuthoringWindow);
         _networkBetaWindow = new NetworkBetaWindow();
@@ -769,6 +780,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _creaturePresentationWindow = null;
         _creatureProgressionWindow = null;
         _creatureLootWindow = null;
+        _creatureRoleBehaviorWindow = null;
         _loreIndexWindow = null;
         _globalSearch = null;
         _moduleConfiguration = null;
@@ -2312,6 +2324,30 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             ApplyCommand(result, "Politique de butin de créature enregistrée dans le projet.", null);
             _creatureLootWindow?.Refresh();
+        }
+
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyCreatureRoleBehavior(
+        BlueprintId blueprintId,
+        CreatureRoleBehaviorProfile roleBehavior,
+        bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+
+        var command = new SetCreatureRoleBehaviorCommand(
+            CommandId.From(Guid.NewGuid()),
+            _history.State.Revision,
+            blueprintId,
+            roleBehavior,
+            dryRun);
+        var result = _creatureRoleBehaviorHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Rôle, activité et auto-level de créature enregistrés dans le projet.", null);
+            _creatureRoleBehaviorWindow?.Refresh();
         }
 
         return result;
@@ -5390,6 +5426,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunCreatureLootSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunCreatureRoleBehaviorSmokeTest())
         {
             return;
         }
@@ -9769,6 +9810,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         var applied = false;
+        var roleBehaviorDetached = false;
         try
         {
             _creatureProgressionWindow.Open();
@@ -9786,7 +9828,21 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_FAILED selection");
                 return false;
             }
-            var originalProgression = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId).CreatureProgression;
+            var originalBlueprint = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId);
+            var originalProgression = originalBlueprint.CreatureProgression;
+            var originalRoleBehaviorId = originalBlueprint.CreatureRoleBehavior?.Id;
+            if (originalBlueprint.CreatureRoleBehavior is not null)
+            {
+                var detach = new SetCreatureRoleBehaviorCommand(CommandId.From(Guid.NewGuid()),
+                    _history.State.Revision, blueprintId, null, false);
+                if (!ApplyCommand(_creatureRoleBehaviorHandler.Handle(_history.State, detach),
+                        "Isolation du profil G13-E pour le smoke de progression G13-C.", null))
+                {
+                    GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_FAILED behavior_detach");
+                    return false;
+                }
+                roleBehaviorDetached = true;
+            }
             if (!_creatureProgressionWindow.PreviewForSmokeTest() ||
                 _creatureProgressionWindow.LastCommandId == Guid.Empty ||
                 !_creatureProgressionWindow.LastPatchSummary.Contains("progression", StringComparison.OrdinalIgnoreCase) ||
@@ -9846,6 +9902,17 @@ public partial class ForgeEditorPlugin : EditorPlugin
             }
             Undo();
             applied = false;
+            if (roleBehaviorDetached)
+            {
+                Undo();
+                roleBehaviorDetached = false;
+                if (_history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id)
+                        .CreatureRoleBehavior?.Id != originalRoleBehaviorId)
+                {
+                    GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_FAILED behavior_restore");
+                    return false;
+                }
+            }
 
             GD.Print(
                 "OPENRPG_FORGE_TOOLSET_G13C_CREATURE_PROGRESSION_PASS tracks=multiclass-levels disposition=project-axes " +
@@ -9861,9 +9928,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
             if (applied)
             {
                 _history.Undo();
-                RebuildPreview();
-                RefreshEditorControls();
             }
+            if (roleBehaviorDetached) _history.Undo();
+            RebuildPreview();
+            RefreshEditorControls();
         }
     }
 
@@ -9894,15 +9962,19 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var originalLootId = original.CreatureLoot?.Id;
             if (original.CreatureProgression is null || original.CreatureProgression.Skills.Count < 2)
             {
-                var defaultProgression = CreatureProgressionProfile.CreateDefault(
+                var sourceProgression = original.CreatureProgression ?? CreatureProgressionProfile.CreateDefault(
                     Guid.Parse("a1420000-0000-4000-8000-000000000001"), "smoke:g13-d");
+                var fixtureSkills = sourceProgression.Skills
+                    .Where(item => item.SkillId is not ("sleight" or "awareness"))
+                    .Concat([
+                        new("sleight", "Larcin", "agility", 2, 10, 2, true, false, 12),
+                        new("awareness", "Vigilance", "insight", 2, 10, 2, true, false, 10),
+                    ]).ToArray();
                 var progression = new CreatureProgressionProfile(
-                    defaultProgression.Id, 1, defaultProgression.Provenance, defaultProgression.RulesetId,
-                    defaultProgression.AllowMultipleTracks, false, defaultProgression.Tracks,
-                    defaultProgression.DispositionAxes,
-                    [new("sleight", "Larcin", "agility", 2, 10, 2, true, false, 12),
-                     new("awareness", "Vigilance", "insight", 2, 10, 2, true, false, 10)],
-                    defaultProgression.Talents, defaultProgression.Loadout, defaultProgression.Overrides);
+                    sourceProgression.Id, 1, sourceProgression.Provenance, sourceProgression.RulesetId,
+                    sourceProgression.AllowMultipleTracks, sourceProgression.RequiredAtRuntime,
+                    sourceProgression.Tracks, sourceProgression.DispositionAxes, fixtureSkills,
+                    sourceProgression.Talents, sourceProgression.Loadout, sourceProgression.Overrides);
                 var command = new SetCreatureProgressionCommand(CommandId.From(Guid.NewGuid()),
                     _history.State.Revision, blueprintId, progression, false);
                 if (!ApplyCommand(_creatureProgressionHandler.Handle(_history.State, command),
@@ -9992,6 +10064,133 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             _creatureLootWindow.Hide();
             if (lootApplied) _history.Undo();
+            if (progressionApplied) _history.Undo();
+            RebuildPreview();
+            RefreshEditorControls();
+        }
+    }
+
+    private bool RunCreatureRoleBehaviorSmokeTest()
+    {
+        if (_history is null || _creatureRoleBehaviorWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13E_CREATURE_ROLE_BEHAVIOR_FAILED missing_workspace");
+            return false;
+        }
+
+        var progressionApplied = false;
+        var behaviorApplied = false;
+        try
+        {
+            _creatureRoleBehaviorWindow.Open();
+            var visible = _creatureRoleBehaviorWindow.Visible;
+            _creatureRoleBehaviorWindow.Hide();
+            var blueprintId = _creatureRoleBehaviorWindow.SelectedBlueprintId;
+            if (!visible || blueprintId is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13E_CREATURE_ROLE_BEHAVIOR_FAILED selection_ui");
+                return false;
+            }
+
+            var original = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId);
+            var originalBehaviorId = original.CreatureRoleBehavior?.Id;
+            var originalProgressionId = original.CreatureProgression?.Id;
+            if (original.CreatureProgression is null || original.CreatureProgression.Tracks.Count == 0)
+            {
+                var progression = CreatureProgressionProfile.CreateDefault(
+                    Guid.Parse("a1460000-0000-4000-8000-000000000001"), "smoke:g13-e");
+                var command = new SetCreatureProgressionCommand(CommandId.From(Guid.NewGuid()),
+                    _history.State.Revision, blueprintId, progression, false);
+                if (!ApplyCommand(_creatureProgressionHandler.Handle(_history.State, command),
+                        "Préparation du test de rôle et comportement.", null))
+                {
+                    GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13E_CREATURE_ROLE_BEHAVIOR_FAILED progression_fixture");
+                    return false;
+                }
+                progressionApplied = true;
+            }
+
+            var beforeTemplate = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId)
+                .CreatureProgression!;
+            var beforeLevel = beforeTemplate.Tracks.Sum(item => item.Level);
+            _creatureRoleBehaviorWindow.Refresh();
+            var configured = _creatureRoleBehaviorWindow.ConfigureForSmokeTest();
+            var previewed = configured && _creatureRoleBehaviorWindow.PreviewForSmokeTest();
+            var applied = previewed && _creatureRoleBehaviorWindow.LastCommandId != Guid.Empty &&
+                          _creatureRoleBehaviorWindow.LastPatchSummary.Contains("role and behavior",
+                              StringComparison.OrdinalIgnoreCase) &&
+                          _creatureRoleBehaviorWindow.ApplyForSmokeTest();
+            if (!configured || !previewed || !applied)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13E_CREATURE_ROLE_BEHAVIOR_FAILED preview_apply_ui " +
+                    $"configured={configured} previewed={previewed} applied={applied} " +
+                    $"patch={_creatureRoleBehaviorWindow.LastPatchSummary} diagnostics={_creatureRoleBehaviorWindow.LastDiagnostics}");
+                return false;
+            }
+
+            behaviorApplied = true;
+            var blueprint = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId);
+            var profile = blueprint.CreatureRoleBehavior;
+            var runtime = CreatureRoleBehaviorRuntimeResolver.Resolve(profile, blueprint.CreatureProgression,
+                21 * 60, false, required: true);
+            var serialized = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(serialized);
+            if (profile is null || profile.Id == Guid.Empty || profile.SchemaVersion != 1 ||
+                !profile.RequiredAtRuntime || profile.Role.LoreFields.GetValueOrDefault("deity") != "deity.embers" ||
+                profile.Role.RoleTags.Count < 2 || profile.Ambient.IdleSets.Count != 2 ||
+                profile.Ambient.Schedules.Count != 1 || profile.Ambient.Interactions.Count != 1 ||
+                profile.AutoLevel.Seed != 42 || profile.AutoLevel.ManualLock || !profile.AutoLevel.ApplyOnSave ||
+                CreatureRoleBehaviorValidator.Validate(profile, blueprint.CreatureProgression).Count != 0 ||
+                !runtime.Succeeded || runtime.ActiveAnimationId is null || runtime.AutoLevel is null ||
+                blueprint.CreatureProgression!.Tracks.Sum(item => item.Level) <= beforeLevel ||
+                _creatureRoleBehaviorWindow.SummarySectionCount != 3 ||
+                ProjectJsonSerializer.Serialize(restored) != serialized ||
+                restored.Blueprints.Single(item => item.Id == blueprint.Id).CreatureRoleBehavior?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13E_CREATURE_ROLE_BEHAVIOR_FAILED canonical_roundtrip_runtime_summary " +
+                    $"profile={profile is not null} lore={profile?.Role.LoreFields.Count ?? -1} " +
+                    $"idle={profile?.Ambient.IdleSets.Count ?? -1} runtime={runtime.Succeeded}/{runtime.ActiveAnimationId} " +
+                    $"level={blueprint.CreatureProgression?.Tracks.Sum(item => item.Level)} summary={_creatureRoleBehaviorWindow.SummarySectionCount}");
+                return false;
+            }
+
+            Undo(); behaviorApplied = false;
+            var undone = _history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id);
+            if (undone.CreatureRoleBehavior?.Id != originalBehaviorId ||
+                undone.CreatureProgression?.Tracks.Sum(item => item.Level) != beforeLevel)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13E_CREATURE_ROLE_BEHAVIOR_FAILED undo");
+                return false;
+            }
+            Redo(); behaviorApplied = true;
+            if (_history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id).CreatureRoleBehavior?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13E_CREATURE_ROLE_BEHAVIOR_FAILED redo");
+                return false;
+            }
+            Undo(); behaviorApplied = false;
+            if (progressionApplied)
+            {
+                Undo(); progressionApplied = false;
+                if (_history.State.Project.Blueprints.Single(item => item.Id == blueprint.Id).CreatureProgression?.Id !=
+                    originalProgressionId)
+                {
+                    GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13E_CREATURE_ROLE_BEHAVIOR_FAILED progression_restore");
+                    return false;
+                }
+            }
+
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13E_CREATURE_ROLE_BEHAVIOR_PASS role=ruleset-lore-tags-no-implicit-mechanics " +
+                "ambient=idle-schedule-interaction-waypoint-conversation-interruption-resume " +
+                "autolevel=deterministic-seed-preview-diff-apply-manual-lock ui=visible-empty-error-summary " +
+                "uuid=stable schema=v1 provenance=tracked transaction=identified dry-run=previewed audit=generated " +
+                "history=restored persistence=project-roundtrip runtime=optional-safe");
+            return true;
+        }
+        finally
+        {
+            _creatureRoleBehaviorWindow.Hide();
+            if (behaviorApplied) _history.Undo();
             if (progressionApplied) _history.Undo();
             RebuildPreview();
             RefreshEditorControls();

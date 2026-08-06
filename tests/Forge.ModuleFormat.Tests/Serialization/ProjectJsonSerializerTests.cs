@@ -105,6 +105,60 @@ public sealed class ProjectJsonSerializerTests
     }
 
     [Fact]
+    public void Deserialize_MigratesPreCreatureRoleBehaviorFormatWithEmptyProfile()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreCreatureRoleBehaviorFormatVersion;
+        foreach (var blueprint in document["project"]!["blueprints"]!.AsArray())
+            blueprint!.AsObject().Remove("creatureRoleBehavior");
+
+        var restored = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+
+        Assert.Null(restored.Blueprints.Single().CreatureRoleBehavior);
+        Assert.Contains($"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(restored), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SerializeAndDeserialize_RoundTripsCreatureRoleBehaviorAndTemplate()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var progression = new CreatureProgressionProfile(
+            Guid.Parse("a1440000-0000-4000-8000-000000000001"), 1, "author:test", "forge.generic", false, false,
+            [new("warden", "Gardien", 1, 20, 0, [])], [],
+            [new("awareness", "Vigilance", "insight", 1, 10, 0, true, false, 10)],
+            [new("ember-stance", "Posture", 0, 1, true, [], [], [])],
+            new("standard", AbilityLoadoutMode.Learned, 0, [], []), new Dictionary<string, string>());
+        var behavior = new CreatureRoleBehaviorProfile(
+            Guid.Parse("a1440000-0000-4000-8000-000000000002"), 1, "author:test", true,
+            new("forge.generic", new Dictionary<string, string> { ["deity"] = "deity.embers" }, ["guardian"]),
+            new("ambient.warden",
+                [new(Guid.Parse("a1440000-0000-4000-8000-000000000003"), "idle.watch", ["idle", "inspect"], 1, 2, 6)],
+                [new(Guid.Parse("a1440000-0000-4000-8000-000000000004"), "night-watch", 1200, 360,
+                    "idle.watch", "campfire", "warden-warning")], [],
+                new(true, true, true, AmbientResumeMode.Resume, .5)),
+            new(Guid.Parse("a1440000-0000-4000-8000-000000000005"), "warden-template", 42, 6, true, false,
+                [new("warden", 1)], [new("awareness", 2, 10)], [new("ember-stance", 4)]),
+            new Dictionary<string, string> { ["ambient.radius"] = "4" });
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance,
+            original.CreaturePresentation, progression, original.CreatureLoot, behavior);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        var restoredBehavior = Assert.IsType<CreatureRoleBehaviorProfile>(
+            restored.Blueprints.Single().CreatureRoleBehavior);
+        Assert.Equal("deity.embers", restoredBehavior.Role.LoreFields["deity"]);
+        Assert.Equal("idle.watch", Assert.Single(restoredBehavior.Ambient.IdleSets).SetId);
+        Assert.Equal(42, restoredBehavior.AutoLevel.Seed);
+    }
+
+    [Fact]
     public void Deserialize_MigratesPreCreatureLootFormatWithEmptyLootProfile()
     {
         var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();

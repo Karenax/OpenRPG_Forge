@@ -8,8 +8,8 @@ Total : **717** exigences.
 |---|---:|
 | Designed | 1 |
 | Implemented | 432 |
-| Researched | 198 |
-| Tested | 86 |
+| Researched | 195 |
+| Tested | 89 |
 
 | Gate | Nombre |
 |---|---:|

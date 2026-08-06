@@ -26,6 +26,7 @@ public static class ProjectValidator
     public const string DuplicateCreaturePresentationCode = "creature.presentation.uuid_duplicate";
     public const string DuplicateCreatureProgressionCode = "creature.progression.uuid_duplicate";
     public const string DuplicateCreatureLootCode = "creature.loot.uuid_duplicate";
+    public const string DuplicateCreatureRoleBehaviorCode = "creature.role_behavior.uuid_duplicate";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
@@ -38,6 +39,7 @@ public static class ProjectValidator
         var presentationIds = new HashSet<Guid>();
         var progressionIds = new HashSet<Guid>();
         var lootIds = new HashSet<Guid>();
+        var roleBehaviorIds = new HashSet<Guid>();
 
         diagnostics.AddRange(RuntimePolicyValidator.Validate(project.Module));
 
@@ -129,6 +131,20 @@ public static class ProjectValidator
                     diagnostics.Add(new DomainDiagnostic(DuplicateCreatureLootCode,
                         $"Creature loot profile '{blueprint.CreatureLoot.Id}' is assigned more than once.",
                         $"{lootPath}/id"));
+                }
+            }
+
+            if (blueprint.CreatureRoleBehavior is not null)
+            {
+                var roleBehaviorPath = $"blueprints/{blueprint.Id}/creatureRoleBehavior";
+                diagnostics.AddRange(CreatureRoleBehaviorValidator.Validate(blueprint.CreatureRoleBehavior,
+                        blueprint.CreatureProgression, roleBehaviorPath)
+                    .Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
+                if (!roleBehaviorIds.Add(blueprint.CreatureRoleBehavior.Id))
+                {
+                    diagnostics.Add(new DomainDiagnostic(DuplicateCreatureRoleBehaviorCode,
+                        $"Creature role and behavior profile '{blueprint.CreatureRoleBehavior.Id}' is assigned more than once.",
+                        $"{roleBehaviorPath}/id"));
                 }
             }
         }

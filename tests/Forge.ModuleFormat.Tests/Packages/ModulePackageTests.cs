@@ -21,6 +21,45 @@ public sealed class ModulePackageTests : IDisposable
         Guid.NewGuid().ToString("N"));
 
     [Fact]
+    public void ExportValidateAndLoad_PreservesCreatureRoleBehaviorAndAutoLevelTemplate()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var progression = new CreatureProgressionProfile(
+            Guid.Parse("a1450000-0000-4000-8000-000000000001"), 1, "author:test", "forge.generic", false, false,
+            [new("warden", "Gardien", 1, 20, 0, [])], [],
+            [new("awareness", "Vigilance", "insight", 1, 10, 0, true, false, 10)], [],
+            new("standard", AbilityLoadoutMode.Learned, 0, [], []), new Dictionary<string, string>());
+        var behavior = new CreatureRoleBehaviorProfile(
+            Guid.Parse("a1450000-0000-4000-8000-000000000002"), 1, "author:test", true,
+            new("forge.generic", new Dictionary<string, string> { ["occupation"] = "warden" }, ["guardian"]),
+            new("ambient.warden",
+                [new(Guid.Parse("a1450000-0000-4000-8000-000000000003"), "idle.watch", ["idle"], 1, 2, 6)],
+                [], [], new(true, true, true, AmbientResumeMode.Resume, .5)),
+            new(Guid.Parse("a1450000-0000-4000-8000-000000000004"), "warden-template", 42, 6, true, false,
+                [new("warden", 1)], [new("awareness", 2, 10)], []), new Dictionary<string, string>());
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance,
+            original.CreaturePresentation, progression, original.CreatureLoot, behavior);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+        var workspace = Path.Combine(_temporaryRoot, $"role-behavior-{Guid.NewGuid():N}");
+        Assert.True(ProjectSession.Create(workspace, project).Succeeded);
+        var package = Path.Combine(_temporaryRoot, "role-behavior.orpmod");
+
+        ModulePackager.Export(workspace, package);
+        var validation = ModulePackageValidator.Validate(package);
+        var loaded = ModulePackageLoader.Load(package, Path.Combine(_temporaryRoot, "role-behavior-cache"));
+
+        Assert.True(validation.IsValid, JoinDiagnostics(validation));
+        var restored = Assert.IsType<CreatureRoleBehaviorProfile>(
+            loaded.Project.Blueprints.Single().CreatureRoleBehavior);
+        Assert.Equal(behavior.Id, restored.Id);
+        Assert.Equal("warden", restored.Role.LoreFields["occupation"]);
+        Assert.Equal(42, restored.AutoLevel.Seed);
+    }
+
+    [Fact]
     public void ExportValidateAndLoad_PreservesCanonicalCreatureLootLifecycle()
     {
         var source = TestProjectFactory.CreateValid();

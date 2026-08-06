@@ -231,8 +231,9 @@ fournisseurs texte/image-to-3D optionnels avec licence, staging et acceptation h
 la politique canonique des workers externes. G12 est fermé. Le plan des 135 extensions post-1.0 est
 désormais `docs/aurora-parity/G13_DELIVERY_PLAN.md` ; G13-A livre le keymap configurable, G13-B
 livre l’identité et la présentation visuelle des créatures, G13-C livre leur progression
-data-driven, et G13-D ferme butin, pickpocket et cadavres avec une dépouille interactive dans le
-runtime. G13-E cible ensuite informations de rôle, animations ambiantes et auto-level/templates.
+data-driven, G13-D ferme butin, pickpocket et cadavres avec une dépouille interactive dans le
+runtime, et G13-E livre rôle, routines ambiantes et auto-level déterministe. G13-F cible ensuite
+les événements avancés de créature.
 
 La mission complète et ses critères sont dans
 [`assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md`](assets/OPENRPG_FORGE_BIBLIOTHEQUE_ASSETS_ET_MAP_REELLE.md) ;

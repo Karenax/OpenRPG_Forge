@@ -7,10 +7,11 @@ using Forge.ModuleFormat.Workspaces;
 
 var addRuntimeExtensionSample = args.Contains("--runtime-extension-sample", StringComparer.Ordinal);
 var addCreatureLootSample = args.Contains("--creature-loot-sample", StringComparer.Ordinal);
+var addCreatureRoleBehaviorSample = args.Contains("--creature-role-behavior-sample", StringComparer.Ordinal);
 var workspaceArguments = args.Where(argument => !argument.StartsWith("--", StringComparison.Ordinal)).ToArray();
 if (workspaceArguments.Length == 0)
 {
-    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] <workspace> [workspace ...]");
+    Console.Error.WriteLine("Usage: Forge.WorkspaceMigrator [--runtime-extension-sample] [--creature-loot-sample] [--creature-role-behavior-sample] <workspace> [workspace ...]");
     return 2;
 }
 
@@ -26,6 +27,7 @@ foreach (var argument in workspaceArguments)
     }
     var project = addRuntimeExtensionSample ? AddRuntimeExtensionSample(opened.Session.Project) : opened.Session.Project;
     if (addCreatureLootSample) project = AddCreatureLootSample(project);
+    if (addCreatureRoleBehaviorSample) project = AddCreatureRoleBehaviorSample(project);
     var saved = opened.Session.Save(project);
     if (!saved.Succeeded)
     {
@@ -55,7 +57,52 @@ static ProjectDefinition AddCreatureLootSample(ProjectDefinition project)
             new Dictionary<string, string> { ["presentation"] = "ember-relic" });
         return new BlueprintDefinition(blueprint.Id, blueprint.Slug, blueprint.DisplayName, blueprint.Kind,
             blueprint.Combat, blueprint.PaletteOrigin, blueprint.IsFavorite, blueprint.Provenance,
-            blueprint.CreaturePresentation, blueprint.CreatureProgression, loot);
+            blueprint.CreaturePresentation, blueprint.CreatureProgression, loot, blueprint.CreatureRoleBehavior);
+    }).ToArray();
+    return new ProjectDefinition(project.Id, project.Title, project.Module, blueprints, project.Areas,
+        project.Dialogues, project.Quests);
+}
+
+static ProjectDefinition AddCreatureRoleBehaviorSample(ProjectDefinition project)
+{
+    if (!string.Equals(project.Module.Slug, "crypt-of-ashes", StringComparison.Ordinal)) return project;
+    var blueprints = project.Blueprints.Select(blueprint =>
+    {
+        if (!string.Equals(blueprint.Slug, "ash-warden-boss", StringComparison.Ordinal)) return blueprint;
+        var progression = blueprint.CreatureProgression ?? new CreatureProgressionProfile(
+            Guid.Parse("a1470000-0000-4000-8000-000000000001"), 1, "sample:g13-e", "forge.generic", false, true,
+            [new("warden", "Gardien", 1, 20, 0, [])], [],
+            [new("awareness", "Vigilance", "insight", 1, 10, 0, true, false, 10)],
+            [new("ember-stance", "Posture des braises", 0, 1, true, [], [], [])],
+            new("standard", AbilityLoadoutMode.Learned, 0, [], []), new Dictionary<string, string>());
+        var behavior = new CreatureRoleBehaviorProfile(
+            Guid.Parse("a1470000-0000-4000-8000-000000000002"), 1, "sample:g13-e", true,
+            new("forge.generic", new Dictionary<string, string>
+            {
+                ["deity"] = "deity.embers",
+                ["occupation"] = "crypt-warden",
+            }, ["guardian", "boss"]),
+            new("ambient.ash-warden",
+                [
+                    new(Guid.Parse("a1470000-0000-4000-8000-000000000003"), "idle.watch",
+                        ["idle", "look-around"], 2, 2, 6),
+                    new(Guid.Parse("a1470000-0000-4000-8000-000000000004"), "idle.ritual",
+                        ["inspect", "warm-hands"], 1, 3, 8),
+                ],
+                [new(Guid.Parse("a1470000-0000-4000-8000-000000000005"), "night-watch", 1200, 360,
+                    "idle.ritual", null, null)],
+                [new(Guid.Parse("a1470000-0000-4000-8000-000000000006"), "inspect-rune", "ash-rune",
+                    "inspect", 12)],
+                new(true, true, true, AmbientResumeMode.Resume, .5)),
+            new(Guid.Parse("a1470000-0000-4000-8000-000000000007"), "warden-balanced", 42, 6, true, false,
+                [new("warden", 1)], [new("awareness", 2, 10)], [new("ember-stance", 4)]),
+            new Dictionary<string, string> { ["ambient.radius"] = "4" });
+        var preview = CreatureRoleBehaviorRuntimeResolver.PreviewAutoLevel(behavior, progression);
+        if (!preview.Succeeded || preview.Result is null)
+            throw new InvalidOperationException("The G13-E sample profile cannot resolve its deterministic progression.");
+        return new BlueprintDefinition(blueprint.Id, blueprint.Slug, blueprint.DisplayName, blueprint.Kind,
+            blueprint.Combat, blueprint.PaletteOrigin, blueprint.IsFavorite, blueprint.Provenance,
+            blueprint.CreaturePresentation, preview.Result, blueprint.CreatureLoot, behavior);
     }).ToArray();
     return new ProjectDefinition(project.Id, project.Title, project.Module, blueprints, project.Areas,
         project.Dialogues, project.Quests);

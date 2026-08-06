@@ -60,6 +60,28 @@ public sealed class SetCreatureProgressionHandler
                 return Failure(state, command, "creature.progression.uuid_duplicate",
                     "The progression UUID is already owned by another blueprint.");
             }
+
+            if (existing.CreatureRoleBehavior is not null)
+            {
+                var behaviorDiagnostics = CreatureRoleBehaviorValidator.Validate(existing.CreatureRoleBehavior,
+                    command.Progression, $"blueprints/{existing.Id}/creatureRoleBehavior");
+                if (behaviorDiagnostics.Count > 0)
+                {
+                    return new CommandResult(false, state, command.BaseRevision, null,
+                        behaviorDiagnostics.Select(item => new CommandDiagnostic(item.Code,
+                            $"{item.Path}: {item.Message}")).ToArray(),
+                        null, null, CreateAudit(command, false));
+                }
+            }
+        }
+        else if (existing.CreatureRoleBehavior is { AutoLevel.ManualLock: false } roleBehavior)
+        {
+            var behaviorDiagnostics = CreatureRoleBehaviorValidator.Validate(roleBehavior, null,
+                $"blueprints/{existing.Id}/creatureRoleBehavior");
+            return new CommandResult(false, state, command.BaseRevision, null,
+                behaviorDiagnostics.Select(item => new CommandDiagnostic(item.Code,
+                    $"{item.Path}: {item.Message}")).ToArray(),
+                null, null, CreateAudit(command, false));
         }
 
         var root = $"blueprints/{existing.Id}/creatureProgression";
@@ -72,7 +94,7 @@ public sealed class SetCreatureProgressionHandler
 
         var updated = new BlueprintDefinition(existing.Id, existing.Slug, existing.DisplayName, existing.Kind,
             existing.Combat, existing.PaletteOrigin, existing.IsFavorite, existing.Provenance,
-            existing.CreaturePresentation, command.Progression, existing.CreatureLoot);
+            existing.CreaturePresentation, command.Progression, existing.CreatureLoot, existing.CreatureRoleBehavior);
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title, state.Project.Module,
             state.Project.Blueprints.Select(item => item.Id == updated.Id ? updated : item).ToArray(),
             state.Project.Areas, state.Project.Dialogues, state.Project.Quests);

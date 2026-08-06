@@ -203,7 +203,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CRE-027 | Vitesse et profils de déplacement | P0 | Implemented | G8 |
 | ORF-CRE-028 | Conversation associée | P1 | Implemented | G8 |
 | ORF-CRE-029 | Voix et soundset | P2 | Tested | G13 |
-| ORF-CRE-030 | Divinité et informations de rôle | P3 | Researched | G13 |
+| ORF-CRE-030 | Divinité et informations de rôle | P3 | Tested | G13 |
 | ORF-CRE-031 | Plot, immortel et interruptibilité | P1 | Implemented | G8 |
 | ORF-CRE-032 | Cadavre et loot corpse | P2 | Tested | G13 |
 | ORF-CRE-033 | OnSpawn | P0 | Implemented | G8 |
@@ -220,8 +220,8 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CRE-044 | OnHeartbeat | P3 | Researched | G13 |
 | ORF-CRE-045 | OnUserDefined | P2 | Researched | G13 |
 | ORF-CRE-046 | Intelligence artificielle par profil | P1 | Implemented | G8 |
-| ORF-CRE-047 | Animations ambiantes | P2 | Researched | G13 |
-| ORF-CRE-048 | Auto-level et templates | P2 | Researched | G13 |
+| ORF-CRE-047 | Animations ambiantes | P2 | Tested | G13 |
+| ORF-CRE-048 | Auto-level et templates | P2 | Tested | G13 |
 | ORF-CRE-049 | Validation de créature | P0 | Implemented | G8 |
 | ORF-DLG-001 | Fichier/graphe de conversation | P0 | Researched | G1 |
 | ORF-DLG-002 | Nœuds PNJ et joueur | P0 | Researched | G1 |

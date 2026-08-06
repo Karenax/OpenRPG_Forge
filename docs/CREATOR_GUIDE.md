@@ -6,7 +6,7 @@ Lancer l'application de création, ouvrir l'écran **Forge**, puis choisir **+ N
 un titre, une description et le nom de la première zone. Choisir **Intérieur** pour une pièce ou un
 donjon compact, ou **Extérieur** pour un terrain sculptable ; la sélection propose respectivement
 32 × 32 m ou 128 × 128 m, mais la largeur et la profondeur restent modifiables avant la création.
-Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.19.0` contenant :
+Sélectionner ensuite un dossier parent vide et valider. Forge crée un workspace `1.20.0` contenant :
 
 ```text
 mon-module/
@@ -53,7 +53,13 @@ blueprint ; le résumé latéral confirme le niveau total et la résolution des 
 probabilité, son propriétaire et son instanciation. Les onglets suivants règlent le vol à la tire
 (compétences, perception, consentement serveur, crime et délai) puis la dépouille (conteneur,
 ragdoll, durée, résurrection et nettoyage). Un objet doit déjà figurer dans la table **Combat** de
-la créature et les compétences de vol doivent exister dans son profil **Progression**.
+la créature afin que la référence soit validée ; les compétences de vol doivent exister dans son
+profil **Progression**.
+
+**Rôle, activité & auto-level** complète ensuite la créature. L’onglet Rôle & lore conserve des
+champs définis par le ruleset sans leur donner de bonus implicite. Activité ambiante combine sets
+d’animations pondérés, horaires, interactions et interruptions. Auto-level affiche le diff produit
+par une seed avant de l’appliquer ; activer le verrouillage manuel garantit qu’aucun rang ne change.
 
 ## 3. Écrire les dialogues et scripts
 

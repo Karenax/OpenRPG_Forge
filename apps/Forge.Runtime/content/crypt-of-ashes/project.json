@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.19.0",
+  "formatVersion": "1.20.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -1241,7 +1241,8 @@
         },
         "creaturePresentation": null,
         "creatureProgression": null,
-        "creatureLoot": null
+        "creatureLoot": null,
+        "creatureRoleBehavior": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000002",
@@ -1262,7 +1263,8 @@
         },
         "creaturePresentation": null,
         "creatureProgression": null,
-        "creatureLoot": null
+        "creatureLoot": null,
+        "creatureRoleBehavior": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000003",
@@ -1283,7 +1285,8 @@
         },
         "creaturePresentation": null,
         "creatureProgression": null,
-        "creatureLoot": null
+        "creatureLoot": null,
+        "creatureRoleBehavior": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000004",
@@ -1315,7 +1318,8 @@
         },
         "creaturePresentation": null,
         "creatureProgression": null,
-        "creatureLoot": null
+        "creatureLoot": null,
+        "creatureRoleBehavior": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000005",
@@ -1371,7 +1375,8 @@
         },
         "creaturePresentation": null,
         "creatureProgression": null,
-        "creatureLoot": null
+        "creatureLoot": null,
+        "creatureRoleBehavior": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000006",
@@ -1426,7 +1431,58 @@
           "modifications": []
         },
         "creaturePresentation": null,
-        "creatureProgression": null,
+        "creatureProgression": {
+          "id": "a1470000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "sample:g13-e",
+          "rulesetId": "forge.generic",
+          "allowMultipleTracks": false,
+          "requiredAtRuntime": true,
+          "tracks": [
+            {
+              "trackId": "warden",
+              "displayName": "Gardien",
+              "level": 6,
+              "maximumLevel": 20,
+              "experience": 0,
+              "grantedTalentIds": []
+            }
+          ],
+          "dispositionAxes": [],
+          "skills": [
+            {
+              "skillId": "awareness",
+              "displayName": "Vigilance",
+              "governingAttributeId": "insight",
+              "rank": 3,
+              "maximumRank": 10,
+              "trainingPoints": 0,
+              "trained": true,
+              "expertise": false,
+              "defaultDifficulty": 10
+            }
+          ],
+          "talents": [
+            {
+              "talentId": "ember-stance",
+              "displayName": "Posture des braises",
+              "rank": 1,
+              "maximumRank": 1,
+              "passive": true,
+              "prerequisites": [],
+              "grantedAbilityIds": [],
+              "hookIds": []
+            }
+          ],
+          "loadout": {
+            "providerId": "standard",
+            "mode": "learned",
+            "capacity": 0,
+            "learnedAbilityIds": [],
+            "preparedAbilities": []
+          },
+          "overrides": {}
+        },
         "creatureLoot": {
           "id": "a1430000-0000-4000-8000-000000000001",
           "schemaVersion": 1,
@@ -1470,6 +1526,107 @@
           },
           "overrides": {
             "presentation": "ember-relic"
+          }
+        },
+        "creatureRoleBehavior": {
+          "id": "a1470000-0000-4000-8000-000000000002",
+          "schemaVersion": 1,
+          "provenance": "sample:g13-e",
+          "requiredAtRuntime": true,
+          "role": {
+            "rulesetTemplateId": "forge.generic",
+            "loreFields": {
+              "deity": "deity.embers",
+              "occupation": "crypt-warden"
+            },
+            "roleTags": [
+              "boss",
+              "guardian"
+            ]
+          },
+          "ambient": {
+            "graphId": "ambient.ash-warden",
+            "idleSets": [
+              {
+                "id": "a1470000-0000-4000-8000-000000000004",
+                "setId": "idle.ritual",
+                "animationIds": [
+                  "inspect",
+                  "warm-hands"
+                ],
+                "weight": 1,
+                "minimumSeconds": 3,
+                "maximumSeconds": 8
+              },
+              {
+                "id": "a1470000-0000-4000-8000-000000000003",
+                "setId": "idle.watch",
+                "animationIds": [
+                  "idle",
+                  "look-around"
+                ],
+                "weight": 2,
+                "minimumSeconds": 2,
+                "maximumSeconds": 6
+              }
+            ],
+            "schedules": [
+              {
+                "id": "a1470000-0000-4000-8000-000000000005",
+                "scheduleId": "night-watch",
+                "startMinute": 1200,
+                "endMinute": 360,
+                "idleSetId": "idle.ritual",
+                "waypointId": null,
+                "conversationId": null
+              }
+            ],
+            "interactions": [
+              {
+                "id": "a1470000-0000-4000-8000-000000000006",
+                "interactionId": "inspect-rune",
+                "targetId": "ash-rune",
+                "animationId": "inspect",
+                "cooldownSeconds": 12
+              }
+            ],
+            "interruption": {
+              "interruptOnCombat": true,
+              "interruptOnConversation": true,
+              "interruptOnMovement": true,
+              "resumeMode": "resume",
+              "resumeDelaySeconds": 0.5
+            }
+          },
+          "autoLevel": {
+            "id": "a1470000-0000-4000-8000-000000000007",
+            "templateId": "warden-balanced",
+            "seed": 42,
+            "targetLevel": 6,
+            "applyOnSave": true,
+            "manualLock": false,
+            "tracks": [
+              {
+                "trackId": "warden",
+                "weight": 1
+              }
+            ],
+            "skills": [
+              {
+                "skillId": "awareness",
+                "rankEveryLevels": 2,
+                "maximumRank": 10
+              }
+            ],
+            "talents": [
+              {
+                "talentId": "ember-stance",
+                "unlockLevel": 4
+              }
+            ]
+          },
+          "overrides": {
+            "ambient.radius": "4"
           }
         }
       },
@@ -1521,7 +1678,8 @@
         },
         "creaturePresentation": null,
         "creatureProgression": null,
-        "creatureLoot": null
+        "creatureLoot": null,
+        "creatureRoleBehavior": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000008",
@@ -1542,7 +1700,8 @@
         },
         "creaturePresentation": null,
         "creatureProgression": null,
-        "creatureLoot": null
+        "creatureLoot": null,
+        "creatureRoleBehavior": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000009",
@@ -1563,7 +1722,8 @@
         },
         "creaturePresentation": null,
         "creatureProgression": null,
-        "creatureLoot": null
+        "creatureLoot": null,
+        "creatureRoleBehavior": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000010",
@@ -1584,7 +1744,8 @@
         },
         "creaturePresentation": null,
         "creatureProgression": null,
-        "creatureLoot": null
+        "creatureLoot": null,
+        "creatureRoleBehavior": null
       }
     ],
     "areas": [

@@ -809,7 +809,11 @@ G13-D ajoute un profil de butin v1 avec entrées, quantités, probabilités, pro
 un vol à la tire validé par compétences/perception/consentement/crime/cooldown, et une politique de
 cadavre. L’atelier dédié, la commande, le script typé, les formats et le runtime partagent le même
 contrat ; la Crypte matérialise une dépouille interactive tandis que les modules sans profil gardent
-leur fallback historique.
+leur table Combat historique.
+G13-E ajoute `CreatureRoleBehaviorProfile` v1 : champs de lore sans mécanique implicite, tags de
+rôle, idle sets, horaires, interactions, interruptions et template d’auto-level déterministe avec
+seed, preview, diff et verrouillage manuel. L’écran spécialisé, la commande, ForgeScript, les formats
+et le runtime partagent ce contrat ; le Gardien de la Crypte exécute une routine ambiante réelle.
 
 ---
 
@@ -1837,9 +1841,9 @@ Le présent paquet contient uniquement :
 
 ## Prochaine action autorisée
 
-Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-E :
-`ORF-CRE-030`, `ORF-CRE-047` et `ORF-CRE-048`, regroupées autour des informations de rôle, des
-animations ambiantes et de l’auto-level/templates de créature. Chaque tranche doit
+Poursuivre la file G13 par tranches de cinq exigences maximum. La prochaine tranche est G13-F :
+`ORF-CRE-039`, `ORF-CRE-041`, `ORF-CRE-042`, `ORF-CRE-044` et `ORF-CRE-045`, regroupées autour
+des événements avancés de créature. Chaque tranche doit
 conserver les modules jouables, le runtime sans IA, les formats migrables et le gate intégré vert.
 
 

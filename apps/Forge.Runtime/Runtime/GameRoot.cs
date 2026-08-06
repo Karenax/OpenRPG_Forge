@@ -84,6 +84,10 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<string, AudioStreamWav> _proceduralAudioCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> _animatedCharacterClipNames = new(StringComparer.Ordinal);
     private readonly Dictionary<Node3D, GodotAssetAnimationState> _characterAnimations = [];
+    private readonly Dictionary<Node3D, CreatureRoleBehaviorRuntimeSnapshot> _creatureRoleBehaviors = [];
+    private readonly Dictionary<Node3D, Vector3> _creatureAmbientOrigins = [];
+    private readonly Dictionary<Node3D, Vector3> _creatureAmbientRotations = [];
+    private readonly Dictionary<Node3D, double> _creatureAmbientPhases = [];
     private readonly ForgeScriptJsonService _runtimeJson = new();
     private readonly ForgeScriptUiEventService _scriptUiEvents = new();
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
@@ -170,6 +174,7 @@ public partial class GameRoot : Node3D
     private int _animatedCharacterInstances;
     private int _combatHitAnimationCount;
     private int _combatDeathAnimationCount;
+    private int _creatureAmbientTicks;
     private int _terrainVertices;
     private int _terrainTriangles;
     private int _terrainSectors;
@@ -499,6 +504,7 @@ public partial class GameRoot : Node3D
             AdvanceRuntimePolicies(simulationDelta);
             AdvanceAreaExperience(simulationDelta);
             AdvanceCinematics(simulationDelta);
+            AdvanceCreatureAmbientBehavior(simulationDelta);
         }
 
         if (_player is null)
@@ -987,6 +993,7 @@ public partial class GameRoot : Node3D
         {
             _npc = CreateCreature(entity, ProgressionDisplayName(blueprint), new Color("4ec9b0"), blueprint.CreaturePresentation);
             _guideName = GetOverride(entity, "runtime.displayName") ?? blueprint.DisplayName;
+            ConfigureCreatureRoleBehavior(_npc, blueprint);
             return;
         }
 
@@ -1001,6 +1008,7 @@ public partial class GameRoot : Node3D
         _hostiles.Add(creature, new CombatantState(entity.Id.ToString(), profile));
         _hostileNames.Add(creature, blueprint.DisplayName);
         _hostileBlueprints.Add(creature, blueprint);
+        ConfigureCreatureRoleBehavior(creature, blueprint);
 
         if (isBoss)
         {
@@ -2139,6 +2147,58 @@ public partial class GameRoot : Node3D
     private static bool HasRuntimeRole(EntityInstance entity, string role) =>
         string.Equals(GetOverride(entity, RuntimeRoleProperty), role, StringComparison.OrdinalIgnoreCase);
 
+    private void ConfigureCreatureRoleBehavior(Node3D creature, BlueprintDefinition blueprint)
+    {
+        var profile = blueprint.CreatureRoleBehavior;
+        var snapshot = CreatureRoleBehaviorRuntimeResolver.Resolve(profile, blueprint.CreatureProgression,
+            21 * 60, interrupted: false, required: profile?.RequiredAtRuntime == true);
+        if (!snapshot.Succeeded)
+            throw new InvalidOperationException($"Creature '{blueprint.Slug}' role/behavior is invalid: " +
+                string.Join("; ", snapshot.Diagnostics.Select(item => $"{item.Code}:{item.Message}")));
+        if (snapshot.IgnoredOptionalProfile) return;
+        _creatureRoleBehaviors[creature] = snapshot;
+        _creatureAmbientOrigins[creature] = creature.Position;
+        _creatureAmbientRotations[creature] = creature.Rotation;
+        _creatureAmbientPhases[creature] = StableLootRoll(blueprint.Id.ToString()) * Math.Tau;
+        if (_characterAnimations.TryGetValue(creature, out var animation) && snapshot.ActiveAnimationId is { } clip)
+        {
+            var resolvedClip = animation.Clips.FirstOrDefault(item => string.Equals(item, clip,
+                StringComparison.OrdinalIgnoreCase)) ?? animation.IdleClip;
+            GodotAssetAnimationController.Play(animation, resolvedClip, .1);
+        }
+        GD.Print($"OPENRPG_FORGE_CREATURE_AMBIENT_READY blueprint={blueprint.Slug} " +
+            $"roles={snapshot.RoleTags.Count} lore={snapshot.LoreFields.Count} " +
+            $"set={snapshot.ActiveIdleSetId} animation={snapshot.ActiveAnimationId} " +
+            $"autolevel_changes={snapshot.AutoLevel?.Changes.Count ?? 0}");
+    }
+
+    private void AdvanceCreatureAmbientBehavior(double delta)
+    {
+        foreach (var creature in _creatureRoleBehaviors.Keys.ToArray())
+        {
+            if (!GodotObject.IsInstanceValid(creature))
+            {
+                RemoveCreatureRoleBehavior(creature);
+                continue;
+            }
+            var phase = _creatureAmbientPhases[creature] + Math.Max(0, delta);
+            _creatureAmbientPhases[creature] = phase;
+            var origin = _creatureAmbientOrigins[creature];
+            var rotation = _creatureAmbientRotations[creature];
+            creature.Position = origin + Vector3.Up * (float)(Math.Sin(phase * 1.3) * .025);
+            creature.Rotation = rotation + Vector3.Up * (float)(Math.Sin(phase * .45) * .06);
+            _creatureAmbientTicks++;
+        }
+    }
+
+    private void RemoveCreatureRoleBehavior(Node3D creature)
+    {
+        _creatureRoleBehaviors.Remove(creature);
+        _creatureAmbientOrigins.Remove(creature);
+        _creatureAmbientRotations.Remove(creature);
+        _creatureAmbientPhases.Remove(creature);
+    }
+
     private static string? GetOverride(EntityInstance entity, string key) =>
         entity.Overrides.Properties.SingleOrDefault(property =>
             string.Equals(property.Key, key, StringComparison.Ordinal))?.Value;
@@ -2353,6 +2413,7 @@ public partial class GameRoot : Node3D
             }
 
             _characterAnimations.Remove(hostile);
+            RemoveCreatureRoleBehavior(hostile);
             if (reactionDuration > 0)
             {
                 var timer = GetTree().CreateTimer(reactionDuration);
@@ -3253,6 +3314,17 @@ public partial class GameRoot : Node3D
         AssertSmoke(_keyItem is not null, "Key item was not reconstructed.");
         AssertSmoke(_door is not null, "Door was not reconstructed.");
         AssertSmoke(_boss is not null, "Boss was not reconstructed.");
+        AssertSmoke(_creatureRoleBehaviors.ContainsKey(_boss!),
+            "The authored boss role and ambient behavior were not reconstructed.");
+        AdvanceCreatureAmbientBehavior(.25);
+        AssertSmoke(_creatureAmbientTicks > 0, "The creature ambient behavior did not advance.");
+        var ambient = _creatureRoleBehaviors[_boss!];
+        AssertSmoke(ambient.LoreFields.GetValueOrDefault("deity") == "deity.embers" &&
+                    ambient.ActiveAnimationId is not null,
+            "The creature role lore or ambient animation did not resolve.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G13E_CREATURE_ROLE_BEHAVIOR_PASS role=guardian " +
+            $"deity={ambient.LoreFields["deity"]} animation={ambient.ActiveAnimationId} " +
+            $"ambient_ticks={_creatureAmbientTicks} autolevel=6 seed=42");
 
         InteractWith(_npc!);
         AssertSmoke(_questState == PrototypeQuestState.Active, "NPC interaction did not start the quest.");

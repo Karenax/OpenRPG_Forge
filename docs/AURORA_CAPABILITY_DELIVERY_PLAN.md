@@ -497,9 +497,9 @@ preview 3D, runtime et export canonique. **G13-C** (`ORF-CRE-016`, `017`, `018`,
 la progression data-driven : pistes multiclasses, axes de disposition libres, compétences,
 talents, pouvoirs préparés, UI résumée, handle ForgeScript, runtime et `.orpmod`. La prochaine
 tranche **G13-D** ferme `ORF-CRE-023`, `024` et `032` autour du butin de créature, avec commande,
-UI, persistance, script typé, fallback historique et dépouille runtime interactive. **G13-E**
-regroupe ensuite `ORF-CRE-030`, `047` et `048` autour du rôle, des animations ambiantes et des
-templates/auto-level de créature.
+UI, persistance, script typé, fallback historique et dépouille runtime interactive. **G13-E** ferme
+`ORF-CRE-030`, `047` et `048` avec lore sans mécanique implicite, routines ambiantes et auto-level
+déterministe. **G13-F** cible ensuite les cinq événements avancés de créature encore recherchés.
 
 ## 7. Graphe de dépendances
 
