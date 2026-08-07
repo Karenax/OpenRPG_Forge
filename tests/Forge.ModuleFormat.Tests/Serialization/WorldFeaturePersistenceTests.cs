@@ -22,11 +22,11 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         var created = ProjectSession.Create(_temporaryRoot, project);
         var reopened = ProjectSession.Open(_temporaryRoot);
 
-        Assert.Contains("\"formatVersion\": \"0.6.32\"", aggregate, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.33\"", aggregate, StringComparison.Ordinal);
         Assert.Equal(aggregate, ProjectJsonSerializer.Serialize(restored));
         Assert.True(created.Succeeded);
         Assert.True(reopened.Succeeded);
-        Assert.Contains("\"formatVersion\": \"1.26.0\"", File.ReadAllText(reopened.Session!.ProjectFilePath),
+        Assert.Contains("\"formatVersion\": \"1.27.0\"", File.ReadAllText(reopened.Session!.ProjectFilePath),
             StringComparison.Ordinal);
         var catalog = reopened.Session.Project.Module.WorldFeatures;
         Assert.Single(catalog.Placeables);
@@ -63,7 +63,7 @@ public sealed class WorldFeaturePersistenceTests : IDisposable
         Assert.True(reopened.Succeeded);
         Assert.Empty(reopened.Session!.Project.Module.WorldFeatures.Companions);
         Assert.True(reopened.Session.Save(reopened.Session.Project).Succeeded);
-        Assert.Contains("\"formatVersion\": \"1.26.0\"", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"1.27.0\"", File.ReadAllText(path), StringComparison.Ordinal);
     }
 
     public void Dispose()

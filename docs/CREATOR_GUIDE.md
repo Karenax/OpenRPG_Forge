@@ -150,3 +150,13 @@ Depuis la racine :
 Le premier contrôle restore, format, build, tests, graphe, branding, éditeur, export, MCP, runtime et
 sauvegarde/reprise. Le second exécute plusieurs démarrages headless et écrit le rapport brut dans
 `artifacts/performance/runtime-performance.json`.
+
+## 8. Configurer la production post-lancement
+
+Dans le RPG Kit, ouvrir **Production & expérience**. Les six onglets couvrent mobilité, succès et
+contenu, opérations Live Director, réseau, plateforme et automatisation. Prévisualiser affiche le
+diff sans écrire ; Appliquer sauvegarde une commande révisionnée, annulable et rétablissable.
+
+Les champs réseau et production décrivent une politique, pas des secrets : licences autorisées,
+capacités d'extension, versions de protocole, providers média et budgets de soak. Les services,
+jetons et chemins propres à la machine restent hors du module.

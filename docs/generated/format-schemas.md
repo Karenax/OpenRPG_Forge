@@ -4,8 +4,8 @@ Fichier généré depuis les constantes de sérialisation.
 
 | Document | Version courante |
 |---|---|
-| Projet agrégé | 0.6.32 |
-| Workspace scindé | 1.26.0 |
+| Projet agrégé | 0.6.33 |
+| Workspace scindé | 1.27.0 |
 | Zone | 1.9.0 |
 | Sauvegarde runtime | 1.3.0 |
 | Manifeste `.orpmod` | 1.2.0 |

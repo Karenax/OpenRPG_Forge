@@ -39,6 +39,31 @@ namespace Forge.Mcp.Tests.Projects;
 public sealed class ForgeProjectAgentServiceTests
 {
     [Fact]
+    public void Post_launch_resource_is_filterable_and_previews_are_read_only()
+    {
+        using var workspace = new TestWorkspace();
+
+        var network = workspace.Project.GetPostLaunchCapabilities("network");
+        var protocol = workspace.Project.PreviewPostLaunchCapability(new PostLaunchPreviewRequest(1, "protocol",
+            new Dictionary<string, string>
+            {
+                ["platform"] = "windows",
+                ["minimumVersion"] = "1",
+                ["maximumVersion"] = "1",
+            }));
+        var invalid = workspace.Project.PreviewPostLaunchCapability(new PostLaunchPreviewRequest(2, "soak",
+            new Dictionary<string, string>()));
+
+        Assert.Equal("network", network.Section);
+        Assert.Contains("protocol=openrpg-net", network.Summary, StringComparison.Ordinal);
+        Assert.True(protocol.Succeeded);
+        Assert.Equal("POST_PROTOCOL_COMPATIBLE", protocol.Code);
+        Assert.False(invalid.Succeeded);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.GetPostLaunchCapabilities("unknown"));
+    }
+
+    [Fact]
     public void World_feature_resource_is_filtered_bounded_and_mutation_remains_dry_run()
     {
         using var workspace = new TestWorkspace();

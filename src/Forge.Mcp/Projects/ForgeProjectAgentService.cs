@@ -1587,6 +1587,54 @@ public sealed class ForgeProjectAgentService
                 _history.State.Project.Module.RuntimePolicies.Extensions);
     }
 
+    public PostLaunchCapabilityResource GetPostLaunchCapabilities(string? section = null)
+    {
+        lock (_gate)
+        {
+            var profile = _history.State.Project.Module.RuntimePolicies.Extensions.PostLaunch;
+            var normalized = string.IsNullOrWhiteSpace(section) ? "all" : section.Trim().ToLowerInvariant();
+            if (normalized is not ("all" or "gameplay" or "director" or "network" or "creator" or "production"))
+                throw new ArgumentOutOfRangeException(nameof(section), "Unknown post-launch capability section.");
+            var summary = normalized switch
+            {
+                "gameplay" => $"zero-g={profile.Gameplay.ZeroGravity.Enabled};vehicles={profile.Gameplay.Vehicles.Enabled};mounts={profile.Gameplay.Mounts.Enabled};achievements={profile.Gameplay.Achievements.Count}",
+                "director" => $"groups={profile.LiveDirector.SavedGroups.Count};recording={profile.LiveDirector.SessionRecording.Enabled};rest={profile.LiveDirector.ForcedRest.Enabled};levels={profile.LiveDirector.LevelAdjustment.Enabled}",
+                "network" => $"voice={profile.Network.Voice.Enabled};shards={profile.Network.Shards.Count};reload={profile.Network.HotReload.Enabled};extensions={profile.Network.ServerExtensions.Enabled};protocol={profile.Network.Protocol.ProtocolFamily}",
+                "creator" => $"dynamic-areas={profile.CreatorExperience.DynamicAreas.Enabled};party={profile.CreatorExperience.PartyControl.Enabled};tracks={profile.CreatorExperience.ProgressionTracks.MaximumTracks};graphics={profile.CreatorExperience.Graphics.AntiAliasing}",
+                "production" => $"media={profile.Production.MediaGeneration.Enabled};soak={profile.Production.SoakTests.Enabled};duration={profile.Production.SoakTests.DurationMinutes}",
+                _ => $"gameplay=5;director=5;network=5;creator=9;production=2;schema={profile.SchemaVersion}",
+            };
+            return new PostLaunchCapabilityResource(1, _history.State.Revision.Value, normalized, summary, profile);
+        }
+    }
+
+    public PostLaunchPreviewResult PreviewPostLaunchCapability(PostLaunchPreviewRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return PostLaunchFailure("post_launch.schema_unsupported", "Expected post-launch schema v1.");
+            var profile = _history.State.Project.Module.RuntimePolicies.Extensions.PostLaunch;
+            try
+            {
+                ArgumentException.ThrowIfNullOrWhiteSpace(request.Kind);
+                return request.Kind.Trim().ToLowerInvariant() switch
+                {
+                    "mobility" => PreviewMobility(profile, request.Arguments),
+                    "protocol" => PreviewProtocol(profile, request.Arguments),
+                    "media" => PreviewProduction(profile, request.Arguments, "image"),
+                    "soak" => PreviewProduction(profile, request.Arguments, "soak"),
+                    _ => PostLaunchFailure("post_launch.kind_unknown", $"Unknown preview kind '{request.Kind}'."),
+                };
+            }
+            catch (Exception exception) when (exception is ArgumentException or FormatException or OverflowException)
+            {
+                return PostLaunchFailure("post_launch.arguments_invalid", exception.Message);
+            }
+        }
+    }
+
     public RuntimeExtensionPlanResult PlanRuntimeExtensions(RuntimeExtensionPlanRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -3787,6 +3835,49 @@ public sealed class ForgeProjectAgentService
 
     private static RuntimeExtensionPlanResult RuntimeExtensionFailure(long revision, string code, string message) =>
         new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static PostLaunchPreviewResult PreviewMobility(PostLaunchCapabilityProfile profile,
+        IReadOnlyDictionary<string, string> arguments)
+    {
+        var result = PostLaunchCapabilityResolver.ResolveMobility(profile.Gameplay,
+            bool.Parse(arguments.GetValueOrDefault("insideZeroGravity", "false")),
+            float.Parse(arguments.GetValueOrDefault("inputMagnitude", "0"), System.Globalization.CultureInfo.InvariantCulture),
+            int.Parse(arguments.GetValueOrDefault("requestedSeats", "0"), System.Globalization.CultureInfo.InvariantCulture),
+            bool.Parse(arguments.GetValueOrDefault("requestMount", "false")));
+        return new(true, result.Diagnostic,
+            $"zero-g={result.ZeroGravityActive};acceleration={result.AppliedAcceleration.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)};vehicle={result.VehicleAccepted};mount={result.MountAccepted}", []);
+    }
+
+    private static PostLaunchPreviewResult PreviewProtocol(PostLaunchCapabilityProfile profile,
+        IReadOnlyDictionary<string, string> arguments)
+    {
+        var capabilities = arguments.GetValueOrDefault("capabilities", string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var result = PostLaunchCapabilityResolver.NegotiateProtocol(profile.Network,
+            arguments.GetValueOrDefault("platform", "windows"),
+            int.Parse(arguments.GetValueOrDefault("minimumVersion", "1"), System.Globalization.CultureInfo.InvariantCulture),
+            int.Parse(arguments.GetValueOrDefault("maximumVersion", "1"), System.Globalization.CultureInfo.InvariantCulture),
+            capabilities, bool.Parse(arguments.GetValueOrDefault("signedExtension", "false")));
+        return new(result.Compatible, result.Diagnostic,
+            $"compatible={result.Compatible};version={result.NegotiatedVersion};extension={result.ExtensionAllowed};capabilities={string.Join(',', result.GrantedCapabilities)}",
+            result.Compatible ? [] : [new AgentDiagnostic("post_launch.protocol_incompatible", result.Diagnostic)]);
+    }
+
+    private static PostLaunchPreviewResult PreviewProduction(PostLaunchCapabilityProfile profile,
+        IReadOnlyDictionary<string, string> arguments, string kind)
+    {
+        var result = PostLaunchCapabilityResolver.PlanProduction(profile.Production, kind,
+            int.Parse(arguments.GetValueOrDefault("workUnits", "1"), System.Globalization.CultureInfo.InvariantCulture),
+            long.Parse(arguments.GetValueOrDefault("memoryGrowthMegabytes", "0"), System.Globalization.CultureInfo.InvariantCulture),
+            int.Parse(arguments.GetValueOrDefault("handleGrowth", "0"), System.Globalization.CultureInfo.InvariantCulture),
+            double.Parse(arguments.GetValueOrDefault("p95LatencyMilliseconds", "0"), System.Globalization.CultureInfo.InvariantCulture));
+        return new(result.Accepted, result.Diagnostic,
+            $"kind={result.Kind};accepted={result.Accepted};work-units={result.WorkUnits};review={result.RequiresReview}",
+            result.Accepted ? [] : [new AgentDiagnostic("post_launch.production_denied", result.Diagnostic)]);
+    }
+
+    private static PostLaunchPreviewResult PostLaunchFailure(string code, string message) =>
+        new(false, code, "no changes", [new AgentDiagnostic(code, message)]);
 
     private static RuntimeExtensionPlanResult ToResult(StoredRuntimeExtensionPlan plan) => new(true, plan.PlanId,
         plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,

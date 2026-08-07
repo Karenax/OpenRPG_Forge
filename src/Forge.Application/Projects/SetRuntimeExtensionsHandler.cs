@@ -33,7 +33,10 @@ public sealed class SetRuntimeExtensionsHandler
             $"Configure {command.Profile.RuleSchemas.Count} rule schema(s), {command.Profile.UiDocuments.Count} " +
             $"scriptable UI document(s), {command.Profile.JsonDocuments.Count} runtime JSON document(s), and " +
             $"entity snapshot policy '{command.Profile.SnapshotPolicy.Id:D}' plus " +
-            $"{command.Profile.OperationalReadiness.TaskManifests.Count} bounded task manifest(s).");
+            $"{command.Profile.OperationalReadiness.TaskManifests.Count} bounded task manifest(s); " +
+            $"post-launch: achievements={command.Profile.PostLaunch.Gameplay.Achievements.Count}, " +
+            $"director-groups={command.Profile.PostLaunch.LiveDirector.SavedGroups.Count}, " +
+            $"shards={command.Profile.PostLaunch.Network.Shards.Count}.");
         var inverse = new ProjectPatch("replace", "module/runtimePolicies/extensions",
             "Restore the previous runtime extension profile.");
         var audit = new AuditEntry(command.CommandId, "set_runtime_extensions", _clock.UtcNow, !command.DryRun);

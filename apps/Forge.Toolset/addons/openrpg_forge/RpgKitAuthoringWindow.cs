@@ -37,6 +37,7 @@ public partial class RpgKitAuthoringWindow : Window
     private Action? _openQuestOperations;
     private Action? _openItemAdvanced;
     private Action? _openWorldFeatures;
+    private Action? _openPostLaunch;
     private Action<Window>? _applyIcon;
     private BlueprintId _draftId = BlueprintId.From(Guid.NewGuid());
     private OptionButton? _kind;
@@ -46,9 +47,9 @@ public partial class RpgKitAuthoringWindow : Window
     private ItemList? _catalog;
     private RichTextLabel? _feedback;
 
-    public void Initialize(Func<ProjectState?> load, Func<BlueprintId, string, string, BlueprintKind, bool, CommandResult> mutate, Action undo, Action redo, Action openDialogues, Action openScripts, Action openCreaturePresentation, Action openCreatureProgression, Action openCreatureLoot, Action openCreatureRoleBehavior, Action openCreatureEvents, Action openFactions, Action openQuestOperations, Action openItemAdvanced, Action openWorldFeatures, Action<Window> applyIcon)
+    public void Initialize(Func<ProjectState?> load, Func<BlueprintId, string, string, BlueprintKind, bool, CommandResult> mutate, Action undo, Action redo, Action openDialogues, Action openScripts, Action openCreaturePresentation, Action openCreatureProgression, Action openCreatureLoot, Action openCreatureRoleBehavior, Action openCreatureEvents, Action openFactions, Action openQuestOperations, Action openItemAdvanced, Action openWorldFeatures, Action openPostLaunch, Action<Window> applyIcon)
     {
-        _load = load; _mutate = mutate; _undo = undo; _redo = redo; _openDialogues = openDialogues; _openScripts = openScripts; _openCreaturePresentation = openCreaturePresentation; _openCreatureProgression = openCreatureProgression; _openCreatureLoot = openCreatureLoot; _openCreatureRoleBehavior = openCreatureRoleBehavior; _openCreatureEvents = openCreatureEvents; _openFactions = openFactions; _openQuestOperations = openQuestOperations; _openItemAdvanced = openItemAdvanced; _openWorldFeatures = openWorldFeatures; _applyIcon = applyIcon;
+        _load = load; _mutate = mutate; _undo = undo; _redo = redo; _openDialogues = openDialogues; _openScripts = openScripts; _openCreaturePresentation = openCreaturePresentation; _openCreatureProgression = openCreatureProgression; _openCreatureLoot = openCreatureLoot; _openCreatureRoleBehavior = openCreatureRoleBehavior; _openCreatureEvents = openCreatureEvents; _openFactions = openFactions; _openQuestOperations = openQuestOperations; _openItemAdvanced = openItemAdvanced; _openWorldFeatures = openWorldFeatures; _openPostLaunch = openPostLaunch; _applyIcon = applyIcon;
     }
 
     public override void _Ready()
@@ -85,6 +86,7 @@ public partial class RpgKitAuthoringWindow : Window
         AddButton(shortcuts, "Quêtes avancées", () => _openQuestOperations?.Invoke(), true);
         AddButton(shortcuts, "Objets avancés", () => _openItemAdvanced?.Invoke(), true);
         AddButton(shortcuts, "Monde vivant", () => _openWorldFeatures?.Invoke(), true);
+        AddButton(shortcuts, "Production & expérience", () => _openPostLaunch?.Invoke(), true);
         _feedback = new RichTextLabel { BbcodeEnabled = true, FitContent = false, SizeFlagsVertical = Control.SizeFlags.ExpandFill, CustomMinimumSize = new(0, 180) }; form.AddChild(_feedback);
     }
 

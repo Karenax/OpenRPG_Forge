@@ -4,6 +4,11 @@ Date de référence : 2 août 2026
 Source de recherche : `Divers/OpenRPG_Forge_Aurora_Feature_Dossier/`
 Périmètre : 717 exigences, 26 domaines
 
+État au 7 août 2026 : G13-A à G13-AL est fermé. Les 135 capacités post-1.0 ciblées sont
+référencées comme testées ; le profil post-lancement `0.6.33` / workspace `1.27.0` clôt mobilité,
+Live Director, réseau, plateforme Creator, génération média gouvernée et soak tests. La suite du
+catalogue reste pilotée par valeur produit et demande explicite, pas par ordre de ligne.
+
 ## 1. Décision de planification
 
 Les 717 exigences ne constituent pas une liste à implémenter séquentiellement. Elles sont le catalogue

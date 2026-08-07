@@ -281,12 +281,13 @@ public sealed record ModuleRuntimeExtensionProfile
     public EntityStateSnapshotPolicy SnapshotPolicy { get; }
     public ModernRuntimeToolingProfile ModernTooling { get; }
     public OperationalReadinessProfile OperationalReadiness { get; }
+    public PostLaunchCapabilityProfile PostLaunch { get; }
     public string Provenance { get; }
 
     public ModuleRuntimeExtensionProfile(Guid id, int schemaVersion, IReadOnlyList<DataDrivenRuleSchema> ruleSchemas,
         IReadOnlyList<ScriptableUiDocument> uiDocuments, IReadOnlyList<RuntimeJsonDocumentDefinition> jsonDocuments,
         EntityStateSnapshotPolicy snapshotPolicy, string provenance, ModernRuntimeToolingProfile? modernTooling = null,
-        OperationalReadinessProfile? operationalReadiness = null)
+        OperationalReadinessProfile? operationalReadiness = null, PostLaunchCapabilityProfile? postLaunch = null)
     {
         ArgumentNullException.ThrowIfNull(ruleSchemas);
         ArgumentNullException.ThrowIfNull(uiDocuments);
@@ -299,6 +300,7 @@ public sealed record ModuleRuntimeExtensionProfile
         JsonDocuments = Unique(jsonDocuments, item => item.Id, item => item.Key, nameof(jsonDocuments));
         var modern = modernTooling ?? ModernRuntimeToolingProfile.CreateDefault(id);
         var readiness = operationalReadiness ?? OperationalReadinessProfile.CreateDefault(id);
+        var post = postLaunch ?? PostLaunchCapabilityProfile.CreateDefault(ModuleId.From(id));
         var ids = RuleSchemas.Select(item => item.Id).Concat(UiDocuments.Select(item => item.Id))
             .Concat(JsonDocuments.Select(item => item.Id)).Append(id).Append(snapshotPolicy.Id)
             .Append(modern.Id).Append(modern.RuntimeCopy.Id).Append(modern.AreaEffectIndicator.Id)
@@ -310,7 +312,7 @@ public sealed record ModuleRuntimeExtensionProfile
             .Concat(modern.QualityAssurance.PlatformBudgets.Select(item => item.Id))
             .Append(readiness.Id).Append(readiness.CrashArtifacts.Id).Append(readiness.ProjectHealth.Id)
             .Append(readiness.Recovery.Id).Append(readiness.ContentSynchronization.Id)
-            .Concat(readiness.TaskManifests.Select(item => item.Id)).ToArray();
+            .Concat(readiness.TaskManifests.Select(item => item.Id)).Concat(post.AllIds()).ToArray();
         if (ids.Distinct().Count() != ids.Length)
             throw new ArgumentException("Runtime extension UUIDs must be unique across the profile.");
         Id = id;
@@ -318,6 +320,7 @@ public sealed record ModuleRuntimeExtensionProfile
         SnapshotPolicy = snapshotPolicy;
         ModernTooling = modern;
         OperationalReadiness = readiness;
+        PostLaunch = post;
         Provenance = DataDrivenRuleSchema.RequireText(provenance, nameof(provenance));
     }
 

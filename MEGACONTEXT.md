@@ -1859,7 +1859,13 @@ les formats migrables et le gate intégré vert. G13-N à G13-AB ajoutent ensuit
 marchands, compagnons et scripts sont configurables dans le Studio Monde vivant à huit onglets.
 Commande révisionnée, dry-run, audit, undo/redo, projet `0.6.32`, workspace `1.26.0`, `.orpmod`,
 ForgeScript, MCP et runtime 3D consomment le même contrat ; aucun nœud moteur ne devient source de
-vérité. Ce run est borné après G13-AB ; ne pas démarrer la tranche suivante
+vérité. G13-AC à G13-AL ferment ensuite les 27 dernières capacités post-1.0 dans le profil canonique
+`PostLaunchCapabilityProfile` : mobilité, succès et contenu sélectionné, interventions et
+enregistrement Live Director, voix, shards, hot reload, protocole et extensions serveur, fonctions
+Creator techniques, progression/distribution/observabilité, génération média gouvernée et soak
+tests déterministes. Le Studio post-lancement, la commande révisionnée, MCP, le projet `0.6.33`, le
+workspace `1.27.0`, le package et les smokes moteur partagent ce contrat. G13 est fermé à 135/135 ;
+ne pas ouvrir un lot suivant sans demande explicite.
 sans nouvelle décision explicite.
 
 

@@ -120,7 +120,7 @@ public sealed class ApplyAssistedBossHandler
         var extensions = new ModuleRuntimeExtensionProfile(currentExtensions.Id, currentExtensions.SchemaVersion,
             currentExtensions.RuleSchemas, currentExtensions.UiDocuments, jsonDocuments,
             currentExtensions.SnapshotPolicy, "assistant:boss", currentExtensions.ModernTooling,
-            currentExtensions.OperationalReadiness);
+            currentExtensions.OperationalReadiness, currentExtensions.PostLaunch);
         var policies = new ModuleRuntimePolicyProfile(currentPolicies.Id, currentPolicies.SchemaVersion,
             currentPolicies.Heartbeats, currentPolicies.Rest, currentPolicies.SequenceAbort, "assistant:boss",
             currentPolicies.Cinematics, currentPolicies.Gameplay, currentPolicies.Rules, extensions);

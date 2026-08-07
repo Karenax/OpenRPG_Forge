@@ -27,7 +27,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-AI-021 | Création 3D via Blender | P1 | Tested | G12 |
 | ORF-AI-022 | Fournisseurs text/image-to-3D | P2 | Tested | G12 |
 | ORF-AI-023 | Pas d’exécution Python libre | P0 | Tested | G5 |
-| ORF-AI-024 | Génération de VFX/audio/images | P3 | Researched | G13 |
+| ORF-AI-024 | Génération de VFX/audio/images | P3 | Tested | G13 |
 | ORF-AI-025 | Agent de test | P1 | Researched | G12 |
 | ORF-AI-026 | Simulation de dialogue | P1 | Researched | G12 |
 | ORF-AI-027 | Simulation de quête | P1 | Researched | G12 |
@@ -152,7 +152,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CONT-007 | Compilation de package | P0 | Researched | G4 |
 | ORF-CONT-008 | Manifeste d’assets | P1 | Implemented | G11 |
 | ORF-CONT-009 | Synchronisation automatique | P2 | Tested | G11 |
-| ORF-CONT-010 | Packs curatés | P3 | Researched | G13 |
+| ORF-CONT-010 | Packs curatés | P3 | Tested | G13 |
 | ORF-CONT-011 | Localisation | P0 | Implemented | G7 |
 | ORF-CONT-012 | Police TrueType et UI scalable | P1 | Implemented | G11 |
 | ORF-CONT-013 | Textures | P0 | Implemented | G11 |
@@ -269,14 +269,14 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-DM-012 | Posséder une créature | P2 | Implemented | G10 |
 | ORF-DM-013 | Impersonner une créature | P2 | Implemented | G10 |
 | ORF-DM-014 | Invulnérabilité GM | P2 | Implemented | G10 |
-| ORF-DM-015 | Repos forcé | P3 | Researched | G13 |
+| ORF-DM-015 | Repos forcé | P3 | Tested | G13 |
 | ORF-DM-016 | Donner ou retirer or | P2 | Implemented | G10 |
 | ORF-DM-017 | Donner ou retirer XP | P2 | Implemented | G10 |
-| ORF-DM-018 | Ajouter ou retirer niveau | P3 | Researched | G13 |
+| ORF-DM-018 | Ajouter ou retirer niveau | P3 | Tested | G13 |
 | ORF-DM-019 | Verrouiller/déverrouiller porte | P2 | Implemented | G10 |
 | ORF-DM-020 | Déclencher entrée/sortie trigger | P2 | Implemented | G10 |
 | ORF-DM-021 | Sélection multiple | P2 | Implemented | G10 |
-| ORF-DM-022 | Groupes sur raccourcis | P3 | Researched | G13 |
+| ORF-DM-022 | Groupes sur raccourcis | P3 | Tested | G13 |
 | ORF-DM-023 | Ordre de déplacement de groupe | P2 | Implemented | G10 |
 | ORF-DM-024 | Ordre d’attaque de groupe | P2 | Implemented | G10 |
 | ORF-DM-025 | Liste des joueurs | P1 | Implemented | G10 |
@@ -284,14 +284,14 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-DM-027 | Recherche par nom et suivant | P2 | Implemented | G10 |
 | ORF-DM-028 | Exécuter un script | P2 | Implemented | G10 |
 | ORF-DM-029 | Modifier variables | P2 | Implemented | G10 |
-| ORF-DM-030 | Changer apparence | P3 | Researched | G13 |
+| ORF-DM-030 | Changer apparence | P3 | Tested | G13 |
 | ORF-DM-031 | Journal d’audit GM | P1 | Implemented | G10 |
 | ORF-DM-032 | Macros et scènes préparées | P2 | Implemented | G10 |
 | ORF-DM-033 | Brouillard de guerre GM | P2 | Implemented | G10 |
 | ORF-DM-034 | Chat et canaux GM | P1 | Implemented | G10 |
 | ORF-DM-035 | Gestion des quêtes en direct | P2 | Implemented | G10 |
 | ORF-DM-036 | Gestion de rencontres en direct | P2 | Implemented | G10 |
-| ORF-DM-037 | Enregistrement de session | P3 | Researched | G13 |
+| ORF-DM-037 | Enregistrement de session | P3 | Tested | G13 |
 | ORF-DOOR-001 | Portes de tileset et universelles | P0 | Implemented | G8 |
 | ORF-DOOR-002 | États ouverte/fermée/verrouillée | P0 | Implemented | G8 |
 | ORF-DOOR-003 | Interaction d’ouverture | P0 | Implemented | G8 |
@@ -321,28 +321,28 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-EE-006 | Tone mapping et HDR | P1 | Implemented | G11 |
 | ORF-EE-007 | Éclairage par pixel | P1 | Implemented | G11 |
 | ORF-EE-008 | Nombre accru de lumières dynamiques | P1 | Implemented | G11 |
-| ORF-EE-009 | Eau améliorée | P2 | Researched | G13 |
+| ORF-EE-009 | Eau améliorée | P2 | Tested | G13 |
 | ORF-EE-010 | LOD | P1 | Implemented | G11 |
 | ORF-EE-011 | Règles plus data-driven | P1 | Tested | G11 |
 | ORF-EE-012 | NUI scriptable | P1 | Tested | G11 |
 | ORF-EE-013 | Événements GUI | P1 | Tested | G11 |
-| ORF-EE-014 | Requêtes de périphérique | P2 | Researched | G13 |
+| ORF-EE-014 | Requêtes de périphérique | P2 | Tested | G13 |
 | ORF-EE-015 | JSON runtime | P1 | Tested | G11 |
 | ORF-EE-016 | Sérialisation d’objet avec état | P1 | Tested | G11 |
-| ORF-EE-017 | Resource manager VM commands | P2 | Researched | G13 |
-| ORF-EE-018 | Création dynamique de zone | P2 | Researched | G13 |
+| ORF-EE-017 | Resource manager VM commands | P2 | Tested | G13 |
+| ORF-EE-018 | Création dynamique de zone | P2 | Tested | G13 |
 | ORF-EE-019 | Copie dynamique d’objet | P1 | Tested | G11 |
-| ORF-EE-020 | Contrôle de groupe | P2 | Researched | G13 |
-| ORF-EE-021 | Jusqu’à huit classes | P2 | Researched | G13 |
+| ORF-EE-020 | Contrôle de groupe | P2 | Tested | G13 |
+| ORF-EE-021 | Jusqu’à huit classes | P2 | Tested | G13 |
 | ORF-EE-022 | Indicateur de zone d’effet | P1 | Tested | G11 |
 | ORF-EE-023 | Chargement de zone amélioré | P1 | Implemented | G11 |
 | ORF-EE-024 | Améliorations NUI | P1 | Tested | G11 |
-| ORF-EE-025 | Métadonnées NWSync | P2 | Researched | G13 |
+| ORF-EE-025 | Métadonnées NWSync | P2 | Tested | G13 |
 | ORF-EE-026 | TrueType et scaling UI | P1 | Implemented | G11 |
 | ORF-EE-027 | Interpolation de transforms | P1 | Tested | G11 |
 | ORF-EE-028 | Pathfinding amélioré | P0 | Implemented | G7 |
-| ORF-EE-029 | Profiler Tracy | P2 | Researched | G13 |
-| ORF-EE-030 | MSAA et filtrage anisotrope | P2 | Researched | G13 |
+| ORF-EE-029 | Profiler Tracy | P2 | Tested | G13 |
+| ORF-EE-030 | MSAA et filtrage anisotrope | P2 | Tested | G13 |
 | ORF-EE-031 | Améliorations compilateur | P1 | Tested | G11 |
 | ORF-ENC-001 | Assistant de rencontre | P1 | Implemented | G8 |
 | ORF-ENC-002 | Volume d’activation | P0 | Implemented | G8 |
@@ -382,9 +382,9 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-GAME-002 | Vol libre | P1 | Implemented | G7 |
 | ORF-GAME-003 | Nage et plongée | P2 | Tested | G11 |
 | ORF-GAME-004 | Escalade | P2 | Tested | G11 |
-| ORF-GAME-005 | Apesanteur | P3 | Researched | G13 |
-| ORF-GAME-006 | Véhicules | P3 | Researched | G13 |
-| ORF-GAME-007 | Montures | P3 | Researched | G13 |
+| ORF-GAME-005 | Apesanteur | P3 | Tested | G13 |
+| ORF-GAME-006 | Véhicules | P3 | Tested | G13 |
+| ORF-GAME-007 | Montures | P3 | Tested | G13 |
 | ORF-GAME-008 | Projectiles | P1 | Implemented | G7 |
 | ORF-GAME-009 | Physique 3D | P1 | Implemented | G7 |
 | ORF-GAME-010 | Système d’interaction | P0 | Researched | G2 |
@@ -405,7 +405,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-GAME-025 | Checkpoints et respawn | P1 | Implemented | G7 |
 | ORF-GAME-026 | Carte, journal et HUD | P1 | Implemented | G7 |
 | ORF-GAME-027 | Cinematics and dialogue control locks | P1 | Implemented | G7 |
-| ORF-GAME-028 | Achievements and milestones | P3 | Researched | G13 |
+| ORF-GAME-028 | Achievements and milestones | P3 | Tested | G13 |
 | ORF-GAME-029 | Replay deterministic test | P1 | Implemented | G7 |
 | ORF-ITEM-001 | Assistant de création d’objet | P1 | Implemented | G8 |
 | ORF-ITEM-002 | Type de base immuable | P0 | Implemented | G8 |
@@ -471,19 +471,19 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-MP-011 | Réplication d’entités | P1 | Implemented | G9 |
 | ORF-MP-012 | Interest management | P1 | Implemented | G9 |
 | ORF-MP-013 | Synchronisation de contenu | P1 | Implemented | G9 |
-| ORF-MP-014 | Curated content | P3 | Researched | G13 |
+| ORF-MP-014 | Curated content | P3 | Tested | G13 |
 | ORF-MP-015 | Version locking | P1 | Implemented | G9 |
 | ORF-MP-016 | Authentification et comptes | P2 | Implemented | G9 |
 | ORF-MP-017 | Rôles et permissions | P1 | Implemented | G9 |
 | ORF-MP-018 | Administration à distance | P2 | Implemented | G9 |
 | ORF-MP-019 | Modération | P2 | Implemented | G9 |
 | ORF-MP-020 | Chat | P1 | Implemented | G9 |
-| ORF-MP-021 | Voix | P3 | Researched | G13 |
+| ORF-MP-021 | Voix | P3 | Tested | G13 |
 | ORF-MP-022 | Persistance de monde | P2 | Implemented | G9 |
 | ORF-MP-023 | SQL sécurisé | P2 | Implemented | G9 |
-| ORF-MP-024 | Sharding et zones serveur | P4 | Researched | G13 |
-| ORF-MP-025 | Hot reload de contenu serveur | P3 | Researched | G13 |
-| ORF-MP-026 | Extensibilité serveur | P3 | Researched | G13 |
+| ORF-MP-024 | Sharding et zones serveur | P4 | Tested | G13 |
+| ORF-MP-025 | Hot reload de contenu serveur | P3 | Tested | G13 |
+| ORF-MP-026 | Extensibilité serveur | P3 | Tested | G13 |
 | ORF-MP-027 | Bus d’événements serveur | P1 | Implemented | G9 |
 | ORF-MP-028 | Métriques et health checks | P2 | Implemented | G9 |
 | ORF-MP-029 | Logs structurés | P1 | Implemented | G9 |
@@ -492,7 +492,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-MP-032 | Reconnexion | P2 | Implemented | G9 |
 | ORF-MP-033 | Sauvegarde/rollback serveur | P2 | Implemented | G9 |
 | ORF-MP-034 | Capacité et files d’attente | P2 | Implemented | G9 |
-| ORF-MP-035 | Cross-platform protocol | P3 | Researched | G13 |
+| ORF-MP-035 | Cross-platform protocol | P3 | Tested | G13 |
 | ORF-MP-036 | Tests réseau déterministes | P1 | Implemented | G9 |
 | ORF-PAL-001 | Blueprint réutilisable | P0 | Implemented | G7 |
 | ORF-PAL-002 | Instance de blueprint | P0 | Implemented | G7 |
@@ -590,7 +590,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-QA-024 | Accessibilité du runtime | P1 | Tested | G11 |
 | ORF-QA-025 | Security fuzzing | P1 | Tested | G11 |
 | ORF-QA-026 | Malicious module fixtures | P0 | Implemented | G4 |
-| ORF-QA-027 | Soak tests | P2 | Researched | G13 |
+| ORF-QA-027 | Soak tests | P2 | Tested | G13 |
 | ORF-QA-028 | Crash recovery | P1 | Tested | G11 |
 | ORF-QA-029 | Coverage Aurora-parity | P0 | Implemented | G0 |
 | ORF-QA-030 | Acceptance gates | P0 | Implemented | G0 |

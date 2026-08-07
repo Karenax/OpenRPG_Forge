@@ -150,4 +150,44 @@ public sealed class RuntimeExtensionPersistenceTests
         Assert.Equal(7, first.SecurityFuzz.Boundaries.Count);
         Assert.Equal(16, first.SecurityFuzz.CasesPerBoundary);
     }
+
+    [Fact]
+    public void Post_launch_capabilities_round_trip_and_pre_profile_documents_migrate_deterministically()
+    {
+        var project = TestProjectFactory.CreateValid();
+        var source = project.Module.RuntimePolicies.Extensions;
+        var post = source.PostLaunch;
+        var gameplay = new GameplayProductionProfile(post.Gameplay.Id, 1,
+            post.Gameplay.ZeroGravity with { Enabled = true },
+            post.Gameplay.Vehicles with { Enabled = true }, post.Gameplay.Mounts,
+            [new GameplayProductionProfile.AchievementDefinition(Guid.NewGuid(), "first-step", "module.started", 1,
+                null, false)], post.Gameplay.CuratedPacks, "test");
+        var configured = new PostLaunchCapabilityProfile(post.Id, 1, gameplay, post.LiveDirector, post.Network,
+            post.CreatorExperience, post.Production, "test");
+        var extensions = new ModuleRuntimeExtensionProfile(source.Id, 1, source.RuleSchemas, source.UiDocuments,
+            source.JsonDocuments, source.SnapshotPolicy, "test", source.ModernTooling,
+            source.OperationalReadiness, configured);
+        var policies = project.Module.RuntimePolicies;
+        var updatedPolicies = new Forge.Domain.RuntimePolicies.ModuleRuntimePolicyProfile(policies.Id, 1,
+            policies.Heartbeats, policies.Rest, policies.SequenceAbort, "test", policies.Cinematics,
+            policies.Gameplay, policies.Rules, extensions);
+        var updated = new Forge.Domain.Projects.ProjectDefinition(project.Id, project.Title,
+            project.Module.WithRuntimePolicies(updatedPolicies), project.Blueprints, project.Areas,
+            project.Dialogues, project.Quests);
+
+        var json = ProjectJsonSerializer.Serialize(updated);
+        var restored = ProjectJsonSerializer.Deserialize(json).Module.RuntimePolicies.Extensions.PostLaunch;
+        Assert.True(restored.Gameplay.ZeroGravity.Enabled);
+        Assert.Equal("first-step", Assert.Single(restored.Gameplay.Achievements).Key);
+        Assert.Contains("\"formatVersion\": \"0.6.33\"", json, StringComparison.Ordinal);
+
+        var old = JsonNode.Parse(json)!.AsObject();
+        old["formatVersion"] = ProjectJsonSerializer.PrePostLaunchCapabilitiesFormatVersion;
+        old["project"]!["module"]!["runtimePolicies"]!["extensions"]!.AsObject().Remove("postLaunch");
+        var first = ProjectJsonSerializer.Deserialize(old.ToJsonString()).Module.RuntimePolicies.Extensions.PostLaunch;
+        var second = ProjectJsonSerializer.Deserialize(old.ToJsonString()).Module.RuntimePolicies.Extensions.PostLaunch;
+        Assert.Equal(first.Id, second.Id);
+        Assert.Equal(first.CreatorExperience.Graphics.Id, second.CreatorExperience.Graphics.Id);
+        Assert.False(first.Production.MediaGeneration.Enabled);
+    }
 }

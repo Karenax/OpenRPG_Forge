@@ -105,9 +105,19 @@ capacité G13 ne peut imposer un fournisseur, un abonnement ou un asset proprié
   quête personnelle, pièges, capacités, contrôle direct et regroupement.
 - [x] **G13-AA** — `ORF-SCR-018`, `ORF-SCR-024` : caméra/cutscenes et routage explicite par tag.
 - [x] **G13-AB** — `ORF-SCR-025`, `ORF-SCR-026` : flags de module documentés et réglages IA typés.
+- [x] **G13-AC** — `ORF-GAME-005`, `ORF-GAME-006`, `ORF-GAME-007` : apesanteur, véhicules et montures.
+- [x] **G13-AD** — `ORF-GAME-028`, `ORF-CONT-010` : succès et packs sélectionnés gouvernés.
+- [x] **G13-AE** — `ORF-DM-015`, `ORF-DM-018`, `ORF-DM-030` : repos, niveau et apparence Live Director.
+- [x] **G13-AF** — `ORF-DM-022`, `ORF-DM-037` : groupes sauvegardés et enregistrement de session.
+- [x] **G13-AG** — `ORF-MP-014`, `ORF-MP-021` : contenu réseau sélectionné et voix optionnelle.
+- [x] **G13-AH** — `ORF-MP-024`, `ORF-MP-025` : shards et hot reload atomique.
+- [x] **G13-AI** — `ORF-MP-026`, `ORF-MP-035` : extensions serveur isolées et protocole compatible.
+- [x] **G13-AJ** — `ORF-EE-009`, `ORF-EE-014`, `ORF-EE-017`, `ORF-EE-018`, `ORF-EE-030` : outils Creator techniques.
+- [x] **G13-AK** — `ORF-EE-020`, `ORF-EE-021`, `ORF-EE-025`, `ORF-EE-029` : RPG, dépôt et observabilité.
+- [x] **G13-AL** — `ORF-AI-024`, `ORF-QA-027` : génération média gouvernée et soak tests.
 
-Ce run groupé s'arrête après **G13-AB**. Les tranches suivantes restent fermées tant qu'un nouveau
-lot n'est pas explicitement demandé.
+G13 est fermé après **G13-AL** : ses 135 feature IDs disposent d'une implémentation et de preuves
+référencées. Aucun lot postérieur n'est ouvert par cette fermeture.
 
 ## Gate de fermeture
 

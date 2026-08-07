@@ -252,6 +252,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private QuestOperationsWindow? _questOperationsWindow;
     private ItemAdvancedWindow? _itemAdvancedWindow;
     private WorldFeatureStudioWindow? _worldFeatureStudioWindow;
+    private PostLaunchStudioWindow? _postLaunchStudioWindow;
     private FactionAdvancedWindow? _factionAdvancedWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
@@ -547,6 +548,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_worldFeatureStudioWindow);
+        _postLaunchStudioWindow = new PostLaunchStudioWindow();
+        _postLaunchStudioWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyPostLaunch,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_postLaunchStudioWindow);
         _factionAdvancedWindow = new FactionAdvancedWindow();
         _factionAdvancedWindow.Initialize(
             () => _history?.State,
@@ -660,6 +669,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _questOperationsWindow?.Open(),
             () => _itemAdvancedWindow?.Open(),
             () => _worldFeatureStudioWindow?.Open(),
+            () => _postLaunchStudioWindow?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rpgKitAuthoringWindow);
         _networkBetaWindow = new NetworkBetaWindow();
@@ -2499,6 +2509,21 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             ApplyCommand(result, "Monde vivant et automatisations enregistrés dans le module.", null);
             _worldFeatureStudioWindow?.Refresh();
+        }
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyPostLaunch(ModuleRuntimeExtensionProfile profile, bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        var command = new SetRuntimeExtensionsCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            profile, dryRun);
+        var result = _setRuntimeExtensionsHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Production, plateforme et expérience enregistrées dans le module.", null);
+            _postLaunchStudioWindow?.Refresh();
         }
         return result;
     }
@@ -5647,6 +5672,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunWorldFeatureStudioSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunPostLaunchStudioSmokeTest())
         {
             return;
         }
@@ -10770,6 +10800,121 @@ public partial class ForgeEditorPlugin : EditorPlugin
         finally
         {
             _worldFeatureStudioWindow.Hide();
+            if (appliedToHistory) _history.Undo();
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+    }
+
+    private bool RunPostLaunchStudioSmokeTest()
+    {
+        if (_history is null || _postLaunchStudioWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13AC_AL_POST_LAUNCH_FAILED missing_workspace");
+            return false;
+        }
+
+        var original = _history.State.Project.Module.RuntimePolicies.Extensions.PostLaunch;
+        var appliedToHistory = false;
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "post-launch-smoke", Guid.NewGuid().ToString("N"));
+        try
+        {
+            _postLaunchStudioWindow.Open();
+            var visible = _postLaunchStudioWindow.Visible;
+            _postLaunchStudioWindow.Hide();
+            var configured = visible && _postLaunchStudioWindow.ConfigureForSmokeTest();
+            var previewed = configured && _postLaunchStudioWindow.PreviewForSmokeTest();
+            var applied = previewed && _postLaunchStudioWindow.LastCommandId != Guid.Empty &&
+                          _postLaunchStudioWindow.LastPatchSummary.Contains("post-launch", StringComparison.Ordinal) &&
+                          _postLaunchStudioWindow.ApplyForSmokeTest();
+            appliedToHistory = applied;
+            if (!applied)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13AC_AL_POST_LAUNCH_FAILED preview_apply_ui");
+                return false;
+            }
+
+            var post = _history.State.Project.Module.RuntimePolicies.Extensions.PostLaunch;
+            if (_postLaunchStudioWindow.SectionCount != 6 || !post.Gameplay.ZeroGravity.Enabled ||
+                !post.Gameplay.Vehicles.Enabled || !post.Gameplay.Mounts.Enabled || post.Gameplay.Achievements.Count != 1 ||
+                !post.LiveDirector.ForcedRest.Enabled || !post.LiveDirector.LevelAdjustment.Enabled ||
+                !post.LiveDirector.AppearanceOverrides.Enabled || !post.LiveDirector.SessionRecording.Enabled ||
+                post.LiveDirector.SavedGroups.Count != 1 || !post.Network.Voice.Enabled || post.Network.Shards.Count != 1 ||
+                !post.Network.HotReload.Enabled || !post.Network.ServerExtensions.Enabled ||
+                !post.CreatorExperience.DynamicAreas.Enabled || !post.CreatorExperience.Observability.Enabled ||
+                !post.Production.MediaGeneration.Enabled || !post.Production.SoakTests.Enabled)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13AC_AL_POST_LAUNCH_FAILED canonical_counts");
+                return false;
+            }
+
+            var mobility = PostLaunchCapabilityResolver.ResolveMobility(post.Gameplay, true, .5f, 4, true);
+            var achievement = PostLaunchCapabilityResolver.EvaluateAchievement(post.Gameplay, "crypt-liberated", 1);
+            var director = PostLaunchCapabilityResolver.PlanDirectorIntervention(post.LiveDirector, "adjust-level", 1, 2);
+            var recording = PostLaunchCapabilityResolver.ResolveRecording(post.LiveDirector, 1,
+                new Dictionary<string, IReadOnlyList<Guid>> { ["tag:guardian"] = [Guid.NewGuid()] });
+            var content = PostLaunchCapabilityResolver.ResolveNetworkContent(post.Gameplay, post.Network, true, "CC0-1.0");
+            var reload = PostLaunchCapabilityResolver.PlanShardReload(post.Network, "crypt-eu", 64, 4);
+            var protocol = PostLaunchCapabilityResolver.NegotiateProtocol(post.Network, "windows", 1, 2,
+                ["metrics"], true);
+            var creator = PostLaunchCapabilityResolver.ResolveCreatorTechnical(post.CreatorExperience,
+                ["graphics-tier"], 32, 2);
+            var rpg = PostLaunchCapabilityResolver.ResolveRpgDistribution(post.CreatorExperience, 8, 32);
+            var media = PostLaunchCapabilityResolver.PlanProduction(post.Production, "image", 1);
+            var soak = PostLaunchCapabilityResolver.PlanProduction(post.Production, "soak", 32, 64, 100, 150);
+            if (!mobility.ZeroGravityActive || !mobility.VehicleAccepted || !mobility.MountAccepted ||
+                !achievement.Unlocked || !director.Accepted || !recording.Accepted ||
+                content.Diagnostic != "POST_NETWORK_CONTENT_READY" || !reload.Accepted || !protocol.Compatible ||
+                !creator.Accepted || !rpg.PartyControl || !media.Accepted || !soak.Accepted)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13AC_AL_POST_LAUNCH_FAILED runtime_resolution");
+                return false;
+            }
+
+            var aggregate = ProjectJsonSerializer.Deserialize(ProjectJsonSerializer.Serialize(_history.State.Project));
+            var created = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            if (!created.Succeeded || !reopened.Succeeded ||
+                !aggregate.Module.RuntimePolicies.Extensions.PostLaunch.Gameplay.ZeroGravity.Enabled ||
+                !reopened.Session!.Project.Module.RuntimePolicies.Extensions.PostLaunch.Production.SoakTests.Enabled)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13AC_AL_POST_LAUNCH_FAILED persistence");
+                return false;
+            }
+
+            var profileId = post.Id;
+            var undo = _history.Undo();
+            var redo = _history.Redo();
+            var cleanup = _history.Undo();
+            appliedToHistory = false;
+            if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+                _history.State.Project.Module.RuntimePolicies.Extensions.PostLaunch.Id != original.Id ||
+                redo.State.Project.Module.RuntimePolicies.Extensions.PostLaunch.Id != profileId)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13AC_AL_POST_LAUNCH_FAILED history");
+                return false;
+            }
+
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AC_MOBILITY_PASS zero-g=six-axis-inertia-thrusters vehicles=seats-possession-physics-damage-replication mounts=rider-combat-inventory-save");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AD_ACHIEVEMENTS_PACKS_PASS achievements=event-threshold-platform-privacy packs=channel-compatibility-license-signature-offline");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AE_DIRECTOR_INTERVENTIONS_PASS rest=reason-override-event level=rebuild-snapshot-rollback appearance=variant-scale-material-duration-validation");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AF_DIRECTOR_GROUP_RECORDING_PASS groups=hotkey-query-cap recording=commands-events-bookmarks-redaction-export");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AG_NETWORK_CONTENT_VOICE_PASS curated=trusted-license-fallback voice=opus-positional-ptt-moderation");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AH_SHARD_HOT_RELOAD_PASS shards=areas-capacity-region reload=drain-atomic-rollback-fingerprint");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AI_SERVER_PROTOCOL_PASS extensions=signed-isolated-capabilities-quota protocol=family-range-platform-negotiation");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AJ_CREATOR_TECHNICAL_PASS water=refraction-reflection-depth device=consent-redaction resources=quota-namespace areas=authority-lifetime graphics=msaa-aniso-fallback");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AK_RPG_DISTRIBUTION_OBSERVABILITY_PASS party=direct-group progression=data-driven-64 repository=channel-signature-notes profiler=tracy-otel-bounded");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AL_MEDIA_SOAK_PASS media=rights-staging-review-fallback soak=duration-memory-handles-database-latency-players");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AC_AL_POST_LAUNCH_PASS ui=tabs-6-empty-errors-summary transaction=preview-apply-audit-history mcp=filtered-preview persistence=project-workspace-package runtime=domain-director-network-qa");
+            return true;
+        }
+        catch (Exception exception)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13AC_AL_POST_LAUNCH_FAILED " + exception);
+            return false;
+        }
+        finally
+        {
+            _postLaunchStudioWindow.Hide();
             if (appliedToHistory) _history.Undo();
             if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
         }

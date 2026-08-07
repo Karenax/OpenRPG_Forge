@@ -1,5 +1,14 @@
 # Backlog MVP — Crypte des Cendres
 
+## Lot G13 — Extensions post-1.0
+
+- [x] G13-A à G13-AB : finition auteur, profondeur RPG et Monde vivant.
+- [x] G13-AC à G13-AJ : mobilité, contenu, Live Director, réseau et plateforme Creator.
+- [x] G13-AK à G13-AL : RPG/distribution/observabilité, génération média et soak tests.
+
+Acceptation : 135/135 capacités G13 référencées, format migrable, Studio sans JSON, MCP borné,
+smokes Toolset/runtime et portail intégré verts. Aucun lot suivant n'est ouvert automatiquement.
+
 ## Règles
 
 - Exécuter dans l’ordre sauf dépendance clairement justifiée.

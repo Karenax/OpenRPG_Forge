@@ -405,6 +405,18 @@ public sealed class ForgeMcpTools
     [Description("Returns canonical data-driven rules, declarative UI, runtime JSON and entity snapshot policies without mutation.")]
     public RuntimeExtensionResource GetRuntimeExtensions() => _project.GetRuntimeExtensions();
 
+    [McpServerTool(Name = "forge_get_post_launch_capabilities", ReadOnly = true, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Reads the canonical G13 post-launch capability profile, optionally filtered by section.")]
+    public PostLaunchCapabilityResource GetPostLaunchCapabilities(string? section = null) =>
+        _project.GetPostLaunchCapabilities(section);
+
+    [McpServerTool(Name = "forge_preview_post_launch_capability", ReadOnly = true, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description("Previews a deterministic mobility, protocol, media or soak decision without mutating the project.")]
+    public PostLaunchPreviewResult PreviewPostLaunchCapability(PostLaunchPreviewRequest request) =>
+        _project.PreviewPostLaunchCapability(request);
+
     [McpServerTool]
     [Description("Validates and dry-runs a versioned runtime-extension plan with a semantic diff.")]
     public RuntimeExtensionPlanResult PlanRuntimeExtensions(RuntimeExtensionPlanRequest request) =>

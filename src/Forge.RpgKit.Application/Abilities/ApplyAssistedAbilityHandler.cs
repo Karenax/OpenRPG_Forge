@@ -116,7 +116,8 @@ public sealed class ApplyAssistedAbilityHandler
             .Append(proposal.RuntimeDocument).ToArray();
         var extensions = new ModuleRuntimeExtensionProfile(currentExtensions.Id, currentExtensions.SchemaVersion,
             currentExtensions.RuleSchemas, currentExtensions.UiDocuments, documents, currentExtensions.SnapshotPolicy,
-            "assistant:ability", currentExtensions.ModernTooling, currentExtensions.OperationalReadiness);
+            "assistant:ability", currentExtensions.ModernTooling, currentExtensions.OperationalReadiness,
+            currentExtensions.PostLaunch);
         var policies = new ModuleRuntimePolicyProfile(currentPolicies.Id, currentPolicies.SchemaVersion,
             currentPolicies.Heartbeats, currentPolicies.Rest, currentPolicies.SequenceAbort, "assistant:ability",
             currentPolicies.Cinematics, currentPolicies.Gameplay, currentPolicies.Rules, extensions);

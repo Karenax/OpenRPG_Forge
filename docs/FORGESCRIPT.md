@@ -21,6 +21,10 @@ réglages IA nommés. Les séquences caméra restent des données bornées (rig,
 verrouillage et récupération) ; aucun handle n'expose un nœud du moteur. Les mutations passent
 toujours par la commande transactionnelle et sa révision, jamais par un accès script direct.
 
+G13-AC à G13-AL conservent cette frontière : ForgeScript peut consommer les décisions et événements
+autorisés du profil post-lancement, mais ne peut ni charger une extension serveur, ni basculer un
+shard, ni invoquer un provider média ou contourner une permission Live Director.
+
 ## Sandbox
 
 Sont interdits : fichiers, réseau, processus, DLL, threads, mémoire brute, réflexion native et horloge système non déterministe. Des quotas limitent instructions/temps, pile, mémoire, entités créées et récursion d’événements.

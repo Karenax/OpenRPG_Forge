@@ -32,7 +32,8 @@ public partial class RuntimeExtensionsWindow : Window
         $"rules={_profile.RuleSchemas.Count};ui={_profile.UiDocuments.Count};json={_profile.JsonDocuments.Count};" +
         $"components={_profile.SnapshotPolicy.Components.Count};toolkit={_profile.ModernTooling.UiToolkit.ToolkitVersion};" +
         $"tasks={_profile.OperationalReadiness.TaskManifests.Count};sync={_profile.OperationalReadiness.ContentSynchronization.Resumable};" +
-        $"qa-budgets={_profile.ModernTooling.QualityAssurance.PlatformBudgets.Count};qa-profiler={_profile.ModernTooling.QualityAssurance.Profiler.OneClickCapture}";
+        $"qa-budgets={_profile.ModernTooling.QualityAssurance.PlatformBudgets.Count};qa-profiler={_profile.ModernTooling.QualityAssurance.Profiler.OneClickCapture};" +
+        $"post-launch={_profile.PostLaunch.SchemaVersion};shards={_profile.PostLaunch.Network.Shards.Count};soak={_profile.PostLaunch.Production.SoakTests.Enabled}";
 
     public void Initialize(Func<ProjectState?> state, Func<ModuleRuntimeExtensionProfile, bool> apply,
         Action<Window> brand)
@@ -263,7 +264,7 @@ public partial class RuntimeExtensionsWindow : Window
                 (int)_maxReferences!.Value, (int)_maxInventory!.Value, (int)_maxBlackboard!.Value,
                 _restoreReferences!.ButtonPressed, "forge-ui");
             var profile = new ModuleRuntimeExtensionProfile(_profile.Id, 1, rules, ui, json, snapshot, "forge-ui",
-                ParseModernTooling(), ParseOperationalReadiness());
+                ParseModernTooling(), ParseOperationalReadiness(), _profile.PostLaunch);
             var succeeded = _apply?.Invoke(profile) == true;
             _status!.Text = succeeded ? "✓ Extensions validées, persistantes et annulables." :
                 "✕ Application refusée · consultez les diagnostics.";

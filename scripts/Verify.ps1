@@ -114,7 +114,7 @@ function Invoke-ForgeEngineMarkerTest {
 
     # Keep the long-lived smoke inventories aligned with the current workspace schema and
     # append lot markers here so every engine invocation uses one canonical gate contract.
-    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.26.0').Replace('format=1.10.0', 'format=1.26.0').Replace('format=1.11.0', 'format=1.26.0').Replace('format=1.12.0', 'format=1.26.0').Replace('format=1.13.0', 'format=1.26.0').Replace('format=1.14.0', 'format=1.26.0').Replace('format=1.15.0', 'format=1.26.0').Replace('format=1.16.0', 'format=1.26.0').Replace('format=1.17.0', 'format=1.26.0').Replace('format=1.18.0', 'format=1.26.0').Replace('format=1.19.0', 'format=1.26.0').Replace('format=1.20.0', 'format=1.26.0').Replace('format=1.21.0', 'format=1.26.0').Replace('format=1.22.0', 'format=1.26.0').Replace('format=1.23.0', 'format=1.26.0').Replace('format=1.24.0', 'format=1.26.0').Replace('format=1.25.0', 'format=1.26.0') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.27.0').Replace('format=1.10.0', 'format=1.27.0').Replace('format=1.11.0', 'format=1.27.0').Replace('format=1.12.0', 'format=1.27.0').Replace('format=1.13.0', 'format=1.27.0').Replace('format=1.14.0', 'format=1.27.0').Replace('format=1.15.0', 'format=1.27.0').Replace('format=1.16.0', 'format=1.27.0').Replace('format=1.17.0', 'format=1.27.0').Replace('format=1.18.0', 'format=1.27.0').Replace('format=1.19.0', 'format=1.27.0').Replace('format=1.20.0', 'format=1.27.0').Replace('format=1.21.0', 'format=1.27.0').Replace('format=1.22.0', 'format=1.27.0').Replace('format=1.23.0', 'format=1.27.0').Replace('format=1.24.0', 'format=1.27.0').Replace('format=1.25.0', 'format=1.27.0').Replace('format=1.26.0', 'format=1.27.0') })
     if ($Name -eq 'toolset') {
         $Markers += 'OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_PASS models=1 manifests=1 scatter_layers=1 scatter_instances='
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
@@ -146,6 +146,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_TOOLSET_G13H_DIALOGUE_PRESENTATION_PASS animations=timing-blend-gesture-lookat-interrupt-fallback voice=locale-take-subtitle-lipsync-emotion-duration-license-fallback camera=automatic-anchor-framing-player-priority-accessible bookmarks=personal-shared-comment-deeplink interjections=personality-presence-relation-priority-cooldown-conflicts-authority ui=visible-empty-error-summary forgescript=typed-handle mcp=filtered-dry-run transaction=identified audit=generated history=restored persistence=project-workspace-package runtime=optional-safe'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G13I_ADAPTIVE_DIALOGUE_PASS timed=optional-default-accessibility-pause-server-revision-timeout-script variants=conditional-weighted-seeded-anti-repeat-localized ui=visible-empty-error-summary-simulation forgescript=typed-handle mcp=filtered-dry-run transaction=identified audit=generated history=restored persistence=project-workspace-package'
         $Markers += 'OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_PASS ui=tabs-8-empty-errors-summary transaction=preview-apply-audit-history mcp=filtered-dry-run persistence=project-workspace-package runtime=resolved'
+        $Markers += 'OPENRPG_FORGE_TOOLSET_G13AC_AL_POST_LAUNCH_PASS ui=tabs-6-empty-errors-summary transaction=preview-apply-audit-history mcp=filtered-preview persistence=project-workspace-package runtime=domain-director-network-qa'
         $Markers += 'streaming=async-cache-cancel sculpt=raise-'
         $Markers += 'paint=material-'
         $Markers += 'brush_history=restored history=restored persistence=roundtrip'
@@ -160,6 +161,7 @@ function Invoke-ForgeEngineMarkerTest {
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11S_PERFORMANCE_PASS network=9-latency-loss-reconnect-mismatch-authority visual=8-fixtures-tolerance-quality benchmarks=9-interior-exterior-stress-load-frame-memory-nav-package budgets=3-frame-memory-texture-draw-light-script-network profiler=editor-runtime-server-script-database-network'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G11T_GOVERNANCE_PASS editor=7-keyboard-labels-scale-contrast runtime=7-subtitles-captions-color-input-motion-difficulty fuzz=112-cases-7-boundaries-no-crash-no-escape dependencies=0-approved-risk-review-audit-lifecycle'
         $Markers += 'OPENRPG_FORGE_RUNTIME_G13N_AB_WORLD_FEATURES_PASS slices=15 catalog=canonical runtime=pure-domain'
+        $Markers += 'OPENRPG_FORGE_RUNTIME_G13AC_AL_POST_LAUNCH_PASS slices=10 profile=canonical runtime=domain-application-network-qa'
     }
 
     $logPath = Join-Path $artifactRoot "$Name.log"

@@ -329,6 +329,11 @@ Prévisualiser et Appliquer. Les valeurs d'autorité, cadence, budget, accès, �
 restent visibles. L'éditeur ne demande jamais de modifier le JSON et Annuler/Rétablir couvre le
 catalogue entier comme une seule transaction.
 
+G13-AC à G13-AL ajoutent **Production & expérience**. Six onglets séparent Mobilité, Contenu,
+Live Director, Réseau, Plateforme et Production ; les contrôles bornés remplacent l'édition JSON.
+Le bandeau résume le profil, puis Prévisualiser, Appliquer, Annuler et Rétablir conservent le modèle
+transactionnel Aurora. Les fonctions distantes ou coûteuses restent clairement optionnelles.
+
 G12-J ajoute **Création 3D** dans le même Assistant. La première colonne définit identité,
 primitive et transforms métriques ; la seconde expose matériau PBR, couleur, UV, LOD, collision,
 style, citations, seed et approbation. La troisième affiche recette, hash, cinq tests, provenance,

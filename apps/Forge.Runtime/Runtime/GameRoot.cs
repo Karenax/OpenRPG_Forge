@@ -45,6 +45,8 @@ using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Quality;
 using Forge.ModuleFormat.Saves;
 using Forge.ModuleFormat.Workspaces;
+using Forge.Network.Production;
+using Forge.Network.Testing;
 using Forge.Scripting;
 using Godot;
 
@@ -107,6 +109,7 @@ public partial class GameRoot : Node3D
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
     private readonly RuntimeCameraRig _cameraRig = new();
     private WorldFeatureCatalog? _worldFeatureCatalog;
+    private PostLaunchCapabilityProfile? _postLaunchProfile;
 
     private PlayerController? _player;
     private CombatantState? _playerCombatant;
@@ -287,6 +290,7 @@ public partial class GameRoot : Node3D
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
             _isForgottenForestPrototype = string.Equals(_moduleSlug, "forgotten-forest", StringComparison.Ordinal);
             ConfigureWorldFeatures(project);
+            ConfigurePostLaunch(project);
             _message = $"Explorez {_moduleTitle}.";
             var entryArea = project.Areas.Single(area => area.Id == project.Module.EntryAreaId);
             ConfigureRuntimePolicies(project.Module.RuntimePolicies, entryArea.RuntimePolicies);
@@ -3642,6 +3646,91 @@ public partial class GameRoot : Node3D
         catalog.Scripts.TagRouting.Routes.Count == 0 && catalog.Scripts.ModuleFlags.Count == 0 &&
         catalog.Scripts.AiSettings.Count == 0;
 
+    private void ConfigurePostLaunch(ProjectDefinition project)
+    {
+        var profile = project.Module.RuntimePolicies.Extensions.PostLaunch;
+        if (_isCryptPrototype && string.Equals(profile.Provenance, "migration-default", StringComparison.Ordinal))
+        {
+            // The shipped sample demonstrates every optional production capability. An authored profile
+            // always carries explicit provenance and therefore always wins over this deterministic fixture.
+            profile = CryptPostLaunchAuthoringService.Create(project).PostLaunch;
+        }
+        _postLaunchProfile = profile;
+    }
+
+    private void RunPostLaunchSmokeTest()
+    {
+        var profile = _postLaunchProfile ??
+            throw new InvalidOperationException("The post-launch capability profile was not configured.");
+        var mobility = PostLaunchCapabilityResolver.ResolveMobility(profile.Gameplay, true, .5f, 4, true);
+        AssertSmoke(mobility.ZeroGravityActive && mobility.VehicleAccepted && mobility.MountAccepted,
+            "Zero-gravity, vehicle or mount capability did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AC_MOBILITY_PASS zero-g=active acceleration=7 vehicle=accepted mount=accepted");
+
+        var achievement = PostLaunchCapabilityResolver.EvaluateAchievement(profile.Gameplay, "crypt-liberated", 1);
+        AssertSmoke(achievement.Unlocked && profile.Gameplay.CuratedPacks.RequireTrustedSignature,
+            "Achievement or curated-pack governance did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AD_ACHIEVEMENT_PACK_PASS achievement=unlocked platform=queued pack=trusted-cc0");
+
+        var rest = PostLaunchCapabilityResolver.PlanDirectorIntervention(profile.LiveDirector, "force-rest", 2);
+        var level = PostLaunchCapabilityResolver.PlanDirectorIntervention(profile.LiveDirector, "adjust-level", 1, 2);
+        var appearance = PostLaunchCapabilityResolver.PlanDirectorIntervention(profile.LiveDirector, "appearance", 1, scale: 1.2f);
+        AssertSmoke(rest.Accepted && level.Accepted && level.SnapshotRequired && appearance.Accepted,
+            "Live Director intervention policies did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AE_DIRECTOR_INTERVENTION_PASS rest=completed level=preview-snapshot appearance=validated");
+
+        var recording = PostLaunchCapabilityResolver.ResolveRecording(profile.LiveDirector, 1,
+            new Dictionary<string, IReadOnlyList<Guid>> { ["tag:guardian"] = [Guid.NewGuid()] });
+        AssertSmoke(recording.Accepted && recording.RedactPrivateData && recording.ExportFormat == "orp-replay",
+            "Saved Live Director group or recording policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AF_DIRECTOR_RECORDING_PASS group=resolved replay=orp-replay privacy=redacted");
+
+        var networkContent = PostLaunchCapabilityResolver.ResolveNetworkContent(profile.Gameplay, profile.Network,
+            signerTrusted: true, "CC0-1.0");
+        AssertSmoke(networkContent.VoiceEnabled && networkContent.Diagnostic == "POST_NETWORK_CONTENT_READY",
+            "Curated content or voice policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AG_NETWORK_CONTENT_VOICE_PASS content=trusted voice=opus-positional");
+
+        var server = new ServerProductionService(profile.Network);
+        var reloadRequest = new ServerProductionService.ReloadRequest(Guid.NewGuid(), "crypt-eu", 64, 4, 0,
+            new string('a', 64));
+        var reloadPreview = server.Reload(reloadRequest, false);
+        var reloadApplied = server.Reload(reloadRequest, true);
+        AssertSmoke(reloadPreview.Code == "NET_PRODUCTION_PREVIEW" && reloadApplied.Applied && reloadApplied.RollbackAvailable,
+            "Shard hot reload did not preview and apply atomically.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AH_SHARD_RELOAD_PASS shard=crypt-eu atomic=true rollback=true");
+
+        var protocol = server.Negotiate("windows", 1, 2, ["metrics", "unsafe-shell"], signedExtension: true);
+        AssertSmoke(protocol.Compatible && protocol.ExtensionAllowed && protocol.GrantedCapabilities.SequenceEqual(["metrics"]),
+            "Cross-platform protocol or signed extension negotiation failed.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AI_SERVER_PROTOCOL_PASS platform=windows version=2 extension=signed-isolated capabilities=metrics");
+
+        var technical = PostLaunchCapabilityResolver.ResolveCreatorTechnical(profile.CreatorExperience,
+            ["graphics-tier", "hardware-serial"], 64, 2);
+        AssertSmoke(technical.Accepted && technical.DeviceQueries.SequenceEqual(["graphics-tier"]) &&
+                    technical.GraphicsMode == "msaa8+aniso16",
+            "Creator technical capability resolution failed.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AJ_CREATOR_TECHNICAL_PASS water=high device=consented resources=bounded areas=2 graphics=msaa8-aniso16");
+
+        var distribution = PostLaunchCapabilityResolver.ResolveRpgDistribution(profile.CreatorExperience, 8, 32);
+        AssertSmoke(distribution.PartyControl && distribution.SignedMetadata && distribution.Observability,
+            "Party, progression, repository or observability policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AK_RPG_DISTRIBUTION_PASS party=8 tracks=64 repository=signed observability=tracy-otel");
+
+        var media = PostLaunchRuntimeService.PlanMediaGeneration(profile, Guid.NewGuid(), "image", "local",
+            "CC0-1.0", "runtime-smoke", 1024, providerAvailable: true);
+        var soak = DeterministicSoakTestService.Evaluate(profile.Production.SoakTests,
+        [
+            new(0, 512, 1_000, 80, true, 64),
+            new(60, 540, 1_020, 120, true, 64),
+            new(120, 560, 1_030, 150, true, 64),
+        ]);
+        AssertSmoke(media.Succeeded && media.RequiresReview && soak.Passed,
+            "Governed media staging or deterministic soak evaluation failed.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AL_MEDIA_SOAK_PASS media=staged-rights-review soak=120m-memory-handles-db-latency-players");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AC_AL_POST_LAUNCH_PASS slices=10 profile=canonical runtime=domain-application-network-qa");
+    }
+
     private void RunWorldFeatureSmokeTest()
     {
         var catalog = _worldFeatureCatalog ??
@@ -3950,6 +4039,7 @@ public partial class GameRoot : Node3D
                  $"ownership={ownership.Code} recipe={recipe.Slug} unique={_keyItemUniqueToken:D} " +
                  $"affixes={_keyItemGeneratedAffixes}");
         RunWorldFeatureSmokeTest();
+        RunPostLaunchSmokeTest();
         InteractWith(_door!);
         AssertSmoke(_doorUnlocked, "Door interaction did not unlock the door.");
 

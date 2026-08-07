@@ -31,6 +31,10 @@ G13-H à G13-M ferment ensuite la présentation et l'adaptation des dialogues, l
 quête et la profondeur des objets. Le lot groupé G13-N à G13-AB livre maintenant le catalogue
 canonique Monde vivant : placeables, portes, triggers, rencontres, routes, marchands, compagnons et
 automatisation script partagent UI, commande, formats, ForgeScript, MCP et résolveurs runtime.
+G13-AC à G13-AL ferment enfin les 27 capacités restantes : mobilité, succès, interventions et
+enregistrement Live Director, voix, shards, hot reload, protocole, extensions serveur, outils
+Creator techniques, génération média gouvernée et soak tests. Le Studio post-lancement, MCP et le
+runtime partagent le profil canonique `0.6.33` / workspace `1.27.0`. Les 135 capacités G13 sont closes.
 AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
@@ -716,4 +720,11 @@ requête et preview bornées, et la Crypte exerce les quinze tranches dans le pr
 terminer son parcours jouable. Les anciens modules reçoivent un catalogue vide ; le fallback de
 démonstration de la Crypte ne remplace jamais un catalogue créé par l'auteur.
 
-Ce run est **arrêté après G13-AB**. Aucune tranche suivante n’est démarrée.
+**G13-AC à G13-AL — production post-lancement livrée** : `PostLaunchCapabilityProfile` v1 ferme
+mobilité, succès, packs sélectionnés, interventions/enregistrement Live Director, voix, shards,
+hot reload atomique, extensions serveur signées, protocole compatible, outils Creator techniques,
+progression/distribution/observabilité, génération VFX/audio/image gouvernée et soak tests. Le
+Studio à six onglets, MCP, les services autoritaires et le runtime utilisent le même contrat. Les
+formats projet `0.6.33`, workspace `1.27.0` et `.orpmod` migrent depuis G13-AB.
+
+G13 est **fermé après G13-AL avec 135/135 capacités référencées**. Aucun lot suivant n’est démarré.

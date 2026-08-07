@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.26.0",
+  "formatVersion": "1.27.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -1212,6 +1212,247 @@
                 "CC0-1.0"
               ],
               "trustedSignerFingerprints": [],
+              "provenance": "migration-default"
+            },
+            "provenance": "migration-default"
+          },
+          "postLaunch": {
+            "id": "a420dc32-55db-529f-8737-52ba6ae1665c",
+            "schemaVersion": 1,
+            "gameplay": {
+              "id": "7eeba257-72c1-53f6-9ef6-3af25aa1040b",
+              "schemaVersion": 1,
+              "zeroGravity": {
+                "id": "595ecfe0-c594-5747-83bc-8e3f57c84f7c",
+                "enabled": false,
+                "thrusterAcceleration": 12,
+                "maximumSpeed": 24,
+                "linearDrag": 0.15,
+                "orientationAssist": true,
+                "preserveMomentum": true
+              },
+              "vehicles": {
+                "id": "39d0fd5c-8900-594d-8582-07727e56c683",
+                "enabled": false,
+                "maximumSeats": 4,
+                "motionMode": "kinematic",
+                "maximumIntegrity": 1000,
+                "allowPossession": true,
+                "replicateAuthoritatively": true
+              },
+              "mounts": {
+                "id": "d239574d-33c7-5503-b7a9-9ac38ac9916a",
+                "enabled": false,
+                "allowCombat": false,
+                "allowInventory": true,
+                "persistRiderState": true,
+                "dismountPolicy": "safe-ground"
+              },
+              "achievements": [],
+              "curatedPacks": {
+                "id": "9bc7a2cb-8c46-5a7b-9264-9a619ca06d0c",
+                "channel": "stable",
+                "compatibility": "1.x",
+                "allowedLicenses": [
+                  "CC0-1.0"
+                ],
+                "requireTrustedSignature": true,
+                "allowOfflineFallback": true
+              },
+              "provenance": "migration-default"
+            },
+            "liveDirector": {
+              "id": "0d114845-c873-5cdb-9371-8f38a05374fd",
+              "schemaVersion": 1,
+              "forcedRest": {
+                "id": "b500d280-6849-5262-8258-3279bcc4ede7",
+                "enabled": false,
+                "allowRulesOverride": false,
+                "emitCompletedEvent": true,
+                "maximumTargets": 32
+              },
+              "levelAdjustment": {
+                "id": "567f35f1-ef11-54ab-9dc5-3d3943eda2e1",
+                "enabled": false,
+                "maximumDelta": 5,
+                "requireRebuild": true,
+                "requireRollbackSnapshot": true
+              },
+              "savedGroups": [],
+              "appearanceOverrides": {
+                "id": "d016c259-2cb9-558e-9818-510222215cbd",
+                "enabled": false,
+                "minimumScale": 0.5,
+                "maximumScale": 2,
+                "maximumDurationSeconds": 3600,
+                "validateAssets": true
+              },
+              "sessionRecording": {
+                "id": "64e9a21a-ac4e-5b16-ac39-437fa5effbdf",
+                "enabled": false,
+                "recordCommands": true,
+                "recordEvents": true,
+                "allowBookmarks": true,
+                "redactPrivateData": true,
+                "exportFormat": "orp-replay",
+                "maximumMinutes": 240
+              },
+              "provenance": "migration-default"
+            },
+            "network": {
+              "id": "46ff9c56-7568-5db5-bcc9-9084cf945650",
+              "schemaVersion": 1,
+              "voice": {
+                "id": "8c569ffd-f06f-53da-a30f-760d09725f13",
+                "enabled": false,
+                "codec": "opus",
+                "maximumBitrateKbps": 64,
+                "positional": true,
+                "pushToTalk": true,
+                "moderationEnabled": true
+              },
+              "shards": [],
+              "hotReload": {
+                "id": "dab36a8f-9444-5d1e-8ae9-0d48b380a629",
+                "enabled": false,
+                "atomicSwap": true,
+                "requireRollback": true,
+                "maximumPackageMegabytes": 512,
+                "drainTimeoutSeconds": 60
+              },
+              "serverExtensions": {
+                "id": "c20df217-d525-5460-a85f-a9e9ba658bd3",
+                "enabled": false,
+                "requireSignature": true,
+                "isolateProcesses": true,
+                "allowedCapabilities": [],
+                "cpuBudgetMilliseconds": 50
+              },
+              "protocol": {
+                "id": "ca8890d2-fa43-5379-809a-7d5f2d91ec09",
+                "protocolFamily": "openrpg-net",
+                "minimumVersion": 1,
+                "maximumVersion": 1,
+                "platforms": [
+                  "linux",
+                  "macos",
+                  "windows"
+                ],
+                "rejectUnknownFields": true
+              },
+              "provenance": "migration-default"
+            },
+            "creatorExperience": {
+              "id": "c991958d-a7c6-5f84-93a3-8fbdeee6f658",
+              "schemaVersion": 1,
+              "water": {
+                "id": "9b63fd1a-560a-5bd7-b403-a0180e53a516",
+                "refraction": true,
+                "screenSpaceReflections": true,
+                "depthColor": true,
+                "fallbackQuality": "medium"
+              },
+              "deviceQueries": {
+                "id": "d32962b1-796f-536a-ae74-3b1d0e8076e0",
+                "enabled": false,
+                "allowedQueries": [
+                  "graphics-tier",
+                  "input-family"
+                ],
+                "requireConsent": true,
+                "redactStableIdentifiers": true
+              },
+              "resourceCommands": {
+                "id": "74535cdd-63ea-5e22-bb91-2f4e6e5166fe",
+                "enabled": true,
+                "maximumResults": 256,
+                "maximumBytes": 67108864,
+                "allowedNamespaces": [
+                  "content",
+                  "module",
+                  "runtime"
+                ]
+              },
+              "dynamicAreas": {
+                "id": "863eed55-c2ac-5af1-8c43-d7b7e7475213",
+                "enabled": false,
+                "maximumInstances": 16,
+                "lifetimeSeconds": 3600,
+                "requireServerAuthority": true,
+                "resolveDependencies": true
+              },
+              "partyControl": {
+                "id": "f198643a-ba62-5732-94e9-a0d26ed625e0",
+                "enabled": true,
+                "maximumControlledMembers": 8,
+                "allowDirectSwitch": true,
+                "commands": [
+                  "focus",
+                  "follow",
+                  "hold",
+                  "regroup"
+                ]
+              },
+              "progressionTracks": {
+                "id": "19b8af4b-180f-506d-a18e-67741abf28aa",
+                "maximumTracks": 64,
+                "dataDriven": true,
+                "supportLargeSetUi": true
+              },
+              "repositoryMetadata": {
+                "id": "10ee7dcf-743b-5a75-953f-f483d71fce6c",
+                "channel": "stable",
+                "compatibility": "1.x",
+                "requireSignature": true,
+                "requireChangeNotes": true
+              },
+              "observability": {
+                "id": "e5e26c3c-aa12-5c29-95f5-e2c3ff77d0fc",
+                "enabled": false,
+                "tracyCompatible": true,
+                "openTelemetryCompatible": true,
+                "maximumCaptureSeconds": 60,
+                "includeScripts": true
+              },
+              "graphics": {
+                "id": "af59a490-e2d7-58a9-9034-6ec84f8e9e04",
+                "antiAliasing": "msaa4",
+                "anisotropicLevel": 8,
+                "upscaling": "native",
+                "capabilityFallback": true
+              },
+              "provenance": "migration-default"
+            },
+            "production": {
+              "id": "8ce8936f-d8f2-5bb2-a1ce-17ec8c0d94a1",
+              "schemaVersion": 1,
+              "mediaGeneration": {
+                "id": "91877b1c-0277-5eaf-81e8-a5fdceed3edc",
+                "enabled": false,
+                "mediaKinds": [
+                  "audio",
+                  "image",
+                  "vfx"
+                ],
+                "providers": [],
+                "requireRightsMetadata": true,
+                "requireHumanReview": true,
+                "stageBeforeImport": true,
+                "maximumJobs": 8,
+                "maximumBytesPerJob": 268435456,
+                "moduleIndependentFallback": true
+              },
+              "soakTests": {
+                "id": "2a4c62ab-b123-5bf2-8b9f-d33661e3bed3",
+                "enabled": false,
+                "durationMinutes": 60,
+                "virtualPlayers": 32,
+                "sampleIntervalSeconds": 10,
+                "maximumMemoryGrowthMegabytes": 128,
+                "maximumHandleGrowth": 100,
+                "maximumP95LatencyMilliseconds": 250,
+                "assertDatabaseHealth": true
+              },
               "provenance": "migration-default"
             },
             "provenance": "migration-default"

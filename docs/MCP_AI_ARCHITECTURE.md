@@ -41,6 +41,8 @@ sur `stdio`. Les journaux sont isolés sur stderr. La surface testée comprend :
 - le schéma, la préparation, l'application et la réversion d'un plan de dialogue ;
 - `query_world_features` filtre les profils canoniques du Monde vivant et
   `preview_world_features` valide/dry-run un catalogue v1 sans l'appliquer ;
+- `forge_get_post_launch_capabilities` lit une section du profil post-lancement et
+  `forge_preview_post_launch_capability` simule mobilité, protocole, génération ou soak test ;
 - l'API ForgeScript, la compilation, les diagnostics, le test sandboxé et le plan de liaison ;
 - un agent de scénario borné qui retourne résultat, marqueurs, diagnostics et journal d'artefact.
 
@@ -56,3 +58,6 @@ dotnet run --project apps/Forge.McpHost -- --workspace apps/Forge.Runtime/conten
 
 Le scénario d'intégration complet est exécuté par `scripts/Verify.ps1` et produit
 `artifacts/verification/mcp-scenario.log`.
+
+La génération VFX/audio/image reste un plan gouverné : provider allowlisté, droits, provenance,
+quota, staging et fallback. MCP ne reçoit aucun accès direct à un fournisseur ni aux fichiers.

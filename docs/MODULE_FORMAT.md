@@ -33,12 +33,12 @@ Le schéma courant du manifest est `1.1.0`. Le hash SHA-256 couvre, dans un ordr
 chemin UTF-8 puis les octets de chaque entrée hors manifest. L’exporteur écrit une archive
 déterministe dans un fichier temporaire voisin, la valide, puis la remplace atomiquement.
 
-Le document projet courant est `0.6.32` et le workspace `1.26.0`. Le module porte désormais un
-`WorldFeatureCatalog` v1 couvrant placeables, portes, triggers, rencontres, routes, marchands,
-compagnons et automatisation script. Les profils de quête et d'objet avancés restent inchangés.
-Toutes ces extensions sont optionnelles : un projet `0.6.31` ou workspace `1.25.0` est relu avec un
-catalogue vide à identité stable, puis réécrit dans le format courant. Le round-trip projet,
-workspace et `.orpmod` conserve le catalogue sans autre source de vérité moteur.
+Le document projet courant est `0.6.33` et le workspace `1.27.0`. En plus du
+`WorldFeatureCatalog` v1, `ModuleRuntimeExtensionProfile` porte un `PostLaunchCapabilityProfile` v1
+pour gameplay avancé, Live Director, réseau, expérience Creator et production. Un projet `0.6.32`
+ou workspace `1.26.0` migre vers un profil post-lancement désactivé à identité stable, puis est
+réécrit dans le format courant. Le round-trip projet, workspace et `.orpmod` conserve ces contrats
+sans autre source de vérité moteur.
 
 ## Validation obligatoire
 
