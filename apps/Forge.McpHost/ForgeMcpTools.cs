@@ -11,6 +11,7 @@ using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Scripts;
+using Forge.Mcp.WorldFeatures;
 using Forge.Scripting;
 using Forge.ModuleFormat.Quality;
 using ModelContextProtocol.Server;
@@ -36,6 +37,16 @@ public sealed class ForgeMcpTools
     [McpServerTool]
     [Description("Returns the current transactional project revision without mutating the project.")]
     public long GetCurrentRevision() => _project.GetCurrentRevision();
+
+    [McpServerTool]
+    [Description("Returns filtered canonical world-feature profiles for placeables, doors, triggers, encounters, routes, merchants, companions and scripts without mutation.")]
+    public WorldFeatureResource QueryWorldFeatures(string? kind = null, string? idOrTarget = null, int limit = 100) =>
+        _project.QueryWorldFeatures(kind, idOrTarget, limit);
+
+    [McpServerTool]
+    [Description("Validates and dry-runs a complete canonical world-feature catalog mutation, returning its semantic diff without applying it.")]
+    public WorldFeaturePlanResult PreviewWorldFeatures(WorldFeaturePlanRequest request) =>
+        _project.PreviewWorldFeatures(request);
 
     [McpServerTool]
     [Description("Returns advanced quest journal, repetition, sharing, exclusivity and notification policies without mutation.")]

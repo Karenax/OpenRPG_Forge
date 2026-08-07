@@ -74,6 +74,10 @@ Exécuter ensuite les validateurs de catalogue, les tests ciblés, le rapport de
 `scripts/Verify.ps1`. Aucun compte de catalogue n’est modifié pour « préparer » une extension qui
 n’a pas encore franchi cette revue.
 
+Le Vault local peut toutefois contenir les métadonnées gouvernées d'une future révision : le
+rapport exige au moins une entrée de métadonnées par asset du catalogue distribué, sans imposer la
+suppression des entrées CC0 supplémentaires. Le plafond de catalogue reste évalué séparément.
+
 ## 6. Installation dans un module
 
 Dans le Creator, l’installation part d’un asset local et licencié, prépare un manifeste, puis passe

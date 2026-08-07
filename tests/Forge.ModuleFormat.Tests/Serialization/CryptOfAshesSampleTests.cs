@@ -1,6 +1,10 @@
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Quests;
+using Forge.Application.Projects;
+using Forge.Domain.Projects;
+using Forge.Domain.Validation;
+using Forge.Domain.WorldFeatures;
 using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.ModuleFormat.Tests.Serialization;
@@ -56,5 +60,28 @@ public sealed class CryptOfAshesSampleTests
         Assert.Equal(5, bossBlueprint.Combat!.Stats.MaximumHealth);
         Assert.Equal("hostile", bossBlueprint.Combat.Stats.Team);
         Assert.Equal("warden-ember", Assert.Single(bossBlueprint.Combat.Loot).ItemSlug);
+    }
+
+    [Fact]
+    public void SampleProject_WorldFeatureFixtureIsCanonicalAndRuntimeResolvable()
+    {
+        var fixtureDirectory = Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes");
+        var project = ProjectSession.Open(fixtureDirectory).Session!.Project;
+        var catalog = CryptWorldFeatureAuthoringService.Create(project);
+        var configured = new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+            project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+
+        Assert.Empty(ProjectValidator.Validate(configured));
+        Assert.Single(catalog.Placeables);
+        Assert.Single(catalog.Doors);
+        Assert.Single(catalog.Triggers);
+        Assert.Single(catalog.Encounters);
+        Assert.Single(catalog.VehicleRoutes);
+        Assert.Single(catalog.Merchants);
+        Assert.Single(catalog.Companions);
+        Assert.True(WorldFeatureRuntimeResolver.ResolvePlaceableAccess(catalog.Placeables[0],
+            new HashSet<string> { "key:ember" }, new HashSet<string>(), 3).Allowed);
+        Assert.True(WorldFeatureRuntimeResolver.ApplyDoorDamage(catalog.Doors[0], 40, 100).Breached);
+        Assert.NotNull(WorldFeatureRuntimeResolver.ResolveScript(catalog.Scripts, "door.ash", "opened").ScriptId);
     }
 }

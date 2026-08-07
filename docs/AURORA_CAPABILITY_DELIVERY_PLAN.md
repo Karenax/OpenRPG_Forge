@@ -508,7 +508,11 @@ bookmarks et interjections autoritaires. **G13-I** ferme les choix temporisés a
 variantes conditionnelles/pondérées déterministes. **G13-J** ferme les opérations de quête : journal,
 répétition, partage, exclusivité et notifications. **G13-K**, **G13-L** et **G13-M** ferment quinze
 exigences objet : économie et connaissance, équipement et conteneurs, puis loot, unicité, artisanat
-et génération déterministe. Ce run est arrêté après G13-M ; aucune tranche suivante n’est ouverte.
+et génération déterministe. **G13-N à G13-AB** ferment ensuite 55 exigences du Monde vivant :
+placeables, portes, triggers, rencontres, routes, marchands, compagnons et scripts partagent un
+catalogue canonique, une UI sans JSON, des commandes transactionnelles, les formats, ForgeScript,
+MCP et des résolveurs déterministes prouvés dans le runtime 3D. Ce run est arrêté après G13-AB ;
+aucune tranche suivante n’est ouverte.
 
 ## 7. Graphe de dépendances
 

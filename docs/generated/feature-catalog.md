@@ -122,26 +122,26 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-CMP-001 | Créature recrutabile | P1 | Implemented | G8 |
 | ORF-CMP-002 | Conversation avant recrutement | P1 | Implemented | G8 |
 | ORF-CMP-003 | Conversation avec son maître | P1 | Implemented | G8 |
-| ORF-CMP-004 | Conversation avec non-maître | P2 | Researched | G13 |
+| ORF-CMP-004 | Conversation avec non-maître | P2 | Tested | G13 |
 | ORF-CMP-005 | Recrutement et renvoi | P1 | Implemented | G8 |
 | ORF-CMP-006 | Plusieurs compagnons | P1 | Implemented | G8 |
 | ORF-CMP-007 | Propriété du compagnon | P1 | Implemented | G8 |
 | ORF-CMP-008 | Ordres de déplacement | P1 | Implemented | G8 |
 | ORF-CMP-009 | Ordres de combat | P1 | Implemented | G8 |
 | ORF-CMP-010 | Comportement autonome | P1 | Implemented | G8 |
-| ORF-CMP-011 | Formation | P2 | Researched | G13 |
+| ORF-CMP-011 | Formation | P2 | Tested | G13 |
 | ORF-CMP-012 | Équipement du compagnon | P1 | Implemented | G8 |
-| ORF-CMP-013 | Progression et level-up | P2 | Researched | G13 |
-| ORF-CMP-014 | Relation et loyauté | P2 | Researched | G13 |
-| ORF-CMP-015 | Banter et interjections | P2 | Researched | G13 |
-| ORF-CMP-016 | Quêtes personnelles | P2 | Researched | G13 |
+| ORF-CMP-013 | Progression et level-up | P2 | Tested | G13 |
+| ORF-CMP-014 | Relation et loyauté | P2 | Tested | G13 |
+| ORF-CMP-015 | Banter et interjections | P2 | Tested | G13 |
+| ORF-CMP-016 | Quêtes personnelles | P2 | Tested | G13 |
 | ORF-CMP-017 | Mort, inconscience et résurrection | P1 | Implemented | G8 |
 | ORF-CMP-018 | Téléportation de rattrapage | P1 | Implemented | G8 |
-| ORF-CMP-019 | Gestion des pièges | P2 | Researched | G13 |
-| ORF-CMP-020 | Utilisation de sorts/capacités | P2 | Researched | G13 |
-| ORF-CMP-021 | Contrôle direct | P2 | Researched | G13 |
+| ORF-CMP-019 | Gestion des pièges | P2 | Tested | G13 |
+| ORF-CMP-020 | Utilisation de sorts/capacités | P2 | Tested | G13 |
+| ORF-CMP-021 | Contrôle direct | P2 | Tested | G13 |
 | ORF-CMP-022 | Interface de groupe | P1 | Implemented | G8 |
-| ORF-CMP-023 | Séparation et réunion du groupe | P2 | Researched | G13 |
+| ORF-CMP-023 | Séparation et réunion du groupe | P2 | Tested | G13 |
 | ORF-CMP-024 | Validation compagnon | P0 | Implemented | G8 |
 | ORF-CONT-001 | Package de contenu versionné | P0 | Researched | G4 |
 | ORF-CONT-002 | Ordre de priorité | P0 | Researched | G4 |
@@ -298,20 +298,20 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-DOOR-004 | Verrou et clé | P1 | Implemented | G8 |
 | ORF-DOOR-005 | Échec d’ouverture | P1 | Implemented | G8 |
 | ORF-DOOR-006 | Piège de porte | P1 | Implemented | G8 |
-| ORF-DOOR-007 | Destructibilité | P2 | Researched | G13 |
+| ORF-DOOR-007 | Destructibilité | P2 | Tested | G13 |
 | ORF-DOOR-008 | Transition vers zone | P0 | Implemented | G8 |
 | ORF-DOOR-009 | Transition unidirectionnelle/bidirectionnelle | P0 | Implemented | G8 |
-| ORF-DOOR-010 | Écran de chargement spécifique | P2 | Researched | G13 |
+| ORF-DOOR-010 | Écran de chargement spécifique | P2 | Tested | G13 |
 | ORF-DOOR-011 | OnAreaTransitionClick | P1 | Implemented | G8 |
 | ORF-DOOR-012 | OnOpen et OnClose | P1 | Implemented | G8 |
 | ORF-DOOR-013 | OnLock et OnUnlock | P1 | Implemented | G8 |
-| ORF-DOOR-014 | OnDamaged et OnDeath | P2 | Researched | G13 |
-| ORF-DOOR-015 | OnPhysicalAttacked | P2 | Researched | G13 |
-| ORF-DOOR-016 | OnSpellCastAt | P2 | Researched | G13 |
-| ORF-DOOR-017 | OnHeartbeat et OnUserDefined | P3 | Researched | G13 |
-| ORF-DOOR-018 | Conversation et faction | P2 | Researched | G13 |
+| ORF-DOOR-014 | OnDamaged et OnDeath | P2 | Tested | G13 |
+| ORF-DOOR-015 | OnPhysicalAttacked | P2 | Tested | G13 |
+| ORF-DOOR-016 | OnSpellCastAt | P2 | Tested | G13 |
+| ORF-DOOR-017 | OnHeartbeat et OnUserDefined | P3 | Tested | G13 |
+| ORF-DOOR-018 | Conversation et faction | P2 | Tested | G13 |
 | ORF-DOOR-019 | Navigation dynamique | P0 | Implemented | G8 |
-| ORF-DOOR-020 | Portes doubles et complexes | P2 | Researched | G13 |
+| ORF-DOOR-020 | Portes doubles et complexes | P2 | Tested | G13 |
 | ORF-DOOR-021 | Validation de porte | P0 | Implemented | G8 |
 | ORF-EE-001 | Transformations visuelles runtime | P1 | Tested | G11 |
 | ORF-EE-002 | Mise à l’échelle dans le Toolset | P0 | Implemented | G7 |
@@ -351,18 +351,18 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-ENC-005 | Nombre minimum et maximum | P1 | Implemented | G8 |
 | ORF-ENC-006 | Sélection selon Challenge Rating | P1 | Implemented | G8 |
 | ORF-ENC-007 | Rencontre unique ou continue | P1 | Implemented | G8 |
-| ORF-ENC-008 | Respawn | P2 | Researched | G13 |
+| ORF-ENC-008 | Respawn | P2 | Tested | G13 |
 | ORF-ENC-009 | Points de spawn manuels | P1 | Implemented | G8 |
-| ORF-ENC-010 | Faction de spawn | P2 | Researched | G13 |
+| ORF-ENC-010 | Faction de spawn | P2 | Tested | G13 |
 | ORF-ENC-011 | Restriction joueurs | P1 | Implemented | G8 |
 | ORF-ENC-012 | OnEnter et OnExit | P1 | Implemented | G8 |
 | ORF-ENC-013 | OnExhausted | P1 | Implemented | G8 |
-| ORF-ENC-014 | OnHeartbeat et OnUserDefined | P3 | Researched | G13 |
+| ORF-ENC-014 | OnHeartbeat et OnUserDefined | P3 | Tested | G13 |
 | ORF-ENC-015 | Vagues et phases | P1 | Implemented | G8 |
-| ORF-ENC-016 | Renforts et alertes | P2 | Researched | G13 |
-| ORF-ENC-017 | Spawn hors vue | P2 | Researched | G13 |
+| ORF-ENC-016 | Renforts et alertes | P2 | Tested | G13 |
+| ORF-ENC-017 | Spawn hors vue | P2 | Tested | G13 |
 | ORF-ENC-018 | Prévisualisation statistique | P1 | Implemented | G8 |
-| ORF-ENC-019 | Nettoyage | P2 | Researched | G13 |
+| ORF-ENC-019 | Nettoyage | P2 | Tested | G13 |
 | ORF-ENC-020 | Validation de rencontre | P0 | Implemented | G8 |
 | ORF-FAC-001 | Création et suppression de faction | P1 | Implemented | G8 |
 | ORF-FAC-002 | Faction parente | P2 | Tested | G13 |
@@ -443,20 +443,20 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-MER-002 | Store Setup Wizard | P1 | Implemented | G8 |
 | ORF-MER-003 | Inventaire du magasin | P1 | Implemented | G8 |
 | ORF-MER-004 | Markup et markdown | P1 | Implemented | G8 |
-| ORF-MER-005 | Trésorerie | P2 | Researched | G13 |
-| ORF-MER-006 | Prix maximal d’achat | P2 | Researched | G13 |
-| ORF-MER-007 | Biens volés | P2 | Researched | G13 |
+| ORF-MER-005 | Trésorerie | P2 | Tested | G13 |
+| ORF-MER-006 | Prix maximal d’achat | P2 | Tested | G13 |
+| ORF-MER-007 | Biens volés | P2 | Tested | G13 |
 | ORF-MER-008 | Restrictions whitelist/blacklist | P1 | Implemented | G8 |
 | ORF-MER-009 | Stock infini | P1 | Implemented | G8 |
-| ORF-MER-010 | Réapprovisionnement | P2 | Researched | G13 |
+| ORF-MER-010 | Réapprovisionnement | P2 | Tested | G13 |
 | ORF-MER-011 | OnOpen et OnClose | P1 | Implemented | G8 |
 | ORF-MER-012 | Transactions atomiques | P0 | Implemented | G8 |
-| ORF-MER-013 | Monnaies multiples | P2 | Researched | G13 |
-| ORF-MER-014 | Négociation | P3 | Researched | G13 |
-| ORF-MER-015 | Marchés dynamiques | P3 | Researched | G13 |
-| ORF-MER-016 | Services | P2 | Researched | G13 |
+| ORF-MER-013 | Monnaies multiples | P2 | Tested | G13 |
+| ORF-MER-014 | Négociation | P3 | Tested | G13 |
+| ORF-MER-015 | Marchés dynamiques | P3 | Tested | G13 |
+| ORF-MER-016 | Services | P2 | Tested | G13 |
 | ORF-MER-017 | Interface de boutique | P1 | Implemented | G8 |
-| ORF-MER-018 | Audit économique | P2 | Researched | G13 |
+| ORF-MER-018 | Audit économique | P2 | Tested | G13 |
 | ORF-MER-019 | Validation marchand | P0 | Implemented | G8 |
 | ORF-MP-001 | Serveur dédié | P1 | Implemented | G9 |
 | ORF-MP-002 | Serveur autoritaire | P1 | Implemented | G9 |
@@ -521,10 +521,10 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-PLC-007 | État initial d’animation | P1 | Implemented | G8 |
 | ORF-PLC-008 | Destructibilité | P1 | Implemented | G8 |
 | ORF-PLC-009 | Protection plot | P1 | Implemented | G8 |
-| ORF-PLC-010 | Faction | P2 | Researched | G13 |
-| ORF-PLC-011 | Conversation | P2 | Researched | G13 |
+| ORF-PLC-010 | Faction | P2 | Tested | G13 |
+| ORF-PLC-011 | Conversation | P2 | Tested | G13 |
 | ORF-PLC-012 | Verrouillage | P1 | Implemented | G8 |
-| ORF-PLC-013 | Clé consommée | P2 | Researched | G13 |
+| ORF-PLC-013 | Clé consommée | P2 | Tested | G13 |
 | ORF-PLC-014 | Piège | P1 | Implemented | G8 |
 | ORF-PLC-015 | Trésor initial | P1 | Implemented | G8 |
 | ORF-PLC-016 | OnOpen et OnClose | P1 | Implemented | G8 |
@@ -532,10 +532,10 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-PLC-018 | OnUsed | P0 | Implemented | G8 |
 | ORF-PLC-019 | OnDisturbed | P1 | Implemented | G8 |
 | ORF-PLC-020 | OnDamaged et OnDeath | P1 | Implemented | G8 |
-| ORF-PLC-021 | OnPhysicalAttacked | P2 | Researched | G13 |
-| ORF-PLC-022 | OnSpellCastAt | P2 | Researched | G13 |
-| ORF-PLC-023 | OnHeartbeat et OnUserDefined | P3 | Researched | G13 |
-| ORF-PLC-024 | Physique dynamique | P2 | Researched | G13 |
+| ORF-PLC-021 | OnPhysicalAttacked | P2 | Tested | G13 |
+| ORF-PLC-022 | OnSpellCastAt | P2 | Tested | G13 |
+| ORF-PLC-023 | OnHeartbeat et OnUserDefined | P3 | Tested | G13 |
+| ORF-PLC-024 | Physique dynamique | P2 | Tested | G13 |
 | ORF-PLC-025 | Sockets et assemblage | P1 | Implemented | G8 |
 | ORF-PLC-026 | Interaction multi-verbes | P1 | Implemented | G8 |
 | ORF-PLC-027 | Validation de placeable | P0 | Implemented | G8 |
@@ -636,15 +636,15 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-SCR-015 | API factions et réputation | P1 | Implemented | G8 |
 | ORF-SCR-016 | API perception | P1 | Implemented | G8 |
 | ORF-SCR-017 | API mouvement | P0 | Researched | G3 |
-| ORF-SCR-018 | API caméra et cutscenes | P2 | Researched | G13 |
+| ORF-SCR-018 | API caméra et cutscenes | P2 | Tested | G13 |
 | ORF-SCR-019 | API son et musique | P1 | Implemented | G8 |
 | ORF-SCR-020 | API temps | P1 | Implemented | G8 |
 | ORF-SCR-021 | API math et chaînes | P0 | Researched | G3 |
 | ORF-SCR-022 | Variables locales | P0 | Researched | G3 |
 | ORF-SCR-023 | Événements custom | P1 | Implemented | G8 |
-| ORF-SCR-024 | Tag-based scripting | P3 | Researched | G13 |
-| ORF-SCR-025 | Module switches | P2 | Researched | G13 |
-| ORF-SCR-026 | AI behavior switches | P2 | Researched | G13 |
+| ORF-SCR-024 | Tag-based scripting | P3 | Tested | G13 |
+| ORF-SCR-025 | Module switches | P2 | Tested | G13 |
+| ORF-SCR-026 | AI behavior switches | P2 | Tested | G13 |
 | ORF-SCR-027 | Sandbox sans fichier/réseau | P0 | Researched | G3 |
 | ORF-SCR-028 | Handles opaques | P0 | Researched | G3 |
 | ORF-SCR-029 | Budget d’instructions | P0 | Researched | G3 |
@@ -688,20 +688,20 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-TRG-002 | Trigger générique | P0 | Implemented | G8 |
 | ORF-TRG-003 | Trigger de transition | P0 | Implemented | G8 |
 | ORF-TRG-004 | Trigger de piège | P1 | Implemented | G8 |
-| ORF-TRG-005 | Trigger secret | P2 | Researched | G13 |
+| ORF-TRG-005 | Trigger secret | P2 | Tested | G13 |
 | ORF-TRG-006 | OnEnter | P0 | Implemented | G8 |
 | ORF-TRG-007 | OnExit | P0 | Implemented | G8 |
-| ORF-TRG-008 | OnClick | P2 | Researched | G13 |
-| ORF-TRG-009 | OnHeartbeat | P2 | Researched | G13 |
-| ORF-TRG-010 | OnUserDefined | P2 | Researched | G13 |
+| ORF-TRG-008 | OnClick | P2 | Tested | G13 |
+| ORF-TRG-009 | OnHeartbeat | P2 | Tested | G13 |
+| ORF-TRG-010 | OnUserDefined | P2 | Tested | G13 |
 | ORF-TRG-011 | Filtre de cible | P1 | Implemented | G8 |
-| ORF-TRG-012 | Clé requise | P2 | Researched | G13 |
-| ORF-TRG-013 | Curseur et surbrillance | P2 | Researched | G13 |
-| ORF-TRG-014 | Trigger de repos sûr | P2 | Researched | G13 |
-| ORF-TRG-015 | Trigger de pistes | P3 | Researched | G13 |
-| ORF-TRG-016 | Trigger d’interjection | P2 | Researched | G13 |
+| ORF-TRG-012 | Clé requise | P2 | Tested | G13 |
+| ORF-TRG-013 | Curseur et surbrillance | P2 | Tested | G13 |
+| ORF-TRG-014 | Trigger de repos sûr | P2 | Tested | G13 |
+| ORF-TRG-015 | Trigger de pistes | P3 | Tested | G13 |
+| ORF-TRG-016 | Trigger d’interjection | P2 | Tested | G13 |
 | ORF-TRG-017 | Volumes de gameplay | P1 | Implemented | G8 |
-| ORF-TRG-018 | Déclenchement manuel par GM | P2 | Researched | G13 |
+| ORF-TRG-018 | Déclenchement manuel par GM | P2 | Tested | G13 |
 | ORF-TRG-019 | Visualisation d’occupation | P1 | Implemented | G8 |
 | ORF-TRG-020 | Validation de trigger | P0 | Implemented | G8 |
 | ORF-WPT-001 | Waypoint nommé | P0 | Researched | G1 |
@@ -715,7 +715,7 @@ Fichier généré. Source : `tracking/project/AURORA_PARITY_COVERAGE.csv`.
 | ORF-WPT-009 | Orientation au waypoint | P1 | Implemented | G7 |
 | ORF-WPT-010 | Patrouille inter-zones | P2 | Tested | G11 |
 | ORF-WPT-011 | Routes aériennes | P2 | Implemented | G11 |
-| ORF-WPT-012 | Routes de véhicules | P3 | Researched | G13 |
+| ORF-WPT-012 | Routes de véhicules | P3 | Tested | G13 |
 | ORF-WPT-013 | Ancres de caméra | P2 | Tested | G11 |
 | ORF-WPT-014 | Ancres audio/VFX | P1 | Implemented | G7 |
 | ORF-WPT-015 | Groupes et requêtes | P1 | Implemented | G7 |

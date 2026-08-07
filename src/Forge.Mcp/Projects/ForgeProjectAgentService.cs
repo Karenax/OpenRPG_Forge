@@ -10,6 +10,7 @@ using Forge.Application.Projects;
 using Forge.Application.Quests;
 using Forge.Application.Time;
 using Forge.Application.Validation;
+using Forge.Application.WorldFeatures;
 using Forge.Domain.Areas;
 using Forge.Domain.Assistant;
 using Forge.Domain.Assets;
@@ -34,6 +35,7 @@ using Forge.Mcp.Creatures;
 using Forge.Mcp.Factions;
 using Forge.Mcp.Items;
 using Forge.Mcp.Scripts;
+using Forge.Mcp.WorldFeatures;
 using Forge.RpgKit.Application.Abilities;
 using Forge.RpgKit.Application.Dialogues;
 using Forge.RpgKit.Application.Bosses;
@@ -79,6 +81,8 @@ public sealed class ForgeProjectAgentService
     private readonly SetDialoguePresentationHandler _dialoguePresentationHandler;
     private readonly SetQuestOperationsHandler _questOperationsHandler;
     private readonly SetItemAdvancedProfileHandler _itemAdvancedHandler;
+    private readonly SetWorldFeatureCatalogHandler _worldFeatureHandler;
+    private readonly WorldFeatureScriptService _worldFeatureScripts = new();
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
     private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
@@ -145,6 +149,7 @@ public sealed class ForgeProjectAgentService
         _dialoguePresentationHandler = new SetDialoguePresentationHandler(clock);
         _questOperationsHandler = new SetQuestOperationsHandler(clock);
         _itemAdvancedHandler = new SetItemAdvancedProfileHandler(clock);
+        _worldFeatureHandler = new SetWorldFeatureCatalogHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
         _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
@@ -205,6 +210,34 @@ public sealed class ForgeProjectAgentService
         lock (_gate)
         {
             return _history.State.Revision.Value;
+        }
+    }
+
+    public WorldFeatureResource QueryWorldFeatures(string? kind = null, string? idOrTarget = null, int limit = 100)
+    {
+        lock (_gate)
+        {
+            var values = _worldFeatureScripts.Query(_history.State, kind?.Trim(), idOrTarget?.Trim(), limit)
+                .Select(item => new WorldFeatureResourceItem(item.Kind, item.Id.ToString("D"), item.TargetId,
+                    item.Provenance, item.Properties)).ToArray();
+            return new(1, _history.State.Revision.Value, kind?.Trim(), idOrTarget?.Trim(), values);
+        }
+    }
+
+    public WorldFeaturePlanResult PreviewWorldFeatures(WorldFeaturePlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("world.mcp_schema_unsupported",
+                        "World-feature MCP request schema must be v1.", "request/schemaVersion")]);
+            var result = _worldFeatureHandler.Handle(_history.State, new SetWorldFeatureCatalogCommand(
+                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), request.Catalog, true));
+            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
+                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    "module/worldFeatures")).ToArray());
         }
     }
 

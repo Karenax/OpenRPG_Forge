@@ -1,6 +1,6 @@
 # État du projet — OpenRPG Forge
 
-Dernière mise à jour : 5 août 2026.
+Dernière mise à jour : 7 août 2026.
 
 ## Gate actuel
 
@@ -27,6 +27,10 @@ heartbeat budgété et événements utilisateur typés ; l’écran, ForgeScript
 partagent les mêmes bindings canoniques. G13-G rend maintenant les factions canoniques au niveau du
 module : parents et héritage, témoins, affiliations multiples et factions dynamiques autoritaires
 sont éditables sans JSON, sérialisés et réellement exercés dans la Crypte.
+G13-H à G13-M ferment ensuite la présentation et l'adaptation des dialogues, les opérations de
+quête et la profondeur des objets. Le lot groupé G13-N à G13-AB livre maintenant le catalogue
+canonique Monde vivant : placeables, portes, triggers, rencontres, routes, marchands, compagnons et
+automatisation script partagent UI, commande, formats, ForgeScript, MCP et résolveurs runtime.
 AV6-F ferme le lot de production 3D : carte extérieure
 512 × 512 jouable,
 exportable et visuellement vérifiée ; AV1 ferme le stockage installable du Vault, AV2 sécurise le
@@ -702,4 +706,14 @@ L’écran à trois onglets assure diagnostic, simulation, dry-run, application 
 formats projet `0.6.31`, workspace `1.25.0` et `.orpmod` conservent quêtes et objets avancés ; les
 anciens modules restent jouables avec profils absents.
 
-Ce run est **arrêté après G13-M**. Aucune tranche G13-N ni extension suivante n’est démarrée.
+**G13-N à G13-AB — Monde vivant livré** : `WorldFeatureCatalog` v1 appartient au module et couvre
+placeables sociaux/réactifs, portes destructibles/complexes, triggers secrets/narratifs/GM,
+rencontres à respawn/renfort/nettoyage, routes de véhicules, économie marchande, compagnons et
+automatisation script. L'écran à huit onglets configure les cibles sans JSON et partage
+prévisualisation, diagnostic, commande, audit et historique. Les formats projet `0.6.32`, workspace
+`1.26.0` et `.orpmod` migrent depuis G13-M. ForgeScript fournit des handles de lecture, MCP expose
+requête et preview bornées, et la Crypte exerce les quinze tranches dans le processus 3D avant de
+terminer son parcours jouable. Les anciens modules reçoivent un catalogue vide ; le fallback de
+démonstration de la Crypte ne remplace jamais un catalogue créé par l'auteur.
+
+Ce run est **arrêté après G13-AB**. Aucune tranche suivante n’est démarrée.

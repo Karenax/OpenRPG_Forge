@@ -619,6 +619,21 @@ les démonstrations Crypte des Cendres et Forgotten Forest jouables.
   (`ORF-ITEM-019`, `020`, `021`, `022`, `023`).
 - [x] G13-M : loot contextuel, objets uniques, loot instancié, artisanat et génération procédurale
   (`ORF-ITEM-025`, `026`, `027`, `028`, `029`).
+- [x] G13-N : faction, conversation et accès consommable des placeables (`ORF-PLC-010`, `011`, `013`).
+- [x] G13-O : événements et physique dynamique des placeables (`ORF-PLC-021`, `022`, `023`, `024`).
+- [x] G13-P : dégâts, chargement et événements physiques des portes (`ORF-DOOR-007`, `010`, `014`, `015`).
+- [x] G13-Q : événements avancés, social et assemblages de portes (`ORF-DOOR-016`, `017`, `018`, `020`).
+- [x] G13-R : découverte, clic, accès, surbrillance et repos des triggers (`ORF-TRG-005`, `008`, `012`, `013`, `014`).
+- [x] G13-S : heartbeat/custom, pistes, interjections et commande GM (`ORF-TRG-009`, `010`, `015`, `016`, `018`).
+- [x] G13-T : respawn, faction et événements des rencontres (`ORF-ENC-008`, `010`, `014`).
+- [x] G13-U : renforts, visibilité et nettoyage des rencontres (`ORF-ENC-016`, `017`, `019`).
+- [x] G13-V : routes de véhicules (`ORF-WPT-012`).
+- [x] G13-W : trésorerie, achats, biens volés et réapprovisionnement (`ORF-MER-005`, `006`, `007`, `010`).
+- [x] G13-X : monnaies, négociation, marché, services et audit (`ORF-MER-013`, `014`, `015`, `016`, `018`).
+- [x] G13-Y : dialogue, formation, progression, relation et banter des compagnons (`ORF-CMP-004`, `011`, `013`, `014`, `015`).
+- [x] G13-Z : quête, pièges, capacités, contrôle et regroupement des compagnons (`ORF-CMP-016`, `019`, `020`, `021`, `023`).
+- [x] G13-AA : caméra/cutscenes et routage par tag (`ORF-SCR-018`, `024`).
+- [x] G13-AB : flags de module et réglages IA (`ORF-SCR-025`, `026`).
 
 Acceptation G13-A : un auteur configure les raccourcis depuis l’écran Aurora, prévisualise le diff,
 applique la commande canonique et peut annuler/rétablir. Le round-trip `.forge/editor-keymap.json`
@@ -677,4 +692,10 @@ jusqu’à son équipement, sa durabilité, ses conteneurs, son loot, son unicit
 affixes. Le runtime prouve calculs, autorité et transactions ; l’absence du profil conserve le
 fallback historique.
 
-Ce run s’arrête après G13-M. G13-N n’est pas démarré.
+Acceptation G13-N à G13-AB : un auteur configure sans JSON les huit familles du Monde vivant.
+Sélection de cible, résumé, diagnostics, dry-run, application, audit et undo/redo partagent le même
+`WorldFeatureCatalog`. Projet `0.6.32`, workspace `1.26.0`, `.orpmod`, ForgeScript et MCP conservent
+ou lisent ce contrat. Les résolveurs purs déterministes sont testés tranche par tranche et la Crypte
+émet quinze preuves runtime avant de terminer son scénario jouable.
+
+Ce run s’arrête après G13-AB. Aucun lot suivant n’est démarré.

@@ -53,6 +53,27 @@ public sealed class AssetDeliveryReportServiceTests
         Assert.False(report.Checks.Single(check => check.Key == "module-chunk-integrity").Passed);
     }
 
+    [Fact]
+    public void AllowsGovernedMetadataForAssetsBeyondTheFrozenProjectCatalog()
+    {
+        using var fixture = new DeliveryFixture();
+        File.WriteAllText(Path.Combine(fixture.Vault, "metadata", "future-catalog-entry.json"), "{}");
+
+        var report = AssetDeliveryReportService.Measure(
+            fixture.Catalog,
+            fixture.Vault,
+            fixture.Workspace,
+            fixture.Package,
+            fixture.Benchmark,
+            fixture.Policy);
+
+        var metadata = report.Checks.Single(check => check.Key == "vault-metadata");
+        Assert.True(report.Passed);
+        Assert.Equal(">=2", metadata.Expected);
+        Assert.Equal("3", metadata.Actual);
+        Assert.True(metadata.Passed);
+    }
+
     private sealed class DeliveryFixture : IDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), $"forge-asset-delivery-{Guid.NewGuid():N}");

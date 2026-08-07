@@ -25,6 +25,7 @@ using Forge.Mcp.Assets;
 using Forge.Mcp.Projects;
 using Forge.Mcp.Items;
 using Forge.Mcp.Scripts;
+using Forge.Mcp.WorldFeatures;
 using Forge.ModuleFormat.Workspaces;
 using Forge.ModuleFormat.Assets;
 using Forge.RpgKit.Application.Dialogues;
@@ -37,6 +38,25 @@ namespace Forge.Mcp.Tests.Projects;
 
 public sealed class ForgeProjectAgentServiceTests
 {
+    [Fact]
+    public void World_feature_resource_is_filtered_bounded_and_mutation_remains_dry_run()
+    {
+        using var workspace = new TestWorkspace();
+        var catalog = ProjectSession.Open(workspace.RootDirectory).Session!.Project.Module.WorldFeatures;
+
+        var resource = workspace.Project.QueryWorldFeatures("script", limit: 1);
+        var planned = workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(1, 0, catalog));
+
+        var script = Assert.Single(resource.Items);
+        Assert.Equal("script", script.Kind);
+        Assert.Equal(catalog.Scripts.Id.ToString("D"), script.Id);
+        Assert.True(planned.Succeeded);
+        Assert.Equal("module/worldFeatures", planned.SemanticDiff!.Path);
+        Assert.Equal(0, workspace.Project.GetCurrentRevision());
+        Assert.Throws<ArgumentOutOfRangeException>(() => workspace.Project.QueryWorldFeatures(limit: 501));
+        Assert.False(workspace.Project.PreviewWorldFeatures(new WorldFeaturePlanRequest(2, 0, catalog)).Succeeded);
+    }
+
     [Fact]
     public void Quest_and_item_depth_resources_are_filtered_bounded_and_dry_run_only()
     {

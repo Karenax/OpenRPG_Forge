@@ -79,6 +79,14 @@ hashes, licences, packs externes et impact du prochain export. `REBUILD` désign
 recalculé, `CACHE` ce qui peut être réutilisé. L'analyse est en lecture seule et ne modifie jamais le
 module.
 
+**Monde vivant** ouvre le studio des comportements avancés de la carte. Sélectionnez d'abord le
+blueprint ou la zone cible, puis utilisez l'onglet concerné : Placeables, Portes, Triggers,
+Rencontres, Routes, Marchands, Compagnons ou Scripts. Les champs expliquent leur portée et le résumé
+montre le contrat runtime. **Prévisualiser** calcule diagnostics et diff sans écrire ; **Appliquer**
+crée une commande révisionnée que l'historique peut annuler/rétablir. Les anciennes cartes sans
+catalogue restent compatibles. La Crypte charge un profil de démonstration uniquement lorsqu'elle
+détecte son ancien catalogue vide ; tout contenu créé dans le studio est prioritaire.
+
 Le workspace **Validation** ouvre **Validation & distribution**. Les cinq profils Editor, Client,
 Serveur dédié, Test et Publication y sont persistés avec leurs réglages. Le même écran gère le
 registre des dépendances (version, licence, responsable, justification, cadence et retrait), affiche
@@ -125,6 +133,10 @@ Le client commence par lire le résumé, la révision et les diagnostics. Pour u
 plan : validation et dry-run produisent diff, inverse et `planId`; l'application n'est possible que si
 la révision correspond encore. `revert_dialogue_plan` annule le dernier plan appliqué. Aucun outil de
 shell ou d'écriture libre n'est exposé.
+
+Les outils `query_world_features` et `preview_world_features` donnent le même accès filtré au Monde
+vivant. Ils retournent des contrats typés et une prévisualisation ; l'application reste soumise à la
+commande, au `planId` et à la révision du projet.
 
 ## 7. Gate reproductible
 

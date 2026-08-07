@@ -322,6 +322,13 @@ recettes et génération. Chaque onglet possède un résumé compréhensible, et
 jamais le projet. Les références d’assets, la provenance et les décisions d’autorité restent
 explicites afin que la richesse RPG n’affaiblisse ni l’accessibilité ni la gouvernance visuelle.
 
+G13-N à G13-AB ajoutent **Monde vivant** au RPG Kit. Huit onglets courts séparent placeables,
+portes, triggers, rencontres, routes, marchands, compagnons et scripts. La cible canonique est
+choisie avant les propriétés ; chaque onglet donne un résumé lisible, les erreurs, puis les actions
+Prévisualiser et Appliquer. Les valeurs d'autorité, cadence, budget, accès, économie et récupération
+restent visibles. L'éditeur ne demande jamais de modifier le JSON et Annuler/Rétablir couvre le
+catalogue entier comme une seule transaction.
+
 G12-J ajoute **Création 3D** dans le même Assistant. La première colonne définit identité,
 primitive et transforms métriques ; la seconde expose matériau PBR, couleur, UV, LOD, collision,
 style, citations, seed et approbation. La troisième affiche recette, hash, cinq tests, provenance,

@@ -6,6 +6,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
 using Forge.Domain.Factions;
 using Forge.Domain.Items;
+using Forge.Domain.WorldFeatures;
 
 namespace Forge.Domain.Validation;
 
@@ -59,6 +60,7 @@ public static class ProjectValidator
         diagnostics.AddRange(RuntimePolicyValidator.Validate(project.Module));
         diagnostics.AddRange(FactionValidator.Validate(project.Module.Factions)
             .Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
+        diagnostics.AddRange(WorldFeatureCatalogValidator.Validate(project));
 
         if (project.Module.Content.Id.Value != project.Module.Id.Value)
         {

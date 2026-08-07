@@ -35,6 +35,7 @@ using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
+using Forge.Domain.WorldFeatures;
 using Forge.EngineAdapter.Spatial;
 using Forge.EngineAdapter.Rendering;
 using Forge.EngineAdapter.Assets;
@@ -105,6 +106,7 @@ public partial class GameRoot : Node3D
     private readonly ForgeScriptUiEventService _scriptUiEvents = new();
     private readonly Dictionary<string, SafeJsonHandle> _runtimeJsonHandles = new(StringComparer.Ordinal);
     private readonly RuntimeCameraRig _cameraRig = new();
+    private WorldFeatureCatalog? _worldFeatureCatalog;
 
     private PlayerController? _player;
     private CombatantState? _playerCombatant;
@@ -284,6 +286,7 @@ public partial class GameRoot : Node3D
             _defaultLocale = project.Module.Metadata.DefaultLocale;
             _isCryptPrototype = string.Equals(_moduleSlug, "crypt-of-ashes", StringComparison.Ordinal);
             _isForgottenForestPrototype = string.Equals(_moduleSlug, "forgotten-forest", StringComparison.Ordinal);
+            ConfigureWorldFeatures(project);
             _message = $"Explorez {_moduleTitle}.";
             var entryArea = project.Areas.Single(area => area.Id == project.Module.EntryAreaId);
             ConfigureRuntimePolicies(project.Module.RuntimePolicies, entryArea.RuntimePolicies);
@@ -3610,6 +3613,170 @@ public partial class GameRoot : Node3D
         GodotObject.IsInstanceValid(target) &&
         _player.GlobalPosition.DistanceTo(target.GlobalPosition) <= distance;
 
+    private void ConfigureWorldFeatures(ProjectDefinition project)
+    {
+        var catalog = project.Module.WorldFeatures;
+        if (_isCryptPrototype && IsEmptyWorldFeatureCatalog(catalog))
+        {
+            // Deterministic fixture for the shipped empty sample and migrated pre-1.26 projects.
+            // Authored catalogs always win.
+            catalog = CryptWorldFeatureAuthoringService.Create(project);
+        }
+
+        var configured = new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(catalog),
+            project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+        var diagnostics = WorldFeatureCatalogValidator.Validate(configured);
+        if (diagnostics.Count > 0)
+        {
+            throw new InvalidOperationException("WORLD_FEATURE_CATALOG_INVALID: " + string.Join("; ",
+                diagnostics.Select(item => $"{item.Code} at {item.Path}: {item.Message}")));
+        }
+
+        _worldFeatureCatalog = catalog;
+    }
+
+    private static bool IsEmptyWorldFeatureCatalog(WorldFeatureCatalog catalog) =>
+        catalog.Placeables.Count == 0 && catalog.Doors.Count == 0 && catalog.Triggers.Count == 0 &&
+        catalog.Encounters.Count == 0 && catalog.VehicleRoutes.Count == 0 && catalog.Merchants.Count == 0 &&
+        catalog.Companions.Count == 0 && catalog.Scripts.Camera.Shots.Count == 0 &&
+        catalog.Scripts.TagRouting.Routes.Count == 0 && catalog.Scripts.ModuleFlags.Count == 0 &&
+        catalog.Scripts.AiSettings.Count == 0;
+
+    private void RunWorldFeatureSmokeTest()
+    {
+        var catalog = _worldFeatureCatalog ??
+            throw new InvalidOperationException("The world-feature catalog was not configured.");
+        var placeable = AssertSingle(catalog.Placeables);
+        var door = AssertSingle(catalog.Doors);
+        var trigger = AssertSingle(catalog.Triggers);
+        var encounter = AssertSingle(catalog.Encounters);
+        var route = AssertSingle(catalog.VehicleRoutes);
+        var merchant = AssertSingle(catalog.Merchants);
+        var companion = AssertSingle(catalog.Companions);
+
+        var access = WorldFeatureRuntimeResolver.ResolvePlaceableAccess(placeable,
+            new HashSet<string>(["key:ember"], StringComparer.Ordinal),
+            new HashSet<string>(StringComparer.Ordinal), 3);
+        AssertSmoke(access is { Allowed: true, Consume: true, RemainingCharges: 2 } &&
+                    placeable.DialogueId is not null && placeable.FactionId == "ash-watch",
+            "Placeable credentials, dialogue or faction policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13N_PLACEABLE_ACCESS_PASS credential=charge remaining=2 dialogue=bound faction=ash-watch");
+
+        var placeableAttack = WorldFeatureRuntimeResolver.ResolvePlaceableEvent(placeable,
+            "physical-attack-resolved", 0, 0);
+        var placeableAbility = WorldFeatureRuntimeResolver.ResolvePlaceableEvent(placeable, "ability-impacted", 0, 0);
+        var placeableHeartbeat = WorldFeatureRuntimeResolver.ResolvePlaceableEvent(placeable, "heartbeat", 0, 6);
+        var placeableCustom = WorldFeatureRuntimeResolver.ResolvePlaceableEvent(placeable,
+            "custom:crypt:pillar-pulse", 0, 0);
+        AssertSmoke(placeableAttack.Dispatched && placeableAbility.Dispatched && placeableHeartbeat.Dispatched &&
+                    placeableCustom.Dispatched && placeable.Physics is { Mass: 12, Replicated: true },
+            "Placeable damage events, scheduler, custom hook or physics policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13O_PLACEABLE_REACTIVE_PASS events=4 heartbeat=scheduled physics=rigid authority=server");
+
+        var doorDamage = WorldFeatureRuntimeResolver.ApplyDoorDamage(door, 40, 100);
+        var damaged = WorldFeatureRuntimeResolver.ResolveDoorEvent(door, "damage-applied", 0, 0);
+        var destroyed = WorldFeatureRuntimeResolver.ResolveDoorEvent(door, "entity-destroyed", 0, 0);
+        AssertSmoke(doorDamage is { Breached: true, NavigationChanged: true } && damaged.Dispatched &&
+                    destroyed.Dispatched && door.Loading is { UseDestinationFallback: true },
+            "Door damage, destruction, navigation or loading policy did not resolve.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G13P_DOOR_DAMAGE_PASS health={doorDamage.Health:0} breached=true navigation=updated loading=fallback");
+
+        var doorAttack = WorldFeatureRuntimeResolver.ResolveDoorEvent(door, "physical-attack-resolved", 0, 0);
+        var doorAbility = WorldFeatureRuntimeResolver.ResolveDoorEvent(door, "ability-impacted", 0, 0);
+        var doorHeartbeat = WorldFeatureRuntimeResolver.ResolveDoorEvent(door, "heartbeat", 0, 2);
+        var doorCustom = WorldFeatureRuntimeResolver.ResolveDoorEvent(door, "custom:crypt:door-seal", 0, 0);
+        AssertSmoke(doorAttack.Dispatched && doorAbility.Dispatched && doorHeartbeat.Dispatched &&
+                    doorCustom.Dispatched && door.DialogueId is not null && door.FactionId == "ash-watch" &&
+                    door.Assembly is { Panels.Count: 2, Interlocked: true },
+            "Door reactive, dialogue, faction or assembly policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13Q_DOOR_ASSEMBLY_PASS events=4 panels=2 synchronized=true dialogue=bound");
+
+        var hiddenTrigger = WorldFeatureRuntimeResolver.EvaluateTrigger(trigger, 5, new HashSet<string>(),
+            new HashSet<string>(), false, 0, 0, false);
+        var deniedTrigger = WorldFeatureRuntimeResolver.EvaluateTrigger(trigger, 20, new HashSet<string>(),
+            new HashSet<string>(["player"], StringComparer.Ordinal), false, 1, 0, false);
+        AssertSmoke(!hiddenTrigger.Revealed && deniedTrigger is { Revealed: true, Fired: false } &&
+                    deniedTrigger.Reason == "credential-missing" && trigger.Interaction is not null &&
+                    trigger.Scheduler is { BudgetPerMinute: 30 },
+            "Trigger discovery, interaction, scheduler or credential denial did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13R_TRIGGER_ACCESS_PASS discovery=hidden-to-revealed interaction=typed scheduler=budgeted credential=denied");
+
+        var firedTrigger = WorldFeatureRuntimeResolver.EvaluateTrigger(trigger, 20,
+            new HashSet<string>(["key:ember"], StringComparer.Ordinal),
+            new HashSet<string>(["player"], StringComparer.Ordinal), false, 2, 0, true);
+        AssertSmoke(firedTrigger is { Fired: true, RestAllowed: true, Reason: "director" } &&
+                    firedTrigger.Effects.Any(item => item.StartsWith("clue:", StringComparison.Ordinal)) &&
+                    firedTrigger.Effects.Any(item => item.StartsWith("dialogue:", StringComparison.Ordinal)) &&
+                    firedTrigger.Effects.Contains("director:audit", StringComparer.Ordinal),
+            "Trigger rest, clue, narrative or director policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13S_TRIGGER_DIRECTOR_PASS rest=safe clue=tracked narrative=dialogue director=audited");
+
+        var respawn = WorldFeatureRuntimeResolver.EvaluateEncounter(encounter, 0, 0, false, false, 31);
+        AssertSmoke(respawn is { Spawn: true, NextCycle: 1 } && encounter.Scheduler is { HeartbeatEnabled: true },
+            "Encounter respawn or scheduler policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13T_ENCOUNTER_RESPAWN_PASS cycle=1 heartbeat=scheduled anti_farm=0.5");
+
+        var reinforcement = WorldFeatureRuntimeResolver.EvaluateEncounter(encounter, 0, 3, false, false, 31);
+        var visible = WorldFeatureRuntimeResolver.EvaluateEncounter(encounter, 0, 3, true, false, 31);
+        var cleanup = WorldFeatureRuntimeResolver.EvaluateEncounter(encounter, 0, 0, false, true, 121);
+        AssertSmoke(reinforcement.Reinforce && !visible.Spawn && visible.Reason == "visible" && cleanup.Cleanup,
+            "Encounter reinforcement, visibility or cleanup policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13U_ENCOUNTER_DIRECTOR_PASS reinforcement=true visible_spawn=false cleanup=true");
+
+        var vehicle = WorldFeatureRuntimeResolver.SampleVehicleRoute(route, 1);
+        AssertSmoke(vehicle.AtStop && vehicle.WaitSeconds == 5 && vehicle.SpeedLimit == 8,
+            "Vehicle route, lane speed or stop policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13V_VEHICLE_ROUTE_PASS progress=1 stop=crypt-lift wait=5 speed=8");
+
+        var standardQuote = WorldFeatureRuntimeResolver.QuoteMerchant(merchant, "ember-crown", 80, false,
+            "crypt", .5, 0, 0, 0);
+        var stolenQuote = WorldFeatureRuntimeResolver.QuoteMerchant(merchant, "ember-crown", 80, true,
+            "crypt", .5, 0, 0, 0);
+        AssertSmoke(standardQuote.Accepted && !stolenQuote.Accepted && merchant.Currencies.Count == 2 &&
+                    merchant.Treasury.Count == 2 && merchant.Purchase.RequireTreasuryFunds,
+            "Merchant currency, treasury, purchase or stolen-goods policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13W_MERCHANT_ECONOMY_PASS currencies=2 treasury=2 purchase=accepted stolen=rejected");
+
+        var marketQuote = WorldFeatureRuntimeResolver.QuoteMerchant(merchant, "ember-crown", 100, false,
+            "crypt", .8, 10, .1, .5);
+        AssertSmoke(marketQuote.Accepted && marketQuote.Price != 100 &&
+                    marketQuote.Audit.StartsWith("ledger:", StringComparison.Ordinal) &&
+                    merchant.Services.Count == 1 && merchant.Market is { RegionId: "ashlands" },
+            "Merchant market, negotiation, service or ledger policy did not resolve.");
+        GD.Print($"OPENRPG_FORGE_RUNTIME_G13X_MERCHANT_OPERATIONS_PASS quote={marketQuote.Price:0.##} service=repair ledger=audited market=regional");
+
+        var partyCompanion = WorldFeatureRuntimeResolver.EvaluateCompanion(companion, "party", .8, false, 0,
+            false, false);
+        AssertSmoke(partyCompanion.DialogueAllowed && partyCompanion.Formation == "wedge:1" &&
+                    companion.Progression.PreviewEnabled && companion.Relationship.Tags.Contains("friend") &&
+                    companion.Banter.RequiredParticipants.Count == 1 && companion.PersonalQuest is not null,
+            "Companion dialogue, formation, progression, relationship, banter or quest policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13Y_COMPANION_SOCIAL_PASS dialogue=limited formation=wedge progression=preview relationship=tracked banter=bound quest=bound");
+
+        var controlledCompanion = WorldFeatureRuntimeResolver.EvaluateCompanion(companion, "owner", .2, true, 2,
+            true, true);
+        AssertSmoke(controlledCompanion is
+        { UseAbility: true, HandleTrap: true, DirectControl: true, Regroup: true },
+            "Companion trap, ability, direct-control or party-split policy did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13Z_COMPANION_CONTROL_PASS trap=handled ability=heal direct_control=true regroup=true");
+
+        var cameraScript = WorldFeatureRuntimeResolver.ResolveScript(catalog.Scripts, "door.ash", "opened",
+            cameraSequence: true);
+        AssertSmoke(cameraScript.ScriptId == "scripts/door_ash_opened" && cameraScript.CameraControlLocked &&
+                    cameraScript.AbortRecovery == "restore-camera-and-control",
+            "Script camera sequence or explicit tag routing did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AA_SCRIPT_CAMERA_ROUTE_PASS route=door.ash/opened camera=locked recovery=restore");
+
+        var automatedScript = WorldFeatureRuntimeResolver.ResolveScript(catalog.Scripts, "none", "none",
+            new Dictionary<string, string> { ["rest.enabled"] = "false" },
+            new Dictionary<string, string> { ["combat.aggression"] = "aggressive" });
+        AssertSmoke(automatedScript.Flags.GetValueOrDefault("rest.enabled") == "false" &&
+                    automatedScript.AiSettings.GetValueOrDefault("combat.aggression") == "aggressive",
+            "Script module flags or typed AI settings did not resolve.");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13AB_SCRIPT_AUTOMATION_PASS flag=rest.enabled:false ai=combat.aggression:aggressive authority=server");
+        GD.Print("OPENRPG_FORGE_RUNTIME_G13N_AB_WORLD_FEATURES_PASS slices=15 catalog=canonical runtime=pure-domain");
+    }
+
     private void RunSaveCreateSmokeTest()
     {
         AssertSmoke(_quickSavePath is not null, "The save smoke test requires --save-file.");
@@ -3782,6 +3949,7 @@ public partial class GameRoot : Node3D
         GD.Print($"OPENRPG_FORGE_RUNTIME_G13M_ITEM_LOOT_CRAFT_PASS context={lootContext.RuleId:D} " +
                  $"ownership={ownership.Code} recipe={recipe.Slug} unique={_keyItemUniqueToken:D} " +
                  $"affixes={_keyItemGeneratedAffixes}");
+        RunWorldFeatureSmokeTest();
         InteractWith(_door!);
         AssertSmoke(_doorUnlocked, "Door interaction did not unlock the door.");
 

@@ -4,6 +4,7 @@ using Forge.Domain.Content;
 using Forge.Domain.Factions;
 using Forge.Domain.Localization;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.WorldFeatures;
 
 namespace Forge.Domain.Modules;
 
@@ -35,6 +36,8 @@ public sealed record ModuleDefinition
 
     public FactionCatalog Factions { get; }
 
+    public WorldFeatureCatalog WorldFeatures { get; }
+
     public ModuleDefinition(
         ModuleId id,
         string slug,
@@ -48,7 +51,8 @@ public sealed record ModuleDefinition
         ContentWorkspaceConfiguration? content = null,
         ArtisticStyleProfile? artisticStyle = null,
         ModuleRuntimePolicyProfile? runtimePolicies = null,
-        FactionCatalog? factions = null)
+        FactionCatalog? factions = null,
+        WorldFeatureCatalog? worldFeatures = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -81,13 +85,18 @@ public sealed record ModuleDefinition
         ArtisticStyle = artisticStyle ?? ArtisticStyleProfile.CreateDefault(id.Value);
         RuntimePolicies = runtimePolicies ?? ModuleRuntimePolicyProfile.CreateDefault(id);
         Factions = factions ?? FactionCatalog.Empty;
+        WorldFeatures = worldFeatures ?? WorldFeatureCatalog.CreateEmpty(id);
     }
 
     public ModuleDefinition WithRuntimePolicies(ModuleRuntimePolicyProfile runtimePolicies) =>
         new(Id, Slug, DisplayName, Description, EntryAreaId, Metadata, Variables, Distribution, Localization,
-            Content, ArtisticStyle, runtimePolicies, Factions);
+            Content, ArtisticStyle, runtimePolicies, Factions, WorldFeatures);
 
     public ModuleDefinition WithFactions(FactionCatalog factions) =>
         new(Id, Slug, DisplayName, Description, EntryAreaId, Metadata, Variables, Distribution, Localization,
-            Content, ArtisticStyle, RuntimePolicies, factions);
+            Content, ArtisticStyle, RuntimePolicies, factions, WorldFeatures);
+
+    public ModuleDefinition WithWorldFeatures(WorldFeatureCatalog worldFeatures) =>
+        new(Id, Slug, DisplayName, Description, EntryAreaId, Metadata, Variables, Distribution, Localization,
+            Content, ArtisticStyle, RuntimePolicies, Factions, worldFeatures);
 }

@@ -15,6 +15,12 @@ Le pont natif minimal doit couvrir :
 
 C# encapsule le pont derrière `IForgeScriptRuntime`. L’API Godot n’est jamais exposée directement aux modules.
 
+G13-N à G13-AB ajoutent des lectures typées du `WorldFeatureCatalog` : un script peut inspecter les
+profils du monde vivant, les routes explicites par tag, les flags documentés du module et les
+réglages IA nommés. Les séquences caméra restent des données bornées (rig, plan, durée, blend,
+verrouillage et récupération) ; aucun handle n'expose un nœud du moteur. Les mutations passent
+toujours par la commande transactionnelle et sa révision, jamais par un accès script direct.
+
 ## Sandbox
 
 Sont interdits : fichiers, réseau, processus, DLL, threads, mémoire brute, réflexion native et horloge système non déterministe. Des quotas limitent instructions/temps, pile, mémoire, entités créées et récursion d’événements.

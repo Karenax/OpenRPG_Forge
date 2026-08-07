@@ -275,8 +275,10 @@ public static class AssetDeliveryReportService
             vault.Originals.Files > 0 && vault.Originals.Bytes > 0),
         new("vault-normalized", ">0 files and bytes", $"{vault.Normalized.Files}/{vault.Normalized.Bytes}",
             vault.Normalized.Files > 0 && vault.Normalized.Bytes > 0),
-        new("vault-metadata", catalog.Assets.ToString(CultureInfo.InvariantCulture), vault.Metadata.Files.ToString(CultureInfo.InvariantCulture),
-            vault.Metadata.Files == catalog.Assets),
+        // The local Vault may already contain governed metadata for a future catalog revision.
+        // Delivery requires coverage of the frozen project catalog, not deletion of newer CC0 entries.
+        new("vault-metadata", $">={catalog.Assets.ToString(CultureInfo.InvariantCulture)}",
+            vault.Metadata.Files.ToString(CultureInfo.InvariantCulture), vault.Metadata.Files >= catalog.Assets),
         new("module-manifests", policy.ExpectedManifestCount.ToString(CultureInfo.InvariantCulture), module.Manifests.ToString(CultureInfo.InvariantCulture),
             module.Manifests == policy.ExpectedManifestCount),
         new("module-asset-references", policy.ExpectedAssetReferenceCount.ToString(CultureInfo.InvariantCulture), module.AssetReferences.ToString(CultureInfo.InvariantCulture),

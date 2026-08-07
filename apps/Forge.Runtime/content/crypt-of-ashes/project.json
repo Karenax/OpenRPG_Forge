@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.25.0",
+  "formatVersion": "1.26.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -1400,6 +1400,36 @@
           ]
         },
         "requireAdvancedRuntime": true
+      },
+      "worldFeatures": {
+        "id": "30000000-0000-4000-8000-000000000001",
+        "schemaVersion": 1,
+        "provenance": "migration:world-features-empty",
+        "placeables": [],
+        "doors": [],
+        "triggers": [],
+        "encounters": [],
+        "vehicleRoutes": [],
+        "merchants": [],
+        "companions": [],
+        "scripts": {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "migration:world-features-empty",
+          "camera": {
+            "shots": [],
+            "abortRecovery": "restore-camera-and-control",
+            "restorePlayerControl": true,
+            "accessibilitySkipEnabled": true
+          },
+          "tagRouting": {
+            "enabled": false,
+            "explicitOnly": true,
+            "routes": []
+          },
+          "moduleFlags": [],
+          "aiSettings": []
+        }
       }
     },
     "blueprints": [

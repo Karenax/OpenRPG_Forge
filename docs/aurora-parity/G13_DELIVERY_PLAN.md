@@ -78,7 +78,36 @@ capacité G13 ne peut imposer un fournisseur, un abonnement ou un asset proprié
   armes, armures, munitions, durabilité et conteneurs imbriqués.
 - [x] **G13-M** — `ORF-ITEM-025`, `ORF-ITEM-026`, `ORF-ITEM-027`, `ORF-ITEM-028`, `ORF-ITEM-029` :
   loot contextuel, unicité transactionnelle, propriété instanciée, artisanat et génération par seed.
-- [ ] **G13-N et suivants** — volontairement non démarrés dans ce run borné.
+- [x] **G13-N** — `ORF-PLC-010`, `ORF-PLC-011`, `ORF-PLC-013` : faction, conversation et
+  identifiants consommables/à charges des placeables.
+- [x] **G13-O** — `ORF-PLC-021`, `ORF-PLC-022`, `ORF-PLC-023`, `ORF-PLC-024` : événements
+  physiques, capacités, heartbeat/custom budgétés et physique dynamique répliquée.
+- [x] **G13-P** — `ORF-DOOR-007`, `ORF-DOOR-010`, `ORF-DOOR-014`, `ORF-DOOR-015` : dégâts,
+  brèche/navigation, chargement contextualisé et événements de porte.
+- [x] **G13-Q** — `ORF-DOOR-016`, `ORF-DOOR-017`, `ORF-DOOR-018`, `ORF-DOOR-020` : capacités,
+  heartbeat/custom, dialogue/faction et assemblages de portes complexes.
+- [x] **G13-R** — `ORF-TRG-005`, `ORF-TRG-008`, `ORF-TRG-012`, `ORF-TRG-013`, `ORF-TRG-014` :
+  découverte, interaction, accès, retour visuel et repos sûr.
+- [x] **G13-S** — `ORF-TRG-009`, `ORF-TRG-010`, `ORF-TRG-015`, `ORF-TRG-016`, `ORF-TRG-018` :
+  automatisation, pistes, narration et déclenchement GM audité.
+- [x] **G13-T** — `ORF-ENC-008`, `ORF-ENC-010`, `ORF-ENC-014` : respawn borné, faction de spawn
+  et événements de rencontre budgétés.
+- [x] **G13-U** — `ORF-ENC-016`, `ORF-ENC-017`, `ORF-ENC-019` : renforts, spawn hors vue et
+  nettoyage déterministe.
+- [x] **G13-V** — `ORF-WPT-012` : routes de véhicules à points, voies, arrêts et synchronisation.
+- [x] **G13-W** — `ORF-MER-005`, `ORF-MER-006`, `ORF-MER-007`, `ORF-MER-010` : trésorerie,
+  plafonds, biens volés et réapprovisionnement.
+- [x] **G13-X** — `ORF-MER-013`, `ORF-MER-014`, `ORF-MER-015`, `ORF-MER-016`, `ORF-MER-018` :
+  monnaies, négociation, marchés, services et audit économique.
+- [x] **G13-Y** — `ORF-CMP-004`, `ORF-CMP-011`, `ORF-CMP-013`, `ORF-CMP-014`, `ORF-CMP-015` :
+  permissions sociales, formation, progression, relation et banter.
+- [x] **G13-Z** — `ORF-CMP-016`, `ORF-CMP-019`, `ORF-CMP-020`, `ORF-CMP-021`, `ORF-CMP-023` :
+  quête personnelle, pièges, capacités, contrôle direct et regroupement.
+- [x] **G13-AA** — `ORF-SCR-018`, `ORF-SCR-024` : caméra/cutscenes et routage explicite par tag.
+- [x] **G13-AB** — `ORF-SCR-025`, `ORF-SCR-026` : flags de module documentés et réglages IA typés.
+
+Ce run groupé s'arrête après **G13-AB**. Les tranches suivantes restent fermées tant qu'un nouveau
+lot n'est pas explicitement demandé.
 
 ## Gate de fermeture
 

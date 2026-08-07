@@ -1854,7 +1854,12 @@ fondation économique et d’identification des objets, équipement/usure/conten
 contextuel, unicité transactionnelle, propriété instanciée, artisanat et génération déterministe.
 Les profils restent optionnels, canoniques et indépendants du moteur ; Toolset, ForgeScript, MCP,
 runtime et `.orpmod` consomment la même source. Conserver les modules jouables, le runtime sans IA,
-les formats migrables et le gate intégré vert. Ce run est borné après G13-M ; ne pas démarrer G13-N
+les formats migrables et le gate intégré vert. G13-N à G13-AB ajoutent ensuite un
+`WorldFeatureCatalog` v1 au module : placeables, portes, triggers, rencontres, routes de véhicules,
+marchands, compagnons et scripts sont configurables dans le Studio Monde vivant à huit onglets.
+Commande révisionnée, dry-run, audit, undo/redo, projet `0.6.32`, workspace `1.26.0`, `.orpmod`,
+ForgeScript, MCP et runtime 3D consomment le même contrat ; aucun nœud moteur ne devient source de
+vérité. Ce run est borné après G13-AB ; ne pas démarrer la tranche suivante
 sans nouvelle décision explicite.
 
 

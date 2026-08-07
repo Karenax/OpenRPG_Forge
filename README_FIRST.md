@@ -42,8 +42,10 @@ scène canonique des dialogues : animations, voix/sous-titres, caméra accessibl
 interjections autoritaires, puis timers accessibles et variantes conditionnelles/pondérées avec
 seed stable. G13-J à G13-M ajoutent ensuite les opérations avancées de quête et la profondeur des
 objets : économie, identification, propriété, équipement, durabilité, conteneurs, loot contextuel,
-unicité, artisanat et génération déterministe. Le présent run est volontairement arrêté après
-**G13-M**.
+unicité, artisanat et génération déterministe. G13-N à G13-AB ajoutent le catalogue canonique
+**Monde vivant** : placeables, portes, triggers, rencontres, routes, marchands, compagnons et
+automatisation script, éditables sans JSON et exercés dans le runtime 3D. Le présent run est
+volontairement arrêté après **G13-AB**.
 
 La source de vérité de l’avancement est `STATUS.md`. La direction d’interface et le contexte
 graphique sont dans `docs/UX_AURORA_2026.md`. Le chantier Asset Vault/Forgotten Forest, sa cible

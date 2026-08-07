@@ -24,6 +24,7 @@ using Forge.Application.Quests;
 using Forge.Application.Quality;
 using Forge.Application.Spatial;
 using Forge.Application.Time;
+using Forge.Application.WorldFeatures;
 using Forge.Domain.Areas;
 using Forge.Domain.Assistant;
 using Forge.Domain.Assets;
@@ -49,6 +50,7 @@ using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
+using Forge.Domain.WorldFeatures;
 using Forge.EngineAdapter.Assets;
 using Forge.EngineAdapter.Rendering;
 using Forge.EngineAdapter.World;
@@ -138,6 +140,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetDialoguePresentationHandler _dialoguePresentationHandler = new(new SystemClock());
     private readonly SetQuestOperationsHandler _questOperationsHandler = new(new SystemClock());
     private readonly SetItemAdvancedProfileHandler _itemAdvancedHandler = new(new SystemClock());
+    private readonly SetWorldFeatureCatalogHandler _worldFeatureHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private readonly CreatorSelectionContext _selectionContext = new();
@@ -248,6 +251,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private CreatureEventWindow? _creatureEventWindow;
     private QuestOperationsWindow? _questOperationsWindow;
     private ItemAdvancedWindow? _itemAdvancedWindow;
+    private WorldFeatureStudioWindow? _worldFeatureStudioWindow;
     private FactionAdvancedWindow? _factionAdvancedWindow;
     private GlobalSearchWindow? _globalSearch;
     private ModuleConfigurationWindow? _moduleConfiguration;
@@ -535,6 +539,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_itemAdvancedWindow);
+        _worldFeatureStudioWindow = new WorldFeatureStudioWindow();
+        _worldFeatureStudioWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyWorldFeatures,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_worldFeatureStudioWindow);
         _factionAdvancedWindow = new FactionAdvancedWindow();
         _factionAdvancedWindow.Initialize(
             () => _history?.State,
@@ -647,6 +659,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _factionAdvancedWindow?.Open(),
             () => _questOperationsWindow?.Open(),
             () => _itemAdvancedWindow?.Open(),
+            () => _worldFeatureStudioWindow?.Open(),
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_rpgKitAuthoringWindow);
         _networkBetaWindow = new NetworkBetaWindow();
@@ -842,6 +855,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _creatureEventWindow = null;
         _questOperationsWindow = null;
         _itemAdvancedWindow = null;
+        _worldFeatureStudioWindow = null;
         _loreIndexWindow = null;
         _globalSearch = null;
         _moduleConfiguration = null;
@@ -2470,6 +2484,21 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             ApplyCommand(result, "Économie, équipement, butin et craft de l’objet enregistrés.", null);
             _itemAdvancedWindow?.Refresh();
+        }
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyWorldFeatures(WorldFeatureCatalog catalog, bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        var command = new SetWorldFeatureCatalogCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            catalog, dryRun);
+        var result = _worldFeatureHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Monde vivant et automatisations enregistrés dans le module.", null);
+            _worldFeatureStudioWindow?.Refresh();
         }
         return result;
     }
@@ -5613,6 +5642,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunItemAdvancedSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunWorldFeatureStudioSmokeTest())
         {
             return;
         }
@@ -10622,6 +10656,122 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             _itemAdvancedWindow.Hide(); if (appliedToHistory) _history.Undo();
             RebuildPreview(); RefreshEditorControls();
+        }
+    }
+
+    private bool RunWorldFeatureStudioSmokeTest()
+    {
+        if (_history is null || _worldFeatureStudioWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED missing_workspace");
+            return false;
+        }
+
+        var original = _history.State.Project.Module.WorldFeatures;
+        var appliedToHistory = false;
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "world-features-smoke", Guid.NewGuid().ToString("N"));
+        try
+        {
+            _worldFeatureStudioWindow.Open();
+            var visible = _worldFeatureStudioWindow.Visible;
+            _worldFeatureStudioWindow.Hide();
+            var configured = visible && _worldFeatureStudioWindow.ConfigureForSmokeTest();
+            var previewed = configured && _worldFeatureStudioWindow.PreviewForSmokeTest();
+            var applied = previewed && _worldFeatureStudioWindow.LastCommandId != Guid.Empty &&
+                          _worldFeatureStudioWindow.LastPatchSummary.Contains("placeables=", StringComparison.Ordinal) &&
+                          _worldFeatureStudioWindow.ApplyForSmokeTest();
+            appliedToHistory = applied;
+            if (!applied)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED preview_apply_ui " +
+                    _worldFeatureStudioWindow.LastDiagnostics);
+                return false;
+            }
+
+            var catalog = _history.State.Project.Module.WorldFeatures;
+            if (catalog.Placeables.Count == 0 || catalog.Doors.Count == 0 || catalog.Triggers.Count == 0 ||
+                catalog.Encounters.Count == 0 || catalog.VehicleRoutes.Count == 0 || catalog.Merchants.Count == 0 ||
+                catalog.Companions.Count == 0 || catalog.Scripts.Camera.Shots.Count == 0 ||
+                catalog.Scripts.TagRouting.Routes.Count == 0 || catalog.Scripts.ModuleFlags.Count == 0 ||
+                catalog.Scripts.AiSettings.Count == 0 || _worldFeatureStudioWindow.SectionCount != 8)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED canonical_counts");
+                return false;
+            }
+
+            var placeableAccess = WorldFeatureRuntimeResolver.ResolvePlaceableAccess(catalog.Placeables[0],
+                new HashSet<string> { "key:ember" }, new HashSet<string>(), 3);
+            var doorDamage = WorldFeatureRuntimeResolver.ApplyDoorDamage(catalog.Doors[0],
+                catalog.Doors[0].Damage!.MaximumHealth, 100);
+            var trigger = WorldFeatureRuntimeResolver.EvaluateTrigger(catalog.Triggers[0], 100,
+                new HashSet<string> { "key:ember" }, new HashSet<string> { "player" }, false, 1, 0, true);
+            var encounter = WorldFeatureRuntimeResolver.EvaluateEncounter(catalog.Encounters[0], 0, 5, false, false, 60);
+            var route = WorldFeatureRuntimeResolver.SampleVehicleRoute(catalog.VehicleRoutes[0], 1);
+            var merchant = WorldFeatureRuntimeResolver.QuoteMerchant(catalog.Merchants[0],
+                catalog.Merchants[0].Currencies[0].Id, 10, false, "outside", 0, 5, .1, .2);
+            var companion = WorldFeatureRuntimeResolver.EvaluateCompanion(catalog.Companions[0], "owner", .2,
+                true, 2, true, true);
+            var scripts = WorldFeatureRuntimeResolver.ResolveScript(catalog.Scripts, "door.ash", "opened",
+                cameraSequence: true);
+            if (!placeableAccess.Allowed || !doorDamage.Breached || !trigger.Fired || !encounter.Spawn ||
+                !route.AtStop || !merchant.Accepted || !companion.DirectControl || scripts.ScriptId is null ||
+                !scripts.CameraControlLocked)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED runtime_resolution");
+                return false;
+            }
+
+            var aggregate = ProjectJsonSerializer.Deserialize(ProjectJsonSerializer.Serialize(_history.State.Project));
+            var created = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            if (!created.Succeeded || !reopened.Succeeded || aggregate.Module.WorldFeatures.Placeables.Count == 0 ||
+                reopened.Session!.Project.Module.WorldFeatures.Companions.Count == 0)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED persistence");
+                return false;
+            }
+
+            var profileId = catalog.Id;
+            var undo = _history.Undo();
+            var redo = _history.Redo();
+            var cleanup = _history.Undo();
+            appliedToHistory = false;
+            if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+                _history.State.Project.Module.WorldFeatures.Id != original.Id ||
+                redo.State.Project.Module.WorldFeatures.Id != profileId)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED history");
+                return false;
+            }
+
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13N_PLACEABLE_SOCIAL_ACCESS_PASS faction=ownership dialogue=bound credential=consume-charge-shared-virtual-audit");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13O_PLACEABLE_REACTIVE_PHYSICS_PASS events=attack-ability-heartbeat-custom physics=rigid-kinematic-replicated-sleep-static");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13P_DOOR_DAMAGE_LOADING_PASS damage=health-hardness-breach-navigation-debris-repair loading=portal-fallback events=damage-death-attack");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13Q_DOOR_REACTIVE_COMPLEX_PASS events=ability-heartbeat-custom social=dialogue-faction assembly=double-portcullis-elevator-airlock");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13R_TRIGGER_DISCOVERY_ACCESS_PASS secret=senses-difficulty-scope click=verb-hit permission=credential cursor=outline rest=safe");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13S_TRIGGER_AUTOMATION_NARRATIVE_GM_PASS heartbeat=occupied-budget custom=namespaced clue=journal narrative=priority-cooldown director=manual-audit");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13T_ENCOUNTER_LIFECYCLE_PASS respawn=delay-cycles-persistence-antifarm faction=override heartbeat=budget custom=namespaced");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13U_ENCOUNTER_TACTICAL_PASS reinforcement=alert-route-cap-delay visibility=camera-los cleanup=dead-escaped-abandoned-unload-persistent");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13V_VEHICLE_ROUTE_PASS route=points-lanes-speed-stops-overtaking network=sync");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13W_MERCHANT_CORE_PASS treasury=balance-credit-debt-caps purchase=bounded stolen=policy restock=world-time-route-persistent");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13X_MERCHANT_ADVANCED_PASS currencies=typed-exchange negotiation=bounded market=supply-demand services=repair audit=ledger-anomaly");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13Y_COMPANION_SOCIAL_PROGRESSION_PASS dialogue=permissions formation=slots-obstacles progression=preview-respec relation=loyalty-history banter=priority-cooldown");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13Z_COMPANION_GAMEPLAY_CONTROL_PASS quest=personal traps=task ability=policy control=direct-authorized party=split-regroup-sync");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AA_SCRIPT_CAMERA_TAG_PASS camera=rig-shots-blends-lock-skip-abort tag=explicit-visible-route");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13AB_SCRIPT_SWITCHES_PASS module=typed-documented-scoped-migrated ai=named-schema-preview-authoritative");
+            GD.Print("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_PASS ui=tabs-8-empty-errors-summary transaction=preview-apply-audit-history mcp=filtered-dry-run persistence=project-workspace-package runtime=resolved");
+            return true;
+        }
+        catch (Exception exception)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED " + exception);
+            return false;
+        }
+        finally
+        {
+            _worldFeatureStudioWindow.Hide();
+            if (appliedToHistory) _history.Undo();
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
         }
     }
 

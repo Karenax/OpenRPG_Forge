@@ -39,6 +39,8 @@ sur `stdio`. Les journaux sont isolés sur stderr. La surface testée comprend :
 
 - `get_project_summary`, `get_current_revision` et `get_project_diagnostics` en lecture seule ;
 - le schéma, la préparation, l'application et la réversion d'un plan de dialogue ;
+- `query_world_features` filtre les profils canoniques du Monde vivant et
+  `preview_world_features` valide/dry-run un catalogue v1 sans l'appliquer ;
 - l'API ForgeScript, la compilation, les diagnostics, le test sandboxé et le plan de liaison ;
 - un agent de scénario borné qui retourne résultat, marqueurs, diagnostics et journal d'artefact.
 
