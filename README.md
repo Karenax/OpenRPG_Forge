@@ -28,10 +28,10 @@ Le fichier [`README_FIRST.md`](README_FIRST.md) est le document d’accueil du p
 
 ## Graphe d’architecture
 
-Le dépôt fournit un [graphe d’architecture déterministe](docs/architecture/README.md), généré
-localement sans dépendance externe. Avant une évolution transversale, obtenir les fichiers utiles
-avec `python scripts/architecture_graph.py query "<module ou symbole>" --format paths`. Après une
-modification indexée, exécuter `generate`, puis `check` avant de terminer.
+Le dépôt fournit un [graphe d’architecture déterministe Roslyn](docs/architecture/README.md), généré
+localement sans service externe. Avant une évolution transversale, obtenir le contexte utile avec
+`dotnet run --project tools/Forge.ArchitectureGraph -- query "<module ou symbole>" --mode impact --format context`.
+Après une modification indexée, exécuter `generate`, puis `check --full` avant de terminer.
 
 ## Lancer le prototype
 
@@ -50,7 +50,10 @@ Commandes :
 
 - `ZQSD`, `WASD` ou flèches : déplacement ;
 - `E` : parler, ramasser la clé ou ouvrir la porte ;
-- `Espace` : attaquer.
+- `Espace` : sauter ;
+- `1` : attaquer ; `2` à `6` : interactions, roue d’actions, repos et sauvegardes ;
+- clic gauche : orbite libre ; clic droit : orbite et orientation du personnage ; molette : zoom ;
+- `Ctrl+R` : afficher ou masquer le compteur FPS ;
 - `F5` / `F9` : sauvegarder / reprendre le checkpoint rapide.
 
 Le parcours actuel permet de parler à Elyra, récupérer la Clé de braise, ouvrir la porte, combattre la Sentinelle puis le Gardien des Cendres, déclencher sa phase 2 et terminer la quête.
@@ -63,11 +66,22 @@ Pour lancer la carte extérieure **Forgotten Forest** :
 
 Le lanceur régénère de façon idempotente le module et ses crédits depuis le Vault CC0, compile le
 runtime puis ouvre la carte en Forward+. Le Vault original reste inchangé. Forgotten Forest permet
-de se déplacer sur un terrain 128 × 128 m, d’orbiter et zoomer la caméra, de suivre le sentier,
+de se déplacer sur un terrain 512 × 512 m avec des contrôles MMO modernes, d’orbiter et zoomer la caméra, de suivre le sentier,
 parler à Maëlys, trouver la Graine de lune, ouvrir le Passage des Ronces et affronter le Gardien des
-Racines. Le ruisseau est animé, ses quatre volumes appliquent nage et courant, et le chemin de
+Racines. Le ruisseau est animé, ses dix volumes appliquent nage et courant, et le chemin de
 navigation relie le camp au sanctuaire en respectant la traversée du pont. Commandes caméra : clic
-droit ou milieu pour orbiter, molette pour zoomer, `Début`/`Fin` pour tourner au clavier.
+gauche pour orbiter librement, clic droit pour orienter caméra et personnage, molette pour zoomer,
+`Début`/`Fin` pour tourner au clavier.
+
+## Parcourir tous les modèles du Vault
+
+```powershell
+& '.\tools\asset_vault_browser\Launch-Asset-Atlas.ps1'
+```
+
+**OpenRPG Asset Atlas** ouvre une application locale séparée : 5 236 modèles logiques filtrables par
+source, pack, format et type, miniatures, aperçu GLB/glTF interactif à la demande et sélection
+persistante exportable en JSON ou copiable pour Codex. Le Vault reste en lecture seule.
 
 ## Ouvrir le toolset
 

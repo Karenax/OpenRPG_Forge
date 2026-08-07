@@ -252,6 +252,9 @@ endurance, liens sûrs, actions imbriquées, manette, clavier, liste accessible,
 planification, permissions multijoueur et fournisseur de combat. Dans le jeu, `Tab` ouvre la roue,
 `P` gèle puis rejoue la file planifiée, `T` active le ralenti et `M` change de fournisseur. Le HUD
 expose toujours l’état du temps, du combat, de la file, du mouvement, du souffle et de l’endurance.
+La présentation runtime adopte une lecture MMO moderne et clean-room : cadre joueur compact, suivi
+d’objectif opposé, messages discrets et barre de six actions centrée. Le clic gauche orbite librement,
+le clic droit aligne caméra et avatar, `Espace` saute, `1` attaque et `Ctrl+R` bascule les FPS.
 
 Les dialogues adaptatifs gardent le temps lisible sans pression visuelle agressive : l’auteur voit
 deux onglets dédiés, un résumé de validation et une simulation timer/variante. La future présentation

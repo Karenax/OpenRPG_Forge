@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "jobId": "49dfe961-0f75-dc56-9ebf-19c23434c8cf",
+  "assetId": "a21f53d8-b2bf-1a5c-8a29-16b5fd02e002",
+  "sourceRelativePath": "originals/polyhaven/fir_sapling/gltf-1k/fir_sapling_1k.gltf",
+  "outputRelativePath": "assets/imported/polyhaven-fir-sapling/model.glb",
+  "sourceSha256": "a9466ca9d8c5b9b2eeeeafd3ce426f8912dcbd98a7281bad8c734833eb35b186",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-polyhaven-environment@1.1.0;source:polyhaven:fir_sapling",
+  "operations": [
+    "validate_model",
+    "normalize_model",
+    "export_glb",
+    "generate_thumbnail",
+    "audit_quality"
+  ],
+  "options": {
+    "applyTransforms": true,
+    "scaleMeters": 1,
+    "pivot": "ground_center",
+    "lodRatios": [],
+    "generateCollision": false,
+    "animationSources": [],
+    "materialTextures": [],
+    "creationRecipe": null,
+    "includedMeshNames": [
+      "fir_sapling_b"
+    ],
+    "baseDecimationRatio": 0.03
+  },
+  "securityPolicy": {
+    "schemaVersion": 1,
+    "id": "a1230000-0000-4000-8000-000000000001",
+    "denyFreeFormPython": true,
+    "denyShell": true,
+    "denyEval": true,
+    "requireContainedPaths": true,
+    "networkAllowed": false,
+    "maximumJobSeconds": 300,
+    "maximumOutputBytes": 536870912,
+    "allowedBlenderOperations": [
+      "validate_model",
+      "normalize_model",
+      "generate_collision",
+      "generate_lods",
+      "export_glb",
+      "generate_thumbnail",
+      "audit_quality",
+      "create_primitives"
+    ],
+    "requiredPermission": "configure",
+    "provenance": "openrpg-forge:g12-l:secure-worker-default"
+  }
+}

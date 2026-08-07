@@ -18,8 +18,8 @@ public static class AssetDeliveryReportService
         int ExpectedBenchmarkCheckCount,
         string RequiredLicenseSpdx)
     {
-        public static Policy ForgottenForestAv5 { get; } = new(605, 605, 28, 44, 16, "CC0-1.0");
-        public static Policy ForgottenForestAv6E { get; } = new(605, 605, 40, 56, 16, "CC0-1.0");
+        public static Policy ForgottenForestAv5 { get; } = new(665, 665, 28, 44, 16, "CC0-1.0");
+        public static Policy ForgottenForestAv6E { get; } = new(665, 665, 45, 56, 16, "CC0-1.0");
     }
 
     public sealed record FileMetrics(int Files, long Bytes);
@@ -28,6 +28,7 @@ public static class AssetDeliveryReportService
         string CatalogDate,
         int Assets,
         int LocalAssets,
+        int CatalogOnlyMediaAssets,
         int ExtractedAssets,
         int LicenseVerifiedAssets,
         long DeclaredBytes,
@@ -165,6 +166,7 @@ public static class AssetDeliveryReportService
         catalog.CatalogDate,
         catalog.Items.Count,
         catalog.Items.Count(item => item.Availability != AssetAvailability.CatalogOnly),
+        catalog.Items.Count(item => item.Availability == AssetAvailability.CatalogOnly && IsMaterialOrHdri(item)),
         catalog.Items.Count(item => item.Availability == AssetAvailability.ExtractedAvailable),
         catalog.Items.Count(item => item.LicenseVerified),
         catalog.Items.Sum(item => item.TotalBytes),
@@ -268,7 +270,8 @@ public static class AssetDeliveryReportService
             catalog.Assets >= policy.MinimumCatalogAssets),
         new("catalog-expansion-frozen", $"<={policy.MaximumCatalogAssets}", catalog.Assets.ToString(CultureInfo.InvariantCulture),
             catalog.Assets <= policy.MaximumCatalogAssets),
-        new("catalog-local-availability", "all", $"{catalog.LocalAssets}/{catalog.Assets}", catalog.LocalAssets == catalog.Assets),
+        new("catalog-local-availability", "all 3D assets; Materials/HDRI indexed", $"{catalog.LocalAssets}+{catalog.CatalogOnlyMediaAssets}/{catalog.Assets}",
+            catalog.LocalAssets + catalog.CatalogOnlyMediaAssets == catalog.Assets),
         new("catalog-license-evidence", "all verified", $"{catalog.LicenseVerifiedAssets}/{catalog.Assets}",
             catalog.LicenseVerifiedAssets == catalog.Assets),
         new("vault-originals", ">0 files and bytes", $"{vault.Originals.Files}/{vault.Originals.Bytes}",
@@ -323,6 +326,11 @@ public static class AssetDeliveryReportService
             foreach (var item in element.EnumerateArray()) CollectAssetReferences(item, references);
         }
     }
+
+    private static bool IsMaterialOrHdri(AssetCatalogItem item) =>
+        item.Categories.Any(category =>
+            string.Equals(category, "Materials", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(category, "HDRI", StringComparison.OrdinalIgnoreCase));
 
     private static bool VerifyChunk(string workspace, JsonElement chunk)
     {

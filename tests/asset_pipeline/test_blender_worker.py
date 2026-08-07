@@ -66,6 +66,8 @@ class BlenderWorkerTests(unittest.TestCase):
                 "generateCollision": True,
                 "animationSources": [],
                 "materialTextures": [],
+                "includedMeshNames": ["Tree_Main"],
+                "baseDecimationRatio": 0.125,
             },
             "securityPolicy": {
                 "schemaVersion": 1,
@@ -187,12 +189,35 @@ class BlenderWorkerTests(unittest.TestCase):
         before = self.source.read_bytes()
         normalized = worker.validate_request(document, self.sources, self.workspace)
         self.assertEqual([0.5, 0.25], normalized["options"]["lodRatios"])
+        self.assertEqual(["Tree_Main"], normalized["options"]["includedMeshNames"])
+        self.assertEqual(0.125, normalized["options"]["baseDecimationRatio"])
         response = worker.execute(normalized, self.root / "missing-blender.exe", self.root / "response.json", True)
         self.assertTrue(response["valid"])
         self.assertFalse(response["executed"])
         self.assertEqual("assets/imported/tree/model.preview.png", response["previewRelativePath"])
         self.assertEqual("assets/imported/tree/model.quality.json", response["qualityReportRelativePath"])
         self.assertEqual(before, self.source.read_bytes())
+
+    def test_rejects_unsafe_mesh_selection_and_decimation(self):
+        unsafe_name = self.request()
+        unsafe_name["options"]["includedMeshNames"] = ["../Tree"]
+        with self.assertRaises(worker.WorkerError) as context:
+            worker.validate_request(unsafe_name, self.sources, self.workspace)
+        self.assertEqual("asset.worker.mesh_selection_invalid", context.exception.code)
+
+        unsafe_ratio = self.request()
+        unsafe_ratio["options"]["baseDecimationRatio"] = 0.0001
+        with self.assertRaises(worker.WorkerError) as context:
+            worker.validate_request(unsafe_ratio, self.sources, self.workspace)
+        self.assertEqual("asset.worker.base_decimation_invalid", context.exception.code)
+
+    def test_accepts_null_optional_mesh_selection_from_older_callers(self):
+        document = self.request()
+        document["options"]["includedMeshNames"] = None
+
+        normalized = worker.validate_request(document, self.sources, self.workspace)
+
+        self.assertEqual([], normalized["options"]["includedMeshNames"])
 
     def test_validates_governed_animation_and_texture_companions(self):
         animation = self.sources / "idle.fbx"

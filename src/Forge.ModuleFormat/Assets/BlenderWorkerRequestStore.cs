@@ -114,6 +114,23 @@ public static class BlenderWorkerRequestStore
 
     private static BlenderWorkerRequestDiagnostic? ValidateOptions(BlenderWorkerOptions options)
     {
+        var includedMeshNames = options.IncludedMeshNames ?? [];
+        if (includedMeshNames.Count > 16 ||
+            includedMeshNames.Any(name => !IsSafeName(name)) ||
+            includedMeshNames.Distinct(StringComparer.Ordinal).Count() != includedMeshNames.Count)
+        {
+            return new(WriteFailedCode,
+                "Included Blender mesh names must be unique safe names, with at most 16 entries.",
+                "options.includedMeshNames");
+        }
+
+        if (options.BaseDecimationRatio is < 0.001m or > 1m)
+        {
+            return new(WriteFailedCode,
+                "Base mesh decimation ratio must be between 0.001 and 1.",
+                "options.baseDecimationRatio");
+        }
+
         var animationSources = options.AnimationSources ?? [];
         if (animationSources.Select(source => source.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() !=
             animationSources.Count)
@@ -228,10 +245,12 @@ public sealed record BlenderWorkerOptions(
     bool GenerateCollision,
     IReadOnlyList<BlenderWorkerAnimationSource>? AnimationSources = null,
     IReadOnlyList<BlenderWorkerMaterialTextureSource>? MaterialTextures = null,
-    AssistedBlenderCreationDefinition? CreationRecipe = null)
+    AssistedBlenderCreationDefinition? CreationRecipe = null,
+    IReadOnlyList<string>? IncludedMeshNames = null,
+    decimal BaseDecimationRatio = 1m)
 {
     public static BlenderWorkerOptions Default { get; } =
-        new(true, 1m, "ground_center", [0.5m, 0.25m], true, [], []);
+        new(true, 1m, "ground_center", [0.5m, 0.25m], true, [], [], null, [], 1m);
 }
 
 public sealed record BlenderWorkerAnimationSource(string Name, string RelativePath, string ContentSha256);

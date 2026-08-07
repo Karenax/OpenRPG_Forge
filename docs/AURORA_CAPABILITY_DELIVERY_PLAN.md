@@ -566,7 +566,7 @@ Vérification globale de référence :
 
 ```powershell
 .\scripts\Verify.ps1
-python scripts/architecture_graph.py check
+dotnet run --project tools/Forge.ArchitectureGraph -- check --full
 ```
 
 Les tests spécialisés s’ajoutent à cette vérification ; ils ne la remplacent pas.

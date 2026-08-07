@@ -1,0 +1,1051 @@
+{
+  "asset_count": 16,
+  "assets": [
+    {
+      "asset_id": "ambientcg-material:Bark001",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bark001.png",
+        "Bark001_2K-JPG.blend",
+        "Bark001_2K-JPG.mtlx",
+        "Bark001_2K-JPG.tres",
+        "Bark001_2K-JPG.usdc",
+        "Bark001_2K-JPG_Color.jpg",
+        "Bark001_2K-JPG_Displacement.jpg",
+        "Bark001_2K-JPG_NormalDX.jpg",
+        "Bark001_2K-JPG_NormalGL.jpg",
+        "Bark001_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bark001/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bark001/Bark001_2K-JPG.zip",
+          "sha256": "bb7b274ed01fa4ec0a5df3d6ce6aa2bd613831f88fe6a747c54f7f3f9a92cc85",
+          "size": 18138376,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bark001_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bark001/2k-jpg/Bark001.preview.webp",
+          "sha256": "6e3a4cd7d047dafa2996a5b5c2ebf250531645fe91c72e7d06f8ec8384625790",
+          "size": 23908,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bark001.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bark 001",
+      "preview_file": "normalized/ambientcg/materials/Bark001/2k-jpg/Bark001.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bark001/2k-jpg/Bark001_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:33Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bark001",
+      "source_page": "https://ambientcg.com/a/Bark001",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "1",
+        "bark",
+        "forest",
+        "tree",
+        "wood"
+      ],
+      "total_bytes": 18162284,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bark002",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bark002.png",
+        "Bark002_2K-JPG.blend",
+        "Bark002_2K-JPG.mtlx",
+        "Bark002_2K-JPG.tres",
+        "Bark002_2K-JPG.usdc",
+        "Bark002_2K-JPG_AmbientOcclusion.jpg",
+        "Bark002_2K-JPG_Color.jpg",
+        "Bark002_2K-JPG_Displacement.jpg",
+        "Bark002_2K-JPG_NormalDX.jpg",
+        "Bark002_2K-JPG_NormalGL.jpg",
+        "Bark002_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bark002/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bark002/Bark002_2K-JPG.zip",
+          "sha256": "2f507f82affa4dfc730f4ae67989faee2420a13b446ea45cce34999876f891c9",
+          "size": 29026498,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bark002_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bark002/2k-jpg/Bark002.preview.webp",
+          "sha256": "69c39c958a467a0873f37afb9d8b0e6073474687648d7e08dad9cf66cfeadfff",
+          "size": 19796,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bark002.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bark 002",
+      "preview_file": "normalized/ambientcg/materials/Bark002/2k-jpg/Bark002.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bark002/2k-jpg/Bark002_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:41Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bark002",
+      "source_page": "https://ambientcg.com/a/Bark002",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "2",
+        "bark",
+        "dark",
+        "smooth",
+        "tree",
+        "wood"
+      ],
+      "total_bytes": 29046294,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bark003",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bark003.png",
+        "Bark003_2K-JPG.blend",
+        "Bark003_2K-JPG.mtlx",
+        "Bark003_2K-JPG.tres",
+        "Bark003_2K-JPG.usdc",
+        "Bark003_2K-JPG_AmbientOcclusion.jpg",
+        "Bark003_2K-JPG_Color.jpg",
+        "Bark003_2K-JPG_Displacement.jpg",
+        "Bark003_2K-JPG_NormalDX.jpg",
+        "Bark003_2K-JPG_NormalGL.jpg",
+        "Bark003_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bark003/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bark003/Bark003_2K-JPG.zip",
+          "sha256": "8a46c556a103194f314bd3e6414746fba7b65a7964cb99e47f8cc65360a9318d",
+          "size": 29711192,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bark003_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bark003/2k-jpg/Bark003.preview.webp",
+          "sha256": "163fdedc58465401937be33ad284570c2399fe24b21bc5b65163058d03a0b140",
+          "size": 18682,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bark003.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bark 003",
+      "preview_file": "normalized/ambientcg/materials/Bark003/2k-jpg/Bark003.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bark003/2k-jpg/Bark003_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:42Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bark003",
+      "source_page": "https://ambientcg.com/a/Bark003",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "3",
+        "bark",
+        "dark",
+        "smooth",
+        "tree",
+        "wood"
+      ],
+      "total_bytes": 29729874,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bark004",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bark004.png",
+        "Bark004_2K-JPG.blend",
+        "Bark004_2K-JPG.mtlx",
+        "Bark004_2K-JPG.tres",
+        "Bark004_2K-JPG.usdc",
+        "Bark004_2K-JPG_AmbientOcclusion.jpg",
+        "Bark004_2K-JPG_Color.jpg",
+        "Bark004_2K-JPG_Displacement.jpg",
+        "Bark004_2K-JPG_NormalDX.jpg",
+        "Bark004_2K-JPG_NormalGL.jpg",
+        "Bark004_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bark004/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bark004/Bark004_2K-JPG.zip",
+          "sha256": "1ef152366455b01423e1e8498db430fea691bda8cb388f235cbec49bd94eb7ea",
+          "size": 28326950,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bark004_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bark004/2k-jpg/Bark004.preview.webp",
+          "sha256": "03951e797bc96a9f1fbbee7f640c8b29d45438ee89c86256623f6d03a933f41a",
+          "size": 21202,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bark004.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bark 004",
+      "preview_file": "normalized/ambientcg/materials/Bark004/2k-jpg/Bark004.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bark004/2k-jpg/Bark004_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:43Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bark004",
+      "source_page": "https://ambientcg.com/a/Bark004",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "4",
+        "bark",
+        "forest",
+        "light",
+        "smooth",
+        "tree"
+      ],
+      "total_bytes": 28348152,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bark006",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bark006.png",
+        "Bark006_2K-JPG.blend",
+        "Bark006_2K-JPG.mtlx",
+        "Bark006_2K-JPG.tres",
+        "Bark006_2K-JPG.usdc",
+        "Bark006_2K-JPG_AmbientOcclusion.jpg",
+        "Bark006_2K-JPG_Color.jpg",
+        "Bark006_2K-JPG_Displacement.jpg",
+        "Bark006_2K-JPG_NormalDX.jpg",
+        "Bark006_2K-JPG_NormalGL.jpg",
+        "Bark006_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bark006/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bark006/Bark006_2K-JPG.zip",
+          "sha256": "7f83e28d86b8526ae52ead233311e5b8e900273b50527f06895aee917d632410",
+          "size": 29185375,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bark006_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bark006/2k-jpg/Bark006.preview.webp",
+          "sha256": "e708d1c05be1b2a9f8b8a9146ae262667e4a4613d361490d328c2b4987b05514",
+          "size": 20414,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bark006.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bark 006",
+      "preview_file": "normalized/ambientcg/materials/Bark006/2k-jpg/Bark006.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bark006/2k-jpg/Bark006_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:44Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bark006",
+      "source_page": "https://ambientcg.com/a/Bark006",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "6",
+        "bark",
+        "brown",
+        "dark",
+        "tree",
+        "wood"
+      ],
+      "total_bytes": 29205789,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bark007",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bark007.png",
+        "Bark007_2K-JPG.blend",
+        "Bark007_2K-JPG.mtlx",
+        "Bark007_2K-JPG.tres",
+        "Bark007_2K-JPG.usdc",
+        "Bark007_2K-JPG_AmbientOcclusion.jpg",
+        "Bark007_2K-JPG_Color.jpg",
+        "Bark007_2K-JPG_Displacement.jpg",
+        "Bark007_2K-JPG_NormalDX.jpg",
+        "Bark007_2K-JPG_NormalGL.jpg",
+        "Bark007_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bark007/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bark007/Bark007_2K-JPG.zip",
+          "sha256": "eaa1e1bc2bc829fcf797bd6ff08ac414ede89e13cf42b32fc09bc4f22f185154",
+          "size": 31663646,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bark007_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bark007/2k-jpg/Bark007.preview.webp",
+          "sha256": "b1d8996d8ea1650c0e0e36212016941d91c2ef14464e68522b5c2f05386370b8",
+          "size": 19014,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bark007.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bark 007",
+      "preview_file": "normalized/ambientcg/materials/Bark007/2k-jpg/Bark007.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bark007/2k-jpg/Bark007_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:45Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bark007",
+      "source_page": "https://ambientcg.com/a/Bark007",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "7",
+        "bark",
+        "brown",
+        "light",
+        "rough",
+        "tree",
+        "wood"
+      ],
+      "total_bytes": 31682660,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bark008",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bark008.png",
+        "Bark008_2K-JPG.blend",
+        "Bark008_2K-JPG.mtlx",
+        "Bark008_2K-JPG.tres",
+        "Bark008_2K-JPG.usdc",
+        "Bark008_2K-JPG_AmbientOcclusion.jpg",
+        "Bark008_2K-JPG_Color.jpg",
+        "Bark008_2K-JPG_Displacement.jpg",
+        "Bark008_2K-JPG_NormalDX.jpg",
+        "Bark008_2K-JPG_NormalGL.jpg",
+        "Bark008_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bark008/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bark008/Bark008_2K-JPG.zip",
+          "sha256": "8b21feef62efcb264a94a55ddb3be2ea7cf1128040f74584ad9fe42fc5264230",
+          "size": 15550612,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bark008_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bark008/2k-jpg/Bark008.preview.webp",
+          "sha256": "7d5c83375bde52d2f84fccf5df762cf7e2e8cda7e90ae75769cc11f2413af3ed",
+          "size": 26778,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bark008.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bark 008",
+      "preview_file": "normalized/ambientcg/materials/Bark008/2k-jpg/Bark008.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bark008/2k-jpg/Bark008_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:34Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bark008",
+      "source_page": "https://ambientcg.com/a/Bark008",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "8",
+        "bark",
+        "brown",
+        "green",
+        "moss",
+        "tree",
+        "wood"
+      ],
+      "total_bytes": 15577390,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bark011",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bark011.png",
+        "Bark011_2K-JPG.blend",
+        "Bark011_2K-JPG.mtlx",
+        "Bark011_2K-JPG.tres",
+        "Bark011_2K-JPG.usdc",
+        "Bark011_2K-JPG_AmbientOcclusion.jpg",
+        "Bark011_2K-JPG_Color.jpg",
+        "Bark011_2K-JPG_Displacement.jpg",
+        "Bark011_2K-JPG_NormalDX.jpg",
+        "Bark011_2K-JPG_NormalGL.jpg",
+        "Bark011_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bark011/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bark011/Bark011_2K-JPG.zip",
+          "sha256": "b869a754664b635f4baca14aeabcc23252f6d23f59d77774642fd4eb8659bf3a",
+          "size": 16511483,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bark011_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bark011/2k-jpg/Bark011.preview.webp",
+          "sha256": "2a71c481e265cb4b9d33666144860cc51bbcfe7c4f960c5216bf9757427a9e2f",
+          "size": 17186,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bark011.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bark 011",
+      "preview_file": "normalized/ambientcg/materials/Bark011/2k-jpg/Bark011.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bark011/2k-jpg/Bark011_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:46Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bark011",
+      "source_page": "https://ambientcg.com/a/Bark011",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "11",
+        "bark",
+        "green",
+        "grey",
+        "moss"
+      ],
+      "total_bytes": 16528669,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bark014",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bark014.png",
+        "Bark014_2K-JPG.blend",
+        "Bark014_2K-JPG.mtlx",
+        "Bark014_2K-JPG.tres",
+        "Bark014_2K-JPG.usdc",
+        "Bark014_2K-JPG_AmbientOcclusion.jpg",
+        "Bark014_2K-JPG_Color.jpg",
+        "Bark014_2K-JPG_Displacement.jpg",
+        "Bark014_2K-JPG_NormalDX.jpg",
+        "Bark014_2K-JPG_NormalGL.jpg",
+        "Bark014_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bark014/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bark014/Bark014_2K-JPG.zip",
+          "sha256": "2ae21b265b55512521b0c1f161ebaa5bbc9867d8e47327974027d38fb711d7eb",
+          "size": 29750598,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bark014_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bark014/2k-jpg/Bark014.preview.webp",
+          "sha256": "6b3a171aa4e7b7e99985b9e430fdfc7e4e09d63288c9ec49313711ac0001285a",
+          "size": 24706,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bark014.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bark 014",
+      "preview_file": "normalized/ambientcg/materials/Bark014/2k-jpg/Bark014.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bark014/2k-jpg/Bark014_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:35Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bark014",
+      "source_page": "https://ambientcg.com/a/Bark014",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "14",
+        "bark",
+        "brown",
+        "fir",
+        "forest",
+        "tree",
+        "wood"
+      ],
+      "total_bytes": 29775304,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bark015",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bark015.png",
+        "Bark015_2K-JPG.blend",
+        "Bark015_2K-JPG.mtlx",
+        "Bark015_2K-JPG.tres",
+        "Bark015_2K-JPG.usdc",
+        "Bark015_2K-JPG_AmbientOcclusion.jpg",
+        "Bark015_2K-JPG_Color.jpg",
+        "Bark015_2K-JPG_Displacement.jpg",
+        "Bark015_2K-JPG_NormalDX.jpg",
+        "Bark015_2K-JPG_NormalGL.jpg",
+        "Bark015_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bark015/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bark015/Bark015_2K-JPG.zip",
+          "sha256": "37f7938bf76550b60dd4751a993678db6ea155f5cf42303c813bf02271f0c5cb",
+          "size": 33896591,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bark015_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bark015/2k-jpg/Bark015.preview.webp",
+          "sha256": "f67423f0a0502424e410020a9a150d8cd1802c816812c993dd61547061e24e4c",
+          "size": 26762,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bark015.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bark 015",
+      "preview_file": "normalized/ambientcg/materials/Bark015/2k-jpg/Bark015.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bark015/2k-jpg/Bark015_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:36Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bark015",
+      "source_page": "https://ambientcg.com/a/Bark015",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "015",
+        "15",
+        "bark",
+        "beige",
+        "brown",
+        "damaged",
+        "forest",
+        "layered",
+        "natural",
+        "old",
+        "organic",
+        "outdoor",
+        "rough",
+        "rustic",
+        "striped",
+        "tree",
+        "wood"
+      ],
+      "total_bytes": 33923353,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bricks008",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bricks008.png",
+        "Bricks008_2K-JPG.blend",
+        "Bricks008_2K-JPG.mtlx",
+        "Bricks008_2K-JPG.tres",
+        "Bricks008_2K-JPG.usdc",
+        "Bricks008_2K-JPG_AmbientOcclusion.jpg",
+        "Bricks008_2K-JPG_Color.jpg",
+        "Bricks008_2K-JPG_Displacement.jpg",
+        "Bricks008_2K-JPG_NormalDX.jpg",
+        "Bricks008_2K-JPG_NormalGL.jpg",
+        "Bricks008_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bricks008/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bricks008/Bricks008_2K-JPG.zip",
+          "sha256": "57086de2360b8e3e8e21ca53c74807f5bf095ee9ceed8e6eb54523af6563960a",
+          "size": 23192992,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bricks008_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bricks008/2k-jpg/Bricks008.preview.webp",
+          "sha256": "b785c0e767dc8b61789bbd8ecf3f89fc9287bf4019a9c91e416e383fa91b638e",
+          "size": 10162,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bricks008.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bricks 008",
+      "preview_file": "normalized/ambientcg/materials/Bricks008/2k-jpg/Bricks008.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bricks008/2k-jpg/Bricks008_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:46Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bricks008",
+      "source_page": "https://ambientcg.com/a/Bricks008",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "8",
+        "bricks",
+        "church",
+        "clean",
+        "flat",
+        "medieval",
+        "old",
+        "sandstone",
+        "stone",
+        "wall"
+      ],
+      "total_bytes": 23203154,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Bricks089",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Bricks089.png",
+        "Bricks089_2K-JPG.blend",
+        "Bricks089_2K-JPG.mtlx",
+        "Bricks089_2K-JPG.tres",
+        "Bricks089_2K-JPG.usdc",
+        "Bricks089_2K-JPG_AmbientOcclusion.jpg",
+        "Bricks089_2K-JPG_Color.jpg",
+        "Bricks089_2K-JPG_Displacement.jpg",
+        "Bricks089_2K-JPG_NormalDX.jpg",
+        "Bricks089_2K-JPG_NormalGL.jpg",
+        "Bricks089_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Bricks089/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Bricks089/Bricks089_2K-JPG.zip",
+          "sha256": "acc430a760c4dbc678a269f3de7656d20017ab2f426160bb4ebfcaf568bc4536",
+          "size": 16445459,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Bricks089_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Bricks089/2k-jpg/Bricks089.preview.webp",
+          "sha256": "06c9cd7debc5ed498b511e508a928a8cc0fed30bc7051eaa59895b025b82e607",
+          "size": 24184,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Bricks089.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Bricks 089",
+      "preview_file": "normalized/ambientcg/materials/Bricks089/2k-jpg/Bricks089.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Bricks089/2k-jpg/Bricks089_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:36Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Bricks089",
+      "source_page": "https://ambientcg.com/a/Bricks089",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "89",
+        "brick",
+        "bricks",
+        "dark",
+        "gray",
+        "medieval",
+        "random",
+        "stone",
+        "wall"
+      ],
+      "total_bytes": 16469643,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Chainmail001",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Chainmail001.png",
+        "Chainmail001_2K-JPG.blend",
+        "Chainmail001_2K-JPG.mtlx",
+        "Chainmail001_2K-JPG.tres",
+        "Chainmail001_2K-JPG.usdc",
+        "Chainmail001_2K-JPG_Color.jpg",
+        "Chainmail001_2K-JPG_Displacement.jpg",
+        "Chainmail001_2K-JPG_IdMask.jpg",
+        "Chainmail001_2K-JPG_Metalness.jpg",
+        "Chainmail001_2K-JPG_NormalDX.jpg",
+        "Chainmail001_2K-JPG_NormalGL.jpg",
+        "Chainmail001_2K-JPG_Opacity.jpg",
+        "Chainmail001_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Chainmail001/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Chainmail001/Chainmail001_2K-JPG.zip",
+          "sha256": "d1c76834a7c089aee927b31e2bdf88132b8273fb72f76100aec824b7b1e02137",
+          "size": 49555249,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Chainmail001_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Chainmail001/2k-jpg/Chainmail001.preview.webp",
+          "sha256": "b17d3f186c71c465147a98a3a122f2e09991c0b66852ba98ae75b50250f0b75b",
+          "size": 20554,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Chainmail001.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Chainmail 001",
+      "preview_file": "normalized/ambientcg/materials/Chainmail001/2k-jpg/Chainmail001.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Chainmail001/2k-jpg/Chainmail001_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:37Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Chainmail001",
+      "source_page": "https://ambientcg.com/a/Chainmail001",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "1",
+        "chainmail",
+        "clothing",
+        "fabric",
+        "knight",
+        "medieval",
+        "metal"
+      ],
+      "total_bytes": 49575803,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Chainmail002",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Chainmail002.png",
+        "Chainmail002_2K-JPG.blend",
+        "Chainmail002_2K-JPG.mtlx",
+        "Chainmail002_2K-JPG.tres",
+        "Chainmail002_2K-JPG.usdc",
+        "Chainmail002_2K-JPG_Color.jpg",
+        "Chainmail002_2K-JPG_Displacement.jpg",
+        "Chainmail002_2K-JPG_IdMask.jpg",
+        "Chainmail002_2K-JPG_Metalness.jpg",
+        "Chainmail002_2K-JPG_NormalDX.jpg",
+        "Chainmail002_2K-JPG_NormalGL.jpg",
+        "Chainmail002_2K-JPG_Opacity.jpg",
+        "Chainmail002_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Chainmail002/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Chainmail002/Chainmail002_2K-JPG.zip",
+          "sha256": "e79095b53cca599851d28733a92197febe455d3cd345f99a669914c88a8f5468",
+          "size": 49254613,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Chainmail002_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Chainmail002/2k-jpg/Chainmail002.preview.webp",
+          "sha256": "2f11d3ce7af64624072b2f3cc5ce10ce9b84fce8bf5d95c08e72dd42da9a41ae",
+          "size": 50286,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Chainmail002.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Chainmail 002",
+      "preview_file": "normalized/ambientcg/materials/Chainmail002/2k-jpg/Chainmail002.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Chainmail002/2k-jpg/Chainmail002_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:39Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Chainmail002",
+      "source_page": "https://ambientcg.com/a/Chainmail002",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "2",
+        "chainmail",
+        "clothing",
+        "fabric",
+        "knight",
+        "medieval",
+        "metal"
+      ],
+      "total_bytes": 49304899,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Chainmail003",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Chainmail003.png",
+        "Chainmail003_2K-JPG.blend",
+        "Chainmail003_2K-JPG.mtlx",
+        "Chainmail003_2K-JPG.tres",
+        "Chainmail003_2K-JPG.usdc",
+        "Chainmail003_2K-JPG_Color.jpg",
+        "Chainmail003_2K-JPG_Displacement.jpg",
+        "Chainmail003_2K-JPG_IdMask.jpg",
+        "Chainmail003_2K-JPG_Metalness.jpg",
+        "Chainmail003_2K-JPG_NormalDX.jpg",
+        "Chainmail003_2K-JPG_NormalGL.jpg",
+        "Chainmail003_2K-JPG_Opacity.jpg",
+        "Chainmail003_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Chainmail003/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Chainmail003/Chainmail003_2K-JPG.zip",
+          "sha256": "96adeca9a39500437f8891729c2a60fef7c846524c33a7f90e624ec50fecf44c",
+          "size": 47888512,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Chainmail003_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Chainmail003/2k-jpg/Chainmail003.preview.webp",
+          "sha256": "c8f1f553ec95662d55251613a2934935b4e083b7351617d68a51704e72468439",
+          "size": 54202,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Chainmail003.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Chainmail 003",
+      "preview_file": "normalized/ambientcg/materials/Chainmail003/2k-jpg/Chainmail003.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Chainmail003/2k-jpg/Chainmail003_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:40Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Chainmail003",
+      "source_page": "https://ambientcg.com/a/Chainmail003",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "3",
+        "chainmail",
+        "clothing",
+        "fabric",
+        "knight",
+        "medieval",
+        "metal"
+      ],
+      "total_bytes": 47942714,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    },
+    {
+      "asset_id": "ambientcg-material:Chainmail004",
+      "attribution_required": false,
+      "author": "ambientCG",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials"
+      ],
+      "extracted_files": [
+        "Chainmail004.png",
+        "Chainmail004_2K-JPG.blend",
+        "Chainmail004_2K-JPG.mtlx",
+        "Chainmail004_2K-JPG.tres",
+        "Chainmail004_2K-JPG.usdc",
+        "Chainmail004_2K-JPG_Color.jpg",
+        "Chainmail004_2K-JPG_Displacement.jpg",
+        "Chainmail004_2K-JPG_IdMask.jpg",
+        "Chainmail004_2K-JPG_Metalness.jpg",
+        "Chainmail004_2K-JPG_NormalDX.jpg",
+        "Chainmail004_2K-JPG_NormalGL.jpg",
+        "Chainmail004_2K-JPG_Opacity.jpg",
+        "Chainmail004_2K-JPG_Roughness.jpg"
+      ],
+      "extracted_root": "normalized/ambientcg/materials/Chainmail004/2k-jpg",
+      "files": [
+        {
+          "path": "originals/ambientcg/materials/Chainmail004/Chainmail004_2K-JPG.zip",
+          "sha256": "8af19064c4a59409ebd044463b37a5ebf3f53fe57e4cc9af3a10f5eee9e5cf92",
+          "size": 23331141,
+          "source_md5": null,
+          "url": "https://ambientcg.com/get?file=Chainmail004_2K-JPG.zip"
+        },
+        {
+          "path": "normalized/ambientcg/materials/Chainmail004/2k-jpg/Chainmail004.preview.webp",
+          "sha256": "632b4b5053f57027b03a799c92fe1dd5389cce552f74fa8afa0577e18a35a20a",
+          "size": 39410,
+          "source_md5": null,
+          "url": "https://acg-media.struffelproductions.com/file/ambientCG-Web/media/thumbnail/256-WEBP/Chainmail004.webp"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "license_verified": true,
+      "name": "Chainmail 004",
+      "preview_file": "normalized/ambientcg/materials/Chainmail004/2k-jpg/Chainmail004.preview.webp",
+      "primary_file": "normalized/ambientcg/materials/Chainmail004/2k-jpg/Chainmail004_2K-JPG_Color.jpg",
+      "retrieved_at": "2026-08-07T06:34:40Z",
+      "schema_version": 1,
+      "source": "ambientcg",
+      "source_asset_id": "Chainmail004",
+      "source_page": "https://ambientcg.com/a/Chainmail004",
+      "status": "downloaded-and-extracted",
+      "tags": [
+        "4",
+        "chainmail",
+        "clothing",
+        "fabric",
+        "knight",
+        "medieval",
+        "metal"
+      ],
+      "total_bytes": 23370551,
+      "variant": "2K-JPG",
+      "version": "2K-JPG"
+    }
+  ],
+  "catalog_date": "2026-08-07",
+  "error_count": 0,
+  "errors": [],
+  "license_policy": "cc0-only",
+  "schema_version": 1,
+  "source": "ambientcg",
+  "total_bytes": 471846533,
+  "vault_root": "${OPENRPG_ASSET_VAULT}"
+}

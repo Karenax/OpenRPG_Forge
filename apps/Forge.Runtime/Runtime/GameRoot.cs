@@ -115,6 +115,7 @@ public partial class GameRoot : Node3D
     private CombatantState? _playerCombatant;
     private Camera3D? _camera;
     private RuntimeHud? _hud;
+    private RuntimeActionBar? _actionBar;
     private Node3D? _npc;
     private Node3D? _keyItem;
     private Node3D? _door;
@@ -196,6 +197,7 @@ public partial class GameRoot : Node3D
     private double _progressionExperience;
     private int _progressionLevel = 1;
     private bool _initializationComplete;
+    private bool _fpsVisible;
     private GodotAssetModelLibrary? _modelLibrary;
     private int _runtimeModelInstances;
     private int _animatedCharacterInstances;
@@ -425,6 +427,7 @@ public partial class GameRoot : Node3D
             throw new InvalidOperationException("World visual proof currently requires Forgotten Forest.");
 
         if (_hud is not null) _hud.Visible = false;
+        if (_actionBar is not null) _actionBar.Visible = false;
         if (_actionWheel is not null) _actionWheel.Visible = false;
         foreach (var node in FindChildren("*", "GeometryInstance3D", recursive: true, owned: false))
         {
@@ -536,6 +539,13 @@ public partial class GameRoot : Node3D
     public override void _Process(double delta)
     {
         if (!_initializationComplete) return;
+        _hud?.UpdatePerformance(Engine.GetFramesPerSecond());
+        var toggleFpsRequested = Input.IsActionJustPressed("toggle_fps");
+        if (toggleFpsRequested)
+        {
+            _fpsVisible = !_fpsVisible;
+            _hud?.SetFpsVisible(_fpsVisible);
+        }
         var simulationDelta = delta * (_timeControlSession.State == RuntimeTimeState.SlowMotion
             ? _timeControlSession.Scale
             : 1);
@@ -557,6 +567,10 @@ public partial class GameRoot : Node3D
         if (_camera is not null && !_sequenceOwnsCamera)
         {
             _cameraRig.Update(_camera, _player.GlobalPosition, delta);
+            if (_cameraRig.AlignCharacterFacing)
+            {
+                _player.FaceDirection(_cameraRig.ForwardDirection);
+            }
         }
 
         if (Input.IsActionJustPressed("action_wheel"))
@@ -600,7 +614,7 @@ public partial class GameRoot : Node3D
             UpdateHud();
         }
 
-        if (Input.IsActionJustPressed("rest"))
+        if (Input.IsActionJustPressed("rest") && !toggleFpsRequested)
         {
             RequestGameplayCommand("rest");
         }
@@ -2176,6 +2190,7 @@ public partial class GameRoot : Node3D
         {
             visual.Basis = EngineValueConverter.ToEngine(entity.Transform).Basis;
             visual.Position = new Vector3(0, -1f, 0);
+            visual.RotateY(Mathf.Pi);
         }
         parent.AddChild(visual);
         _runtimeModelInstances++;
@@ -2403,6 +2418,9 @@ public partial class GameRoot : Node3D
             Accessibility = _runtimeExtensions?.ModernTooling.QualityAssurance.Accessibility,
         };
         AddChild(_hud);
+        _actionBar = new RuntimeActionBar { CombatEnabled = _playerCombatant is not null };
+        _actionBar.CommandRequested += HandleActionBarCommand;
+        AddChild(_actionBar);
         _actionWheel = new RuntimeActionWheel();
         if (_gameplayControls is not null) _actionWheel.Configure(_gameplayControls);
         _actionWheel.CommandRequested += RequestGameplayCommand;
@@ -2415,6 +2433,23 @@ public partial class GameRoot : Node3D
             AddChild(_declarativeUi);
         }
         UpdateTacticalHud();
+    }
+
+    private void HandleActionBarCommand(string command)
+    {
+        switch (command)
+        {
+            case "action_wheel":
+                _actionWheel?.Toggle();
+                break;
+            case "quick_load":
+                LoadRuntimeSave(_quickSavePath!);
+                UpdateHud();
+                break;
+            default:
+                RequestGameplayCommand(command);
+                break;
+        }
     }
 
     private void HandleScriptableUiEvent(ScriptUiEvent @event)
@@ -3042,6 +3077,7 @@ public partial class GameRoot : Node3D
             case "attack": AttackNearestHostile(); break;
             case "rest": RequestPlayerRest(); break;
             case "quick_save": SaveRuntime(_quickSavePath!); break;
+            case "quick_load": LoadRuntimeSave(_quickSavePath!); UpdateHud(); break;
             default:
                 _message = $"Commande de roue inconnue : {command}.";
                 UpdateHud();
@@ -3057,6 +3093,9 @@ public partial class GameRoot : Node3D
             _activeCombatProvider?.DisplayName ?? _gameplayControls.CombatModes.DefaultProvider.DisplayName,
             _timeControlSession.PlannedActions.Count, movement, _player?.BreathRemaining ?? 0,
             _player?.StaminaRemaining ?? 0);
+        var playerHealth = _playerCombatant?.Health ?? 1;
+        var playerMaximumHealth = _playerCombatant?.Profile.Stats.MaximumHealth ?? 1;
+        _hud.UpdatePlayerStatus("Héros", playerHealth, playerMaximumHealth, _progressionLevel);
         if (_moduleRules is not null && _areaRules is not null && _resolvedDifficulty is not null)
         {
             var next = _moduleRules.Progression.Curve.FirstOrDefault(point => point.Level > _progressionLevel)
@@ -3121,7 +3160,7 @@ public partial class GameRoot : Node3D
             PrototypeQuestState.NotStarted => "parler à Elyra [E]",
             PrototypeQuestState.Active when !_hasKey => "trouver la Clé de braise",
             PrototypeQuestState.Active when !_doorUnlocked => "ouvrir la Porte des Cendres",
-            PrototypeQuestState.Active => "vaincre le Gardien des Cendres [ESPACE]",
+            PrototypeQuestState.Active => "vaincre le Gardien des Cendres [1]",
             PrototypeQuestState.Completed => "rejoindre la sortie lumineuse",
             _ => "explorer",
         };
@@ -4134,22 +4173,68 @@ public partial class GameRoot : Node3D
         AssertSmoke(_terrainMaterialMode == GodotTerrainMaterialAdapter.ProceduralPbrMode &&
                     _terrainMaterialLayers == 4,
             "Forgotten Forest must reconstruct its four-layer procedural PBR terrain material.");
-        AssertSmoke(_terrainScatterLayers == 17,
-            "The biome scatter did not reconstruct the five foundation and twelve close-dressing layers.");
-        AssertSmoke(_terrainScatterInstances >= 7_000, "The 512 x 512 dressed forest is too sparse.");
+        AssertSmoke(_terrainScatterLayers == 13,
+            "The biome scatter did not reconstruct the thirteen Poly Haven environment layers.");
+        AssertSmoke(_terrainScatterInstances >= 3_000, "The 512 x 512 dressed forest is too sparse.");
         AssertSmoke(_terrainWaterSurfaces == 10 && _terrainWaterVolumes == 10,
             "Forgotten Forest must reconstruct all ten animated river segments and swim volumes.");
         AssertSmoke(_surfaceNavigationRegions == 1 && _surfaceNavigationPolygons > 0,
             "Forgotten Forest did not reconstruct its playable surface navigation region.");
-        AssertSmoke(_surfaceNavigationBlockedTriangles > 0 && _surfaceNavigationLinks == 2,
-            "River crossing policy or the two authored bridge traversals are missing from surface navigation.");
-        AssertSmoke(_modelLibrary?.Count == 40,
-            "All 34 governed environment models, the legacy character and five KayKit variants must be available.");
-        AssertSmoke(_runtimeModelInstances >= 39, "Authored sector landmarks did not use their governed 3D models.");
+        AssertSmoke(_surfaceNavigationBlockedTriangles > 0 && _surfaceNavigationLinks == 3,
+            "River crossing policy or the three authored bridge traversals are missing from surface navigation.");
+        AssertSmoke(_modelLibrary?.Count == 45,
+            "All 39 governed environment models, the legacy character and five KayKit variants must be available.");
+        AssertSmoke(_runtimeModelInstances >= 43, "Authored sector landmarks did not use their governed 3D models.");
         AssertSmoke(_animatedCharacterInstances == 5 && _animatedCharacterClipNames.Count >= 75,
             "The five authored KayKit characters must expose the governed movement and combat clips.");
         AssertSmoke(_player is not null && _npc is not null && _keyItem is not null && _door is not null &&
             _boss is not null && _exit is not null, "The playable forest scenario is incomplete.");
+        var playerSpawnPosition = _player!.GlobalPosition;
+        for (var frame = 0; frame < 120; frame++)
+        {
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        }
+        AssertSmoke(
+            _player.IsOnFloor() && _player.GlobalPosition.Y >= playerSpawnPosition.Y - .25f,
+            $"The player fell through the terrain at the forest spawn " +
+            $"(start_y={playerSpawnPosition.Y:0.###}, current_y={_player.GlobalPosition.Y:0.###}, " +
+            $"on_floor={_player.IsOnFloor()}).");
+        GD.Print(
+            $"OPENRPG_FORGE_FORGOTTEN_FOREST_GROUND_CONTACT_PASS " +
+            $"start_y={playerSpawnPosition.Y:0.###} current_y={_player.GlobalPosition.Y:0.###} " +
+            $"on_floor={_player.IsOnFloor()}");
+        AssertSmoke(_actionBar?.SlotCount == 6,
+            "The MMO action bar did not reconstruct all six command slots.");
+        AssertSmoke(HasKeyBinding("jump", Key.Space) && HasKeyBinding("attack", Key.Key1) &&
+                    HasKeyBinding("toggle_fps", Key.R, ctrl: true),
+            "The MMO keyboard bindings are incomplete.");
+        AssertSmoke(Math.Abs(PlayerController.MovementSpeedMultiplier - 2f) < .001f,
+            "The requested doubled movement speed is not active.");
+        _hud!.SetFpsVisible(true);
+        _hud.UpdatePerformance(60);
+        AssertSmoke(_hud.FpsVisible, "The FPS counter could not be enabled.");
+        _hud.SetFpsVisible(false);
+
+        var jumpStartY = _player.GlobalPosition.Y;
+        AssertSmoke(_player.QueueJump(), "The grounded player refused the jump request.");
+        var jumpMaximumY = jumpStartY;
+        for (var frame = 0; frame < 45; frame++)
+        {
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+            jumpMaximumY = Math.Max(jumpMaximumY, _player.GlobalPosition.Y);
+        }
+        for (var frame = 0; frame < 180 && !_player.IsOnFloor(); frame++)
+        {
+            await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        }
+        AssertSmoke(_player.JumpCount == 1 && jumpMaximumY >= jumpStartY + 1f && _player.IsOnFloor(),
+            $"The MMO jump did not complete a stable physical arc " +
+            $"(start_y={jumpStartY:0.###}, max_y={jumpMaximumY:0.###}, " +
+            $"current_y={_player.GlobalPosition.Y:0.###}, count={_player.JumpCount}).");
+        GD.Print(
+            $"OPENRPG_FORGE_FORGOTTEN_FOREST_MMO_CONTROLS_PASS speed_multiplier=2 " +
+            $"jump_height={jumpMaximumY - jumpStartY:0.###} action_slots={_actionBar!.SlotCount} " +
+            "attack=1 jump=space fps=ctrl+r camera=dual-mouse-orbit");
         AssertSmoke(_hostiles.Count == 3, "Forgotten Forest must reconstruct two scouts and its boss.");
         AssertSmoke(project.Dialogues.Count == 1 && project.Quests.Count == 1,
             "Forgotten Forest dialogue or quest data is missing.");
@@ -4164,8 +4249,8 @@ public partial class GameRoot : Node3D
             AssertSmoke(LoadAudioStream(cue.Resource) is AudioStreamWav { Data.Length: > 0 },
                 $"Procedural audio stream could not be reconstructed for '{cue.CueId}'.");
         }
-        AssertSmoke(_ambientVfxEmitters == 3 && _ambientVfxParticles == 204,
-            "Forgotten Forest animated atmosphere was not reconstructed.");
+        AssertSmoke(_ambientVfxEmitters == 0 && _ambientVfxParticles == 0,
+            "Forgotten Forest must not reconstruct untextured ambient particle quads.");
         var navigationPathStarted = Stopwatch.GetTimestamp();
         var navigationPath = Array.Empty<Vector3>();
         for (var frame = 0; frame < 120 && navigationPath.Length < 2; frame++)
@@ -4387,13 +4472,14 @@ public partial class GameRoot : Node3D
         RegisterKeyAction("move_back", Key.S, Key.Down);
         RegisterKeyAction("move_left", Key.A, Key.Q, Key.Left);
         RegisterKeyAction("move_right", Key.D, Key.Right);
-        RegisterKeyAction("interact", Key.E);
-        RegisterKeyAction("attack", Key.Space);
-        RegisterKeyAction("quick_save", Key.F5);
-        RegisterKeyAction("quick_load", Key.F9);
-        RegisterKeyAction("rest", Key.R);
+        RegisterKeyAction("interact", Key.E, Key.Key2);
+        RegisterKeyAction("attack", Key.Key1);
+        RegisterKeyAction("jump", Key.Space);
+        RegisterKeyAction("quick_save", Key.F5, Key.Key5);
+        RegisterKeyAction("quick_load", Key.F9, Key.Key6);
+        RegisterKeyAction("rest", Key.R, Key.Key4);
         RegisterKeyAction("skip_sequence", Key.Escape);
-        RegisterKeyAction("action_wheel", Key.Tab);
+        RegisterKeyAction("action_wheel", Key.Tab, Key.Key3);
         RegisterJoypadAction("action_wheel", JoyButton.Y);
         RegisterKeyAction("tactical_pause", Key.P);
         RegisterJoypadAction("tactical_pause", JoyButton.Start);
@@ -4403,7 +4489,27 @@ public partial class GameRoot : Node3D
         RegisterKeyAction("climb", Key.Shift);
         RegisterKeyAction("camera_left", Key.Home);
         RegisterKeyAction("camera_right", Key.End);
+        RegisterModifiedKeyAction("toggle_fps", Key.R, ctrl: true);
     }
+
+    private static void RegisterModifiedKeyAction(StringName action, Key key, bool ctrl = false,
+        bool alt = false, bool shift = false)
+    {
+        if (!InputMap.HasAction(action)) InputMap.AddAction(action);
+        var inputEvent = new InputEventKey
+        {
+            PhysicalKeycode = key,
+            CtrlPressed = ctrl,
+            AltPressed = alt,
+            ShiftPressed = shift,
+        };
+        if (!InputMap.ActionHasEvent(action, inputEvent)) InputMap.ActionAddEvent(action, inputEvent);
+    }
+
+    private static bool HasKeyBinding(StringName action, Key key, bool ctrl = false) =>
+        InputMap.HasAction(action) && InputMap.ActionGetEvents(action)
+            .OfType<InputEventKey>()
+            .Any(input => input.PhysicalKeycode == key && input.CtrlPressed == ctrl);
 
     private static void RegisterKeyAction(StringName action, params Key[] keys)
     {

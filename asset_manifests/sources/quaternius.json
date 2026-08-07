@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "source_id": "quaternius",
+  "name": "Quaternius",
+  "catalog_url": "https://quaternius.com/",
+  "official_distribution_urls": [
+    "https://store.godotengine.org/publisher/quaternius/",
+    "https://opengameart.org/users/quaternius"
+  ],
+  "license": "CC0-1.0",
+  "license_verification": "Each imported pack page must explicitly identify Quaternius as author, declare CC0, and expose a public Standard or free archive.",
+  "license_verified_at": "2026-08-07",
+  "redistribution_allowed": true,
+  "attribution_required_for_assets": false
+}

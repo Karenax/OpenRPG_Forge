@@ -441,6 +441,8 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
         "materialTextures",
         "retargetProfile",
         "creationRecipe",
+        "includedMeshNames",
+        "baseDecimationRatio",
     }
     if unknown_options:
         raise WorkerError(
@@ -461,6 +463,37 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
     ):
         raise WorkerError("asset.worker.lod_invalid", "LOD ratios must be numbers in [0.01, 1).", "options.lodRatios")
     normalized_lods = sorted({float(ratio) for ratio in lod_ratios}, reverse=True)
+    included_mesh_names = options.get("includedMeshNames")
+    if included_mesh_names is None:
+        included_mesh_names = []
+    if (
+        not isinstance(included_mesh_names, list)
+        or len(included_mesh_names) > 16
+        or any(
+            not isinstance(name, str)
+            or not name
+            or len(name) > 64
+            or any(not (character.isascii() and (character.isalnum() or character in "-_")) for character in name)
+            for name in included_mesh_names
+        )
+        or len(set(included_mesh_names)) != len(included_mesh_names)
+    ):
+        raise WorkerError(
+            "asset.worker.mesh_selection_invalid",
+            "includedMeshNames must contain at most 16 unique safe mesh names.",
+            "options.includedMeshNames",
+        )
+    base_decimation_ratio = options.get("baseDecimationRatio", 1.0)
+    if (
+        isinstance(base_decimation_ratio, bool)
+        or not isinstance(base_decimation_ratio, (int, float))
+        or not 0.001 <= float(base_decimation_ratio) <= 1.0
+    ):
+        raise WorkerError(
+            "asset.worker.base_decimation_invalid",
+            "baseDecimationRatio must be between 0.001 and 1.",
+            "options.baseDecimationRatio",
+        )
     creation_recipe = options.get("creationRecipe")
     if creation_mode:
         creation_recipe = _validate_creation_recipe(creation_recipe, output_relative)
@@ -662,6 +695,8 @@ def validate_request(document: object, source_root: pathlib.Path, workspace_root
             "materialTextures": normalized_textures,
             "retargetProfile": normalized_retarget,
             "creationRecipe": creation_recipe,
+            "includedMeshNames": included_mesh_names,
+            "baseDecimationRatio": float(base_decimation_ratio),
         },
         "_sourcePath": str(source_path),
         "_outputPath": str(output_path),

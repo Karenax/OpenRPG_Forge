@@ -115,6 +115,7 @@ function Invoke-ForgeEngineMarkerTest {
     # Keep the long-lived smoke inventories aligned with the current workspace schema and
     # append lot markers here so every engine invocation uses one canonical gate contract.
     $Markers = @($Markers | ForEach-Object { $_.Replace('format=1.9.0', 'format=1.27.0').Replace('format=1.10.0', 'format=1.27.0').Replace('format=1.11.0', 'format=1.27.0').Replace('format=1.12.0', 'format=1.27.0').Replace('format=1.13.0', 'format=1.27.0').Replace('format=1.14.0', 'format=1.27.0').Replace('format=1.15.0', 'format=1.27.0').Replace('format=1.16.0', 'format=1.27.0').Replace('format=1.17.0', 'format=1.27.0').Replace('format=1.18.0', 'format=1.27.0').Replace('format=1.19.0', 'format=1.27.0').Replace('format=1.20.0', 'format=1.27.0').Replace('format=1.21.0', 'format=1.27.0').Replace('format=1.22.0', 'format=1.27.0').Replace('format=1.23.0', 'format=1.27.0').Replace('format=1.24.0', 'format=1.27.0').Replace('format=1.25.0', 'format=1.27.0').Replace('format=1.26.0', 'format=1.27.0') })
+    $Markers = @($Markers | ForEach-Object { $_.Replace('catalog=605 sources=3', 'catalog=665 sources=5') })
     if ($Name -eq 'toolset') {
         $Markers += 'OPENRPG_FORGE_TOOLSET_AV3_PLACEMENT_PASS models=1 manifests=1 scatter_layers=1 scatter_instances='
         $Markers += 'OPENRPG_FORGE_TOOLSET_G11N_EXPERIENCE_PASS scatter=volume-surface-nav-biome-seed voice=localized-phoneme-subtitle-tts-consent audio=started-completed-interrupted-music-snapshot patrol=cross-area-streaming-owner-resume loading=image-video-tip-progress-accessible-prefetch mcp=governed history=restored persistence=roundtrip'
@@ -249,7 +250,9 @@ try {
     }
     Invoke-CheckedPython @('-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_*.py')
     Invoke-CheckedPython @('-m', 'unittest', 'discover', '-s', 'tests\asset_pipeline', '-p', 'test_*.py')
-    Invoke-CheckedPython @('scripts/architecture_graph.py', 'check')
+    $architectureGraphProject = Join-Path $repositoryRoot 'tools\Forge.ArchitectureGraph\Forge.ArchitectureGraph.csproj'
+    Invoke-CheckedDotnet @('run', '--project', $architectureGraphProject, '--configuration', 'Release',
+        '--no-build', '--', 'check', '--full')
     Test-ForgeBranding
 
     $toolsetPath = Join-Path $repositoryRoot 'apps\Forge.Toolset'
@@ -776,15 +779,16 @@ try {
             '--terrain-benchmark', $forestTerrainBenchmark) `
         -Markers @(
             'OPENRPG_FORGE_RUNTIME_MODULE_LOADED slug=forgotten-forest',
-            'OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests=40 chunks=62 platform=Windows',
+            'OPENRPG_FORGE_RUNTIME_ASSET_MANIFESTS_PASS manifests=45 chunks=67 platform=Windows',
             'OPENRPG_FORGE_RUNTIME_G11I_TERRAIN_PASS provider=heightmap vertices=16641 triangles=32768 sectors=64 material=procedural-pbr-vertex-blend material_layers=4',
-            'OPENRPG_FORGE_RUNTIME_MODELS_PASS manifests=40 instances=39',
-            'OPENRPG_FORGE_RUNTIME_FOREST_ATMOSPHERE_PASS emitters=3 particles=204 provenance=builtin:openrpg-forge:forest-atmosphere@1',
+            'OPENRPG_FORGE_RUNTIME_MODELS_PASS manifests=45 instances=43',
+            'OPENRPG_FORGE_FORGOTTEN_FOREST_GROUND_CONTACT_PASS',
+            'OPENRPG_FORGE_FORGOTTEN_FOREST_MMO_CONTROLS_PASS speed_multiplier=2',
             'OPENRPG_FORGE_AV4A_TERRAIN_BENCHMARK_PASS area=512x512',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_POLISH_PASS audio_cues=3 scatter=3 vfx_emitters=3 vfx_particles=204 water_animated=10 provenance=builtin',
+            'OPENRPG_FORGE_FORGOTTEN_FOREST_POLISH_PASS audio_cues=3 scatter=3 vfx_emitters=0 vfx_particles=0 water_animated=10 provenance=builtin',
             'OPENRPG_FORGE_FORGOTTEN_FOREST_ANIMATION_PASS characters=5 variants=5 clips=76 rig=kaykit-rig-medium-41 source=kaykit:character-pack-adventures-1.0',
             'OPENRPG_FORGE_FORGOTTEN_FOREST_COMBAT_ANIMATION_PASS attack=3 hit=2 death=1 clip=1H_Melee_Attack_Slice_Horizontal',
-            'OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain=16641 sectors=64 material=procedural-pbr-vertex-blend material_layers=4 scatter_layers=17 scatter_instances=7112 water_surfaces=10 water_volumes=10 nav_regions=1 nav_polygons=32454 nav_blocked=314 nav_links=2 nav_path_points=70') `
+            'OPENRPG_FORGE_FORGOTTEN_FOREST_SMOKE_PASS terrain=16641 sectors=64 material=procedural-pbr-vertex-blend material_layers=4 scatter_layers=13 scatter_instances=4617 water_surfaces=10 water_volumes=10 nav_regions=1 nav_polygons=32455 nav_blocked=313 nav_links=3 nav_path_points=95 manifests=45 model_instances=43 animated_characters=5 animation_clips=76 entities=43 quest=completed boss=defeated camera=orbit') `
         -StopAfterMarkers $false
     $forestWorldVisualProof = Join-Path $artifactRoot 'forgotten-forest-av6e-world-forward-plus.png'
     $forestWorldVisualLog = Join-Path $artifactRoot 'forgotten-forest-av6e-world-forward-plus.log'
@@ -795,7 +799,7 @@ try {
             $forestWorldVisualLog, '--', '--module-package', $forestArtifact,
             '--world-visual-capture', $forestWorldVisualProof) `
         -Markers @('OPENRPG_FORGE_RUNTIME_RENDER_BACKEND method=forward_plus',
-            'OPENRPG_FORGE_AV6E_WORLD_VISUAL_PASS file=forgotten-forest-av6e-world-forward-plus.png size=1280x720 sectors=64 scatter=7112') `
+            'OPENRPG_FORGE_AV6E_WORLD_VISUAL_PASS file=forgotten-forest-av6e-world-forward-plus.png size=1280x720 sectors=64 scatter=4617') `
         -StopAfterMarkers $false
     if (-not (Test-Path -LiteralPath $forestWorldVisualProof) -or
         [System.IO.File]::ReadAllBytes($forestWorldVisualProof).Length -lt 50000) {
@@ -829,9 +833,9 @@ try {
         $terrainBenchmark.sample.heightSamples -ne 16641 -or
         $terrainBenchmark.sample.terrainVertices -ne 16641 -or
         $terrainBenchmark.sample.terrainTriangles -ne 32768 -or
-        $terrainBenchmark.sample.navigationPolygons -ne 32454 -or
-        $terrainBenchmark.sample.lodAssetCount -ne 40 -or
-        $terrainBenchmark.sample.lodLevelCount -ne 108 -or
+        $terrainBenchmark.sample.navigationPolygons -ne 32455 -or
+        $terrainBenchmark.sample.lodAssetCount -ne 45 -or
+        $terrainBenchmark.sample.lodLevelCount -ne 89 -or
         $terrainBenchmark.sample.cullingGroupCount -lt 3 -or
         @($terrainBenchmark.checks).Count -ne 16 -or
         @($terrainBenchmark.checks | Where-Object { -not $_.passed }).Count -ne 0) {
@@ -861,15 +865,15 @@ try {
             '--output', $assetDeliveryReport,
             '--markdown', $assetDeliveryMarkdown,
             '--vault', $assetVault) `
-        -Marker 'OPENRPG_FORGE_AV5_DELIVERY_REPORT_PASS catalog=605 local=605'
+        -Marker 'OPENRPG_FORGE_AV5_DELIVERY_REPORT_PASS catalog=665 local=617'
     if (-not (Test-Path -LiteralPath $assetDeliveryReport) -or
         -not (Test-Path -LiteralPath $assetDeliveryMarkdown)) {
         throw 'AV5 delivery reports were not written.'
     }
     $delivery = Get-Content -LiteralPath $assetDeliveryReport -Raw | ConvertFrom-Json
     if ($delivery.schemaVersion -ne 1 -or -not $delivery.passed -or
-        $delivery.catalog.assets -ne 605 -or $delivery.catalog.localAssets -ne 605 -or
-        $delivery.module.manifests -ne 40 -or $delivery.module.chunks -ne 62 -or
+        $delivery.catalog.assets -ne 665 -or $delivery.catalog.localAssets -ne 617 -or
+        $delivery.module.manifests -ne 45 -or $delivery.module.chunks -ne 67 -or
         $delivery.module.assetReferences -ne 56 -or $delivery.module.ungovernedReferences -ne 0 -or
         $delivery.module.chunkIntegrityFailures -ne 0 -or $delivery.performance.checks -ne 16 -or
         @($delivery.checks).Count -ne 16 -or

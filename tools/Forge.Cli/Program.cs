@@ -554,7 +554,6 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
     var environmentPackManifests = new[]
     {
         Path.Combine(repositoryRoot, CuratedAssetPackInstaller.DefaultManifestRelativePath.Replace('/', Path.DirectorySeparatorChar)),
-        Path.Combine(repositoryRoot, "asset_manifests", "packs", "forgotten_forest_nature_dressing.json"),
     };
     var installed = environmentPackManifests.Select(manifest =>
         CuratedAssetPackInstaller.InstallForgottenForest(
@@ -562,13 +561,38 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
             catalog.VaultRoot,
             created.Session.RootDirectory,
             manifest)).ToArray();
+    var retiredNatureAssets = CuratedAssetPackInstaller.RemovePack(
+        created.Session.RootDirectory,
+        "forgotten-forest-nature-dressing");
+    var catalogModels = new List<CuratedCatalogModelInstallResult>();
+    foreach (var externalId in CuratedCatalogModelPackInstaller.ListExternalIds(repositoryRoot))
+    {
+        var modelPlan = CuratedCatalogModelPackInstaller.Plan(
+            repositoryRoot,
+            catalog.VaultRoot,
+            created.Session.RootDirectory,
+            externalId);
+        if (!modelPlan.Reused)
+        {
+            RunBlenderWorker(
+                repositoryRoot,
+                catalog.VaultRoot,
+                created.Session.RootDirectory,
+                modelPlan.RequestRelativePath,
+                options.GetValueOrDefault("blender"));
+        }
+
+        catalogModels.Add(CuratedCatalogModelPackInstaller.Complete(
+            created.Session.RootDirectory,
+            modelPlan));
+    }
     var animatedPlan = CuratedAnimatedCharacterInstaller.Plan(
         repositoryRoot,
         catalog.VaultRoot,
         created.Session.RootDirectory);
     if (!animatedPlan.Reused)
     {
-        RunAnimatedCharacterWorker(
+        RunBlenderWorker(
             repositoryRoot,
             catalog.VaultRoot,
             created.Session.RootDirectory,
@@ -592,7 +616,7 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
             embeddedManifest);
         if (!embeddedPlan.Reused)
         {
-            RunAnimatedCharacterWorker(
+            RunBlenderWorker(
                 repositoryRoot,
                 catalog.VaultRoot,
                 created.Session.RootDirectory,
@@ -613,9 +637,10 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
         entities = created.Session.Project.Areas.Sum(area => area.Entities.Count),
         blueprints = created.Session.Project.Blueprints.Count,
         biomes = created.Session.Project.Areas.Sum(area => area.World.Biomes.Count),
-        assets = installed.Sum(pack => pack.Entries.Count),
-        reusedCount = installed.Sum(pack => pack.ReusedCount),
-        totalBytes = installed.Sum(pack => pack.TotalBytes),
+        assets = installed.Sum(pack => pack.Entries.Count) + catalogModels.Count,
+        reusedCount = installed.Sum(pack => pack.ReusedCount) + catalogModels.Count(model => model.Reused),
+        totalBytes = installed.Sum(pack => pack.TotalBytes) + catalogModels.Sum(model => model.OutputBytes),
+        retiredNatureAssets,
         licenseSpdx = installed.Select(pack => pack.LicenseSpdx).Distinct(StringComparer.Ordinal).Single(),
         environmentPacks = installed.Select(pack => new
         {
@@ -623,6 +648,15 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
             pack.Version,
             assets = pack.Entries.Count,
             pack.ReusedCount,
+        }),
+        catalogModels = catalogModels.Select(model => new
+        {
+            assetId = model.AssetId.ToString(),
+            model.OutputRelativePath,
+            model.TriangleCount,
+            model.OutputBytes,
+            model.Reused,
+            model.LicenseSpdx,
         }),
         animatedCharacter = new
         {
@@ -648,15 +682,15 @@ static int AuthorForgottenForest(IReadOnlyList<string> arguments)
     Console.WriteLine(
         $"OPENRPG_FORGE_FORGOTTEN_FOREST_AUTHORED slug=forgotten-forest " +
         $"entities={created.Session.Project.Areas.Sum(area => area.Entities.Count)} " +
-        $"assets={installed.Sum(pack => pack.Entries.Count) + 1 + embeddedCharacters.Count} " +
-        $"reused={installed.Sum(pack => pack.ReusedCount) + (animated.Reused ? 1 : 0) + embeddedCharacters.Count(character => character.Reused)} " +
+        $"assets={installed.Sum(pack => pack.Entries.Count) + catalogModels.Count + 1 + embeddedCharacters.Count} " +
+        $"reused={installed.Sum(pack => pack.ReusedCount) + catalogModels.Count(model => model.Reused) + (animated.Reused ? 1 : 0) + embeddedCharacters.Count(character => character.Reused)} " +
         $"environment_packs={installed.Length} " +
         $"animated_variants={embeddedCharacters.Count} clips={embeddedCharacters.Min(character => character.Clips.Count)} " +
         $"profile=kaykit-adventurer license={installed.Select(pack => pack.LicenseSpdx).Distinct(StringComparer.Ordinal).Single()}");
     return 0;
 }
 
-static void RunAnimatedCharacterWorker(
+static void RunBlenderWorker(
     string repositoryRoot,
     string vaultRoot,
     string workspaceRoot,
@@ -665,7 +699,7 @@ static void RunAnimatedCharacterWorker(
 {
     if (string.IsNullOrWhiteSpace(requestRelativePath))
     {
-        throw new InvalidOperationException("Animated character worker request is missing.");
+        throw new InvalidOperationException("Blender worker request is missing.");
     }
 
     var blender = FindBlenderExecutable(configuredBlender);
@@ -706,7 +740,7 @@ static void RunAnimatedCharacterWorker(
     if (!process.WaitForExit(900_000))
     {
         process.Kill(entireProcessTree: true);
-        throw new TimeoutException("Animated character Blender worker exceeded 15 minutes.");
+        throw new TimeoutException("Blender worker exceeded 15 minutes.");
     }
 
     Task.WaitAll(outputTask, errorTask);

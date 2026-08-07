@@ -23,6 +23,22 @@ public sealed class ModulePackageTests : IDisposable
         Guid.NewGuid().ToString("N"));
 
     [Fact]
+    public void ExportIgnoresGodotImportSidecars()
+    {
+        var workspace = CreateWorkspace();
+        var sidecar = Path.Combine(workspace, "assets", "imported", "tree", "model.glb.import");
+        Directory.CreateDirectory(Path.GetDirectoryName(sidecar)!);
+        File.WriteAllText(sidecar, "godot-generated-cache");
+        var package = Path.Combine(_temporaryRoot, "without-godot-sidecars.orpmod");
+
+        ModulePackager.Export(workspace, package);
+
+        using var archive = ZipFile.OpenRead(package);
+        Assert.DoesNotContain(archive.Entries,
+            entry => entry.FullName.EndsWith(".import", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void ExportValidateAndLoad_PreservesAdvancedFactionProfile()
     {
         var source = TestProjectFactory.CreateValid();

@@ -8,7 +8,14 @@
   "packs": [
     {
       "advertised_file_count": 5,
+      "archive_sha256": "00777a7b9811a7c7f8dd3fda4e56604f6a93b33673d64557153f354d677b47af",
+      "author": "Kay Lousberg",
       "catalog_date": "2026-08-05",
+      "categories": [
+        "Characters",
+        "Animations",
+        "Weapons"
+      ],
       "extracted_files": [
         "addons/kaykit_character_pack_adventures/Characters/gltf/Barbarian.glb",
         "addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb",
@@ -40,12 +47,20 @@
       ],
       "name": "KayKit Character Pack Adventurers 1.0",
       "pack_id": "kaykit:character-pack-adventures-1.0",
+      "retrieved_at": "2026-08-05T00:00:00Z",
       "schema_version": 1,
       "source": "kaykit",
       "source_page": "https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0",
       "status": "downloaded-and-extracted",
+      "tags": [
+        "adventurer",
+        "character",
+        "fantasy",
+        "rigged"
+      ],
       "total_bytes": 6147593,
-      "unique_model_name_count": 5
+      "unique_model_name_count": 5,
+      "version": "1.0"
     }
   ],
   "schema_version": 1,

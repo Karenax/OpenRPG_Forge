@@ -51,7 +51,7 @@ de démarrage générique.
 dotnet test tests/Forge.Application.Tests/Forge.Application.Tests.csproj -c Release
 dotnet test tests/Forge.ModuleFormat.Tests/Forge.ModuleFormat.Tests.csproj -c Release
 .\scripts\Verify.ps1
-python scripts/architecture_graph.py check
+dotnet run --project tools/Forge.ArchitectureGraph -- check --full
 ```
 
 ## Preuves

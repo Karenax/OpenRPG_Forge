@@ -49,12 +49,20 @@ avec Elyra, la clé, la porte, le combat data-driven, la phase 2 ForgeScript du 
 sortie, l'export, la sauvegarde et la reprise.
 
 Forgotten Forest reconstruit une zone extérieure canonique 512 × 512 m : relief 129 × 129, 64
-secteurs, deux routes, dix segments de ruisseau, deux ponts et 17 recettes de biome produisant 7 112
-instances MultiMesh. Les 34 modèles d’environnement Kenney Mini Forest/Nature Kit sont importés
-individuellement depuis le Vault sous licence CC0-1.0 avec hash, manifestes, crédits et provenance.
-Le runtime offre une caméra orbitale et un déplacement relatif à la caméra. Un
-`NavigationRegion3D` de 32 454 polygones bloque la rivière hors traversées et relie le camp au
-sanctuaire par un chemin réel de 70 points. Le smoke termine dialogue, collecte, passage, boss et
+secteurs, deux routes, dix segments de ruisseau, trois ponts et 13 recettes Poly Haven produisant
+4 617 instances MultiMesh réparties en cellules de 64 m avec culling par distance et ombres du
+couvre-sol désactivées. Dix-sept modèles Poly Haven et vingt-deux modèles Kenney Mini Forest sont
+importés individuellement depuis le Vault sous licence CC0-1.0 avec hash, manifestes, crédits et
+provenance. Le relief est plus vallonné, un navire néerlandais occupe le centre de la carte et trois
+sections de ponton fournissent des traversées éditables et navigables. Les dérivés de végétation
+Poly Haven sont décimés pour le runtime et les particules ambiantes quadrangulaires sont désactivées.
+Les trois recettes de sapins et pins appliquent un multiplicateur d'échelle ×4. L'orbite verticale de
+la caméra suit le sens inversé demandé : tirer la souris vers le bas élève la caméra.
+Le runtime offre maintenant un contrôle MMO clean-room : caméra orbitale libre au clic gauche,
+orientation conjointe au clic droit, déplacement relatif à la caméra à vitesse doublée, saut physique,
+barre de six actions, HUD compact et compteur FPS basculable par `Ctrl+R`. Un
+`NavigationRegion3D` de 32 455 polygones bloque la rivière hors traversées et relie le camp au
+sanctuaire par un chemin réel de 95 points. Le smoke termine dialogue, collecte, passage, boss et
 quête.
 
 Le lancement interactif direct est validé sur le workspace scindé `1.22.0` fourni avec le
@@ -65,7 +73,7 @@ Le smoke `runtime-plain-launch` protège ce chemin sans argument, indépendammen
 lance en Forward+ ; l’archive de 126 fichiers est validée et rejouée par le gate depuis son cache.
 
 Le graphe d’architecture transversal est conservé comme outillage local, déterministe et sans
-dépendance externe. Ses 18 tests et son contrôle de fraîcheur font maintenant partie de la
+dépendance externe. Ses 11 tests et son contrôle de fraîcheur font maintenant partie de la
 vérification globale du dépôt, en plus de leur workflow CI dédié.
 
 Le dossier Aurora 2026 est conservé comme snapshot immuable. Les 717 capacités possèdent maintenant
@@ -132,8 +140,8 @@ budget de recherche, instrumentation et invalidation incrémentale affichés par
 - moteur 3D .NET requis installé et versionné ;
 - CMake n'est pas requis ; le build natif emploie Zig 0.16.0 épinglé et Blender LTS 4.5.10 est
   disponible comme worker de création optionnel ;
-- solution de 25 projets restaurée et compilée en Release sans avertissement ni erreur ;
-- 902 tests .NET, 24 tests Python généraux et 30 tests Python du pipeline d'assets réussis ;
+- solution de 27 projets restaurée et compilée en Release sans avertissement ni erreur ;
+- 996 tests .NET, 6 tests Python généraux et 33 tests Python du pipeline d'assets réussis ;
 - snapshot Aurora validé sur 74 hashes, tracker projet déterministe de 717 lignes
   (`Designed` 1, `Implemented` 432, `Researched` 190, `Tested` 94) et matrice de
   gates contrôlés par le gate global ;
@@ -467,6 +475,15 @@ un modèle invalide reste visible sous forme de placeholder avec diagnostic. Le 
 un GLB autonome réel dans le viewport sans erreur et le runtime Forgotten Forest continue de prouver
 18 instances issues de 22 manifestes. Cinq tests supplémentaires portent la suite .NET à 713.
 
+**AV3 — navigateur Asset Atlas livré** : le logiciel local séparé
+`tools/asset_vault_browser` projette les 605 entrées portables en 5 236 modèles logiques précis :
+521 Poly Haven, 34 ambientCG et 4 681 modèles Kenney dédupliqués entre GLB, glTF, OBJ et FBX.
+Recherche, filtres source/pack/format/type, miniatures, fiche de provenance, vue GLB/glTF interactive
+à la demande et sélection JSON versionnée fonctionnent sans modifier `originals/` ni `normalized/`.
+La sélection est persistée hors dépôt, exportable et copiable pour Codex. Quatre tests Python ciblés,
+le scan réel et un smoke Edge sur `kenney:mini-forest:tree-high` valident API, requêtes Range,
+confinement des chemins, persistance et rendu 3D ; aucune suite globale n'a été relancée.
+
 **AV3 — brosses de biome et dispersion fermées** : Terrain Studio réutilise la brosse canonique
 « Matériau/biome » et les `BiomeLayerDefinition` existantes. Les recettes prairie et roche peuvent
 désormais choisir un blueprint d’asset installé sans perdre une référence manquante à la sauvegarde.
@@ -544,13 +561,15 @@ contrat `procedural-pbr-vertex-blend`. Les essais SSAO/SSIL ont été retirés a
 en capture. Le résultat est une tranche stylisée plus lisible, pas encore une direction artistique AA :
 variété de végétation, textures scannées et habillage rapproché des 64 secteurs restent ouverts.
 
-**AV6-E — habillage naturel gouverné livré** : douze modèles Kenney Nature Kit CC0 déjà présents
-dans le Vault ajoutent cinq silhouettes d’arbres, buissons, plantes, champignons, fleurs, herbes,
-bois mort et rochers. Les 17 recettes déterministes produisent 7 112 instances avec 40 manifestes,
-62 chunks, 56 références gouvernées et 108 niveaux LOD. Les captures Forward+ aérienne et rapprochée
-montrent la variété réelle ; navigation, quête, boss et caméra orbitale restent valides. Le rendu
-demeure stylisé : textures photogrammétriques, eau avancée et placement artistique manuel fin restent
-des améliorations futures. Le retargeting inter-rigs est fermé séparément par AV6-F.
+**AV6-E — habillage naturel gouverné livré puis remplacé par la sélection Atlas** : les douze modèles
+Kenney Nature Kit de la première passe ne sont plus référencés ni distribués dans Forgotten Forest.
+La carte emploie désormais dix-sept GLB Poly Haven dérivés sans modifier les GLTF du Vault : sapins,
+pin, fougères, fleurs, herbe, mousse, bois mort, rochers, souches, deux haches, un ponton modulaire et
+un navire. Les variantes lourdes sont sélectionnées et décimées par un worker Blender typé ; les
+13 recettes déterministes produisent 4 617 instances. Le smoke réel valide 45 manifestes, 67 chunks,
+43 modèles placés, trois liens de navigation, le parcours de 95 points et le benchmark 512 × 512.
+La capture Forward+ aérienne confirme le relief, le navire central et les ponts ; la composition
+rapprochée et l'eau avancée restent des finitions artistiques ouvertes.
 
 **AV6-F — retargeting inter-rigs gouverné livré** : une requête immuable transfère le clip `run`
 Kenney d’un squelette de 58 os vers le chevalier KayKit de 41 os avec un profil typé de 19 paires

@@ -1,0 +1,6 @@
+interface:
+  display_name: "OpenRPG Asset Lifecycle"
+  short_description: "Gouverner un asset jusqu'à la preuve runtime"
+  default_prompt: "Use $openrpg-asset-lifecycle to integrate this asset with provenance, integrity, and runtime proof."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "jobId": "2d4305e9-cafb-165d-a733-e63be4a595a5",
+  "assetId": "995df6d1-b61a-8757-84ea-ae00db848dc9",
+  "sourceRelativePath": "originals/polyhaven/grass_medium_01/gltf-1k/grass_medium_01_1k.gltf",
+  "outputRelativePath": "assets/imported/polyhaven-grass-medium-01/model.glb",
+  "sourceSha256": "3e5e2a314c94e16de54fd7c28e41709731fbd2b1613ab539f1544f622ddb6a85",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-polyhaven-environment@1.1.0;source:polyhaven:grass_medium_01",
+  "operations": [
+    "validate_model",
+    "normalize_model",
+    "export_glb",
+    "generate_thumbnail",
+    "audit_quality"
+  ],
+  "options": {
+    "applyTransforms": true,
+    "scaleMeters": 1,
+    "pivot": "ground_center",
+    "lodRatios": [],
+    "generateCollision": false,
+    "animationSources": [],
+    "materialTextures": [],
+    "creationRecipe": null,
+    "includedMeshNames": [
+      "grass_medium_01_small_a_LOD0"
+    ],
+    "baseDecimationRatio": 0.5
+  },
+  "securityPolicy": {
+    "schemaVersion": 1,
+    "id": "a1230000-0000-4000-8000-000000000001",
+    "denyFreeFormPython": true,
+    "denyShell": true,
+    "denyEval": true,
+    "requireContainedPaths": true,
+    "networkAllowed": false,
+    "maximumJobSeconds": 300,
+    "maximumOutputBytes": 536870912,
+    "allowedBlenderOperations": [
+      "validate_model",
+      "normalize_model",
+      "generate_collision",
+      "generate_lods",
+      "export_glb",
+      "generate_thumbnail",
+      "audit_quality",
+      "create_primitives"
+    ],
+    "requiredPermission": "configure",
+    "provenance": "openrpg-forge:g12-l:secure-worker-default"
+  }
+}

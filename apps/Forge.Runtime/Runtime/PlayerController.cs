@@ -8,11 +8,14 @@ namespace Forge.Runtime;
 public partial class PlayerController : CharacterBody3D
 {
     private const float Gravity = 24.0f;
+    internal const float MovementSpeedMultiplier = 2.0f;
+    internal const float JumpVelocity = 9.0f;
     private ModuleGameplayControlProfile? _profile;
     private GodotAssetAnimationState? _animations;
     private double _oneShotRemainingSeconds;
     private float _breath = 45;
     private float _stamina = 100;
+    private bool _jumpQueued;
 
     public bool ControlLocked { get; set; }
 
@@ -27,6 +30,8 @@ public partial class PlayerController : CharacterBody3D
     public float StaminaRemaining => _stamina;
 
     public int AttackAnimationCount { get; private set; }
+
+    public int JumpCount { get; private set; }
 
     public string? CurrentAnimationClip => _animations?.CurrentClip;
 
@@ -66,6 +71,10 @@ public partial class PlayerController : CharacterBody3D
 
         var scaledDelta = (float)delta * Math.Clamp(SimulationScale, .05f, 1);
         var input = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+        if (Input.IsMouseButtonPressed(MouseButton.Left) && Input.IsMouseButtonPressed(MouseButton.Right))
+        {
+            input.Y = -1;
+        }
         var direction = ResolveMovementDirection(input);
         var velocity = Velocity;
         var water = ResolveWaterContact();
@@ -76,9 +85,17 @@ public partial class PlayerController : CharacterBody3D
         CurrentCapability = decision.Kind;
         _breath = decision.BreathRemaining;
         _stamina = decision.StaminaRemaining;
-        velocity.X = (direction.X * decision.Speed * SimulationScale) + water.Current.X;
-        velocity.Z = (direction.Z * decision.Speed * SimulationScale) + water.Current.Z;
-        velocity.Y = decision.Kind switch
+        var movementSpeed = decision.Speed * MovementSpeedMultiplier;
+        velocity.X = (direction.X * movementSpeed * SimulationScale) + water.Current.X;
+        velocity.Z = (direction.Z * movementSpeed * SimulationScale) + water.Current.Z;
+        var jumpRequested = _jumpQueued || Input.IsActionJustPressed("jump");
+        _jumpQueued = false;
+        if (decision.Kind == MovementCapabilityKind.Ground && jumpRequested && IsOnFloor())
+        {
+            velocity.Y = JumpVelocity;
+            JumpCount++;
+        }
+        else velocity.Y = decision.Kind switch
         {
             MovementCapabilityKind.Swimming => Mathf.MoveToward(velocity.Y, decision.VerticalAcceleration,
                 _profile.Swimming.Buoyancy * scaledDelta),
@@ -93,8 +110,26 @@ public partial class PlayerController : CharacterBody3D
 
         if (direction.LengthSquared() > 0.01f)
         {
-            LookAt(GlobalPosition + direction, Vector3.Up);
+            FaceDirection(direction);
         }
+    }
+
+    internal bool QueueJump()
+    {
+        if (_profile is null || ControlLocked || CurrentCapability != MovementCapabilityKind.Ground || !IsOnFloor())
+        {
+            return false;
+        }
+
+        _jumpQueued = true;
+        return true;
+    }
+
+    internal void FaceDirection(Vector3 direction)
+    {
+        direction.Y = 0;
+        if (direction.LengthSquared() <= .001f) return;
+        LookAt(GlobalPosition + direction.Normalized(), Vector3.Up);
     }
 
     private void PlayMovementAnimation(Vector3 direction, bool airborne)

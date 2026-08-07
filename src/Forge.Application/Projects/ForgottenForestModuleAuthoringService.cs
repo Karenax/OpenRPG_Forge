@@ -25,6 +25,7 @@ public static class ForgottenForestModuleAuthoringService
 {
     private const string AssetPrefix = "kenney:mini-forest:";
     private const string NatureAssetPrefix = "kenney:nature-kit:";
+    private const string PolyHavenAssetPrefix = "polyhaven:";
     private const string AnimatedCharacterExternalIdPrefix =
         "kaykit:character-pack-adventures-1.0:";
     private static readonly StableIds Ids = new("f5d1ca15-4a39-46ba-a8e2-74dde7188258");
@@ -90,7 +91,6 @@ public static class ForgottenForestModuleAuthoringService
             Entity("exit", "exit", 51, 50, world, 0.12f, ["exit"], Visual("building-structure"), new(2.2f, 2.2f, 2.2f)),
         };
 
-        AddProp(entities, world, "bridge", "bridge", 2, 1, new(2.4f, 1.2f, 2.4f), 45);
         AddProp(entities, world, "camp-tent", "tent", -39, -31, new(2.2f, 2.2f, 2.2f), -20);
         AddProp(entities, world, "camp-target", "target", -32, -28, new(1.5f, 1.5f, 1.5f), 15);
         AddProp(entities, world, "watch-platform", "platform", 30, 34, new(2.2f, 2.2f, 2.2f), 10);
@@ -126,7 +126,18 @@ public static class ForgottenForestModuleAuthoringService
         AddProp(entities, world, "sunken-platform", "building-platform", 151, -157, new(3.0f, 3.0f, 3.0f), -8);
         AddProp(entities, world, "sunken-rocks", "rocks-high", 184, -146, new(3.8f, 3.8f, 3.8f), -17);
         AddProp(entities, world, "sunken-flag", "flag", 178, -181, new(2.4f, 2.4f, 2.4f), 0);
-        AddProp(entities, world, "watcher-bridge", "bridge", 71, -33, new(2.6f, 1.3f, 2.6f), 42);
+        AddPolyHavenProp(entities, world, "central-ship", "dutch_ship_large_01", 2, 1,
+            Vector3Value.One, 42, 0.12f, ["landmark", "ship"]);
+        AddPolyHavenProp(entities, world, "northwest-pier-bridge", "modular_wooden_pier", -128, 88,
+            new(1.2f, 1.2f, 1.2f), 48, 0.32f, ["bridge"]);
+        AddPolyHavenProp(entities, world, "watcher-pier-bridge", "modular_wooden_pier", 71, -33,
+            new(1.2f, 1.2f, 1.2f), 42, 0.32f, ["bridge"]);
+        AddPolyHavenProp(entities, world, "southeast-pier-bridge", "modular_wooden_pier", 118, -70,
+            new(1.2f, 1.2f, 1.2f), 51, 0.32f, ["bridge"]);
+        AddPolyHavenProp(entities, world, "camp-axe-a", "wooden_axe_02", -38, -30,
+            Vector3Value.One, -18, 0.18f, ["camp", "tool"]);
+        AddPolyHavenProp(entities, world, "camp-axe-b", "wooden_axe_03", -34, -29,
+            Vector3Value.One, 24, 0.18f, ["camp", "tool"]);
 
         var dialogueEntry = Ids.DialogueNode("guide-entry");
         var dialogueBrief = Ids.DialogueNode("guide-brief");
@@ -221,6 +232,9 @@ public static class ForgottenForestModuleAuthoringService
     public static AssetCatalogItemId NatureAssetId(string key) =>
         AssetCatalogItemId.ForExternalId($"{NatureAssetPrefix}{key}");
 
+    public static AssetCatalogItemId PolyHavenAssetId(string key) =>
+        AssetCatalogItemId.ForExternalId($"{PolyHavenAssetPrefix}{key}");
+
     public static AssetCatalogItemId AnimatedCharacterAssetId(string key = "knight") =>
         AssetCatalogItemId.ForExternalId($"{AnimatedCharacterExternalIdPrefix}{key}");
 
@@ -259,6 +273,20 @@ public static class ForgottenForestModuleAuthoringService
         float yawDegrees,
         float yOffset = 0.25f) =>
         entities.Add(Entity(entityKey, "prop", x, z, world, yOffset, ["decor", "solid"], Visual(visualKey), scale, yawDegrees));
+
+    private static void AddPolyHavenProp(
+        ICollection<EntityInstance> entities,
+        AreaWorldProfile world,
+        string entityKey,
+        string assetKey,
+        float x,
+        float z,
+        Vector3Value scale,
+        float yawDegrees,
+        float yOffset,
+        IReadOnlyList<string> tags) =>
+        entities.Add(Entity(entityKey, "prop", x, z, world, yOffset,
+            ["decor", "solid", .. tags], Visual(PolyHavenAssetId(assetKey)), scale, yawDegrees));
 
     private static EntityPropertyOverrides Visual(string assetKey, params (string Key, string Value)[] values) =>
         Visual(AssetId(assetKey), values);
@@ -345,7 +373,7 @@ public static class ForgottenForestModuleAuthoringService
         return new AreaEnvironmentProfile(
             AreaEnvironmentProfile.CurrentSchemaVersion,
             AreaEnvironmentClass.Natural,
-            ["forest", "temperate", "outdoor", "forgotten", "vfx:forest-ambient"],
+            ["forest", "temperate", "outdoor", "forgotten"],
             new AreaLightingProfile(DayNightMode.AlwaysDay, 24, 0.32f, 1.32f, 5100, true, true),
             new AreaFogProfile(FogMode.Distance, 0.0011f, 180, 620, 11),
             audio,
@@ -483,13 +511,13 @@ public static class ForgottenForestModuleAuthoringService
             {
                 var nx = (x / (samples - 1f)) * 2f - 1f;
                 var nz = (z / (samples - 1f)) * 2f - 1f;
-                var macro = MathF.Sin(nx * 2.7f + 0.4f) * 0.11f + MathF.Cos(nz * 2.3f - 0.7f) * 0.09f;
-                var ridges = MathF.Sin(nx * 6.1f + nz * 1.4f) * 0.07f +
-                              MathF.Cos(nz * 5.3f - nx * 1.1f) * 0.065f;
-                var detail = MathF.Sin((nx + nz) * 13.2f) * 0.022f +
-                             MathF.Cos((nx - nz) * 10.4f) * 0.018f;
-                var edgeRise = MathF.Pow(Math.Clamp(MathF.Sqrt(nx * nx + nz * nz), 0, 1), 2) * 0.2f;
-                var centralValley = MathF.Exp(-((nx * nx) + (nz * nz)) * 5.5f) * 0.08f;
+                var macro = MathF.Sin(nx * 2.7f + 0.4f) * 0.14f + MathF.Cos(nz * 2.3f - 0.7f) * 0.115f;
+                var ridges = MathF.Sin(nx * 6.1f + nz * 1.4f) * 0.085f +
+                              MathF.Cos(nz * 5.3f - nx * 1.1f) * 0.08f;
+                var detail = MathF.Sin((nx + nz) * 13.2f) * 0.026f +
+                             MathF.Cos((nx - nz) * 10.4f) * 0.022f;
+                var edgeRise = MathF.Pow(Math.Clamp(MathF.Sqrt(nx * nx + nz * nz), 0, 1), 2) * 0.24f;
+                var centralValley = MathF.Exp(-((nx * nx) + (nz * nz)) * 5.5f) * 0.1f;
                 var rawHeight = macro + ridges + detail + edgeRise - centralValley;
                 var questCorridor = MathF.Exp(-MathF.Pow(nx - nz, 2) * 260f) *
                                     MathF.Exp(-((nx * nx) + (nz * nz)) * 18f);
@@ -497,8 +525,8 @@ public static class ForgottenForestModuleAuthoringService
                 var corridorBlend = Math.Clamp(questCorridor * .92f, 0, 1);
                 heights[z * samples + x] = Math.Clamp(
                     rawHeight + ((corridorHeight - rawHeight) * corridorBlend),
-                    -0.48f,
-                    0.62f);
+                    -0.52f,
+                    0.68f);
             }
         }
 
@@ -512,7 +540,7 @@ public static class ForgottenForestModuleAuthoringService
             samples,
             16,
             20260805,
-            14,
+            16,
             heights,
             [
                 new TerrainMaterialLayer(soilId, "Terre forestière", "#594431", string.Empty, 5),
@@ -525,59 +553,62 @@ public static class ForgottenForestModuleAuthoringService
             string.Empty,
             string.Empty,
             "authored:forgotten-forest:sectorized@2");
+        const string polyHavenProvenance =
+            "curated-pack:forgotten-forest-polyhaven-environment@1.1.0";
         var biomes = new[]
         {
-            new BiomeLayerDefinition(Stable("biome:meadow"), "Clairières", meadowId, -20, 30, 0, 5, 0, 1,
-                0.08f, $"asset:{AssetId("patch-grass")}", ["meadow", "ground-cover"], ["road", "river", "building"], 70,
-                "authored:forgotten-forest:sectorized@2"),
-            new BiomeLayerDefinition(Stable("biome:canopy"), "Canopée", grassId, -20, 30, 0, 36, 0, 1,
-                0.68f, $"asset:{AssetId("tree-high")}", ["forest", "tree", "canopy"], ["road", "river", "building"], 50,
-                "authored:forgotten-forest@1"),
-            new BiomeLayerDefinition(Stable("biome:understory"), "Sous-bois", grassId, -20, 30, 0, 44, 0, 1,
-                0.46f, $"asset:{AssetId("tree")}", ["forest", "tree", "understory"], ["road", "river", "building"], 40,
-                "authored:forgotten-forest@1"),
+            new BiomeLayerDefinition(Stable("biome:meadow"), "Herbe de clairière", meadowId, -20, 30, 0, 18, 0, 1,
+                0.12f, $"asset:{PolyHavenAssetId("grass_medium_01")}",
+                ["meadow", "grass", "ground-cover", "meter-scale"], ["road", "river", "building"], 70,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:canopy"), "Sapins matures", grassId, -20, 30, 0, 36, 0, 1,
+                0.22f, $"asset:{PolyHavenAssetId("fir_sapling_medium")}",
+                ["forest", "tree", "canopy", "fir", "meter-scale", "scale:4"], ["road", "river", "building"], 50,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:understory"), "Jeunes sapins", grassId, -20, 30, 0, 44, 0, 1,
+                0.28f, $"asset:{PolyHavenAssetId("fir_sapling")}",
+                ["forest", "tree", "understory", "fir", "meter-scale", "scale:4"], ["road", "river", "building"], 40,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:nature-oak"), "Jeunes pins", grassId, -20, 30, 0, 34, 0, 1,
+                0.18f, $"asset:{PolyHavenAssetId("pine_sapling_small")}",
+                ["forest", "tree", "understory", "pine", "meter-scale", "scale:4"], ["road", "river", "building"], 49,
+                polyHavenProvenance),
             new BiomeLayerDefinition(Stable("biome:plants"), "Fougères", grassId, -20, 30, 0, 52, 0, 1,
-                0.82f, $"asset:{AssetId("plant")}", ["forest", "ground-cover", "plant"], ["road", "river"], 30,
-                "authored:forgotten-forest@1"),
-            new BiomeLayerDefinition(Stable("biome:rocks"), "Rochers", rockId, -20, 30, 10, 68, 0, 1,
-                0.25f, $"asset:{AssetId("rocks-low")}", ["rock", "ground-cover"], ["road", "river"], 60,
-                "authored:forgotten-forest@1"),
-            new BiomeLayerDefinition(Stable("biome:nature-oak"), "Chênes anciens", grassId, -20, 30, 0, 34, 0, 1,
-                0.06f, $"asset:{NatureAssetId("oak-tree")}", ["forest", "tree", "canopy", "oak"],
-                ["road", "river", "building"], 49, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-dark"), "Feuillus sombres", grassId, -20, 30, 0, 38, 0, 1,
-                0.055f, $"asset:{NatureAssetId("dark-detailed-tree")}", ["forest", "tree", "canopy", "dark"],
-                ["road", "river", "building"], 48, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-fall"), "Accents mordorés", meadowId, -20, 30, 0, 30, 0, 1,
-                0.025f, $"asset:{NatureAssetId("fall-tree")}", ["forest", "tree", "seasonal"],
-                ["road", "river", "building"], 47, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-pine-tall"), "Pins élancés", grassId, -20, 30, 6, 48, 0, 1,
-                0.05f, $"asset:{NatureAssetId("pine-tall")}", ["forest", "tree", "canopy", "pine"],
-                ["road", "river", "building"], 46, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-pine-round"), "Pins ronds", grassId, -20, 30, 0, 42, 0, 1,
-                0.05f, $"asset:{NatureAssetId("pine-round")}", ["forest", "tree", "understory", "pine"],
-                ["road", "river", "building"], 45, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-bush"), "Buissons détaillés", grassId, -20, 30, 0, 48, 0, 1,
-                0.10f, $"asset:{NatureAssetId("detailed-bush")}", ["forest", "bush", "ground-cover"],
-                ["road", "river"], 38, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-tall-plant"), "Herbes hautes", grassId, -20, 30, 0, 42, 0, 1,
-                0.09f, $"asset:{NatureAssetId("tall-plant")}", ["forest", "plant", "ground-cover"],
-                ["road", "river"], 36, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-mushrooms"), "Champignons rouges", grassId, -20, 30, 0, 38, 0, 1,
-                0.035f, $"asset:{NatureAssetId("red-mushrooms")}", ["forest", "mushroom", "ground-cover"],
-                ["road", "river"], 34, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-flowers"), "Fleurs violettes", meadowId, -20, 30, 0, 24, 0, 1,
-                0.04f, $"asset:{NatureAssetId("purple-flowers")}", ["meadow", "flower", "ground-cover"],
-                ["road", "river"], 33, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-grass"), "Touffes d'herbe", meadowId, -20, 30, 0, 28, 0, 1,
-                0.06f, $"asset:{NatureAssetId("large-grass")}", ["meadow", "grass", "ground-cover"],
-                ["road", "river"], 32, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-deadwood"), "Bois mort", soilId, -20, 30, 0, 38, 0, 1,
-                0.012f, $"asset:{NatureAssetId("fallen-log")}", ["forest", "deadwood", "ground-cover"],
-                ["road", "river"], 31, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
-            new BiomeLayerDefinition(Stable("biome:nature-large-rock"), "Rochers isolés", rockId, -20, 30, 8, 62, 0, 1,
-                0.025f, $"asset:{NatureAssetId("large-rock")}", ["rock", "ground-cover"],
-                ["road", "river"], 59, "curated-pack:forgotten-forest-nature-dressing@1.0.0"),
+                0.45f, $"asset:{PolyHavenAssetId("fern_02")}",
+                ["forest", "ground-cover", "plant", "meter-scale"], ["road", "river"], 30,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:nature-fall"), "Fleurs du Cap", meadowId, -20, 30, 0, 26, 0, 1,
+                0.04f, $"asset:{PolyHavenAssetId("didelta_spinosa")}",
+                ["meadow", "flower", "ground-cover", "meter-scale"], ["road", "river"], 47,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:nature-bush"), "Tapis de mousse", grassId, -20, 30, 0, 42, 0, 1,
+                0.24f, $"asset:{PolyHavenAssetId("moss_01")}",
+                ["forest", "moss", "ground-cover", "meter-scale"], ["road", "river"], 38,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:nature-deadwood"), "Branches sèches", soilId, -20, 30, 0, 38, 0, 1,
+                0.018f, $"asset:{PolyHavenAssetId("dry_branches_medium_01")}",
+                ["forest", "deadwood", "ground-cover", "meter-scale"], ["road", "river"], 31,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:nature-dark"), "Troncs morts", soilId, -20, 30, 0, 42, 0, 1,
+                0.008f, $"asset:{PolyHavenAssetId("dead_tree_trunk")}",
+                ["forest", "deadwood", "ground-cover", "meter-scale"], ["road", "river"], 48,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:rocks"), "Rochers moussus I", rockId, -20, 30, 8, 68, 0, 1,
+                0.04f, $"asset:{PolyHavenAssetId("rock_moss_set_01")}",
+                ["rock", "ground-cover", "meter-scale"], ["road", "river"], 60,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:nature-large-rock"), "Rochers moussus II", rockId, -20, 30, 8, 62, 0, 1,
+                0.035f, $"asset:{PolyHavenAssetId("rock_moss_set_02")}",
+                ["rock", "ground-cover", "meter-scale"], ["road", "river"], 59,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:nature-mushrooms"), "Souches anciennes I", soilId, -20, 30, 0, 38, 0, 1,
+                0.012f, $"asset:{PolyHavenAssetId("tree_stump_01")}",
+                ["forest", "deadwood", "ground-cover", "meter-scale"], ["road", "river"], 34,
+                polyHavenProvenance),
+            new BiomeLayerDefinition(Stable("biome:nature-pine-round"), "Souches anciennes II", soilId, -20, 30, 0, 42, 0, 1,
+                0.01f, $"asset:{PolyHavenAssetId("tree_stump_02")}",
+                ["forest", "deadwood", "ground-cover", "meter-scale"], ["road", "river"], 45,
+                polyHavenProvenance),
         };
         Vector3Value Point(float x, float z, float lift = 0.08f) => new(x, terrain.HeightAt(x, z) + lift, z);
         var features = new[]
@@ -597,11 +628,6 @@ public static class ForgottenForestModuleAuthoringService
                     Point(236, -178, 0.02f)],
                 3.2f, 0.12f, 0, TerrainFeatureCrossingPolicy.RequiresBridge, ["forest"], string.Empty,
                 "authored:forgotten-forest@1"),
-            new TerrainFeatureDefinition(Stable("feature:bridge"), TerrainFeatureDefinition.CurrentSchemaVersion,
-                "Pont du gué", TerrainFeatureKind.Bridge,
-                [Point(-2, -3, 0.34f), Point(6, 6, 0.34f)],
-                4.2f, 0.22f, 0, TerrainFeatureCrossingPolicy.Allow, ["forest"], string.Empty,
-                "authored:forgotten-forest@1"),
             new TerrainFeatureDefinition(Stable("feature:watcher-road"), TerrainFeatureDefinition.CurrentSchemaVersion,
                 "Chemin des quatre veilleurs", TerrainFeatureKind.Road,
                 [Point(-188, 164), Point(-126, 126), Point(-68, 78), Point(0, 32), Point(72, -34),
@@ -613,6 +639,16 @@ public static class ForgottenForestModuleAuthoringService
                 [Point(71, -40, 0.36f), Point(71, -26, 0.36f)],
                 4.4f, 0.24f, 0, TerrainFeatureCrossingPolicy.Allow, ["forest"], string.Empty,
                 "authored:forgotten-forest:sectorized@2"),
+            new TerrainFeatureDefinition(Stable("feature:northwest-pier-bridge"), TerrainFeatureDefinition.CurrentSchemaVersion,
+                "Pont de l'embarcadère nord-ouest", TerrainFeatureKind.Bridge,
+                [Point(-134, 82, 0.34f), Point(-122, 94, 0.34f)],
+                4.2f, 0.22f, 0, TerrainFeatureCrossingPolicy.Allow, ["forest"], string.Empty,
+                "authored:forgotten-forest:polyhaven-environment@1"),
+            new TerrainFeatureDefinition(Stable("feature:southeast-pier-bridge"), TerrainFeatureDefinition.CurrentSchemaVersion,
+                "Pont de l'embarcadère sud-est", TerrainFeatureKind.Bridge,
+                [Point(112, -76, 0.34f), Point(124, -64, 0.34f)],
+                4.2f, 0.22f, 0, TerrainFeatureCrossingPolicy.Allow, ["forest"], string.Empty,
+                "authored:forgotten-forest:polyhaven-environment@1"),
         };
         var loading = new AreaLoadingProfile(
             defaults.Loading.Id,
@@ -642,15 +678,6 @@ public static class ForgottenForestModuleAuthoringService
     {
         var defaults = AreaNavigationDefinition.CreateDefault(areaId);
         Vector3Value Point(float x, float z) => new(x, world.Terrain.HeightAt(x, z) + .42f, z);
-        var crossing = new OffMeshNavigationLink(
-            OffMeshNavigationLinkId.From(Stable("navigation:bridge-crossing")),
-            "Traversée du pont du gué",
-            NavigationLinkKind.Jump,
-            Point(-2, -3),
-            Point(6, 6),
-            true,
-            .9f,
-            "authored:forgotten-forest@1");
         var watcherCrossing = new OffMeshNavigationLink(
             OffMeshNavigationLinkId.From(Stable("navigation:watcher-bridge-crossing")),
             "Traversée du pont des quatre veilleurs",
@@ -660,11 +687,29 @@ public static class ForgottenForestModuleAuthoringService
             true,
             .9f,
             "authored:forgotten-forest:sectorized@2");
+        var northwestPierCrossing = new OffMeshNavigationLink(
+            OffMeshNavigationLinkId.From(Stable("navigation:northwest-pier-crossing")),
+            "Traversée du pont nord-ouest",
+            NavigationLinkKind.Jump,
+            Point(-134, 82),
+            Point(-122, 94),
+            true,
+            .9f,
+            "authored:forgotten-forest:polyhaven-environment@1");
+        var southeastPierCrossing = new OffMeshNavigationLink(
+            OffMeshNavigationLinkId.From(Stable("navigation:southeast-pier-crossing")),
+            "Traversée du pont sud-est",
+            NavigationLinkKind.Jump,
+            Point(112, -76),
+            Point(124, -64),
+            true,
+            .9f,
+            "authored:forgotten-forest:polyhaven-environment@1");
         return new AreaNavigationDefinition(
             defaults.Id,
             defaults.CellSize,
             defaults.AgentProfiles,
-            [crossing, watcherCrossing],
+            [watcherCrossing, northwestPierCrossing, southeastPierCrossing],
             "authored:forgotten-forest:sectorized@2");
     }
 

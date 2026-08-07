@@ -1,0 +1,2515 @@
+{
+  "asset_count": 32,
+  "assets": [
+    {
+      "asset_id": "polyhaven-hdri:ahornsteig",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "HDRI",
+        "outdoor",
+        "nature",
+        "midday",
+        "overcast",
+        "low contrast",
+        "natural light"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/hdri/ahornsteig/2k/ahornsteig_2k.hdr",
+          "sha256": "3a248a2b6bc6ec72bb13c5af77548fc0cf4e92066da880fa45bf4df7b96278cc",
+          "size": 7297949,
+          "source_md5": "d2368699fe44b0889c7a46d53d77bda6",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/ahornsteig_2k.hdr"
+        },
+        {
+          "path": "originals/polyhaven/hdri/ahornsteig/2k/ahornsteig.preview.png",
+          "sha256": "02507a6645d55c5c92d7a1502f983de958e03e5b3a0f53a707303f97e6762b0a",
+          "size": 69713,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/ahornsteig.png?width=320&height=160"
+        }
+      ],
+      "kind": "hdri",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "name": "Ahornsteig",
+      "preview_file": "originals/polyhaven/hdri/ahornsteig/2k/ahornsteig.preview.png",
+      "primary_file": "originals/polyhaven/hdri/ahornsteig/2k/ahornsteig_2k.hdr",
+      "retrieved_at": "2026-08-07T06:32:15Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "ahornsteig",
+      "source_page": "https://polyhaven.com/a/ahornsteig",
+      "status": "downloaded-original",
+      "tags": [
+        "tree",
+        "bench",
+        "leaves",
+        "autumn",
+        "path",
+        "road",
+        "berlin",
+        "cobblestone",
+        "forest"
+      ],
+      "total_bytes": 7367662,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-hdri:arboretum",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "HDRI",
+        "outdoor",
+        "nature",
+        "sunrise-sunset",
+        "partly cloudy",
+        "medium contrast",
+        "natural light"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/hdri/arboretum/2k/arboretum_2k.hdr",
+          "sha256": "f7753d1001e4fb83967852dcb24bccdd38088dd7f0badb66db5bdd04822551fc",
+          "size": 7337210,
+          "source_md5": "cd6ffa5772a09a6563e0e76b7ae9d12e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/arboretum_2k.hdr"
+        },
+        {
+          "path": "originals/polyhaven/hdri/arboretum/2k/arboretum.preview.png",
+          "sha256": "73e277073726a39a7542ad18ba2081a50a8c60b9210825db058f905fbffcf749",
+          "size": 66915,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/arboretum.png?width=320&height=160"
+        }
+      ],
+      "kind": "hdri",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "name": "Arboretum",
+      "preview_file": "originals/polyhaven/hdri/arboretum/2k/arboretum.preview.png",
+      "primary_file": "originals/polyhaven/hdri/arboretum/2k/arboretum_2k.hdr",
+      "retrieved_at": "2026-08-07T06:32:15Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "arboretum",
+      "source_page": "https://polyhaven.com/a/arboretum",
+      "status": "downloaded-original",
+      "tags": [
+        "lake",
+        "water",
+        "path",
+        "dam",
+        "bridge",
+        "tree",
+        "dirt",
+        "road"
+      ],
+      "total_bytes": 7404125,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-hdri:autumn_ground",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "HDRI",
+        "outdoor",
+        "nature",
+        "morning-afternoon",
+        "partly cloudy",
+        "medium contrast",
+        "natural light"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/hdri/autumn_ground/2k/autumn_ground_2k.hdr",
+          "sha256": "e6174365ca10a5708780164e05ee8c66d553c6ee5a8c15a075ba9c1b937f391a",
+          "size": 7536052,
+          "source_md5": "039f44d61cbf03dd15590a27411d4095",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/autumn_ground_2k.hdr"
+        },
+        {
+          "path": "originals/polyhaven/hdri/autumn_ground/2k/autumn_ground.preview.png",
+          "sha256": "750ca24a947e72165f2c7507f8caabae1aea1ef2a1a7580b0c19284b595fea34",
+          "size": 73963,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/autumn_ground.png?width=320&height=160"
+        }
+      ],
+      "kind": "hdri",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "name": "Autumn Ground",
+      "preview_file": "originals/polyhaven/hdri/autumn_ground/2k/autumn_ground.preview.png",
+      "primary_file": "originals/polyhaven/hdri/autumn_ground/2k/autumn_ground_2k.hdr",
+      "retrieved_at": "2026-08-07T06:32:16Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "autumn_ground",
+      "source_page": "https://polyhaven.com/a/autumn_ground",
+      "status": "downloaded-original",
+      "tags": [
+        "leaves",
+        "autumn",
+        "tree",
+        "log",
+        "bush",
+        "shrub",
+        "earth",
+        "ground",
+        "trail",
+        "path",
+        "forest"
+      ],
+      "total_bytes": 7610015,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-hdri:barnaslingan_01",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "HDRI",
+        "outdoor",
+        "natural light",
+        "nature",
+        "partly cloudy",
+        "high contrast",
+        "midday"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/hdri/barnaslingan_01/2k/barnaslingan_01_2k.hdr",
+          "sha256": "aa316e40a9afc62e2e5ecdcd3db34ab44e98516e5ccc6c02e60839028b22fb2f",
+          "size": 6963060,
+          "source_md5": "e6254b7ad26d90620ae791144375e899",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/barnaslingan_01_2k.hdr"
+        },
+        {
+          "path": "originals/polyhaven/hdri/barnaslingan_01/2k/barnaslingan_01.preview.png",
+          "sha256": "0e72acd1a39553c350c120b18606e970d526371070f12299fdfc0975dcb18432",
+          "size": 74433,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/barnaslingan_01.png?width=320&height=160"
+        }
+      ],
+      "kind": "hdri",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "name": "Barnaslingan 01",
+      "preview_file": "originals/polyhaven/hdri/barnaslingan_01/2k/barnaslingan_01.preview.png",
+      "primary_file": "originals/polyhaven/hdri/barnaslingan_01/2k/barnaslingan_01_2k.hdr",
+      "retrieved_at": "2026-08-07T06:32:17Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "barnaslingan_01",
+      "source_page": "https://polyhaven.com/a/barnaslingan_01",
+      "status": "downloaded-original",
+      "tags": [
+        "sun",
+        "wood chips",
+        "timber",
+        "dirt road",
+        "log pile",
+        "stacked logs",
+        "logging",
+        "forestry",
+        "conifer",
+        "backplates"
+      ],
+      "total_bytes": 7037493,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-hdri:lush_dirt_path",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "HDRI",
+        "outdoor",
+        "nature",
+        "medium contrast",
+        "natural light",
+        "midday",
+        "partly cloudy"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/hdri/lush_dirt_path/2k/lush_dirt_path_2k.hdr",
+          "sha256": "bd58bc093fa6959e36a93cdca8e60d03a5a0f1f52b93974b623b7e6613c94640",
+          "size": 7271402,
+          "source_md5": "5cee2563756a81a89d29a67b0cbfda99",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/lush_dirt_path_2k.hdr"
+        },
+        {
+          "path": "originals/polyhaven/hdri/lush_dirt_path/2k/lush_dirt_path.preview.png",
+          "sha256": "9945feec08913e19b63b9629569e5b791abdd0ad27948d4522250f6d2700bcb3",
+          "size": 77278,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/lush_dirt_path.png?width=320&height=160"
+        }
+      ],
+      "kind": "hdri",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "name": "Lush Dirt Path",
+      "preview_file": "originals/polyhaven/hdri/lush_dirt_path/2k/lush_dirt_path.preview.png",
+      "primary_file": "originals/polyhaven/hdri/lush_dirt_path/2k/lush_dirt_path_2k.hdr",
+      "retrieved_at": "2026-08-07T06:32:13Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "lush_dirt_path",
+      "source_page": "https://polyhaven.com/a/lush_dirt_path",
+      "status": "downloaded-original",
+      "tags": [
+        "dense",
+        "forest",
+        "bush",
+        "dirt road",
+        "path"
+      ],
+      "total_bytes": 7348680,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-hdri:mossy_forest",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "HDRI",
+        "outdoor",
+        "nature",
+        "morning-afternoon",
+        "low contrast",
+        "natural light"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/hdri/mossy_forest/2k/mossy_forest_2k.hdr",
+          "sha256": "eac287225a8d012f9dabf706aa4dd411340f681122c66ae88cf3484fbc716080",
+          "size": 7599867,
+          "source_md5": "b562c74ac25c5c12cd7b5679e2c22484",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/mossy_forest_2k.hdr"
+        },
+        {
+          "path": "originals/polyhaven/hdri/mossy_forest/2k/mossy_forest.preview.png",
+          "sha256": "2307671dff26b2c1e2cc9d29c2afc145a91f2e742dcccb249dd1eb4e4135db01",
+          "size": 72107,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/mossy_forest.png?width=320&height=160"
+        }
+      ],
+      "kind": "hdri",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "name": "Mossy Forest",
+      "preview_file": "originals/polyhaven/hdri/mossy_forest/2k/mossy_forest.preview.png",
+      "primary_file": "originals/polyhaven/hdri/mossy_forest/2k/mossy_forest_2k.hdr",
+      "retrieved_at": "2026-08-07T06:32:14Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "mossy_forest",
+      "source_page": "https://polyhaven.com/a/mossy_forest",
+      "status": "downloaded-original",
+      "tags": [
+        "path",
+        "rock",
+        "river",
+        "forest",
+        "tree",
+        "moss"
+      ],
+      "total_bytes": 7671974,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-hdri:neurathen_rock_castle",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "HDRI",
+        "outdoor",
+        "nature",
+        "sunrise-sunset",
+        "partly cloudy",
+        "high contrast",
+        "natural light"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/hdri/neurathen_rock_castle/2k/neurathen_rock_castle_2k.hdr",
+          "sha256": "da91bcb19454dca5471f9180e93482d638e6822e78617e963e316882130942bd",
+          "size": 6862966,
+          "source_md5": "59b76a1957816ae371210b4592a2dbf2",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/neurathen_rock_castle_2k.hdr"
+        },
+        {
+          "path": "originals/polyhaven/hdri/neurathen_rock_castle/2k/neurathen_rock_castle.preview.png",
+          "sha256": "4235e2e6fa6783fd031f854a4fefd846c398ab12aaa24d90b24b2f0b0e42096f",
+          "size": 62768,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/neurathen_rock_castle.png?width=320&height=160"
+        }
+      ],
+      "kind": "hdri",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "name": "Neurathen Rock Castle",
+      "preview_file": "originals/polyhaven/hdri/neurathen_rock_castle/2k/neurathen_rock_castle.preview.png",
+      "primary_file": "originals/polyhaven/hdri/neurathen_rock_castle/2k/neurathen_rock_castle_2k.hdr",
+      "retrieved_at": "2026-08-07T06:32:14Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "neurathen_rock_castle",
+      "source_page": "https://polyhaven.com/a/neurathen_rock_castle",
+      "status": "downloaded-original",
+      "tags": [
+        "sun",
+        "tree",
+        "cliff",
+        "valley",
+        "forest",
+        "vista",
+        "rock",
+        "rail"
+      ],
+      "total_bytes": 6925734,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-hdri:zavelstein",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "HDRI",
+        "outdoor",
+        "urban",
+        "midday",
+        "overcast",
+        "low contrast",
+        "natural light"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/hdri/zavelstein/2k/zavelstein_2k.hdr",
+          "sha256": "ba3577d272ddb308f3da4fe8359aeb5baa5f37a9830bf814e754a8808c75419b",
+          "size": 7103518,
+          "source_md5": "df42e7757c6fbd97b91d3dbc082d0576",
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/zavelstein_2k.hdr"
+        },
+        {
+          "path": "originals/polyhaven/hdri/zavelstein/2k/zavelstein.preview.png",
+          "sha256": "bfe49baf4c35bfe6304aefde4b92e91ebb5729ad7efaa0e20eb7b0f5f07434d7",
+          "size": 61506,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/zavelstein.png?width=320&height=160"
+        }
+      ],
+      "kind": "hdri",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "name": "Zavelstein",
+      "preview_file": "originals/polyhaven/hdri/zavelstein/2k/zavelstein.preview.png",
+      "primary_file": "originals/polyhaven/hdri/zavelstein/2k/zavelstein_2k.hdr",
+      "retrieved_at": "2026-08-07T06:32:12Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "zavelstein",
+      "source_page": "https://polyhaven.com/a/zavelstein",
+      "status": "downloaded-original",
+      "tags": [
+        "tree",
+        "brick",
+        "castle",
+        "medieval",
+        "europe",
+        "bench",
+        "dirt",
+        "ruin"
+      ],
+      "total_bytes": 7165024,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:aerial_grass_rock",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "terrain",
+        "rock",
+        "outdoor",
+        "natural",
+        "aerial"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock_diff_2k.jpg",
+          "sha256": "1a2ddfa4652adbe00447b940c40019d46f4b88245bc1b341cdf622c2110b7bc5",
+          "size": 2624635,
+          "source_md5": "024018554c0002620127749d1f585f3d",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_grass_rock/aerial_grass_rock_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock_nor_gl_2k.jpg",
+          "sha256": "c6aa14b042ce243f93a6ca807f46a085711c23ad316b104578e92df7770ee285",
+          "size": 3799025,
+          "source_md5": "0c5423ce365169df7c242933b5137696",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_grass_rock/aerial_grass_rock_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock_rough_2k.jpg",
+          "sha256": "fc0fff40e3378f2f54d225db6e3e566a8563bb2c143eef0f09b543c9d4698776",
+          "size": 1495844,
+          "source_md5": "8d181000237d420a73f99dfc260dab17",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_grass_rock/aerial_grass_rock_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock_disp_2k.jpg",
+          "sha256": "402db9334208ac6b505e4aa955ee9564d04073e5507b49adfc84282c26181dc8",
+          "size": 530342,
+          "source_md5": "a02fe96ebd14dabd8fc7a829f4a77bac",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_grass_rock/aerial_grass_rock_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock.preview.png",
+          "sha256": "2451e6c4246b059ea6715241b2017079395cdd55170836c19c5afa98eb65f97d",
+          "size": 115684,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/aerial_grass_rock.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock_nor_gl_2k.jpg"
+      },
+      "name": "Aerial Grass Rock",
+      "preview_file": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock.preview.png",
+      "primary_file": "originals/polyhaven/materials/aerial_grass_rock/2k/aerial_grass_rock_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:07Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "aerial_grass_rock",
+      "source_page": "https://polyhaven.com/a/aerial_grass_rock",
+      "status": "downloaded-original",
+      "tags": [
+        "moss",
+        "grass",
+        "cliff",
+        "cave",
+        "rock face"
+      ],
+      "total_bytes": 8565530,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:aerial_ground_rock",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "terrain",
+        "outdoor",
+        "natural",
+        "aerial"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock_diff_2k.jpg",
+          "sha256": "59edc1ec86af84e37641a69e55f064158205a2a94850d8fb1e79a3ab55dc01d1",
+          "size": 2522323,
+          "source_md5": "15231697c4359016368c7e7baf15e9e5",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_ground_rock/aerial_ground_rock_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock_nor_gl_2k.jpg",
+          "sha256": "d0631588edfa3cf9710ba8bf34c2911b7abda133c4f4de88d5e9ad2ead5b2505",
+          "size": 2486280,
+          "source_md5": "76b7477a6a589f837d51a75157589f3f",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_ground_rock/aerial_ground_rock_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock_rough_2k.jpg",
+          "sha256": "067441cce716bffaca538149bab30ae5c1cd021ca4fa3e5851e6d193b7dcf88b",
+          "size": 1598716,
+          "source_md5": "ff499aca3aa1ac487c0f51493827f66e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_ground_rock/aerial_ground_rock_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock_disp_2k.jpg",
+          "sha256": "f1a7d916403f3a34419fb023be07d7bc391ca695ea10a10fa7e7f997aaa3906d",
+          "size": 377928,
+          "source_md5": "b1c05b14eaeb47c05520a72d8846ee81",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_ground_rock/aerial_ground_rock_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock.preview.png",
+          "sha256": "2b6476927c27e9fd4420ac226be6a15e0b8b629e272f9e14ed56fbb70400749b",
+          "size": 103721,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/aerial_ground_rock.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock_nor_gl_2k.jpg"
+      },
+      "name": "Aerial Ground Rock",
+      "preview_file": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock.preview.png",
+      "primary_file": "originals/polyhaven/materials/aerial_ground_rock/2k/aerial_ground_rock_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:08Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "aerial_ground_rock",
+      "source_page": "https://polyhaven.com/a/aerial_ground_rock",
+      "status": "downloaded-original",
+      "tags": [
+        "mud",
+        "rocks",
+        "stones",
+        "dirt",
+        "dry"
+      ],
+      "total_bytes": 7088968,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:aerial_rocks_01",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "terrain",
+        "outdoor",
+        "natural",
+        "rock",
+        "aerial"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01_diff_2k.jpg",
+          "sha256": "25edb78d0c3daf52d44bbd076c74ef53865fc4cd386a922736cb167313420a7b",
+          "size": 2968327,
+          "source_md5": "d9e4811809f818bcf8322aa48cac13c3",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_01/aerial_rocks_01_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01_nor_gl_2k.jpg",
+          "sha256": "570650b9c9bc26b541cbd09754ab6a6b3d198bb44ae964e3877f262d3c96567d",
+          "size": 5309052,
+          "source_md5": "d460c0789ca16c4283a073ab9f2626b7",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_01/aerial_rocks_01_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01_rough_2k.jpg",
+          "sha256": "bf1a72b6ae9ef32b4bab4fbabae09d2eb5f22c3a23f6c5ce40712b0c2fe8ea27",
+          "size": 1620356,
+          "source_md5": "c6b40947b3486f1b1003af3d8094f25c",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_01/aerial_rocks_01_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01_disp_2k.jpg",
+          "sha256": "970eec4ff162c3d4148bdbfe785d86594f813fd70d47e9fab03290f82a7ba31b",
+          "size": 470212,
+          "source_md5": "b55456691ecc7f6b92c742257828f33d",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_01/aerial_rocks_01_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01.preview.png",
+          "sha256": "e6f769ff9deae5ecbb6e502ffa546b0a4e9d287eeca2c033fbc32c0c4b6cb078",
+          "size": 125002,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/aerial_rocks_01.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01_nor_gl_2k.jpg"
+      },
+      "name": "Aerial Rocks 01",
+      "preview_file": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01.preview.png",
+      "primary_file": "originals/polyhaven/materials/aerial_rocks_01/2k/aerial_rocks_01_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:09Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "aerial_rocks_01",
+      "source_page": "https://polyhaven.com/a/aerial_rocks_01",
+      "status": "downloaded-original",
+      "tags": [
+        "rocks",
+        "moss",
+        "cliff",
+        "rock face",
+        "cave"
+      ],
+      "total_bytes": 10492949,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:aerial_rocks_02",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "terrain",
+        "outdoor",
+        "natural",
+        "rock",
+        "aerial"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02_diff_2k.jpg",
+          "sha256": "f759d2471cb6a4b3b37d0a5a249adbad1d4d48d67825f37622a603dac8d9bb22",
+          "size": 2914545,
+          "source_md5": "f493fa9b31911f8a30ecd1d41cbc6f3d",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_02/aerial_rocks_02_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02_nor_gl_2k.jpg",
+          "sha256": "e7ad2a65b446ef70c3eb8b32267bee74d91d9759ed52c349c38e34cfd62d079e",
+          "size": 4300188,
+          "source_md5": "7c405cfd3308a2672c99b44e102c328e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_02/aerial_rocks_02_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02_rough_2k.jpg",
+          "sha256": "f1808dec1ad6dd77881baa41813d9718bb93e9aa1dabdcd9d6dc9b7f45dd90da",
+          "size": 1475961,
+          "source_md5": "2d4464ceba47763b2ae75242e6f66270",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_02/aerial_rocks_02_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02_disp_2k.jpg",
+          "sha256": "d67a273e73cafdcda427a969660edcd1e58ab124fc9f17206068995d4f5b735b",
+          "size": 320733,
+          "source_md5": "1e5149abbf28989237ef937370c6d8b3",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_02/aerial_rocks_02_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02.preview.png",
+          "sha256": "15cf11bcf326580e9fbf4961d6201bbe4a8f092ff62cd4cdc4163a902da396f2",
+          "size": 112447,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/aerial_rocks_02.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02_nor_gl_2k.jpg"
+      },
+      "name": "Aerial Rocks 02",
+      "preview_file": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02.preview.png",
+      "primary_file": "originals/polyhaven/materials/aerial_rocks_02/2k/aerial_rocks_02_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:10Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "aerial_rocks_02",
+      "source_page": "https://polyhaven.com/a/aerial_rocks_02",
+      "status": "downloaded-original",
+      "tags": [
+        "rocks",
+        "rough",
+        "moss",
+        "cliff",
+        "rock face",
+        "cave"
+      ],
+      "total_bytes": 9123874,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:aerial_rocks_04",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "terrain",
+        "outdoor",
+        "natural",
+        "rock",
+        "aerial"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04_diff_2k.jpg",
+          "sha256": "774f50923f9c05c5011654bffc0f85240082c4b566393961c326ccbcb87e26c0",
+          "size": 3001368,
+          "source_md5": "9569319be1713474efad4ec1d7c0abe0",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_04/aerial_rocks_04_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04_nor_gl_2k.jpg",
+          "sha256": "d61980fe9b6a16c1b1ea6ce5214fdaa6a868f741156d136d86b441ff99136441",
+          "size": 4222231,
+          "source_md5": "156e7a0993a1ab5a0a755d16b5f8f23b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_04/aerial_rocks_04_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04_rough_2k.jpg",
+          "sha256": "d10a68f4e106bf2ca98acbe1028947d8bc16948003f62d1bddd4c99c72c80ff5",
+          "size": 1692772,
+          "source_md5": "899c09b1ca7f7885644e8298ae214053",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_04/aerial_rocks_04_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04_disp_2k.jpg",
+          "sha256": "446549378c79addbcff94fd4847b89922f1d2b4825116d5dbd85f144cb7f3c21",
+          "size": 304540,
+          "source_md5": "37df4da7d7fdea83d101b3d42de2fc4f",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/aerial_rocks_04/aerial_rocks_04_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04.preview.png",
+          "sha256": "8fa42d04e73902629f7a8d136a5eb3f4916de3cc8d589bae402d252ebfa906b9",
+          "size": 129893,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/aerial_rocks_04.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04_nor_gl_2k.jpg"
+      },
+      "name": "Aerial Rocks 04",
+      "preview_file": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04.preview.png",
+      "primary_file": "originals/polyhaven/materials/aerial_rocks_04/2k/aerial_rocks_04_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:10Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "aerial_rocks_04",
+      "source_page": "https://polyhaven.com/a/aerial_rocks_04",
+      "status": "downloaded-original",
+      "tags": [
+        "rough",
+        "rocks",
+        "moss",
+        "cliff",
+        "rock face",
+        "cave"
+      ],
+      "total_bytes": 9350804,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:bark_brown_01",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "wood",
+        "outdoor",
+        "natural",
+        "bark"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01_diff_2k.jpg",
+          "sha256": "0cdd066f34d357fdbf7eb99159e668a6dc346bb7fd093a9e27058eb827d09b9a",
+          "size": 2667267,
+          "source_md5": "844daf37120a327bb77ac907102d69c0",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_01/bark_brown_01_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01_nor_gl_2k.jpg",
+          "sha256": "971289c90963ef6a3eaf988662f2bce71dbb1024f5382a7dfe9e51e3cd127030",
+          "size": 4621865,
+          "source_md5": "60e17a42cf4682ef77891ed92cada3cf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_01/bark_brown_01_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01_rough_2k.jpg",
+          "sha256": "8ce13f1be85940fcb9a3dc78afd1529755c6aec6b52e683656bffa92820887d8",
+          "size": 812553,
+          "source_md5": "e62a2a90bd2f78f72a7f7b427b048c37",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_01/bark_brown_01_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01_disp_2k.jpg",
+          "sha256": "49544aeff3394c581cf45c2fd4ab068ced33f24bb89a0a9578d8cb7befeba2d1",
+          "size": 561899,
+          "source_md5": "522291340d5d7822be51c115379a21eb",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_01/bark_brown_01_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01.preview.png",
+          "sha256": "ec1ea63e30840da1238004dd6bf807a95aca72e373d85faa1b3130d3c7cad6d5",
+          "size": 117777,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/bark_brown_01.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01_nor_gl_2k.jpg"
+      },
+      "name": "Bark Brown 01",
+      "preview_file": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01.preview.png",
+      "primary_file": "originals/polyhaven/materials/bark_brown_01/2k/bark_brown_01_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:11Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "bark_brown_01",
+      "source_page": "https://polyhaven.com/a/bark_brown_01",
+      "status": "downloaded-original",
+      "tags": [
+        "bark",
+        "tree",
+        "forest",
+        "knots",
+        "bark grooves",
+        "tree bark",
+        "tree trunk"
+      ],
+      "total_bytes": 8781361,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:bark_brown_02",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "wood",
+        "outdoor",
+        "natural",
+        "bark"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02_diff_2k.jpg",
+          "sha256": "285051e34826ace29f4ab438ad35cc1201b2aae0a6157a5f3c0bf6667bbc539e",
+          "size": 2356592,
+          "source_md5": "11a2a6039bb5b93f12dcf1689838545b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_02/bark_brown_02_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02_nor_gl_2k.jpg",
+          "sha256": "aaba4529c3167a7811b4dbf5b4327d054a166c2fc8ea08ebd249a2692adace41",
+          "size": 3707907,
+          "source_md5": "39db6c4574fb58de1ad164442e9d6287",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_02/bark_brown_02_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02_rough_2k.jpg",
+          "sha256": "adafcab150c1ca99150c77198329e251437dc00fa1f66019f75624366926996e",
+          "size": 1236654,
+          "source_md5": "1c17004a7262d26d3867198a8fd0e8c1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_02/bark_brown_02_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02_disp_2k.jpg",
+          "sha256": "bbcbba94be86527048d658974e43046a53bf2ada01aa8dd991c85d5069b48b23",
+          "size": 534990,
+          "source_md5": "03119b2b95dc7e8e8821cbccc2d1e5e4",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_02/bark_brown_02_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02.preview.png",
+          "sha256": "b2c16b6e99241d54951375838c9c8a01e4806e8ed21a72b0890cf7ceec0e59cd",
+          "size": 122223,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/bark_brown_02.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02_nor_gl_2k.jpg"
+      },
+      "name": "Bark Brown 02",
+      "preview_file": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02.preview.png",
+      "primary_file": "originals/polyhaven/materials/bark_brown_02/2k/bark_brown_02_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:43Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "bark_brown_02",
+      "source_page": "https://polyhaven.com/a/bark_brown_02",
+      "status": "downloaded-original",
+      "tags": [
+        "bark",
+        "tree",
+        "forest",
+        "knots",
+        "wooden knots",
+        "tree trunk"
+      ],
+      "total_bytes": 7958366,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:coast_land_rocks_01",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "outdoor",
+        "natural",
+        "terrain",
+        "aerial",
+        "sand",
+        "collection: smugglers_cove"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01_diff_2k.jpg",
+          "sha256": "78eb0b928b50affa50d34176aa38790bc75a6b075e34d9e34a6a9431d91da602",
+          "size": 3567190,
+          "source_md5": "2a403a10fc0b12830881f5f9cc0279d1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_land_rocks_01/coast_land_rocks_01_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01_nor_gl_2k.jpg",
+          "sha256": "5cb2771de4f9cc13dd364ba3a37f7bf75d42fb0cdd5a7426ac3b2338f585d46d",
+          "size": 4960096,
+          "source_md5": "f72b71a65d2506bfd6be4d5e3725d1a1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_land_rocks_01/coast_land_rocks_01_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01_rough_2k.jpg",
+          "sha256": "3bdf8e68c14c5b7e6dfd805e9ed287a0d0df2795449a3623246cd6d74e15d38e",
+          "size": 2659983,
+          "source_md5": "56c9704f22c7f13bb341dd45d123a195",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_land_rocks_01/coast_land_rocks_01_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01_disp_2k.jpg",
+          "sha256": "4a454487770787fae81df5d958ef0ce79414e8ae5cef22e2997f50daf956f6af",
+          "size": 1028647,
+          "source_md5": "47f36123f9458832a2d896d1c111dc67",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_land_rocks_01/coast_land_rocks_01_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01.preview.png",
+          "sha256": "ec8630fedfc05a622eef6a80f3a599d47d15c2b43733116240aad18cc6fa0e61",
+          "size": 112264,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/coast_land_rocks_01.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01_nor_gl_2k.jpg"
+      },
+      "name": "Coast Land Rocks 01",
+      "preview_file": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01.preview.png",
+      "primary_file": "originals/polyhaven/materials/coast_land_rocks_01/2k/coast_land_rocks_01_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:38Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "coast_land_rocks_01",
+      "source_page": "https://polyhaven.com/a/coast_land_rocks_01",
+      "status": "downloaded-original",
+      "tags": [
+        "rough",
+        "uneven",
+        "stones",
+        "moss",
+        "rock",
+        "dirt",
+        "cracked",
+        "seaside",
+        "ocean",
+        "costal",
+        "rocks",
+        "brown",
+        "gravel",
+        "nature",
+        "ground",
+        "cliff"
+      ],
+      "total_bytes": 12328180,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:coast_sand_05",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "sand",
+        "natural",
+        "terrain",
+        "dirty",
+        "rock",
+        "outdoor",
+        "aerial"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05_diff_2k.jpg",
+          "sha256": "3801d3734d522b29d728e2b5f478dd2e2f537bd091bb2ab39cad9880da96a8ac",
+          "size": 3348013,
+          "source_md5": "0e556ba9630c3da3d88386dd90ece028",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_05/coast_sand_05_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05_nor_gl_2k.jpg",
+          "sha256": "caa5814cdf3131b9ace6ab340b6b2f598bb39fc172d56a8da056a5739eb7eb48",
+          "size": 4717979,
+          "source_md5": "504824d75b7af079680f592965235838",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_05/coast_sand_05_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05_rough_2k.jpg",
+          "sha256": "19431d8a5c632a89679fb07bca77fd93af777467050dc4bdb5ecd784dfefd75c",
+          "size": 1678175,
+          "source_md5": "67ee8825e888af32f97293d8318266e1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_05/coast_sand_05_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05_disp_2k.jpg",
+          "sha256": "632c94959798e2bcc6cbbfd055ce22558f5cb604f1bcc74c5f12069789b3d74d",
+          "size": 1231913,
+          "source_md5": "3ee3698e458f8da490f350f4157ad41f",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_05/coast_sand_05_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05.preview.png",
+          "sha256": "ec94f907ceb2f2be39cf79bb58d6bb7df7e62877cef757107f913e5aa6693026",
+          "size": 108109,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/coast_sand_05.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05_nor_gl_2k.jpg"
+      },
+      "name": "Coast Sand 05",
+      "preview_file": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05.preview.png",
+      "primary_file": "originals/polyhaven/materials/coast_sand_05/2k/coast_sand_05_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:44Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "coast_sand_05",
+      "source_page": "https://polyhaven.com/a/coast_sand_05",
+      "status": "downloaded-original",
+      "tags": [
+        "costal",
+        "seaside",
+        "stones",
+        "ground",
+        "brown",
+        "gravel",
+        "beach",
+        "coastal",
+        "dirt",
+        "path",
+        "weathered",
+        "dirty",
+        "sand",
+        "worn"
+      ],
+      "total_bytes": 11084189,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:coast_sand_rocks_02",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "outdoor",
+        "natural",
+        "terrain",
+        "aerial",
+        "rock",
+        "collection: smugglers_cove"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02_diff_2k.jpg",
+          "sha256": "98a8850f24cba18e4c99e46c56f5675f910809ee7f75df3e8587ec9e27088ed6",
+          "size": 2905160,
+          "source_md5": "5c6d2fe8e40a733b078212cd6286bcb3",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_rocks_02/coast_sand_rocks_02_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02_nor_gl_2k.jpg",
+          "sha256": "e75cd105d218aae5bf669630635e6753a78f6325bc799be3d0ee8b974853a84d",
+          "size": 4810192,
+          "source_md5": "20c06634ac6d350c7baa0f18a24fb272",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_rocks_02/coast_sand_rocks_02_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02_rough_2k.jpg",
+          "sha256": "1751909cb470fb6cb2a7e01b2dfb9e009088a0dafa5ea6fba43fb5a1215ec6fa",
+          "size": 2218518,
+          "source_md5": "1f04443f447f5eea8eda6bcbd57d3993",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_rocks_02/coast_sand_rocks_02_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02_disp_2k.jpg",
+          "sha256": "109dfa81b1085e1b1d32ba740c0efb04b06e0b497925ef8e58e9c3c0e6753617",
+          "size": 1044275,
+          "source_md5": "2b36922488b52a8248f464557a4a8c66",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_rocks_02/coast_sand_rocks_02_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02.preview.png",
+          "sha256": "fb1da39455c432b7730c3b8451d38f53dfe78a77cf6d27b2b09bfdedf50fb051",
+          "size": 118350,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/coast_sand_rocks_02.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02_nor_gl_2k.jpg"
+      },
+      "name": "Coast Sand Rocks 02",
+      "preview_file": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02.preview.png",
+      "primary_file": "originals/polyhaven/materials/coast_sand_rocks_02/2k/coast_sand_rocks_02_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:45Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "coast_sand_rocks_02",
+      "source_page": "https://polyhaven.com/a/coast_sand_rocks_02",
+      "status": "downloaded-original",
+      "tags": [
+        "grass",
+        "rock face",
+        "rock",
+        "moss",
+        "rough",
+        "uneven",
+        "weathered",
+        "stones",
+        "cliff",
+        "ground",
+        "seaside",
+        "coastal"
+      ],
+      "total_bytes": 11096495,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:forest_ground_04",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "outdoor",
+        "natural",
+        "terrain",
+        "rock",
+        "collection: pine_forest",
+        "collection: verdant_trail"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04_diff_2k.jpg",
+          "sha256": "24b8aaf4c8547305d80b0e029ec365219ab1b90748d4ca5651bdc9e75bfde5e6",
+          "size": 4529321,
+          "source_md5": "f6ce9c8af4316c2627a4b3fbab8ad944",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/forest_ground_04/forest_ground_04_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04_nor_gl_2k.jpg",
+          "sha256": "b37ac799ed410976541e0011c246fca254e74eaa3f096ae7a7d74178db5a6d9b",
+          "size": 5288849,
+          "source_md5": "5fa9256955e7bfa40a0269b4965ce646",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/forest_ground_04/forest_ground_04_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04_rough_2k.jpg",
+          "sha256": "24194662948424c323c75e0918461ad9d38bc0a275022000144f248b3efb4119",
+          "size": 2509805,
+          "source_md5": "81daa9a1d8b35dd9ffdff3aa7a74fbd9",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/forest_ground_04/forest_ground_04_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04_disp_2k.jpg",
+          "sha256": "2ab943aedc87e4f258db43365c65d9cb834923c85817bc8fc8262397014a35a5",
+          "size": 696276,
+          "source_md5": "2d342b36619dc1a4e4afcd3bfc256dfe",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/forest_ground_04/forest_ground_04_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04.preview.png",
+          "sha256": "b44d5ec2bbe7e9bcdf4fb6e35fd7602b185b8131e12c8ceea307fb4d97977202",
+          "size": 125860,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/forest_ground_04.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04_nor_gl_2k.jpg"
+      },
+      "name": "Forest Ground 04",
+      "preview_file": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04.preview.png",
+      "primary_file": "originals/polyhaven/materials/forest_ground_04/2k/forest_ground_04_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:46Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "forest_ground_04",
+      "source_page": "https://polyhaven.com/a/forest_ground_04",
+      "status": "downloaded-original",
+      "tags": [
+        "rough",
+        "uneven",
+        "stones",
+        "ground",
+        "forest",
+        "dry",
+        "brown",
+        "gravel",
+        "rock",
+        "debris",
+        "nature",
+        "dirt"
+      ],
+      "total_bytes": 13150111,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:forest_ground_05",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "outdoor",
+        "terrain",
+        "natural",
+        "sand"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05_diff_2k.jpg",
+          "sha256": "5a626d6512200a868a0c03bad046076ff07c60ab8ead6f4af9d5fa82c1bc09c6",
+          "size": 2760081,
+          "source_md5": "ecdf24a0fae46cf53010fdde41086a98",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/forest_ground_05/forest_ground_05_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05_nor_gl_2k.jpg",
+          "sha256": "55f8c6675c20c69da33c6daa2052580746996441feae3de53c9b720b3b4fcc49",
+          "size": 4830561,
+          "source_md5": "2785228c8cc88a8ea518506db16a0ac0",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/forest_ground_05/forest_ground_05_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05_rough_2k.jpg",
+          "sha256": "bcdd40daf7b4aee111b4f8f331dafde8a07efb1d2fb05c35ac39db5cd3f7910f",
+          "size": 1452625,
+          "source_md5": "73408c1237dd37df61cd0f0ccbdd44ee",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/forest_ground_05/forest_ground_05_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05_disp_2k.jpg",
+          "sha256": "6dae63182d5b11799990aba1f2a4949e3fc1113e5b6120c71b58dc6f20f9cef7",
+          "size": 1296721,
+          "source_md5": "c31f972d9cdc702a72ab40156599bf5b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/forest_ground_05/forest_ground_05_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05.preview.png",
+          "sha256": "ce6b90b26368c7d8cba8888a568bca15647e101b34cb0a8051526868c40bf1c6",
+          "size": 96571,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/forest_ground_05.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05_nor_gl_2k.jpg"
+      },
+      "name": "Forest Ground 05",
+      "preview_file": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05.preview.png",
+      "primary_file": "originals/polyhaven/materials/forest_ground_05/2k/forest_ground_05_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:48Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "forest_ground_05",
+      "source_page": "https://polyhaven.com/a/forest_ground_05",
+      "status": "downloaded-original",
+      "tags": [
+        "rough",
+        "uneven",
+        "dirt",
+        "soil",
+        "compact soil",
+        "scattered rocks",
+        "scattered leaves",
+        "forest debris",
+        "organic matter",
+        "leaf litter",
+        "forest floor",
+        "earthy",
+        "dry soil",
+        "natural path",
+        "hikers trail"
+      ],
+      "total_bytes": 10436559,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:grassy_cobblestone",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "natural",
+        "sand",
+        "outdoor",
+        "floor",
+        "cobblestone"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone_diff_2k.jpg",
+          "sha256": "dace14cfb2726a96df34606ca7c20fb7e4f5a267f1da43e8865baeb8a135693c",
+          "size": 3004490,
+          "source_md5": "e4f8ec87a0b0b793277119f0fff77f22",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/grassy_cobblestone/grassy_cobblestone_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone_nor_gl_2k.jpg",
+          "sha256": "02b3dbb258f993380bab554e2f7ea7913d45f4659945a449e138dfef021f07f9",
+          "size": 3957719,
+          "source_md5": "9c1138bb9662b3248166778cd1afca6c",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/grassy_cobblestone/grassy_cobblestone_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone_rough_2k.jpg",
+          "sha256": "93302879a495ceb7d724b8af74c08ba37221126bc66d671fc4b5e39d9761caea",
+          "size": 1933445,
+          "source_md5": "d4ad83937e66036bada919d39e1fba4a",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/grassy_cobblestone/grassy_cobblestone_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone_disp_2k.jpg",
+          "sha256": "37fde0eeca634e40dac14b89264567409edc2c056df641afe498c45418b4c760",
+          "size": 1321939,
+          "source_md5": "93fdafeeb1dd94b79ff09d30d997319c",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/grassy_cobblestone/grassy_cobblestone_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone.preview.png",
+          "sha256": "1451f4553dfc97a15e53893a19533473e3a3695b8d24b794774df5d58d6f65ba",
+          "size": 111967,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/grassy_cobblestone.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone_nor_gl_2k.jpg"
+      },
+      "name": "Grassy Cobblestone",
+      "preview_file": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone.preview.png",
+      "primary_file": "originals/polyhaven/materials/grassy_cobblestone/2k/grassy_cobblestone_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:49Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "grassy_cobblestone",
+      "source_page": "https://polyhaven.com/a/grassy_cobblestone",
+      "status": "downloaded-original",
+      "tags": [
+        "ground",
+        "dirt",
+        "rock",
+        "grass",
+        "dirty",
+        "path",
+        "trampled",
+        "pathway"
+      ],
+      "total_bytes": 10329560,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:gravel_road",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "outdoor",
+        "natural",
+        "terrain",
+        "rock",
+        "road",
+        "asphalt",
+        "dirty",
+        "man made"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/gravel_road/2k/gravel_road_diff_2k.jpg",
+          "sha256": "6313bb65816f2890a247cb9a5bae003ddef98cf55099d5abaf543a88e0ab3180",
+          "size": 2871851,
+          "source_md5": "5d024d27bc8ffa9decad93e4743de749",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/gravel_road/gravel_road_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/gravel_road/2k/gravel_road_nor_gl_2k.jpg",
+          "sha256": "4fc9dfc7ebfe58e531225dc55b9c89d89c1abb51670e62da086f2a8fa4fb71db",
+          "size": 3613956,
+          "source_md5": "7c25211b3cf395df072ffad97c6c2550",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/gravel_road/gravel_road_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/gravel_road/2k/gravel_road_rough_2k.jpg",
+          "sha256": "e03290bca670efb4bc0276a3e1198a2ea4fee27dac87d553b18f336068a461db",
+          "size": 1203380,
+          "source_md5": "bbd4f6c7c1b8ceb4c88a41d03e4ba158",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/gravel_road/gravel_road_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/gravel_road/2k/gravel_road_disp_2k.jpg",
+          "sha256": "636f10f19c36b8f5c8f60355a5899e92c2b8dfa6fb081ef26734853a6b06474a",
+          "size": 1122273,
+          "source_md5": "32c59027b713715190ca19dc73c9c0fe",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/gravel_road/gravel_road_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/gravel_road/2k/gravel_road.preview.png",
+          "sha256": "06edecca51e288b79e646d1a26664b4fb322fd6080caec36c7635aab72b903cd",
+          "size": 110531,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/gravel_road.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/gravel_road/2k/gravel_road_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/gravel_road/2k/gravel_road_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/gravel_road/2k/gravel_road_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/gravel_road/2k/gravel_road_nor_gl_2k.jpg"
+      },
+      "name": "Gravel Road",
+      "preview_file": "originals/polyhaven/materials/gravel_road/2k/gravel_road.preview.png",
+      "primary_file": "originals/polyhaven/materials/gravel_road/2k/gravel_road_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:50Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "gravel_road",
+      "source_page": "https://polyhaven.com/a/gravel_road",
+      "status": "downloaded-original",
+      "tags": [
+        "old",
+        "worn",
+        "rough",
+        "aged",
+        "stone",
+        "gravel",
+        "gravelly",
+        "gravelly texture",
+        "road",
+        "gravelly ground",
+        "driveway",
+        "driveway gravel",
+        "pebbly",
+        "gritty texture"
+      ],
+      "total_bytes": 8921991,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:japanese_hackberry_bark",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "outdoor",
+        "bark",
+        "natural",
+        "wood"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark_diff_2k.jpg",
+          "sha256": "eee9a370071932127e6a4665bb714ea8506c9a918eac3b87a0bc5c4854b76d56",
+          "size": 4735539,
+          "source_md5": "d913ed01faea2f776d46d49e041db940",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/japanese_hackberry_bark/japanese_hackberry_bark_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark_nor_gl_2k.jpg",
+          "sha256": "d632db9e2fb854885b598b1b1091245b93f1b18cb4425deea4c08ac7dec225e8",
+          "size": 5172589,
+          "source_md5": "b3e48bc69fae37a4cca41b04cb6d7182",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/japanese_hackberry_bark/japanese_hackberry_bark_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark_rough_2k.jpg",
+          "sha256": "b6634b6f859eded3127e6dc9d3fd65f0ca1396f5f9bf32cdd30d213e95b1ff3d",
+          "size": 1963198,
+          "source_md5": "ffb7651ccb8d5b16a3f71ce30466cf42",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/japanese_hackberry_bark/japanese_hackberry_bark_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark_disp_2k.jpg",
+          "sha256": "80d0c5cdb2fd6eb97dc14a674fceb49469872cfaafac9d81211d624e7a801a2a",
+          "size": 1397510,
+          "source_md5": "6e95d79f129f50a09e6225e5ebef37d1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/japanese_hackberry_bark/japanese_hackberry_bark_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark.preview.png",
+          "sha256": "37c26c339e4788c4f15b4774f0a3e7800ddda5de470543ddc8c50ca5410f61b3",
+          "size": 127494,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/japanese_hackberry_bark.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark_nor_gl_2k.jpg"
+      },
+      "name": "Japanese Hackberry Bark",
+      "preview_file": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark.preview.png",
+      "primary_file": "originals/polyhaven/materials/japanese_hackberry_bark/2k/japanese_hackberry_bark_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:59Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "japanese_hackberry_bark",
+      "source_page": "https://polyhaven.com/a/japanese_hackberry_bark",
+      "status": "downloaded-original",
+      "tags": [
+        "tree",
+        "bark",
+        "forest",
+        "natural",
+        "tree bark",
+        "tree trunk",
+        "organic",
+        "moss",
+        "nature"
+      ],
+      "total_bytes": 13396330,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:japanese_sycamore",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "outdoor",
+        "natural",
+        "bark",
+        "wood"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore_diff_2k.jpg",
+          "sha256": "1ebefdc4d503a3637274dc469d74a6158889c560b16ec0829f385018237ef0d1",
+          "size": 6859096,
+          "source_md5": "abd3e8766f1cddcf6caa478d4648d1fc",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/japanese_sycamore/japanese_sycamore_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore_nor_gl_2k.jpg",
+          "sha256": "97bf4e32fbfc38fdbb3367ec3a8034c1a7996eb183db558156547370ea2174f8",
+          "size": 5218552,
+          "source_md5": "b4516ce12511a81e9c91c0e303a80b2b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/japanese_sycamore/japanese_sycamore_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore_rough_2k.jpg",
+          "sha256": "15b7d0ac86177b210de9e74eda52faaacda214ea5f9295a7203ddab5950f5e95",
+          "size": 3939065,
+          "source_md5": "977953f259d794948001bafcc569f2f3",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/japanese_sycamore/japanese_sycamore_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore_disp_2k.jpg",
+          "sha256": "98645b3f94311e69d5f8075515ee798c433568ddcd5300507590dda06c3ed9c6",
+          "size": 1337722,
+          "source_md5": "af4446c98ec776a7924f05fcacd26ab3",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/japanese_sycamore/japanese_sycamore_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore.preview.png",
+          "sha256": "2de9cfb36812ac16a6f8d0cb4fadd3cb4f6ee884d991b358f4aff24dcfa956a8",
+          "size": 111760,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/japanese_sycamore.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore_nor_gl_2k.jpg"
+      },
+      "name": "Japanese Sycamore",
+      "preview_file": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore.preview.png",
+      "primary_file": "originals/polyhaven/materials/japanese_sycamore/2k/japanese_sycamore_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:00Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "japanese_sycamore",
+      "source_page": "https://polyhaven.com/a/japanese_sycamore",
+      "status": "downloaded-original",
+      "tags": [
+        "dry",
+        "tree",
+        "bark",
+        "wood",
+        "nature",
+        "forest",
+        "wooden",
+        "non square"
+      ],
+      "total_bytes": 17466195,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:lichen_rock",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "collection: verdant_trail",
+        "rock",
+        "terrain",
+        "natural"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock_diff_2k.jpg",
+          "sha256": "f2ec7a10c6cb929653278e00dcfb0e7e07aea178136a37eac7478d2b9cdd5e96",
+          "size": 4010129,
+          "source_md5": "5625c90a7b55058b7d89e180376a7cda",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/lichen_rock/lichen_rock_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock_nor_gl_2k.jpg",
+          "sha256": "89b28336282a07492080a20725d18c7649ae69b1d8e10187ffe143c804bd6d2c",
+          "size": 4844348,
+          "source_md5": "801690ee8bbc1d4aa2f16af2d49acc26",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/lichen_rock/lichen_rock_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock_rough_2k.jpg",
+          "sha256": "ad8a3ffad3cc15e8781958179db56dbcc9c82b50021076a0068c9e62d494a4c2",
+          "size": 2108970,
+          "source_md5": "0f6970ee1ff05b053b58cf9ad2451c15",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/lichen_rock/lichen_rock_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock_disp_2k.jpg",
+          "sha256": "f1e7b11ae7f95250b62fb39006b5ae7f5e46db800bfa4a6cccc3f9d320132443",
+          "size": 961417,
+          "source_md5": "8feedb29e0fc7d10a29ed915bb571865",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/lichen_rock/lichen_rock_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock.preview.png",
+          "sha256": "b758f3b22dde1d684115a31a626693180158974f5a187c8a0c2275e032d9a3c0",
+          "size": 120726,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/lichen_rock.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock_nor_gl_2k.jpg"
+      },
+      "name": "Lichen Rock",
+      "preview_file": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock.preview.png",
+      "primary_file": "originals/polyhaven/materials/lichen_rock/2k/lichen_rock_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:02Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "lichen_rock",
+      "source_page": "https://polyhaven.com/a/lichen_rock",
+      "status": "downloaded-original",
+      "tags": [
+        "rock",
+        "cliff",
+        "lichen",
+        "moss",
+        "rock face",
+        "boulder",
+        "mossy",
+        "stone",
+        "nature",
+        "rugged"
+      ],
+      "total_bytes": 12045590,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:red_laterite_soil_stones",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "outdoor",
+        "natural",
+        "terrain",
+        "rock",
+        "road",
+        "sand"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones_diff_2k.jpg",
+          "sha256": "db3568338ecdf4467ca74f88178a60ebdb5a98f9b644db73b411913e7044fef6",
+          "size": 3593564,
+          "source_md5": "4ad08edd225b77462fca6f4329e96cb1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/red_laterite_soil_stones/red_laterite_soil_stones_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones_nor_gl_2k.jpg",
+          "sha256": "1b2e238e375c31719169428b318916a8c9ba72b5202d2f36eac46b3d861319b6",
+          "size": 5924499,
+          "source_md5": "b034f4899e0d606e23f9cad992df00ea",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/red_laterite_soil_stones/red_laterite_soil_stones_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones_rough_2k.jpg",
+          "sha256": "b273fa011a704f23e293658ab4e06d924253cb07b3b2eff24366d5d87b120c69",
+          "size": 2819770,
+          "source_md5": "6db06a3f782247c6f922077458f80459",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/red_laterite_soil_stones/red_laterite_soil_stones_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones_disp_2k.jpg",
+          "sha256": "b11389ea93d9bc56ce534ed7361eefb432e796eb4d5b1e9be9a9566ff3c7c83b",
+          "size": 2169376,
+          "source_md5": "2a574cb1d355f3b1ef9b210ba559809c",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/red_laterite_soil_stones/red_laterite_soil_stones_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones.preview.png",
+          "sha256": "9905006426dde034a77656d8148e03cff4c871fc2675b109696232eb50e383da",
+          "size": 119956,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/red_laterite_soil_stones.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones_nor_gl_2k.jpg"
+      },
+      "name": "Red Laterite Soil Stones",
+      "preview_file": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones.preview.png",
+      "primary_file": "originals/polyhaven/materials/red_laterite_soil_stones/2k/red_laterite_soil_stones_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:39Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "red_laterite_soil_stones",
+      "source_page": "https://polyhaven.com/a/red_laterite_soil_stones",
+      "status": "downloaded-original",
+      "tags": [
+        "rough",
+        "red",
+        "laterite",
+        "stones",
+        "ground",
+        "dirt",
+        "pebbles",
+        "rocks",
+        "gravel",
+        "debris",
+        "nature",
+        "pathway",
+        "path",
+        "rock",
+        "brown",
+        "chipped"
+      ],
+      "total_bytes": 14627165,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:rocky_trail",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "outdoor",
+        "natural",
+        "terrain",
+        "rock",
+        "collection: pine_forest"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail_diff_2k.jpg",
+          "sha256": "5434c6377a0b74be356c6f1f0a13842a38111a3dcec9934bf74f7c6f6396c54b",
+          "size": 4208713,
+          "source_md5": "7327bf7d48d33688fb12465222ee3f22",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rocky_trail/rocky_trail_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail_nor_gl_2k.jpg",
+          "sha256": "c8783873d83d7a14cb339332ddf59ee7ee31c68c4cd72770e2f673402755c93c",
+          "size": 5525906,
+          "source_md5": "4642b3c833d526b23c96baa84f5bf429",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rocky_trail/rocky_trail_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail_rough_2k.jpg",
+          "sha256": "e1907ab86a63296504213da70832aed0970098785b65c8763797772d39abbdfc",
+          "size": 2748294,
+          "source_md5": "f731e8566945924c07679de4af9b7460",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rocky_trail/rocky_trail_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail_disp_2k.jpg",
+          "sha256": "965df3124aa534c25ea13d3e652e64c25897d13361e91914bddd845b0a768bcb",
+          "size": 1244065,
+          "source_md5": "a284765925e99896b088b791e4b1b0ad",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rocky_trail/rocky_trail_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail.preview.png",
+          "sha256": "60bf5175b470095100fb4745fa6f3bf49775de74f7a0ad949db29a1f8871136b",
+          "size": 130862,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/rocky_trail.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail_nor_gl_2k.jpg"
+      },
+      "name": "Rocky Trail",
+      "preview_file": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail.preview.png",
+      "primary_file": "originals/polyhaven/materials/rocky_trail/2k/rocky_trail_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:03Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "rocky_trail",
+      "source_page": "https://polyhaven.com/a/rocky_trail",
+      "status": "downloaded-original",
+      "tags": [
+        "rough",
+        "uneven",
+        "stones",
+        "rock",
+        "gravel",
+        "chipped",
+        "rocks",
+        "nature",
+        "path",
+        "broken",
+        "cliff"
+      ],
+      "total_bytes": 13857840,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:sandstone_cracks",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "wall",
+        "floor",
+        "natural",
+        "man made",
+        "outdoor",
+        "road",
+        "terrain"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks_diff_2k.jpg",
+          "sha256": "6d3f99604c85a818277150db784ac66e67a4d91ddc255dabf61b3e956564090d",
+          "size": 2870078,
+          "source_md5": "bc08fe111536bf9b12fa89b43ae90561",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/sandstone_cracks/sandstone_cracks_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks_nor_gl_2k.jpg",
+          "sha256": "904e852268e1fb1bd5c0d035382f6a0e64c98dceea784fe957b1983d98b0231a",
+          "size": 4545235,
+          "source_md5": "f2139f27ed981b9b6788f5065ea97fee",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/sandstone_cracks/sandstone_cracks_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks_rough_2k.jpg",
+          "sha256": "45347870225f1f1b223968e8fc0ac2125374c0b1e0907cda7ad93b1c5dda39f4",
+          "size": 1569280,
+          "source_md5": "242c27221af41d559dfc0281345bba6f",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/sandstone_cracks/sandstone_cracks_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks_disp_2k.jpg",
+          "sha256": "6cfefa6461a06c2c8ddc8a4fbb56df9a0aab34db4b5c5b3429d0dc039c058158",
+          "size": 658141,
+          "source_md5": "d665100ea6ef94429741e5a304f3df66",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/sandstone_cracks/sandstone_cracks_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks.preview.png",
+          "sha256": "87433c7e15ba945492c18bec2bad43a32630f01fe45de6900780706f998c3db5",
+          "size": 115564,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/sandstone_cracks.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks_nor_gl_2k.jpg"
+      },
+      "name": "Sandstone Cracks",
+      "preview_file": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks.preview.png",
+      "primary_file": "originals/polyhaven/materials/sandstone_cracks/2k/sandstone_cracks_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:04Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "sandstone_cracks",
+      "source_page": "https://polyhaven.com/a/sandstone_cracks",
+      "status": "downloaded-original",
+      "tags": [
+        "rough",
+        "dirt",
+        "ground",
+        "sandstone",
+        "cracked",
+        "plaster"
+      ],
+      "total_bytes": 9758298,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:stony_dirt_path",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "dirty",
+        "floor",
+        "outdoor",
+        "natural"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path_diff_2k.jpg",
+          "sha256": "9c35b98628c17382b3a494ae15f17f95410edcaaac2e5922e50e5878f98d4a20",
+          "size": 4722246,
+          "source_md5": "5e290f60a7b4a57337ee3f82714c29f2",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/stony_dirt_path/stony_dirt_path_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path_nor_gl_2k.jpg",
+          "sha256": "6e0ee32808d6ae091cbfb23f6024ab4c7148495d23ae0baf39d0e7ee1f3269d9",
+          "size": 5855159,
+          "source_md5": "180d3e6da2f691febcc23ea4408cd084",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/stony_dirt_path/stony_dirt_path_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path_rough_2k.jpg",
+          "sha256": "2b9507b060ef9031bd94e97efc6bf876d88583d31bc0a25cb3d16aa8c4bd31c9",
+          "size": 1876917,
+          "source_md5": "116511fcae7bd6c767ff89ff9f511733",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/stony_dirt_path/stony_dirt_path_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path_disp_2k.jpg",
+          "sha256": "27cc3a009eeead0489283589fa92744f3153440a10ec1caa69135d252dc395c3",
+          "size": 2109557,
+          "source_md5": "d04677427337d6ae2907df2bb16b9283",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/stony_dirt_path/stony_dirt_path_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path.preview.png",
+          "sha256": "f5a528f7ee3a74f091a212a0ae4563437d18f43d5d6bbd0d0fd7c1433bf345ea",
+          "size": 128161,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/stony_dirt_path.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path_nor_gl_2k.jpg"
+      },
+      "name": "Stony Dirt Path",
+      "preview_file": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path.preview.png",
+      "primary_file": "originals/polyhaven/materials/stony_dirt_path/2k/stony_dirt_path_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:40Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "stony_dirt_path",
+      "source_page": "https://polyhaven.com/a/stony_dirt_path",
+      "status": "downloaded-original",
+      "tags": [
+        "brown",
+        "ground",
+        "leaves",
+        "rocks",
+        "stones",
+        "dirt",
+        "pathway",
+        "path",
+        "forest",
+        "nature",
+        "autumn",
+        "twigs",
+        "rock"
+      ],
+      "total_bytes": 14692040,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:wood_inlaid_stone_wall",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "wall",
+        "rock",
+        "outdoor"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall_diff_2k.jpg",
+          "sha256": "237cd4dbe2621c8487cbfbf3c2e8183040d7a6f83296a90d9979a6a89b0634a3",
+          "size": 2882231,
+          "source_md5": "608d8eb31fddc5f69e1094ba54a057da",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_inlaid_stone_wall/wood_inlaid_stone_wall_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall_nor_gl_2k.jpg",
+          "sha256": "7f7c11c57968b451f5941dfb270b950a945c1c608d23f658d0c51e30b2f819c3",
+          "size": 4107754,
+          "source_md5": "bd76e5ebf9a80dfbae1cd124071c84e1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_inlaid_stone_wall/wood_inlaid_stone_wall_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall_rough_2k.jpg",
+          "sha256": "b0522025a001b7e43209af891d47e3d139f9fa362b97883656d306a469ccae1e",
+          "size": 1570790,
+          "source_md5": "d971c416040708b672974e09d2c9f196",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_inlaid_stone_wall/wood_inlaid_stone_wall_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall_disp_2k.jpg",
+          "sha256": "568bc943279bb8723c3614a4dc550b4cf6b5c2d6f7f953a4cce91e7e9ecfbeed",
+          "size": 823833,
+          "source_md5": "0f05d76695d8204282513db4e5273a67",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_inlaid_stone_wall/wood_inlaid_stone_wall_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall.preview.png",
+          "sha256": "0dfa7e91ba0d5fb7ed0cba85ab6f7b8d7263cc780f349cd3ba2c9878d7975b53",
+          "size": 107910,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/wood_inlaid_stone_wall.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall_nor_gl_2k.jpg"
+      },
+      "name": "Wood Inlaid Stone Wall",
+      "preview_file": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall.preview.png",
+      "primary_file": "originals/polyhaven/materials/wood_inlaid_stone_wall/2k/wood_inlaid_stone_wall_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:05Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "wood_inlaid_stone_wall",
+      "source_page": "https://polyhaven.com/a/wood_inlaid_stone_wall",
+      "status": "downloaded-original",
+      "tags": [
+        "wood",
+        "concrete",
+        "rough",
+        "inlaid",
+        "aged wood",
+        "decorative",
+        "brick pattern",
+        "rustic",
+        "carved wood",
+        "rocks",
+        "rock",
+        "stone",
+        "masonry",
+        "stone block",
+        "rough hewn"
+      ],
+      "total_bytes": 9492518,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:wood_stone_pathway",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "outdoor",
+        "man made",
+        "rock",
+        "raw wood"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway_diff_2k.jpg",
+          "sha256": "0ed8c2dc347931c62f26178576846d6958a258bb93feb6773936c4687d13b18f",
+          "size": 3167390,
+          "source_md5": "235415755a07eea545d313d8351146f5",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_stone_pathway/wood_stone_pathway_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway_nor_gl_2k.jpg",
+          "sha256": "523e881c3e8f7feee0c124a0bc7ad7e5675cf98579f0e87e819927593eea745e",
+          "size": 4327601,
+          "source_md5": "5d22f2e03617b7282cba0cd5590f03b5",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_stone_pathway/wood_stone_pathway_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway_rough_2k.jpg",
+          "sha256": "c8c1ffa88fc9a3b6f6b4e88b61d4b528281970b354150ffb6a93eb2ddea7b812",
+          "size": 2324759,
+          "source_md5": "95976c9e67724a627d71243ee60bfb8b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_stone_pathway/wood_stone_pathway_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway_disp_2k.jpg",
+          "sha256": "15493fcfa4d48584694712b85ad8ba110398da7ae2ae973c07f89d89361234d4",
+          "size": 1142314,
+          "source_md5": "d7fc3c7cc17a59d789201af9fe82dd9b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_stone_pathway/wood_stone_pathway_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway.preview.png",
+          "sha256": "516abf51d8dee3d18fe817e88e6d37eb894ae6fc5cb94e73361b5e34d109eba7",
+          "size": 115023,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/wood_stone_pathway.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway_nor_gl_2k.jpg"
+      },
+      "name": "Wood Stone Pathway",
+      "preview_file": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway.preview.png",
+      "primary_file": "originals/polyhaven/materials/wood_stone_pathway/2k/wood_stone_pathway_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:31:43Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "wood_stone_pathway",
+      "source_page": "https://polyhaven.com/a/wood_stone_pathway",
+      "status": "downloaded-original",
+      "tags": [
+        "dirt",
+        "path",
+        "pathway",
+        "rocks",
+        "rock",
+        "wood",
+        "dusty",
+        "worn",
+        "exterior",
+        "walkway",
+        "weatherbeaten",
+        "lumber",
+        "dry",
+        "stones",
+        "dirty",
+        "sandy"
+      ],
+      "total_bytes": 11077087,
+      "variant": "2k",
+      "version": "2k"
+    },
+    {
+      "asset_id": "polyhaven-material:wooden_rough_planks",
+      "attribution_required": false,
+      "author": "Poly Haven contributors",
+      "catalog_date": "2026-08-07",
+      "categories": [
+        "Materials",
+        "wood",
+        "wall",
+        "man made",
+        "outdoor"
+      ],
+      "files": [
+        {
+          "path": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks_diff_2k.jpg",
+          "sha256": "a1821c8bbbf705fcca015583d30a2ba6ce83c487a5aefc8a77da146810faa260",
+          "size": 2803506,
+          "source_md5": "10bbd0b1e07bfdb7bc23e97159f9565b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wooden_rough_planks/wooden_rough_planks_diff_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks_nor_gl_2k.jpg",
+          "sha256": "0098050b634c58201067e92ab0511104a3b740db79850992c9f96437a325e47e",
+          "size": 1287377,
+          "source_md5": "6eecb930bde18125a73892f8c80c6cc0",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wooden_rough_planks/wooden_rough_planks_nor_gl_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks_rough_2k.jpg",
+          "sha256": "1e5ee7d83d090a4777ed8b5e89f4fa32d1b1d1c3798f96ae5c65457699d2c396",
+          "size": 1055489,
+          "source_md5": "11c8a4d3e6f2a51875750dcb973444f2",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wooden_rough_planks/wooden_rough_planks_rough_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks_disp_2k.jpg",
+          "sha256": "3503a60bce8a6a576510492b67403f78f4c31078482f4bba0886cec490e5f973",
+          "size": 305206,
+          "source_md5": "54f148a9b1e33ce4351fd8b6f814b4bf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wooden_rough_planks/wooden_rough_planks_disp_2k.jpg"
+        },
+        {
+          "path": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks.preview.png",
+          "sha256": "b7787a273891688ca1a0315faa9681789ae717e8bb836d6ccc47a73eefd99167",
+          "size": 103560,
+          "source_md5": null,
+          "url": "https://cdn.polyhaven.com/asset_img/thumbs/wooden_rough_planks.png?width=320&height=240"
+        }
+      ],
+      "kind": "material",
+      "license": "CC0-1.0",
+      "license_url": "https://polyhaven.com/license",
+      "license_verified": true,
+      "material_channels": {
+        "Diffuse": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks_diff_2k.jpg",
+        "Displacement": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks_disp_2k.jpg",
+        "Rough": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks_rough_2k.jpg",
+        "nor_gl": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks_nor_gl_2k.jpg"
+      },
+      "name": "Wooden Rough Planks",
+      "preview_file": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks.preview.png",
+      "primary_file": "originals/polyhaven/materials/wooden_rough_planks/2k/wooden_rough_planks_diff_2k.jpg",
+      "retrieved_at": "2026-08-07T06:32:06Z",
+      "schema_version": 1,
+      "source": "polyhaven",
+      "source_asset_id": "wooden_rough_planks",
+      "source_page": "https://polyhaven.com/a/wooden_rough_planks",
+      "status": "downloaded-original",
+      "tags": [
+        "moss",
+        "rough",
+        "logs",
+        "planks",
+        "uneven",
+        "round",
+        "shed",
+        "cabin",
+        "hut",
+        "lodge",
+        "woods",
+        "forest"
+      ],
+      "total_bytes": 5555138,
+      "variant": "2k",
+      "version": "2k"
+    }
+  ],
+  "catalog_date": "2026-08-07",
+  "error_count": 0,
+  "errors": [],
+  "license_policy": "cc0-only",
+  "schema_version": 1,
+  "source": "polyhaven",
+  "total_bytes": 319207845,
+  "vault_root": "${OPENRPG_ASSET_VAULT}"
+}

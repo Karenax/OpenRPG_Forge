@@ -34,32 +34,43 @@ public static class GodotBiomeScatterAdapter
             if (mesh is null) continue;
             var placements = BiomeScatterPlanBuilder.Build(world, biome);
             if (placements.Count == 0) continue;
-            var multiMesh = new MultiMesh
+            var policy = BiomeScatterRenderingPolicy.For(biome);
+            var cells = BiomeScatterCellPlanBuilder.Build(world.Terrain, placements, policy.CellSize);
+            foreach (var cell in cells)
             {
-                TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
-                Mesh = mesh,
-                InstanceCount = placements.Count,
-            };
-            for (var index = 0; index < placements.Count; index++)
-            {
-                var placement = placements[index];
-                var basis = Basis.FromEuler(new Vector3(0, placement.YawRadians, 0))
-                    .Scaled(Vector3.One * placement.UniformScale);
-                multiMesh.SetInstanceTransform(index, new Transform3D(
-                    basis,
-                    new Vector3(placement.Position.X, placement.Position.Y, placement.Position.Z)));
+                var multiMesh = new MultiMesh
+                {
+                    TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
+                    Mesh = mesh,
+                    InstanceCount = cell.Placements.Count,
+                };
+                for (var index = 0; index < cell.Placements.Count; index++)
+                {
+                    var placement = cell.Placements[index];
+                    var basis = Basis.FromEuler(new Vector3(0, placement.YawRadians, 0))
+                        .Scaled(Vector3.One * placement.UniformScale);
+                    multiMesh.SetInstanceTransform(index, new Transform3D(
+                        basis,
+                        new Vector3(
+                            placement.Position.X - cell.Origin.X,
+                            placement.Position.Y,
+                            placement.Position.Z - cell.Origin.Z)));
+                }
+                root.AddChild(new MultiMeshInstance3D
+                {
+                    Name = $"Scatter_{biome.Id:N}_{cell.CellX}_{cell.CellZ}",
+                    Position = new Vector3(cell.Origin.X, 0, cell.Origin.Z),
+                    Multimesh = multiMesh,
+                    VisibilityRangeEnd = policy.VisibilityRangeEnd,
+                    VisibilityRangeEndMargin = 8,
+                    CastShadow = policy.CastShadows
+                        ? GeometryInstance3D.ShadowCastingSetting.On
+                        : GeometryInstance3D.ShadowCastingSetting.Off,
+                });
             }
-            var cullingRange = biome.Tags.Contains("ground-cover", StringComparer.OrdinalIgnoreCase) ? 42 : 120;
-            root.AddChild(new MultiMeshInstance3D
-            {
-                Name = $"Scatter_{biome.Id:N}",
-                Multimesh = multiMesh,
-                VisibilityRangeEnd = cullingRange,
-                VisibilityRangeEndMargin = 8,
-            });
             layers++;
             instances += placements.Count;
-            cullingGroups++;
+            cullingGroups += cells.Count;
 
             if (biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase))
             {

@@ -1,0 +1,6 @@
+interface:
+  display_name: "OpenRPG Publish Main"
+  short_description: "Valider puis publier explicitement sur main"
+  default_prompt: "Use $openrpg-publish-main to validate and publish the approved OpenRPG scope to main."
+policy:
+  allow_implicit_invocation: false

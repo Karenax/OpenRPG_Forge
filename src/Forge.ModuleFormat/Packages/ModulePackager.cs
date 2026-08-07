@@ -173,6 +173,7 @@ public static class ModulePackager
         var segments = Path.GetRelativePath(workspaceRoot, file)
             .Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
         return segments.Any(segment => segment is ".forge" or ".godot" or "bin" or "obj" or "artifacts" or "tmp" or "native") ||
+               string.Equals(Path.GetExtension(file), ".import", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(Path.GetFileName(file), "forge.project.json", StringComparison.OrdinalIgnoreCase);
     }
 

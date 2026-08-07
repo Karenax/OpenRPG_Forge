@@ -18,6 +18,56 @@ public static class CuratedAssetPackInstaller
         ReadCommentHandling = JsonCommentHandling.Skip,
     };
 
+    public static int RemovePack(string workspaceRoot, string packId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(workspaceRoot);
+        ArgumentException.ThrowIfNullOrWhiteSpace(packId);
+        var workspace = Path.GetFullPath(workspaceRoot);
+        var manifests = AssetPackageManifestStore.Load(workspace);
+        var profiles = AssetProcessingProfileStore.Load(workspace);
+        if (!manifests.Succeeded || !profiles.Succeeded)
+        {
+            throw new InvalidDataException("Existing asset governance files could not be loaded.");
+        }
+
+        var marker = $"author:openrpg-forge:{packId}@";
+        var removed = manifests.Manifests
+            .Where(manifest => manifest.ModificationProvenance.StartsWith(marker, StringComparison.Ordinal))
+            .ToArray();
+        if (removed.Length == 0) return 0;
+        var removedIds = removed.Select(manifest => manifest.AssetId).ToHashSet();
+        EnsureSaved(AssetPackageManifestStore.Save(workspace,
+            manifests.Manifests.Where(manifest => !removedIds.Contains(manifest.AssetId)).ToArray()));
+        EnsureSaved(AssetProcessingProfileStore.Save(workspace,
+            profiles.Profiles.Where(profile => !removedIds.Contains(profile.AssetId)).ToArray()));
+
+        foreach (var manifest in removed)
+        {
+            foreach (var directory in manifest.Chunks
+                         .Select(chunk => ResolveContained(workspace, chunk.RelativePath))
+                         .Select(Path.GetDirectoryName)
+                         .Where(directory => !string.IsNullOrWhiteSpace(directory))
+                         .Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                var importedRoot = Path.GetFullPath(Path.Combine(workspace, "assets", "imported"))
+                    .TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                var candidate = Path.GetFullPath(directory!);
+                if (!candidate.StartsWith(importedRoot, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidDataException($"Retired asset directory '{candidate}' escapes assets/imported.");
+                }
+
+                if (Directory.Exists(candidate)) Directory.Delete(candidate, recursive: true);
+            }
+        }
+
+        var creditsDirectory = Path.Combine(workspace, "assets", "credits");
+        var creditsPath = Path.Combine(creditsDirectory, $"{SafeFileName(packId)}.md");
+        if (File.Exists(creditsPath)) File.Delete(creditsPath);
+        if (Directory.Exists(creditsDirectory)) RegenerateCreditsIndex(workspace, creditsDirectory);
+        return removed.Length;
+    }
+
     public static CuratedAssetPackInstallResult InstallForgottenForest(
         string repositoryRoot,
         string vaultRoot,

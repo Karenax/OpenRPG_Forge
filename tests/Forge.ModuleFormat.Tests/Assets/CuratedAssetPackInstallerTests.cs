@@ -49,6 +49,15 @@ public sealed class CuratedAssetPackInstallerTests : IDisposable
         Assert.Equal(2, package.Chunks.Count);
         Assert.Contains(package.Chunks, chunk => chunk.RelativePath.EndsWith("Textures/colormap.png", StringComparison.Ordinal));
         Assert.True(File.Exists(Path.Combine(workspace, "assets", "CREDITS_ASSETS.md")));
+
+        var removed = CuratedAssetPackInstaller.RemovePack(workspace, "forgotten-forest-core");
+
+        Assert.Equal(1, removed);
+        Assert.Empty(AssetPackageManifestStore.Load(workspace).Manifests);
+        Assert.Empty(AssetProcessingProfileStore.Load(workspace).Profiles);
+        Assert.False(File.Exists(Path.Combine(
+            workspace,
+            entry.OutputRelativePath.Replace('/', Path.DirectorySeparatorChar))));
     }
 
     [Fact]

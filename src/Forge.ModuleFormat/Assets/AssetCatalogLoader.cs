@@ -23,6 +23,7 @@ public static class AssetCatalogLoader
         vaultRoot = ResolveVaultRoot(repositoryRoot, vaultRoot);
         var unitCatalogPath = Path.Combine(repositoryRoot, "asset_manifests", "catalogs", "cc0_3d_all.json");
         var packCatalogPath = Path.Combine(repositoryRoot, "asset_manifests", "catalogs", "kenney_3d_packs.json");
+        var catalogDirectory = Path.GetDirectoryName(unitCatalogPath)!;
         var diagnostics = new List<DomainDiagnostic>();
         if (!File.Exists(unitCatalogPath) || !File.Exists(packCatalogPath))
         {
@@ -40,27 +41,43 @@ public static class AssetCatalogLoader
 
         try
         {
-            using var unitDocument = JsonDocument.Parse(File.ReadAllText(unitCatalogPath));
-            using var packDocument = JsonDocument.Parse(File.ReadAllText(packCatalogPath));
-            var unitRoot = unitDocument.RootElement;
-            var packRoot = packDocument.RootElement;
-            EnsureSchema(unitRoot, unitCatalogPath);
-            EnsureSchema(packRoot, packCatalogPath);
             var items = new List<AssetCatalogItem>();
-            items.AddRange(unitRoot.GetProperty("assets").EnumerateArray()
-                .Select(item => MapUnitAsset(item, vaultRoot)));
-            items.AddRange(packRoot.GetProperty("packs").EnumerateArray()
-                .Select(item => MapPack(item, vaultRoot)));
+            var catalogDates = new List<string>();
+            var licensePolicies = new List<string>();
+            foreach (var catalogPath in Directory.EnumerateFiles(catalogDirectory, "*.json")
+                         .OrderBy(path => path, StringComparer.Ordinal))
+            {
+                using var document = JsonDocument.Parse(File.ReadAllText(catalogPath));
+                var root = document.RootElement;
+                EnsureSchema(root, catalogPath);
+                catalogDates.Add(ReadString(root, "catalog_date"));
+                licensePolicies.Add(ReadString(root, "license_policy"));
+                if (root.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
+                {
+                    items.AddRange(assets.EnumerateArray().Select(item => MapUnitAsset(item, vaultRoot)));
+                }
+
+                if (root.TryGetProperty("packs", out var packs) && packs.ValueKind == JsonValueKind.Array)
+                {
+                    items.AddRange(packs.EnumerateArray().Select(item => MapPack(item, vaultRoot)));
+                }
+            }
+
+            if (licensePolicies.Any(policy => !string.Equals(policy, "cc0-only", StringComparison.Ordinal)))
+            {
+                throw new InvalidDataException("Every distributed asset catalog must declare license_policy 'cc0-only'.");
+            }
+
             var installationState = new AssetVaultPackageStore(vaultRoot).LoadState();
             items = items.Select(item => item.WithInstalledPacks(
                     installationState.FindPackageIds(item.Id)))
                 .ToList();
-            var catalogDate = new[] { ReadString(unitRoot, "catalog_date"), ReadString(packRoot, "catalog_date") }
+            var catalogDate = catalogDates
                 .OrderByDescending(value => value, StringComparer.Ordinal)
                 .First();
             var catalog = new AssetCatalog(
                 catalogDate,
-                ReadString(unitRoot, "license_policy"),
+                "cc0-only",
                 vaultRoot,
                 items,
                 "asset_manifests/packs/cc0_3d_all.json");
@@ -146,17 +163,24 @@ public static class AssetCatalogLoader
     {
         var externalId = ReadString(item, "pack_id");
         var name = ReadString(item, "name");
-        var tags = name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        var source = ReadString(item, "source");
+        var declaredTags = ReadStrings(item, "tags");
+        var tags = declaredTags.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries))
             .Select(value => value.Trim().ToLowerInvariant())
-            .Append("kenney")
+            .Append(source)
             .Append("pack")
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
+        var declaredCategories = ReadStrings(item, "categories");
+        var categories = declaredCategories.Count > 0
+            ? declaredCategories.Concat(["3d-model", "pack"]).Distinct(StringComparer.OrdinalIgnoreCase).ToArray()
+            : ["3d-model", "pack"];
         var modelPath = SelectModelPath(item, ReadOptionalString(item, "extracted_root"));
         return CreateItem(
             item,
             externalId,
             externalId.Split(':').Last(),
-            ["3d-model", "pack"],
+            categories,
             tags,
             modelPath,
             null,
@@ -229,13 +253,19 @@ public static class AssetCatalogLoader
     {
         ".glb" => 0,
         ".gltf" => 1,
-        ".obj" => 2,
-        ".fbx" => 3,
+        ".fbx" => 2,
+        ".obj" => 3,
         _ => 9,
     };
 
     private static string? SelectPreviewPath(JsonElement item, string? extractedRoot)
     {
+        var declaredPreview = ReadOptionalString(item, "preview_file");
+        if (IsSupportedPreview(declaredPreview))
+        {
+            return declaredPreview!.Replace('\\', '/');
+        }
+
         if (!string.IsNullOrWhiteSpace(extractedRoot) && item.TryGetProperty("extracted_files", out var extracted))
         {
             var preview = extracted.EnumerateArray().Select(value => value.GetString())

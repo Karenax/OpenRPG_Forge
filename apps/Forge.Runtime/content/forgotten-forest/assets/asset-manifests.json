@@ -1684,87 +1684,6 @@
     },
     {
       "schemaVersion": 1,
-      "id": "dd85d566-da45-9d52-a2de-ae32c45f99e8",
-      "assetId": "16144713-9b8a-fb5a-bf37-b816dff5bcad",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
-      "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "9ba6337460e718b8baf165b23c02f39455e3d5757b1911505410c46bc88a86b5",
-      "platformBudgets": {
-        "windows": 21416,
-        "linux": 21416
-      },
-      "chunks": [
-        {
-          "id": "816d915a-5324-ed56-9112-911a7786f732",
-          "role": "model",
-          "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-pine-tall/model.glb",
-          "contentSha256": "9ba6337460e718b8baf165b23c02f39455e3d5757b1911505410c46bc88a86b5",
-          "uncompressedBytes": 10708,
-          "storedBytes": 10708,
-          "compression": "none",
-          "platforms": [
-            "windows",
-            "linux"
-          ]
-        }
-      ],
-      "collision": {
-        "required": false,
-        "chunkId": "816d915a-5324-ed56-9112-911a7786f732",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "816d915a-5324-ed56-9112-911a7786f732",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
-      "vfx": null,
-      "lod": {
-        "required": false,
-        "crossFadeSeconds": 0.15,
-        "levels": [
-          {
-            "level": 0,
-            "chunkId": "816d915a-5324-ed56-9112-911a7786f732",
-            "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
-          }
-        ]
-      },
-      "modelMetadata": null
-    },
-    {
-      "schemaVersion": 1,
       "id": "92222594-6f45-a058-8ef7-5e410f8824b0",
       "assetId": "16946a65-ec1b-d259-aa9b-d0aedc7a7407",
       "modificationProvenance": "author:openrpg-forge:forgotten-forest-animated-character@1.0.0",
@@ -1995,24 +1914,24 @@
     },
     {
       "schemaVersion": 1,
-      "id": "64c9b02d-d92b-dc59-ae82-3f7e5e597cd8",
-      "assetId": "19795bc7-8e7e-4e51-81cc-cdb1e12ae4fb",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "id": "4201ccf5-ead4-495a-a6b0-5ce74b6eaa04",
+      "assetId": "1e7528e7-2bae-4455-b89e-60d7fa4aba8c",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
       "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "29f02df0589dd2b09e8d2aff6a4662394dac5cfcf1fec701640dcbd6127e0802",
+      "sourceContentSha256": "6c3d5787482d48fc0b1fd7243b6827d36133d8844c8b1a5156b33a7e0c635e60",
       "platformBudgets": {
-        "windows": 29920,
-        "linux": 29920
+        "windows": 67108864,
+        "linux": 67108864
       },
       "chunks": [
         {
-          "id": "d65817e4-ddb1-365d-89c6-65601dfba05a",
+          "id": "c70ed69b-7cc4-3353-a0ba-bf856909d9fb",
           "role": "model",
           "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-red-mushrooms/model.glb",
-          "contentSha256": "29f02df0589dd2b09e8d2aff6a4662394dac5cfcf1fec701640dcbd6127e0802",
-          "uncompressedBytes": 14960,
-          "storedBytes": 14960,
+          "relativePath": "assets/imported/polyhaven-tree-stump-01/model.glb",
+          "contentSha256": "ef31627a35ba3e8a0e3af8552752ac8069819d7afa8920f8fe99c572612609fd",
+          "uncompressedBytes": 3114968,
+          "storedBytes": 3114968,
           "compression": "none",
           "platforms": [
             "windows",
@@ -2020,33 +1939,8 @@
           ]
         }
       ],
-      "collision": {
-        "required": false,
-        "chunkId": "d65817e4-ddb1-365d-89c6-65601dfba05a",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "d65817e4-ddb1-365d-89c6-65601dfba05a",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
+      "collision": null,
+      "animation": null,
       "vfx": null,
       "lod": {
         "required": false,
@@ -2054,25 +1948,108 @@
         "levels": [
           {
             "level": 0,
-            "chunkId": "d65817e4-ddb1-365d-89c6-65601dfba05a",
+            "chunkId": "c70ed69b-7cc4-3353-a0ba-bf856909d9fb",
             "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
+            "maximumTriangles": 4924
           }
         ]
       },
-      "modelMetadata": null
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 1.424872,
+          "extentYMeters": 0.572157,
+          "extentZMeters": 1.591282
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 3529,
+          "triangleCount": 4924,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "bark",
+          "collection: pine_forest",
+          "dead",
+          "dead tree",
+          "deadwood",
+          "debris",
+          "decayed",
+          "dry",
+          "environment",
+          "foliage",
+          "forest",
+          "forest floor",
+          "ground cover",
+          "leaf",
+          "log",
+          "moss",
+          "mossy",
+          "natural",
+          "nature",
+          "plants",
+          "polyhaven",
+          "roots",
+          "rough texture",
+          "stump"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Tree Stump 01",
+            "modelChunkId": "c70ed69b-7cc4-3353-a0ba-bf856909d9fb",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "bark",
+              "collection: pine_forest",
+              "dead",
+              "dead tree",
+              "deadwood",
+              "debris",
+              "decayed",
+              "dry",
+              "environment",
+              "foliage",
+              "forest",
+              "forest floor",
+              "ground cover",
+              "leaf",
+              "log",
+              "moss",
+              "mossy",
+              "natural",
+              "nature",
+              "plants",
+              "polyhaven",
+              "roots",
+              "rough texture",
+              "stump"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-tree-stump-01/model.preview.png",
+        "previewContentSha256": "0b86ba5d8caff16081a0887bde026a89e8186bb1b6b54326d7642aefc60f362c",
+        "previewBytes": 301285,
+        "qualityReportRelativePath": "assets/imported/polyhaven-tree-stump-01/model.quality.json",
+        "qualityReportContentSha256": "bc1a9f4245d21a6d1dfbcb9dd73170310d7eeb7a5fe19ff8b271289e8ca9d048"
+      }
     },
     {
       "schemaVersion": 1,
@@ -2772,24 +2749,24 @@
     },
     {
       "schemaVersion": 1,
-      "id": "9afc2fe2-9c04-2d50-976a-cbc71c820dff",
-      "assetId": "2abafbd7-3e72-6d57-a05d-fbf3ce8d1c19",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "id": "5b1be400-46c9-2958-b6e2-83c4af391836",
+      "assetId": "2f936139-324c-7557-a99d-3444847def51",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
       "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "2afb10cd68a9a7b185fc46110be0da550ea2aef86ef9ac6b7339f217eb4b636a",
+      "sourceContentSha256": "d52ba5e89830b262e313a87d31c8bf7df383e7645d22d2f8658828cb7eb5c5c7",
       "platformBudgets": {
-        "windows": 16168,
-        "linux": 16168
+        "windows": 33554432,
+        "linux": 33554432
       },
       "chunks": [
         {
-          "id": "e5aa7187-93f6-db50-8425-3251fa3ae3bd",
+          "id": "8d380296-0566-7d52-9de4-8dc83032d7a8",
           "role": "model",
           "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-purple-flowers/model.glb",
-          "contentSha256": "2afb10cd68a9a7b185fc46110be0da550ea2aef86ef9ac6b7339f217eb4b636a",
-          "uncompressedBytes": 8084,
-          "storedBytes": 8084,
+          "relativePath": "assets/imported/polyhaven-dry-branches-medium-01/model.glb",
+          "contentSha256": "a9bedc1c7b4f7a931e6dcd8f4db542e5a7e437e90c13f18933fa7cdb4e2ff1b7",
+          "uncompressedBytes": 2871420,
+          "storedBytes": 2871420,
           "compression": "none",
           "platforms": [
             "windows",
@@ -2797,33 +2774,8 @@
           ]
         }
       ],
-      "collision": {
-        "required": false,
-        "chunkId": "e5aa7187-93f6-db50-8425-3251fa3ae3bd",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "e5aa7187-93f6-db50-8425-3251fa3ae3bd",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
+      "collision": null,
+      "animation": null,
       "vfx": null,
       "lod": {
         "required": false,
@@ -2831,25 +2783,106 @@
         "levels": [
           {
             "level": 0,
-            "chunkId": "e5aa7187-93f6-db50-8425-3251fa3ae3bd",
+            "chunkId": "8d380296-0566-7d52-9de4-8dc83032d7a8",
             "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
+            "maximumTriangles": 2807
           }
         ]
       },
-      "modelMetadata": null
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 0.129357,
+          "extentYMeters": 0.143404,
+          "extentZMeters": 0.777126
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 2162,
+          "triangleCount": 2807,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "botany",
+          "branches",
+          "collection: pine_forest",
+          "collection: verdant_trail",
+          "dead",
+          "deadwood",
+          "dry",
+          "foliage",
+          "forest",
+          "ground cover",
+          "jungle",
+          "medium",
+          "natural",
+          "nature",
+          "outdoor",
+          "plant",
+          "plants",
+          "polyhaven",
+          "props",
+          "shrub",
+          "stick",
+          "twig",
+          "wood"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Dry Branches Medium 01",
+            "modelChunkId": "8d380296-0566-7d52-9de4-8dc83032d7a8",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "botany",
+              "branches",
+              "collection: pine_forest",
+              "collection: verdant_trail",
+              "dead",
+              "deadwood",
+              "dry",
+              "foliage",
+              "forest",
+              "ground cover",
+              "jungle",
+              "medium",
+              "natural",
+              "nature",
+              "outdoor",
+              "plant",
+              "plants",
+              "polyhaven",
+              "props",
+              "shrub",
+              "stick",
+              "twig",
+              "wood"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-dry-branches-medium-01/model.preview.png",
+        "previewContentSha256": "1615776cff520e6f33c7737a9d325355465da9cf327d5ea5e6ff1a80266f71e0",
+        "previewBytes": 98451,
+        "qualityReportRelativePath": "assets/imported/polyhaven-dry-branches-medium-01/model.quality.json",
+        "qualityReportContentSha256": "9cde9cb62de7231f4237e098b6ef50b1ce1ed58dcd64a6ab9ce4571b39e48262"
+      }
     },
     {
       "schemaVersion": 1,
@@ -3456,87 +3489,6 @@
     },
     {
       "schemaVersion": 1,
-      "id": "cc32ab0c-9707-575d-b92d-96268e435672",
-      "assetId": "3d20f8e7-5de0-8758-9a12-9e6fb271fefb",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
-      "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "f8e90ed7f7771644998a7c361302213af04350150b3ea0631e8384d26506efa2",
-      "platformBudgets": {
-        "windows": 33880,
-        "linux": 33880
-      },
-      "chunks": [
-        {
-          "id": "b350c97d-d5c7-9f5d-a8f3-254dc987100e",
-          "role": "model",
-          "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-fall-tree/model.glb",
-          "contentSha256": "f8e90ed7f7771644998a7c361302213af04350150b3ea0631e8384d26506efa2",
-          "uncompressedBytes": 16940,
-          "storedBytes": 16940,
-          "compression": "none",
-          "platforms": [
-            "windows",
-            "linux"
-          ]
-        }
-      ],
-      "collision": {
-        "required": false,
-        "chunkId": "b350c97d-d5c7-9f5d-a8f3-254dc987100e",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "b350c97d-d5c7-9f5d-a8f3-254dc987100e",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
-      "vfx": null,
-      "lod": {
-        "required": false,
-        "crossFadeSeconds": 0.15,
-        "levels": [
-          {
-            "level": 0,
-            "chunkId": "b350c97d-d5c7-9f5d-a8f3-254dc987100e",
-            "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
-          }
-        ]
-      },
-      "modelMetadata": null
-    },
-    {
-      "schemaVersion": 1,
       "id": "f560d5f3-c198-c251-9f4d-ceb549436491",
       "assetId": "513bdb67-d69d-7256-8a88-c829b9eae152",
       "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
@@ -3632,24 +3584,24 @@
     },
     {
       "schemaVersion": 1,
-      "id": "d547da81-4e64-315c-9d1a-09ce5e623a2d",
-      "assetId": "654d6f01-dab6-d555-9996-ed19a77bedb9",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "id": "4bc710e6-1cfa-a05b-8fc2-3e1cf3df4307",
+      "assetId": "5245022e-4f05-fd57-bad0-e54a5590c405",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
       "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "29080a4935bae6b4ab29066f22c99c58f88b23ce4e2f79b4dcbb5e76de73f69d",
+      "sourceContentSha256": "5b2b65ce2b116fc8601316523d9db43709f2fe80f9b6ca024d6b897878e35162",
       "platformBudgets": {
-        "windows": 30664,
-        "linux": 30664
+        "windows": 33554432,
+        "linux": 33554432
       },
       "chunks": [
         {
-          "id": "929cf0ae-b23c-6a57-9778-d21d4cd41c8f",
+          "id": "27244b16-ccfc-6658-abf5-5c93726fa0e4",
           "role": "model",
           "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-pine-round/model.glb",
-          "contentSha256": "29080a4935bae6b4ab29066f22c99c58f88b23ce4e2f79b4dcbb5e76de73f69d",
-          "uncompressedBytes": 15332,
-          "storedBytes": 15332,
+          "relativePath": "assets/imported/polyhaven-rock-moss-set-01/model.glb",
+          "contentSha256": "4d2dca5976cfe0c6fd36f8534adbd7912f4c391949b74c7764e2afba5d82da5d",
+          "uncompressedBytes": 563880,
+          "storedBytes": 563880,
           "compression": "none",
           "platforms": [
             "windows",
@@ -3657,33 +3609,8 @@
           ]
         }
       ],
-      "collision": {
-        "required": false,
-        "chunkId": "929cf0ae-b23c-6a57-9778-d21d4cd41c8f",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "929cf0ae-b23c-6a57-9778-d21d4cd41c8f",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
+      "collision": null,
+      "animation": null,
       "vfx": null,
       "lod": {
         "required": false,
@@ -3691,25 +3618,461 @@
         "levels": [
           {
             "level": 0,
-            "chunkId": "929cf0ae-b23c-6a57-9778-d21d4cd41c8f",
+            "chunkId": "27244b16-ccfc-6658-abf5-5c93726fa0e4",
             "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
+            "maximumTriangles": 3849
           }
         ]
       },
-      "modelMetadata": null
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 2.235445,
+          "extentYMeters": 1.469437,
+          "extentZMeters": 3.36506
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 2443,
+          "triangleCount": 3849,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "collection: pine_forest",
+          "dirt",
+          "forest",
+          "moss",
+          "nature",
+          "outdoor",
+          "pebbles",
+          "polyhaven",
+          "rock",
+          "rocks",
+          "stones"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Rock Moss Set 01",
+            "modelChunkId": "27244b16-ccfc-6658-abf5-5c93726fa0e4",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "collection: pine_forest",
+              "dirt",
+              "forest",
+              "moss",
+              "nature",
+              "outdoor",
+              "pebbles",
+              "polyhaven",
+              "rock",
+              "rocks",
+              "stones"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-rock-moss-set-01/model.preview.png",
+        "previewContentSha256": "b5cd593f6e6ca3a258d98cca118fe3f0eb36419ab3dab8d4cb712fccd0d3b5c0",
+        "previewBytes": 180803,
+        "qualityReportRelativePath": "assets/imported/polyhaven-rock-moss-set-01/model.quality.json",
+        "qualityReportContentSha256": "6388d2790cb42771443ef3faf0ea41dd5131cb58d8f672c1b692a12bb49d2136"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "70b0a142-6e79-7058-bf09-1b348b6ddaba",
+      "assetId": "53588e25-fb64-5e53-a415-09a5795ef9a8",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "3d5220d9b95ceac08caddb321f45a52cdf8f90a77a107cae09c0f1cf5674f3b8",
+      "platformBudgets": {
+        "windows": 67108864,
+        "linux": 67108864
+      },
+      "chunks": [
+        {
+          "id": "e6192f2e-125e-1555-bb3f-9c93b9a76e85",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/polyhaven-didelta-spinosa/model.glb",
+          "contentSha256": "5786c191ab9adf99adf3f8ef0cf80bb0f2d570b711fb26f38be1137ea1b76129",
+          "uncompressedBytes": 1291376,
+          "storedBytes": 1291376,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "e6192f2e-125e-1555-bb3f-9c93b9a76e85",
+            "screenRatio": 1,
+            "maximumTriangles": 4655
+          }
+        ]
+      },
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 0.816097,
+          "extentYMeters": 0.937043,
+          "extentZMeters": 1.054854
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 4922,
+          "triangleCount": 4655,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "botany",
+          "bush",
+          "collection: namaqualand",
+          "dessert",
+          "flower",
+          "foliage",
+          "green",
+          "leaf",
+          "leaves",
+          "meadow",
+          "natural",
+          "nature",
+          "plant",
+          "plants",
+          "polyhaven",
+          "shrub"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Didelta Spinosa",
+            "modelChunkId": "e6192f2e-125e-1555-bb3f-9c93b9a76e85",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "botany",
+              "bush",
+              "collection: namaqualand",
+              "dessert",
+              "flower",
+              "foliage",
+              "green",
+              "leaf",
+              "leaves",
+              "meadow",
+              "natural",
+              "nature",
+              "plant",
+              "plants",
+              "polyhaven",
+              "shrub"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-didelta-spinosa/model.preview.png",
+        "previewContentSha256": "140275b43d867ce50cc401c7bcad43a971430a30b80d93f804cbedae428dab13",
+        "previewBytes": 196066,
+        "qualityReportRelativePath": "assets/imported/polyhaven-didelta-spinosa/model.quality.json",
+        "qualityReportContentSha256": "62c5d55ba2a4c81daf3327588d9f970cb117811fbcb99512a5c57600a93b8301"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "16ca023b-69d5-9852-8efb-3adbe19d07a6",
+      "assetId": "5b14c277-cde3-9c5c-828a-829e94d04763",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "9e9f9113ea28b4102ec2724cc419668ce40e23921a8104291fff4378deb6e83e",
+      "platformBudgets": {
+        "windows": 67108864,
+        "linux": 67108864
+      },
+      "chunks": [
+        {
+          "id": "47c8ff78-c85e-865d-ae72-710cbd541595",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/polyhaven-pine-sapling-small/model.glb",
+          "contentSha256": "8bf4bd167bbd1424e5f3e1365d83bd0636a670726aefa636c709192d57e99521",
+          "uncompressedBytes": 5184952,
+          "storedBytes": 5184952,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "47c8ff78-c85e-865d-ae72-710cbd541595",
+            "screenRatio": 1,
+            "maximumTriangles": 4278
+          }
+        ]
+      },
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 0.525105,
+          "extentYMeters": 1.047903,
+          "extentZMeters": 0.727593
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 24348,
+          "triangleCount": 4278,
+          "materialCount": 2,
+          "textureCount": 6,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "bark",
+          "branches",
+          "collection: pine_forest",
+          "coniferous",
+          "environment",
+          "evergreen",
+          "foliage",
+          "forest",
+          "forest floor",
+          "natural",
+          "nature",
+          "needles",
+          "pine",
+          "plants",
+          "polyhaven",
+          "sapling",
+          "tree",
+          "trees",
+          "trunk",
+          "vegetation",
+          "woodland"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Pine Sapling Small",
+            "modelChunkId": "47c8ff78-c85e-865d-ae72-710cbd541595",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "bark",
+              "branches",
+              "collection: pine_forest",
+              "coniferous",
+              "environment",
+              "evergreen",
+              "foliage",
+              "forest",
+              "forest floor",
+              "natural",
+              "nature",
+              "needles",
+              "pine",
+              "plants",
+              "polyhaven",
+              "sapling",
+              "tree",
+              "trees",
+              "trunk",
+              "vegetation",
+              "woodland"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-pine-sapling-small/model.preview.png",
+        "previewContentSha256": "b9db78bf494dceb475949fae2050ec62b0f13a72006b5136f2fe31aa51d46831",
+        "previewBytes": 198435,
+        "qualityReportRelativePath": "assets/imported/polyhaven-pine-sapling-small/model.quality.json",
+        "qualityReportContentSha256": "ff54ee94d58088f7009fa8c616d953da7f6e22c02c27ddf34f463667b02e8565"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "a0ed0836-543c-a453-9cce-16fa26afb4b9",
+      "assetId": "5b7b6e26-0f01-c559-bbe9-881431470735",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "3b96777955be82fcefdfba05ac010467e6456beba9509d90190b568f23d19d94",
+      "platformBudgets": {
+        "windows": 33554432,
+        "linux": 33554432
+      },
+      "chunks": [
+        {
+          "id": "91439c67-a907-2c53-9b56-8ae3004a2215",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/polyhaven-fern-02/model.glb",
+          "contentSha256": "1d91b7c62a44a2acd2c23f34814bb67430747eff1b8075ed6b0ee2da94e5b152",
+          "uncompressedBytes": 1621356,
+          "storedBytes": 1621356,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "91439c67-a907-2c53-9b56-8ae3004a2215",
+            "screenRatio": 1,
+            "maximumTriangles": 1310
+          }
+        ]
+      },
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 0.990339,
+          "extentYMeters": 0.426093,
+          "extentZMeters": 0.894997
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 1008,
+          "triangleCount": 1310,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "bush",
+          "collection: pine_forest",
+          "collection: smugglers_cove",
+          "fern",
+          "foliage",
+          "forest",
+          "green",
+          "jungle",
+          "leaf",
+          "leaves",
+          "nature",
+          "outdoor",
+          "plant",
+          "plants",
+          "polyhaven",
+          "shrub"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Fern 02",
+            "modelChunkId": "91439c67-a907-2c53-9b56-8ae3004a2215",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "bush",
+              "collection: pine_forest",
+              "collection: smugglers_cove",
+              "fern",
+              "foliage",
+              "forest",
+              "green",
+              "jungle",
+              "leaf",
+              "leaves",
+              "nature",
+              "outdoor",
+              "plant",
+              "plants",
+              "polyhaven",
+              "shrub"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-fern-02/model.preview.png",
+        "previewContentSha256": "bbd6674eead7feb640ae96060223fb2713fd5e9a4850fd880d67af2364d2dde0",
+        "previewBytes": 155342,
+        "qualityReportRelativePath": "assets/imported/polyhaven-fern-02/model.quality.json",
+        "qualityReportContentSha256": "99b9198eb65a6fa8e8193125adcab97f1bb140d5e3a372af55606c270e9e77d3"
+      }
     },
     {
       "schemaVersion": 1,
@@ -3808,24 +4171,24 @@
     },
     {
       "schemaVersion": 1,
-      "id": "d1c57619-9f6d-4b54-b4eb-a01d70f4c4cb",
-      "assetId": "81f2a693-3439-bc5d-8dab-13e462e743b2",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "id": "0efe5998-e6a3-ed58-8a53-59d15e0ebb55",
+      "assetId": "8a19a636-61ae-7954-939c-c1f8d946298c",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
       "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "2e0487020d68ccf664435db9d829c78ae00e6d2785ee3ec10b9f89cc70a10406",
+      "sourceContentSha256": "2d7ad366a15012684ec61c27f7577e02aad09d06b12528a9076a6f8a7d70cea3",
       "platformBudgets": {
-        "windows": 20344,
-        "linux": 20344
+        "windows": 100663296,
+        "linux": 100663296
       },
       "chunks": [
         {
-          "id": "b5294474-abce-6158-8fd5-c500c9232d3c",
+          "id": "a12f847d-7576-4459-bd20-85bed79bbf7c",
           "role": "model",
           "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-detailed-bush/model.glb",
-          "contentSha256": "2e0487020d68ccf664435db9d829c78ae00e6d2785ee3ec10b9f89cc70a10406",
-          "uncompressedBytes": 10172,
-          "storedBytes": 10172,
+          "relativePath": "assets/imported/polyhaven-fir-sapling-medium/model.glb",
+          "contentSha256": "cfa36b816f532d5d12727b8bb09f79314839e769004f922703496ed4b8d7c892",
+          "uncompressedBytes": 4611376,
+          "storedBytes": 4611376,
           "compression": "none",
           "platforms": [
             "windows",
@@ -3833,33 +4196,8 @@
           ]
         }
       ],
-      "collision": {
-        "required": false,
-        "chunkId": "b5294474-abce-6158-8fd5-c500c9232d3c",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "b5294474-abce-6158-8fd5-c500c9232d3c",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
+      "collision": null,
+      "animation": null,
       "vfx": null,
       "lod": {
         "required": false,
@@ -3867,46 +4205,115 @@
         "levels": [
           {
             "level": 0,
-            "chunkId": "b5294474-abce-6158-8fd5-c500c9232d3c",
+            "chunkId": "a12f847d-7576-4459-bd20-85bed79bbf7c",
             "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
+            "maximumTriangles": 4208
           }
         ]
       },
-      "modelMetadata": null
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 4.268797,
+          "extentYMeters": 7.783322,
+          "extentZMeters": 3.959904
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 92936,
+          "triangleCount": 4208,
+          "materialCount": 3,
+          "textureCount": 6,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "branches",
+          "collection: pine_forest",
+          "coniferous",
+          "environment",
+          "fir",
+          "foliage",
+          "forest",
+          "geometry nodes",
+          "medium",
+          "nature",
+          "needles",
+          "plants",
+          "polyhaven",
+          "sapling",
+          "tree",
+          "trees",
+          "woodland"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Fir Sapling Medium",
+            "modelChunkId": "a12f847d-7576-4459-bd20-85bed79bbf7c",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "branches",
+              "collection: pine_forest",
+              "coniferous",
+              "environment",
+              "fir",
+              "foliage",
+              "forest",
+              "geometry nodes",
+              "medium",
+              "nature",
+              "needles",
+              "plants",
+              "polyhaven",
+              "sapling",
+              "tree",
+              "trees",
+              "woodland"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-fir-sapling-medium/model.preview.png",
+        "previewContentSha256": "688496a9b26a71bd4a5f82e9e84ad0ee678bbc0ed4e710ccb80a54e9d1371c06",
+        "previewBytes": 121052,
+        "qualityReportRelativePath": "assets/imported/polyhaven-fir-sapling-medium/model.quality.json",
+        "qualityReportContentSha256": "0f1c71f1af78d484eaae660fd74da19663ef362d7e04b6a31c570d67e2122e35"
+      }
     },
     {
       "schemaVersion": 1,
-      "id": "b7d767bf-43f4-f85c-84e5-ee062da392b5",
-      "assetId": "82866648-f741-2f59-a938-305a8af65aaf",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "id": "9d3cc2b0-5b83-4f5c-8c89-b846ea80e095",
+      "assetId": "8e36f865-9ad6-d65b-9c23-b2ce837f4d51",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
       "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "d7fd8773674928c50c11b66d12c636d49bdcc15a8b1c7fbb98e6f63a3439a3f3",
+      "sourceContentSha256": "63b07f5d23f143caeab5fe7b6b56d01f170e542f92812c0f33eb23a1a1562f88",
       "platformBudgets": {
-        "windows": 29288,
-        "linux": 29288
+        "windows": 134217728,
+        "linux": 134217728
       },
       "chunks": [
         {
-          "id": "53a6b25a-a0e3-9d52-ad2e-87fbae54dd4c",
+          "id": "859b3abc-8f07-4550-912a-a1f34e51ddf6",
           "role": "model",
           "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-oak-tree/model.glb",
-          "contentSha256": "d7fd8773674928c50c11b66d12c636d49bdcc15a8b1c7fbb98e6f63a3439a3f3",
-          "uncompressedBytes": 14644,
-          "storedBytes": 14644,
+          "relativePath": "assets/imported/polyhaven-dutch-ship-large-01/model.glb",
+          "contentSha256": "0e1dd6b41b7461914993d90ea60f151af07480eca29be19e3dd9e48fec11c11f",
+          "uncompressedBytes": 11622368,
+          "storedBytes": 11622368,
           "compression": "none",
           "platforms": [
             "windows",
@@ -3914,33 +4321,8 @@
           ]
         }
       ],
-      "collision": {
-        "required": false,
-        "chunkId": "53a6b25a-a0e3-9d52-ad2e-87fbae54dd4c",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "53a6b25a-a0e3-9d52-ad2e-87fbae54dd4c",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
+      "collision": null,
+      "animation": null,
       "vfx": null,
       "lod": {
         "required": false,
@@ -3948,25 +4330,96 @@
         "levels": [
           {
             "level": 0,
-            "chunkId": "53a6b25a-a0e3-9d52-ad2e-87fbae54dd4c",
+            "chunkId": "859b3abc-8f07-4550-912a-a1f34e51ddf6",
             "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
+            "maximumTriangles": 110616
           }
         ]
       },
-      "modelMetadata": null
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 34.251213,
+          "extentYMeters": 32.078846,
+          "extentZMeters": 8.387417
+        },
+        "metrics": {
+          "baseMeshCount": 3,
+          "vertexCount": 108260,
+          "triangleCount": 110616,
+          "materialCount": 3,
+          "textureCount": 9,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "boat",
+          "collection: smugglers_cove",
+          "commercial",
+          "fancy",
+          "landmark",
+          "large",
+          "maritime",
+          "ocean",
+          "old",
+          "pirates",
+          "polyhaven",
+          "sail",
+          "sailing",
+          "sea",
+          "ship",
+          "ships",
+          "wood",
+          "wooden"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Dutch Ship Large 01",
+            "modelChunkId": "859b3abc-8f07-4550-912a-a1f34e51ddf6",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "boat",
+              "collection: smugglers_cove",
+              "commercial",
+              "fancy",
+              "landmark",
+              "large",
+              "maritime",
+              "ocean",
+              "old",
+              "pirates",
+              "polyhaven",
+              "sail",
+              "sailing",
+              "sea",
+              "ship",
+              "ships",
+              "wood",
+              "wooden"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-dutch-ship-large-01/model.preview.png",
+        "previewContentSha256": "e06f5ec1f35fb4c8f0b18fa297efbadbdeac01e8aefa0a5300927a4df91b1387",
+        "previewBytes": 199396,
+        "qualityReportRelativePath": "assets/imported/polyhaven-dutch-ship-large-01/model.quality.json",
+        "qualityReportContentSha256": "9f0518f291bbba275498f34d1366b63fd9d734d215fc8702349d26b134cd5ab6"
+      }
     },
     {
       "schemaVersion": 1,
@@ -4065,6 +4518,129 @@
     },
     {
       "schemaVersion": 1,
+      "id": "3b61cf88-3361-445d-b4b6-961c9e0fcf8e",
+      "assetId": "995df6d1-b61a-8757-84ea-ae00db848dc9",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "e813881b568110812845d89cf8f77d4e34a10233a399c1c441cd0a214342adfc",
+      "platformBudgets": {
+        "windows": 33554432,
+        "linux": 33554432
+      },
+      "chunks": [
+        {
+          "id": "91b267c1-0948-a358-8ab5-9299bebfc610",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/polyhaven-grass-medium-01/model.glb",
+          "contentSha256": "4ff225988d1de6b629a9b743af264d028644d69f3a3f6a2e2d441aa2768636e6",
+          "uncompressedBytes": 2504764,
+          "storedBytes": 2504764,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "91b267c1-0948-a358-8ab5-9299bebfc610",
+            "screenRatio": 1,
+            "maximumTriangles": 416
+          }
+        ]
+      },
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 0.174531,
+          "extentYMeters": 0.140503,
+          "extentZMeters": 0.162059
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 487,
+          "triangleCount": 416,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "botany",
+          "collection: pine_forest",
+          "field",
+          "foliage",
+          "grass",
+          "green",
+          "ground cover",
+          "ground-cover",
+          "meadow",
+          "natural",
+          "nature",
+          "outdoor",
+          "plant",
+          "polyhaven",
+          "shrub",
+          "small"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Grass Medium 01",
+            "modelChunkId": "91b267c1-0948-a358-8ab5-9299bebfc610",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "botany",
+              "collection: pine_forest",
+              "field",
+              "foliage",
+              "grass",
+              "green",
+              "ground cover",
+              "ground-cover",
+              "meadow",
+              "natural",
+              "nature",
+              "outdoor",
+              "plant",
+              "polyhaven",
+              "shrub",
+              "small"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-grass-medium-01/model.preview.png",
+        "previewContentSha256": "1c2aecf8685e2f171f36170cf73c320dbf682b9e6cafcbde4c79d8331fc05daa",
+        "previewBytes": 134709,
+        "qualityReportRelativePath": "assets/imported/polyhaven-grass-medium-01/model.quality.json",
+        "qualityReportContentSha256": "578c748f209a78c72e79b9200d3d201d29ae1bf3a78840b43778427caa30fa43"
+      }
+    },
+    {
+      "schemaVersion": 1,
       "id": "8dcecd57-c1d2-735f-8fc6-837cfab034d8",
       "assetId": "a178454a-62d2-0c5a-972d-4d2e791d5411",
       "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
@@ -4160,24 +4736,24 @@
     },
     {
       "schemaVersion": 1,
-      "id": "ced1f846-9671-225d-8bae-27a6592076b6",
-      "assetId": "a46f9cfb-f902-e556-98ca-83b5ec3756b3",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "id": "83d5cb9e-ad5c-7753-82c1-f3a074103682",
+      "assetId": "a21f53d8-b2bf-1a5c-8a29-16b5fd02e002",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
       "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "af49a595624abca7249824eeefb944d4baf974abeeb5b16110d175da3563d6cd",
+      "sourceContentSha256": "2f9db86ad8cc3d64c12a7501bbdd4471c3606b4e7ed3d1c180100d7d78c60714",
       "platformBudgets": {
-        "windows": 37008,
-        "linux": 37008
+        "windows": 67108864,
+        "linux": 67108864
       },
       "chunks": [
         {
-          "id": "dcdb25ba-cfa9-7752-b02d-5fbcb4d64deb",
+          "id": "953b98c2-2f08-155f-9ad1-d3c5e32b1334",
           "role": "model",
           "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-large-grass/model.glb",
-          "contentSha256": "af49a595624abca7249824eeefb944d4baf974abeeb5b16110d175da3563d6cd",
-          "uncompressedBytes": 18504,
-          "storedBytes": 18504,
+          "relativePath": "assets/imported/polyhaven-fir-sapling/model.glb",
+          "contentSha256": "4eef7f4b818b50d13077eb21a4a28e8ff8be09abdcb77489f5e2b54ce9b8f795",
+          "uncompressedBytes": 4198932,
+          "storedBytes": 4198932,
           "compression": "none",
           "platforms": [
             "windows",
@@ -4185,33 +4761,8 @@
           ]
         }
       ],
-      "collision": {
-        "required": false,
-        "chunkId": "dcdb25ba-cfa9-7752-b02d-5fbcb4d64deb",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "dcdb25ba-cfa9-7752-b02d-5fbcb4d64deb",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
+      "collision": null,
+      "animation": null,
       "vfx": null,
       "lod": {
         "required": false,
@@ -4219,25 +4770,213 @@
         "levels": [
           {
             "level": 0,
-            "chunkId": "dcdb25ba-cfa9-7752-b02d-5fbcb4d64deb",
+            "chunkId": "953b98c2-2f08-155f-9ad1-d3c5e32b1334",
             "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
+            "maximumTriangles": 4526
           }
         ]
       },
-      "modelMetadata": null
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 0.640387,
+          "extentYMeters": 0.952851,
+          "extentZMeters": 0.818034
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 39160,
+          "triangleCount": 4526,
+          "materialCount": 2,
+          "textureCount": 6,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "branches",
+          "collection: pine_forest",
+          "coniferous",
+          "environment",
+          "fir",
+          "forest",
+          "green",
+          "natural",
+          "nature",
+          "needles",
+          "plants",
+          "polyhaven",
+          "sapling",
+          "small",
+          "tree",
+          "trees",
+          "woodland"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Fir Sapling",
+            "modelChunkId": "953b98c2-2f08-155f-9ad1-d3c5e32b1334",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "branches",
+              "collection: pine_forest",
+              "coniferous",
+              "environment",
+              "fir",
+              "forest",
+              "green",
+              "natural",
+              "nature",
+              "needles",
+              "plants",
+              "polyhaven",
+              "sapling",
+              "small",
+              "tree",
+              "trees",
+              "woodland"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-fir-sapling/model.preview.png",
+        "previewContentSha256": "702b9467c16d016d903728f22e3cf2433634990a3ee439600d59b8e0d2fa4a03",
+        "previewBytes": 143786,
+        "qualityReportRelativePath": "assets/imported/polyhaven-fir-sapling/model.quality.json",
+        "qualityReportContentSha256": "7afaea629e74a0ff5db6cb5f7a769f48c6d4aab91cb53d9ec05ecdd3abbf51fd"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "3ac2e6b7-c7d3-e955-8a9e-a7ce9029c97d",
+      "assetId": "a3b2c313-dc9e-365c-90b4-4f3ec764a8cc",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "5ea33a68e2a76e874b09826dcfe3c5b6250740bd819ee6f91e5cf169d7982072",
+      "platformBudgets": {
+        "windows": 16777216,
+        "linux": 16777216
+      },
+      "chunks": [
+        {
+          "id": "b1228540-663a-0152-ae35-9142cf34595f",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/polyhaven-wooden-axe-02/model.glb",
+          "contentSha256": "e74c441e8e8176ca3079995bd1a10f4e19d8d47215dafab0c9012aac65bd73bc",
+          "uncompressedBytes": 2161656,
+          "storedBytes": 2161656,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "b1228540-663a-0152-ae35-9142cf34595f",
+            "screenRatio": 1,
+            "maximumTriangles": 2218
+          }
+        ]
+      },
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 0.050904,
+          "extentYMeters": 0.704205,
+          "extentZMeters": 0.225737
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 1434,
+          "triangleCount": 2218,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "axe",
+          "camp",
+          "camping",
+          "firewood",
+          "forestry",
+          "hand tool",
+          "hatchet",
+          "lumber",
+          "polyhaven",
+          "prop",
+          "props",
+          "survival",
+          "tool",
+          "weapon"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Wooden Axe 02",
+            "modelChunkId": "b1228540-663a-0152-ae35-9142cf34595f",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "axe",
+              "camp",
+              "camping",
+              "firewood",
+              "forestry",
+              "hand tool",
+              "hatchet",
+              "lumber",
+              "polyhaven",
+              "prop",
+              "props",
+              "survival",
+              "tool",
+              "weapon"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-wooden-axe-02/model.preview.png",
+        "previewContentSha256": "de606b1a1bb859ab5f4b2bf5f13b1e1af4c50b00d9091f5a38e2952f867fbe4b",
+        "previewBytes": 63778,
+        "qualityReportRelativePath": "assets/imported/polyhaven-wooden-axe-02/model.quality.json",
+        "qualityReportContentSha256": "8ab6a9d3554da00389df157aa517692a4e4cd5358e23958461ef896a8a431afb"
+      }
     },
     {
       "schemaVersion": 1,
@@ -4431,24 +5170,24 @@
     },
     {
       "schemaVersion": 1,
-      "id": "da8c6fd2-27c6-dd5f-8a2f-e5229d1fbe98",
-      "assetId": "b1b376c2-fcfa-a35b-86dd-bcead260ce7c",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "id": "225bf950-0dd0-1252-9e73-36b0547999e9",
+      "assetId": "b7a510c4-3bde-605a-935a-4ed8492648ee",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
       "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "b192523736f32754788de4dc7a5dcf30a58322b260ec8969120c91432a10b633",
+      "sourceContentSha256": "24e1dec9ef32b306773eb7fad66d6d78ffff9403d1b4ac63840e751f63132f2c",
       "platformBudgets": {
-        "windows": 6960,
-        "linux": 6960
+        "windows": 16777216,
+        "linux": 16777216
       },
       "chunks": [
         {
-          "id": "a6db9844-c6b0-ff5a-b4be-dc3a1aaeabe8",
+          "id": "8d3cf65f-25b8-9953-9ea2-602856796090",
           "role": "model",
           "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-tall-plant/model.glb",
-          "contentSha256": "b192523736f32754788de4dc7a5dcf30a58322b260ec8969120c91432a10b633",
-          "uncompressedBytes": 3480,
-          "storedBytes": 3480,
+          "relativePath": "assets/imported/polyhaven-wooden-axe-03/model.glb",
+          "contentSha256": "65abe7469a6c58fc6211779325f3667fc34a7b85d2fe8220bbc6afff86978e34",
+          "uncompressedBytes": 2266936,
+          "storedBytes": 2266936,
           "compression": "none",
           "platforms": [
             "windows",
@@ -4456,33 +5195,8 @@
           ]
         }
       ],
-      "collision": {
-        "required": false,
-        "chunkId": "a6db9844-c6b0-ff5a-b4be-dc3a1aaeabe8",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "a6db9844-c6b0-ff5a-b4be-dc3a1aaeabe8",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
+      "collision": null,
+      "animation": null,
       "vfx": null,
       "lod": {
         "required": false,
@@ -4490,25 +5204,92 @@
         "levels": [
           {
             "level": 0,
-            "chunkId": "a6db9844-c6b0-ff5a-b4be-dc3a1aaeabe8",
+            "chunkId": "8d3cf65f-25b8-9953-9ea2-602856796090",
             "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
+            "maximumTriangles": 3886
           }
         ]
       },
-      "modelMetadata": null
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 0.050469,
+          "extentYMeters": 0.6318,
+          "extentZMeters": 0.158345
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 2612,
+          "triangleCount": 3886,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "axe",
+          "camp",
+          "chopping",
+          "cutting",
+          "fireman",
+          "firewood",
+          "forest",
+          "garden",
+          "gardening",
+          "lumberjack",
+          "polyhaven",
+          "prop",
+          "props",
+          "saw",
+          "tools",
+          "woodwork"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Wooden Axe 03",
+            "modelChunkId": "8d3cf65f-25b8-9953-9ea2-602856796090",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "axe",
+              "camp",
+              "chopping",
+              "cutting",
+              "fireman",
+              "firewood",
+              "forest",
+              "garden",
+              "gardening",
+              "lumberjack",
+              "polyhaven",
+              "prop",
+              "props",
+              "saw",
+              "tools",
+              "woodwork"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-wooden-axe-03/model.preview.png",
+        "previewContentSha256": "dd2f3f7c42e22723d362a6b30d2d89e678301a162d3a56959c925dc3989389bb",
+        "previewBytes": 65240,
+        "qualityReportRelativePath": "assets/imported/polyhaven-wooden-axe-03/model.quality.json",
+        "qualityReportContentSha256": "23ca676d83d7c45786e9404cb5609af8e265ff1cd77e59bb095e82af31b35eaa"
+      }
     },
     {
       "schemaVersion": 1,
@@ -5115,6 +5896,280 @@
     },
     {
       "schemaVersion": 1,
+      "id": "3518a00d-194f-6b54-b1c9-38d1d8774122",
+      "assetId": "bc41a092-9b5a-cb5f-a5f8-2eb2e80e8f2d",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "f427ba21bac273a29fee13c6f46935a04f7ca227c6232cb42bdfb141ed84fd5d",
+      "platformBudgets": {
+        "windows": 67108864,
+        "linux": 67108864
+      },
+      "chunks": [
+        {
+          "id": "0349c29a-2579-ab51-b45a-c54c1bbd4eef",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/polyhaven-dead-tree-trunk/model.glb",
+          "contentSha256": "0c1762070778986cb3d8f553e60e60b065570f0c37c4185949d7fa47b0d68a9c",
+          "uncompressedBytes": 2629808,
+          "storedBytes": 2629808,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "0349c29a-2579-ab51-b45a-c54c1bbd4eef",
+            "screenRatio": 1,
+            "maximumTriangles": 5089
+          }
+        ]
+      },
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 3.049262,
+          "extentYMeters": 0.287951,
+          "extentZMeters": 0.275942
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 3335,
+          "triangleCount": 5089,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "bark",
+          "collection: pine_forest",
+          "collection: verdant_trail",
+          "dead",
+          "dead tree",
+          "deadwood",
+          "decayed",
+          "dry",
+          "foliage",
+          "forest",
+          "forest floor",
+          "ground cover",
+          "log",
+          "natural",
+          "nature",
+          "plant",
+          "plants",
+          "polyhaven",
+          "rough texture",
+          "tree",
+          "trunk",
+          "woodland"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Dead Tree Trunk",
+            "modelChunkId": "0349c29a-2579-ab51-b45a-c54c1bbd4eef",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "bark",
+              "collection: pine_forest",
+              "collection: verdant_trail",
+              "dead",
+              "dead tree",
+              "deadwood",
+              "decayed",
+              "dry",
+              "foliage",
+              "forest",
+              "forest floor",
+              "ground cover",
+              "log",
+              "natural",
+              "nature",
+              "plant",
+              "plants",
+              "polyhaven",
+              "rough texture",
+              "tree",
+              "trunk",
+              "woodland"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-dead-tree-trunk/model.preview.png",
+        "previewContentSha256": "8a236ed8fa9e58d9bddf322852e5b24e9b5b5b679bd8dd725eec2f287960d42c",
+        "previewBytes": 67177,
+        "qualityReportRelativePath": "assets/imported/polyhaven-dead-tree-trunk/model.quality.json",
+        "qualityReportContentSha256": "aa1ffc0e8929b6da637e32a83ac2f59d79ba5e112c5d6a1b34e46f7ea966fb3b"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "bd98616a-c818-a153-8488-618d463687ce",
+      "assetId": "bf644582-3f22-f153-8c62-ac6e9b7117af",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "2856f9a50f7da7e0b0888a8e43b42dfff2d2d4a1d571471afb925386cdbf08b5",
+      "platformBudgets": {
+        "windows": 67108864,
+        "linux": 67108864
+      },
+      "chunks": [
+        {
+          "id": "b563fdb3-b48c-9150-8565-a6d303b28091",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/polyhaven-tree-stump-02/model.glb",
+          "contentSha256": "cdb8bbef0dcebac6d9c860a7d35a592cad61447b47f6dfa196d72554a149f7e7",
+          "uncompressedBytes": 3174684,
+          "storedBytes": 3174684,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "b563fdb3-b48c-9150-8565-a6d303b28091",
+            "screenRatio": 1,
+            "maximumTriangles": 4986
+          }
+        ]
+      },
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 1.521616,
+          "extentYMeters": 0.522593,
+          "extentZMeters": 1.392117
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 3458,
+          "triangleCount": 4986,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "bark",
+          "collection: pine_forest",
+          "dead",
+          "dead tree",
+          "deadwood",
+          "decayed",
+          "dry",
+          "environment",
+          "forest",
+          "forest floor",
+          "ground cover",
+          "leaf",
+          "leaves",
+          "moss",
+          "mossy",
+          "natural",
+          "nature",
+          "plants",
+          "polyhaven",
+          "roots",
+          "rough texture",
+          "stump",
+          "tree",
+          "trees"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Tree Stump 02",
+            "modelChunkId": "b563fdb3-b48c-9150-8565-a6d303b28091",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "bark",
+              "collection: pine_forest",
+              "dead",
+              "dead tree",
+              "deadwood",
+              "decayed",
+              "dry",
+              "environment",
+              "forest",
+              "forest floor",
+              "ground cover",
+              "leaf",
+              "leaves",
+              "moss",
+              "mossy",
+              "natural",
+              "nature",
+              "plants",
+              "polyhaven",
+              "roots",
+              "rough texture",
+              "stump",
+              "tree",
+              "trees"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-tree-stump-02/model.preview.png",
+        "previewContentSha256": "b1e6a9fd39de831da8199384aaf8fb05a9df7c17dbad5db08f94c6e5389efe6d",
+        "previewBytes": 279391,
+        "qualityReportRelativePath": "assets/imported/polyhaven-tree-stump-02/model.quality.json",
+        "qualityReportContentSha256": "5206fbf686f6a187acbcb19a418f26db4f3abe3c21bbc75e9a19de7132aa94c7"
+      }
+    },
+    {
+      "schemaVersion": 1,
       "id": "2ec6543e-7001-435c-9536-2d816e3abe9b",
       "assetId": "c0a3fcbf-d003-675e-af8f-b77451dcfbf0",
       "modificationProvenance": "author:openrpg-forge:forgotten-forest-core@1.0.0",
@@ -5189,168 +6244,6 @@
           {
             "level": 0,
             "chunkId": "256fd7e4-3d44-385f-90c2-de9419bf2cdb",
-            "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
-          }
-        ]
-      },
-      "modelMetadata": null
-    },
-    {
-      "schemaVersion": 1,
-      "id": "c28040e5-5097-ba51-b0ba-7e6ddbd391ea",
-      "assetId": "c76498c2-b20c-1d54-8a0e-473845a5c83a",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
-      "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "e7a92369062d491e5a31a163d390e07db04ee573605bbfa84c00660d18896b4c",
-      "platformBudgets": {
-        "windows": 15848,
-        "linux": 15848
-      },
-      "chunks": [
-        {
-          "id": "6b28a9e0-9188-505a-a249-b20fd198dd9c",
-          "role": "model",
-          "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-fallen-log/model.glb",
-          "contentSha256": "e7a92369062d491e5a31a163d390e07db04ee573605bbfa84c00660d18896b4c",
-          "uncompressedBytes": 7924,
-          "storedBytes": 7924,
-          "compression": "none",
-          "platforms": [
-            "windows",
-            "linux"
-          ]
-        }
-      ],
-      "collision": {
-        "required": false,
-        "chunkId": "6b28a9e0-9188-505a-a249-b20fd198dd9c",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "6b28a9e0-9188-505a-a249-b20fd198dd9c",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
-      "vfx": null,
-      "lod": {
-        "required": false,
-        "crossFadeSeconds": 0.15,
-        "levels": [
-          {
-            "level": 0,
-            "chunkId": "6b28a9e0-9188-505a-a249-b20fd198dd9c",
-            "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
-          }
-        ]
-      },
-      "modelMetadata": null
-    },
-    {
-      "schemaVersion": 1,
-      "id": "24267155-2655-dc50-bf77-4a3e65924c5a",
-      "assetId": "ce7b3ccb-e440-8f52-973e-88577ca6bd36",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
-      "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "1e2211dc6483b1d8a32130c3441afa108d4075f0d851825620fba85d2dc6e5d7",
-      "platformBudgets": {
-        "windows": 62832,
-        "linux": 62832
-      },
-      "chunks": [
-        {
-          "id": "8a29b813-f228-2b55-a2f7-eae621783d34",
-          "role": "model",
-          "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-dark-detailed-tree/model.glb",
-          "contentSha256": "1e2211dc6483b1d8a32130c3441afa108d4075f0d851825620fba85d2dc6e5d7",
-          "uncompressedBytes": 31416,
-          "storedBytes": 31416,
-          "compression": "none",
-          "platforms": [
-            "windows",
-            "linux"
-          ]
-        }
-      ],
-      "collision": {
-        "required": false,
-        "chunkId": "8a29b813-f228-2b55-a2f7-eae621783d34",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "8a29b813-f228-2b55-a2f7-eae621783d34",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
-      "vfx": null,
-      "lod": {
-        "required": false,
-        "crossFadeSeconds": 0.15,
-        "levels": [
-          {
-            "level": 0,
-            "chunkId": "8a29b813-f228-2b55-a2f7-eae621783d34",
             "screenRatio": 1,
             "maximumTriangles": 100000
           },
@@ -5654,6 +6547,270 @@
         ]
       },
       "modelMetadata": null
+    },
+    {
+      "schemaVersion": 1,
+      "id": "9545ea41-4e86-ad5a-bf7c-37a74c2fe334",
+      "assetId": "de8766cf-67ad-a55e-a6f4-6bd76ddf6904",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "a79364b2a7b38483d3234472c77c1339e0c83bf99490bde0db1055369dfcec38",
+      "platformBudgets": {
+        "windows": 67108864,
+        "linux": 67108864
+      },
+      "chunks": [
+        {
+          "id": "ac0b4895-c7be-c25a-8d5d-5e6893a89d6b",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/polyhaven-modular-wooden-pier/model.glb",
+          "contentSha256": "aef7b75c8560cb8982b75e74bef85b9ed435fe4ff79b26d0bde0be49aa2f2152",
+          "uncompressedBytes": 5579136,
+          "storedBytes": 5579136,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "ac0b4895-c7be-c25a-8d5d-5e6893a89d6b",
+            "screenRatio": 1,
+            "maximumTriangles": 11758
+          }
+        ]
+      },
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 2.507031,
+          "extentYMeters": 3.837678,
+          "extentZMeters": 3.392315
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 7619,
+          "triangleCount": 11758,
+          "materialCount": 2,
+          "textureCount": 6,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "bridge",
+          "collection: smugglers_cove",
+          "dock",
+          "jetty",
+          "landing",
+          "maritime",
+          "modular",
+          "mossy",
+          "ocean",
+          "old",
+          "pier",
+          "polyhaven",
+          "scaffolding",
+          "sea",
+          "ship",
+          "structure",
+          "structures",
+          "water",
+          "wharf",
+          "wood",
+          "wooden",
+          "worn"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Modular Wooden Pier",
+            "modelChunkId": "ac0b4895-c7be-c25a-8d5d-5e6893a89d6b",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "bridge",
+              "collection: smugglers_cove",
+              "dock",
+              "jetty",
+              "landing",
+              "maritime",
+              "modular",
+              "mossy",
+              "ocean",
+              "old",
+              "pier",
+              "polyhaven",
+              "scaffolding",
+              "sea",
+              "ship",
+              "structure",
+              "structures",
+              "water",
+              "wharf",
+              "wood",
+              "wooden",
+              "worn"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-modular-wooden-pier/model.preview.png",
+        "previewContentSha256": "36f1941ae3ebd8775b9b910cd1a3e98481793ee04e8102ad280f461a1f8f3da7",
+        "previewBytes": 132192,
+        "qualityReportRelativePath": "assets/imported/polyhaven-modular-wooden-pier/model.quality.json",
+        "qualityReportContentSha256": "b9d1b61eae731a5e3d6889814b8baa52fefd3c7b596e81af924d5fbbb2456ebd"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "2c3d330c-d470-a55a-81a6-b5cca8e436e7",
+      "assetId": "df4b094b-eeb6-805c-a9e5-e76d56cb8cb3",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
+      "licenseSpdx": "CC0-1.0",
+      "sourceContentSha256": "7d296a24fa770d2a40dce0d4205acd750916beec505773881fa8a2f4b73ddc56",
+      "platformBudgets": {
+        "windows": 33554432,
+        "linux": 33554432
+      },
+      "chunks": [
+        {
+          "id": "a8f77cd6-9306-7a58-ad03-eea0ddfd1621",
+          "role": "model",
+          "required": true,
+          "relativePath": "assets/imported/polyhaven-moss-01/model.glb",
+          "contentSha256": "ff44469b8a46be9d4566579e3c0ec0783888074592d8f2e350f165e68ecf8325",
+          "uncompressedBytes": 1047680,
+          "storedBytes": 1047680,
+          "compression": "none",
+          "platforms": [
+            "windows",
+            "linux"
+          ]
+        }
+      ],
+      "collision": null,
+      "animation": null,
+      "vfx": null,
+      "lod": {
+        "required": false,
+        "crossFadeSeconds": 0.15,
+        "levels": [
+          {
+            "level": 0,
+            "chunkId": "a8f77cd6-9306-7a58-ad03-eea0ddfd1621",
+            "screenRatio": 1,
+            "maximumTriangles": 24
+          }
+        ]
+      },
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 0.014207,
+          "extentYMeters": 0.025954,
+          "extentZMeters": 0.015943
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 24,
+          "triangleCount": 24,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "botany",
+          "collection: pine_forest",
+          "foliage",
+          "forest",
+          "geometry nodes",
+          "ground cover",
+          "ground-cover",
+          "moss",
+          "natural",
+          "nature",
+          "outdoor",
+          "plant",
+          "plants",
+          "polyhaven",
+          "shrubs",
+          "small",
+          "undergrowth",
+          "vegetation",
+          "woodland"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Moss 01",
+            "modelChunkId": "a8f77cd6-9306-7a58-ad03-eea0ddfd1621",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "botany",
+              "collection: pine_forest",
+              "foliage",
+              "forest",
+              "geometry nodes",
+              "ground cover",
+              "ground-cover",
+              "moss",
+              "natural",
+              "nature",
+              "outdoor",
+              "plant",
+              "plants",
+              "polyhaven",
+              "shrubs",
+              "small",
+              "undergrowth",
+              "vegetation",
+              "woodland"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-moss-01/model.preview.png",
+        "previewContentSha256": "b500ce68d7236d81bfd2594dc1b4bc45d7201f204dbb3943320cce4562a44a10",
+        "previewBytes": 12742,
+        "qualityReportRelativePath": "assets/imported/polyhaven-moss-01/model.quality.json",
+        "qualityReportContentSha256": "cea70f01fed0248a25ae4d4b8db4da12ba2c609d984414be378fa743c4f6126f"
+      }
     },
     {
       "schemaVersion": 1,
@@ -6132,24 +7289,24 @@
     },
     {
       "schemaVersion": 1,
-      "id": "3d3f8b5d-33d3-795b-a6d8-ebf5d341369d",
-      "assetId": "fca055d7-55e4-135e-a36f-d3e6ba38d9c0",
-      "modificationProvenance": "author:openrpg-forge:forgotten-forest-nature-dressing@1.0.0",
+      "id": "93245ba8-0c54-7355-9053-81445547ffdd",
+      "assetId": "ff5ccaec-13aa-c85b-8d19-8a5f7f30b783",
+      "modificationProvenance": "author:openrpg-forge:forgotten-forest-polyhaven-environment@1.1.0",
       "licenseSpdx": "CC0-1.0",
-      "sourceContentSha256": "caa8b025833d4dabf6d98fe2e96cf2fbd886693ac990df0db75f9d827194374b",
+      "sourceContentSha256": "dc7d335ac1e712aef206aee1887a7732182900cc591c206dd58edf9624c89299",
       "platformBudgets": {
-        "windows": 17120,
-        "linux": 17120
+        "windows": 33554432,
+        "linux": 33554432
       },
       "chunks": [
         {
-          "id": "04300ec8-1b9d-2452-bcab-428f15cf1312",
+          "id": "a9d130a8-19f9-fa5f-ab4c-870eec2a5ddd",
           "role": "model",
           "required": true,
-          "relativePath": "assets/imported/kenney-nature-kit-large-rock/model.glb",
-          "contentSha256": "caa8b025833d4dabf6d98fe2e96cf2fbd886693ac990df0db75f9d827194374b",
-          "uncompressedBytes": 8560,
-          "storedBytes": 8560,
+          "relativePath": "assets/imported/polyhaven-rock-moss-set-02/model.glb",
+          "contentSha256": "32476892a76d512ccf83275ac7d80f5f8a9ec5c86af9489eb42a20a115362897",
+          "uncompressedBytes": 699872,
+          "storedBytes": 699872,
           "compression": "none",
           "platforms": [
             "windows",
@@ -6157,33 +7314,8 @@
           ]
         }
       ],
-      "collision": {
-        "required": false,
-        "chunkId": "04300ec8-1b9d-2452-bcab-428f15cf1312",
-        "generation": "embedded",
-        "materialTags": [
-          "default"
-        ],
-        "cookPlatforms": [
-          "windows",
-          "linux"
-        ]
-      },
-      "animation": {
-        "required": false,
-        "chunkId": "04300ec8-1b9d-2452-bcab-428f15cf1312",
-        "rig": "humanoid",
-        "retargetMap": null,
-        "clips": [
-          {
-            "name": "preview",
-            "durationSeconds": 1,
-            "rootMotion": false,
-            "compression": "balanced",
-            "events": []
-          }
-        ]
-      },
+      "collision": null,
+      "animation": null,
       "vfx": null,
       "lod": {
         "required": false,
@@ -6191,25 +7323,82 @@
         "levels": [
           {
             "level": 0,
-            "chunkId": "04300ec8-1b9d-2452-bcab-428f15cf1312",
+            "chunkId": "a9d130a8-19f9-fa5f-ab4c-870eec2a5ddd",
             "screenRatio": 1,
-            "maximumTriangles": 100000
-          },
-          {
-            "level": 1,
-            "chunkId": null,
-            "screenRatio": 0.5,
-            "maximumTriangles": 50000
-          },
-          {
-            "level": 2,
-            "chunkId": null,
-            "screenRatio": 0.25,
-            "maximumTriangles": 25000
+            "maximumTriangles": 3600
           }
         ]
       },
-      "modelMetadata": null
+      "modelMetadata": {
+        "dimensions": {
+          "extentXMeters": 1.20502,
+          "extentYMeters": 0.527076,
+          "extentZMeters": 0.983542
+        },
+        "metrics": {
+          "baseMeshCount": 1,
+          "vertexCount": 1948,
+          "triangleCount": 3600,
+          "materialCount": 1,
+          "textureCount": 3,
+          "lodMeshCount": 0,
+          "collisionMeshCount": 0,
+          "qualityScore": 100
+        },
+        "styles": [
+          "collection: pine_forest",
+          "dirt",
+          "forest",
+          "moss",
+          "nature",
+          "outdoor",
+          "pebbles",
+          "polyhaven",
+          "rock",
+          "rocks",
+          "stones"
+        ],
+        "variants": [
+          {
+            "key": "default",
+            "displayName": "Rock Moss Set 02",
+            "modelChunkId": "a9d130a8-19f9-fa5f-ab4c-870eec2a5ddd",
+            "platforms": [
+              "windows",
+              "linux"
+            ],
+            "tags": [
+              "collection: pine_forest",
+              "dirt",
+              "forest",
+              "moss",
+              "nature",
+              "outdoor",
+              "pebbles",
+              "polyhaven",
+              "rock",
+              "rocks",
+              "stones"
+            ]
+          }
+        ],
+        "compatibility": {
+          "shaderFamily": "pbr-metallic-roughness",
+          "realism": "realistic",
+          "metersPerUnit": 1,
+          "targetTexelDensity": 1024,
+          "platforms": [
+            "windows",
+            "linux"
+          ],
+          "runtimeImportVerified": false
+        },
+        "previewRelativePath": "assets/imported/polyhaven-rock-moss-set-02/model.preview.png",
+        "previewContentSha256": "ed675afde4bc673209c579f94a05f213989bb4899a436c4c23b87a5a46842966",
+        "previewBytes": 247080,
+        "qualityReportRelativePath": "assets/imported/polyhaven-rock-moss-set-02/model.quality.json",
+        "qualityReportContentSha256": "31fa6cd33bb18d2c52e28f5c2216a7941244408abc5a4d7f50c2ae4f7203c2a1"
+      }
     }
   ]
 }

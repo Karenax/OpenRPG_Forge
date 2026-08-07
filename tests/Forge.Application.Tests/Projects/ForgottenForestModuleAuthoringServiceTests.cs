@@ -24,14 +24,15 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         Assert.Equal(16, area.World.Terrain.ChunkSize);
         Assert.Equal(1024, area.World.Loading.CacheBudgetMegabytes);
         Assert.Equal(2, area.World.Loading.ChunkRadius);
-        Assert.Equal(17, area.World.Biomes.Count);
-        Assert.Equal(12, area.World.Biomes.Count(biome =>
-            biome.Provenance == "curated-pack:forgotten-forest-nature-dressing@1.0.0"));
-        Assert.Equal(5, area.World.Features.Count);
+        Assert.Equal(13, area.World.Biomes.Count);
+        Assert.All(area.World.Biomes, biome => Assert.Equal(
+            "curated-pack:forgotten-forest-polyhaven-environment@1.1.0",
+            biome.Provenance));
+        Assert.Equal(6, area.World.Features.Count);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.River);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.Bridge);
-        Assert.Equal(2, area.Navigation.OffMeshLinks.Count);
-        Assert.Contains("vfx:forest-ambient", area.Environment.Tags, StringComparer.Ordinal);
+        Assert.Equal(3, area.Navigation.OffMeshLinks.Count);
+        Assert.DoesNotContain("vfx:forest-ambient", area.Environment.Tags, StringComparer.Ordinal);
         Assert.Equal(SkyProfileMode.Physical, area.Environment.Sky.Mode);
         Assert.Equal("#4f83ad", area.Environment.Sky.ZenithColor);
         Assert.Equal("forest", area.Environment.Reverb.DefaultPreset);
@@ -57,12 +58,29 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         Assert.All(
             area.World.Biomes,
             biome => Assert.StartsWith("asset:", biome.ScatterResource, StringComparison.Ordinal));
-        Assert.Equal(
-            AssetCatalogItemId.ForExternalId("kenney:mini-forest:tree-high"),
-            ForgottenForestModuleAuthoringService.AssetId("tree-high"));
-        Assert.Equal(
-            AssetCatalogItemId.ForExternalId("kenney:nature-kit:oak-tree"),
-            ForgottenForestModuleAuthoringService.NatureAssetId("oak-tree"));
+        var expectedScatterAssets = new[]
+        {
+            "dead_tree_trunk", "didelta_spinosa", "dry_branches_medium_01", "fern_02",
+            "fir_sapling", "fir_sapling_medium", "grass_medium_01", "moss_01",
+            "pine_sapling_small", "rock_moss_set_01", "rock_moss_set_02", "tree_stump_01",
+            "tree_stump_02",
+        }.Select(key => $"asset:{ForgottenForestModuleAuthoringService.PolyHavenAssetId(key)}")
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        Assert.Equal(expectedScatterAssets,
+            area.World.Biomes.Select(biome => biome.ScatterResource).Order(StringComparer.Ordinal).ToArray());
+        Assert.Equal(3, area.World.Biomes.Count(biome =>
+            biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase) &&
+            biome.Tags.Contains("scale:4", StringComparer.OrdinalIgnoreCase)));
+        Assert.Contains(area.Entities, entity => entity.Tags.Contains("ship", StringComparer.Ordinal) &&
+            entity.Transform.Position.X is > -8 and < 8 && entity.Transform.Position.Z is > -8 and < 8 &&
+            entity.Overrides.Properties.Any(property =>
+                property.Key == "visual.asset" &&
+                property.Value == ForgottenForestModuleAuthoringService.PolyHavenAssetId("dutch_ship_large_01").ToString()));
+        Assert.Equal(3, area.Entities.Count(entity => entity.Tags.Contains("bridge", StringComparer.Ordinal) &&
+            entity.Overrides.Properties.Any(property =>
+                property.Key == "visual.asset" &&
+                property.Value == ForgottenForestModuleAuthoringService.PolyHavenAssetId("modular_wooden_pier").ToString())));
         var animatedEntities = area.Entities.Where(entity =>
             entity.Overrides.Properties.Any(property =>
                 property.Key == "runtime.animationProfile" && property.Value == "kaykit-adventurer")).ToArray();

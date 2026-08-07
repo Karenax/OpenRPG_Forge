@@ -729,9 +729,11 @@ ciblées. Le lot actif construit une carte 3D jouable et artistiquement revue. L
   alternative précise à la manipulation directe.
 - la coque Creator relie neuf workspaces, la recherche globale, les palettes, la configuration du
   module, la caméra auteur, le build incrémental, la distribution, la navigation et les diagnostics ;
-- l’espace **Assets** charge 605 entrées depuis le Vault externe avec UUID, hash, licence, provenance,
-  recherche à facettes, aperçu local et prévisualisation d’import sans écriture ; les détails restent
-  défilables à la taille nominale et l’action braise n’est active que pour un asset gouverné.
+- l’espace **Assets** charge 665 entrées de catalogue depuis le Vault externe avec UUID, hash,
+  licence, provenance, recherche à facettes, aperçu local et prévisualisation d’import sans écriture ;
+  les détails restent défilables à la taille nominale et l’action braise n’est active que pour un
+  asset gouverné. L’application locale **Asset Atlas** développe les packs en 6 140 entrées logiques
+  Kenney existantes, KayKit, Quaternius, Poly Haven et ambientCG, matériaux et HDRI compris.
 - l’espace **Assistant** gère le profil de fournisseur, les prompts versionnés et l'index de lore,
   puis ouvre les plans de zone, les dialogues, les quêtes et ForgeScript assistés. La quête spécialisée affiche
   zone et participant, états, transitions, objectifs, récompense, échec et cinq scénarios avant une

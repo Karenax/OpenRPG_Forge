@@ -394,7 +394,7 @@ def run_parallel(label: str, records: list[dict[str, Any]], worker: Any, jobs: i
 
 def default_vault(repo_root: Path) -> Path:
     configured = os.environ.get("OPENRPG_ASSET_VAULT")
-    return Path(configured).expanduser() if configured else repo_root.parent / "OpenRPG_AssetVault"
+    return Path(configured).expanduser() if configured else repo_root.parent.parent / "OpenRPG_AssetVault"
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

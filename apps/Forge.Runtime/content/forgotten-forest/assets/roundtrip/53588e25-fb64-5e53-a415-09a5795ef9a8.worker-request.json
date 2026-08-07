@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "jobId": "792e7cb2-a081-f354-941b-1b8497b0de4d",
+  "assetId": "53588e25-fb64-5e53-a415-09a5795ef9a8",
+  "sourceRelativePath": "originals/polyhaven/didelta_spinosa/gltf-1k/didelta_spinosa_1k.gltf",
+  "outputRelativePath": "assets/imported/polyhaven-didelta-spinosa/model.glb",
+  "sourceSha256": "08d14d3a7667588dbd7539147b9efa64cd3277780564d86ec56b0a679935d422",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-polyhaven-environment@1.1.0;source:polyhaven:didelta_spinosa",
+  "operations": [
+    "validate_model",
+    "normalize_model",
+    "export_glb",
+    "generate_thumbnail",
+    "audit_quality"
+  ],
+  "options": {
+    "applyTransforms": true,
+    "scaleMeters": 1,
+    "pivot": "ground_center",
+    "lodRatios": [],
+    "generateCollision": false,
+    "animationSources": [],
+    "materialTextures": [],
+    "creationRecipe": null,
+    "includedMeshNames": [
+      "didelta_spinosa_small_LOD0"
+    ],
+    "baseDecimationRatio": 0.12
+  },
+  "securityPolicy": {
+    "schemaVersion": 1,
+    "id": "a1230000-0000-4000-8000-000000000001",
+    "denyFreeFormPython": true,
+    "denyShell": true,
+    "denyEval": true,
+    "requireContainedPaths": true,
+    "networkAllowed": false,
+    "maximumJobSeconds": 300,
+    "maximumOutputBytes": 536870912,
+    "allowedBlenderOperations": [
+      "validate_model",
+      "normalize_model",
+      "generate_collision",
+      "generate_lods",
+      "export_glb",
+      "generate_thumbnail",
+      "audit_quality",
+      "create_primitives"
+    ],
+    "requiredPermission": "configure",
+    "provenance": "openrpg-forge:g12-l:secure-worker-default"
+  }
+}

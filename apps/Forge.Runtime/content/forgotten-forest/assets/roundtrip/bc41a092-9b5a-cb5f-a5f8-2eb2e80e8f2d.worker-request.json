@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "jobId": "0303be27-5a55-e855-8c2a-68fc3df4300b",
+  "assetId": "bc41a092-9b5a-cb5f-a5f8-2eb2e80e8f2d",
+  "sourceRelativePath": "originals/polyhaven/dead_tree_trunk/gltf-1k/dead_tree_trunk_1k.gltf",
+  "outputRelativePath": "assets/imported/polyhaven-dead-tree-trunk/model.glb",
+  "sourceSha256": "8baaf1ff66ba1f79acdceed0dc3797a882990a3abb10b18abe56762f34c26e39",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-polyhaven-environment@1.1.0;source:polyhaven:dead_tree_trunk",
+  "operations": [
+    "validate_model",
+    "normalize_model",
+    "export_glb",
+    "generate_thumbnail",
+    "audit_quality"
+  ],
+  "options": {
+    "applyTransforms": true,
+    "scaleMeters": 1,
+    "pivot": "ground_center",
+    "lodRatios": [],
+    "generateCollision": false,
+    "animationSources": [],
+    "materialTextures": [],
+    "creationRecipe": null,
+    "includedMeshNames": [
+      "dead_tree_trunk"
+    ],
+    "baseDecimationRatio": 0.05
+  },
+  "securityPolicy": {
+    "schemaVersion": 1,
+    "id": "a1230000-0000-4000-8000-000000000001",
+    "denyFreeFormPython": true,
+    "denyShell": true,
+    "denyEval": true,
+    "requireContainedPaths": true,
+    "networkAllowed": false,
+    "maximumJobSeconds": 300,
+    "maximumOutputBytes": 536870912,
+    "allowedBlenderOperations": [
+      "validate_model",
+      "normalize_model",
+      "generate_collision",
+      "generate_lods",
+      "export_glb",
+      "generate_thumbnail",
+      "audit_quality",
+      "create_primitives"
+    ],
+    "requiredPermission": "configure",
+    "provenance": "openrpg-forge:g12-l:secure-worker-default"
+  }
+}

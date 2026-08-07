@@ -415,6 +415,42 @@ def _normalize(options: dict) -> None:
             bpy.context.view_layer.update()
 
 
+def _select_meshes(included_names: list[str]) -> None:
+    if not included_names:
+        return
+    included = set(included_names)
+    meshes = [item for item in bpy.context.scene.objects if item.type == "MESH"]
+    available = {item.name for item in meshes}
+    missing = sorted(included - available)
+    if missing:
+        raise ValueError(f"Requested mesh is absent from the imported model: {missing[0]}")
+    for item in meshes:
+        if item.name not in included:
+            bpy.data.objects.remove(item, do_unlink=True)
+    if not any(item.type == "MESH" for item in bpy.context.scene.objects):
+        raise ValueError("Mesh selection removed every renderable object.")
+
+
+def _is_generated_lod(item) -> bool:
+    return bool(item.get("openrpg_forge_generated_lod", False))
+
+
+def _decimate_base_meshes(ratio: float) -> None:
+    if ratio >= 0.999999:
+        return
+    sources = [
+        item for item in bpy.context.scene.objects
+        if item.type == "MESH" and not _is_generated_lod(item) and not item.name.endswith("-col")
+    ]
+    for source in sources:
+        modifier = source.modifiers.new(name="OpenRPG Forge Base Decimation", type="DECIMATE")
+        modifier.ratio = ratio
+        bpy.context.view_layer.objects.active = source
+        source.select_set(True)
+        bpy.ops.object.modifier_apply(modifier=modifier.name)
+        source.select_set(False)
+
+
 def _bounds(meshes: list) -> tuple[Vector, Vector]:
     coordinates = [item.matrix_world @ Vector(corner) for item in meshes for corner in item.bound_box]
     if not coordinates:
@@ -426,12 +462,13 @@ def _bounds(meshes: list) -> tuple[Vector, Vector]:
 
 
 def _generate_lods(ratios: list[float]) -> None:
-    sources = [item for item in bpy.context.scene.objects if item.type == "MESH" and "_LOD" not in item.name]
+    sources = [item for item in bpy.context.scene.objects if item.type == "MESH" and not _is_generated_lod(item)]
     for source in sources:
         for level, ratio in enumerate(ratios, start=1):
             duplicate = source.copy()
             duplicate.data = source.data.copy()
             duplicate.name = f"{source.name}_LOD{level}"
+            duplicate["openrpg_forge_generated_lod"] = True
             bpy.context.collection.objects.link(duplicate)
             modifier = duplicate.modifiers.new(name="OpenRPG Forge LOD", type="DECIMATE")
             modifier.ratio = ratio
@@ -442,7 +479,7 @@ def _generate_lods(ratios: list[float]) -> None:
 
 
 def _generate_collision() -> None:
-    for source in [item for item in bpy.context.scene.objects if item.type == "MESH" and "_LOD" not in item.name]:
+    for source in [item for item in bpy.context.scene.objects if item.type == "MESH" and not _is_generated_lod(item)]:
         collision = source.copy()
         collision.data = source.data.copy()
         collision.name = f"{source.name}-col"
@@ -456,7 +493,7 @@ def _look_at(item, target: Vector) -> None:
 def _render_thumbnail(path: pathlib.Path) -> None:
     meshes = [
         item for item in bpy.context.scene.objects
-        if item.type == "MESH" and "_LOD" not in item.name and not item.name.endswith("-col")
+        if item.type == "MESH" and not _is_generated_lod(item) and not item.name.endswith("-col")
     ]
     minimum, maximum = _bounds(meshes)
     center = (minimum + maximum) * 0.5
@@ -467,7 +504,7 @@ def _render_thumbnail(path: pathlib.Path) -> None:
     temporary_objects = []
     try:
         for item in bpy.context.scene.objects:
-            if item.type == "MESH" and ("_LOD" in item.name or item.name.endswith("-col")):
+            if item.type == "MESH" and (_is_generated_lod(item) or item.name.endswith("-col")):
                 hidden[item.name] = item.hide_render
                 item.hide_render = True
 
@@ -528,9 +565,9 @@ def _render_thumbnail(path: pathlib.Path) -> None:
 def _audit(options: dict, operations: list[str], preview: pathlib.Path, retarget_audits: list[dict]) -> dict:
     base_meshes = [
         item for item in bpy.context.scene.objects
-        if item.type == "MESH" and "_LOD" not in item.name and not item.name.endswith("-col")
+        if item.type == "MESH" and not _is_generated_lod(item) and not item.name.endswith("-col")
     ]
-    lod_meshes = [item for item in bpy.context.scene.objects if item.type == "MESH" and "_LOD" in item.name]
+    lod_meshes = [item for item in bpy.context.scene.objects if item.type == "MESH" and _is_generated_lod(item)]
     collision_meshes = [item for item in bpy.context.scene.objects if item.type == "MESH" and item.name.endswith("-col")]
     triangles = 0
     vertices = 0
@@ -707,6 +744,7 @@ def main() -> None:
         _create_primitives(options["creationRecipe"])
     else:
         _import_model(source)
+        _select_meshes(options.get("includedMeshNames", []))
     _apply_material_textures(options.get("materialTextures", []))
     animation_clips, retarget_audits = _merge_animation_sources(
         options.get("animationSources", []),
@@ -718,6 +756,7 @@ def main() -> None:
         and len(item.animation_data.nla_tracks) > 0
         for item in bpy.context.scene.objects
     )
+    _decimate_base_meshes(float(options.get("baseDecimationRatio", 1.0)))
     if "normalize_model" in operations:
         _normalize(options)
     if "generate_lods" in operations:

@@ -45,6 +45,62 @@ public sealed class BiomeScatterPlanBuilderTests
         Assert.NotEmpty(rockPlacements);
     }
 
+    [Fact]
+    public void MeterScaleAssetsKeepTheirAuthoredRealWorldScale()
+    {
+        var source = BuildWorld([]);
+        var meadow = source.Terrain.MaterialLayers.Single(candidate => candidate.Name == "Prairie");
+        var biome = new BiomeLayerDefinition(
+            Guid.Parse("a23d0000-0000-4000-8000-000000000004"),
+            "Realistic trees",
+            meadow.Id,
+            -512,
+            512,
+            0,
+            90,
+            0,
+            1,
+            .5f,
+            "asset:polyhaven-tree",
+            ["tree", "meter-scale"],
+            ["water"],
+            20,
+            "test:meter-scale");
+
+        var placements = BiomeScatterPlanBuilder.Build(source, biome);
+
+        Assert.NotEmpty(placements);
+        Assert.All(placements, placement => Assert.InRange(placement.UniformScale, .84f, 1.26f));
+    }
+
+    [Fact]
+    public void ExplicitScaleTagMultipliesMeterScaleAssets()
+    {
+        var source = BuildWorld([]);
+        var meadow = source.Terrain.MaterialLayers.Single(candidate => candidate.Name == "Prairie");
+        var biome = new BiomeLayerDefinition(
+            Guid.Parse("a23d0000-0000-4000-8000-000000000005"),
+            "Large trees",
+            meadow.Id,
+            -512,
+            512,
+            0,
+            90,
+            0,
+            1,
+            .5f,
+            "asset:polyhaven-tree",
+            ["tree", "meter-scale", "scale:4"],
+            ["water"],
+            20,
+            "test:meter-scale");
+
+        var placements = BiomeScatterPlanBuilder.Build(source, biome);
+
+        Assert.NotEmpty(placements);
+        Assert.All(placements, placement => Assert.InRange(placement.UniformScale, 3.36f, 5.04f));
+    }
+
     private static AreaWorldProfile BuildWorld(IReadOnlyList<TerrainMaterialPaintCell> paint)
     {
         var areaId = AreaId.From(Guid.Parse("a23d0000-0000-4000-8000-000000000001"));

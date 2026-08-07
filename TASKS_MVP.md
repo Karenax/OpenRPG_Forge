@@ -505,6 +505,9 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   sélectionnables et Creator/runtime partagent le même plan déterministe et le même chargeur GLB.
 - [x] Faire passer toute mutation IA/MCP par les commandes transactionnelles et la validation de
   licence.
+- [x] Ajouter **OpenRPG Asset Atlas**, logiciel local séparé et en lecture seule sur le Vault :
+  5 236 modèles logiques individuels, recherche/filtres, aperçu GLB/glTF à la demande, sélection
+  persistante versionnée et export JSON/copier pour Codex.
 
 ### AV4 — Terrain générique et carte Forgotten Forest
 
@@ -537,6 +540,10 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 
 #### AV4B — Carte Forgotten Forest
 
+- [x] Stabiliser le rendu de la végétation Poly Haven : dérivés de scatter allégés, MultiMesh
+  spatialement découpés en cellules de 64 m, distances de visibilité bornées, ombres du couvre-sol
+  désactivées et retrait des particules ambiantes quadrangulaires non texturées.
+
 - [x] Livrer une scène de création 128 × 128 m reconstructible, avec scatter cellulaire, masque RGBA
   versionné, kit de départ attribué et smoke test headless.
 - [x] Concevoir une carte extérieure cohérente à partir d’une sélection de 22 GLB Kenney Mini Forest
@@ -549,6 +556,8 @@ détourner une priorité P0/P1 Aurora déjà engagée.
 - [x] Ajouter profil Forward+, validation automatisée, playtest headless, capture visuelle et métriques
   de reconstruction.
 - [x] Vérifier export du module, dépendances, crédits et ouverture de l’archive depuis le cache runtime.
+- [x] Livrer le contrôle MMO clean-room : avatar aligné, vitesse doublée, saut, double orbite souris,
+  HUD compact, barre de six actions et compteur FPS `Ctrl+R`, protégés par le smoke Forward+.
 
 ### AV5 — Livraison et extension
 
@@ -571,6 +580,18 @@ détourner une priorité P0/P1 Aurora déjà engagée.
   une preuve Forward+ réelle partagée entre Creator et runtime.
 - [x] Enrichir l’habillage rapproché des secteurs avec une sélection plus variée de modèles et textures
   gouvernés, puis refaire une passe de direction artistique.
+
+### AV7 — Bibliothèque médiévale-fantastique CC0 et Asset Atlas
+
+- [x] Importer les distributions publiques vérifiables Quaternius et KayKit sans remplacer les
+  assets existants ni retélécharger Kenney.
+- [x] Ajouter matériaux PBR 2K et HDRI 2K ambientCG/Poly Haven avec archives, hashes et provenance.
+- [x] Étendre le chargeur de catalogues et Asset Atlas aux catalogues multi-sources, catégories,
+  matériaux et HDRI, avec priorité GLB, glTF, FBX, OBJ.
+- [x] Produire `ASSET_IMPORT_REPORT.md` et consigner les huit archives Itch protégées dans
+  `ASSETS_MANUAL_DOWNLOAD.md`.
+- [ ] Après dépôt manuel des huit archives gratuites, vérifier CC0 et hashes, importer sans doublon,
+  générer leurs miniatures puis actualiser le rapport et les comptes Asset Atlas.
 
 ## Gate post-MVP — Assistant de création avancée G12
 

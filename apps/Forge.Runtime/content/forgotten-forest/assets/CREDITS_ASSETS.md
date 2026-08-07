@@ -33,28 +33,192 @@
 - `kenney:mini-forest:weapon-arrow` — `246ca6bc-c0a5-5555-952b-12a15cb2435a` — `assets/imported/kenney-mini-forest-weapon-arrow/model.glb` — SHA-256 `d84f466836daea08ab3e954e2dd660b8bebe2f86463875173ff661fb4b606a52`
 - `kenney:mini-forest:weapon-bow` — `90c4247a-7483-475a-8e00-cb993953d00d` — `assets/imported/kenney-mini-forest-weapon-bow/model.glb` — SHA-256 `093e834c1edf85b4e2d2ee18490e21230088ba98022dad18a799b66ee8bea689`
 
-## Forgotten Forest Nature Dressing
+## Dead Tree Trunk
 
-- Pack: Forgotten Forest Nature Dressing (forgotten-forest-nature-dressing 1.0.0)
-- Source: Nature Kit (https://kenney.nl/assets/nature-kit)
-- License: CC0-1.0 (https://kenney.nl/assets/nature-kit)
-- License verification: verified in the OpenRPG Forge CC0 catalog
-- Modification: canonical GLB copied into the module workspace without altering the Vault original
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/dead_tree_trunk)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/dead_tree_trunk/gltf-1k/dead_tree_trunk_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `dead_tree_trunk` and decimation ratio 0,05
+- Stable identity: `polyhaven:dead_tree_trunk` — `bc41a092-9b5a-cb5f-a5f8-2eb2e80e8f2d`
+- Runtime GLB: `assets/imported/polyhaven-dead-tree-trunk/model.glb` — SHA-256 `0c1762070778986cb3d8f553e60e60b065570f0c37c4185949d7fa47b0d68a9c`
 
-## Stable asset identities
+## Didelta Spinosa
 
-- `kenney:nature-kit:dark-detailed-tree` — `ce7b3ccb-e440-8f52-973e-88577ca6bd36` — `assets/imported/kenney-nature-kit-dark-detailed-tree/model.glb` — SHA-256 `1e2211dc6483b1d8a32130c3441afa108d4075f0d851825620fba85d2dc6e5d7`
-- `kenney:nature-kit:detailed-bush` — `81f2a693-3439-bc5d-8dab-13e462e743b2` — `assets/imported/kenney-nature-kit-detailed-bush/model.glb` — SHA-256 `2e0487020d68ccf664435db9d829c78ae00e6d2785ee3ec10b9f89cc70a10406`
-- `kenney:nature-kit:fall-tree` — `3d20f8e7-5de0-8758-9a12-9e6fb271fefb` — `assets/imported/kenney-nature-kit-fall-tree/model.glb` — SHA-256 `f8e90ed7f7771644998a7c361302213af04350150b3ea0631e8384d26506efa2`
-- `kenney:nature-kit:fallen-log` — `c76498c2-b20c-1d54-8a0e-473845a5c83a` — `assets/imported/kenney-nature-kit-fallen-log/model.glb` — SHA-256 `e7a92369062d491e5a31a163d390e07db04ee573605bbfa84c00660d18896b4c`
-- `kenney:nature-kit:large-grass` — `a46f9cfb-f902-e556-98ca-83b5ec3756b3` — `assets/imported/kenney-nature-kit-large-grass/model.glb` — SHA-256 `af49a595624abca7249824eeefb944d4baf974abeeb5b16110d175da3563d6cd`
-- `kenney:nature-kit:large-rock` — `fca055d7-55e4-135e-a36f-d3e6ba38d9c0` — `assets/imported/kenney-nature-kit-large-rock/model.glb` — SHA-256 `caa8b025833d4dabf6d98fe2e96cf2fbd886693ac990df0db75f9d827194374b`
-- `kenney:nature-kit:oak-tree` — `82866648-f741-2f59-a938-305a8af65aaf` — `assets/imported/kenney-nature-kit-oak-tree/model.glb` — SHA-256 `d7fd8773674928c50c11b66d12c636d49bdcc15a8b1c7fbb98e6f63a3439a3f3`
-- `kenney:nature-kit:pine-round` — `654d6f01-dab6-d555-9996-ed19a77bedb9` — `assets/imported/kenney-nature-kit-pine-round/model.glb` — SHA-256 `29080a4935bae6b4ab29066f22c99c58f88b23ce4e2f79b4dcbb5e76de73f69d`
-- `kenney:nature-kit:pine-tall` — `16144713-9b8a-fb5a-bf37-b816dff5bcad` — `assets/imported/kenney-nature-kit-pine-tall/model.glb` — SHA-256 `9ba6337460e718b8baf165b23c02f39455e3d5757b1911505410c46bc88a86b5`
-- `kenney:nature-kit:purple-flowers` — `2abafbd7-3e72-6d57-a05d-fbf3ce8d1c19` — `assets/imported/kenney-nature-kit-purple-flowers/model.glb` — SHA-256 `2afb10cd68a9a7b185fc46110be0da550ea2aef86ef9ac6b7339f217eb4b636a`
-- `kenney:nature-kit:red-mushrooms` — `19795bc7-8e7e-4e51-81cc-cdb1e12ae4fb` — `assets/imported/kenney-nature-kit-red-mushrooms/model.glb` — SHA-256 `29f02df0589dd2b09e8d2aff6a4662394dac5cfcf1fec701640dcbd6127e0802`
-- `kenney:nature-kit:tall-plant` — `b1b376c2-fcfa-a35b-86dd-bcead260ce7c` — `assets/imported/kenney-nature-kit-tall-plant/model.glb` — SHA-256 `b192523736f32754788de4dc7a5dcf30a58322b260ec8969120c91432a10b633`
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/didelta_spinosa)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/didelta_spinosa/gltf-1k/didelta_spinosa_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `didelta_spinosa_small_LOD0` and decimation ratio 0,12
+- Stable identity: `polyhaven:didelta_spinosa` — `53588e25-fb64-5e53-a415-09a5795ef9a8`
+- Runtime GLB: `assets/imported/polyhaven-didelta-spinosa/model.glb` — SHA-256 `5786c191ab9adf99adf3f8ef0cf80bb0f2d570b711fb26f38be1137ea1b76129`
+
+## Dry Branches Medium 01
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/dry_branches_medium_01)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/dry_branches_medium_01/gltf-1k/dry_branches_medium_01_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `dry_branches_medium_01_c` and decimation ratio 0,5
+- Stable identity: `polyhaven:dry_branches_medium_01` — `2f936139-324c-7557-a99d-3444847def51`
+- Runtime GLB: `assets/imported/polyhaven-dry-branches-medium-01/model.glb` — SHA-256 `a9bedc1c7b4f7a931e6dcd8f4db542e5a7e437e90c13f18933fa7cdb4e2ff1b7`
+
+## Dutch Ship Large 01
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/dutch_ship_large_01)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/dutch_ship_large_01/gltf-1k/dutch_ship_large_01_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `dutch_ship_large_01_hull, dutch_ship_large_01_rigging, dutch_ship_large_01_sails` and decimation ratio 1
+- Stable identity: `polyhaven:dutch_ship_large_01` — `8e36f865-9ad6-d65b-9c23-b2ce837f4d51`
+- Runtime GLB: `assets/imported/polyhaven-dutch-ship-large-01/model.glb` — SHA-256 `0e1dd6b41b7461914993d90ea60f151af07480eca29be19e3dd9e48fec11c11f`
+
+## Fern 02
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/fern_02)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/fern_02/gltf-1k/fern_02_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `fern_02_b` and decimation ratio 0,55
+- Stable identity: `polyhaven:fern_02` — `5b7b6e26-0f01-c559-bbe9-881431470735`
+- Runtime GLB: `assets/imported/polyhaven-fern-02/model.glb` — SHA-256 `1d91b7c62a44a2acd2c23f34814bb67430747eff1b8075ed6b0ee2da94e5b152`
+
+## Fir Sapling Medium
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/fir_sapling_medium)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/fir_sapling_medium/gltf-1k/fir_sapling_medium_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `fir_sapling_medium_b_LOD0` and decimation ratio 0,01
+- Stable identity: `polyhaven:fir_sapling_medium` — `8a19a636-61ae-7954-939c-c1f8d946298c`
+- Runtime GLB: `assets/imported/polyhaven-fir-sapling-medium/model.glb` — SHA-256 `cfa36b816f532d5d12727b8bb09f79314839e769004f922703496ed4b8d7c892`
+
+## Fir Sapling
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/fir_sapling)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/fir_sapling/gltf-1k/fir_sapling_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `fir_sapling_b` and decimation ratio 0,03
+- Stable identity: `polyhaven:fir_sapling` — `a21f53d8-b2bf-1a5c-8a29-16b5fd02e002`
+- Runtime GLB: `assets/imported/polyhaven-fir-sapling/model.glb` — SHA-256 `4eef7f4b818b50d13077eb21a4a28e8ff8be09abdcb77489f5e2b54ce9b8f795`
+
+## Grass Medium 01
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/grass_medium_01)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/grass_medium_01/gltf-1k/grass_medium_01_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `grass_medium_01_small_a_LOD0` and decimation ratio 0,5
+- Stable identity: `polyhaven:grass_medium_01` — `995df6d1-b61a-8757-84ea-ae00db848dc9`
+- Runtime GLB: `assets/imported/polyhaven-grass-medium-01/model.glb` — SHA-256 `4ff225988d1de6b629a9b743af264d028644d69f3a3f6a2e2d441aa2768636e6`
+
+## Modular Wooden Pier
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/modular_wooden_pier)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/modular_wooden_pier/gltf-1k/modular_wooden_pier_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `modular_wooden_pier_section_02` and decimation ratio 1
+- Stable identity: `polyhaven:modular_wooden_pier` — `de8766cf-67ad-a55e-a6f4-6bd76ddf6904`
+- Runtime GLB: `assets/imported/polyhaven-modular-wooden-pier/model.glb` — SHA-256 `aef7b75c8560cb8982b75e74bef85b9ed435fe4ff79b26d0bde0be49aa2f2152`
+
+## Moss 01
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/moss_01)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/moss_01/gltf-1k/moss_01_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `moss_01_a_LOD0` and decimation ratio 1
+- Stable identity: `polyhaven:moss_01` — `df4b094b-eeb6-805c-a9e5-e76d56cb8cb3`
+- Runtime GLB: `assets/imported/polyhaven-moss-01/model.glb` — SHA-256 `ff44469b8a46be9d4566579e3c0ec0783888074592d8f2e350f165e68ecf8325`
+
+## Pine Sapling Small
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/pine_sapling_small)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/pine_sapling_small/gltf-1k/pine_sapling_small_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `pine_sapling_small_b` and decimation ratio 0,035
+- Stable identity: `polyhaven:pine_sapling_small` — `5b14c277-cde3-9c5c-828a-829e94d04763`
+- Runtime GLB: `assets/imported/polyhaven-pine-sapling-small/model.glb` — SHA-256 `8bf4bd167bbd1424e5f3e1365d83bd0636a670726aefa636c709192d57e99521`
+
+## Rock Moss Set 01
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/rock_moss_set_01)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/rock_moss_set_01/gltf-1k/rock_moss_set_01_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `rock_moss_set_01_rock01` and decimation ratio 0,35
+- Stable identity: `polyhaven:rock_moss_set_01` — `5245022e-4f05-fd57-bad0-e54a5590c405`
+- Runtime GLB: `assets/imported/polyhaven-rock-moss-set-01/model.glb` — SHA-256 `4d2dca5976cfe0c6fd36f8534adbd7912f4c391949b74c7764e2afba5d82da5d`
+
+## Rock Moss Set 02
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/rock_moss_set_02)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/rock_moss_set_02/gltf-1k/rock_moss_set_02_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `rock_moss_set_02_rock08` and decimation ratio 0,45
+- Stable identity: `polyhaven:rock_moss_set_02` — `ff5ccaec-13aa-c85b-8d19-8a5f7f30b783`
+- Runtime GLB: `assets/imported/polyhaven-rock-moss-set-02/model.glb` — SHA-256 `32476892a76d512ccf83275ac7d80f5f8a9ec5c86af9489eb42a20a115362897`
+
+## Tree Stump 01
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/tree_stump_01)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/tree_stump_01/gltf-1k/tree_stump_01_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `tree_stump_01` and decimation ratio 0,12
+- Stable identity: `polyhaven:tree_stump_01` — `1e7528e7-2bae-4455-b89e-60d7fa4aba8c`
+- Runtime GLB: `assets/imported/polyhaven-tree-stump-01/model.glb` — SHA-256 `ef31627a35ba3e8a0e3af8552752ac8069819d7afa8920f8fe99c572612609fd`
+
+## Tree Stump 02
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/tree_stump_02)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/tree_stump_02/gltf-1k/tree_stump_02_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `tree_stump_02` and decimation ratio 0,08
+- Stable identity: `polyhaven:tree_stump_02` — `bf644582-3f22-f153-8c62-ac6e9b7117af`
+- Runtime GLB: `assets/imported/polyhaven-tree-stump-02/model.glb` — SHA-256 `cdb8bbef0dcebac6d9c860a7d35a592cad61447b47f6dfa196d72554a149f7e7`
+
+## Wooden Axe 02
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/wooden_axe_02)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/wooden_axe_02/gltf-1k/wooden_axe_02_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `wooden_axe_02` and decimation ratio 1
+- Stable identity: `polyhaven:wooden_axe_02` — `a3b2c313-dc9e-365c-90b4-4f3ec764a8cc`
+- Runtime GLB: `assets/imported/polyhaven-wooden-axe-02/model.glb` — SHA-256 `e74c441e8e8176ca3079995bd1a10f4e19d8d47215dafab0c9012aac65bd73bc`
+
+## Wooden Axe 03
+
+- Pack: Forgotten Forest — Poly Haven environment (forgotten-forest-polyhaven-environment 1.1.0)
+- Source: Poly Haven (https://polyhaven.com/a/wooden_axe_03)
+- License: CC0-1.0 (https://polyhaven.com/license)
+- License verification: official Poly Haven license page and governed OpenRPG Asset Atlas
+- Vault original: `originals/polyhaven/wooden_axe_03/gltf-1k/wooden_axe_03_1k.gltf` — unchanged
+- Runtime derivation: mesh selection `wooden_axe_03` and decimation ratio 1
+- Stable identity: `polyhaven:wooden_axe_03` — `b7a510c4-3bde-605a-935a-4ed8492648ee`
+- Runtime GLB: `assets/imported/polyhaven-wooden-axe-03/model.glb` — SHA-256 `65abe7469a6c58fc6211779325f3667fc34a7b85d2fe8220bbc6afff86978e34`
 
 ## Animated character — Forgotten Forest Animated Adventurer
 

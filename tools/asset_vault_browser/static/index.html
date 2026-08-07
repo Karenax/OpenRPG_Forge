@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>OpenRPG Asset Atlas</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="vendor/model-viewer.min.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">OR</span>
+      <div>
+        <strong>Asset Atlas</strong>
+        <span>OpenRPG Forge</span>
+      </div>
+    </div>
+    <div class="catalog-summary" id="catalog-summary" aria-live="polite">Indexation du Vault…</div>
+  </header>
+
+  <main class="app-shell">
+    <section class="library" aria-labelledby="library-title">
+      <div class="library-heading">
+        <div>
+          <p class="eyebrow">Bibliothèque 3D locale</p>
+          <h1 id="library-title">Choisir une direction artistique précise</h1>
+        </div>
+        <button class="button quiet" id="refresh-button" type="button">Actualiser</button>
+      </div>
+
+      <div class="filters" role="search">
+        <label class="search-field">
+          <span>Rechercher</span>
+          <input id="search-input" type="search" placeholder="arbre, ruine, pont, medieval…" autocomplete="off">
+        </label>
+        <label>
+          <span>Source</span>
+          <select id="source-filter"><option value="">Toutes</option></select>
+        </label>
+        <label>
+          <span>Pack</span>
+          <select id="pack-filter"><option value="">Tous les packs</option></select>
+        </label>
+        <label>
+          <span>Format préféré</span>
+          <select id="format-filter">
+            <option value="">Tous</option>
+            <option value="glb">GLB</option>
+            <option value="gltf">glTF</option>
+            <option value="obj">OBJ</option>
+            <option value="fbx">FBX</option>
+          </select>
+        </label>
+        <label>
+          <span>Type</span>
+          <select id="kind-filter">
+            <option value="">Tous</option>
+            <option value="model">Modèles</option>
+            <option value="animation">Animations</option>
+          </select>
+        </label>
+        <label class="toggle-field">
+          <input id="selected-filter" type="checkbox">
+          <span>Ma sélection uniquement</span>
+        </label>
+      </div>
+
+      <div class="results-bar">
+        <span id="result-count">Chargement…</span>
+        <span class="result-hint">Cliquez sur une vignette pour examiner le fichier exact.</span>
+      </div>
+
+      <div class="asset-grid" id="asset-grid" aria-live="polite"></div>
+      <div class="empty-state" id="empty-state" hidden>
+        <strong>Aucun élément ne correspond à ces filtres.</strong>
+        <span>Essayez un terme plus court ou retirez un filtre.</span>
+      </div>
+      <button class="button load-more" id="load-more" type="button" hidden>Charger davantage</button>
+    </section>
+
+    <aside class="selection-panel" aria-labelledby="selection-title">
+      <div class="selection-heading">
+        <div>
+          <p class="eyebrow">Base de discussion</p>
+          <h2 id="selection-title">Ma sélection</h2>
+        </div>
+        <span class="selection-count" id="selection-count">0</span>
+      </div>
+      <p class="selection-help">Cette liste est enregistrée hors du dépôt et reste disponible au prochain lancement.</p>
+      <label class="note-field">
+        <span>Note de direction artistique</span>
+        <textarea id="selection-note" rows="4" placeholder="Ex. garder les arbres réalistes, éviter le low-poly…"></textarea>
+      </label>
+      <div class="selection-list" id="selection-list"></div>
+      <div class="selection-empty" id="selection-empty">Sélectionnez les modèles qui correspondent au rendu recherché.</div>
+      <div class="selection-actions">
+        <button class="button primary" id="save-selection" type="button">Enregistrer</button>
+        <button class="button" id="copy-selection" type="button">Copier pour Codex</button>
+        <a class="button" href="/api/export" download>Exporter JSON</a>
+      </div>
+      <div class="storage-path" id="storage-path"></div>
+    </aside>
+  </main>
+
+  <dialog class="asset-dialog" id="asset-dialog">
+    <div class="dialog-shell">
+      <header class="dialog-header">
+        <div>
+          <span class="source-pill" id="dialog-source"></span>
+          <h2 id="dialog-title"></h2>
+          <code id="dialog-id"></code>
+        </div>
+        <button class="icon-button" id="close-dialog" type="button" aria-label="Fermer">×</button>
+      </header>
+
+      <div class="dialog-body">
+        <section class="viewer-stage" aria-label="Aperçu du modèle">
+          <img id="dialog-preview" alt="">
+          <model-viewer id="model-viewer" camera-controls touch-action="pan-y" shadow-intensity="1" exposure="1" interaction-prompt="none" alt="Aperçu 3D interactif"></model-viewer>
+          <div class="viewer-message" id="viewer-message"></div>
+          <button class="button viewer-load" id="load-model" type="button">Charger l’aperçu 3D</button>
+        </section>
+
+        <section class="asset-details">
+          <dl>
+            <div><dt>Source</dt><dd id="detail-source"></dd></div>
+            <div><dt>Pack</dt><dd id="detail-pack"></dd></div>
+            <div><dt>Type</dt><dd id="detail-kind"></dd></div>
+            <div><dt>Format choisi</dt><dd id="detail-format"></dd></div>
+            <div><dt>Taille du fichier</dt><dd id="detail-size"></dd></div>
+            <div><dt>Licence</dt><dd id="detail-license"></dd></div>
+          </dl>
+          <div class="detail-block">
+            <span>Chemin précis</span>
+            <code id="detail-path"></code>
+          </div>
+          <div class="detail-block">
+            <span>Formats disponibles</span>
+            <div class="variant-list" id="detail-variants"></div>
+          </div>
+          <div class="detail-block">
+            <span>Tags</span>
+            <div class="tag-list" id="detail-tags"></div>
+          </div>
+          <div class="dialog-actions">
+            <button class="button primary" id="dialog-select" type="button"></button>
+            <button class="button" id="copy-id" type="button">Copier l’identifiant</button>
+            <a class="button" id="source-link" target="_blank" rel="noreferrer">Voir la source</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -171,7 +171,8 @@ public static class GodotTerrainAdapter
     {
         var surface = new SurfaceTool();
         surface.Begin(Mesh.PrimitiveType.Triangles);
-        foreach (var index in indices)
+
+        void AddVertex(int index)
         {
             var vertex = plan.Vertices[index];
             surface.SetColor(new Color(vertex.AlbedoColor));
@@ -181,6 +182,18 @@ public static class GodotTerrainAdapter
                 vertex.Position.Y - origin.Y,
                 vertex.Position.Z - origin.Z));
         }
+
+        for (var triangle = 0; triangle < indices.Count; triangle += 3)
+        {
+            // Forge's canonical X/Z grid is ordered for domain and navigation processing.
+            // Godot's front-face convention is the opposite, and concave collision shapes
+            // ignore back faces by default. Reverse each triangle when building the engine
+            // mesh so the visible surface is also the collidable surface.
+            AddVertex(indices[triangle]);
+            AddVertex(indices[triangle + 2]);
+            AddVertex(indices[triangle + 1]);
+        }
+
         surface.GenerateNormals();
         var mesh = surface.Commit();
         if (material is not null)

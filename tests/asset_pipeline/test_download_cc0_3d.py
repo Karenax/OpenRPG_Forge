@@ -17,6 +17,13 @@ SPEC.loader.exec_module(MODULE)
 
 
 class DownloadCc0AssetsTests(unittest.TestCase):
+    def test_default_vault_matches_repository_and_runtime_convention(self) -> None:
+        with mock.patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(
+                Path("E:/OpenRPG_AssetVault"),
+                MODULE.default_vault(Path("E:/OpenRPG_Forge/OpenRPG_Forge")),
+            )
+
     def test_select_ids_is_deterministic_and_limited(self) -> None:
         records = [{"id": "z"}, {"id": "A"}, {"id": "m"}]
         self.assertEqual(["A", "m"], [item["id"] for item in MODULE.select_ids(records, 2)])

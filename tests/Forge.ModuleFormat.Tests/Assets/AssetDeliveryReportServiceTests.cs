@@ -74,6 +74,52 @@ public sealed class AssetDeliveryReportServiceTests
         Assert.True(metadata.Passed);
     }
 
+    [Fact]
+    public void AcceptsCatalogOnlyMaterialsAndHdriWithoutTreatingThemAsModels()
+    {
+        using var fixture = new DeliveryFixture();
+        File.WriteAllText(Path.Combine(fixture.Vault, "metadata", "material.json"), "{}");
+        var material = new AssetCatalogItem(
+            AssetCatalogItemId.ForExternalId("source:material"),
+            "source:material",
+            "Stone material",
+            "source",
+            "material",
+            "https://example.test/material",
+            "CC0-1.0",
+            "https://creativecommons.org/publicdomain/zero/1.0/",
+            true,
+            new string('b', 64),
+            10,
+            ["Materials"],
+            ["stone"],
+            "downloaded-original",
+            AssetAvailability.CatalogOnly,
+            null,
+            "originals/material.preview.png",
+            null,
+            "asset-catalog:source:material");
+        var catalog = new AssetCatalog(
+            fixture.Catalog.CatalogDate,
+            fixture.Catalog.LicensePolicy,
+            fixture.Catalog.VaultRoot,
+            fixture.Catalog.Items.Append(material).ToArray(),
+            fixture.Catalog.Provenance);
+
+        var report = AssetDeliveryReportService.Measure(
+            catalog,
+            fixture.Vault,
+            fixture.Workspace,
+            fixture.Package,
+            fixture.Benchmark,
+            new AssetDeliveryReportService.Policy(3, 3, 2, 2, 2, "CC0-1.0"));
+
+        Assert.True(report.Passed);
+        Assert.Equal(2, report.Catalog.LocalAssets);
+        Assert.Equal(1, report.Catalog.CatalogOnlyMediaAssets);
+        Assert.True(report.Checks.Single(check => check.Key == "catalog-local-availability").Passed);
+    }
+
     private sealed class DeliveryFixture : IDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), $"forge-asset-delivery-{Guid.NewGuid():N}");

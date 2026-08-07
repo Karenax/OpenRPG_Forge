@@ -1,6 +1,6 @@
 # État d’implémentation — Asset Vault et carte
 
-Dernière mise à jour : 5 août 2026 — tranche AV6-E.
+Dernière mise à jour : 6 août 2026 — environnement Poly Haven de Forgotten Forest.
 
 ## Terminé
 
@@ -22,6 +22,9 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-E.
   Forge, avec fiche `provenance.json` ;
 - smoke test headless de génération et de peinture.
 - catalogue canonique v1 de 605 entrées avec UUID stable, SHA-256, licence, provenance et état local ;
+- logiciel local séparé `tools/asset_vault_browser` indexant 5 236 modèles logiques individuels,
+  avec recherche et filtres, miniatures, aperçu GLB/glTF à la demande, sélection persistante hors
+  dépôt, export JSON et copie d'une liste précise pour Codex ;
 - espace Assets avec recherche, facettes, aperçu, gouvernance et dry-run d’import ;
 - exposition du catalogue filtré par CLI et MCP ;
 - validation visuelle aux tailles normale et maximisée, avec détails défilables et pied stable.
@@ -113,11 +116,12 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-E.
 - deux routes reconstruites comme rubans continus et texturés procéduralement depuis leurs points de
   contrôle, ciel physique, lumière rééquilibrée et brouillard plus distant ; capture aérienne et
   rapprochée inspectées, avec SSAO/SSIL explicitement retirés après artefacts visibles.
-- pack curaté `forgotten-forest-nature-dressing` de douze GLB Kenney Nature Kit CC0, avec cinq
-  silhouettes d’arbres et sept détails de sol, hashes, profils, reçus et crédits déterministes ;
-- 17 couches de biome, 7 112 instances MultiMesh, 40 manifestes, 62 chunks, 56 références
-  gouvernées, 108 niveaux LOD et 17 groupes de culling ; package de 126 fichiers, smoke jouable et
-  captures Forward+ aérienne/rapprochée validés.
+- pack curaté `forgotten-forest-polyhaven-environment` de dix-sept GLTF Poly Haven CC0, normalisés en
+  GLB autonomes avec sélection de variante, décimation typée, hash, aperçu, rapport qualité et crédit
+  par modèle ; les douze anciens modèles Nature Kit non référencés sont retirés du module ;
+- 13 couches de biome, 4 617 instances MultiMesh, 45 manifestes, 67 chunks, 43 modèles placés,
+  89 niveaux LOD et 13 groupes de culling ; navire au centre, trois ponts de ponton, deux haches de
+  camp, trois traversées navigables et capture Forward+ aérienne validée.
 
 ## Partiellement terminé
 
@@ -126,10 +130,9 @@ Dernière mise à jour : 5 août 2026 — tranche AV6-E.
 - normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
   conversion KTX2, la curation visuelle de masse et les budgets par plateforme restent à livrer ;
 - contrôle qualité : intégrité automatisée présente, revue visuelle/LOD/collisions à ajouter.
-- Forgotten Forest : carte 512 × 512 jouable, navigable, sonorisée, enrichie de VFX, de douze
-  modèles naturels supplémentaires et de cinq personnages fantasy avec combat animé ; retargeting
-  inter-rigs, textures scannées, eau avancée et composition manuelle propre à chaque secteur restent
-  des finitions de production.
+- Forgotten Forest : carte 512 × 512 jouable, navigable, sonorisée, enrichie de VFX, de dix-sept
+  modèles Poly Haven et de cinq personnages fantasy avec combat animé ; eau avancée et composition
+  manuelle rapprochée propre à chaque secteur restent des finitions de production.
 
 ## Non commencé
 

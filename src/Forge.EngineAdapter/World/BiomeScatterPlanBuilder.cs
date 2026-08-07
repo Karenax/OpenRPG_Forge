@@ -48,7 +48,11 @@ public static class BiomeScatterPlanBuilder
                 result.Any(existing => DistanceSquared(existing.Position, x, z) < minimumDistance * minimumDistance))
                 continue;
 
-            var authoredScale = biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase)
+            var authoredScale = ScaleMultiplier(biome) is { } multiplier
+                ? multiplier
+                : biome.Tags.Contains("meter-scale", StringComparer.OrdinalIgnoreCase)
+                ? 1f
+                : biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase)
                 ? 2.75f
                 : biome.Tags.Contains("ground-cover", StringComparer.OrdinalIgnoreCase) ? 1.35f : 1f;
             var scale = (.84f + random.NextFloat() * .42f) * authoredScale;
@@ -59,6 +63,19 @@ public static class BiomeScatterPlanBuilder
         }
 
         return result;
+    }
+
+    private static float? ScaleMultiplier(BiomeLayerDefinition biome)
+    {
+        const string prefix = "scale:";
+        var tag = biome.Tags.FirstOrDefault(candidate => candidate.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+        if (tag is null || !float.TryParse(tag[prefix.Length..], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var multiplier) ||
+            !float.IsFinite(multiplier) || multiplier is < .1f or > 16f)
+        {
+            return null;
+        }
+        return multiplier;
     }
 
     private static (int X, int Z) CellAt(TerrainDefinition terrain, float x, float z)

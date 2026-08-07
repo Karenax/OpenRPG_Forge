@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "jobId": "2979a01c-3e8d-125e-80d7-a78fd9241982",
+  "assetId": "a3b2c313-dc9e-365c-90b4-4f3ec764a8cc",
+  "sourceRelativePath": "originals/polyhaven/wooden_axe_02/gltf-1k/wooden_axe_02_1k.gltf",
+  "outputRelativePath": "assets/imported/polyhaven-wooden-axe-02/model.glb",
+  "sourceSha256": "c89b229b673b10e3e6af575f20478f0071a2a5e0b72d0f75ebac5a7d1f552ebd",
+  "licenseSpdx": "CC0-1.0",
+  "provenance": "curated-pack:forgotten-forest-polyhaven-environment@1.1.0;source:polyhaven:wooden_axe_02",
+  "operations": [
+    "validate_model",
+    "normalize_model",
+    "export_glb",
+    "generate_thumbnail",
+    "audit_quality"
+  ],
+  "options": {
+    "applyTransforms": true,
+    "scaleMeters": 1,
+    "pivot": "ground_center",
+    "lodRatios": [],
+    "generateCollision": false,
+    "animationSources": [],
+    "materialTextures": [],
+    "creationRecipe": null,
+    "includedMeshNames": [
+      "wooden_axe_02"
+    ],
+    "baseDecimationRatio": 1.0
+  },
+  "securityPolicy": {
+    "schemaVersion": 1,
+    "id": "a1230000-0000-4000-8000-000000000001",
+    "denyFreeFormPython": true,
+    "denyShell": true,
+    "denyEval": true,
+    "requireContainedPaths": true,
+    "networkAllowed": false,
+    "maximumJobSeconds": 300,
+    "maximumOutputBytes": 536870912,
+    "allowedBlenderOperations": [
+      "validate_model",
+      "normalize_model",
+      "generate_collision",
+      "generate_lods",
+      "export_glb",
+      "generate_thumbnail",
+      "audit_quality",
+      "create_primitives"
+    ],
+    "requiredPermission": "configure",
+    "provenance": "openrpg-forge:g12-l:secure-worker-default"
+  }
+}

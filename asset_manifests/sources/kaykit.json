@@ -6,7 +6,7 @@
   "asset_page_template": "https://github.com/KayKit-Game-Assets/{pack_id}",
   "license": "CC0-1.0",
   "license_verification": "Each admitted repository must contain a CC0 license at the pinned commit",
-  "license_verified_at": "2026-08-05",
+  "license_verified_at": "2026-08-07",
   "redistribution_allowed": true,
   "attribution_required_for_assets": false
 }

@@ -86,15 +86,18 @@ L’IA, les plugins et les interfaces ne modifient jamais directement les fichie
 Le graphe déterministe décrit les relations entre interfaces, clients, points d’entrée,
 services, repositories, modèles et tests. Le code reste la source de vérité.
 
-- avant une modification transversale, interroger le sous-graphe concerné avec
-  `python scripts/architecture_graph.py query "<module ou symbole>"` ;
-- utiliser `--format paths` pour obtenir uniquement les fichiers à examiner et augmenter
-  `--depth` ou `--max-nodes` seulement si le premier résultat est insuffisant ;
+- avant une modification transversale, vérifier la fraîcheur avec
+  `dotnet run --project tools/Forge.ArchitectureGraph -- check` ;
+- interroger le sous-graphe avec
+  `dotnet run --project tools/Forge.ArchitectureGraph -- query "<module ou symbole>" --mode impact --format context --depth 2 --max-nodes 30` ;
+- interroger aussi les tests avec `--mode tests --format paths --depth 2 --max-nodes 40` ;
+- utiliser `--format paths` pour obtenir uniquement les fichiers à examiner et augmenter les bornes
+  seulement si le premier résultat est insuffisant ;
 - ne jamais charger intégralement `docs/architecture/graph.json` dans le contexte d’un agent ;
 - après toute modification d’un fichier source indexé ou des règles d’architecture, exécuter
-  `python scripts/architecture_graph.py generate` ;
+  `dotnet run --project tools/Forge.ArchitectureGraph -- generate` ;
 - avant de terminer une intervention, vérifier la fraîcheur avec
-  `python scripts/architecture_graph.py check` ;
+  `dotnet run --project tools/Forge.ArchitectureGraph -- check --full` ;
 - ne jamais corriger manuellement `graph.json` ou `overview.mmd`, car ces fichiers sont générés.
 
 Le mode d’emploi et la signification des relations sont documentés dans

@@ -12,6 +12,7 @@ boot_splash/image="res://branding/openrpg_forge_splash.png"
 boot_splash/minimum_display_time=700
 boot_splash/show_image=true
 boot_splash/stretch_mode=1
+run/max_fps=0
 
 [display]
 
@@ -20,6 +21,7 @@ window/size/viewport_height=720
 window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
+window/vsync/vsync_mode=1
 
 [dotnet]
 
