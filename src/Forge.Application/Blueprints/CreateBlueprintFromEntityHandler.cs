@@ -122,13 +122,23 @@ public sealed class CreateBlueprintFromEntityHandler
                 source.Provenance.ContentHash,
                 source.Provenance.IsAiGenerated,
                 [.. source.Provenance.Modifications, $"Derived from blueprint {source.Id}"]),
-            itemAdvanced: source.ItemAdvanced);
+            creaturePresentation: source.CreaturePresentation,
+            creatureProgression: source.CreatureProgression,
+            creatureLoot: source.CreatureLoot,
+            creatureRoleBehavior: source.CreatureRoleBehavior,
+            creatureEvents: source.CreatureEvents,
+            itemAdvanced: source.ItemAdvanced,
+            authoring: command.Authoring ?? BlueprintAuthoringMetadata.CreateDefault(
+                command.NewBlueprintId, slug, BlueprintPaletteOrigin.ProjectContent, source.Provenance),
+            creatureFoundation: source.CreatureFoundation,
+            itemFoundation: source.ItemFoundation);
         var retargeted = new EntityInstance(
             entity.Id,
             derived.Id,
             entity.Transform,
             entity.Tags,
-            entity.Overrides);
+            entity.Overrides,
+            $"={derived.Authoring.Version}");
         var updatedArea = area.WithEntities(
             area.Entities.Select(candidate => candidate.Id == retargeted.Id ? retargeted : candidate).ToArray());
         var updatedProject = new ProjectDefinition(

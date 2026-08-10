@@ -1,6 +1,7 @@
 #if TOOLS
 using Forge.Application.Commands;
 using Forge.Application.Assets;
+using Forge.Application.Blueprints;
 using Forge.Application.Creator;
 using Forge.Application.Entities;
 using Forge.Application.Projects;
@@ -25,16 +26,26 @@ namespace Forge.Toolset.Editor;
 [Tool]
 public partial class ProjectPreview3D : SubViewportContainer
 {
+    public enum ScaleGizmoAxis
+    {
+        Uniform,
+        X,
+        Y,
+        Z,
+    }
+
     private readonly SubViewport _viewport;
     private readonly Node3D _world;
     private readonly BlueprintDragPalette _dragPalette;
     private readonly Dictionary<EntityId, Node3D> _entityNodes = [];
     private readonly HashSet<string> _animationClipNames = new(StringComparer.Ordinal);
     private readonly PlacementValidator _placementValidator = new();
+    private readonly BlueprintDropPlanner _dropPlanner = new();
     private readonly NavigateEditorCameraHandler _cameraHandler = new(new SystemClock());
     private Camera3D? _camera;
     private Node3D? _areaRoot;
     private Node3D? _gizmo;
+    private readonly Dictionary<ScaleGizmoAxis, MeshInstance3D> _scaleGizmoHandles = [];
     private MeshInstance3D? _ghost;
     private Node3D? _navigationOverlay;
     private Func<ProjectState?>? _getState;
@@ -56,7 +67,12 @@ public partial class ProjectPreview3D : SubViewportContainer
     private bool _panningCamera;
     private Label? _cameraModeLabel;
     private Label? _cameraSpeedLabel;
+    private Label? _editorModeLabel;
     private Label? _bookmarkSummary;
+    private Label? _scaleGizmoLabel;
+    private CheckButton? _scaleGizmoToggle;
+    private ScaleGizmoAxis _scaleGizmoAxis = ScaleGizmoAxis.Uniform;
+    private bool _scaleGizmoEnabled;
     private EditorDisplayFilter _displayFilter = EditorDisplayFilter.ShowAll;
     private WorldEnvironment? _worldEnvironment;
     private DirectionalLight3D? _referenceSun;
@@ -79,6 +95,7 @@ public partial class ProjectPreview3D : SubViewportContainer
     private int _volumetricDebugVolumes;
     private int _flightRouteSegments;
     private GodotAssetModelLibrary? _modelLibrary;
+    private EditorViewportMode _editorMode = EditorViewportMode.Editing;
 
     public int EntityCount { get; private set; }
 
@@ -89,6 +106,12 @@ public partial class ProjectPreview3D : SubViewportContainer
     public int AnimationClipCount => _animationClipNames.Count;
 
     public bool GizmoVisible => _gizmo?.Visible == true;
+
+    public int ScaleGizmoHandleCount => _scaleGizmoHandles.Count;
+
+    public ScaleGizmoAxis ActiveScaleGizmoAxis => _scaleGizmoAxis;
+
+    public bool ScaleGizmoEnabled => _scaleGizmoEnabled;
 
     public bool GhostVisible => _ghost?.Visible == true;
 
@@ -129,6 +152,8 @@ public partial class ProjectPreview3D : SubViewportContainer
     public int VolumetricDebugVolumeCount => _volumetricDebugVolumes;
 
     public int FlightRouteSegmentCount => _flightRouteSegments;
+
+    public EditorViewportMode EditorMode => _editorMode;
 
     public ProjectPreview3D()
     {
@@ -185,6 +210,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         paletteMargin.AddChild(paletteColumn);
 
         CreateCameraToolbar();
+        CreateScaleGizmoToolbar();
         CreateGizmoAndGhost();
     }
 
@@ -244,12 +270,14 @@ public partial class ProjectPreview3D : SubViewportContainer
 
         foreach (var entity in area.Entities)
         {
-            if (!blueprints.TryGetValue(entity.BlueprintId, out var blueprint))
+            var resolvedTile = ModularTilePlacementResolver.Resolve(area, entity);
+            if (!blueprints.TryGetValue(resolvedTile.Entity.BlueprintId, out var blueprint))
             {
                 continue;
             }
 
-            var representation = CreateRepresentation(entity, blueprint);
+            var representation = CreateRepresentation(resolvedTile.Entity, blueprint);
+            ApplyTileMirror(representation, resolvedTile.Mirror);
             _areaRoot.AddChild(representation);
             _entityNodes[entity.Id] = representation;
             EntityCount++;
@@ -258,6 +286,16 @@ public partial class ProjectPreview3D : SubViewportContainer
         RefreshSelectedGizmo();
         ApplyPbrMaterials(_areaRoot);
         ApplyDisplayFilter();
+    }
+
+    private static void ApplyTileMirror(Node3D node, ModularTileMirrorMode mirror)
+    {
+        node.Scale = mirror switch
+        {
+            ModularTileMirrorMode.X => new Vector3(-node.Scale.X, node.Scale.Y, node.Scale.Z),
+            ModularTileMirrorMode.Z => new Vector3(node.Scale.X, node.Scale.Y, -node.Scale.Z),
+            _ => node.Scale,
+        };
     }
 
     public void SetDisplayFilter(EditorDisplayFilter filter)
@@ -373,6 +411,7 @@ public partial class ProjectPreview3D : SubViewportContainer
         _navigationOverlay.AddChild(new MeshInstance3D { Mesh = mesh });
         _world.AddChild(_navigationOverlay);
         NavigationOverlayCellCount = surface.WalkableCells.Count;
+        ApplyEditorMode();
 
         void AddLine(float fromX, float fromZ, float toX, float toZ, Color color, float height = 0.06f)
         {
@@ -380,6 +419,35 @@ public partial class ProjectPreview3D : SubViewportContainer
             mesh.SurfaceAddVertex(new Vector3(fromX, height, fromZ));
             mesh.SurfaceSetColor(color);
             mesh.SurfaceAddVertex(new Vector3(toX, height, toZ));
+        }
+    }
+
+    public void SetEditorMode(EditorViewportMode mode)
+    {
+        _editorMode = mode;
+        ApplyEditorMode();
+    }
+
+    private void ApplyEditorMode()
+    {
+        if (_navigationOverlay is not null && GodotObject.IsInstanceValid(_navigationOverlay))
+            _navigationOverlay.Visible = _editorMode is EditorViewportMode.Editing or EditorViewportMode.Navigation;
+        if (_referenceSun is not null)
+            _referenceSun.ShadowEnabled = _editorMode != EditorViewportMode.Performance;
+        _viewport.RenderTargetUpdateMode = _editorMode == EditorViewportMode.Performance
+            ? SubViewport.UpdateMode.WhenVisible
+            : SubViewport.UpdateMode.Always;
+        if (_editorModeLabel is not null)
+        {
+            _editorModeLabel.Text = _editorMode switch
+            {
+                EditorViewportMode.Simulation => "MODE · SIMULATION",
+                EditorViewportMode.Lighting => "MODE · ÉCLAIRAGE",
+                EditorViewportMode.Navigation => "MODE · NAVIGATION",
+                EditorViewportMode.Collisions => "MODE · COLLISIONS",
+                EditorViewportMode.Performance => "MODE · PERFORMANCE",
+                _ => "MODE · ÉDITION",
+            };
         }
     }
 
@@ -406,6 +474,25 @@ public partial class ProjectPreview3D : SubViewportContainer
 
         SelectEntity(entityId);
         return GizmoVisible;
+    }
+
+    public bool ScaleSelectedForSmokeTest(ScaleGizmoAxis axis, bool increase)
+    {
+        SelectScaleGizmoAxis(axis);
+        return ScaleSelectedFromGizmo(increase ? 1.1f : 0.9f);
+    }
+
+    public bool PrepareScaleGizmoForCapture(ScaleGizmoAxis axis)
+    {
+        if (_selectedEntityId is null || !_entityNodes.ContainsKey(_selectedEntityId))
+        {
+            return false;
+        }
+
+        SetScaleGizmoEnabled(true);
+        SelectScaleGizmoAxis(axis);
+        RefreshSelectedGizmo();
+        return GizmoVisible && ScaleGizmoHandleCount == 4;
     }
 
     public void ShowSelection(EntityId entityId)
@@ -525,6 +612,12 @@ public partial class ProjectPreview3D : SubViewportContainer
 
         if (@event is InputEventKey key && key.Pressed && !key.Echo)
         {
+            if (key.Keycode == Key.Escape && _scaleGizmoEnabled)
+            {
+                SetScaleGizmoEnabled(false);
+                AcceptEvent();
+                return;
+            }
             if (HandleCameraKey(key.Keycode))
             {
                 AcceptEvent();
@@ -534,6 +627,11 @@ public partial class ProjectPreview3D : SubViewportContainer
 
         if (@event is InputEventMouseButton button && button.ButtonIndex == MouseButton.Left)
         {
+            if (button.Pressed && TrySelectScaleGizmoAxis(button.Position))
+            {
+                AcceptEvent();
+                return;
+            }
             if (button.Pressed && TryProjectToGround(button.Position, out var ground))
             {
                 var entityId = FindNearestEntity(ground);
@@ -597,6 +695,9 @@ public partial class ProjectPreview3D : SubViewportContainer
     }
 
     private bool ScaleSelectedFromWheel(bool increase)
+        => ScaleSelectedFromGizmo(increase ? 1.1f : 0.9f);
+
+    private bool ScaleSelectedFromGizmo(float factor)
     {
         var state = _getState?.Invoke();
         var entity = state?.Project.Areas.SelectMany(area => area.Entities)
@@ -606,15 +707,19 @@ public partial class ProjectPreview3D : SubViewportContainer
             return false;
         }
 
-        var factor = increase ? 1.1f : 0.9f;
         var current = entity.Transform.Scale;
         var scale = new Vector3Value(
-            Math.Clamp(current.X * factor, ScaleEntitiesHandler.MinimumScale, ScaleEntitiesHandler.MaximumScale),
-            Math.Clamp(current.Y * factor, ScaleEntitiesHandler.MinimumScale, ScaleEntitiesHandler.MaximumScale),
-            Math.Clamp(current.Z * factor, ScaleEntitiesHandler.MinimumScale, ScaleEntitiesHandler.MaximumScale));
+            ScaleAxis(ScaleGizmoAxis.X, current.X, factor),
+            ScaleAxis(ScaleGizmoAxis.Y, current.Y, factor),
+            ScaleAxis(ScaleGizmoAxis.Z, current.Z, factor));
         return _transformEntity?.Invoke(entity.Id,
             new TransformValue(entity.Transform.Position, entity.Transform.Rotation, scale)) == true;
     }
+
+    private float ScaleAxis(ScaleGizmoAxis axis, float current, float factor) =>
+        !_scaleGizmoEnabled || _scaleGizmoAxis is ScaleGizmoAxis.Uniform || _scaleGizmoAxis == axis
+            ? Math.Clamp(current * factor, ScaleEntitiesHandler.MinimumScale, ScaleEntitiesHandler.MaximumScale)
+            : current;
 
     private PlacementValidationResult PreviewEntityMove(EntityId entityId, Vector3Value position)
     {
@@ -705,13 +810,22 @@ public partial class ProjectPreview3D : SubViewportContainer
         var activeAreaId = _getActiveAreaId?.Invoke();
         var area = state.Project.Areas.FirstOrDefault(candidate => candidate.Id == activeAreaId) ??
             state.Project.Areas.First();
-        return _placementValidator.Validate(
-            state.Project,
-            new PlacementValidationRequest(
-                area.Id,
-                blueprintId,
-                position,
-                Math.Max(0.25f, _getGridSize?.Invoke() ?? 1)));
+        var plan = _dropPlanner.Plan(state.Project, new BlueprintDropRequest(
+            Guid.NewGuid(),
+            BlueprintDropPlanner.CurrentSchemaVersion,
+            "toolset:viewport-drop",
+            blueprintId,
+            BlueprintDropTargetKind.Viewport,
+            $"areas/{area.Id}/entities",
+            area.Id,
+            position,
+            Math.Max(0.25f, _getGridSize?.Invoke() ?? 1)));
+        return new PlacementValidationResult(
+            plan.IsValid,
+            plan.Code,
+            plan.Message,
+            position,
+            plan.CorrectedPosition ?? position);
     }
 
     private void Report(PlacementValidationResult validation) =>
@@ -1042,6 +1156,9 @@ public partial class ProjectPreview3D : SubViewportContainer
         _cameraSpeedLabel = new Label { Text = "Vitesse 1×" };
         _cameraSpeedLabel.AddThemeColorOverride("font_color", new Color("b9aac8"));
         heading.AddChild(_cameraSpeedLabel);
+        _editorModeLabel = new Label { Text = "MODE · ÉDITION" };
+        _editorModeLabel.AddThemeColorOverride("font_color", new Color("83d6ae"));
+        column.AddChild(_editorModeLabel);
 
         var views = new HBoxContainer();
         views.AddThemeConstantOverride("separation", 5);
@@ -1083,18 +1200,139 @@ public partial class ProjectPreview3D : SubViewportContainer
         parent.AddChild(button);
     }
 
+    private void CreateScaleGizmoToolbar()
+    {
+        var panel = new PanelContainer
+        {
+            Position = new Vector2(714, 14),
+            CustomMinimumSize = new Vector2(232, 112),
+            MouseFilter = MouseFilterEnum.Stop,
+        };
+        panel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.09f, 0.07f, 0.13f, 0.94f),
+            BorderColor = new Color("62458a"),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 10,
+            CornerRadiusTopRight = 10,
+            CornerRadiusBottomLeft = 10,
+            CornerRadiusBottomRight = 10,
+        });
+        AddChild(panel);
+        var margin = new MarginContainer();
+        foreach (var side in new[] { "margin_left", "margin_top", "margin_right", "margin_bottom" })
+        {
+            margin.AddThemeConstantOverride(side, 8);
+        }
+        panel.AddChild(margin);
+        var column = new VBoxContainer();
+        column.AddThemeConstantOverride("separation", 5);
+        margin.AddChild(column);
+        var heading = new HBoxContainer();
+        column.AddChild(heading);
+        _scaleGizmoToggle = new CheckButton { Text = "GIZMO ÉCHELLE" };
+        _scaleGizmoToggle.Toggled += SetScaleGizmoEnabled;
+        heading.AddChild(_scaleGizmoToggle);
+        _scaleGizmoLabel = new Label
+        {
+            Text = "XYZ",
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            HorizontalAlignment = HorizontalAlignment.Right,
+        };
+        _scaleGizmoLabel.AddThemeColorOverride("font_color", new Color("ffb07c"));
+        heading.AddChild(_scaleGizmoLabel);
+        var axes = new HBoxContainer();
+        axes.AddThemeConstantOverride("separation", 4);
+        column.AddChild(axes);
+        AddScaleGizmoButton(axes, "X", ScaleGizmoAxis.X);
+        AddScaleGizmoButton(axes, "Y", ScaleGizmoAxis.Y);
+        AddScaleGizmoButton(axes, "Z", ScaleGizmoAxis.Z);
+        AddScaleGizmoButton(axes, "XYZ", ScaleGizmoAxis.Uniform);
+        AddCameraButton(axes, "−", () => ScaleSelectedFromGizmo(.9f));
+        AddCameraButton(axes, "+", () => ScaleSelectedFromGizmo(1.1f));
+        var help = new Label { Text = "Poignées 3D · Ctrl+molette · Échap quitte" };
+        help.AddThemeColorOverride("font_color", new Color("9587a5"));
+        column.AddChild(help);
+    }
+
+    private void AddScaleGizmoButton(Container parent, string text, ScaleGizmoAxis axis) =>
+        AddCameraButton(parent, text, () => SelectScaleGizmoAxis(axis));
+
+    private void SelectScaleGizmoAxis(ScaleGizmoAxis axis)
+    {
+        _scaleGizmoAxis = axis;
+        if (_scaleGizmoToggle is not null) _scaleGizmoToggle.SetPressedNoSignal(true);
+        _scaleGizmoEnabled = true;
+        RefreshScaleGizmoVisuals();
+    }
+
+    private void SetScaleGizmoEnabled(bool enabled)
+    {
+        _scaleGizmoEnabled = enabled;
+        if (_scaleGizmoToggle is not null && _scaleGizmoToggle.ButtonPressed != enabled)
+            _scaleGizmoToggle.SetPressedNoSignal(enabled);
+        RefreshScaleGizmoVisuals();
+    }
+
+    private bool TrySelectScaleGizmoAxis(Vector2 pointer)
+    {
+        if (!_scaleGizmoEnabled || _camera is null || _gizmo?.Visible != true) return false;
+        var candidate = _scaleGizmoHandles
+            .Select(item => new
+            {
+                item.Key,
+                Distance = pointer.DistanceSquaredTo(_camera.UnprojectPosition(item.Value.GlobalPosition)),
+            })
+            .OrderBy(item => item.Distance)
+            .FirstOrDefault();
+        if (candidate is null || candidate.Distance > 28 * 28) return false;
+        SelectScaleGizmoAxis(candidate.Key);
+        return true;
+    }
+
+    private void RefreshScaleGizmoVisuals()
+    {
+        if (_scaleGizmoLabel is not null)
+        {
+            _scaleGizmoLabel.Text = _scaleGizmoEnabled ? _scaleGizmoAxis.ToString().ToUpperInvariant() : "OFF";
+        }
+        foreach (var item in _scaleGizmoHandles)
+        {
+            if (item.Value.MaterialOverride is not StandardMaterial3D material) continue;
+            var active = _scaleGizmoEnabled && item.Key == _scaleGizmoAxis;
+            material.EmissionEnabled = active;
+            material.Emission = active ? material.AlbedoColor : Colors.Black;
+            material.EmissionEnergyMultiplier = active ? 1.8f : 1;
+        }
+    }
+
     private bool HandleCameraKey(Key key)
     {
         const float keyboardStep = 24;
-        return key switch
+        var profile = _cameraHistory?.State.Profile;
+        if (profile is null) return false;
+        var pressed = key.ToString().ToUpperInvariant();
+        string? action = profile.Input.Bindings.FirstOrDefault(pair => pair.Value == pressed).Key;
+        return action switch
         {
-            Key.F => FocusCameraSelection(),
-            Key.W => ApplyCameraCommand(EditorCameraOperation.Pan, y: keyboardStep),
-            Key.S => ApplyCameraCommand(EditorCameraOperation.Pan, y: -keyboardStep),
-            Key.A => ApplyCameraCommand(EditorCameraOperation.Pan, x: keyboardStep),
-            Key.D => ApplyCameraCommand(EditorCameraOperation.Pan, x: -keyboardStep),
-            Key.Q => ApplyCameraCommand(EditorCameraOperation.Zoom, x: -1),
-            Key.E => ApplyCameraCommand(EditorCameraOperation.Zoom, x: 1),
+            "focus" => FocusCameraSelection(),
+            "forward" => profile.Input.PilotMode == EditorCameraPilotMode.Fly
+                ? ApplyCameraCommand(EditorCameraOperation.Pilot, z: keyboardStep)
+                : ApplyCameraCommand(EditorCameraOperation.Pan, y: keyboardStep),
+            "back" => profile.Input.PilotMode == EditorCameraPilotMode.Fly
+                ? ApplyCameraCommand(EditorCameraOperation.Pilot, z: -keyboardStep)
+                : ApplyCameraCommand(EditorCameraOperation.Pan, y: -keyboardStep),
+            "left" => profile.Input.PilotMode == EditorCameraPilotMode.Fly
+                ? ApplyCameraCommand(EditorCameraOperation.Pilot, x: -keyboardStep)
+                : ApplyCameraCommand(EditorCameraOperation.Pan, x: keyboardStep),
+            "right" => profile.Input.PilotMode == EditorCameraPilotMode.Fly
+                ? ApplyCameraCommand(EditorCameraOperation.Pilot, x: keyboardStep)
+                : ApplyCameraCommand(EditorCameraOperation.Pan, x: -keyboardStep),
+            "up" => ApplyCameraCommand(EditorCameraOperation.Pilot, y: keyboardStep),
+            "down" => ApplyCameraCommand(EditorCameraOperation.Pilot, y: -keyboardStep),
             _ => false,
         };
     }
@@ -1176,7 +1414,9 @@ public partial class ProjectPreview3D : SubViewportContainer
         EditorCameraView view = EditorCameraView.Perspective,
         EditorCameraBookmarkId? bookmarkId = null,
         string? bookmarkName = null,
-        bool persist = true)
+        bool persist = true,
+        float z = 0,
+        EditorCameraInputConfiguration? input = null)
     {
         if (_cameraHistory is null)
         {
@@ -1194,7 +1434,9 @@ public partial class ProjectPreview3D : SubViewportContainer
             view,
             bookmarkId,
             bookmarkName,
-            DryRun: false);
+            DryRun: false,
+            Z: z,
+            Input: input);
         var preview = _cameraHandler.Handle(_cameraHistory.State, command with { DryRun = true });
         var applied = preview.Succeeded
             ? _cameraHandler.Handle(_cameraHistory.State, command)
@@ -1260,19 +1502,24 @@ public partial class ProjectPreview3D : SubViewportContainer
     private void CreateGizmoAndGhost()
     {
         _gizmo = new Node3D { Name = "SelectionGizmo", Visible = false };
-        _gizmo.AddChild(CreateGizmoAxis(
+        AddScaleGizmoHandle(ScaleGizmoAxis.X, CreateGizmoAxis(
             new Vector3(1.15f, 0.04f, 0),
             new Vector3(2.3f, 0.08f, 0.08f),
             new Color("ff5f56")));
-        _gizmo.AddChild(CreateGizmoAxis(
+        AddScaleGizmoHandle(ScaleGizmoAxis.Y, CreateGizmoAxis(
+            new Vector3(0, 1.15f, 0),
+            new Vector3(0.08f, 2.3f, 0.08f),
+            new Color("62d26f")));
+        AddScaleGizmoHandle(ScaleGizmoAxis.Z, CreateGizmoAxis(
             new Vector3(0, 0.04f, 1.15f),
             new Vector3(0.08f, 0.08f, 2.3f),
             new Color("4f9cff")));
-        _gizmo.AddChild(CreateGizmoAxis(
+        AddScaleGizmoHandle(ScaleGizmoAxis.Uniform, CreateGizmoAxis(
             new Vector3(0, 0.06f, 0),
             new Vector3(0.34f, 0.12f, 0.34f),
             new Color("ffb35c")));
         _world.AddChild(_gizmo);
+        RefreshScaleGizmoVisuals();
 
         _ghost = new MeshInstance3D
         {
@@ -1288,6 +1535,13 @@ public partial class ProjectPreview3D : SubViewportContainer
             Visible = false,
         };
         _world.AddChild(_ghost);
+    }
+
+    private void AddScaleGizmoHandle(ScaleGizmoAxis axis, MeshInstance3D handle)
+    {
+        handle.Name = $"ScaleGizmo{axis}";
+        _scaleGizmoHandles[axis] = handle;
+        _gizmo!.AddChild(handle);
     }
 
     private static MeshInstance3D CreateGizmoAxis(Vector3 position, Vector3 size, Color color) => new()

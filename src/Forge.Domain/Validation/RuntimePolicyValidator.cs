@@ -2,6 +2,8 @@ using Forge.Domain.Areas;
 using Forge.Domain.Modules;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.RuntimeExtensions;
+using Forge.Domain.Gameplay;
+using Forge.Domain.Rules;
 
 namespace Forge.Domain.Validation;
 
@@ -52,6 +54,8 @@ public static class RuntimePolicyValidator
                 "module/runtimePolicies/gameplay/combatModes/providers"));
         }
 
+        diagnostics.AddRange(GameplayFoundationValidator.Validate(module.RuntimePolicies.Gameplay.Foundation));
+
         var rules = module.RuntimePolicies.Rules;
         if (rules.Id != module.Id.Value)
             diagnostics.Add(new DomainDiagnostic(ModuleRulesIdentityCode,
@@ -60,6 +64,8 @@ public static class RuntimePolicyValidator
             rules.Difficulties.Any(item => item.Id == Guid.Empty))
             diagnostics.Add(new DomainDiagnostic(RulesProfileIdentityCode,
                 "Nested module rule profiles require stable identities.", "module/runtimePolicies/rules"));
+        diagnostics.AddRange(RulesetPluginValidator.Validate(rules.Plugins,
+            "module/runtimePolicies/rules/plugins"));
 
         if (module.RuntimePolicies.Extensions.Id != module.Id.Value)
             diagnostics.Add(new DomainDiagnostic(RuntimeExtensionIdentityCode,
@@ -68,6 +74,8 @@ public static class RuntimePolicyValidator
 
         diagnostics.AddRange(OperationalReadinessValidator.Validate(
             module.RuntimePolicies.Extensions.OperationalReadiness));
+        diagnostics.AddRange(QualityAcceptanceProfileValidator.Validate(
+            module.RuntimePolicies.Extensions.ModernTooling.QualityAssurance));
 
         return diagnostics;
     }

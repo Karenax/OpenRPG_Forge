@@ -2,6 +2,7 @@ using Forge.Application.Commands;
 using Forge.Application.Projects;
 using Forge.Application.Time;
 using Forge.Domain.Projects;
+using Forge.Domain.Audio;
 
 namespace Forge.Application.Areas;
 
@@ -14,6 +15,14 @@ public sealed class SetAreaEnvironmentHandler
         if (command.BaseRevision != state.Revision) return Fail(state, command, "command.revision_conflict", "Project revision changed.");
         var area = state.Project.Areas.SingleOrDefault(item => item.Id == command.AreaId);
         if (area is null) return Fail(state, command, "area.environment.area_missing", "Area does not exist.");
+        var audioDiagnostics = AudioEmitterCatalogValidator.Validate(
+            command.Environment.Audio.Emitters,
+            command.Environment.Audio.Orchestration.MixBuses.Select(item => item.Id).ToHashSet(),
+            path: $"areas/{area.Id}/environment/audio/emitters");
+        if (audioDiagnostics.Count > 0)
+            return new(false, state, command.BaseRevision, null,
+                audioDiagnostics.Select(item => new CommandDiagnostic(item.Code, item.Message)).ToArray(),
+                null, null, new AuditEntry(command.CommandId, "set_area_environment", _clock.UtcNow, false));
         var patch = new ProjectPatch("replace", $"areas/{area.Id}/environment", "Set area classification, rendering, sky, lighting, fog and audio.");
         var inverse = new ProjectPatch("replace", $"areas/{area.Id}/environment", "Restore previous environment profile.");
         var audit = new AuditEntry(command.CommandId, "set_area_environment", _clock.UtcNow, !command.DryRun);

@@ -44,7 +44,8 @@ public static class AreaGeometryPlanner
         var dz = anchor switch { AreaResizeAnchor.SouthWest or AreaResizeAnchor.SouthEast => (dimensions.Depth - area.Dimensions.Depth) / 2f, AreaResizeAnchor.NorthWest or AreaResizeAnchor.NorthEast => (area.Dimensions.Depth - dimensions.Depth) / 2f, _ => 0f };
         var translation = new Vector3Value(dx, 0, dz);
         var shifted = area.Entities.Select(entity => new EntityInstance(entity.Id, entity.BlueprintId,
-            new TransformValue(new Vector3Value(entity.Transform.Position.X + dx, entity.Transform.Position.Y, entity.Transform.Position.Z + dz), entity.Transform.Rotation, entity.Transform.Scale), entity.Tags, entity.Overrides)).ToArray();
+            new TransformValue(new Vector3Value(entity.Transform.Position.X + dx, entity.Transform.Position.Y, entity.Transform.Position.Z + dz), entity.Transform.Rotation, entity.Transform.Scale), entity.Tags, entity.Overrides,
+            entity.BlueprintVersionRequirement)).ToArray();
         var halfW = dimensions.Width / 2f; var halfD = dimensions.Depth / 2f;
         var kept = shifted.Where(entity => MathF.Abs(entity.Transform.Position.X) + entity.Transform.Scale.X / 2f <= halfW && MathF.Abs(entity.Transform.Position.Z) + entity.Transform.Scale.Z / 2f <= halfD).ToArray();
         return new(dimensions, kept, shifted.Where(entity => !kept.Contains(entity)).Select(entity => entity.Id).ToArray(), translation);

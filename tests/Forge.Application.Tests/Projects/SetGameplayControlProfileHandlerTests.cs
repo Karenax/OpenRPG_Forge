@@ -14,8 +14,13 @@ public sealed class SetGameplayControlProfileHandlerTests
         var current = context.State.Project.Module.RuntimePolicies.Gameplay;
         var time = new TimeControlPolicy(current.TimeControl.Id, 1, true, true, .15f, true, 12, true,
             MultiplayerPausePolicy.Vote, .6f, ["session.player"], "test");
+        var foundation = current.Foundation with
+        {
+            GroundedMovement = current.Foundation.GroundedMovement with { RunSpeed = 7.25f, Provenance = "test:r010" },
+            Provenance = "test:r010",
+        };
         var changed = new ModuleGameplayControlProfile(current.Id, 1, current.Swimming, current.Climbing,
-            current.RadialMenu, time, current.CombatModes, "test");
+            current.RadialMenu, time, current.CombatModes, "test", foundation);
         var handler = new SetGameplayControlProfileHandler(new FixedClock(PlaceEntityTestContext.Timestamp));
         var command = new SetGameplayControlProfileCommand(CommandId.From(Guid.NewGuid()), context.State.Revision,
             changed, true);
@@ -27,6 +32,9 @@ public sealed class SetGameplayControlProfileHandlerTests
         var applied = handler.Handle(context.State, command with { DryRun = false });
         Assert.True(applied.Succeeded);
         Assert.Equal(.15f, applied.State.Project.Module.RuntimePolicies.Gameplay.TimeControl.SlowMotionScale);
+        Assert.Equal(7.25f, applied.State.Project.Module.RuntimePolicies.Gameplay.Foundation.GroundedMovement.RunSpeed);
+        Assert.Equal(context.State.Project.Module.RuntimePolicies.Extensions.Id,
+            applied.State.Project.Module.RuntimePolicies.Extensions.Id);
 
         var history = new ProjectCommandHistory(context.State);
         history.Record(applied);
@@ -35,5 +43,6 @@ public sealed class SetGameplayControlProfileHandlerTests
             history.State.Project.Module.RuntimePolicies.Gameplay.TimeControl.SlowMotionScale);
         Assert.True(history.Redo().Succeeded);
         Assert.Equal(.15f, history.State.Project.Module.RuntimePolicies.Gameplay.TimeControl.SlowMotionScale);
+        Assert.Equal(7.25f, history.State.Project.Module.RuntimePolicies.Gameplay.Foundation.GroundedMovement.RunSpeed);
     }
 }

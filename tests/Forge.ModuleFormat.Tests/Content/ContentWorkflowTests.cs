@@ -1,4 +1,7 @@
 using System.IO.Compression;
+using System.Text.Json;
+using Forge.Domain.Blueprints;
+using Forge.Domain.Projects;
 using Forge.Domain.Content;
 using Forge.ModuleFormat.Content;
 using Forge.ModuleFormat.Tests.Serialization;
@@ -71,8 +74,51 @@ public sealed class ContentWorkflowTests : IDisposable
         Assert.Contains("manifest.json", entries);
         Assert.Contains(entries, path => path.StartsWith("blueprints/", StringComparison.Ordinal));
         Assert.Contains("licenses/index.json", entries);
+        Assert.Contains("credits/index.json", entries);
         Assert.Contains("migrations/blueprint-schema-v1.json", entries);
         Assert.Contains(entries, path => path.StartsWith("previews/", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void BlueprintExportClosesBlueprintDependenciesAndEmitsDeterministicCredits()
+    {
+        Directory.CreateDirectory(_root);
+        var original = TestProjectFactory.CreateValid();
+        var dependency = original.Blueprints.Single();
+        var rootId = BlueprintId.From(Guid.Parse("b0310000-0000-4000-8000-000000000201"));
+        var provenance = new BlueprintProvenance(
+            BlueprintProvenance.CurrentSchemaVersion,
+            "project://blueprints/export-root",
+            "Forge team",
+            "CC0-1.0",
+            new string('e', 64),
+            permissionEvidence: "spdx:CC0-1.0");
+        var authoring = new BlueprintAuthoringMetadata(
+            BlueprintAuthoringMetadata.CurrentSchemaVersion,
+            "1.0.0",
+            "project.export_root",
+            $"content/blueprints/{rootId}/export-root.blueprint.json",
+            dependencies: [dependency.Authoring.ManifestPath],
+            previewPath: $"content/blueprints/{rootId}/export-root.preview.png");
+        var root = new BlueprintDefinition(
+            rootId, "export-root", "Export root", BlueprintKind.Placeable,
+            provenance: provenance, authoring: authoring);
+        var project = new ProjectDefinition(
+            original.Id, original.Title, original.Module, [.. original.Blueprints, root], original.Areas,
+            original.Dialogues, original.Quests);
+        var output = Path.Combine(_root, "closure.orpblueprints");
+
+        var result = BlueprintExportPackageBuilder.Build(project, [root.Id], output);
+        using var archive = ZipFile.OpenRead(output);
+        var manifestEntry = archive.GetEntry("manifest.json")!;
+        using var reader = new StreamReader(manifestEntry.Open());
+        using var manifest = JsonDocument.Parse(reader.ReadToEnd());
+
+        Assert.Equal(2, result.BlueprintCount);
+        Assert.Equal(2, archive.Entries.Count(entry => entry.FullName.StartsWith("blueprints/", StringComparison.Ordinal)));
+        Assert.Contains(manifest.RootElement.GetProperty("transitiveDependencies").EnumerateArray(),
+            item => item.GetString() == dependency.Authoring.ManifestPath);
+        Assert.NotNull(archive.GetEntry("credits/index.json"));
     }
 
     public void Dispose()

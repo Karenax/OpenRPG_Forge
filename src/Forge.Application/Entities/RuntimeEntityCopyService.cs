@@ -63,7 +63,8 @@ public sealed class RuntimeEntityCopyService(RuntimeObjectCopyPolicy policy)
             source.Transform.Position.Y + request.PositionOffset.Y,
             source.Transform.Position.Z + request.PositionOffset.Z);
         var clone = new EntityInstance(request.DestinationId, source.BlueprintId,
-            new TransformValue(position, source.Transform.Rotation, source.Transform.Scale), source.Tags, source.Overrides);
+            new TransformValue(position, source.Transform.Rotation, source.Transform.Scale), source.Tags, source.Overrides,
+            source.BlueprintVersionRequirement);
         var references = request.Source.References.Select(reference =>
         {
             if (reference == source.Id) return request.DestinationId;

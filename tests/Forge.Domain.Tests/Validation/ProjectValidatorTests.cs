@@ -4,6 +4,7 @@ using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
+using Forge.Domain.Quests;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
@@ -35,6 +36,39 @@ public sealed class ProjectValidatorTests
 
         Assert.Equal(ProjectValidator.MissingBlueprintCode, diagnostic.Code);
         Assert.Contains(missingBlueprintId.ToString(), diagnostic.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validate_ReportsBlueprintInstanceVersionMismatchWithLocalizedPath()
+    {
+        var blueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("b0300000-0000-4000-8000-000000000010")),
+            "versioned-pillar",
+            "Versioned pillar",
+            BlueprintKind.Placeable,
+            authoring: new BlueprintAuthoringMetadata(
+                1, "1.4.0", "project.versioned.pillar",
+                "content/blueprints/versioned-pillar.blueprint.json"));
+        var entity = new EntityInstance(
+            EntityId.From(Guid.Parse("b0300000-0000-4000-8000-000000000011")),
+            blueprint.Id,
+            TransformValue.Identity,
+            blueprintVersionRequirement: ">=2.0.0");
+        var area = new AreaDefinition(
+            AreaId.From(Guid.Parse("b0300000-0000-4000-8000-000000000012")),
+            "versioned-area",
+            "Versioned area",
+            [entity]);
+        var project = new ProjectDefinition(
+            ProjectId.From(Guid.Parse("b0300000-0000-4000-8000-000000000013")),
+            "Versioned project",
+            [blueprint],
+            [area]);
+
+        var diagnostic = Assert.Single(ProjectValidator.Validate(project));
+
+        Assert.Equal(ProjectValidator.BlueprintVersionMismatchCode, diagnostic.Code);
+        Assert.Equal($"areas/{area.Id}/entities/0/blueprintVersionRequirement", diagnostic.Path);
     }
 
     [Fact]
@@ -165,5 +199,28 @@ public sealed class ProjectValidatorTests
             item.Code == ProjectValidator.CrossAreaPatrolReferenceCode);
 
         Assert.Contains(route.Id.ToString(), diagnostic.Path, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Validate_ReportsUnresolvedTypedQuestJournalReference()
+    {
+        var area = new AreaDefinition(AreaId.From(Guid.NewGuid()), "crypt", "Crypt", []);
+        var stateId = QuestStateId.From(Guid.NewGuid());
+        var state = new QuestStateDefinition(stateId, 1, "test:r007", "terminal", "Terminal",
+            new QuestJournalEntry(
+                new LocalizedText("quest.test.summary", "Summary"),
+                new LocalizedText("quest.test.details", "Details"),
+                contextLinks: [new QuestJournalLink(QuestJournalLinkKind.Location, "missing-area")],
+                provenance: "test:r007"), true, 1, 0, QuestTerminalKind.Completed, string.Empty,
+            QuestReactivationRule.Never);
+        var quest = new QuestDefinition(QuestId.From(Guid.NewGuid()), "test-quest", "Test quest", stateId,
+            [state]);
+        var project = new ProjectDefinition(ProjectId.From(Guid.NewGuid()), "Test project", [], [area],
+            quests: [quest]);
+
+        var diagnostic = Assert.Single(ProjectValidator.Validate(project), item =>
+            item.Code == ProjectValidator.MissingQuestJournalReferenceCode);
+
+        Assert.EndsWith("/referenceId", diagnostic.Path, StringComparison.Ordinal);
     }
 }

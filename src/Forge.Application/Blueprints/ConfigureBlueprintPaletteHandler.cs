@@ -93,7 +93,12 @@ public sealed class ConfigureBlueprintPaletteHandler
             existing.CreatureLoot,
             existing.CreatureRoleBehavior,
             existing.CreatureEvents,
-            existing.ItemAdvanced);
+            existing.ItemAdvanced,
+            command.Origin == BlueprintPaletteOrigin.InstalledPack
+                ? BlueprintAuthoringMetadata.CreateDefault(existing.Id, existing.Slug, command.Origin, command.Provenance)
+                : existing.Authoring,
+            existing.CreatureFoundation,
+            existing.ItemFoundation);
         var project = ReplaceBlueprint(state.Project, updated);
         var revision = state.Revision.Next();
         return new CommandResult(

@@ -10,6 +10,7 @@ public static class AreaGeometryValidator
     public const string OutOfBoundsCode = "area.geometry.out_of_bounds";
     public const string CollisionOverlapCode = "area.geometry.collision_overlap";
     public const string SocketMismatchCode = "area.geometry.socket_mismatch";
+    public const string InvalidScaleCode = "area.geometry.scale_invalid";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project, AreaDefinition area)
     {
@@ -21,6 +22,16 @@ public static class AreaGeometryValidator
         for (var index = 0; index < area.Entities.Count; index++)
         {
             var entity = area.Entities[index];
+            if (!float.IsFinite(entity.Transform.Scale.X) || !float.IsFinite(entity.Transform.Scale.Y) ||
+                !float.IsFinite(entity.Transform.Scale.Z) || entity.Transform.Scale.X <= 0 ||
+                entity.Transform.Scale.Y <= 0 || entity.Transform.Scale.Z <= 0)
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    InvalidScaleCode,
+                    $"Entity '{entity.Id}' has a non-finite or non-positive scale.",
+                    $"areas/{area.Id}/entities/{index}/transform/scale"));
+                continue;
+            }
             var halfWidth = area.Dimensions.Width / 2f;
             var halfDepth = area.Dimensions.Depth / 2f;
             if (entity.Transform.Position.X - (entity.Transform.Scale.X / 2f) < -halfWidth ||

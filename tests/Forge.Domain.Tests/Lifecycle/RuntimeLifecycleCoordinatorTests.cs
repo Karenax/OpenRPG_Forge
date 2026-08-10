@@ -72,6 +72,31 @@ public sealed class RuntimeLifecycleCoordinatorTests
     }
 
     [Fact]
+    public void Transition_resolves_area_specific_exit_and_enter_forgescript_bindings()
+    {
+        var source = CreateProject();
+        var first = source.Areas.Single(item => item.Id == FirstAreaId);
+        var second = source.Areas.Single(item => item.Id == SecondAreaId);
+        first = first.WithFoundation(WithBindings(first, null,
+            new(Guid.Parse("a0285000-0000-4000-8000-000000000001"), "area.exited",
+                "scripts/first_exited.forge", "1.0.0", true, "test:r028")));
+        second = second.WithFoundation(WithBindings(second,
+            new(Guid.Parse("a0285000-0000-4000-8000-000000000002"), "area.entered",
+                "scripts/second_entered.forge", "1.0.0", false, "test:r028"), null));
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, source.Blueprints,
+            [first, second], source.Dialogues, source.Quests);
+        var coordinator = Started(project, []);
+
+        var result = coordinator.Transition(SecondAreaId, ActorId, null,
+            RuntimeLifecycleCause.PortalTransition);
+
+        Assert.Equal("scripts/first_exited.forge", result.Events[0].ScriptPath);
+        Assert.True(result.Events[0].ScriptRequired);
+        Assert.Equal("scripts/second_entered.forge", result.Events[1].ScriptPath);
+        Assert.False(result.Events[1].ScriptRequired);
+    }
+
+    [Fact]
     public void DryRunPreviewsEventWithoutPublishingOrAdvancingSequence()
     {
         var observed = new List<RuntimeLifecycleEvent>();
@@ -90,6 +115,25 @@ public sealed class RuntimeLifecycleCoordinatorTests
         Assert.Equal(0, coordinator.Sequence);
         Assert.Null(coordinator.CurrentAreaId);
         Assert.True(coordinator.LoadProject(project, RuntimeAuthority.Editor, RuntimeLifecycleCause.Playtest).Succeeded);
+    }
+
+    [Theory]
+    [InlineData(RuntimeAuthority.Editor)]
+    [InlineData(RuntimeAuthority.Client)]
+    [InlineData(RuntimeAuthority.Server)]
+    public void Project_and_world_events_preserve_the_requested_runtime_authority(RuntimeAuthority authority)
+    {
+        var observed = new List<RuntimeLifecycleEvent>();
+        var coordinator = new RuntimeLifecycleCoordinator(new SequentialEventIds(), [observed.Add]);
+        var project = CreateProject();
+
+        Assert.True(coordinator.LoadProject(project, authority, RuntimeLifecycleCause.Playtest).Succeeded);
+        Assert.True(coordinator.EnterInitialArea(FirstAreaId, ActorId, RuntimeLifecycleCause.Playtest).Succeeded);
+        Assert.True(coordinator.StartWorld(RuntimeLifecycleCause.Playtest).Succeeded);
+
+        Assert.Equal(["project.loaded", "area.entered", "world.started"],
+            observed.Select(item => item.Binding));
+        Assert.All(observed, item => Assert.Equal(authority, item.Authority));
     }
 
     [Fact]
@@ -156,6 +200,14 @@ public sealed class RuntimeLifecycleCoordinatorTests
                 new AreaDefinition(FirstAreaId, "first", "First", [actor]),
                 new AreaDefinition(SecondAreaId, "second", "Second", []),
             ]);
+    }
+
+    private static AreaFoundationProfile WithBindings(AreaDefinition area,
+        AreaLifecycleScriptBinding? entered, AreaLifecycleScriptBinding? exited)
+    {
+        var source = area.Foundation;
+        return new(source.Id, source.SchemaVersion, "test:r028", source.Creation, source.TileKit,
+            new(entered, exited), source.Volumes, source.Dependencies);
     }
 
     private sealed class SequentialEventIds : IRuntimeLifecycleEventIdSource

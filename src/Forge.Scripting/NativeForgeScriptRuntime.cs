@@ -65,20 +65,40 @@ public sealed class NativeForgeScriptRuntime : IForgeScriptRuntime
             quotas.TimeoutMilliseconds,
             quotas.RecursionLimit,
             quotas.SpawnCap,
+            quotas.MemoryLimitBytes,
+            quotas.DeterministicSeed,
+            quotas.SimulationTick,
+            quotas.SimulationTimeMilliseconds,
             events,
             events.Capacity,
             diagnostics,
-            diagnostics.Capacity);
+            diagnostics.Capacity,
+            out var instructions,
+            out var peakMemoryBytes,
+            out var elapsedMicroseconds);
         var status = code switch
         {
             0 => ForgeScriptExecutionStatus.Completed,
             1 => ForgeScriptExecutionStatus.QuotaExceeded,
+            3 => ForgeScriptExecutionStatus.Cancelled,
             _ => ForgeScriptExecutionStatus.Failed,
         };
         return new ForgeScriptExecutionResult(
             status,
             ParseEvents(events.ToString()),
-            ParseDiagnostics(diagnostics.ToString()));
+            ParseDiagnostics(diagnostics.ToString()),
+            new(instructions, peakMemoryBytes, elapsedMicroseconds, quotas.DeterministicSeed,
+                quotas.SimulationTick, quotas.SimulationTimeMilliseconds));
+    }
+
+    public async Task<ForgeScriptExecutionResult> ExecuteAsync(ForgeScriptArtifact artifact,
+        ForgeScriptQuotas? quotas = null, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return new(ForgeScriptExecutionStatus.Cancelled, [],
+                [new("runtime", 0, 0, "error", "script.cancelled")]);
+        using var registration = cancellationToken.Register(NativeMethods.CancelCurrent);
+        return await Task.Run(() => Execute(artifact, quotas), CancellationToken.None).ConfigureAwait(false);
     }
 
     private static string ReadVersion(IntPtr pointer) =>
@@ -157,9 +177,19 @@ public sealed class NativeForgeScriptRuntime : IForgeScriptRuntime
             int timeoutMilliseconds,
             int recursionLimit,
             int spawnCap,
+            int memoryLimitBytes,
+            ulong deterministicSeed,
+            long simulationTick,
+            long simulationTimeMilliseconds,
             [Out] StringBuilder events,
             int eventsCapacity,
             [Out] StringBuilder diagnostics,
-            int diagnosticsCapacity);
+            int diagnosticsCapacity,
+            out long instructions,
+            out long peakMemoryBytes,
+            out long elapsedMicroseconds);
+
+        [DllImport(Library, EntryPoint = "forge_script_cancel_current")]
+        internal static extern void CancelCurrent();
     }
 }

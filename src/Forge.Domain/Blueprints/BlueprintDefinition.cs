@@ -34,6 +34,12 @@ public sealed record BlueprintDefinition
 
     public ItemAdvancedProfile? ItemAdvanced { get; }
 
+    public BlueprintAuthoringMetadata Authoring { get; }
+
+    public CreatureFoundationProfile? CreatureFoundation { get; }
+
+    public ItemFoundationProfile? ItemFoundation { get; }
+
     public bool IsReadOnly() => PaletteOrigin == BlueprintPaletteOrigin.InstalledPack;
 
     public BlueprintDefinition(
@@ -50,7 +56,10 @@ public sealed record BlueprintDefinition
         CreatureLootProfile? creatureLoot = null,
         CreatureRoleBehaviorProfile? creatureRoleBehavior = null,
         CreatureEventProfile? creatureEvents = null,
-        ItemAdvancedProfile? itemAdvanced = null)
+        ItemAdvancedProfile? itemAdvanced = null,
+        BlueprintAuthoringMetadata? authoring = null,
+        CreatureFoundationProfile? creatureFoundation = null,
+        ItemFoundationProfile? itemFoundation = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -112,9 +121,37 @@ public sealed record BlueprintDefinition
         }
 
         ItemAdvanced = itemAdvanced;
+        Authoring = authoring ?? BlueprintAuthoringMetadata.CreateDefault(id, slug, paletteOrigin, Provenance);
+        if (creatureFoundation is not null && kind is not (BlueprintKind.Creature or BlueprintKind.PlayerSpawn))
+        {
+            throw new ArgumentException(
+                "Creature foundation can only be assigned to creature or player-spawn blueprints.",
+                nameof(creatureFoundation));
+        }
+
+        CreatureFoundation = creatureFoundation;
+        if (itemFoundation is not null && kind != BlueprintKind.Item)
+        {
+            throw new ArgumentException(
+                "Item foundation can only be assigned to item blueprints.",
+                nameof(itemFoundation));
+        }
+
+        ItemFoundation = itemFoundation;
     }
 
     public BlueprintDefinition WithItemAdvanced(ItemAdvancedProfile? profile) => new(
         Id, Slug, DisplayName, Kind, Combat, PaletteOrigin, IsFavorite, Provenance,
-        CreaturePresentation, CreatureProgression, CreatureLoot, CreatureRoleBehavior, CreatureEvents, profile);
+        CreaturePresentation, CreatureProgression, CreatureLoot, CreatureRoleBehavior, CreatureEvents, profile, Authoring,
+        CreatureFoundation, ItemFoundation);
+
+    public BlueprintDefinition WithCreatureFoundation(CreatureFoundationProfile? profile) => new(
+        Id, Slug, DisplayName, Kind, Combat, PaletteOrigin, IsFavorite, Provenance,
+        CreaturePresentation, CreatureProgression, CreatureLoot, CreatureRoleBehavior, CreatureEvents, ItemAdvanced,
+        Authoring, profile, ItemFoundation);
+
+    public BlueprintDefinition WithItemFoundation(ItemFoundationProfile? profile) => new(
+        Id, Slug, DisplayName, Kind, Combat, PaletteOrigin, IsFavorite, Provenance,
+        CreaturePresentation, CreatureProgression, CreatureLoot, CreatureRoleBehavior, CreatureEvents, ItemAdvanced,
+        Authoring, CreatureFoundation, profile);
 }

@@ -11,4 +11,6 @@ public enum EditorCameraOperation
     SetSensitivity,
     SaveBookmark,
     RecallBookmark,
+    Pilot,
+    SetInput,
 }

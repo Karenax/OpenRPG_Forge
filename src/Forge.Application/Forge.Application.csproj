@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Forge.Domain\Forge.Domain.csproj" />
+    <ProjectReference Include="..\Forge.Scripting\Forge.Scripting.csproj" />
   </ItemGroup>
 
   <PropertyGroup />

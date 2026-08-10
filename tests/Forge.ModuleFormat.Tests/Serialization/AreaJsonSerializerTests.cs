@@ -4,6 +4,7 @@ using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
 using Forge.Domain.Spatial;
 using Forge.Domain.RuntimePolicies;
+using Forge.Domain.Navigation;
 using Forge.ModuleFormat.Serialization;
 
 namespace Forge.ModuleFormat.Tests.Serialization;
@@ -33,7 +34,19 @@ public sealed class AreaJsonSerializerTests
                 AreaId.From(Guid.Parse("f44c5ad1-5ca1-4753-b712-932e3fc3d03a")),
                 destination,
                 true,
-                true)]);
+                true,
+                provenance: "author:r029-test",
+                orientation: PortalOrientationPolicy.FixedYaw,
+                fixedYawDegrees: 135,
+                velocity: PortalVelocityPolicy.Preserve,
+                beforeTransitionScript: "scripts/leave.forge",
+                afterTransitionScript: "scripts/arrive.forge",
+                hooksRequiredAtRuntime: true)]);
+        var playtestDefaults = AreaPlaytestProfile.CreateDefault(area.Id);
+        area = area.WithPlaytest(new AreaPlaytestProfile(playtestDefaults.Id, 1, "author:r029-test", true,
+            false, PlayFromHereStartMode.Camera, null,
+            new TransformValue(new Vector3Value(4, 2, 1), QuaternionValue.Identity, Vector3Value.One),
+            null, blueprintId, "camera-debug", []));
         var paintedMaterial = area.World.Terrain.MaterialLayers.Last();
         var sourceTerrain = area.World.Terrain;
         var paintedTerrain = new TerrainDefinition(sourceTerrain.Id, sourceTerrain.SchemaVersion,
@@ -61,6 +74,11 @@ public sealed class AreaJsonSerializerTests
         Assert.Equal(area.World.Biomes.Select(item => item.Id), restored.World.Biomes.Select(item => item.Id));
         Assert.Equal(area.RuntimePolicies.Id, restored.RuntimePolicies.Id);
         Assert.Equal(RestPermissionMode.Allowed, restored.RuntimePolicies.Rest.Mode);
+        Assert.Equal(area.Foundation, restored.Foundation);
+        Assert.Equal(area.Foundation.Id, restored.Foundation.Id);
+        Assert.Equal(area.Playtest, restored.Playtest);
+        Assert.Equal(PortalOrientationPolicy.FixedYaw, restored.Portals[0].Orientation);
+        Assert.Equal("scripts/arrive.forge", restored.Portals[0].AfterTransitionScript);
     }
 
     [Fact]

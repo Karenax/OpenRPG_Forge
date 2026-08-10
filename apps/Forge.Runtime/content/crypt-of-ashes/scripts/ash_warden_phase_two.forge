@@ -1,8 +1,10 @@
 void main()
 {
+    AreaRef area = current_area();
+    EntityRef warden = find_entity(area, "ash-warden");
     variable("warden.phase", "two");
     say("Le Gardien déchaîne une nova et invoque deux esprits de cendre !");
     spawn("ash-spirit");
     spawn("ash-spirit");
-    cast_ability(0, "ash-nova");
+    cast_ability(warden, "ash-nova");
 }

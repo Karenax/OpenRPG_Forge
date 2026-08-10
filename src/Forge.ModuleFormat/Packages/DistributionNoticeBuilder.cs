@@ -28,6 +28,27 @@ public static class DistributionNoticeBuilder
         }
 
         builder.AppendLine();
+        builder.AppendLine("DATA TABLES");
+        foreach (var table in project.Module.Content.DataTables.OrderBy(item => item.Slug, StringComparer.Ordinal))
+            builder.AppendLine($"- {table.DisplayName} | {table.LicenseSpdx} | provenance={table.Provenance} | hash={table.ContentHash}");
+        if (project.Module.Content.DataTables.Count == 0)
+            builder.AppendLine("- None declared.");
+
+        builder.AppendLine();
+        builder.AppendLine("CONTENT PACKAGES");
+        foreach (var package in project.Module.Content.Packages.Packages
+                     .OrderBy(item => item.PackageNamespace, StringComparer.Ordinal))
+        {
+            builder.AppendLine($"- {package.PackageNamespace} {package.Version} | {package.LicenseSpdx} | provenance={package.Provenance} | hash={package.ContentSha256}");
+            foreach (var source in package.Sources.OrderBy(item => item.LogicalResourceId, StringComparer.Ordinal))
+                builder.AppendLine($"  - source:{source.LogicalResourceId} | {source.LicenseSpdx} | provenance={source.Provenance} | hash={source.ContentSha256} | path={source.RelativePath}");
+            foreach (var asset in package.Assets.OrderBy(item => item.LogicalResourceId, StringComparer.Ordinal))
+                builder.AppendLine($"  - asset:{asset.LogicalResourceId} | {asset.LicenseSpdx} | provenance={asset.Provenance} | hash={asset.ContentSha256} | path={asset.RelativePath}");
+        }
+        if (project.Module.Content.Packages.Packages.Count == 0)
+            builder.AppendLine("- None declared.");
+
+        builder.AppendLine();
         builder.AppendLine("THIRD-PARTY DEPENDENCIES");
         var dependencies = project.Module.Distribution.Dependencies
             .Where(item => item.RequiredForTargets.Contains(target))

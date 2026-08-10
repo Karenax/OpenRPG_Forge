@@ -33,7 +33,11 @@ public sealed class BlueprintPaletteCatalog
                 recentRanks.ContainsKey(blueprint.Id),
                 recentRanks.GetValueOrDefault(blueprint.Id, int.MaxValue),
                 blueprint.IsReadOnly(),
-                blueprint.Provenance))
+                blueprint.Provenance,
+                blueprint.Authoring.Kit,
+                blueprint.Authoring.Styles,
+                blueprint.Authoring.Compatibility,
+                blueprint.Authoring.Tags))
             .OrderBy(item => item.Origin)
             .ThenBy(item => item.DisplayName, StringComparer.Ordinal)
             .ToArray());
@@ -41,12 +45,15 @@ public sealed class BlueprintPaletteCatalog
 
     public IReadOnlyList<BlueprintPaletteItem> Filter(
         BlueprintPaletteView view,
-        string? query = null)
+        string? query = null,
+        EditorPaletteFilter? contextFilter = null)
     {
         var normalizedQuery = query?.Trim() ?? string.Empty;
+        var filter = contextFilter ?? EditorPaletteFilter.ShowAll;
         var filtered = _items
             .Where(item => MatchesView(item, view))
-            .Where(item => MatchesQuery(item, normalizedQuery));
+            .Where(item => MatchesQuery(item, normalizedQuery))
+            .Where(item => MatchesContext(item, filter));
         return (view == BlueprintPaletteView.Recent
                 ? filtered.OrderBy(item => item.RecentRank)
                 : filtered)
@@ -72,5 +79,24 @@ public sealed class BlueprintPaletteCatalog
         item.Kind.ToString().Contains(query, StringComparison.OrdinalIgnoreCase) ||
         item.Provenance.Source.Contains(query, StringComparison.OrdinalIgnoreCase) ||
         item.Provenance.Author.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-        item.Provenance.LicenseSpdx.Contains(query, StringComparison.OrdinalIgnoreCase);
+        item.Provenance.LicenseSpdx.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+        item.Kit.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+        item.Styles.Concat(item.Compatibility).Concat(item.Tags)
+            .Any(value => value.Contains(query, StringComparison.OrdinalIgnoreCase));
+
+    private static bool MatchesContext(BlueprintPaletteItem item, EditorPaletteFilter filter) =>
+        filter.Kinds.Contains(item.Kind) &&
+        (!filter.FavoritesOnly || item.IsFavorite) &&
+        MatchesAny(item.Kit, filter.Kits) &&
+        MatchesAll(item.Styles, filter.Styles) &&
+        MatchesAny(item.Provenance.LicenseSpdx, filter.Licenses) &&
+        MatchesAll(item.Compatibility, filter.Compatibility) &&
+        MatchesAll(item.Tags, filter.Tags);
+
+    private static bool MatchesAny(string value, IReadOnlyList<string> required) =>
+        required.Count == 0 || required.Any(item => value.Contains(item, StringComparison.OrdinalIgnoreCase));
+
+    private static bool MatchesAll(IReadOnlyList<string> values, IReadOnlyList<string> required) =>
+        required.Count == 0 || required.All(item => values.Any(value =>
+            value.Contains(item, StringComparison.OrdinalIgnoreCase)));
 }

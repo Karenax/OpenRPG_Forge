@@ -33,7 +33,8 @@ public static class ModulePackageValidator
 
     public static ModulePackageValidationResult Validate(
         string packagePath,
-        ModulePackageLimits? limits = null)
+        ModulePackageLimits? limits = null,
+        string? availableRuntimeVersion = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(packagePath);
         limits ??= new ModulePackageLimits();
@@ -137,6 +138,11 @@ public static class ModulePackageValidator
 
             manifest = ModuleManifestJson.Deserialize(ReadText(manifestEntry));
             diagnostics.AddRange(ModuleManifestValidator.Validate(manifest));
+            if (!string.IsNullOrWhiteSpace(availableRuntimeVersion))
+            {
+                var compatibility = ModuleRuntimeCompatibility.Evaluate(manifest, availableRuntimeVersion);
+                if (compatibility is not null) diagnostics.Add(compatibility);
+            }
             var noticeEntry = files.SingleOrDefault(entry =>
                 string.Equals(entry.FullName, manifest.LicenseNoticePath, StringComparison.Ordinal));
             if (noticeEntry is null)

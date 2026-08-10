@@ -17,6 +17,78 @@ namespace Forge.ModuleFormat.Tests.Serialization;
 public sealed class ProjectJsonSerializerTests
 {
     [Fact]
+    public void SerializeAndDeserialize_RoundTripsCreatureFoundation()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var foundation = CreatureFoundationProfile.CreateDefault(Guid.Parse("a1620000-0000-4000-8000-000000000001"),
+            original.Slug, original.DisplayName, "author:r038");
+        foundation = new CreatureFoundationProfile(foundation.Id, foundation.SchemaVersion, foundation.Provenance,
+            true, foundation.Identity, foundation.DefaultTransform,
+            [new(Guid.Parse("a1620000-0000-4000-8000-000000000002"), "health", 80, 64, .25, true)],
+            new(CreatureFoundationMovementMode.Swimming, 4, 8, 6, -5, 0, 60), foundation.References,
+            foundation.Spawned, new Dictionary<string, string> { ["spawn.policy"] = "validated" });
+        var blueprint = new BlueprintDefinition(original.Id, original.Slug, original.DisplayName, original.Kind,
+            original.Combat, original.PaletteOrigin, original.IsFavorite, original.Provenance,
+            original.CreaturePresentation, original.CreatureProgression, original.CreatureLoot,
+            original.CreatureRoleBehavior, original.CreatureEvents, original.ItemAdvanced, original.Authoring,
+            foundation);
+        var project = new ProjectDefinition(source.Id, source.Title, source.Module, [blueprint], source.Areas,
+            source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+        var restoredProfile = Assert.IsType<CreatureFoundationProfile>(restored.Blueprints.Single().CreatureFoundation);
+        Assert.Equal(CreatureFoundationMovementMode.Swimming, restoredProfile.Movement.Mode);
+        Assert.Equal(64, Assert.Single(restoredProfile.Resources).Current);
+        Assert.Equal("validated", restoredProfile.Overrides["spawn.policy"]);
+    }
+
+    [Fact]
+    public void Deserialize_MigratesPreCreatureFoundationFormatWithEmptyFoundation()
+    {
+        var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
+        document["formatVersion"] = ProjectJsonSerializer.PreCreatureFoundationFormatVersion;
+        foreach (var blueprint in document["project"]!["blueprints"]!.AsArray())
+            blueprint!.AsObject().Remove("creatureFoundation");
+        var restored = ProjectJsonSerializer.Deserialize(document.ToJsonString());
+        Assert.Null(restored.Blueprints.Single().CreatureFoundation);
+        Assert.Contains($"\"formatVersion\": \"{ProjectJsonSerializer.CurrentFormatVersion}\"",
+            ProjectJsonSerializer.Serialize(restored), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SerializeAndDeserialize_RoundTripsBlueprintPermissionEvidence()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var original = source.Blueprints.Single();
+        var provenance = new BlueprintProvenance(
+            BlueprintProvenance.CurrentSchemaVersion,
+            original.Provenance.Source,
+            original.Provenance.Author,
+            "CC0-1.0",
+            new string('a', 64),
+            original.Provenance.IsAiGenerated,
+            original.Provenance.Modifications,
+            "contract:r031-round-trip");
+        var blueprint = new BlueprintDefinition(
+            original.Id, original.Slug, original.DisplayName, original.Kind, original.Combat,
+            original.PaletteOrigin, original.IsFavorite, provenance, original.CreaturePresentation,
+            original.CreatureProgression, original.CreatureLoot, original.CreatureRoleBehavior,
+            original.CreatureEvents, original.ItemAdvanced, original.Authoring);
+        var project = new ProjectDefinition(
+            source.Id, source.Title, source.Module, [blueprint], source.Areas, source.Dialogues, source.Quests);
+
+        var serialized = ProjectJsonSerializer.Serialize(project);
+        var restored = ProjectJsonSerializer.Deserialize(serialized);
+
+        Assert.Equal("contract:r031-round-trip", restored.Blueprints.Single().Provenance.PermissionEvidence);
+        Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
+    }
+
+    [Fact]
     public void Deserialize_MigratesPreCreatureEventsFormatWithEmptyEventProfile()
     {
         var document = JsonNode.Parse(ProjectJsonSerializer.Serialize(TestProjectFactory.CreateValid()))!.AsObject();
@@ -52,6 +124,8 @@ public sealed class ProjectJsonSerializerTests
         Assert.Equal(CreatureCombatBoundaryMode.TurnEnded, restoredEvents.CombatBoundary!.Mode);
         Assert.Equal(8, restoredEvents.Heartbeat!.BudgetMilliseconds);
         Assert.Equal("crypt.braziers_lit", Assert.Single(restoredEvents.CustomEvents).QualifiedName);
+        Assert.Equal("BeforeDamage", restoredEvents.DamageDeath!.BeforeDamage.Handler);
+        Assert.Equal("OnDeath", restoredEvents.DamageDeath.Died.Handler);
     }
 
     [Fact]
@@ -297,7 +371,11 @@ public sealed class ProjectJsonSerializerTests
             ProjectVariableScope.Save,
             "false",
             "Progression",
-            "test");
+            "test",
+            1,
+            ProjectVariableReplicationMode.Party,
+            false,
+            true);
         var module = new ModuleDefinition(
             source.Module.Id,
             source.Module.Slug,
@@ -321,7 +399,11 @@ public sealed class ProjectJsonSerializerTests
         Assert.Equal(serialized, ProjectJsonSerializer.Serialize(restored));
         Assert.Equal("2.0.0", restored.Module.Metadata.Version);
         Assert.Equal(2, restored.Module.Metadata.Localizations.Count);
-        Assert.Equal(ProjectVariableValueKind.Boolean, Assert.Single(restored.Module.Variables).Kind);
+        var restoredVariable = Assert.Single(restored.Module.Variables);
+        Assert.Equal(ProjectVariableValueKind.Boolean, restoredVariable.Kind);
+        Assert.Equal(ProjectVariableReplicationMode.Party, restoredVariable.Replication);
+        Assert.False(restoredVariable.DebugVisible);
+        Assert.True(restoredVariable.RequiredAtRuntime);
     }
 
     [Fact]
@@ -828,7 +910,12 @@ public sealed class ProjectJsonSerializerTests
                 new Dictionary<string, CreatureCustomFieldType> { ["count"] = CreatureCustomFieldType.Integer },
                 true, Binding("a1540000-0000-4000-8000-000000000011",
                     "custom.crypt.braziers_lit", "OnBraziersLit"))],
-            new Dictionary<string, string>());
+            new Dictionary<string, string>(),
+            new(
+                Binding("a1540000-0000-4000-8000-000000000012", "creature.before_damage", "BeforeDamage"),
+                Binding("a1540000-0000-4000-8000-000000000013", "creature.damage_applied", "OnDamaged"),
+                Binding("a1540000-0000-4000-8000-000000000014", "entity.died", "OnDeath"),
+                4, 0.5));
     }
 
     private static void RemoveEntityOverrides(JsonObject document)

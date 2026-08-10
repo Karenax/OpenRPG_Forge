@@ -89,7 +89,8 @@ public static class NarrativeQualityService
             if (!seen.Add(nodeId)) { paths.Add(new(fixture.Id, nodes, actions, false, "cycle")); return; }
             var enteredActions = actions.Concat(node.OnEnterActions).ToArray();
             Apply(node.OnEnterActions, state);
-            var available = node.Choices.Where(choice => choice.Conditions.All(condition => Satisfied(condition, state))).ToArray();
+            var evaluator = new DialogueEvaluator(state);
+            var available = node.Choices.Where(choice => DialogueConditionLogic.Evaluate(choice, evaluator).Available).ToArray();
             if (available.Length == 0) { paths.Add(new(fixture.Id, nodes, enteredActions, false, "no-available-choice")); return; }
             foreach (var choice in available)
             {
@@ -218,7 +219,7 @@ public static class NarrativeQualityService
 
     private static void Apply(IEnumerable<DialogueAction> actions, IDictionary<string, string> state)
     {
-        foreach (var action in actions) state[$"action:{action.Kind}:{action.Key}"] = action.Value;
+        foreach (var action in actions) state[DialogueActionTransaction.StateKey(action)] = action.Value;
     }
 
     private static void Apply(IEnumerable<QuestAction> actions, IDictionary<string, string> state)
@@ -229,5 +230,10 @@ public static class NarrativeQualityService
     private sealed class QuestEvaluator(IReadOnlyDictionary<string, string> values) : IQuestConditionEvaluator
     {
         public bool IsSatisfied(QuestCondition condition) => Satisfied(condition, values);
+    }
+
+    private sealed class DialogueEvaluator(IReadOnlyDictionary<string, string> values) : IDialogueConditionEvaluator
+    {
+        public bool IsSatisfied(DialogueCondition condition) => Satisfied(condition, values);
     }
 }

@@ -48,6 +48,24 @@ public static partial class CreatureEventValidator
                 "creature.events.heartbeat_budget_invalid", $"{path}/heartbeat/budgetMilliseconds",
                 "Heartbeat budget must be positive, bounded and no longer than its cadence.");
         }
+        if (profile.DamageDeath is not null)
+        {
+            ValidateBinding(profile.DamageDeath.BeforeDamage, "creature.before_damage",
+                $"{path}/damageDeath/beforeDamage", diagnostics);
+            ValidateBinding(profile.DamageDeath.DamageApplied, "creature.damage_applied",
+                $"{path}/damageDeath/damageApplied", diagnostics);
+            ValidateBinding(profile.DamageDeath.Died, "entity.died",
+                $"{path}/damageDeath/died", diagnostics);
+            Add(profile.DamageDeath.BeforeDamageBudgetMilliseconds is < 1 or > 50,
+                "creature.events.before_damage_budget_invalid",
+                $"{path}/damageDeath/beforeDamageBudgetMilliseconds",
+                "BeforeDamage must use a deterministic budget between 1 and 50 ms.");
+            Add(!double.IsFinite(profile.DamageDeath.MaximumAdjustmentRatio) ||
+                profile.DamageDeath.MaximumAdjustmentRatio is < 0 or > 1,
+                "creature.events.before_damage_adjustment_invalid",
+                $"{path}/damageDeath/maximumAdjustmentRatio",
+                "BeforeDamage adjustment ratio must be finite and between zero and one.");
+        }
 
         if (profile.CustomEvents.Count > 64 || HasDuplicate(profile.CustomEvents.Select(item => item.SchemaId)) ||
             HasDuplicate(profile.CustomEvents.Select(item => item.QualifiedName)))
@@ -95,6 +113,12 @@ public static partial class CreatureEventValidator
         }
         if (profile.Rest is not null) result.Add(profile.Rest.Completed);
         if (profile.Heartbeat is not null) result.Add(profile.Heartbeat.Binding);
+        if (profile.DamageDeath is not null)
+        {
+            result.Add(profile.DamageDeath.BeforeDamage);
+            result.Add(profile.DamageDeath.DamageApplied);
+            result.Add(profile.DamageDeath.Died);
+        }
         result.AddRange(profile.CustomEvents.Select(item => item.Binding));
         return result;
     }

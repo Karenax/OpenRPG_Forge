@@ -204,12 +204,17 @@ public sealed class SafeRenameHandler
                     blueprint.CreatureLoot,
                     blueprint.CreatureRoleBehavior,
                     blueprint.CreatureEvents,
-                    blueprint.ItemAdvanced)
+                    blueprint.ItemAdvanced,
+                    blueprint.Authoring,
+                    blueprint.CreatureFoundation,
+                    blueprint.ItemFoundation)
                 : blueprint).ToArray()
             : project.Blueprints;
         var dialogues = kind == CreatorContentKind.Dialogue
             ? project.Dialogues.Select(dialogue => dialogue.Id.ToString() == targetId
-                ? new DialogueDefinition(dialogue.Id, slug!, displayName, dialogue.EntryNodeId, dialogue.Nodes)
+                ? new DialogueDefinition(dialogue.Id, slug!, displayName, dialogue.EntryNodeId, dialogue.Nodes,
+                    dialogue.Presentation, dialogue.SchemaVersion, dialogue.Provenance, dialogue.Metadata,
+                    dialogue.Participants, dialogue.EntryPoints, dialogue.Edges)
                 : dialogue).ToArray()
             : project.Dialogues;
         var quests = kind == CreatorContentKind.Quest

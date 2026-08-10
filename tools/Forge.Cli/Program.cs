@@ -3,6 +3,7 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Diagnostics;
 using Forge.Application.Assets;
+using Forge.Application.Build;
 using Forge.Application.Commands;
 using Forge.Application.Projects;
 using Forge.Application.Time;
@@ -10,6 +11,7 @@ using Forge.Application.Validation;
 using Forge.Domain.Assets;
 using Forge.Domain.Assistant;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Build;
 using Forge.Domain.Content;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
@@ -34,6 +36,16 @@ static int Run(IReadOnlyList<string> arguments)
 {
     try
     {
+        if (arguments.Count >= 1 && arguments[0] is "build" or "validate" or "test" or "pack" or "migrate" or "normalize" or "diff" or "references")
+        {
+            return RunCanonicalBuildCli(arguments);
+        }
+
+        if (arguments.Count >= 1 && arguments[0] == "build-profile")
+        {
+            return RunBuildProfile(arguments.Skip(1).ToArray());
+        }
+
         if (arguments.Count >= 1 && arguments[0] == "package")
         {
             return RunPackage(arguments.Skip(1).ToArray());
@@ -62,6 +74,11 @@ static int Run(IReadOnlyList<string> arguments)
         if (arguments.Count == 3 && arguments[0] == "quality" && arguments[1] == "run")
         {
             return RunQualityLab(arguments[2]);
+        }
+
+        if (arguments.Count == 4 && arguments[0] == "quality" && arguments[1] == "acceptance")
+        {
+            return RunQualityAcceptance(arguments[2], arguments[3]);
         }
 
         if (arguments.Count == 3 && arguments[0] == "performance" && arguments[1] == "run")
@@ -95,9 +112,10 @@ static int Run(IReadOnlyList<string> arguments)
             "forge content <batch|export-blueprints|merge-table> ... | " +
             "forge docs <generate|check> | " +
             "forge readiness <validate|health|crash|recovery|sync-plan> ... | " +
-            "forge quality run <workspace> | " +
+            "forge quality run <workspace> | forge quality acceptance <repository> <workspace> | " +
             "forge performance run <workspace> | " +
             "forge governance run <workspace> | " +
+            "forge <build|validate|test|pack|migrate|normalize|diff|references> ... | forge build-profile <show|set-default|validate> <workspace> | " +
             "forge workspace migrate <target-directory> | forge author-original <target-directory> | " +
             "forge author-forgotten-forest <target-directory> [--vault <directory>] [--blender <executable>]");
         return 2;
@@ -107,6 +125,225 @@ static int Run(IReadOnlyList<string> arguments)
         Console.Error.WriteLine(exception.Message);
         return 1;
     }
+}
+
+static int RunCanonicalBuildCli(IReadOnlyList<string> arguments)
+{
+    var operation = arguments[0];
+    if (operation is "build" or "pack")
+    {
+        if (arguments.Count != 3)
+        {
+            Console.Error.WriteLine($"Usage: forge {operation} <workspace> <destination.orpmod>");
+            return 2;
+        }
+        var context = OpenBuildContext(arguments[1]);
+        if (!context.Succeeded) return 1;
+        var result = ModulePackager.Export(arguments[1], arguments[2]);
+        var reproducible = true;
+        if (operation == "build" && context.Profile!.VerifyReproducibility)
+        {
+            var destinationDirectory = Path.GetDirectoryName(Path.GetFullPath(arguments[2]))!;
+            Directory.CreateDirectory(destinationDirectory);
+            var verificationPath = Path.Combine(destinationDirectory, $".{Path.GetFileName(arguments[2])}.{Guid.NewGuid():N}.verify.orpmod");
+            try
+            {
+                ModulePackager.Export(arguments[1], verificationPath);
+                reproducible = File.ReadAllBytes(arguments[2]).SequenceEqual(File.ReadAllBytes(verificationPath));
+            }
+            finally
+            {
+                if (File.Exists(verificationPath)) File.Delete(verificationPath);
+            }
+        }
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = reproducible,
+            operation,
+            output = Path.GetFullPath(arguments[2]),
+            result.Manifest.ContentSha256,
+            rebuilt = result.BuildPlan.RebuiltResources.Select(item => item.Path),
+            reused = result.BuildPlan.ReusedResources.Select(item => item.Path),
+            reproducible,
+        }));
+        if (operation == "pack")
+        {
+            Console.WriteLine($"OPENRPG_FORGE_CONTENT_PACKAGE_CLI_PASS operation=pack " +
+                              $"packages={context.Session!.Project.Module.Content.Packages.Packages.Count} " +
+                              "validation=domain-sources-scripts lock=generated compression=orpmod");
+        }
+        return reproducible ? 0 : 1;
+    }
+
+    if (operation == "migrate")
+    {
+        if (arguments.Count is < 2 or > 3 || arguments.Count == 3 && arguments[2] != "--apply")
+        {
+            Console.Error.WriteLine("Usage: forge migrate <workspace> [--apply]");
+            return 2;
+        }
+        var profile = WorkspaceBuildProfileStore.Load(arguments[1]);
+        if (!profile.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = profile.Diagnostics }));
+            return 1;
+        }
+        var report = WorkspaceBuildCollaborationService.MigrateWorkspace(
+            arguments[1], profile.Profile, dryRun: arguments.Count == 2);
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = report.Succeeded, operation, report }));
+        return report.Succeeded ? 0 : 1;
+    }
+
+    if (operation == "normalize")
+    {
+        if (arguments.Count is < 2 or > 3 || arguments.Count == 3 && arguments[2] != "--apply")
+        {
+            Console.Error.WriteLine("Usage: forge normalize <workspace> [--apply]");
+            return 2;
+        }
+        var profile = WorkspaceBuildProfileStore.Load(arguments[1]);
+        if (!profile.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = profile.Diagnostics }));
+            return 1;
+        }
+        var report = WorkspaceBuildCollaborationService.NormalizeDocuments(
+            arguments[1], profile.Profile, dryRun: arguments.Count == 2);
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = report.Succeeded, operation, report }));
+        return report.Succeeded ? 0 : 1;
+    }
+
+    if (arguments.Count != 2)
+    {
+        Console.Error.WriteLine($"Usage: forge {operation} <workspace>");
+        return 2;
+    }
+    var opened = OpenBuildContext(arguments[1]);
+    if (!opened.Succeeded) return 1;
+    if (operation == "validate")
+    {
+        var qualityProfile = QualityFoundationProfileStore.Load(
+            opened.Session!.RootDirectory, opened.Session.Project.Id.Value);
+        if (!qualityProfile.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                valid = false,
+                operation,
+                diagnostics = qualityProfile.Diagnostics,
+            }));
+            return 1;
+        }
+        var report = WorkspaceCanonicalValidationService.Run(
+            opened.Session.RootDirectory, opened.Session.Project, qualityProfile.Profile);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = report.Passed,
+            operation,
+            profile = opened.Profile!.Id,
+            project = opened.Session.Project.Id.ToString(),
+            qualityProfileMissing = qualityProfile.FileMissing,
+            report.SchemaVersion,
+            report.Fingerprint,
+            report.CategoryCounts,
+            report.Diagnostics,
+        }));
+        if (report.Passed)
+            Console.WriteLine("OPENRPG_FORGE_R027_CANONICAL_VALIDATION_CLI_PASS " +
+                              $"categories={report.CategoryCounts.Count} diagnostics=0 fingerprint={report.Fingerprint}");
+        return report.Passed ? 0 : 1;
+    }
+    if (operation == "test") return RunQualityLab(arguments[1]);
+
+    var session = opened.Session!;
+    var graph = WorkspaceBuildGraphBuilder.Build(session.RootDirectory, session.Project, session.ProjectFilePath);
+    var plan = WorkspaceIncrementalBuildPlanner.Plan(WorkspaceBuildStateStore.TryLoad(session.RootDirectory), graph.Graph);
+    if (operation == "diff")
+    {
+        var previous = WorkspaceBuildCollaborationService.LoadSemanticSnapshot(session.RootDirectory);
+        var current = WorkspaceBuildCollaborationService.CreateSemanticSnapshot(session.Project, graph.Graph);
+        var semantic = WorkspaceBuildCollaborationService.Diff(previous, current, opened.Profile!.Collaboration);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = semantic.Succeeded,
+            operation,
+            changed = plan.ChangedPaths,
+            removed = plan.RemovedPaths,
+            rebuilt = plan.RebuiltResources.Select(item => item.Path),
+            reused = plan.ReusedResources.Select(item => item.Path),
+            semantic.Text,
+            semantic.Changes,
+            semantic.Diagnostics,
+        }));
+        return semantic.Succeeded ? 0 : 1;
+    }
+    if (operation == "references")
+    {
+        var index = WorkspaceBuildCollaborationService.BuildReferenceIndex(
+            session.RootDirectory, session.Project, session.ProjectFilePath, opened.Profile!.Collaboration);
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = index.Diagnostics.Count == 0,
+            operation,
+            index.GraphId,
+            references = index.Nodes,
+            index.Diagnostics,
+        }));
+        return index.Diagnostics.Count == 0 ? 0 : 1;
+    }
+    return 2;
+}
+
+static int RunBuildProfile(IReadOnlyList<string> arguments)
+{
+    if (arguments.Count != 2 || arguments[0] is not ("show" or "set-default" or "validate"))
+    {
+        Console.Error.WriteLine("Usage: forge build-profile <show|set-default|validate> <workspace>");
+        return 2;
+    }
+    var workspace = arguments[1];
+    var loaded = WorkspaceBuildProfileStore.Load(workspace);
+    if (arguments[0] == "set-default")
+    {
+        var state = new WorkspaceBuildProfileState(loaded.Profile);
+        var command = new SetWorkspaceBuildProfileCommand(CommandId.From(Guid.NewGuid()), state.Revision,
+            WorkspaceBuildProfile.CreateDefault(), false);
+        var result = new SetWorkspaceBuildProfileHandler(new SystemClock()).Handle(state, command);
+        if (!result.Succeeded)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = result.Diagnostics }));
+            return 1;
+        }
+        var saved = WorkspaceBuildProfileStore.Save(workspace, result.State.Profile);
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = saved.Succeeded, profile = result.State.Profile, diagnostics = saved.Diagnostics }));
+        return saved.Succeeded ? 0 : 1;
+    }
+    var diagnostics = WorkspaceBuildProfileValidator.Validate(loaded.Profile);
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        valid = loaded.Succeeded && diagnostics.Count == 0,
+        fileMissing = loaded.FileMissing,
+        profile = loaded.Profile,
+        diagnostics = loaded.Diagnostics.Concat(diagnostics.Select(item =>
+            new ProjectSessionDiagnostic(item.Code, item.Message, item.Path))),
+    }));
+    return loaded.Succeeded && diagnostics.Count == 0 ? 0 : 1;
+}
+
+static (bool Succeeded, ProjectSession? Session, WorkspaceBuildProfile? Profile) OpenBuildContext(string workspace)
+{
+    var session = ProjectSession.Open(workspace);
+    var profile = WorkspaceBuildProfileStore.Load(workspace);
+    if (!session.Succeeded || session.Session is null || !profile.Succeeded)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            valid = false,
+            diagnostics = session.Diagnostics.Concat(profile.Diagnostics),
+        }));
+        return (false, session.Session, profile.Profile);
+    }
+    return (true, session.Session, profile.Profile);
 }
 
 static int RunPerformanceLab(string workspaceDirectory)
@@ -144,6 +381,24 @@ static int RunQualityLab(string workspaceDirectory)
             $"locales={report.Localization.Coverage.Count} scripts={report.Scripts.Tests.Count} " +
             $"dialogues={report.Dialogues.Count} quests={report.Quests.Count} " +
             $"encounter_runs={report.Encounters.TotalRuns} pseudo=snapshot fingerprint={report.Fingerprint}");
+    return report.Passed ? 0 : 1;
+}
+
+static int RunQualityAcceptance(string repositoryDirectory, string workspaceDirectory)
+{
+    var opened = ProjectSession.Open(workspaceDirectory);
+    if (!opened.Succeeded || opened.Session is null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new { valid = false, diagnostics = opened.Diagnostics }));
+        return 1;
+    }
+    var quality = opened.Session.Project.Module.RuntimePolicies.Extensions.ModernTooling.QualityAssurance;
+    var report = WorkspaceQualityAcceptanceEvidenceValidator.Validate(repositoryDirectory, quality);
+    Console.WriteLine(JsonSerializer.Serialize(new { valid = report.Passed, report }));
+    if (report.Passed)
+        Console.WriteLine("OPENRPG_FORGE_QA_ACCEPTANCE_PASS " +
+            $"fixtures={report.FixtureCount} features={report.FeatureCount} gates={report.GateAssignmentCount} " +
+            "diagnostics=clickable evidence=linked source=read-only");
     return report.Passed ? 0 : 1;
 }
 

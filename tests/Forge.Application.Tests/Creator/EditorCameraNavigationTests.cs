@@ -110,6 +110,39 @@ public sealed class EditorCameraNavigationTests
         Assert.Equal(NavigateEditorCameraHandler.BookmarkMissingCode, Assert.Single(recall.Diagnostics).Code);
     }
 
+    [Fact]
+    public void ConfigurablePilotInputMovesOnThreeAxesAndRemainsUndoable()
+    {
+        var initial = Initial();
+        var input = new EditorCameraInputConfiguration(
+            Guid.Parse("ca100000-0000-4000-8000-000000000010"), 1, "camera-test",
+            EditorCameraPilotMode.Fly,
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["forward"] = "I",
+                ["back"] = "K",
+                ["left"] = "J",
+                ["right"] = "L",
+                ["up"] = "U",
+                ["down"] = "O",
+                ["focus"] = "F",
+            });
+        var history = new EditorCameraCommandHistory(initial.Profile);
+        var configured = _handler.Handle(history.State,
+            Command(history.State.Revision, EditorCameraOperation.SetInput) with { Input = input });
+        history.Record(configured);
+        var piloted = _handler.Handle(history.State,
+            Command(history.State.Revision, EditorCameraOperation.Pilot, x: 2, y: -1) with { Z = 3 });
+        history.Record(piloted);
+
+        Assert.Equal(input, history.State.Profile.Input);
+        Assert.NotEqual(initial.Profile.Pose.Pivot, history.State.Profile.Pose.Pivot);
+        Assert.True(history.Undo());
+        Assert.Equal(initial.Profile.Pose, history.State.Profile.Pose);
+        Assert.True(history.Redo());
+        Assert.Equal(piloted.State.Profile.Pose, history.State.Profile.Pose);
+    }
+
     private EditorCameraCommandResult Apply(
         EditorCameraState state,
         EditorCameraOperation operation,

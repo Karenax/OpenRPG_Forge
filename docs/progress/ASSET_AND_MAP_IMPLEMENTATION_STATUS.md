@@ -125,6 +125,9 @@ Dernière mise à jour : 6 août 2026 — environnement Poly Haven de Forgotten 
 
 ## Partiellement terminé
 
+Les éléments ci-dessous sont reformulés en lots `AV8-*`, `AV9-*` et `AV10-*` dans
+`../../TASKS_MVP.md`. Cette section décrit les écarts produit ; elle ne fixe plus l'ordre d'exécution.
+
 - catalogue : lecture, recherche, gouvernance et installation d’un modèle dans la palette disponibles
   dans le workspace Assets ; la désinstallation UI, SQLite et la gestion complète des packs restent ;
 - normalisation : profils, cache, staging, passage direct des GLB et worker Blender exécuté ; la
@@ -145,8 +148,9 @@ Dernière mise à jour : 6 août 2026 — environnement Poly Haven de Forgotten 
 
 ## Prochaine action
 
-Enrichir l’habillage rapproché des secteurs sans casser les budgets 512 × 512. Le retargeting
-inter-rigs reste un incrément séparé.
+Les lots `AV7-M*`, `AV8-*`, `AV9-*` et `AV10-*` sont `OPTIONAL_POST_DEMO`. Ils ne bloquent ni la
+démonstration 3D déjà jouable, ni les 717 fonctions Aurora, ni le programme P0 actif. Une demande
+produit explicite est requise pour en promouvoir un en lot de release.
 
 ## Preuves de la tranche AV3 MCP
 

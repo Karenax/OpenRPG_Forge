@@ -93,7 +93,10 @@ public sealed class UpsertBlueprintHandler
             existing?.CreatureLoot,
             existing?.CreatureRoleBehavior,
             existing?.CreatureEvents,
-            existing?.ItemAdvanced);
+            existing?.ItemAdvanced,
+            command.Authoring ?? existing?.Authoring,
+            existing?.CreatureFoundation,
+            existing?.ItemFoundation);
         var blueprints = existing is null
             ? [.. state.Project.Blueprints, updated]
             : state.Project.Blueprints.Select(blueprint => blueprint.Id == updated.Id ? updated : blueprint).ToArray();

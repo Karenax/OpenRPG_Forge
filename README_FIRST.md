@@ -22,6 +22,8 @@ L’objectif n’est pas de copier Neverwinter Nights, Aurora, D&D, leurs règle
    - `MEGACONTEXT.md`
    - `STATUS.md`
    - `TASKS_MVP.md`
+   - `docs/planning/COMPLETE_FUNCTION_BACKLOG.md`
+   - `tracking/project/AURORA_PARITY_COVERAGE.csv`
    - les ADR de `docs/ADR/`
 5. Dans le dépôt existant, suivre le gate et la prochaine tâche de `STATUS.md` ; le **Prompt 1 —
    Initialisation contrôlée** de `PROMPTS_CODEX_HERMES.md` ne sert qu’à recréer un dépôt vide.
@@ -31,21 +33,12 @@ Codex lit automatiquement `AGENTS.md` lorsqu’il travaille dans le dépôt. Le 
 
 ## État courant du prototype
 
-Le paquet de démarrage a maintenant produit un MVP solo fonctionnel ; Creator Core G7, Aurora
-Foundation G8, Network Beta G9, Live Director G10, Contenu moderne G11 et Assistant G12 sont
-fermés. La file post-1.0 G13 avance par lots bornés. G13-A à G13-I livrent maintenant les raccourcis
-configurables, la présentation et la progression des créatures, puis le butin, le vol à la tire et
-les dépouilles interactives, les informations de rôle, les routines ambiantes et les templates
-d’auto-level déterministes, les événements avancés de créature typés et budgétés, puis les factions
-hiérarchiques, affiliations multiples, témoins et états diplomatiques dynamiques, puis la mise en
-scène canonique des dialogues : animations, voix/sous-titres, caméra accessible, bookmarks et
-interjections autoritaires, puis timers accessibles et variantes conditionnelles/pondérées avec
-seed stable. G13-J à G13-M ajoutent ensuite les opérations avancées de quête et la profondeur des
-objets : économie, identification, propriété, équipement, durabilité, conteneurs, loot contextuel,
-unicité, artisanat et génération déterministe. G13-N à G13-AB ajoutent le catalogue canonique
-**Monde vivant** : placeables, portes, triggers, rencontres, routes, marchands, compagnons et
-automatisation script, éditables sans JSON et exercés dans le runtime 3D. Le présent run est
-volontairement arrêté après **G13-AB**.
+Le paquet de démarrage a maintenant produit un MVP solo fonctionnel et les tranches verticales G0 à
+G13 sont fermées. Cette fermeture ne vaut pas parité fonctionnelle complète : le tracker compte
+207 exigences `Tested` sur 717. Les 510 exigences restantes sont couvertes une seule fois par le
+plan exhaustif, réparti en 187 lots `FC-*` de une à cinq fonctions. Le programme P0 est explicitement
+actif : 191 fonctions non closes dans les 50 lots `R001` à `R050`, toujours exécutés un par un avec
+audit sémantique et preuves avant d’ouvrir le suivant.
 
 La source de vérité de l’avancement est `STATUS.md`. La direction d’interface et le contexte
 graphique sont dans `docs/UX_AURORA_2026.md`. Le chantier Asset Vault/Forgotten Forest, sa cible
@@ -71,6 +64,8 @@ Codex est recommandé comme implémenteur principal des tâches difficiles, nota
 - `AGENTS.md` : règles permanentes du dépôt.
 - `STATUS.md` : état réel et décisions encore ouvertes.
 - `TASKS_MVP.md` : backlog ordonné de la première tranche verticale.
+- `docs/planning/COMPLETE_FUNCTION_BACKLOG.md` : couverture exhaustive en petits lots numérotés.
+- `tracking/project/AURORA_PARITY_COVERAGE.csv` : statut et preuve de chacune des 717 exigences.
 - `PROMPTS_CODEX_HERMES.md` : prompts de lancement et de session.
 - `docs/ENGINE_COMPARISON.md` : comparaison des moteurs.
 - `docs/ARCHITECTURE.md` : architecture cible.

@@ -11,6 +11,40 @@ public partial class GameplayControlsWindow : Window
     private Func<ModuleGameplayControlProfile, bool>? _apply;
     private Action<Window>? _brand;
     private ModuleGameplayControlProfile? _profile;
+    private CheckBox? _groundEnabled;
+    private CheckBox? _groundRequired;
+    private SpinBox? _walkSpeed;
+    private SpinBox? _runSpeed;
+    private SpinBox? _acceleration;
+    private SpinBox? _deceleration;
+    private SpinBox? _slope;
+    private SpinBox? _stepHeight;
+    private SpinBox? _jumpVelocity;
+    private SpinBox? _crouchMultiplier;
+    private CheckBox? _rootMotion;
+    private CheckBox? _prediction;
+    private CheckBox? _interactionEnabled;
+    private CheckBox? _interactionRequired;
+    private LineEdit? _interactionAction;
+    private OptionButton? _targeting;
+    private SpinBox? _focusDistance;
+    private SpinBox? _viewAngle;
+    private CheckBox? _showPrompt;
+    private TextEdit? _verbs;
+    private OptionButton? _defaultCamera;
+    private SpinBox? _cameraFov;
+    private SpinBox? _cameraDistance;
+    private SpinBox? _cameraPitch;
+    private CheckBox? _cameraCollision;
+    private CheckBox? _allowRebinding;
+    private CheckBox? _perPlayerInput;
+    private TextEdit? _inputBindings;
+    private CheckBox? _saveRequired;
+    private SpinBox? _chunkKilobytes;
+    private SpinBox? _autosaveSeconds;
+    private SpinBox? _rollbackSlots;
+    private CheckBox? _saveMigrations;
+    private CheckBox? _saveDependencies;
     private CheckBox? _swimEnabled;
     private CheckBox? _swimRequired;
     private SpinBox? _buoyancy;
@@ -42,8 +76,13 @@ public partial class GameplayControlsWindow : Window
     private OptionButton? _combatProvider;
     private Label? _summary;
     private Label? _status;
+    private string? _capturePath;
+    private double _captureDelay;
+    private bool _captureOpened;
 
     internal string Summary => _profile is null ? "unavailable" :
+        $"ground={_profile.Foundation.GroundedMovement.RunSpeed};cameras={_profile.Foundation.Cameras.Profiles.Count};" +
+        $"bindings={_profile.Foundation.Input.Bindings.Count};save={_profile.Foundation.Save.ChecksumAlgorithm};" +
         $"swim={_profile.Swimming.Enabled};climb={_profile.Climbing.Enabled};radial={_profile.RadialMenu.Actions.Count};" +
         $"time={_profile.TimeControl.PlanningEnabled};combat={_profile.CombatModes.DefaultProviderId}";
 
@@ -53,12 +92,41 @@ public partial class GameplayControlsWindow : Window
         _state = state ?? throw new ArgumentNullException(nameof(state));
         _apply = apply ?? throw new ArgumentNullException(nameof(apply));
         _brand = brand ?? throw new ArgumentNullException(nameof(brand));
-        Title = "Contrôles & combat · OpenRPG Forge";
+        Title = "Fondations gameplay & contrôles · OpenRPG Forge";
         MinSize = new Vector2I(1180, 780);
         Size = new Vector2I(1260, 820);
         Transient = true;
         Visible = false;
         Build();
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--gameplay-foundation-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null)
+        {
+            _capturePath = capture["--gameplay-foundation-ui-capture=".Length..];
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_captureOpened && _captureDelay >= 1)
+        {
+            Open();
+            _captureOpened = true;
+            return;
+        }
+        if (!_captureOpened || _captureDelay < 2.5) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        GD.Print($"OPENRPG_FORGE_GAMEPLAY_FOUNDATION_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                 $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _capturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -79,6 +147,9 @@ public partial class GameplayControlsWindow : Window
 
     private void Build()
     {
+        var background = new ColorRect { Color = new Color("0d0915") };
+        background.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        AddChild(background);
         var margin = new MarginContainer();
         margin.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         foreach (var side in new[] { "margin_left", "margin_top", "margin_right", "margin_bottom" })
@@ -87,12 +158,12 @@ public partial class GameplayControlsWindow : Window
         var root = new VBoxContainer();
         root.AddThemeConstantOverride("separation", 10);
         margin.AddChild(root);
-        var title = new Label { Text = "CONTRÔLES DE JEU, ACTIONS & COMBAT", ThemeTypeVariation = "HeaderSmall" };
+        var title = new Label { Text = "FONDATIONS GAMEPLAY, CONTRÔLES & SAUVEGARDES", ThemeTypeVariation = "HeaderSmall" };
         title.AddThemeColorOverride("font_color", new Color("ff9858"));
         root.AddChild(title);
         root.AddChild(new Label
         {
-            Text = "Configurez les capacités de déplacement, la roue d’actions, le temps tactique et le fournisseur de combat. " +
+            Text = "Configurez mouvement, interactions, caméras, périphériques et sauvegardes, puis les capacités étendues. " +
                    "Toutes les modifications passent par une transaction canonique annulable.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
@@ -100,8 +171,80 @@ public partial class GameplayControlsWindow : Window
         _summary.AddThemeColorOverride("font_color", new Color("c7b3dc"));
         root.AddChild(_summary);
 
-        var scroll = new ScrollContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        root.AddChild(scroll);
+        var tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        root.AddChild(tabs);
+        var foundationScroll = new ScrollContainer { Name = "Fondations P0", SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        tabs.AddChild(foundationScroll);
+        var foundationRows = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foundationRows.AddThemeConstantOverride("separation", 12); foundationScroll.AddChild(foundationRows);
+        var firstRow = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        firstRow.AddThemeConstantOverride("separation", 12); foundationRows.AddChild(firstRow);
+        var secondRow = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        secondRow.AddThemeConstantOverride("separation", 12); foundationRows.AddChild(secondRow);
+
+        var ground = Card(firstRow, "DÉPLACEMENT AU SOL");
+        _groundEnabled = Check("Activer marche/course", true); ground.AddChild(_groundEnabled);
+        _groundRequired = Check("Obligatoire au runtime", true); ground.AddChild(_groundRequired);
+        _walkSpeed = Spin(.1, 50, 2.5, .1); ground.AddChild(Row("Marche (m/s)", _walkSpeed));
+        _runSpeed = Spin(.1, 100, 5.5, .1); ground.AddChild(Row("Course (m/s)", _runSpeed));
+        _acceleration = Spin(.1, 500, 24, .1); ground.AddChild(Row("Accélération", _acceleration));
+        _deceleration = Spin(.1, 500, 30, .1); ground.AddChild(Row("Décélération", _deceleration));
+        _slope = Spin(0, 89, 48, 1); ground.AddChild(Row("Pente max. (°)", _slope));
+        _stepHeight = Spin(0, 5, .45, .05); ground.AddChild(Row("Hauteur marche", _stepHeight));
+        _jumpVelocity = Spin(0, 100, 9, .25); ground.AddChild(Row("Impulsion saut", _jumpVelocity));
+        _crouchMultiplier = Spin(.05, 1, .45, .05); ground.AddChild(Row("Vitesse accroupie", _crouchMultiplier));
+        _rootMotion = Check("Root motion", false); ground.AddChild(_rootMotion);
+        _prediction = Check("Prédiction réseau", true); ground.AddChild(_prediction);
+
+        var interaction = Card(firstRow, "INTERACTIONS CONTEXTUELLES");
+        _interactionEnabled = Check("Activer focus et verbes", true); interaction.AddChild(_interactionEnabled);
+        _interactionRequired = Check("Obligatoire au runtime", true); interaction.AddChild(_interactionRequired);
+        _interactionAction = new LineEdit { PlaceholderText = "interact" };
+        interaction.AddChild(Row("Action d’entrée", _interactionAction));
+        _targeting = new OptionButton();
+        foreach (var value in Enum.GetValues<InteractionTargetingMode>()) _targeting.AddItem(value.ToString());
+        interaction.AddChild(Row("Ciblage", _targeting));
+        _focusDistance = Spin(.1, 100, 3, .1); interaction.AddChild(Row("Portée focus", _focusDistance));
+        _viewAngle = Spin(1, 360, 100, 1); interaction.AddChild(Row("Cône de vue (°)", _viewAngle));
+        _showPrompt = Check("Afficher le prompt", true); interaction.AddChild(_showPrompt);
+        interaction.AddChild(new Label { Text = "Verbes · clé | libellé | commande | maintien | tags", AutowrapMode = TextServer.AutowrapMode.WordSmart });
+        _verbs = new TextEdit { CustomMinimumSize = new Vector2(350, 150), WrapMode = TextEdit.LineWrappingMode.None };
+        interaction.AddChild(_verbs);
+
+        var cameras = Card(firstRow, "CAMÉRAS CONFIGURABLES");
+        _defaultCamera = new OptionButton();
+        _defaultCamera.ItemSelected += _ => PopulateSelectedCamera();
+        cameras.AddChild(Row("Profil actif", _defaultCamera));
+        _cameraFov = Spin(20, 140, 60, 1); cameras.AddChild(Row("Champ de vue", _cameraFov));
+        _cameraDistance = Spin(0, 40, 14, .25); cameras.AddChild(Row("Distance", _cameraDistance));
+        _cameraPitch = Spin(-89, 89, 24, 1); cameras.AddChild(Row("Inclinaison (°)", _cameraPitch));
+        _cameraCollision = Check("Évitement collision", true); cameras.AddChild(_cameraCollision);
+        cameras.AddChild(new Label
+        {
+            Text = "8 profils livrés : isométrique, orbite, épaule, première personne, dessus, libre, véhicule et cinématique.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Modulate = new Color("bcaacb"),
+        });
+
+        var input = Card(secondRow, "CONTRÔLES & PÉRIPHÉRIQUES");
+        _allowRebinding = Check("Autoriser le rebinding", true); input.AddChild(_allowRebinding);
+        _perPlayerInput = Check("Profil local par joueur", true); input.AddChild(_perPlayerInput);
+        input.AddChild(new Label { Text = "Bindings · action | périphérique | touche | glyphe", AutowrapMode = TextServer.AutowrapMode.WordSmart });
+        _inputBindings = new TextEdit { CustomMinimumSize = new Vector2(520, 190), WrapMode = TextEdit.LineWrappingMode.None };
+        input.AddChild(_inputBindings);
+        input.AddChild(new Label { Text = "Les contextes et actions accessibles restent typés dans le document canonique.", AutowrapMode = TextServer.AutowrapMode.WordSmart, Modulate = new Color("bcaacb") });
+
+        var saves = Card(secondRow, "SAUVEGARDE & CHARGEMENT");
+        _saveRequired = Check("Sauvegarde requise", true); saves.AddChild(_saveRequired);
+        _chunkKilobytes = Spin(4, 4096, 64, 4); saves.AddChild(Row("Chunk (Kio)", _chunkKilobytes));
+        _autosaveSeconds = Spin(0, 86400, 60, 5); saves.AddChild(Row("Autosave (s)", _autosaveSeconds));
+        _rollbackSlots = Spin(0, 100, 3, 1); saves.AddChild(Row("Retours conservés", _rollbackSlots));
+        _saveMigrations = Check("Autoriser migrations", true); saves.AddChild(_saveMigrations);
+        _saveDependencies = Check("Vérifier dépendances module", true); saves.AddChild(_saveDependencies);
+        saves.AddChild(new Label { Text = "SHA-256 · chunks réutilisés · rotation atomique · rollback vérifié", AutowrapMode = TextServer.AutowrapMode.WordSmart, Modulate = new Color("bcaacb") });
+
+        var scroll = new ScrollContainer { Name = "Gameplay étendu", SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        tabs.AddChild(scroll);
         var columns = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         columns.AddThemeConstantOverride("separation", 12);
         scroll.AddChild(columns);
@@ -180,6 +323,38 @@ public partial class GameplayControlsWindow : Window
     private void Populate()
     {
         if (_profile is null) return;
+        var foundation = _profile.Foundation;
+        var ground = foundation.GroundedMovement;
+        _groundEnabled!.ButtonPressed = ground.Enabled; _groundRequired!.ButtonPressed = ground.Required;
+        _walkSpeed!.Value = ground.WalkSpeed; _runSpeed!.Value = ground.RunSpeed;
+        _acceleration!.Value = ground.Acceleration; _deceleration!.Value = ground.Deceleration;
+        _slope!.Value = ground.MaximumSlopeDegrees; _stepHeight!.Value = ground.StepHeight;
+        _jumpVelocity!.Value = ground.JumpVelocity; _crouchMultiplier!.Value = ground.CrouchSpeedMultiplier;
+        _rootMotion!.ButtonPressed = ground.RootMotion; _prediction!.ButtonPressed = ground.NetworkPrediction;
+        var interaction = foundation.Interaction;
+        _interactionEnabled!.ButtonPressed = interaction.Enabled; _interactionRequired!.ButtonPressed = interaction.Required;
+        _interactionAction!.Text = interaction.InputAction; _targeting!.Selected = (int)interaction.Targeting;
+        _focusDistance!.Value = interaction.FocusDistance; _viewAngle!.Value = interaction.ViewAngleDegrees;
+        _showPrompt!.ButtonPressed = interaction.ShowPrompt;
+        _verbs!.Text = string.Join("\n", interaction.Verbs.Select(item =>
+            $"{item.Key} | {item.Label} | {item.Command} | " +
+            $"{item.HoldSeconds.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)} | " +
+            $"{string.Join(',', item.TargetTags)}"));
+        _defaultCamera!.Clear();
+        foreach (var camera in foundation.Cameras.Profiles) _defaultCamera.AddItem(camera.DisplayName);
+        _defaultCamera.Selected = Math.Max(0, foundation.Cameras.Profiles.ToList().FindIndex(item =>
+            item.Key == foundation.Cameras.DefaultProfileKey));
+        PopulateSelectedCamera();
+        _allowRebinding!.ButtonPressed = foundation.Input.AllowRebinding;
+        _perPlayerInput!.ButtonPressed = foundation.Input.PerPlayerLocal;
+        _inputBindings!.Text = string.Join("\n", foundation.Input.Bindings.Select(item =>
+            $"{item.ActionKey} | {item.Device} | {item.Binding} | {item.Glyph}"));
+        _saveRequired!.ButtonPressed = foundation.Save.Required;
+        _chunkKilobytes!.Value = foundation.Save.ChunkBytes / 1024;
+        _autosaveSeconds!.Value = foundation.Save.AutosaveIntervalSeconds;
+        _rollbackSlots!.Value = foundation.Save.RollbackSlots;
+        _saveMigrations!.ButtonPressed = foundation.Save.AllowMigrations;
+        _saveDependencies!.ButtonPressed = foundation.Save.RequireModuleDependencies;
         var swim = _profile.Swimming;
         _swimEnabled!.ButtonPressed = swim.Enabled; _swimRequired!.ButtonPressed = swim.Required;
         _buoyancy!.Value = swim.Buoyancy; _swimSpeed!.Value = swim.SurfaceSpeed;
@@ -204,8 +379,9 @@ public partial class GameplayControlsWindow : Window
         foreach (var provider in _profile.CombatModes.Providers) _combatProvider.AddItem(provider.DisplayName);
         _combatProvider.Selected = _profile.CombatModes.Providers.ToList().FindIndex(item =>
             item.ProviderId == _profile.CombatModes.DefaultProviderId);
-        _summary!.Text = $"Schéma v{_profile.SchemaVersion} · {_profile.RadialMenu.Actions.Count} action(s) · " +
-                         $"{_profile.CombatModes.Providers.Count} fournisseur(s) · provenance {_profile.Provenance}";
+        _summary!.Text = $"P0 v{foundation.SchemaVersion} · {foundation.Cameras.Profiles.Count} caméras · " +
+                         $"{foundation.Input.Bindings.Count} bindings · autosave {foundation.Save.AutosaveIntervalSeconds}s · " +
+                         $"{_profile.RadialMenu.Actions.Count} actions avancées · provenance {_profile.Provenance}";
         _status!.Text = "Prêt · configuration canonique chargée.";
     }
 
@@ -214,6 +390,83 @@ public partial class GameplayControlsWindow : Window
         if (_profile is null) return false;
         try
         {
+            var sourceFoundation = _profile.Foundation;
+            var ground = sourceFoundation.GroundedMovement with
+            {
+                Enabled = _groundEnabled!.ButtonPressed,
+                Required = _groundRequired!.ButtonPressed,
+                WalkSpeed = (float)_walkSpeed!.Value,
+                RunSpeed = (float)_runSpeed!.Value,
+                Acceleration = (float)_acceleration!.Value,
+                Deceleration = (float)_deceleration!.Value,
+                MaximumSlopeDegrees = (float)_slope!.Value,
+                StepHeight = (float)_stepHeight!.Value,
+                JumpVelocity = (float)_jumpVelocity!.Value,
+                CrouchSpeedMultiplier = (float)_crouchMultiplier!.Value,
+                RootMotion = _rootMotion!.ButtonPressed,
+                NetworkPrediction = _prediction!.ButtonPressed,
+                Provenance = "forge-ui:r010",
+            };
+            var interaction = sourceFoundation.Interaction with
+            {
+                Enabled = _interactionEnabled!.ButtonPressed,
+                Required = _interactionRequired!.ButtonPressed,
+                InputAction = _interactionAction!.Text.Trim().ToLowerInvariant(),
+                Targeting = (InteractionTargetingMode)_targeting!.Selected,
+                FocusDistance = (float)_focusDistance!.Value,
+                ViewAngleDegrees = (float)_viewAngle!.Value,
+                ShowPrompt = _showPrompt!.ButtonPressed,
+                Verbs = ParseVerbs(sourceFoundation.Interaction),
+                Provenance = "forge-ui:r010",
+            };
+            var cameraIndex = Math.Clamp(_defaultCamera!.Selected, 0, sourceFoundation.Cameras.Profiles.Count - 1);
+            var selectedCamera = sourceFoundation.Cameras.Profiles[cameraIndex] with
+            {
+                FieldOfViewDegrees = (float)_cameraFov!.Value,
+                Distance = (float)_cameraDistance!.Value,
+                PitchDegrees = (float)_cameraPitch!.Value,
+                CollisionAvoidance = _cameraCollision!.ButtonPressed,
+            };
+            var cameraProfiles = sourceFoundation.Cameras.Profiles.Select((item, index) =>
+                index == cameraIndex ? selectedCamera : item).ToArray();
+            var cameras = sourceFoundation.Cameras with
+            {
+                DefaultProfileKey = selectedCamera.Key,
+                Profiles = cameraProfiles,
+                Provenance = "forge-ui:r010",
+            };
+            var inputProfile = sourceFoundation.Input with
+            {
+                AllowRebinding = _allowRebinding!.ButtonPressed,
+                PerPlayerLocal = _perPlayerInput!.ButtonPressed,
+                Bindings = ParseBindings(sourceFoundation.Input),
+                Provenance = "forge-ui:r010",
+            };
+            var savePolicy = sourceFoundation.Save with
+            {
+                Required = _saveRequired!.ButtonPressed,
+                ChunkBytes = (int)_chunkKilobytes!.Value * 1024,
+                AutosaveIntervalSeconds = (int)_autosaveSeconds!.Value,
+                RollbackSlots = (int)_rollbackSlots!.Value,
+                AllowMigrations = _saveMigrations!.ButtonPressed,
+                RequireModuleDependencies = _saveDependencies!.ButtonPressed,
+                Provenance = "forge-ui:r010",
+            };
+            var foundation = sourceFoundation with
+            {
+                GroundedMovement = ground,
+                Interaction = interaction,
+                Cameras = cameras,
+                Input = inputProfile,
+                Save = savePolicy,
+                Provenance = "forge-ui:r010",
+            };
+            var foundationDiagnostic = GameplayFoundationValidator.Validate(foundation).FirstOrDefault();
+            if (foundationDiagnostic is not null)
+            {
+                _status!.Text = $"✕ {foundationDiagnostic.Code} · {foundationDiagnostic.Path}";
+                return false;
+            }
             var swim = _profile.Swimming;
             swim = new SwimmingProfile(swim.Id, 1, _swimEnabled!.ButtonPressed, _swimRequired!.ButtonPressed,
                 (float)_buoyancy!.Value, swim.SurfaceSnapDistance, (float)_swimSpeed!.Value,
@@ -239,7 +492,7 @@ public partial class GameplayControlsWindow : Window
             var combat = new CombatModeProfile(_profile.CombatModes.Id, 1, providers[selected].ProviderId,
                 providers, "forge-ui");
             var candidate = new ModuleGameplayControlProfile(_profile.Id, 1, swim, climb, radial, time, combat,
-                "forge-ui");
+                "forge-ui", foundation);
             var succeeded = _apply?.Invoke(candidate) == true;
             _status!.Text = succeeded
                 ? "✓ Contrôles validés, persistants et annulables."
@@ -252,6 +505,52 @@ public partial class GameplayControlsWindow : Window
             _status!.Text = $"✕ {exception.Message}";
             return false;
         }
+    }
+
+    private void PopulateSelectedCamera()
+    {
+        if (_profile is null || _defaultCamera is null || _defaultCamera.Selected < 0) return;
+        var index = Math.Clamp(_defaultCamera.Selected, 0, _profile.Foundation.Cameras.Profiles.Count - 1);
+        var camera = _profile.Foundation.Cameras.Profiles[index];
+        _cameraFov!.Value = camera.FieldOfViewDegrees;
+        _cameraDistance!.Value = camera.Distance;
+        _cameraPitch!.Value = camera.PitchDegrees;
+        _cameraCollision!.ButtonPressed = camera.CollisionAvoidance;
+    }
+
+    private IReadOnlyList<InteractionVerbDefinition> ParseVerbs(InteractionProfile source)
+    {
+        var ids = source.Verbs.ToDictionary(item => item.Key, item => item.Id, StringComparer.Ordinal);
+        var verbs = new List<InteractionVerbDefinition>();
+        foreach (var raw in _verbs!.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = raw.Split('|').Select(value => value.Trim()).ToArray();
+            if (parts.Length < 5 || !float.TryParse(parts[3], System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var hold))
+                throw new ArgumentException($"Verbe invalide : '{raw}'.");
+            var key = parts[0].ToLowerInvariant();
+            var tags = parts[4].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(value => value.ToLowerInvariant()).ToArray();
+            verbs.Add(new(ids.GetValueOrDefault(key, Guid.NewGuid()), key, parts[1], parts[2], hold, tags, true));
+        }
+        return verbs;
+    }
+
+    private IReadOnlyList<RuntimeInputBindingDefinition> ParseBindings(RuntimeInputProfile source)
+    {
+        var ids = source.Bindings.ToDictionary(item => $"{item.ActionKey}:{item.Device}", item => item.Id,
+            StringComparer.Ordinal);
+        var bindings = new List<RuntimeInputBindingDefinition>();
+        foreach (var raw in _inputBindings!.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = raw.Split('|').Select(value => value.Trim()).ToArray();
+            if (parts.Length < 4 || !Enum.TryParse<RuntimeInputDevice>(parts[1], true, out var device))
+                throw new ArgumentException($"Binding invalide : '{raw}'.");
+            var action = parts[0].ToLowerInvariant();
+            var id = ids.GetValueOrDefault($"{action}:{device}", Guid.NewGuid());
+            bindings.Add(new(id, action, device, parts[2], parts[3], true));
+        }
+        return bindings;
     }
 
     private IReadOnlyList<RadialActionDefinition> ParseActions(RadialMenuProfile source)

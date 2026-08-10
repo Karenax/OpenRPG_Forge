@@ -12,12 +12,21 @@ public sealed record DialogueChoice
 
     public DialogueNodeId? TargetNodeId { get; }
 
+    public DialogueEdgeKind EdgeKind { get; }
+
+    public int Priority { get; }
+
+    public DialogueConditionCombination ConditionCombination { get; }
+
     public DialogueChoice(
         DialogueChoiceId id,
         LocalizedText text,
         IReadOnlyList<DialogueCondition>? conditions = null,
         IReadOnlyList<DialogueAction>? actions = null,
-        DialogueNodeId? targetNodeId = null)
+        DialogueNodeId? targetNodeId = null,
+        DialogueEdgeKind edgeKind = DialogueEdgeKind.Flow,
+        int priority = 0,
+        DialogueConditionCombination conditionCombination = DialogueConditionCombination.All)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(text);
@@ -26,5 +35,8 @@ public sealed record DialogueChoice
         Conditions = (conditions ?? []).ToArray();
         Actions = (actions ?? []).ToArray();
         TargetNodeId = targetNodeId;
+        EdgeKind = edgeKind;
+        Priority = priority;
+        ConditionCombination = conditionCombination;
     }
 }

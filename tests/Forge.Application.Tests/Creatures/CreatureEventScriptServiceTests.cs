@@ -16,8 +16,10 @@ public sealed class CreatureEventScriptServiceTests
             new Dictionary<string, string> { ["count"] = "3", ["source"] = "ash-warden" });
 
         Assert.Equal(profile.Id, snapshot.Handle.Id);
-        Assert.Equal(6, snapshot.BindingCount);
+        Assert.Equal(9, snapshot.BindingCount);
         Assert.True(snapshot.HeartbeatEnabled);
+        Assert.True(snapshot.DamageLifecycleEnabled);
+        Assert.Equal(4, snapshot.BeforeDamageBudgetMilliseconds);
         Assert.Equal(8, Assert.Single(heartbeat.Dispatches).BudgetMilliseconds);
         Assert.Equal("custom.crypt.braziers_lit", custom.EventName);
     }

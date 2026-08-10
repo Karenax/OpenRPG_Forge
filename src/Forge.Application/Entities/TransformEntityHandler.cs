@@ -74,7 +74,8 @@ public sealed class TransformEntityHandler
             entity.BlueprintId,
             command.Transform,
             entity.Tags,
-            entity.Overrides);
+            entity.Overrides,
+            entity.BlueprintVersionRequirement);
         var updatedArea = area.WithEntities(
             area.Entities.Select(candidate => candidate.Id == entity.Id ? updatedEntity : candidate).ToArray());
         var updatedProject = ReplaceArea(state.Project, updatedArea);

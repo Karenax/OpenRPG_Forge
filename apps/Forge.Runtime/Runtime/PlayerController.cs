@@ -85,14 +85,19 @@ public partial class PlayerController : CharacterBody3D
         CurrentCapability = decision.Kind;
         _breath = decision.BreathRemaining;
         _stamina = decision.StaminaRemaining;
-        var movementSpeed = decision.Speed * MovementSpeedMultiplier;
-        velocity.X = (direction.X * movementSpeed * SimulationScale) + water.Current.X;
-        velocity.Z = (direction.Z * movementSpeed * SimulationScale) + water.Current.Z;
+        var ground = _profile.Foundation.GroundedMovement;
+        var movementSpeed = decision.Kind == MovementCapabilityKind.Ground ? ground.RunSpeed :
+            decision.Speed * MovementSpeedMultiplier;
+        var targetX = (direction.X * movementSpeed * SimulationScale) + water.Current.X;
+        var targetZ = (direction.Z * movementSpeed * SimulationScale) + water.Current.Z;
+        var rate = direction.LengthSquared() > .001f ? ground.Acceleration : ground.Deceleration;
+        velocity.X = Mathf.MoveToward(velocity.X, targetX, rate * scaledDelta);
+        velocity.Z = Mathf.MoveToward(velocity.Z, targetZ, rate * scaledDelta);
         var jumpRequested = _jumpQueued || Input.IsActionJustPressed("jump");
         _jumpQueued = false;
         if (decision.Kind == MovementCapabilityKind.Ground && jumpRequested && IsOnFloor())
         {
-            velocity.Y = JumpVelocity;
+            velocity.Y = ground.JumpVelocity;
             JumpCount++;
         }
         else velocity.Y = decision.Kind switch

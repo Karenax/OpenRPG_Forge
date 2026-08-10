@@ -14,7 +14,10 @@ public sealed record CreatureEventScriptSnapshot(
     int HeartbeatIntervalMilliseconds,
     int HeartbeatBudgetMilliseconds,
     bool SuspendOutsideInterest,
-    IReadOnlyList<string> CustomEventNames);
+    IReadOnlyList<string> CustomEventNames,
+    bool DamageLifecycleEnabled,
+    int BeforeDamageBudgetMilliseconds,
+    double MaximumDamageAdjustmentRatio);
 
 /// <summary>
 /// Read-only ForgeScript surface. Canonical mutation remains owned by SetCreatureEventsHandler.
@@ -43,7 +46,10 @@ public sealed class CreatureEventScriptService
             _profile.Heartbeat?.Enabled == true, _profile.Heartbeat?.IntervalMilliseconds ?? 0,
             _profile.Heartbeat?.BudgetMilliseconds ?? 0,
             _profile.Heartbeat?.SuspendOutsideInterest == true,
-            _profile.CustomEvents.Select(item => item.QualifiedName).ToArray());
+            _profile.CustomEvents.Select(item => item.QualifiedName).ToArray(),
+            _profile.DamageDeath is not null,
+            _profile.DamageDeath?.BeforeDamageBudgetMilliseconds ?? 0,
+            _profile.DamageDeath?.MaximumAdjustmentRatio ?? 0);
     }
 
     public CreatureEventAdvanceResult AdvanceHeartbeat(

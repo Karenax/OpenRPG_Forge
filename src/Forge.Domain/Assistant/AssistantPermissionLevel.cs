@@ -6,4 +6,5 @@ public enum AssistantPermissionLevel
     Propose,
     Configure,
     ApplyApprovedPlan,
+    BoundedAutonomous,
 }

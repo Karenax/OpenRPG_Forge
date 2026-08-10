@@ -1,6 +1,8 @@
 #if TOOLS
 using Forge.Application.Projects;
+using Forge.Domain.Content;
 using Forge.Domain.Modules;
+using Forge.Domain.Projects;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -11,6 +13,8 @@ public partial class ModuleConfigurationWindow : Window
     private readonly List<ProjectVariableDefinition> _variables = [];
     private readonly ProjectVariableValueKind[] _variableKinds = Enum.GetValues<ProjectVariableValueKind>();
     private readonly ProjectVariableScope[] _variableScopes = Enum.GetValues<ProjectVariableScope>();
+    private readonly ProjectVariableReplicationMode[] _variableReplications =
+        Enum.GetValues<ProjectVariableReplicationMode>();
 
     private Func<ProjectState?>? _getState;
     private Func<ProjectMetadata, IReadOnlyList<ProjectVariableDefinition>, bool>? _apply;
@@ -18,8 +22,13 @@ public partial class ModuleConfigurationWindow : Window
     private ProjectMetadataId? _metadataId;
     private ProjectVariableId? _variableId;
     private ProjectMetadata? _approvedMetadata;
+    private ProjectFoundationProfile? _foundation;
     private ProjectVariableDefinition[]? _approvedVariables;
     private bool _suppressSignals;
+    private string? _capturePath;
+    private string _captureMarker = "BLACKBOARD";
+    private double _captureDelay;
+    private bool _captureOpened;
 
     private LineEdit? _author;
     private LineEdit? _version;
@@ -38,15 +47,21 @@ public partial class ModuleConfigurationWindow : Window
     private LineEdit? _variableKey;
     private OptionButton? _variableKind;
     private OptionButton? _variableScope;
+    private OptionButton? _variableReplication;
+    private CheckBox? _variableDebugVisible;
+    private CheckBox? _variableRequired;
     private LineEdit? _variableDefault;
     private LineEdit? _variableDescription;
     private Label? _previewSummary;
+    private Label? _operationsSummary;
     private Label? _status;
     private Button? _applyButton;
 
     public int LocalizationCount => _localizations.Count;
 
     public int VariableCount => _variables.Count;
+
+    public string OperationalSummary => _operationsSummary?.Text ?? string.Empty;
 
     public void Initialize(
         Func<ProjectState?> getState,
@@ -57,21 +72,55 @@ public partial class ModuleConfigurationWindow : Window
         _apply = apply ?? throw new ArgumentNullException(nameof(apply));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Configuration du module · OpenRPG Forge";
-        MinSize = new Vector2I(1240, 790);
-        Size = new Vector2I(1240, 790);
+        MinSize = new Vector2I(1440, 920);
+        Size = new Vector2I(1440, 920);
         Transient = true;
         Exclusive = false;
         Unresizable = true;
         Visible = false;
         BuildUi();
         ConnectSignals();
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r025-project-operations-ui-capture=", StringComparison.Ordinal));
+        var capturePrefix = "--r025-project-operations-ui-capture=";
+        if (capture is not null) _captureMarker = "R025_PROJECT_OPERATIONS";
+        capture ??= OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--blackboard-ui-capture=", StringComparison.Ordinal));
+        if (_captureMarker == "BLACKBOARD") capturePrefix = "--blackboard-ui-capture=";
+        if (capture is not null)
+        {
+            _capturePath = capture[capturePrefix.Length..];
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_captureOpened && _captureDelay >= 1)
+        {
+            Open();
+            _captureOpened = true;
+            return;
+        }
+        if (!_captureOpened || _captureDelay < 2.5) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        GD.Print($"OPENRPG_FORGE_{_captureMarker}_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                 $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _capturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
     {
         Refresh();
         Exclusive = true;
-        PopupCentered(new Vector2I(1240, 790));
+        PopupCentered(new Vector2I(1440, 920));
         _brandWindow?.Invoke(this);
     }
 
@@ -87,6 +136,7 @@ public partial class ModuleConfigurationWindow : Window
         var metadata = state.Project.Module.Metadata;
         _suppressSignals = true;
         _metadataId = metadata.Id;
+        _foundation = metadata.Foundation;
         _author!.Text = metadata.Author;
         _version!.Text = metadata.Version;
         _license!.Text = metadata.License;
@@ -98,6 +148,7 @@ public partial class ModuleConfigurationWindow : Window
         _localizations.AddRange(metadata.Localizations);
         _variables.Clear();
         _variables.AddRange(state.Project.Module.Variables);
+        RefreshOperationalSummary(state.Project);
         RefreshLocalizationList();
         RefreshVariableList();
         if (_localizations.Count > 0)
@@ -131,6 +182,7 @@ public partial class ModuleConfigurationWindow : Window
     {
         _suppressSignals = true;
         _metadataId = metadata.Id;
+        _foundation = metadata.Foundation;
         _author!.Text = metadata.Author;
         _version!.Text = metadata.Version;
         _license!.Text = metadata.License;
@@ -182,6 +234,23 @@ public partial class ModuleConfigurationWindow : Window
             Text = "Préparez la publication, les langues et l'état global sans éditer les fichiers canoniques.",
         });
 
+        var operationsCard = new PanelContainer();
+        operationsCard.AddThemeStyleboxOverride("panel", Card("1d1728", "4f3d6b", 1, 8));
+        root.AddChild(operationsCard);
+        var operationsMargin = new MarginContainer();
+        operationsMargin.AddThemeConstantOverride("margin_left", 12);
+        operationsMargin.AddThemeConstantOverride("margin_top", 8);
+        operationsMargin.AddThemeConstantOverride("margin_right", 12);
+        operationsMargin.AddThemeConstantOverride("margin_bottom", 8);
+        operationsCard.AddChild(operationsMargin);
+        _operationsSummary = new Label
+        {
+            Text = "PRÉPARATION OPÉRATIONNELLE · chargez un projet pour auditer ses contrats.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        _operationsSummary.AddThemeColorOverride("font_color", new Color("cdbbe8"));
+        operationsMargin.AddChild(_operationsSummary);
+
         var body = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         body.AddThemeConstantOverride("separation", 14);
         root.AddChild(body);
@@ -231,7 +300,7 @@ public partial class ModuleConfigurationWindow : Window
         _variableList = new ItemList { CustomMinimumSize = new Vector2(0, 160), SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         variables.AddChild(_variableList);
         _variableKey = AddField(variables, "Clé", "world.quest.completed");
-        variables.AddChild(new Label { Text = "Type et scope" });
+        variables.AddChild(new Label { Text = "Type, scope et réplication" });
         var typeRow = new HBoxContainer();
         typeRow.AddThemeConstantOverride("separation", 8);
         variables.AddChild(typeRow);
@@ -241,8 +310,17 @@ public partial class ModuleConfigurationWindow : Window
         _variableScope = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         foreach (var scope in _variableScopes) _variableScope.AddItem(FormatScope(scope));
         typeRow.AddChild(_variableScope);
+        _variableReplication = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var replication in _variableReplications) _variableReplication.AddItem(FormatReplication(replication));
+        typeRow.AddChild(_variableReplication);
         _variableDefault = AddField(variables, "Valeur par défaut", "false");
         _variableDescription = AddField(variables, "Description", "Usage de cette variable");
+        var policies = new HBoxContainer();
+        _variableDebugVisible = new CheckBox { Text = "Visible dans le debug", ButtonPressed = true };
+        policies.AddChild(_variableDebugVisible);
+        _variableRequired = new CheckBox { Text = "Requise au runtime" };
+        policies.AddChild(_variableRequired);
+        variables.AddChild(policies);
         var variableActions = new HBoxContainer();
         variableActions.AddThemeConstantOverride("separation", 8);
         variables.AddChild(variableActions);
@@ -277,6 +355,33 @@ public partial class ModuleConfigurationWindow : Window
         _applyButton.AddThemeStyleboxOverride("normal", Card("d84f32", "ff8b63", 1, 8));
         _applyButton.Pressed += Apply;
         footer.AddChild(_applyButton);
+    }
+
+    private void RefreshOperationalSummary(ProjectDefinition project)
+    {
+        var module = project.Module;
+        var packageResolution = ContentPackageResolver.Resolve(module.Content.Packages);
+        var packageErrors = packageResolution.Diagnostics.Count;
+        var profiles = module.Distribution.TargetProfiles;
+        var separatedSecrets = profiles.Select(item => item.SecretsProfile)
+            .Distinct(StringComparer.OrdinalIgnoreCase).Count() == profiles.Count;
+        var variablePolicy = module.Variables.Count == 0 ? "legacy borné (aucun schéma)" : "schéma strict";
+        var targetState = profiles.Count == Enum.GetValues<ModuleTargetKind>().Length && separatedSecrets
+            ? "5 profils · secrets séparés"
+            : $"{profiles.Count} profils · configuration à corriger";
+        var packageState = packageErrors == 0
+            ? $"{module.Content.Packages.Packages.Count} package(s) · lock {packageResolution.LockEntries.Count}"
+            : $"{packageErrors} erreur(s) de résolution";
+
+        _operationsSummary!.Text =
+            "PRÉPARATION OPÉRATIONNELLE · " +
+            "Cycle ProjectLoaded → WorldStarted (Editor/Client/Server)  ·  " +
+            $"Variables {module.Variables.Count} · {variablePolicy}  ·  " +
+            $"Contenu {packageState}\n" +
+            "Scripts cache source + API + compilateur  ·  " +
+            $"Cibles {targetState}";
+        _operationsSummary.AddThemeColorOverride("font_color",
+            packageErrors == 0 && separatedSecrets ? new Color("9ee6b3") : new Color("ffb26b"));
     }
 
     private void ConnectSignals()
@@ -338,7 +443,11 @@ public partial class ModuleConfigurationWindow : Window
                 _variableScopes[_variableScope!.Selected],
                 _variableDefault!.Text,
                 _variableDescription!.Text,
-                "creator-command");
+                "creator-command",
+                ProjectVariableDefinition.CurrentSchemaVersion,
+                _variableReplications[_variableReplication!.Selected],
+                _variableDebugVisible!.ButtonPressed,
+                _variableRequired!.ButtonPressed);
             var duplicate = _variables.FindIndex(item =>
                 item.Id != draft.Id && string.Equals(item.Key, draft.Key, StringComparison.Ordinal));
             if (duplicate >= 0)
@@ -387,7 +496,8 @@ public partial class ModuleConfigurationWindow : Window
                 string.IsNullOrWhiteSpace(_imagePath!.Text) ? null : _imagePath.Text,
                 _tags!.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
                 _classification!.Text,
-                "creator-command");
+                "creator-command",
+                foundation: _foundation);
             _approvedVariables = _variables.ToArray();
             _applyButton!.Disabled = false;
             _previewSummary!.Text =
@@ -431,7 +541,8 @@ public partial class ModuleConfigurationWindow : Window
         _variableList!.Clear();
         foreach (var item in _variables)
         {
-            _variableList.AddItem($"{item.Key}\n{FormatKind(item.Kind)} · {FormatScope(item.Scope)} · {item.DefaultValue}");
+            _variableList.AddItem($"{item.Key} · {FormatKind(item.Kind)} · {FormatScope(item.Scope)} · " +
+                $"{FormatReplication(item.Replication)} · {item.DefaultValue}");
             _variableList.SetItemTooltip(_variableList.ItemCount - 1, item.Id.ToString());
         }
     }
@@ -455,8 +566,11 @@ public partial class ModuleConfigurationWindow : Window
         _variableKey!.Text = item.Key;
         _variableKind!.Selected = Array.IndexOf(_variableKinds, item.Kind);
         _variableScope!.Selected = Array.IndexOf(_variableScopes, item.Scope);
+        _variableReplication!.Selected = Array.IndexOf(_variableReplications, item.Replication);
         _variableDefault!.Text = item.DefaultValue;
         _variableDescription!.Text = item.Description;
+        _variableDebugVisible!.ButtonPressed = item.DebugVisible;
+        _variableRequired!.ButtonPressed = item.RequiredAtRuntime;
     }
 
     private void ClearLocalizationDraft()
@@ -474,8 +588,11 @@ public partial class ModuleConfigurationWindow : Window
         _variableKey!.Text = string.Empty;
         _variableKind!.Selected = 0;
         _variableScope!.Selected = 0;
+        _variableReplication!.Selected = 0;
         _variableDefault!.Text = string.Empty;
         _variableDescription!.Text = string.Empty;
+        _variableDebugVisible!.ButtonPressed = true;
+        _variableRequired!.ButtonPressed = false;
     }
 
     private void InvalidatePreview()
@@ -561,6 +678,16 @@ public partial class ModuleConfigurationWindow : Window
         ProjectVariableScope.Party => "Groupe",
         ProjectVariableScope.Server => "Serveur",
         _ => scope.ToString(),
+    };
+
+    private static string FormatReplication(ProjectVariableReplicationMode replication) => replication switch
+    {
+        ProjectVariableReplicationMode.None => "Locale",
+        ProjectVariableReplicationMode.Owner => "Propriétaire",
+        ProjectVariableReplicationMode.Party => "Groupe",
+        ProjectVariableReplicationMode.AllClients => "Tous clients",
+        ProjectVariableReplicationMode.ServerAuthority => "Serveur autoritaire",
+        _ => replication.ToString(),
     };
 }
 #endif

@@ -1,4 +1,5 @@
 #if TOOLS
+using System.Text.Json;
 using Forge.Application.Assistant;
 using Forge.Application.Creator;
 using Forge.Application.Projects;
@@ -31,6 +32,9 @@ public partial class AssistantWorkspaceWindow : Window
     private AssistantWorkspaceProfile? _approved;
     private Guid _approvedPlanId;
     private AssistantProviderKind[] _providerKinds = Enum.GetValues<AssistantProviderKind>();
+    private readonly AssistantPermissionLevel[] _agentPermissionLevels =
+        [AssistantPermissionLevel.ApplyApprovedPlan, AssistantPermissionLevel.BoundedAutonomous];
+    private readonly AgentProjectClassification[] _projectClassifications = Enum.GetValues<AgentProjectClassification>();
 
     private OptionButton? _providerKind;
     private LineEdit? _endpoint;
@@ -38,6 +42,25 @@ public partial class AssistantWorkspaceWindow : Window
     private LineEdit? _credentialEnvironmentVariable;
     private CheckButton? _networkAllowed;
     private CheckButton? _shareProjectContent;
+    private SpinBox? _maximumContextItems;
+    private SpinBox? _maximumGraphDepth;
+    private SpinBox? _maximumGraphNodes;
+    private OptionButton? _maximumAgentPermission;
+    private CheckButton? _allowBoundedAutonomy;
+    private SpinBox? _maximumAgentCommands;
+    private SpinBox? _maximumAgentDuration;
+    private OptionButton? _projectClassification;
+    private CheckButton? _cloudProjectContentOptIn;
+    private SpinBox? _maximumProviderInputTokens;
+    private SpinBox? _maximumProviderOutputTokens;
+    private SpinBox? _maximumProviderCost;
+    private ScrollContainer? _providerScroll;
+    private CheckButton? _requireStructuredOutput;
+    private CheckButton? _allowBoundedRepair;
+    private CheckButton? _promptInjectionGuard;
+    private CheckButton? _offlineCore;
+    private SpinBox? _maximumResponseCharacters;
+    private SpinBox? _maximumUntrustedCharacters;
     private LineEdit? _promptVersion;
     private TextEdit? _systemTemplate;
     private TextEdit? _userTemplate;
@@ -49,6 +72,10 @@ public partial class AssistantWorkspaceWindow : Window
     private Button? _previewButton;
     private Button? _applyButton;
     private bool _suppressSignals;
+    private string? _capturePath;
+    private double _captureDelay;
+    private bool _captureOpened;
+    private bool _captureR022;
     private readonly System.Net.Http.HttpClient _providerHttpClient = new(
         new System.Net.Http.SocketsHttpHandler { AllowAutoRedirect = false })
     {
@@ -59,6 +86,11 @@ public partial class AssistantWorkspaceWindow : Window
     public string LastPromptHash { get; private set; } = string.Empty;
     public bool LastPreviewWasOffline { get; private set; }
     public decimal LastProviderCost { get; private set; }
+    public int MaximumAgentCommands => (int)(_maximumAgentCommands?.Value ?? 0);
+    public int MaximumResponseCharacters => (int)(_maximumResponseCharacters?.Value ?? 0);
+    public bool LastStructuredResultSucceeded { get; private set; }
+    public bool LastOfflineReady { get; private set; }
+    public int LastInjectionSignalCount { get; private set; }
 
     public void Initialize(
         Func<ProjectState?> getProject,
@@ -102,13 +134,49 @@ public partial class AssistantWorkspaceWindow : Window
         _openLocalization = openLocalization ?? throw new ArgumentNullException(nameof(openLocalization));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assistant de création · OpenRPG Forge";
-        MinSize = new Vector2I(1260, 800);
-        Size = MinSize;
+        MinSize = new Vector2I(1380, 860);
+        Size = new Vector2I(1600, 960);
         Transient = true;
         Exclusive = false;
         Unresizable = true;
         Visible = false;
         BuildUi();
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r020-agent-workflow-ui-capture=", StringComparison.Ordinal) ||
+            value.StartsWith("--r021-agent-governance-ui-capture=", StringComparison.Ordinal) ||
+            value.StartsWith("--r022-agent-safety-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null)
+        {
+            _capturePath = capture[(capture.IndexOf('=') + 1)..];
+            _captureR022 = capture.StartsWith("--r022-agent-safety-ui-capture=", StringComparison.Ordinal);
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_captureOpened && _captureDelay >= 1.5)
+        {
+            Open();
+            _captureOpened = true;
+            return;
+        }
+        if (_captureOpened && _captureDelay >= 2.5 && _providerScroll is not null)
+            _providerScroll.ScrollVertical = _captureR022 ? 980 : 520;
+        if (!_captureOpened || _captureDelay < 4) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        var marker = _captureR022 ? "OPENRPG_FORGE_R022_AGENT_SAFETY_UI_CAPTURE" :
+            "OPENRPG_FORGE_R021_AGENT_GOVERNANCE_UI_CAPTURE";
+        GD.Print($"{marker}_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                 $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _capturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -138,11 +206,40 @@ public partial class AssistantWorkspaceWindow : Window
         _credentialEnvironmentVariable!.Text = provider.CredentialEnvironmentVariable;
         _networkAllowed!.ButtonPressed = _source.NetworkAllowed;
         _shareProjectContent!.ButtonPressed = _source.ShareProjectContent;
+        _maximumContextItems!.Value = _source.AgentWorkflow.MaximumContextItems;
+        _maximumGraphDepth!.Value = _source.AgentWorkflow.References.MaximumDepth;
+        _maximumGraphNodes!.Value = _source.AgentWorkflow.References.MaximumNodes;
+        var governance = _source.AgentWorkflow.EffectiveGovernance;
+        _maximumAgentPermission!.Selected = Math.Max(0,
+            Array.IndexOf(_agentPermissionLevels, _source.AgentWorkflow.MaximumPermission));
+        _allowBoundedAutonomy!.ButtonPressed = governance.Authorization.AllowBoundedAutonomy;
+        _maximumAgentCommands!.Value = governance.Authorization.MaximumCommands;
+        _maximumAgentDuration!.Value = governance.Authorization.MaximumDurationSeconds;
+        _projectClassification!.Selected = Array.IndexOf(_projectClassifications,
+            governance.BudgetPrivacy.ProjectClassification);
+        _cloudProjectContentOptIn!.ButtonPressed = governance.BudgetPrivacy.CloudProjectContentOptIn;
+        var providerBudget = governance.BudgetPrivacy.Providers.FirstOrDefault(item =>
+            string.Equals(item.ProviderKey, provider.Key, StringComparison.Ordinal)) ?? governance.BudgetPrivacy.Providers[0];
+        _maximumProviderInputTokens!.Value = providerBudget.MaximumInputTokens;
+        _maximumProviderOutputTokens!.Value = providerBudget.MaximumOutputTokens;
+        _maximumProviderCost!.Value = (double)providerBudget.MaximumCostPerRequest;
+        var safety = _source.AgentWorkflow.EffectiveSafety;
+        _requireStructuredOutput!.ButtonPressed = safety.StructuredOutput.RequireJsonSchema &&
+            safety.StructuredOutput.RequireToolCallsForMutation && safety.StructuredOutput.RejectAmbiguousMutation;
+        _allowBoundedRepair!.ButtonPressed = safety.StructuredOutput.AllowBoundedSyntaxRepair;
+        _promptInjectionGuard!.ButtonPressed = safety.PromptInjection.TreatProjectContentAsData &&
+            safety.PromptInjection.EnforceToolAllowlist && safety.PromptInjection.ProhibitHiddenEscalation;
+        _offlineCore!.ButtonPressed = safety.Offline.ManualAuthoringAvailable && safety.Offline.AiMetadataOptional &&
+            safety.Offline.BuildRuntimeIndependent && safety.Offline.NetworkDisabledByDefault;
+        _maximumResponseCharacters!.Value = safety.StructuredOutput.MaximumResponseCharacters;
+        _maximumUntrustedCharacters!.Value = safety.PromptInjection.MaximumUntrustedCharacters;
         _promptVersion!.Text = prompt.Version;
         _systemTemplate!.Text = prompt.SystemTemplate;
         _userTemplate!.Text = prompt.UserTemplate;
-        _responseSchema!.Text = prompt.ResponseJsonSchema;
+        _responseSchema!.Text = PrettyJson(prompt.ResponseJsonSchema);
         _request!.Text = "Résume le contexte courant et propose un plan sans mutation.";
+        _preview!.Text = "[color=#9f8dbd]Aucun plan prévisualisé.[/color]\n" +
+                         "Décrivez une intention puis lancez le dry-run. Les erreurs de révision, cible, outil et permission apparaîtront ici.";
         _suppressSignals = false;
         RefreshContext();
         InvalidatePreview();
@@ -153,6 +250,10 @@ public partial class AssistantWorkspaceWindow : Window
     {
         Refresh();
         _promptVersion!.Text = version;
+        _maximumAgentCommands!.Value = 12;
+        _maximumAgentDuration!.Value = 45;
+        _maximumResponseCharacters!.Value = 131072;
+        _maximumUntrustedCharacters!.Value = 32768;
         _request!.Text = "Prépare un plan déterministe pour la sélection courante.";
         return true;
     }
@@ -189,7 +290,7 @@ public partial class AssistantWorkspaceWindow : Window
         body.AddThemeConstantOverride("separation", 12);
         root.AddChild(body);
 
-        var providerCard = AddCard(body, 350);
+        var providerCard = AddScrollableCard(body, 350, out _providerScroll);
         providerCard.AddChild(Section("FOURNISSEUR & CONFIDENTIALITÉ"));
         _providerKind = new OptionButton();
         foreach (var kind in _providerKinds) _providerKind.AddItem(FormatKind(kind));
@@ -208,18 +309,104 @@ public partial class AssistantWorkspaceWindow : Window
         providerCard.AddChild(_networkAllowed);
         _shareProjectContent = new CheckButton { Text = "Autoriser l'envoi du contexte projet" };
         providerCard.AddChild(_shareProjectContent);
+        providerCard.AddChild(Section("WORKFLOW AGENT P0"));
+        _maximumContextItems = new SpinBox { MinValue = 1, MaxValue = 300, Step = 1, Rounded = true };
+        providerCard.AddChild(Field("Objets de contexte max.", _maximumContextItems));
+        _maximumGraphDepth = new SpinBox { MinValue = 1, MaxValue = 8, Step = 1, Rounded = true };
+        providerCard.AddChild(Field("Profondeur d'impact max.", _maximumGraphDepth));
+        _maximumGraphNodes = new SpinBox { MinValue = 10, MaxValue = 1000, Step = 10, Rounded = true };
+        providerCard.AddChild(Field("Noeuds du graphe max.", _maximumGraphNodes));
+        var workflowHelp = new Label
+        {
+            Text = "10 contextes structurés · graphe inverse typé · 5 outils métier · plan + dry-run sans écriture.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        workflowHelp.AddThemeColorOverride("font_color", new Color("d8c8ff"));
+        providerCard.AddChild(workflowHelp);
+        providerCard.AddChild(Section("GOUVERNANCE AGENT R021"));
+        _maximumAgentPermission = new OptionButton();
+        foreach (var permission in _agentPermissionLevels)
+            _maximumAgentPermission.AddItem(permission == AssistantPermissionLevel.BoundedAutonomous
+                ? "Autonomie bornée"
+                : "Mutation avec confirmation");
+        providerCard.AddChild(Field("Autorisation maximale", _maximumAgentPermission));
+        _allowBoundedAutonomy = new CheckButton { Text = "Activer explicitement l'autonomie bornée" };
+        providerCard.AddChild(_allowBoundedAutonomy);
+        var executionLimits = new HBoxContainer();
+        executionLimits.AddThemeConstantOverride("separation", 8);
+        providerCard.AddChild(executionLimits);
+        _maximumAgentCommands = new SpinBox { MinValue = 1, MaxValue = 100, Step = 1, Rounded = true };
+        executionLimits.AddChild(Field("Commandes max.", _maximumAgentCommands));
+        _maximumAgentDuration = new SpinBox { MinValue = 1, MaxValue = 3600, Step = 1, Rounded = true };
+        executionLimits.AddChild(Field("Durée max. (s)", _maximumAgentDuration));
+        _projectClassification = new OptionButton();
+        foreach (var classification in _projectClassifications) _projectClassification.AddItem(classification.ToString());
+        providerCard.AddChild(Field("Classification projet", _projectClassification));
+        _cloudProjectContentOptIn = new CheckButton { Text = "Opt-in explicite : contenu vers cloud" };
+        providerCard.AddChild(_cloudProjectContentOptIn);
+        var providerLimits = new HBoxContainer();
+        providerLimits.AddThemeConstantOverride("separation", 8);
+        providerCard.AddChild(providerLimits);
+        _maximumProviderInputTokens = new SpinBox { MinValue = 256, MaxValue = 1000000, Step = 256, Rounded = true };
+        providerLimits.AddChild(Field("Tokens entrée", _maximumProviderInputTokens));
+        _maximumProviderOutputTokens = new SpinBox { MinValue = 64, MaxValue = 1000000, Step = 64, Rounded = true };
+        providerLimits.AddChild(Field("Tokens sortie", _maximumProviderOutputTokens));
+        _maximumProviderCost = new SpinBox { MinValue = 0, MaxValue = 100, Step = .01, Rounded = false };
+        providerLimits.AddChild(Field("Coût max.", _maximumProviderCost));
+        var governanceHelp = new Label
+        {
+            Text = "Begin → preview → commit → rollback · diff structuré · audit expurgé · aucun secret journalisé.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        governanceHelp.AddThemeColorOverride("font_color", new Color("9ee6b3"));
+        providerCard.AddChild(governanceHelp);
+        providerCard.AddChild(Section("SORTIES SÛRES & HORS LIGNE R022"));
+        _requireStructuredOutput = new CheckButton { Text = "JSON Schema + tool calls obligatoires" };
+        providerCard.AddChild(_requireStructuredOutput);
+        _allowBoundedRepair = new CheckButton { Text = "Réparer uniquement une fence JSON" };
+        providerCard.AddChild(_allowBoundedRepair);
+        _promptInjectionGuard = new CheckButton { Text = "Traiter le contenu projet comme données" };
+        providerCard.AddChild(_promptInjectionGuard);
+        _offlineCore = new CheckButton { Text = "Core manuel indépendant et hors ligne" };
+        providerCard.AddChild(_offlineCore);
+        var safetyLimits = new HBoxContainer();
+        safetyLimits.AddThemeConstantOverride("separation", 8);
+        providerCard.AddChild(safetyLimits);
+        _maximumResponseCharacters = new SpinBox
+        {
+            MinValue = 1024,
+            MaxValue = 1048576,
+            Step = 1024,
+            Rounded = true,
+        };
+        safetyLimits.AddChild(Field("Réponse max.", _maximumResponseCharacters));
+        _maximumUntrustedCharacters = new SpinBox
+        {
+            MinValue = 1024,
+            MaxValue = 1048576,
+            Step = 1024,
+            Rounded = true,
+        };
+        safetyLimits.AddChild(Field("Données max.", _maximumUntrustedCharacters));
+        var safetyHelp = new Label
+        {
+            Text = "Données non fiables étiquetées par provenance · injection signalée · résultat ambigu refusé · réseau non requis.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        safetyHelp.AddThemeColorOverride("font_color", new Color("9ee6b3"));
+        providerCard.AddChild(safetyHelp);
 
         var promptCard = AddCard(body, 430, true);
         promptCard.AddChild(Section("PROMPT VERSIONNÉ"));
         _promptVersion = AddLine(promptCard, "Version", "1.0.0");
         promptCard.AddChild(FieldLabel("MESSAGE SYSTÈME"));
-        _systemTemplate = new TextEdit { CustomMinimumSize = new Vector2(0, 110), WrapMode = TextEdit.LineWrappingMode.Boundary };
+        _systemTemplate = new TextEdit { CustomMinimumSize = new Vector2(0, 75), WrapMode = TextEdit.LineWrappingMode.Boundary };
         promptCard.AddChild(_systemTemplate);
         promptCard.AddChild(FieldLabel("DEMANDE AVEC VARIABLES {{...}}"));
-        _userTemplate = new TextEdit { CustomMinimumSize = new Vector2(0, 120), WrapMode = TextEdit.LineWrappingMode.Boundary };
+        _userTemplate = new TextEdit { CustomMinimumSize = new Vector2(0, 80), WrapMode = TextEdit.LineWrappingMode.Boundary };
         promptCard.AddChild(_userTemplate);
         promptCard.AddChild(FieldLabel("SCHÉMA JSON DE RÉPONSE"));
-        _responseSchema = new TextEdit { CustomMinimumSize = new Vector2(0, 110), WrapMode = TextEdit.LineWrappingMode.Boundary };
+        _responseSchema = new TextEdit { CustomMinimumSize = new Vector2(0, 75), WrapMode = TextEdit.LineWrappingMode.Boundary };
         promptCard.AddChild(_responseSchema);
 
         var planCard = AddCard(body, 390, true);
@@ -234,66 +421,70 @@ public partial class AssistantWorkspaceWindow : Window
             BbcodeEnabled = true,
             FitContent = false,
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
-            CustomMinimumSize = new Vector2(0, 260),
+            CustomMinimumSize = new Vector2(0, 190),
         };
         _preview.AddThemeStyleboxOverride("normal", Card("0b0911", "3d3150", 1, 7));
         planCard.AddChild(_preview);
 
-        var footer = new HBoxContainer();
+        var footer = new VBoxContainer();
         footer.AddThemeConstantOverride("separation", 8);
         root.AddChild(footer);
         _status = new Label { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, AutowrapMode = TextServer.AutowrapMode.WordSmart };
         footer.AddChild(_status);
+        var actions = new HFlowContainer();
+        actions.AddThemeConstantOverride("h_separation", 8);
+        actions.AddThemeConstantOverride("v_separation", 8);
+        footer.AddChild(actions);
         var localization = new Button { Text = "Localisation" };
         localization.Pressed += () => _openLocalization?.Invoke();
-        footer.AddChild(localization);
+        actions.AddChild(localization);
         var lore = new Button { Text = "Index de lore" };
         lore.Pressed += () => _openLore?.Invoke();
-        footer.AddChild(lore);
+        actions.AddChild(lore);
         var areaPlans = new Button { Text = "Plans de zone" };
         areaPlans.Pressed += () => _openAreaPlans?.Invoke();
-        footer.AddChild(areaPlans);
+        actions.AddChild(areaPlans);
         var dialogues = new Button { Text = "Dialogue assisté" };
         dialogues.Pressed += () => _openAssistedDialogues?.Invoke();
-        footer.AddChild(dialogues);
+        actions.AddChild(dialogues);
         var quests = new Button { Text = "Quête assistée" };
         quests.Pressed += () => _openAssistedQuests?.Invoke();
-        footer.AddChild(quests);
+        actions.AddChild(quests);
         var scripts = new Button { Text = "ForgeScript assisté" };
         scripts.Pressed += () => _openAssistedForgeScripts?.Invoke();
-        footer.AddChild(scripts);
+        actions.AddChild(scripts);
         var bosses = new Button { Text = "Boss assisté" };
         bosses.Pressed += () => _openAssistedBosses?.Invoke();
-        footer.AddChild(bosses);
+        actions.AddChild(bosses);
         var abilities = new Button { Text = "Capacité assistée" };
         abilities.Pressed += () => _openAssistedAbilities?.Invoke();
-        footer.AddChild(abilities);
+        actions.AddChild(abilities);
         var blender = new Button { Text = "Création 3D" };
         blender.Pressed += () => _openAssistedBlenderCreation?.Invoke();
-        footer.AddChild(blender);
+        actions.AddChild(blender);
         var model3D = new Button { Text = "Texte/Image vers 3D" };
         model3D.Pressed += () => _openAssistedModel3DGeneration?.Invoke();
-        footer.AddChild(model3D);
+        actions.AddChild(model3D);
         var workerSecurity = new Button { Text = "Securite workers" };
         workerSecurity.Pressed += () => _openExternalWorkerSecurity?.Invoke();
-        footer.AddChild(workerSecurity);
+        actions.AddChild(workerSecurity);
         var undo = new Button { Text = "Annuler" };
         undo.Pressed += () => { if (_undo?.Invoke() == true) Refresh(); };
-        footer.AddChild(undo);
+        actions.AddChild(undo);
         var redo = new Button { Text = "Rétablir" };
         redo.Pressed += () => { if (_redo?.Invoke() == true) Refresh(); };
-        footer.AddChild(redo);
+        actions.AddChild(redo);
         _previewButton = new Button { Text = "Prévisualiser", CustomMinimumSize = new Vector2(140, 42) };
         _previewButton.Pressed += async () => await PreviewAsync();
-        footer.AddChild(_previewButton);
+        actions.AddChild(_previewButton);
         _applyButton = new Button { Text = "Appliquer le profil", Disabled = true, CustomMinimumSize = new Vector2(170, 42) };
         _applyButton.AddThemeColorOverride("font_color", Colors.White);
         _applyButton.AddThemeStyleboxOverride("normal", Card("d84f32", "ff8b63", 1, 8));
         _applyButton.Pressed += Apply;
-        footer.AddChild(_applyButton);
+        actions.AddChild(_applyButton);
         var close = new Button { Text = "Fermer" };
         close.Pressed += Hide;
-        footer.AddChild(close);
+        actions.AddChild(close);
         CloseRequested += Hide;
 
         _providerKind.ItemSelected += _ => InvalidatePreview();
@@ -303,6 +494,24 @@ public partial class AssistantWorkspaceWindow : Window
             text.TextChanged += () => InvalidatePreview();
         _networkAllowed.Toggled += _ => InvalidatePreview();
         _shareProjectContent.Toggled += _ => InvalidatePreview();
+        _maximumContextItems.ValueChanged += _ => InvalidatePreview();
+        _maximumGraphDepth.ValueChanged += _ => InvalidatePreview();
+        _maximumGraphNodes.ValueChanged += _ => InvalidatePreview();
+        _maximumAgentPermission.ItemSelected += _ => InvalidatePreview();
+        _allowBoundedAutonomy.Toggled += _ => InvalidatePreview();
+        _maximumAgentCommands.ValueChanged += _ => InvalidatePreview();
+        _maximumAgentDuration.ValueChanged += _ => InvalidatePreview();
+        _projectClassification.ItemSelected += _ => InvalidatePreview();
+        _cloudProjectContentOptIn.Toggled += _ => InvalidatePreview();
+        _maximumProviderInputTokens.ValueChanged += _ => InvalidatePreview();
+        _maximumProviderOutputTokens.ValueChanged += _ => InvalidatePreview();
+        _maximumProviderCost.ValueChanged += _ => InvalidatePreview();
+        _requireStructuredOutput.Toggled += _ => InvalidatePreview();
+        _allowBoundedRepair.Toggled += _ => InvalidatePreview();
+        _promptInjectionGuard.Toggled += _ => InvalidatePreview();
+        _offlineCore.Toggled += _ => InvalidatePreview();
+        _maximumResponseCharacters.ValueChanged += _ => InvalidatePreview();
+        _maximumUntrustedCharacters.ValueChanged += _ => InvalidatePreview();
     }
 
     private async Task<bool> PreviewAsync()
@@ -326,12 +535,28 @@ public partial class AssistantWorkspaceWindow : Window
             }
             var project = _getProject!.Invoke()!;
             var selection = _getSelection!.Invoke().FirstOrDefault();
-            var rendered = AssistantPromptRenderer.Render(prompt, new Dictionary<string, string>
+            var variables = new Dictionary<string, string>
             {
                 ["project.title"] = draft.ShareProjectContent ? project.Project.Title : "[contenu projet masqué]",
                 ["selection.kind"] = draft.ShareProjectContent ? selection?.Kind.ToString() ?? "None" : "Hidden",
                 ["request.text"] = _request!.Text.Trim(),
-            });
+            };
+            var guarded = AgentResponseSafetyService.RenderGuarded(prompt, variables,
+                new Dictionary<string, string>
+                {
+                    ["project.title"] = "project.json:title",
+                    ["selection.kind"] = selection is null ? "selection:none" : $"selection:{selection.Id:D}",
+                }, draft.AgentWorkflow.EffectiveSafety);
+            var fatalPromptDiagnostics = guarded.InjectionSignals.Where(item =>
+                item.Code != AgentResponseSafetyService.UntrustedContentSignalCode).ToArray();
+            if (fatalPromptDiagnostics.Length > 0)
+            {
+                SetStatus($"{fatalPromptDiagnostics[0].Code} · {fatalPromptDiagnostics[0].Message}", true);
+                return false;
+            }
+            var rendered = guarded.Prompt;
+            LastInjectionSignalCount = guarded.InjectionSignals.Count(item =>
+                item.Code == AgentResponseSafetyService.UntrustedContentSignalCode);
             var planId = Guid.NewGuid();
             if (_apply?.Invoke(draft, planId, true) != true)
             {
@@ -344,14 +569,30 @@ public partial class AssistantWorkspaceWindow : Window
                 : AssistantProviderRegistry.CreateWithLocalTransports(
                     _providerHttpClient,
                     requestTimeout: TimeSpan.FromSeconds(30));
-            var response = await registry.Resolve(draft.ActiveProvider).GenerateAsync(new AssistantProviderRequest(
+            var providerRequest = new AssistantProviderRequest(
                 planId,
                 Guid.NewGuid(),
                 rendered,
                 AssistantPermissionLevel.Propose,
                 draft.ActiveProvider.MaximumOutputTokens,
                 draft.NetworkAllowed,
-                draft.ShareProjectContent));
+                draft.ShareProjectContent);
+            var response = await registry.Resolve(draft.ActiveProvider).GenerateAsync(providerRequest);
+            var structured = AgentResponseSafetyService.ValidateStructuredResult(
+                prompt, response, providerRequest, draft.AgentWorkflow);
+            LastStructuredResultSucceeded = structured.Succeeded;
+            if (!structured.Succeeded)
+            {
+                SetStatus($"{structured.Diagnostics[0].Code} · {structured.Diagnostics[0].Message}", true);
+                return false;
+            }
+            var offline = AgentResponseSafetyService.EvaluateOfflineReadiness(draft, false);
+            LastOfflineReady = offline.Ready;
+            if (!offline.Ready)
+            {
+                SetStatus("Le contrat hors ligne du profil est invalide.", true);
+                return false;
+            }
             _approved = draft;
             _approvedPlanId = planId;
             LastPromptHash = rendered.ContentSha256;
@@ -363,7 +604,24 @@ public partial class AssistantWorkspaceWindow : Window
                 $"Prompt : {prompt.Key}@{prompt.Version}\nSHA-256 : {LastPromptHash}\n" +
                 $"Permission : {draft.MaximumPermission} · coût estimé : {response.EstimatedCost:0.########}\n" +
                 $"Tokens : {response.InputTokens} entrée / {response.OutputTokens} sortie\n" +
-                $"Provenance : {response.Provenance}\n\n{response.Content}";
+                $"Provenance : {response.Provenance}\n" +
+                $"Contexte : {draft.AgentWorkflow.ContextResources.Count} surfaces structurées · " +
+                $"{draft.AgentWorkflow.MaximumContextItems} objets max.\n" +
+                $"Graphe : références typées + impact inverse · profondeur {draft.AgentWorkflow.References.MaximumDepth} · " +
+                $"{draft.AgentWorkflow.References.MaximumNodes} noeuds max.\n" +
+                $"Outils : {string.Join(", ", draft.AgentWorkflow.Tools.Select(item => item.Name))}\n" +
+                "ChangePlan : but · commandes · hypothèses · objets · risques · tests\n" +
+                "Dry-run : révision + batch + diff sémantique · aucune écriture\n" +
+                $"Transaction : atomique · {_maximumAgentCommands!.Value:0} commandes · rollback UUID\n" +
+                $"Autorisation : {draft.AgentWorkflow.MaximumPermission} · autonomie " +
+                $"{(draft.AgentWorkflow.EffectiveGovernance.Authorization.AllowBoundedAutonomy ? "activée" : "désactivée")}\n" +
+                $"Confidentialité : {draft.AgentWorkflow.EffectiveGovernance.BudgetPrivacy.ProjectClassification} · " +
+                "redaction + aucun secret journalisé\nAudit : client · utilisateur · plan · commandes · hashes · tests · provenance\n\n" +
+                $"Sortie : JSON Schema validé · réparation {(structured.Repaired ? "bornée" : "inutile")} · " +
+                $"{structured.ToolCalls.Count} tool call(s)\n" +
+                $"Injection : contenu projet=data + provenance · {LastInjectionSignalCount} signal(s)\n" +
+                $"Hors ligne : core manuel={(offline.ManualAuthoringAvailable ? "prêt" : "bloqué")} · réseau requis=non\n\n" +
+                structured.NormalizedJson;
             SetStatus("✓ Plan prévisualisé · aucun fichier ni révision modifié.", false);
             return true;
         }
@@ -427,9 +685,84 @@ public partial class AssistantWorkspaceWindow : Window
             previousPrompt.Id, 1, previousPrompt.Key, version, previousPrompt.DisplayName,
             _systemTemplate!.Text, _userTemplate!.Text, _responseSchema!.Text,
             previousPrompt.RequiredCapabilities, previousPrompt.Tests, changelog, "creator:g12-a");
+        var sourceGovernance = source.AgentWorkflow.EffectiveGovernance;
+        var providerPolicies = sourceGovernance.BudgetPrivacy.Providers.Select(item =>
+            string.Equals(item.ProviderKey, providerKey, StringComparison.Ordinal)
+                ? item with
+                {
+                    MaximumInputTokens = (int)_maximumProviderInputTokens!.Value,
+                    MaximumOutputTokens = (int)_maximumProviderOutputTokens!.Value,
+                    MaximumCostPerRequest = (decimal)_maximumProviderCost!.Value,
+                    AllowProjectContent = !item.Cloud || _cloudProjectContentOptIn!.ButtonPressed,
+                }
+                : item).ToArray();
+        var governance = sourceGovernance with
+        {
+            Provenance = "creator:r021",
+            Transactions = sourceGovernance.Transactions with { MaximumCommands = (int)_maximumAgentCommands!.Value },
+            Authorization = sourceGovernance.Authorization with
+            {
+                AllowBoundedAutonomy = _allowBoundedAutonomy!.ButtonPressed,
+                MaximumCommands = (int)_maximumAgentCommands.Value,
+                MaximumDurationSeconds = (int)_maximumAgentDuration!.Value,
+            },
+            BudgetPrivacy = sourceGovernance.BudgetPrivacy with
+            {
+                ProjectClassification = _projectClassifications[_projectClassification!.Selected],
+                CloudProjectContentOptIn = _cloudProjectContentOptIn!.ButtonPressed,
+                Providers = providerPolicies,
+            },
+        };
+        var sourceSafety = source.AgentWorkflow.EffectiveSafety;
+        var strictOutput = _requireStructuredOutput!.ButtonPressed;
+        var guardedContent = _promptInjectionGuard!.ButtonPressed;
+        var offlineCore = _offlineCore!.ButtonPressed;
+        var safety = sourceSafety with
+        {
+            Provenance = "creator:r022",
+            StructuredOutput = sourceSafety.StructuredOutput with
+            {
+                RequireJsonSchema = strictOutput,
+                RequireToolCallsForMutation = strictOutput,
+                AllowBoundedSyntaxRepair = _allowBoundedRepair!.ButtonPressed,
+                RejectAmbiguousMutation = strictOutput,
+                RejectUnknownProperties = strictOutput,
+                MaximumResponseCharacters = (int)_maximumResponseCharacters!.Value,
+            },
+            PromptInjection = sourceSafety.PromptInjection with
+            {
+                TreatProjectContentAsData = guardedContent,
+                RequireProvenanceLabels = guardedContent,
+                EnforceToolAllowlist = guardedContent,
+                ProhibitHiddenEscalation = guardedContent,
+                RequireRiskConfirmation = guardedContent,
+                MaximumUntrustedCharacters = (int)_maximumUntrustedCharacters!.Value,
+            },
+            Offline = sourceSafety.Offline with
+            {
+                ManualAuthoringAvailable = offlineCore,
+                LocalProvidersOptional = offlineCore,
+                AiMetadataOptional = offlineCore,
+                BuildRuntimeIndependent = offlineCore,
+                NetworkDisabledByDefault = offlineCore,
+                DeterministicProviderAvailable = offlineCore,
+            },
+        };
+        var workflow = source.AgentWorkflow with
+        {
+            MaximumPermission = _agentPermissionLevels[_maximumAgentPermission!.Selected],
+            MaximumContextItems = (int)_maximumContextItems!.Value,
+            References = source.AgentWorkflow.References with
+            {
+                MaximumDepth = (int)_maximumGraphDepth!.Value,
+                MaximumNodes = (int)_maximumGraphNodes!.Value,
+            },
+            Governance = governance,
+            Safety = safety,
+        };
         return new AssistantWorkspaceProfile(
             source.Id, 1, provider.Id, [provider], [prompt], AssistantPermissionLevel.Configure,
-            _networkAllowed!.ButtonPressed, _shareProjectContent!.ButtonPressed, "creator:g12-a");
+            _networkAllowed!.ButtonPressed, _shareProjectContent!.ButtonPressed, "creator:r021", workflow);
     }
 
     private void RefreshContext()
@@ -440,7 +773,15 @@ public partial class AssistantWorkspaceWindow : Window
             ? "Aucun contexte projet."
             : $"Projet · {project.Project.Title}\nRévision · {project.Revision.Value}\n" +
               $"Sélection · {(selection.Count == 0 ? "aucune" : string.Join(", ", selection.Select(item => item.DisplayName)))}\n" +
-              $"Transaction · plan obligatoire, dry-run avant application";
+              "Contexte · 10 surfaces structurées, bornées et sans lecture brute\n" +
+              "Graphe · références typées, impact inverse, ordre stable\n" +
+              "Outils · commandes métier avec permission explicite\n" +
+              "Transaction · atomique, rollback UUID et audit expurgé\n" +
+              "Autorisation · confirmation ou autonomie bornée · outils/scope/chemin/temps\n" +
+              "Confidentialité · classification, opt-in cloud, plafonds tokens/coût\n" +
+              "Sortie · JSON Schema, tool calls et réparation bornée\n" +
+              "Injection · contenu projet traité comme données étiquetées\n" +
+              "Hors ligne · core manuel, build et runtime indépendants";
     }
 
     private void InvalidatePreview()
@@ -463,6 +804,19 @@ public partial class AssistantWorkspaceWindow : Window
 
     private static bool IsLoopback(string endpoint) =>
         Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) && uri.IsLoopback;
+
+    private static string PrettyJson(string json)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(document.RootElement, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (JsonException)
+        {
+            return json;
+        }
+    }
 
     private static string FormatKind(AssistantProviderKind kind) => kind switch
     {
@@ -489,6 +843,34 @@ public partial class AssistantWorkspaceWindow : Window
         var content = new VBoxContainer();
         content.AddThemeConstantOverride("separation", 8);
         margin.AddChild(content);
+        return content;
+    }
+
+    private static VBoxContainer AddScrollableCard(Container parent, float width, out ScrollContainer scroll)
+    {
+        var panel = new PanelContainer
+        {
+            CustomMinimumSize = new Vector2(width, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.Fill,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        panel.AddThemeStyleboxOverride("panel", Card("171221", "47365f", 1, 10));
+        parent.AddChild(panel);
+        var margin = new MarginContainer();
+        foreach (var side in new[] { "margin_left", "margin_top", "margin_right", "margin_bottom" })
+            margin.AddThemeConstantOverride(side, 13);
+        panel.AddChild(margin);
+        scroll = new ScrollContainer
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+        };
+        margin.AddChild(scroll);
+        var content = new VBoxContainer { CustomMinimumSize = new Vector2(width - 42, 0) };
+        content.AddThemeConstantOverride("separation", 8);
+        scroll.AddChild(content);
         return content;
     }
 

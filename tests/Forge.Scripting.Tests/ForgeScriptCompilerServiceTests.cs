@@ -43,6 +43,23 @@ public sealed class ForgeScriptCompilerServiceTests : IDisposable
         Assert.All(results, result => Assert.True(result.Passed));
     }
 
+    [Fact]
+    public void Independent_units_compile_in_bounded_parallel_and_keep_input_order()
+    {
+        var runtime = new ConcurrentRuntime();
+        var service = new ForgeScriptCompilerService(new ForgeScriptArtifactCache(runtime, _cache),
+            new ForgeScriptCompilerOptions(true, true, true, 4, 4096, ["parallel"]));
+        var units = Enumerable.Range(0, 12).Select(index =>
+            new ForgeScriptCompilationUnit($"script-{index:00}.as", $"void main() {{ int value = {index}; }}", []))
+            .ToArray();
+
+        var report = service.Compile(units);
+
+        Assert.True(report.Success);
+        Assert.InRange(runtime.MaxConcurrent, 2, 4);
+        Assert.Equal(units.Select(item => item.Path), report.Entries.Select(item => item.Path));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_cache)) Directory.Delete(_cache, true);
@@ -55,6 +72,33 @@ public sealed class ForgeScriptCompilerServiceTests : IDisposable
         public ForgeScriptCompileResult Compile(string source) => source.Contains("invalid", StringComparison.Ordinal)
             ? new(false, null, [new ForgeScriptDiagnostic("parser", 4, 2, "error", "invalid source")])
             : new(true, new ForgeScriptArtifact(source, Encoding.UTF8.GetBytes(source), VirtualMachineVersion, ApiVersion), []);
+        public ForgeScriptExecutionResult Execute(ForgeScriptArtifact artifact, ForgeScriptQuotas? quotas = null) =>
+            new(ForgeScriptExecutionStatus.Completed, [], []);
+    }
+
+    private sealed class ConcurrentRuntime : IForgeScriptRuntime
+    {
+        private int _concurrent;
+        private int _maxConcurrent;
+        public int MaxConcurrent => _maxConcurrent;
+        public string VirtualMachineVersion => "parallel-test";
+        public string ApiVersion => "1.0.0";
+
+        public ForgeScriptCompileResult Compile(string source)
+        {
+            var concurrent = Interlocked.Increment(ref _concurrent);
+            int observed;
+            do
+            {
+                observed = _maxConcurrent;
+                if (observed >= concurrent) break;
+            } while (Interlocked.CompareExchange(ref _maxConcurrent, concurrent, observed) != observed);
+            Thread.Sleep(40);
+            Interlocked.Decrement(ref _concurrent);
+            return new(true, new ForgeScriptArtifact(source, Encoding.UTF8.GetBytes(source),
+                VirtualMachineVersion, ApiVersion), []);
+        }
+
         public ForgeScriptExecutionResult Execute(ForgeScriptArtifact artifact, ForgeScriptQuotas? quotas = null) =>
             new(ForgeScriptExecutionStatus.Completed, [], []);
     }

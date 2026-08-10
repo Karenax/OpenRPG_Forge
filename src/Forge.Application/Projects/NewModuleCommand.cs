@@ -22,4 +22,15 @@ public sealed record NewModuleCommand(
     string AreaDisplayName,
     bool DryRun,
     AreaKind AreaKind = AreaKind.Interior,
-    AreaDimensions? Dimensions = null);
+    AreaDimensions? Dimensions = null,
+    ProjectTemplateKind Template = ProjectTemplateKind.Rpg,
+    IReadOnlyList<string>? Kits = null,
+    IReadOnlyList<ModuleDistributionPlatform>? TargetPlatforms = null,
+    string RulesProvider = "forge.generic",
+    ProjectRenderPreset RenderPreset = ProjectRenderPreset.Balanced,
+    ProjectNetworkMode NetworkMode = ProjectNetworkMode.Offline,
+    string PackageNamespace = "",
+    string GameMode = "campaign",
+    string EntryClass = "adventurer",
+    string PlayerSelectionRule = "default",
+    bool? CreateInitialArea = null);

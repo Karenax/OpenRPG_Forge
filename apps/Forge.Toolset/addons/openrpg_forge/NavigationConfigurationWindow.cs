@@ -1,7 +1,11 @@
 #if TOOLS
 using Forge.Application.Projects;
 using Forge.Domain.Areas;
+using Forge.Domain.Blueprints;
+using Forge.Domain.Dialogues;
+using Forge.Domain.Entities;
 using Forge.Domain.Navigation;
+using Forge.Domain.Spatial;
 using Forge.Domain.Validation;
 using Godot;
 
@@ -12,7 +16,13 @@ public partial class NavigationConfigurationWindow : Window
     private readonly List<AreaId> _areaIds = [];
     private readonly List<NavigationAgentProfile> _agents = [];
     private readonly List<OffMeshNavigationLink> _links = [];
+    private readonly List<AnchorDefinition> _anchorDefinitions = [];
+    private readonly List<AnchorInstance> _anchorInstances = [];
     private readonly NavigationLinkKind[] _linkKinds = Enum.GetValues<NavigationLinkKind>();
+    private readonly AnchorKind[] _anchorKinds = Enum.GetValues<AnchorKind>();
+    private readonly AnchorScope[] _anchorScopes = Enum.GetValues<AnchorScope>();
+    private readonly PortalOrientationPolicy[] _orientationPolicies = Enum.GetValues<PortalOrientationPolicy>();
+    private readonly PortalVelocityPolicy[] _velocityPolicies = Enum.GetValues<PortalVelocityPolicy>();
 
     private Func<ProjectState?>? _getState;
     private Func<AreaId?>? _getActiveAreaId;
@@ -20,6 +30,10 @@ public partial class NavigationConfigurationWindow : Window
     private Action<NavigationSurface?>? _showOverlay;
     private Action<Window>? _brandWindow;
     private AreaNavigationDefinitionId? _definitionId;
+    private Guid _catalogId;
+    private string _catalogProvenance = "toolset:r009";
+    private bool _catalogRequiredAtRuntime;
+    private TabContainer? _tabs;
     private OptionButton? _areaPicker;
     private SpinBox? _cellSize;
     private ItemList? _agentList;
@@ -43,12 +57,49 @@ public partial class NavigationConfigurationWindow : Window
     private ItemList? _diagnostics;
     private Label? _summary;
     private Label? _status;
+    private ItemList? _anchorList;
+    private LineEdit? _anchorSlug;
+    private LineEdit? _anchorLabelKey;
+    private LineEdit? _anchorLabel;
+    private LineEdit? _anchorTags;
+    private OptionButton? _anchorKind;
+    private OptionButton? _anchorScope;
+    private LineEdit? _anchorBlueprint;
+    private LineEdit? _anchorAsset;
+    private CheckBox? _anchorRequired;
+    private SpinBox? _anchorX;
+    private SpinBox? _anchorY;
+    private SpinBox? _anchorZ;
+    private SpinBox? _anchorYaw;
+    private LineEdit? _anchorOverrides;
+    private LineEdit? _spawnProfile;
+    private LineEdit? _spawnTeam;
+    private SpinBox? _spawnPriority;
+    private SpinBox? _spawnClearanceX;
+    private SpinBox? _spawnClearanceY;
+    private SpinBox? _spawnClearanceZ;
+    private SpinBox? _spawnOrientation;
+    private LineEdit? _spawnFallback;
+    private CheckBox? _spawnRequireNavigation;
+    private OptionButton? _portalTargetArea;
+    private LineEdit? _portalTargetAnchor;
+    private OptionButton? _portalOrientation;
+    private SpinBox? _portalYaw;
+    private OptionButton? _portalVelocity;
+    private CheckBox? _portalPreload;
+    private RichTextLabel? _anchorPreview;
     private int _selectedAgent = -1;
     private int _selectedLink = -1;
+    private int _selectedAnchor = -1;
+    private string? _capturePath;
+    private double _captureDelay;
+    private bool _capturePrepared;
 
     public int AgentCount => _agents.Count;
 
     public int LinkCount => _links.Count;
+
+    public int AnchorCount => _anchorInstances.Count;
 
     public int DiagnosticCount => _diagnostics?.ItemCount ?? 0;
 
@@ -75,6 +126,37 @@ public partial class NavigationConfigurationWindow : Window
         Visible = false;
         BuildUi();
         CloseRequested += Close;
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--waypoint-anchor-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null)
+        {
+            _capturePath = capture["--waypoint-anchor-ui-capture=".Length..];
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_capturePrepared && _captureDelay >= 1)
+        {
+            Open();
+            ConfigureForR009SmokeTest();
+            _tabs!.CurrentTab = 1;
+            _capturePrepared = true;
+            return;
+        }
+        if (!_capturePrepared || _captureDelay < 2.5) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        GD.Print($"OPENRPG_FORGE_WAYPOINT_ANCHOR_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                 $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _capturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -104,6 +186,49 @@ public partial class NavigationConfigurationWindow : Window
     }
 
     public bool ApplyForSmokeTest() => Apply();
+
+    public bool ConfigureForR009SmokeTest()
+    {
+        var state = _getState?.Invoke();
+        var area = SelectedArea(state);
+        if (state is null || area is null) return false;
+        var spawnBlueprint = state.Project.Blueprints.FirstOrDefault(item => item.Kind == BlueprintKind.PlayerSpawn);
+        if (spawnBlueprint is null) return false;
+        var spawnDefinition = CreateSmokeDefinition("player-start", "anchor.player_start", "Départ du joueur",
+            AnchorKind.Spawn, ["player", "spawn"], spawnBlueprint.Id);
+        var destinationDefinition = CreateSmokeDefinition("crypt-exit", "anchor.crypt_exit", "Sortie de la crypte",
+            AnchorKind.TransitionDestination, ["exit", "portal"], null);
+        var waypointDefinition = CreateSmokeDefinition("ember-marker", "anchor.ember_marker", "Repère de la braise",
+            AnchorKind.Waypoint, ["ember", "quest"], null);
+        var spawnId = Guid.NewGuid();
+        var destinationId = Guid.NewGuid();
+        var waypointId = Guid.NewGuid();
+        _anchorDefinitions.Clear();
+        _anchorDefinitions.AddRange([spawnDefinition, destinationDefinition, waypointDefinition]);
+        _anchorInstances.Clear();
+        _anchorInstances.AddRange([
+            new AnchorInstance(spawnId, 1, "toolset:r009", spawnDefinition.Id,
+                At(0, 0, 9, 180), 1, EntityPropertyOverrides.Empty,
+                new SpawnAnchorProfile("player", new Vector3Value(1.2f, 2f, 1.2f), 100, "heroes", 180,
+                    null, true), null),
+            new AnchorInstance(destinationId, 1, "toolset:r009", destinationDefinition.Id,
+                At(4, 0, 1, 90), 2, EntityPropertyOverrides.Empty, null,
+                new PortalAnchorDestination(area.Id, waypointId, PortalOrientationPolicy.AnchorRotation, 0,
+                    PortalVelocityPolicy.RedirectForward, true)),
+            new AnchorInstance(waypointId, 1, "toolset:r009", waypointDefinition.Id,
+                At(-3, 0, -2, 45), 3,
+                new EntityPropertyOverrides(1, [new EntityPropertyOverride("quest.marker", EntityPropertyValueKind.String, "ember")]),
+                null, null),
+        ]);
+        _catalogId = Guid.NewGuid();
+        _catalogProvenance = "toolset:r009";
+        _catalogRequiredAtRuntime = true;
+        RefreshAnchorList();
+        _anchorList!.Select(0);
+        SelectAnchor(0);
+        Preview();
+        return DiagnosticCount == 0 && AnchorCount == 3;
+    }
 
     private void BuildUi()
     {
@@ -136,12 +261,28 @@ public partial class NavigationConfigurationWindow : Window
         _cellSize.TooltipText = "Taille de cellule du bake, en mètres";
         heading.AddChild(_cellSize);
 
-        var body = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        _tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        root.AddChild(_tabs);
+        var body = new HBoxContainer
+        {
+            Name = "Navigation",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
         body.AddThemeConstantOverride("separation", 14);
-        root.AddChild(body);
+        _tabs.AddChild(body);
         BuildAgentsCard(body);
         BuildLinksCard(body);
         BuildDiagnosticsCard(body);
+        var anchors = new HBoxContainer
+        {
+            Name = "Ancres & portails",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        anchors.AddThemeConstantOverride("separation", 14);
+        _tabs.AddChild(anchors);
+        BuildAnchorsCard(anchors);
+        BuildAnchorIdentityCard(anchors);
+        BuildAnchorPolicyCard(anchors);
 
         var footer = new HBoxContainer();
         footer.AddThemeConstantOverride("separation", 10);
@@ -252,6 +393,107 @@ public partial class NavigationConfigurationWindow : Window
             "États testés : portes courantes, toutes ouvertes et toutes fermées. L’overlay turquoise indique les cellules praticables ; le violet les liaisons."));
     }
 
+    private void BuildAnchorsCard(HBoxContainer body)
+    {
+        var card = AddCard(body, 300);
+        card.AddChild(AccentLabel("ANCRES DE LA ZONE"));
+        card.AddChild(MutedLabel("Waypoints nommés, départs jouables et destinations de transition."));
+        _anchorList = new ItemList { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        _anchorList.ItemSelected += SelectAnchor;
+        card.AddChild(_anchorList);
+        var actions = new HBoxContainer();
+        var add = new Button { Text = "+ Nouvelle", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        add.Pressed += NewAnchor;
+        actions.AddChild(add);
+        var remove = new Button { Text = "Retirer" };
+        remove.Pressed += RemoveAnchor;
+        actions.AddChild(remove);
+        card.AddChild(actions);
+        card.AddChild(MutedLabel("Chaque entrée conserve UUID, schéma, provenance et ordre déterministe."));
+    }
+
+    private void BuildAnchorIdentityCard(HBoxContainer body)
+    {
+        var card = AddCard(body, 410);
+        card.AddChild(AccentLabel("IDENTITÉ & TRANSFORM"));
+        _anchorSlug = new LineEdit { PlaceholderText = "Slug stable (ex. player-start)" };
+        _anchorLabelKey = new LineEdit { PlaceholderText = "Clé loc. (ex. anchor.player_start)" };
+        _anchorLabel = new LineEdit { PlaceholderText = "Libellé de secours" };
+        card.AddChild(_anchorSlug); card.AddChild(_anchorLabelKey); card.AddChild(_anchorLabel);
+        var classification = new HBoxContainer();
+        _anchorKind = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var kind in _anchorKinds) _anchorKind.AddItem(FormatAnchorKind(kind));
+        _anchorScope = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var scope in _anchorScopes) _anchorScope.AddItem(scope.ToString());
+        classification.AddChild(_anchorKind); classification.AddChild(_anchorScope);
+        card.AddChild(classification);
+        _anchorTags = new LineEdit { PlaceholderText = "Tags séparés par des virgules" };
+        _anchorBlueprint = new LineEdit { PlaceholderText = "UUID blueprint optionnel / PlayerSpawn requis au départ" };
+        _anchorAsset = new LineEdit { PlaceholderText = "Asset visuel optionnel" };
+        card.AddChild(_anchorTags); card.AddChild(_anchorBlueprint); card.AddChild(_anchorAsset);
+        _anchorRequired = new CheckBox { Text = "Requis au runtime" };
+        card.AddChild(_anchorRequired);
+        card.AddChild(MutedLabel("Position X / Y / Z · rotation Y"));
+        var transform = new HBoxContainer();
+        _anchorX = Coordinate(); _anchorY = Coordinate(); _anchorZ = Coordinate();
+        _anchorYaw = Spin(-360, 360, 1, 0);
+        transform.AddChild(_anchorX); transform.AddChild(_anchorY); transform.AddChild(_anchorZ); transform.AddChild(_anchorYaw);
+        card.AddChild(transform);
+        _anchorOverrides = new LineEdit { PlaceholderText = "Overrides instance : clé=valeur;clé=valeur" };
+        card.AddChild(_anchorOverrides);
+        var save = new Button { Text = "Enregistrer l’ancre dans le brouillon", CustomMinimumSize = new Vector2(0, 40) };
+        save.Pressed += SaveAnchor;
+        card.AddChild(save);
+    }
+
+    private void BuildAnchorPolicyCard(HBoxContainer body)
+    {
+        var card = AddCard(body, 470, expand: true);
+        card.AddChild(AccentLabel("DÉPART & DESTINATION"));
+        card.AddChild(MutedLabel("Départ : profil · équipe · priorité · dégagement X/Y/Z · orientation"));
+        var spawnIdentity = new HBoxContainer();
+        _spawnProfile = new LineEdit { PlaceholderText = "Profil", Text = "player", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _spawnTeam = new LineEdit { PlaceholderText = "Équipe", Text = "heroes", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _spawnPriority = Spin(1, 100, 1, 50);
+        spawnIdentity.AddChild(_spawnProfile); spawnIdentity.AddChild(_spawnTeam); spawnIdentity.AddChild(_spawnPriority);
+        card.AddChild(spawnIdentity);
+        var clearance = new HBoxContainer();
+        _spawnClearanceX = Spin(0.1, 16, 0.1, 1.2);
+        _spawnClearanceY = Spin(0.1, 16, 0.1, 2);
+        _spawnClearanceZ = Spin(0.1, 16, 0.1, 1.2);
+        _spawnOrientation = Spin(-360, 360, 1, 0);
+        clearance.AddChild(_spawnClearanceX); clearance.AddChild(_spawnClearanceY);
+        clearance.AddChild(_spawnClearanceZ); clearance.AddChild(_spawnOrientation);
+        card.AddChild(clearance);
+        _spawnFallback = new LineEdit { PlaceholderText = "UUID du départ de repli (optionnel)" };
+        _spawnRequireNavigation = new CheckBox { Text = "Exiger une surface navigable", ButtonPressed = true };
+        card.AddChild(_spawnFallback); card.AddChild(_spawnRequireNavigation);
+        card.AddChild(new HSeparator());
+        card.AddChild(MutedLabel("Portail : zone et ancre cibles · orientation · vélocité · préchargement"));
+        _portalTargetArea = new OptionButton();
+        card.AddChild(_portalTargetArea);
+        _portalTargetAnchor = new LineEdit { PlaceholderText = "UUID de l’ancre cible" };
+        card.AddChild(_portalTargetAnchor);
+        var portalPolicies = new HBoxContainer();
+        _portalOrientation = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var policy in _orientationPolicies) _portalOrientation.AddItem(policy.ToString());
+        _portalYaw = Spin(-360, 360, 1, 0);
+        _portalVelocity = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        foreach (var policy in _velocityPolicies) _portalVelocity.AddItem(policy.ToString());
+        portalPolicies.AddChild(_portalOrientation); portalPolicies.AddChild(_portalYaw); portalPolicies.AddChild(_portalVelocity);
+        card.AddChild(portalPolicies);
+        _portalPreload = new CheckBox { Text = "Précharger la zone cible", ButtonPressed = true };
+        card.AddChild(_portalPreload);
+        _anchorPreview = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            FitContent = false,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(0, 120),
+        };
+        card.AddChild(_anchorPreview);
+    }
+
     private void RefreshAreas(AreaId? preferred = null)
     {
         var state = _getState?.Invoke();
@@ -259,9 +501,11 @@ public partial class NavigationConfigurationWindow : Window
         var selected = preferred ?? _getActiveAreaId?.Invoke();
         _areaIds.Clear();
         _areaPicker.Clear();
+        _portalTargetArea?.Clear();
         foreach (var area in state.Project.Areas.OrderBy(area => area.DisplayName, StringComparer.Ordinal))
         {
             _areaIds.Add(area.Id);
+            _portalTargetArea?.AddItem(area.DisplayName);
             _areaPicker.AddItem($"{area.DisplayName} · {area.Dimensions.Width} × {area.Dimensions.Depth}");
         }
 
@@ -290,10 +534,19 @@ public partial class NavigationConfigurationWindow : Window
         _agents.AddRange(navigation.AgentProfiles);
         _links.Clear();
         _links.AddRange(navigation.OffMeshLinks);
+        _catalogId = navigation.Anchors.Id;
+        _catalogProvenance = navigation.Anchors.Provenance;
+        _catalogRequiredAtRuntime = navigation.Anchors.RequiredAtRuntime;
+        _anchorDefinitions.Clear();
+        _anchorDefinitions.AddRange(navigation.Anchors.Definitions);
+        _anchorInstances.Clear();
+        _anchorInstances.AddRange(navigation.Anchors.Instances);
         _selectedAgent = -1;
         _selectedLink = -1;
+        _selectedAnchor = -1;
         RefreshAgentList();
         RefreshLinkList();
+        RefreshAnchorList();
         Preview();
     }
 
@@ -315,6 +568,165 @@ public partial class NavigationConfigurationWindow : Window
         {
             _linkList.AddItem($"{link.Name} · {FormatKind(link.Kind)} · r ≤ {link.MaximumAgentRadius:0.0} m");
         }
+    }
+
+    private void RefreshAnchorList()
+    {
+        if (_anchorList is null) return;
+        _anchorList.Clear();
+        var definitions = _anchorDefinitions.ToDictionary(item => item.Id);
+        foreach (var instance in _anchorInstances.OrderBy(item => item.DisplayOrder).ThenBy(item => item.Id))
+        {
+            if (!definitions.TryGetValue(instance.DefinitionId, out var definition))
+            {
+                _anchorList.AddItem($"Ancre orpheline · {instance.Id:D}");
+                continue;
+            }
+            _anchorList.AddItem($"{instance.DisplayOrder:00} · {FormatAnchorKind(definition.Kind)} · {definition.Label.Fallback}");
+        }
+        RefreshAnchorPreview();
+    }
+
+    private void SelectAnchor(long index)
+    {
+        var ordered = _anchorInstances.OrderBy(item => item.DisplayOrder).ThenBy(item => item.Id).ToArray();
+        if (index < 0 || index >= ordered.Length) return;
+        var instance = ordered[index];
+        _selectedAnchor = _anchorInstances.FindIndex(item => item.Id == instance.Id);
+        var definition = _anchorDefinitions.Single(item => item.Id == instance.DefinitionId);
+        _anchorSlug!.Text = definition.Slug;
+        _anchorLabelKey!.Text = definition.Label.Key;
+        _anchorLabel!.Text = definition.Label.Fallback;
+        _anchorTags!.Text = string.Join(", ", definition.Tags.Order(StringComparer.Ordinal));
+        Select(_anchorKind!, definition.Kind);
+        Select(_anchorScope!, definition.Scope);
+        _anchorBlueprint!.Text = definition.BlueprintId?.ToString() ?? string.Empty;
+        _anchorAsset!.Text = definition.AssetId ?? string.Empty;
+        _anchorRequired!.ButtonPressed = definition.RequiredAtRuntime;
+        _anchorX!.Value = instance.Transform.Position.X;
+        _anchorY!.Value = instance.Transform.Position.Y;
+        _anchorZ!.Value = instance.Transform.Position.Z;
+        _anchorYaw!.Value = QuaternionYaw(instance.Transform.Rotation);
+        _anchorOverrides!.Text = string.Join(';', instance.Overrides.Properties.Select(item => $"{item.Key}={item.Value}"));
+        var spawn = instance.Spawn;
+        _spawnProfile!.Text = spawn?.Profile ?? "player";
+        _spawnTeam!.Text = spawn?.Team ?? "heroes";
+        _spawnPriority!.Value = spawn?.Priority ?? 50;
+        _spawnClearanceX!.Value = spawn?.Clearance.X ?? 1.2;
+        _spawnClearanceY!.Value = spawn?.Clearance.Y ?? 2;
+        _spawnClearanceZ!.Value = spawn?.Clearance.Z ?? 1.2;
+        _spawnOrientation!.Value = spawn?.OrientationDegrees ?? 0;
+        _spawnFallback!.Text = spawn?.FallbackInstanceId?.ToString("D") ?? string.Empty;
+        _spawnRequireNavigation!.ButtonPressed = spawn?.RequireNavigation ?? true;
+        var portal = instance.Portal;
+        if (portal is not null)
+        {
+            _portalTargetArea!.Selected = Math.Max(0, _areaIds.FindIndex(item => item == portal.TargetAreaId));
+            _portalTargetAnchor!.Text = portal.TargetAnchorInstanceId.ToString("D");
+            Select(_portalOrientation!, portal.Orientation);
+            _portalYaw!.Value = portal.FixedYawDegrees;
+            Select(_portalVelocity!, portal.Velocity);
+            _portalPreload!.ButtonPressed = portal.Preload;
+        }
+        RefreshAnchorPreview();
+    }
+
+    private void NewAnchor()
+    {
+        _selectedAnchor = -1;
+        _anchorSlug!.Text = string.Empty;
+        _anchorLabelKey!.Text = string.Empty;
+        _anchorLabel!.Text = string.Empty;
+        _anchorTags!.Text = string.Empty;
+        _anchorBlueprint!.Text = string.Empty;
+        _anchorAsset!.Text = string.Empty;
+        _anchorRequired!.ButtonPressed = false;
+        _anchorX!.Value = 0; _anchorY!.Value = 0; _anchorZ!.Value = 0; _anchorYaw!.Value = 0;
+        _anchorOverrides!.Text = string.Empty;
+        Select(_anchorKind!, AnchorKind.Waypoint);
+        SetStatus("Nouvelle ancre prête à être décrite.", false);
+    }
+
+    private void SaveAnchor()
+    {
+        try
+        {
+            var existing = _selectedAnchor >= 0 ? _anchorInstances[_selectedAnchor] : null;
+            var existingDefinition = existing is null ? null :
+                _anchorDefinitions.Single(item => item.Id == existing.DefinitionId);
+            var definitionId = existingDefinition?.Id ?? Guid.NewGuid();
+            BlueprintId? blueprintId = null;
+            if (!string.IsNullOrWhiteSpace(_anchorBlueprint!.Text))
+                blueprintId = BlueprintId.From(Guid.Parse(_anchorBlueprint.Text.Trim()));
+            var definition = new AnchorDefinition(definitionId, 1, "toolset:r009",
+                Required(_anchorSlug!.Text, "slug"),
+                new LocalizedText(Required(_anchorLabelKey!.Text, "clé de localisation"),
+                    Required(_anchorLabel!.Text, "libellé"), provenance: "toolset:r009"),
+                _anchorKinds[_anchorKind!.Selected], _anchorScopes[_anchorScope!.Selected],
+                _anchorTags!.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(), blueprintId,
+                NullIfBlank(_anchorAsset!.Text), _anchorRequired!.ButtonPressed);
+            var kind = definition.Kind;
+            SpawnAnchorProfile? spawn = kind == AnchorKind.Spawn
+                ? new SpawnAnchorProfile(Required(_spawnProfile!.Text, "profil de départ"),
+                    new Vector3Value((float)_spawnClearanceX!.Value, (float)_spawnClearanceY!.Value,
+                        (float)_spawnClearanceZ!.Value), (int)_spawnPriority!.Value,
+                    Required(_spawnTeam!.Text, "équipe"), (float)_spawnOrientation!.Value,
+                    ParseOptionalGuid(_spawnFallback!.Text), _spawnRequireNavigation!.ButtonPressed)
+                : null;
+            PortalAnchorDestination? portal = kind == AnchorKind.TransitionDestination
+                ? new PortalAnchorDestination(_areaIds[_portalTargetArea!.Selected],
+                    Guid.Parse(Required(_portalTargetAnchor!.Text, "ancre cible")),
+                    _orientationPolicies[_portalOrientation!.Selected], (float)_portalYaw!.Value,
+                    _velocityPolicies[_portalVelocity!.Selected], _portalPreload!.ButtonPressed)
+                : null;
+            var instance = new AnchorInstance(existing?.Id ?? Guid.NewGuid(), 1, "toolset:r009", definitionId,
+                At((float)_anchorX!.Value, (float)_anchorY!.Value, (float)_anchorZ!.Value,
+                    (float)_anchorYaw!.Value), existing?.DisplayOrder ?? _anchorInstances.Count + 1,
+                ParseOverrides(_anchorOverrides!.Text), spawn, portal);
+            if (existing is null)
+            {
+                _anchorDefinitions.Add(definition);
+                _anchorInstances.Add(instance);
+                _selectedAnchor = _anchorInstances.Count - 1;
+            }
+            else
+            {
+                _anchorDefinitions[_anchorDefinitions.FindIndex(item => item.Id == definitionId)] = definition;
+                _anchorInstances[_selectedAnchor] = instance;
+            }
+            RefreshAnchorList();
+            SetStatus("Ancre enregistrée dans le brouillon déterministe.", false);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or FormatException)
+        {
+            SetStatus(exception.Message, true);
+        }
+    }
+
+    private void RemoveAnchor()
+    {
+        if (_selectedAnchor < 0 || _selectedAnchor >= _anchorInstances.Count) return;
+        var removed = _anchorInstances[_selectedAnchor];
+        _anchorInstances.RemoveAt(_selectedAnchor);
+        if (_anchorInstances.All(item => item.DefinitionId != removed.DefinitionId))
+            _anchorDefinitions.RemoveAll(item => item.Id == removed.DefinitionId);
+        _selectedAnchor = -1;
+        RefreshAnchorList();
+    }
+
+    private void RefreshAnchorPreview()
+    {
+        if (_anchorPreview is null) return;
+        var definitions = _anchorDefinitions.ToDictionary(item => item.Id);
+        var spawnCount = _anchorInstances.Count(item => item.Spawn is not null);
+        var portalCount = _anchorInstances.Count(item => item.Portal is not null);
+        var requiredCount = _anchorInstances.Count(item => definitions.TryGetValue(item.DefinitionId, out var definition) &&
+            definition.RequiredAtRuntime);
+        _anchorPreview.Text = $"[color=#ff9858]CONTRAT R009[/color]\n" +
+            $"{_anchorInstances.Count} instance(s) · {spawnCount} départ(s) · {portalCount} portail(s)\n" +
+            $"{requiredCount} requise(s) au runtime · UUID, provenance, localisation et overrides persistés\n\n" +
+            "[color=#83d6ae]Appliquer passe par dry-run, validation projet et historique undo/redo.[/color]";
     }
 
     private void SelectAgent(long index)
@@ -427,9 +839,15 @@ public partial class NavigationConfigurationWindow : Window
             {
                 analyses.AddRange(AreaNavigationValidator.AnalyzeAll(state.Project, configuredArea, doorState));
             }
+            var project = new Forge.Domain.Projects.ProjectDefinition(state.Project.Id, state.Project.Title,
+                state.Project.Module, state.Project.Blueprints,
+                state.Project.Areas.Select(item => item.Id == configuredArea.Id ? configuredArea : item).ToArray(),
+                state.Project.Dialogues, state.Project.Quests);
+            var anchorDiagnostics = AnchorCatalogValidator.Validate(project, configuredArea);
 
             _diagnostics!.Clear();
-            foreach (var diagnostic in geometry.Concat(analyses.SelectMany(item => item.Diagnostics)))
+            foreach (var diagnostic in geometry.Concat(analyses.SelectMany(item => item.Diagnostics))
+                         .Concat(anchorDiagnostics))
             {
                 _diagnostics.AddItem($"{diagnostic.Code} · {diagnostic.Message}");
                 _diagnostics.SetItemTooltip(_diagnostics.ItemCount - 1, diagnostic.Path);
@@ -495,7 +913,10 @@ public partial class NavigationConfigurationWindow : Window
         (float)_cellSize!.Value,
         _agents,
         _links,
-        "aurora-navigation-editor");
+        "aurora-navigation-editor",
+        anchors: new AnchorCatalog(_catalogId == Guid.Empty ? Guid.NewGuid() : _catalogId, 1,
+            _catalogProvenance, SelectedArea(_getState?.Invoke())?.Id ?? _areaIds[0],
+            _catalogRequiredAtRuntime, _anchorDefinitions, _anchorInstances));
 
     private void Close()
     {
@@ -561,6 +982,57 @@ public partial class NavigationConfigurationWindow : Window
         NavigationLinkKind.Flight => "Vol",
         _ => kind.ToString(),
     };
+
+    private static string FormatAnchorKind(AnchorKind kind) => kind switch
+    {
+        AnchorKind.Waypoint => "Waypoint",
+        AnchorKind.Spawn => "Départ",
+        AnchorKind.TransitionDestination => "Destination",
+        _ => kind.ToString(),
+    };
+
+    private static AnchorDefinition CreateSmokeDefinition(string slug, string key, string label,
+        AnchorKind kind, IReadOnlyList<string> tags, BlueprintId? blueprintId) => new(
+        Guid.NewGuid(), 1, "toolset:r009", slug,
+        new LocalizedText(key, label, provenance: "toolset:r009"), kind, AnchorScope.Area,
+        tags, blueprintId, null, true);
+
+    private static TransformValue At(float x, float y, float z, float yawDegrees)
+    {
+        var half = yawDegrees * MathF.PI / 360;
+        return new TransformValue(new Vector3Value(x, y, z),
+            new QuaternionValue(0, MathF.Sin(half), 0, MathF.Cos(half)), Vector3Value.One);
+    }
+
+    private static float QuaternionYaw(QuaternionValue value)
+    {
+        var siny = 2 * (value.W * value.Y + value.X * value.Z);
+        var cosy = 1 - 2 * (value.Y * value.Y + value.Z * value.Z);
+        return MathF.Atan2(siny, cosy) * 180 / MathF.PI;
+    }
+
+    private static EntityPropertyOverrides ParseOverrides(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return EntityPropertyOverrides.Empty;
+        var properties = text.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(entry => entry.Split('=', 2, StringSplitOptions.TrimEntries))
+            .Select(parts => parts.Length == 2
+                ? new EntityPropertyOverride(Required(parts[0], "clé override"), EntityPropertyValueKind.String, parts[1])
+                : throw new ArgumentException($"Override invalide : {parts[0]}"))
+            .ToArray();
+        return new EntityPropertyOverrides(EntityPropertyOverrides.CurrentSchemaVersion, properties);
+    }
+
+    private static Guid? ParseOptionalGuid(string text) =>
+        string.IsNullOrWhiteSpace(text) ? null : Guid.Parse(text.Trim());
+
+    private static string Required(string text, string label) =>
+        string.IsNullOrWhiteSpace(text) ? throw new ArgumentException($"{label} requis") : text.Trim();
+
+    private static string? NullIfBlank(string text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+
+    private static void Select<T>(OptionButton button, T value) where T : struct, Enum =>
+        button.Selected = Array.IndexOf(Enum.GetValues<T>(), value);
 
     private static StyleBoxFlat Card(string background, string border, int width, int radius) => new()
     {

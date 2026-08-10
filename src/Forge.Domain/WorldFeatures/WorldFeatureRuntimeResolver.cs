@@ -1,3 +1,4 @@
+using Forge.Domain.Blueprints;
 using Forge.Domain.Spatial;
 
 namespace Forge.Domain.WorldFeatures;
@@ -5,12 +6,43 @@ namespace Forge.Domain.WorldFeatures;
 public static class WorldFeatureRuntimeResolver
 {
     public sealed record AccessResult(bool Allowed, bool Consume, int RemainingCharges, string Reason, string Audit);
+    public sealed record PlaceableFoundationResolution(bool Available, PlaceableWorldProfile.FoundationPolicy? Foundation,
+        PlaceableWorldProfile.TransformPolicy? SnappedTransform, string DiagnosticCode, string Overlay);
+    public sealed record PlaceableInteractionExecuted(Guid EventId, int SchemaVersion, string Provenance,
+        Guid PlaceableId, Guid VerbId, string ActorId, Vector3Value TargetPoint, string Result,
+        DateTimeOffset OccurredAt, string EventBinding, string ForgeScriptApiVersion,
+        string? BeforeScriptId, string? AfterScriptId);
     public sealed record EventResult(bool Dispatched, string? ScriptId, string Reason);
     public sealed record DoorDamageResult(double Health, double AppliedDamage, bool Breached, bool NavigationChanged, string Visual);
+    public sealed record DoorInteractionResult(bool Accepted, string PreviousState, string CurrentState,
+        bool CollisionEnabled, string Reason, DoorWorldProfile.PortalPolicy? Portal);
+    public sealed record DoorNavigationResult(string StateId, bool ObstacleEnabled, bool LinkEnabled,
+        double AnimationProgress, string Visualization, string EventName);
     public sealed record TriggerResult(bool Fired, bool Revealed, bool RestAllowed, string Reason, IReadOnlyList<string> Effects);
+    public sealed record TriggerFoundationResolution(bool Available, TriggerWorldProfile.FoundationPolicy? Foundation,
+        TriggerWorldProfile.ShapePolicy? SnappedShape, TriggerWorldProfile.TransformPolicy? SnappedTransform,
+        string DiagnosticCode, string Overlay);
+    public sealed record TriggerVolumeEntered(Guid EventId, int SchemaVersion, string Provenance, Guid TriggerId,
+        string EntityId, Vector3Value Point, Vector3Value Direction, IReadOnlySet<string> Layers,
+        IReadOnlyDictionary<string, string> State, DateTimeOffset EnteredAt, string EventBinding,
+        string ForgeScriptApiVersion, string? BeforeScriptId, string? AfterScriptId);
+    public sealed record TriggerVolumeExited(Guid EventId, int SchemaVersion, string Provenance, Guid TriggerId,
+        string EntityId, TimeSpan DurationInside, string Reason, DateTimeOffset ExitedAt, string EventBinding,
+        string ForgeScriptApiVersion, string? BeforeScriptId, string? AfterScriptId);
+    public sealed record TriggerRuntimeState(IReadOnlyDictionary<string, DateTimeOffset> InsideSince,
+        IReadOnlyDictionary<string, DateTimeOffset> LastFiredAt, IReadOnlySet<string> FiredEntities, bool FiredGlobally);
+    public sealed record TriggerEnterResult(TriggerRuntimeState State, TriggerVolumeEntered? Event,
+        IReadOnlyList<TriggerWorldProfile.ActionPolicy> Actions, bool Fired, string Reason);
+    public sealed record TriggerExitResult(TriggerRuntimeState State, TriggerVolumeExited? Event);
+    public sealed record TriggerValidationResolution(bool Available,
+        TriggerWorldProfile.RuntimeValidationPolicy? Validation, string DiagnosticCode, string Summary);
     public sealed record EncounterResult(bool Spawn, bool Reinforce, bool Cleanup, int NextCycle, string Reason);
+    public sealed record EncounterActivationResult(bool Activated, Guid? CandidateId, BlueprintId? BlueprintId,
+        string Reason, string? ActivationScriptId);
     public sealed record VehicleSample(Vector3Value Position, double SpeedLimit, bool AtStop, double WaitSeconds);
     public sealed record MerchantQuote(bool Accepted, decimal Price, string CurrencyId, decimal TreasuryAfter, string Audit);
+    public sealed record MerchantTransactionResolution(bool Available, MerchantWorldProfile.TransactionPolicy? Policy,
+        string DiagnosticCode, string Audit);
     public sealed record CompanionDecision(bool DialogueAllowed, string Formation, bool UseAbility, bool HandleTrap,
         bool DirectControl, bool Regroup, string Reason);
     public sealed record ScriptResolution(string? ScriptId, IReadOnlyDictionary<string, string> Flags,
@@ -39,6 +71,47 @@ public static class WorldFeatureRuntimeResolver
         return new(true, consume, remaining, "accepted", policy.AuditUse ? "access:accepted:audited" : "access:accepted");
     }
 
+    public static PlaceableFoundationResolution ResolvePlaceableFoundation(PlaceableWorldProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        if (profile.Foundation is null)
+            return profile.FoundationRequiredAtRuntime
+                ? new(false, null, null, "WORLD_PLACEABLE_FOUNDATION_REQUIRED_MISSING", "placeable:required-missing")
+                : new(false, null, null, string.Empty, "placeable:optional-fallback");
+        var transform = profile.Foundation.Transform;
+        if (transform.SnapIncrement > 0)
+        {
+            float Snap(float value) => (float)(Math.Round(value / transform.SnapIncrement,
+                MidpointRounding.AwayFromZero) * transform.SnapIncrement);
+            transform = transform with
+            {
+                Position = new(Snap(transform.Position.X), Snap(transform.Position.Y), Snap(transform.Position.Z)),
+            };
+        }
+        var overlay = FormattableString.Invariant(
+            $"placeable:{profile.Id:D}:pivot={transform.Pivot.X:0.###},{transform.Pivot.Y:0.###},{transform.Pivot.Z:0.###}:snap={transform.SnapIncrement:0.###}:surface={transform.AlignToSurface}");
+        return new(true, profile.Foundation, transform, string.Empty, overlay);
+    }
+
+    public static PlaceableInteractionExecuted ExecutePlaceableUse(PlaceableWorldProfile profile, Guid eventId,
+        Guid verbId, string actorId, Vector3Value targetPoint, string result, DateTimeOffset occurredAt)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var foundation = profile.Foundation ?? throw new InvalidOperationException(
+            profile.FoundationRequiredAtRuntime ? "WORLD_PLACEABLE_FOUNDATION_REQUIRED_MISSING" :
+            "WORLD_PLACEABLE_FOUNDATION_UNAVAILABLE");
+        var policy = foundation.OnUsed ?? throw new InvalidOperationException(
+            foundation.OnUsedRequiredAtRuntime ? "WORLD_PLACEABLE_ON_USED_REQUIRED_MISSING" :
+            "WORLD_PLACEABLE_ON_USED_UNAVAILABLE");
+        var interaction = foundation.Interaction ?? throw new InvalidOperationException("WORLD_PLACEABLE_NOT_INTERACTABLE");
+        if (eventId == Guid.Empty || interaction.Verbs.All(item => item.Id != verbId))
+            throw new InvalidOperationException("WORLD_PLACEABLE_VERB_UNAVAILABLE");
+        if (string.IsNullOrWhiteSpace(actorId) || string.IsNullOrWhiteSpace(result))
+            throw new InvalidOperationException("WORLD_PLACEABLE_INTERACTION_CONTEXT_INVALID");
+        return new(eventId, 1, policy.Provenance, profile.Id, verbId, actorId, targetPoint, result, occurredAt,
+            policy.EventBinding, policy.ForgeScriptApiVersion, policy.BeforeScriptId, policy.AfterScriptId);
+    }
+
     public static EventResult ResolvePlaceableEvent(PlaceableWorldProfile profile, string eventName,
         int dispatchesThisMinute, double elapsedSeconds)
     {
@@ -64,6 +137,62 @@ public static class WorldFeatureRuntimeResolver
         var breached = health <= 0;
         return new(health, applied, breached, breached && profile.Damage.UpdateNavigation,
             breached ? profile.Damage.BreachedVisual : profile.Damage.DamagedVisual);
+    }
+
+    public static DoorInteractionResult InteractWithDoor(
+        DoorWorldProfile profile,
+        string currentState,
+        string actorSide,
+        IReadOnlySet<string> permissions,
+        int queuedRequests,
+        IReadOnlySet<string> conditions)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        if (profile.Foundation is not { } foundation)
+            return new(false, currentState, currentState, true, "foundation-missing", null);
+        var current = foundation.States.SingleOrDefault(item => item.Id == currentState)
+            ?? throw new InvalidOperationException("WORLD_DOOR_STATE_MISSING");
+        var interaction = foundation.Interaction;
+        if (queuedRequests >= interaction.QueueCapacity)
+            return new(false, currentState, currentState, current.CollisionEnabled, "queue-full", null);
+        if (!string.Equals(interaction.AllowedSide, "both", StringComparison.Ordinal) &&
+            !string.Equals(interaction.AllowedSide, actorSide, StringComparison.Ordinal))
+            return new(false, currentState, currentState, current.CollisionEnabled, "wrong-side", null);
+        if (foundation.Portal is { } portal && portal.Permissions.Any(permission => !permissions.Contains(permission)))
+            return new(false, currentState, currentState, current.CollisionEnabled, "permission-denied", null);
+        var transition = foundation.Transitions.FirstOrDefault(item => item.FromStateId == currentState &&
+            item.Trigger == "interact" && (string.IsNullOrWhiteSpace(item.Condition) || conditions.Contains(item.Condition)));
+        if (transition is null)
+            return new(false, currentState, currentState, current.CollisionEnabled,
+                interaction.FailureFeedbackKey, null);
+        var target = foundation.States.Single(item => item.Id == transition.ToStateId);
+        return new(true, currentState, target.Id, target.CollisionEnabled, "accepted", foundation.Portal);
+    }
+
+    public static DoorNavigationResult SynchronizeDoorNavigation(
+        DoorWorldProfile profile,
+        string stateId,
+        double animationProgress)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var foundation = profile.Foundation ?? throw new InvalidOperationException("WORLD_DOOR_FOUNDATION_MISSING");
+        var navigation = foundation.Navigation ?? throw new InvalidOperationException("WORLD_DOOR_NAVIGATION_MISSING");
+        var state = foundation.States.SingleOrDefault(item => item.Id == stateId)
+            ?? throw new InvalidOperationException("WORLD_DOOR_STATE_MISSING");
+        var progress = Math.Clamp(animationProgress, 0, 1);
+        var traversable = navigation.TraversableStateIds.Contains(stateId, StringComparer.Ordinal);
+        if (navigation.BlockingStateIds.Contains(stateId, StringComparer.Ordinal)) traversable = false;
+        else if (state.Kind == DoorWorldProfile.StateKind.Opening)
+            traversable = progress >= navigation.OpeningPassableAt;
+        else if (state.Kind == DoorWorldProfile.StateKind.Closing)
+            traversable = progress < navigation.ClosingBlockedAt;
+        else if (!navigation.TraversableStateIds.Contains(stateId, StringComparer.Ordinal))
+            traversable = !state.CollisionEnabled;
+        var obstacle = !traversable;
+        var visualization = navigation.VisualizeInEditor
+            ? $"obstacle:{navigation.ObstacleId}:{(obstacle ? "blocked" : "clear")}|link:{navigation.LinkId}:{(traversable ? "enabled" : "disabled")}"
+            : "hidden";
+        return new(stateId, obstacle, traversable, progress, visualization, "DoorNavigationChanged");
     }
 
     public static EventResult ResolveDoorEvent(DoorWorldProfile profile, string eventName,
@@ -111,6 +240,106 @@ public static class WorldFeatureRuntimeResolver
         return new(true, true, restAllowed, manualDirectorFire ? "director" : "activated", effects);
     }
 
+    public static TriggerFoundationResolution ResolveTriggerFoundation(TriggerWorldProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        if (profile.Foundation is null)
+            return profile.FoundationRequiredAtRuntime
+                ? new(false, null, null, null, "WORLD_TRIGGER_FOUNDATION_REQUIRED_MISSING", "trigger:required-missing")
+                : new(false, null, null, null, string.Empty, "trigger:optional-fallback");
+        var foundation = profile.Foundation;
+        var shape = foundation.Shape;
+        var transform = foundation.Transform;
+        if (shape.SnapIncrement > 0)
+        {
+            float Snap(float value) => (float)(Math.Round(value / shape.SnapIncrement,
+                MidpointRounding.AwayFromZero) * shape.SnapIncrement);
+            Vector3Value SnapValue(Vector3Value value) => new(Snap(value.X), Snap(value.Y), Snap(value.Z));
+            shape = shape with
+            {
+                Vertices = shape.Vertices.Select(SnapValue).ToArray(),
+                Holes = shape.Holes.Select(hole => (IReadOnlyList<Vector3Value>)hole.Select(SnapValue).ToArray()).ToArray(),
+            };
+            transform = transform with { Position = SnapValue(transform.Position) };
+        }
+        var overlay = FormattableString.Invariant($"trigger:{profile.Id:D}:shape={shape.Kind}:vertices={shape.Vertices.Count}:holes={shape.Holes.Count}:height={shape.Height:0.###}:snap={shape.SnapIncrement:0.###}");
+        return new(true, foundation, shape, transform, string.Empty, overlay);
+    }
+
+    public static TriggerEnterResult EnterTrigger(TriggerWorldProfile profile, TriggerRuntimeState state,
+        string entityId, string entityKind, IReadOnlySet<string> tags, IReadOnlySet<string> layers,
+        Vector3Value point, Vector3Value direction, IReadOnlyDictionary<string, string> context,
+        DateTimeOffset occurredAt)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var foundation = profile.Foundation ?? throw new InvalidOperationException(
+            profile.FoundationRequiredAtRuntime ? "WORLD_TRIGGER_FOUNDATION_REQUIRED_MISSING" :
+            "WORLD_TRIGGER_FOUNDATION_UNAVAILABLE");
+        var filter = foundation.Filter;
+        var matches = (filter.EntityKinds.Count == 0 || filter.EntityKinds.Contains(entityKind, StringComparer.Ordinal)) &&
+            filter.RequiredTags.All(tags.Contains) && !filter.ExcludedTags.Any(tags.Contains) &&
+            (filter.Layers.Count == 0 || filter.Layers.Any(layers.Contains));
+        if (!matches) return new(state, null, [], false, "filtered");
+        var inside = state.InsideSince.ToDictionary(); inside[entityId] = occurredAt;
+        var updated = state with { InsideSince = inside };
+        if (!foundation.Conditions.All(condition => context.GetValueOrDefault(condition) == "true"))
+            return new(updated, null, [], false, "condition-failed");
+        if (foundation.Fire == TriggerWorldProfile.FirePolicy.Once && state.FiredGlobally)
+            return new(updated, null, [], false, "already-fired");
+        if (foundation.Fire == TriggerWorldProfile.FirePolicy.OncePerEntity && state.FiredEntities.Contains(entityId))
+            return new(updated, null, [], false, "entity-already-fired");
+        if (state.LastFiredAt.TryGetValue(entityId, out var last) &&
+            (occurredAt - last).TotalSeconds < foundation.CooldownSeconds)
+            return new(updated, null, [], false, "cooldown");
+        var lastFired = state.LastFiredAt.ToDictionary(); lastFired[entityId] = occurredAt;
+        updated = updated with
+        {
+            LastFiredAt = lastFired,
+            FiredEntities = state.FiredEntities.Append(entityId).ToHashSet(StringComparer.Ordinal),
+            FiredGlobally = state.FiredGlobally || foundation.Fire == TriggerWorldProfile.FirePolicy.Once,
+        };
+        var policy = foundation.OnEnter;
+        var entered = new TriggerVolumeEntered(Guid.NewGuid(), 1, policy.Provenance, profile.Id, entityId,
+            point, direction, layers, context, occurredAt, policy.EventBinding, policy.ForgeScriptApiVersion,
+            policy.BeforeScriptId, policy.AfterScriptId);
+        return new(updated, entered, foundation.Actions, true, "fired");
+    }
+
+    public static TriggerExitResult ExitTrigger(TriggerWorldProfile profile, TriggerRuntimeState state,
+        string entityId, DateTimeOffset occurredAt, string reason)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var foundation = profile.Foundation ?? throw new InvalidOperationException(
+            profile.FoundationRequiredAtRuntime ? "WORLD_TRIGGER_FOUNDATION_REQUIRED_MISSING" :
+            "WORLD_TRIGGER_FOUNDATION_UNAVAILABLE");
+        if (!state.InsideSince.TryGetValue(entityId, out var enteredAt)) return new(state, null);
+        var inside = state.InsideSince.ToDictionary(); inside.Remove(entityId);
+        var updated = state with { InsideSince = inside };
+        var policy = foundation.OnExit;
+        return new(updated, new(Guid.NewGuid(), 1, policy.Provenance, profile.Id, entityId,
+            occurredAt - enteredAt, reason, occurredAt, policy.EventBinding, policy.ForgeScriptApiVersion,
+            policy.BeforeScriptId, policy.AfterScriptId));
+    }
+
+    public static TriggerValidationResolution ResolveTriggerValidation(TriggerWorldProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var foundation = profile.Foundation;
+        if (foundation is null)
+            return new(false, null,
+                profile.FoundationRequiredAtRuntime ? "WORLD_TRIGGER_FOUNDATION_REQUIRED_MISSING" : string.Empty,
+                "trigger-validation:foundation-unavailable");
+        if (foundation.Validation is null)
+            return new(false, null,
+                foundation.ValidationRequiredAtRuntime ? "WORLD_TRIGGER_VALIDATION_REQUIRED_MISSING" : string.Empty,
+                foundation.ValidationRequiredAtRuntime ? "trigger-validation:required-missing" :
+                "trigger-validation:optional-fallback");
+        var validation = foundation.Validation;
+        var summary = FormattableString.Invariant(
+            $"trigger-validation:targets={validation.KnownTargetIds.Count}:scripts={validation.KnownScriptIds.Count}:portals={validation.KnownPortalDestinationIds.Count}:layers={validation.AccessibleLayers.Count}");
+        return new(true, validation, string.Empty, summary);
+    }
+
     public static EncounterResult EvaluateEncounter(EncounterWorldProfile profile, int completedCycles,
         int alertLevel, bool visibleToCamera, bool abandoned, double elapsedSeconds)
     {
@@ -126,6 +355,44 @@ public static class WorldFeatureRuntimeResolver
         return new(canRespawn && visibilityAllows, reinforce, false,
             canRespawn && visibilityAllows ? completedCycles + 1 : completedCycles,
             !visibilityAllows ? "visible" : reinforce ? "reinforcement" : canRespawn ? "respawn" : "waiting");
+    }
+
+    public static EncounterActivationResult ActivateEncounter(
+        EncounterWorldProfile profile,
+        IReadOnlySet<string> entityTags,
+        string actorFaction,
+        bool hasLineOfSight,
+        double distance,
+        double normalizedRoll,
+        IReadOnlySet<string> activeConditions,
+        IReadOnlyDictionary<Guid, int> currentAlive)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var foundation = profile.Foundation;
+        if (foundation is null) return new(false, null, null, "foundation-missing", null);
+        var volume = foundation.Volume;
+        if (volume.RequiredEntityTags.Any(tag => !entityTags.Contains(tag)))
+            return new(false, null, null, "filter-denied", volume.ActivationScriptId);
+        if (volume.AllowedFactions.Count > 0 && !volume.AllowedFactions.Contains(actorFaction, StringComparer.Ordinal))
+            return new(false, null, null, "faction-denied", volume.ActivationScriptId);
+        if (volume.RequireLineOfSight && !hasLineOfSight)
+            return new(false, null, null, "line-of-sight", volume.ActivationScriptId);
+        if (volume.ThreatRadius > 0 && distance > volume.ThreatRadius)
+            return new(false, null, null, "out-of-range", volume.ActivationScriptId);
+        var candidates = foundation.Candidates.Where(item => item.Cost <= foundation.SpawnBudget &&
+            (!currentAlive.TryGetValue(item.Id, out var alive) || alive < item.MaximumAlive) &&
+            item.Conditions.All(activeConditions.Contains)).ToArray();
+        if (candidates.Length == 0) return new(false, null, null, "pool-exhausted", volume.ActivationScriptId);
+        var total = candidates.Sum(item => item.Weight);
+        var cursor = Math.Clamp(normalizedRoll, 0, .999999999) * total;
+        foreach (var candidate in candidates)
+        {
+            cursor -= candidate.Weight;
+            if (cursor < 0)
+                return new(true, candidate.Id, candidate.BlueprintId, "activated", volume.ActivationScriptId);
+        }
+        var fallback = candidates[^1];
+        return new(true, fallback.Id, fallback.BlueprintId, "activated", volume.ActivationScriptId);
     }
 
     public static VehicleSample SampleVehicleRoute(VehicleRouteProfile route, double normalizedProgress)
@@ -170,6 +437,17 @@ public static class WorldFeatureRuntimeResolver
             return new(false, price, currencyId, account.Balance, "purchase-cap");
         return new(true, price, currencyId, account.Balance - price,
             profile.Ledger.Enabled ? $"ledger:{profile.Id:D}:{currencyId}:{price}" : "accepted");
+    }
+
+    public static MerchantTransactionResolution ResolveMerchantTransactions(MerchantWorldProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        if (profile.Transactions is not null)
+            return new(true, profile.Transactions, string.Empty,
+                $"merchant-transactions:{profile.Id:D}:{profile.Transactions.Id:D}");
+        return profile.TransactionsRequiredAtRuntime
+            ? new(false, null, "WORLD_MERCHANT_TRANSACTIONS_REQUIRED_MISSING", "merchant-transactions:required-missing")
+            : new(false, null, string.Empty, "merchant-transactions:optional-fallback");
     }
 
     public static CompanionDecision EvaluateCompanion(CompanionWorldProfile profile, string actorRole,

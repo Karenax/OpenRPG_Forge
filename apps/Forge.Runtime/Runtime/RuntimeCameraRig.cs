@@ -1,21 +1,38 @@
 using Godot;
+using Forge.Application.Gameplay;
+using Forge.Domain.Gameplay;
 
 namespace Forge.Runtime;
 
 internal sealed class RuntimeCameraRig
 {
-    private const float MinimumDistance = 4.5f;
-    private const float MaximumDistance = 32f;
+    private float _minimumDistance = 4.5f;
+    private float _maximumDistance = 32f;
     private float _yaw = Mathf.DegToRad(39f);
     private float _pitch = Mathf.DegToRad(24f);
     private float _distance = 14f;
     private bool _leftOrbiting;
     private bool _rightOrbiting;
     private bool _middleOrbiting;
+    private Vector3 _focusOffset = Vector3.Up * 1.25f;
+    private bool _alignCharacterFacing = true;
+    private float _fieldOfView = 60;
 
-    internal bool AlignCharacterFacing => _rightOrbiting;
+    internal bool AlignCharacterFacing => _rightOrbiting && _alignCharacterFacing;
 
     internal Vector3 ForwardDirection => new(-MathF.Sin(_yaw), 0, -MathF.Cos(_yaw));
+
+    internal void Configure(GameplayCameraCatalog catalog)
+    {
+        var profile = GameplayFoundationRuntime.ResolveCamera(catalog);
+        _distance = profile.Distance;
+        _minimumDistance = profile.MinimumDistance;
+        _maximumDistance = profile.MaximumDistance;
+        _pitch = Mathf.DegToRad(profile.PitchDegrees);
+        _focusOffset = new(profile.FocusOffset.X, profile.FocusOffset.Y, profile.FocusOffset.Z);
+        _alignCharacterFacing = profile.AlignCharacterFacing;
+        _fieldOfView = profile.FieldOfViewDegrees;
+    }
 
     internal void HandleInput(InputEvent @event)
     {
@@ -32,11 +49,11 @@ internal sealed class RuntimeCameraRig
             }
             else if (button.Pressed && button.ButtonIndex == MouseButton.WheelUp)
             {
-                _distance = Math.Max(MinimumDistance, _distance - Math.Max(1.2f, _distance * .12f));
+                _distance = Math.Max(_minimumDistance, _distance - Math.Max(1.2f, _distance * .12f));
             }
             else if (button.Pressed && button.ButtonIndex == MouseButton.WheelDown)
             {
-                _distance = Math.Min(MaximumDistance, _distance + Math.Max(1.2f, _distance * .12f));
+                _distance = Math.Min(_maximumDistance, _distance + Math.Max(1.2f, _distance * .12f));
             }
         }
         else if (@event is InputEventMouseMotion motion && (_leftOrbiting || _middleOrbiting || _rightOrbiting))
@@ -49,10 +66,11 @@ internal sealed class RuntimeCameraRig
 
     internal void Update(Camera3D camera, Vector3 target, double delta)
     {
+        camera.Fov = _fieldOfView;
         var rotation = Input.GetAxis("camera_left", "camera_right");
         _yaw += rotation * (float)delta * 1.35f;
         var horizontal = MathF.Cos(_pitch) * _distance;
-        var focus = target + Vector3.Up * 1.25f;
+        var focus = target + _focusOffset;
         var desired = focus + new Vector3(
             MathF.Sin(_yaw) * horizontal,
             MathF.Sin(_pitch) * _distance,
@@ -64,8 +82,9 @@ internal sealed class RuntimeCameraRig
 
     internal void Snap(Camera3D camera, Vector3 target)
     {
+        camera.Fov = _fieldOfView;
         var horizontal = MathF.Cos(_pitch) * _distance;
-        var focus = target + Vector3.Up * 1.25f;
+        var focus = target + _focusOffset;
         camera.GlobalPosition = focus + new Vector3(
             MathF.Sin(_yaw) * horizontal,
             MathF.Sin(_pitch) * _distance,

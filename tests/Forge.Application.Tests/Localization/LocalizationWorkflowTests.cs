@@ -54,6 +54,48 @@ public sealed class LocalizationWorkflowTests
         Assert.Equal("⟦Hëllô {player} ···⟧", PseudoLocalization.Transform("Hello {player}"));
     }
 
+    [Fact]
+    public void TranslatorBundleImportsAtomicallyAndRejectsStaleOrUnknownContent()
+    {
+        var catalog = LocalizationCatalogExtractor.Extract(CreateState().Project).Catalog;
+        var bundle = LocalizationTranslationExchange.Export(catalog, "en-US");
+        var translated = bundle with
+        {
+            Units = bundle.Units.Select(unit => unit with { Translation = $"EN {unit.Source}" }).ToArray(),
+        };
+
+        var imported = LocalizationTranslationExchange.Import(catalog, translated);
+        var stale = LocalizationTranslationExchange.Import(catalog,
+            translated with { CatalogContentSha256 = new string('0', 64) });
+        var unknown = LocalizationTranslationExchange.Import(catalog,
+            translated with
+            {
+                Units = [.. translated.Units, new LocalizationTranslationUnit("unknown.key", "x", "y", "test")],
+            });
+
+        Assert.True(imported.Succeeded);
+        Assert.Equal("EN Bienvenue", imported.Catalog!.Resolve("dialogue.welcome", "en-US"));
+        Assert.Contains(LocalizationTranslationExchange.HashCode, stale.Diagnostics);
+        Assert.Contains(unknown.Diagnostics, item => item.StartsWith(LocalizationTranslationExchange.KeyCode));
+        Assert.Same(catalog, stale.Catalog ?? catalog);
+    }
+
+    [Fact]
+    public void ForgeScriptLocalizationHandleIsOpaqueTypedAndReadOnly()
+    {
+        var catalog = LocalizationCatalogExtractor.Extract(CreateState().Project).Catalog;
+        var service = new LocalizationScriptService(catalog);
+        var handle = Assert.IsType<Forge.Scripting.ForgeScriptOpaqueHandle>(service.Find("dialogue.welcome"));
+
+        var snapshot = service.Read(handle, "fr");
+
+        Assert.Equal(Forge.Scripting.ForgeScriptHandleKind.LocalizationMessage, handle.Kind);
+        Assert.Equal("Bienvenue", snapshot.Text);
+        Assert.Equal(catalog.ContentSha256, snapshot.ContentSha256);
+        Assert.Throws<InvalidOperationException>(() => service.Read(
+            Forge.Scripting.ForgeScriptOpaqueHandle.Create(Forge.Scripting.ForgeScriptHandleKind.Asset, 1, 1), "fr"));
+    }
+
     private static ProjectState CreateState()
     {
         var area = new AreaDefinition(

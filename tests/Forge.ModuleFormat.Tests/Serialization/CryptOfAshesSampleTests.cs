@@ -1,5 +1,8 @@
 using Forge.Domain.Blueprints;
 using Forge.Domain.Dialogues;
+using Forge.Domain.Areas;
+using Forge.Domain.Entities;
+using Forge.Domain.Navigation;
 using Forge.Domain.Quests;
 using Forge.Application.Projects;
 using Forge.Domain.Projects;
@@ -79,9 +82,99 @@ public sealed class CryptOfAshesSampleTests
         Assert.Single(catalog.VehicleRoutes);
         Assert.Single(catalog.Merchants);
         Assert.Single(catalog.Companions);
+        var companion = catalog.Companions[0];
+        Assert.NotNull(companion.Validation);
+        Assert.True(companion.ValidationRequiredAtRuntime);
+        Assert.Equal(["follow", "hold", "attack", "interact"], companion.Validation!.CommandIds);
+        Assert.Equal(2, companion.Validation.DialogueContexts.Count);
+        Assert.Equal("recoverable-corpse", companion.Validation.Death.Mode);
+        var resolved = CompanionValidationRuntimeResolver.Resolve(companion, destinationAreaId: null);
+        Assert.True(resolved.Available);
+        Assert.True(resolved.DestinationAllowed);
+        Assert.Equal("party", resolved.OwnershipKind);
+        var optional = CompanionValidationRuntimeResolver.Resolve(
+            companion with { Validation = null, ValidationRequiredAtRuntime = false });
+        var required = CompanionValidationRuntimeResolver.Resolve(
+            companion with { Validation = null, ValidationRequiredAtRuntime = true });
+        Assert.True(optional.OptionalFallback);
+        Assert.Contains(required.Diagnostics, item => item.Code == "world.companion.validation_required");
         Assert.True(WorldFeatureRuntimeResolver.ResolvePlaceableAccess(catalog.Placeables[0],
             new HashSet<string> { "key:ember" }, new HashSet<string>(), 3).Allowed);
         Assert.True(WorldFeatureRuntimeResolver.ApplyDoorDamage(catalog.Doors[0], 40, 100).Breached);
         Assert.NotNull(WorldFeatureRuntimeResolver.ResolveScript(catalog.Scripts, "door.ash", "opened").ScriptId);
+    }
+
+    [Fact]
+    public void Companion_validation_rejects_unsafe_commands_and_unknown_cross_zone_references_before_build()
+    {
+        var fixtureDirectory = Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes");
+        var project = ProjectSession.Open(fixtureDirectory).Session!.Project;
+        var catalog = CryptWorldFeatureAuthoringService.Create(project);
+        var companion = catalog.Companions[0];
+        var invalid = companion with
+        {
+            Validation = companion.Validation! with
+            {
+                CommandIds = ["follow", "follow"],
+                CrossZoneNavigation = companion.Validation.CrossZoneNavigation with
+                {
+                    Enabled = true,
+                    AllowedAreaIds = [project.Areas[0].Id, Forge.Domain.Areas.AreaId.From(Guid.NewGuid())],
+                },
+            },
+        };
+        var invalidCatalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+            catalog.Placeables, catalog.Doors, catalog.Triggers, catalog.Encounters, catalog.VehicleRoutes,
+            catalog.Merchants, [invalid], catalog.Scripts);
+        var configured = new ProjectDefinition(project.Id, project.Title, project.Module.WithWorldFeatures(invalidCatalog),
+            project.Blueprints, project.Areas, project.Dialogues, project.Quests);
+
+        var diagnostics = WorldFeatureCatalogValidator.Validate(configured);
+
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.commands_invalid" &&
+                                             item.Path.EndsWith("/validation/commandIds", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Code == "world.companion.cross_zone_navigation_invalid" &&
+                                             item.Path.EndsWith("/validation/crossZoneNavigation", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Companion_cross_zone_policy_accepts_an_authored_connected_portal_graph()
+    {
+        var fixtureDirectory = Path.Combine(AppContext.BaseDirectory, "Fixtures", "crypt-of-ashes");
+        var project = ProjectSession.Open(fixtureDirectory).Session!.Project;
+        var destination = new AreaDefinition(
+            AreaId.From(Guid.Parse("15400000-0000-4000-8000-000000000001")), "camp", "Camp", []);
+        var source = project.Areas[0].WithPortals([
+            new PortalLink(PortalId.From(Guid.Parse("15400000-0000-4000-8000-000000000002")), "Camp gate",
+                project.Areas[0].Entities[0].Id, destination.Id,
+                EntityId.From(Guid.Parse("15400000-0000-4000-8000-000000000003")), true, true,
+                provenance: "test:r037"),
+        ]);
+        var projectWithPortal = new ProjectDefinition(project.Id, project.Title, project.Module,
+            project.Blueprints, [source, destination], project.Dialogues, project.Quests);
+        var catalog = CryptWorldFeatureAuthoringService.Create(projectWithPortal);
+        var companion = catalog.Companions[0];
+        companion = companion with
+        {
+            Validation = companion.Validation! with
+            {
+                CrossZoneNavigation = companion.Validation.CrossZoneNavigation with
+                {
+                    Enabled = true,
+                    AllowedAreaIds = [source.Id, destination.Id],
+                },
+            },
+        };
+        var connectedCatalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+            catalog.Placeables, catalog.Doors, catalog.Triggers, catalog.Encounters, catalog.VehicleRoutes,
+            catalog.Merchants, [companion], catalog.Scripts);
+        var configured = new ProjectDefinition(project.Id, project.Title,
+            project.Module.WithWorldFeatures(connectedCatalog), project.Blueprints, [source, destination],
+            project.Dialogues, project.Quests);
+
+        var diagnostics = WorldFeatureCatalogValidator.Validate(configured);
+
+        Assert.DoesNotContain(diagnostics, item => item.Code.StartsWith("world.companion.cross_zone", StringComparison.Ordinal));
+        Assert.True(CompanionValidationRuntimeResolver.Resolve(companion, destination.Id).DestinationAllowed);
     }
 }

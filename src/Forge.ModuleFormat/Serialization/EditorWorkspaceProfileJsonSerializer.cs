@@ -22,7 +22,6 @@ public static class EditorWorkspaceProfileJsonSerializer
         var version = root["schemaVersion"]?.GetValue<int>() ?? 1;
         if (version == 1)
         {
-            root["schemaVersion"] = EditorWorkspaceProfile.CurrentSchemaVersion;
             root["uiScale"] = 1;
             root["textScale"] = 1;
             root["primaryFontFamily"] = "Noto Sans";
@@ -30,6 +29,8 @@ public static class EditorWorkspaceProfileJsonSerializer
             root["personalFavoriteBlueprintIds"] = new JsonArray();
             root["recentBlueprintIds"] = new JsonArray();
         }
+        if (version < EditorWorkspaceProfile.CurrentSchemaVersion)
+            root["schemaVersion"] = EditorWorkspaceProfile.CurrentSchemaVersion;
 
         return JsonSerializer.Deserialize<EditorWorkspaceProfile>(root.ToJsonString(), Options) ??
             throw new InvalidDataException("Editor workspace profile is empty.");

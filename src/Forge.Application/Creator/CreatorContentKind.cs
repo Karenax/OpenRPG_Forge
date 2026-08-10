@@ -16,5 +16,8 @@ public enum CreatorContentKind
     Quest,
     QuestState,
     QuestTransition,
+    Script,
+    Asset,
+    LocalizedText,
     Diagnostic,
 }

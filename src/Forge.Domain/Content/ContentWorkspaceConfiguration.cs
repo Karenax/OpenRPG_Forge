@@ -16,13 +16,16 @@ public sealed record ContentWorkspaceConfiguration
 
     public string Provenance { get; }
 
+    public ContentPackageCatalog Packages { get; }
+
     public ContentWorkspaceConfiguration(
         ContentWorkspaceConfigurationId id,
         ContentBatchConfiguration batch,
         IReadOnlyList<DataTableDefinition> dataTables,
         ContentMergePolicy mergePolicy,
         string provenance,
-        int schemaVersion = CurrentSchemaVersion)
+        int schemaVersion = CurrentSchemaVersion,
+        ContentPackageCatalog? packages = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(batch);
@@ -74,6 +77,7 @@ public sealed record ContentWorkspaceConfiguration
         DataTables = materializedTables;
         MergePolicy = mergePolicy;
         Provenance = provenance.Trim();
+        Packages = packages ?? ContentPackageCatalog.CreateEmpty(id.Value);
     }
 
     public static ContentWorkspaceConfiguration CreateDefault(Guid moduleId) =>

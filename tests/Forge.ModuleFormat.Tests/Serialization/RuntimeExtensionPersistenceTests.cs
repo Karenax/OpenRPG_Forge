@@ -48,6 +48,9 @@ public sealed class RuntimeExtensionPersistenceTests
         Assert.True(restored.ModernTooling.Compiler.Incremental);
         Assert.Equal(3, restored.ModernTooling.QualityAssurance.PlatformBudgets.Count);
         Assert.True(restored.ModernTooling.QualityAssurance.Profiler.OneClickCapture);
+        Assert.Equal(7, restored.ModernTooling.QualityAssurance.MaliciousFixtures.Families.Count);
+        Assert.Equal(717, restored.ModernTooling.QualityAssurance.AuroraParityCoverage.ExpectedFeatureCount);
+        Assert.True(restored.ModernTooling.QualityAssurance.AcceptanceGates.RequireLinkedTests);
         Assert.Equal("release-module", Assert.Single(restored.OperationalReadiness.TaskManifests).Key);
         Assert.True(restored.OperationalReadiness.Recovery.QuarantineCorruptFiles);
     }
@@ -137,6 +140,10 @@ public sealed class RuntimeExtensionPersistenceTests
             ["qualityAssurance"]!.AsObject();
         quality.Remove("accessibility");
         quality.Remove("securityFuzz");
+        quality.Remove("clickableDiagnostics");
+        quality.Remove("maliciousFixtures");
+        quality.Remove("auroraParityCoverage");
+        quality.Remove("acceptanceGates");
 
         var first = ProjectJsonSerializer.Deserialize(document.ToJsonString()).Module.RuntimePolicies.Extensions
             .ModernTooling.QualityAssurance;
@@ -145,10 +152,17 @@ public sealed class RuntimeExtensionPersistenceTests
 
         Assert.Equal(first.Accessibility.Id, second.Accessibility.Id);
         Assert.Equal(first.SecurityFuzz.Id, second.SecurityFuzz.Id);
+        Assert.Equal(first.ClickableDiagnostics.Id, second.ClickableDiagnostics.Id);
+        Assert.Equal(first.MaliciousFixtures.Id, second.MaliciousFixtures.Id);
+        Assert.Equal(first.AuroraParityCoverage.Id, second.AuroraParityCoverage.Id);
+        Assert.Equal(first.AcceptanceGates.Id, second.AcceptanceGates.Id);
         Assert.True(first.Accessibility.EditorKeyboardOnly);
         Assert.True(first.Accessibility.RuntimeSubtitles);
         Assert.Equal(7, first.SecurityFuzz.Boundaries.Count);
         Assert.Equal(16, first.SecurityFuzz.CasesPerBoundary);
+        Assert.Equal(7, first.MaliciousFixtures.Families.Count);
+        Assert.Equal(717, first.AuroraParityCoverage.ExpectedFeatureCount);
+        Assert.Contains("G8", first.AcceptanceGates.RequiredGates);
     }
 
     [Fact]
@@ -179,7 +193,7 @@ public sealed class RuntimeExtensionPersistenceTests
         var restored = ProjectJsonSerializer.Deserialize(json).Module.RuntimePolicies.Extensions.PostLaunch;
         Assert.True(restored.Gameplay.ZeroGravity.Enabled);
         Assert.Equal("first-step", Assert.Single(restored.Gameplay.Achievements).Key);
-        Assert.Contains("\"formatVersion\": \"0.6.33\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"formatVersion\": \"0.6.34\"", json, StringComparison.Ordinal);
 
         var old = JsonNode.Parse(json)!.AsObject();
         old["formatVersion"] = ProjectJsonSerializer.PrePostLaunchCapabilitiesFormatVersion;

@@ -59,7 +59,9 @@ public static class LocalizationCatalogExtractor
 
         var locales = metadata.Localizations.Select(item => item.Locale).Concat(existing.Locales).ToArray();
         return new LocalizationExtractionResult(
-            new LocalizationCatalog(existing.Id, metadata.DefaultLocale, locales, messages.Values.ToArray()),
+            new LocalizationCatalog(existing.Id, metadata.DefaultLocale, locales, messages.Values.ToArray(),
+                existing.SchemaVersion, existing.PackageNamespace, existing.LicenseSpdx, existing.Provenance,
+                existing.PlatformByteBudget),
             diagnostics);
     }
 }

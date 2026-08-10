@@ -7,10 +7,11 @@ public static class ModulePackageLoader
     public static ModuleLoadResult Load(
         string packagePath,
         string cacheRoot,
-        ModulePackageLimits? limits = null)
+        ModulePackageLimits? limits = null,
+        string availableRuntimeVersion = ModuleRuntimeCompatibility.CurrentRuntimeVersion)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(cacheRoot);
-        var validation = ModulePackageValidator.Validate(packagePath, limits);
+        var validation = ModulePackageValidator.Validate(packagePath, limits, availableRuntimeVersion);
         if (!validation.IsValid || validation.Manifest is null || validation.Project is null)
         {
             throw new InvalidDataException(

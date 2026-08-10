@@ -3,6 +3,7 @@ using Forge.Application.Entities;
 using Forge.Application.Projects;
 using Forge.Application.Time;
 using Forge.Domain.Entities;
+using Forge.Domain.Navigation;
 using Forge.Domain.Spatial;
 
 namespace Forge.Application.Tests.Entities;
@@ -56,6 +57,26 @@ public sealed class ScaleEntitiesHandlerTests
         Assert.True(result.Succeeded, string.Join("; ", result.Diagnostics.Select(item => item.Message)));
         Assert.Equal(new Vector3Value(2, 2, 2), result.State.Project.Areas[0].Entities[0].Transform.Scale);
         Assert.Equal(new Vector3Value(4, 2, 2), result.State.Project.Areas[0].Entities[1].Transform.Scale);
+    }
+
+    [Fact]
+    public void HandleChangesCanonicalCollisionFootprintAndNavigationBakeFingerprint()
+    {
+        var context = new EntityMutationTestContext();
+        var area = Assert.Single(context.State.Project.Areas);
+        var entity = Assert.Single(area.Entities);
+        var agent = area.Navigation.AgentProfiles[0];
+        var before = NavigationSurfaceBuilder.Build(context.State.Project, area, agent);
+        var handler = new ScaleEntitiesHandler(new FixedClock(Timestamp));
+
+        var result = handler.Handle(context.State, Command(context, [entity.Id], new Vector3Value(4, 1, 4)));
+        var updatedArea = Assert.Single(result.State.Project.Areas);
+        var after = NavigationSurfaceBuilder.Build(result.State.Project, updatedArea, agent);
+
+        Assert.True(result.Succeeded);
+        Assert.NotEqual(before.SourceFingerprint, after.SourceFingerprint);
+        Assert.True(after.WalkableCells.Count < before.WalkableCells.Count);
+        Assert.Equal(new Vector3Value(4, 1, 4), Assert.Single(updatedArea.Entities).Transform.Scale);
     }
 
     [Theory]

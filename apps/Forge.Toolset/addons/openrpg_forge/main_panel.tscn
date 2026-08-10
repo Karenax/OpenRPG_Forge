@@ -402,6 +402,12 @@ layout_mode = 2
 disabled = true
 text = "Copier"
 
+[node name="CutButton" type="Button" parent="Margin/Content/Editing/ClipboardRow"]
+custom_minimum_size = Vector2(105, 38)
+layout_mode = 2
+disabled = true
+text = "Couper"
+
 [node name="PasteButton" type="Button" parent="Margin/Content/Editing/ClipboardRow"]
 custom_minimum_size = Vector2(105, 38)
 layout_mode = 2
@@ -417,6 +423,11 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_new_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_new_button_hover")
 disabled = true
 text = "Dupliquer"
+
+[node name="IndependentCopy" type="CheckButton" parent="Margin/Content/Editing/ClipboardRow"]
+layout_mode = 2
+disabled = true
+text = "Copie indépendante"
 
 [node name="OverridesRow" type="HBoxContainer" parent="Margin/Content/Editing"]
 layout_mode = 2

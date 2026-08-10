@@ -20,6 +20,10 @@ public sealed class RulesProfileTests
         Assert.Equal(moduleId.Value, module.RuntimePolicies.Rules.Id);
         Assert.Equal(areaId.Value, area.RuntimePolicies.Rules.Id);
         Assert.True(area.RuntimePolicies.Rules.Combat.ServerAuthoritative);
+        Assert.Equal("forge.generic", module.RuntimePolicies.Rules.Plugins.ActivePackageKey);
+        var package = Assert.Single(module.RuntimePolicies.Rules.Plugins.Packages);
+        Assert.All(new[] { package.Attributes, package.Effects, package.Abilities, package.Inventories,
+            package.ProgressionTracks, package.UiPanels }, registry => Assert.NotEmpty(registry));
         Assert.Empty(RuntimePolicyValidator.Validate(module));
         Assert.Empty(RuntimePolicyValidator.Validate(area));
     }
@@ -37,5 +41,20 @@ public sealed class RulesProfileTests
         };
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             new EnvironmentPerceptionProfile(area.Value, 1, "rules", duplicate, "test"));
+    }
+
+    [Fact]
+    public void Plugin_validator_reports_missing_active_package_and_incomplete_registries()
+    {
+        var package = new RulesetPluginPackage(Guid.NewGuid(), 1, "custom", "1.0.0", "content.custom",
+            ["health"], [], ["attack"], ["inventory"], ["level"], ["sheet"], "test");
+        var catalog = new RulesetPluginCatalog(Guid.NewGuid(), 1, true, true, "missing", [package], "test");
+
+        var diagnostics = RulesetPluginValidator.Validate(catalog, "module/rules/plugins");
+
+        Assert.Contains(diagnostics, item => item.Code == RulesetPluginValidator.ActiveMissingCode &&
+            item.Path.EndsWith("activePackageKey", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Code == RulesetPluginValidator.RegistryMissingCode &&
+            item.Path.Contains(package.Id.ToString("D"), StringComparison.Ordinal));
     }
 }

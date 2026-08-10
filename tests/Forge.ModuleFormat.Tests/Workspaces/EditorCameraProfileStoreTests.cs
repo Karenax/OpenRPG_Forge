@@ -62,6 +62,9 @@ public sealed class EditorCameraProfileStoreTests : IDisposable
         Assert.Equal(2.5f, restored.Profile.NavigationSpeed);
         Assert.Equal(profile.Pose, restored.Profile.Pose);
         Assert.Equal("Boss", Assert.Single(restored.Profile.Bookmarks).Name);
+        Assert.Equal(profile.Input.Id, restored.Profile.Input.Id);
+        Assert.Equal(profile.Input.PilotMode, restored.Profile.Input.PilotMode);
+        Assert.Equal(profile.Input.Bindings.OrderBy(pair => pair.Key), restored.Profile.Input.Bindings.OrderBy(pair => pair.Key));
         Assert.True(File.Exists(Path.Combine(_temporaryRoot, ".forge", "editor-camera.json")));
     }
 

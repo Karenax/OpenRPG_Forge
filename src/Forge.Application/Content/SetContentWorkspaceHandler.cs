@@ -69,11 +69,13 @@ public sealed class SetContentWorkspaceHandler
             "replace",
             "module/content",
             $"Configure {command.Configuration.DataTables.Count} data table(s), " +
+            $"{command.Configuration.Packages.Packages.Count} content package(s), " +
             $"batch collision {command.Configuration.Batch.CollisionPolicy} and merge {command.Configuration.MergePolicy}.");
         var inverse = new ProjectPatch(
             "replace",
             "module/content",
-            $"Restore {module.Content.DataTables.Count} data table(s).");
+            $"Restore {module.Content.DataTables.Count} data table(s) and " +
+            $"{module.Content.Packages.Packages.Count} content package(s).");
         if (command.DryRun)
         {
             return new CommandResult(

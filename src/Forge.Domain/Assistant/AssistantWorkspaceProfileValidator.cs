@@ -65,6 +65,7 @@ public static partial class AssistantWorkspaceProfileValidator
         {
             ValidatePrompt(prompt, diagnostics);
         }
+        diagnostics.AddRange(AgentSemanticWorkflowValidator.Validate(profile.AgentWorkflow));
         return diagnostics;
     }
 

@@ -10,10 +10,13 @@ using Forge.Application.Blueprints;
 using Forge.Application.Commands;
 using Forge.Application.Content;
 using Forge.Application.Creator;
+using Forge.Application.Creatures;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Factions;
 using Forge.Application.Gameplay;
+using Forge.Application.Items;
+using Forge.Application.Modules;
 using Forge.Application.Rules;
 using Forge.Application.Localization;
 using Forge.Application.Lifecycle;
@@ -26,6 +29,7 @@ using Forge.Application.Spatial;
 using Forge.Application.Time;
 using Forge.Application.WorldFeatures;
 using Forge.Domain.Areas;
+using Forge.Domain.Audio;
 using Forge.Domain.Assistant;
 using Forge.Domain.Assets;
 using Forge.Domain.Authoring;
@@ -43,6 +47,7 @@ using Forge.Domain.Items;
 using Forge.Domain.Modules;
 using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
+using Forge.Domain.Quality;
 using Forge.Domain.Quests;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.RuntimeExtensions;
@@ -58,6 +63,7 @@ using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Content;
 using Forge.ModuleFormat.Distribution;
+using Forge.ModuleFormat.Diagnostics;
 using Forge.ModuleFormat.Navigation;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Packages;
@@ -67,7 +73,9 @@ using Forge.ModuleFormat.Workspaces;
 using Forge.RpgKit.Application.Abilities;
 using Forge.RpgKit.Application.Bosses;
 using Forge.RpgKit.Application.Dialogues;
+using Forge.RpgKit.Application.Merchants;
 using Forge.RpgKit.Application.Quests;
+using Forge.RpgKit.Domain.Merchants;
 using Forge.Scripting;
 using Godot;
 
@@ -82,6 +90,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private readonly PlaceEntityHandler _placeHandler = new(new SystemClock());
     private readonly PasteEntitiesHandler _pasteEntitiesHandler = new(new SystemClock());
+    private readonly CutEntitiesHandler _cutEntitiesHandler = new(new SystemClock());
     private readonly CreateAreaHandler _createAreaHandler = new(new SystemClock());
     private readonly DuplicateAreaHandler _duplicateAreaHandler = new(new SystemClock());
     private readonly EditAreaGeometryHandler _editAreaGeometryHandler = new(new SystemClock());
@@ -95,9 +104,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetAreaExperienceProfileHandler _setAreaExperienceProfileHandler = new(new SystemClock());
     private readonly SetRuntimeExtensionsHandler _setRuntimeExtensionsHandler = new(new SystemClock());
     private readonly SetAreaAuthoringHandler _setAreaAuthoringHandler = new(new SystemClock());
+    private readonly SetAreaFoundationHandler _setAreaFoundationHandler = new(new SystemClock());
+    private readonly SetAreaPlaytestHandler _setAreaPlaytestHandler = new(new SystemClock());
     private readonly UpsertPortalLinkHandler _upsertPortalHandler = new(new SystemClock());
     private readonly TransformEntityHandler _transformHandler = new(new SystemClock());
     private readonly ScaleEntitiesHandler _scaleEntitiesHandler = new(new SystemClock());
+    private readonly ManipulateEntitiesHandler _manipulateEntitiesHandler = new(new SystemClock());
     private readonly RemoveEntityHandler _removeHandler = new(new SystemClock());
     private readonly SetEntityOverridesHandler _setOverridesHandler = new(new SystemClock());
     private readonly NewModuleHandler _newModuleHandler = new(new SystemClock());
@@ -115,6 +127,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetAreaNavigationHandler _setAreaNavigationHandler = new(new SystemClock());
     private readonly ApplyDiagnosticQuickFixHandler _diagnosticQuickFixHandler = new(new SystemClock());
     private readonly SetAssetProcessingProfileHandler _assetProcessingProfileHandler = new(new SystemClock());
+    private readonly SetAssetGovernanceHandler _assetGovernanceHandler = new(new SystemClock());
+    private readonly SetQualityFoundationHandler _qualityFoundationHandler = new(new SystemClock());
     private readonly SetAssetPackageManifestHandler _assetPackageManifestHandler = new(new SystemClock());
     private readonly InstallAssetBlueprintHandler _installAssetBlueprintHandler = new(new SystemClock());
     private readonly SetAssetExternalEditHandler _assetExternalEditHandler = new(new SystemClock());
@@ -132,6 +146,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetExternalWorkerSecurityPolicyHandler _externalWorkerSecurityHandler = new(new SystemClock());
     private readonly SetEditorKeymapHandler _editorKeymapHandler = new(new SystemClock());
     private readonly SetCreaturePresentationHandler _creaturePresentationHandler = new(new SystemClock());
+    private readonly SetCreatureFoundationHandler _creatureFoundationHandler = new(new SystemClock());
     private readonly SetCreatureProgressionHandler _creatureProgressionHandler = new(new SystemClock());
     private readonly SetCreatureLootHandler _creatureLootHandler = new(new SystemClock());
     private readonly SetCreatureRoleBehaviorHandler _creatureRoleBehaviorHandler = new(new SystemClock());
@@ -140,6 +155,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private readonly SetDialoguePresentationHandler _dialoguePresentationHandler = new(new SystemClock());
     private readonly SetQuestOperationsHandler _questOperationsHandler = new(new SystemClock());
     private readonly SetItemAdvancedProfileHandler _itemAdvancedHandler = new(new SystemClock());
+    private readonly SetItemFoundationHandler _itemFoundationHandler = new(new SystemClock());
     private readonly SetWorldFeatureCatalogHandler _worldFeatureHandler = new(new SystemClock());
     private readonly AssistedForgeScriptCommandHistory _assistedForgeScriptHistory = new();
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
@@ -189,8 +205,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _applyScaleButton;
     private Button? _overridesButton;
     private Button? _copyButton;
+    private Button? _cutButton;
     private Button? _pasteButton;
     private Button? _duplicateButton;
+    private CheckButton? _independentCopy;
     private Button? _undoButton;
     private Button? _redoButton;
     private Button? _playButton;
@@ -210,12 +228,47 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private FileDialog? _newModuleLocationDialog;
     private LineEdit? _newModuleTitle;
     private TextEdit? _newModuleDescription;
+    private OptionButton? _newModuleTemplate;
+    private LineEdit? _newModuleKits;
+    private OptionButton? _newModulePlatform;
+    private LineEdit? _newModuleRules;
+    private OptionButton? _newModuleRender;
+    private OptionButton? _newModuleNetwork;
+    private LineEdit? _newModulePackageNamespace;
+    private CheckButton? _newModuleCreateInitialArea;
     private LineEdit? _newModuleAreaName;
     private OptionButton? _newModuleAreaKind;
     private SpinBox? _newModuleAreaWidth;
     private SpinBox? _newModuleAreaDepth;
+    private LineEdit? _newModuleGameMode;
+    private LineEdit? _newModuleEntryClass;
+    private LineEdit? _newModulePlayerRule;
+    private Label? _newModuleSummary;
     private Button? _newModuleNextButton;
     private Button? _newModuleCancelButton;
+    private string? _projectFoundationCapturePath;
+    private double _projectFoundationCaptureElapsed;
+    private string? _areaFoundationCapturePath;
+    private double _areaFoundationCaptureElapsed;
+    private bool _areaFoundationCapturePrepared;
+    private string? _areaRuntimeCapturePath;
+    private double _areaRuntimeCaptureElapsed;
+    private bool _areaRuntimeCapturePrepared;
+    private string? _r035DiagnosticsCapturePath;
+    private double _r035DiagnosticsCaptureElapsed;
+    private bool _r035DiagnosticsCapturePrepared;
+    private string? _r036ScaleCapturePath;
+    private double _r036ScaleCaptureElapsed;
+    private bool _r036ScaleCapturePrepared;
+    private string? _r038CreatureFoundationCapturePath;
+    private double _r038CreatureFoundationCaptureElapsed;
+    private bool _r038CreatureFoundationCapturePrepared;
+    private string? _r039CreatureEventsCapturePath;
+    private double _r039CreatureEventsCaptureElapsed;
+    private bool _r039CreatureEventsCapturePrepared;
+    private string? _r044ItemFoundationCapturePath;
+    private double _r044ItemFoundationCaptureElapsed;
+    private bool _r044ItemFoundationCapturePrepared;
     private Window? _entityPropertiesDialog;
     private Label? _entityPropertiesIdentity;
     private ItemList? _entityPropertiesList;
@@ -228,6 +281,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private Button? _entityPropertiesSaveButton;
     private Button? _entityPropertiesCancelButton;
     private DialogueEditorWindow? _dialogueEditor;
+    private QuestJournalWindow? _questJournalWindow;
     private DialoguePresentationWindow? _dialoguePresentationWindow;
     private BlueprintCatalogWindow? _blueprintCatalog;
     private AssetContentBrowserWindow? _assetBrowser;
@@ -245,12 +299,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private ExternalWorkerSecurityWindow? _externalWorkerSecurityWindow;
     private EditorKeymapWindow? _editorKeymapWindow;
     private CreaturePresentationWindow? _creaturePresentationWindow;
+    private CreatureFoundationWindow? _creatureFoundationWindow;
     private CreatureProgressionWindow? _creatureProgressionWindow;
     private CreatureLootWindow? _creatureLootWindow;
     private CreatureRoleBehaviorWindow? _creatureRoleBehaviorWindow;
     private CreatureEventWindow? _creatureEventWindow;
     private QuestOperationsWindow? _questOperationsWindow;
     private ItemAdvancedWindow? _itemAdvancedWindow;
+    private ItemFoundationWindow? _itemFoundationWindow;
     private WorldFeatureStudioWindow? _worldFeatureStudioWindow;
     private PostLaunchStudioWindow? _postLaunchStudioWindow;
     private FactionAdvancedWindow? _factionAdvancedWindow;
@@ -258,8 +314,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private ModuleConfigurationWindow? _moduleConfiguration;
     private AreaWorkspaceWindow? _areaWorkspace;
     private BuildPipelineWindow? _buildPipeline;
+    private ForgeScriptEditorWindow? _forgeScriptEditor;
     private DistributionProfilesWindow? _distributionProfiles;
     private ContentWorkflowWindow? _contentWorkflow;
+    private ContentPackageWindow? _contentPackageWindow;
     private NavigationConfigurationWindow? _navigationConfiguration;
     private CreatorWorkspaceWindow? _workspaceWindow;
     private RecoveryWindow? _recoveryWindow;
@@ -273,6 +331,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private AreaExperienceWindow? _areaExperienceWindow;
     private RuntimeExtensionsWindow? _runtimeExtensionsWindow;
     private AreaAuthoringWindow? _areaAuthoringWindow;
+    private AreaFoundationWindow? _areaFoundationWindow;
     private RpgKitAuthoringWindow? _rpgKitAuthoringWindow;
     private NetworkBetaWindow? _networkBetaWindow;
     private LiveDirectorWindow? _liveDirectorWindow;
@@ -280,7 +339,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private ProjectSession? _projectSession;
     private ProjectPreview3D? _projectPreview;
     private ProjectCommandHistory? _history;
+    private EditorUndoRedoManager? _nativeUndoRedo;
+    private bool _nativeUndoRedoCallback;
+    private int _nativeUndoRedoRegistrationCount;
     private AssetProcessingProfileCommandHistory? _assetProcessingProfileHistory;
+    private AssetGovernanceCommandHistory? _assetGovernanceHistory;
+    private QualityFoundationCommandHistory? _qualityFoundationHistory;
     private AssetPackageManifestCommandHistory? _assetPackageManifestHistory;
     private AssetExternalEditCommandHistory? _assetExternalEditHistory;
     private AssistedBlenderCreationCommandHistory? _assistedBlenderCreationHistory;
@@ -304,6 +368,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     public override void _EnterTree()
     {
+        _nativeUndoRedo = GetUndoRedo();
         var mainPanelScene = GD.Load<PackedScene>(MainPanelPath);
         _mainPanel = mainPanelScene.Instantiate<Control>();
         _mainPanel.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
@@ -331,8 +396,19 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _history?.State,
             ApplyDialogue,
             dialogueId => _dialoguePresentationWindow?.Open(dialogueId),
+            Undo,
+            Redo,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_dialogueEditor);
+        _questJournalWindow = new QuestJournalWindow();
+        _questJournalWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyQuestJournal,
+            Undo,
+            Redo,
+            () => _questOperationsWindow?.Open(),
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_questJournalWindow);
         _dialoguePresentationWindow = new DialoguePresentationWindow();
         _dialoguePresentationWindow.Initialize(
             () => _history?.State,
@@ -357,6 +433,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _assetBrowser.Initialize(
             GetRepositoryRoot,
             () => _projectSession?.RootDirectory,
+            () => _history?.State,
             () => _assetProcessingProfileHistory?.State,
             ApplyAssetProcessingProfile,
             UndoAssetProcessingProfile,
@@ -370,11 +447,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ConfigureAssetExternalEdit,
             UndoAssetExternalEdit,
             RedoAssetExternalEdit,
+            () => _assetGovernanceHistory?.State,
+            ApplyAssetGovernance,
+            UndoAssetGovernance,
+            RedoAssetGovernance,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_assetBrowser);
         _localizationWorkspace = new LocalizationWorkspaceWindow();
         _localizationWorkspace.Initialize(
             () => _history?.State,
+            () => _projectSession?.RootDirectory,
             ApplyLocalizationCatalog,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_localizationWorkspace);
@@ -483,6 +565,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _editorKeymapHistory?.CanRedo == true,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_editorKeymapWindow);
+        _creatureFoundationWindow = new CreatureFoundationWindow();
+        _creatureFoundationWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyCreatureFoundation,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_creatureFoundationWindow);
         _creaturePresentationWindow = new CreaturePresentationWindow();
         _creaturePresentationWindow.Initialize(
             () => _history?.State,
@@ -540,6 +630,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_itemAdvancedWindow);
+        _itemFoundationWindow = new ItemFoundationWindow();
+        _itemFoundationWindow.Initialize(
+            () => _history?.State,
+            PreviewOrApplyItemFoundation,
+            Undo,
+            Redo,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_itemFoundationWindow);
         _worldFeatureStudioWindow = new WorldFeatureStudioWindow();
         _worldFeatureStudioWindow.Initialize(
             () => _history?.State,
@@ -589,6 +687,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _globalSearch.Initialize(
             () => _history?.State,
             GetSearchDiagnostics,
+            () => _projectSession?.RootDirectory,
             ApplySafeRename,
             PublishSearchSelection,
             ApplyForgeWindowIcon);
@@ -606,6 +705,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ActivateArea,
             CreateArea,
             UpsertPortal,
+            ApplyAreaPlaytest,
             DuplicateArea,
             ResizeArea,
             OpenNavigationConfiguration,
@@ -617,6 +717,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             OpenRulesConfiguration,
             OpenAreaExperience,
             OpenAreaAuthoring,
+            OpenAreaFoundation,
+            StartPlaytestFromUi,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaWorkspace);
         _areaEnvironmentWindow = new AreaEnvironmentWindow();
@@ -652,6 +754,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _areaAuthoringWindow = new AreaAuthoringWindow();
         _areaAuthoringWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current, ApplyAreaAuthoring, ApplyForgeWindowIcon);
         _mainPanel.AddChild(_areaAuthoringWindow);
+        _areaFoundationWindow = new AreaFoundationWindow();
+        _areaFoundationWindow.Initialize(() => _history?.State, () => _activeAreaContext.Current,
+            ApplyAreaFoundation, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_areaFoundationWindow);
         _rpgKitAuthoringWindow = new RpgKitAuthoringWindow();
         _rpgKitAuthoringWindow.Initialize(
             () => _history?.State,
@@ -660,6 +766,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Redo,
             OpenDialogueEditor,
             () => _buildPipeline?.Open(),
+            () => _creatureFoundationWindow?.Open(),
             () => _creaturePresentationWindow?.Open(),
             () => _creatureProgressionWindow?.Open(),
             () => _creatureLootWindow?.Open(),
@@ -667,6 +774,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _creatureEventWindow?.Open(),
             () => _factionAdvancedWindow?.Open(),
             () => _questOperationsWindow?.Open(),
+            () => _itemFoundationWindow?.Open(),
             () => _itemAdvancedWindow?.Open(),
             () => _worldFeatureStudioWindow?.Open(),
             () => _postLaunchStudioWindow?.Open(),
@@ -698,6 +806,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _mainPanel.AddChild(_recoveryWindow);
         _qualityLabWindow = new QualityLabWindow();
         _qualityLabWindow.Initialize(() => _history?.State.Project, () => _projectSession?.RootDirectory,
+            () => _qualityFoundationHistory?.State,
+            ApplyQualityFoundation,
+            UndoQualityFoundation,
+            RedoQualityFoundation,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_qualityLabWindow);
         _navigationConfiguration = new NavigationConfigurationWindow();
@@ -713,6 +825,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _projectSession,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_buildPipeline);
+        _forgeScriptEditor = new ForgeScriptEditorWindow();
+        _forgeScriptEditor.Initialize(() => _projectSession, ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_forgeScriptEditor);
         _distributionProfiles = new DistributionProfilesWindow();
         _distributionProfiles.Initialize(
             () => _history?.State,
@@ -727,6 +842,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
             () => _projectSession?.RootDirectory,
             ApplyForgeWindowIcon);
         _mainPanel.AddChild(_contentWorkflow);
+        _contentPackageWindow = new ContentPackageWindow();
+        _contentPackageWindow.Initialize(
+            () => _history?.State,
+            ApplyContentWorkspace,
+            () => _projectSession?.RootDirectory,
+            ApplyForgeWindowIcon);
+        _mainPanel.AddChild(_contentPackageWindow);
         _projectPreview = new ProjectPreview3D();
         _projectPreview.Initialize(
             () => _history?.State,
@@ -756,6 +878,63 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _mainThreadActions.Enqueue(ShowNewModuleDialog);
         }
 
+        var projectFoundationCapture = userArguments.FirstOrDefault(argument =>
+            argument.StartsWith("--r024-project-foundation-ui-capture=", StringComparison.Ordinal));
+        if (projectFoundationCapture is not null)
+        {
+            _projectFoundationCapturePath = projectFoundationCapture[
+                "--r024-project-foundation-ui-capture=".Length..];
+            _mainThreadActions.Enqueue(ShowNewModuleDialog);
+        }
+
+        var areaFoundationCapture = userArguments.FirstOrDefault(argument =>
+            argument.StartsWith("--r028-area-foundation-ui-capture=", StringComparison.Ordinal));
+        if (areaFoundationCapture is not null)
+        {
+            _areaFoundationCapturePath = areaFoundationCapture[
+                "--r028-area-foundation-ui-capture=".Length..];
+        }
+
+        var areaRuntimeCapture = userArguments.FirstOrDefault(argument =>
+            argument.StartsWith("--r029-area-runtime-ui-capture=", StringComparison.Ordinal));
+        if (areaRuntimeCapture is not null)
+        {
+            _areaRuntimeCapturePath = areaRuntimeCapture["--r029-area-runtime-ui-capture=".Length..];
+        }
+
+        var r035DiagnosticsCapture = userArguments.FirstOrDefault(argument =>
+            argument.StartsWith("--r035-diagnostics-ui-capture=", StringComparison.Ordinal));
+        if (r035DiagnosticsCapture is not null)
+        {
+            _r035DiagnosticsCapturePath = r035DiagnosticsCapture[
+                "--r035-diagnostics-ui-capture=".Length..];
+        }
+
+        var r036ScaleCapture = userArguments.FirstOrDefault(argument =>
+            argument.StartsWith("--r036-ee-scale-ui-capture=", StringComparison.Ordinal));
+        if (r036ScaleCapture is not null)
+        {
+            _r036ScaleCapturePath = r036ScaleCapture["--r036-ee-scale-ui-capture=".Length..];
+        }
+
+        var r038CreatureFoundationCapture = userArguments.FirstOrDefault(argument =>
+            argument.StartsWith("--r038-creature-foundation-ui-capture=", StringComparison.Ordinal));
+        if (r038CreatureFoundationCapture is not null)
+            _r038CreatureFoundationCapturePath = r038CreatureFoundationCapture[
+                "--r038-creature-foundation-ui-capture=".Length..];
+
+        var r039CreatureEventsCapture = userArguments.FirstOrDefault(argument =>
+            argument.StartsWith("--r039-creature-events-ui-capture=", StringComparison.Ordinal));
+        if (r039CreatureEventsCapture is not null)
+            _r039CreatureEventsCapturePath = r039CreatureEventsCapture[
+                "--r039-creature-events-ui-capture=".Length..];
+
+        var r044ItemFoundationCapture = userArguments.FirstOrDefault(argument =>
+            argument.StartsWith("--r044-item-foundation-ui-capture=", StringComparison.Ordinal));
+        if (r044ItemFoundationCapture is not null)
+            _r044ItemFoundationCapturePath = r044ItemFoundationCapture[
+                "--r044-item-foundation-ui-capture=".Length..];
+
         if (userArguments.Contains("--show-entity-properties-dialog", StringComparer.Ordinal))
         {
             _showEntityPropertiesDialogWhenReady = true;
@@ -777,6 +956,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
     public override void _ExitTree()
     {
         SetProcessInput(false);
+        _nativeUndoRedo = null;
         DisconnectSignals();
         if (_mainPanel is not null && GodotObject.IsInstanceValid(_mainPanel))
         {
@@ -816,8 +996,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _applyScaleButton = null;
         _overridesButton = null;
         _copyButton = null;
+        _cutButton = null;
         _pasteButton = null;
         _duplicateButton = null;
+        _independentCopy = null;
         _undoButton = null;
         _redoButton = null;
         _playButton = null;
@@ -837,9 +1019,31 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _newModuleLocationDialog = null;
         _newModuleTitle = null;
         _newModuleDescription = null;
+        _newModuleTemplate = null;
+        _newModuleKits = null;
+        _newModulePlatform = null;
+        _newModuleRules = null;
+        _newModuleRender = null;
+        _newModuleNetwork = null;
+        _newModulePackageNamespace = null;
+        _newModuleCreateInitialArea = null;
         _newModuleAreaName = null;
+        _newModuleAreaKind = null;
+        _newModuleAreaWidth = null;
+        _newModuleAreaDepth = null;
+        _newModuleGameMode = null;
+        _newModuleEntryClass = null;
+        _newModulePlayerRule = null;
+        _newModuleSummary = null;
         _newModuleNextButton = null;
         _newModuleCancelButton = null;
+        _projectFoundationCapturePath = null;
+        _areaFoundationCapturePath = null;
+        _areaRuntimeCapturePath = null;
+        _r035DiagnosticsCapturePath = null;
+        _r036ScaleCapturePath = null;
+        _r038CreatureFoundationCapturePath = null;
+        _r039CreatureEventsCapturePath = null;
         _entityPropertiesDialog = null;
         _entityPropertiesIdentity = null;
         _entityPropertiesList = null;
@@ -852,6 +1056,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _entityPropertiesSaveButton = null;
         _entityPropertiesCancelButton = null;
         _dialogueEditor = null;
+        _questJournalWindow = null;
         _blueprintCatalog = null;
         _assetBrowser = null;
         _localizationWorkspace = null;
@@ -859,20 +1064,24 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _externalWorkerSecurityWindow = null;
         _editorKeymapWindow = null;
         _creaturePresentationWindow = null;
+        _creatureFoundationWindow = null;
         _creatureProgressionWindow = null;
         _creatureLootWindow = null;
         _creatureRoleBehaviorWindow = null;
         _creatureEventWindow = null;
         _questOperationsWindow = null;
         _itemAdvancedWindow = null;
+        _itemFoundationWindow = null;
         _worldFeatureStudioWindow = null;
         _loreIndexWindow = null;
         _globalSearch = null;
         _moduleConfiguration = null;
         _areaWorkspace = null;
         _buildPipeline = null;
+        _forgeScriptEditor = null;
         _distributionProfiles = null;
         _contentWorkflow = null;
+        _contentPackageWindow = null;
         _navigationConfiguration = null;
         _workspaceWindow = null;
         _recoveryWindow = null;
@@ -882,12 +1091,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _cinematicStudioWindow = null;
         _gameplayControlsWindow = null;
         _areaAuthoringWindow = null;
+        _areaFoundationWindow = null;
         _rpgKitAuthoringWindow = null;
         _creatorShell = null;
         _projectSession = null;
         _projectPreview = null;
         _history = null;
         _assetProcessingProfileHistory = null;
+        _assetGovernanceHistory = null;
+        _qualityFoundationHistory = null;
         _assetPackageManifestHistory = null;
         _assetExternalEditHistory = null;
         _externalWorkerSecurityHistory = null;
@@ -899,6 +1111,192 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     public override void _Process(double delta)
     {
+        if (_r044ItemFoundationCapturePath is not null)
+        {
+            _r044ItemFoundationCaptureElapsed += delta;
+            if (!_r044ItemFoundationCapturePrepared && _r044ItemFoundationCaptureElapsed >= 4 &&
+                _itemFoundationWindow is not null)
+            {
+                _itemFoundationWindow.Open();
+                _r044ItemFoundationCapturePrepared = _itemFoundationWindow.PrepareForCapture();
+                _r044ItemFoundationCaptureElapsed = 0;
+            }
+            else if (_r044ItemFoundationCapturePrepared && _itemFoundationWindow?.Visible == true &&
+                     _r044ItemFoundationCaptureElapsed >= 2)
+            {
+                var destination = Path.GetFullPath(_r044ItemFoundationCapturePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                var error = _itemFoundationWindow.GetViewport().GetTexture().GetImage().SavePng(destination);
+                GD.Print($"OPENRPG_FORGE_R044_ITEM_FOUNDATION_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} path={destination}");
+                _r044ItemFoundationCapturePath = null;
+                GetTree().Quit(error == Error.Ok ? 0 : 1);
+            }
+        }
+
+        if (_r039CreatureEventsCapturePath is not null)
+        {
+            _r039CreatureEventsCaptureElapsed += delta;
+            if (!_r039CreatureEventsCapturePrepared && _r039CreatureEventsCaptureElapsed >= 4 &&
+                _creatureEventWindow is not null)
+            {
+                _creatureEventWindow.Open();
+                _r039CreatureEventsCapturePrepared = _creatureEventWindow.PrepareForCapture();
+                _r039CreatureEventsCaptureElapsed = 0;
+            }
+            else if (_r039CreatureEventsCapturePrepared && _creatureEventWindow?.Visible == true &&
+                     _r039CreatureEventsCaptureElapsed >= 2)
+            {
+                var destination = Path.GetFullPath(_r039CreatureEventsCapturePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                var error = _creatureEventWindow.GetViewport().GetTexture().GetImage().SavePng(destination);
+                GD.Print($"OPENRPG_FORGE_R039_CREATURE_EVENTS_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} path={destination}");
+                _r039CreatureEventsCapturePath = null;
+                _r044ItemFoundationCapturePath = null;
+                GetTree().Quit(error == Error.Ok ? 0 : 1);
+            }
+        }
+
+        if (_r038CreatureFoundationCapturePath is not null)
+        {
+            _r038CreatureFoundationCaptureElapsed += delta;
+            if (!_r038CreatureFoundationCapturePrepared && _r038CreatureFoundationCaptureElapsed >= 4 &&
+                _creatureFoundationWindow is not null)
+            {
+                _creatureFoundationWindow.Open();
+                _r038CreatureFoundationCapturePrepared = _creatureFoundationWindow.PrepareForCapture();
+                _r038CreatureFoundationCaptureElapsed = 0;
+            }
+            else if (_r038CreatureFoundationCapturePrepared && _creatureFoundationWindow?.Visible == true &&
+                     _r038CreatureFoundationCaptureElapsed >= 2)
+            {
+                var destination = Path.GetFullPath(_r038CreatureFoundationCapturePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                var error = _creatureFoundationWindow.GetViewport().GetTexture().GetImage().SavePng(destination);
+                GD.Print($"OPENRPG_FORGE_R038_CREATURE_FOUNDATION_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} path={destination}");
+                _r038CreatureFoundationCapturePath = null;
+                GetTree().Quit(error == Error.Ok ? 0 : 1);
+            }
+        }
+
+        if (_r036ScaleCapturePath is not null)
+        {
+            _r036ScaleCaptureElapsed += delta;
+            if (!_r036ScaleCapturePrepared && _r036ScaleCaptureElapsed >= 4 &&
+                _projectSession is not null && _projectPreview is not null)
+            {
+                var entity = _projectSession.Project.Areas
+                    .SelectMany(area => area.Entities)
+                    .FirstOrDefault(candidate => candidate.Tags.Contains("architecture"));
+                _r036ScaleCapturePrepared = entity is not null &&
+                    _projectPreview.SelectEntityForSmokeTest(entity.Id) &&
+                    _projectPreview.PrepareScaleGizmoForCapture(ProjectPreview3D.ScaleGizmoAxis.X);
+                _r036ScaleCaptureElapsed = 0;
+            }
+            else if (_r036ScaleCapturePrepared && _r036ScaleCaptureElapsed >= 1 && _mainPanel is not null)
+            {
+                var destination = Path.GetFullPath(_r036ScaleCapturePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                var error = _mainPanel.GetViewport().GetTexture().GetImage().SavePng(destination);
+                GD.Print($"OPENRPG_FORGE_R036_EE_SCALE_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                         $"path={destination}");
+                _r036ScaleCapturePath = null;
+                GetTree().Quit(error == Error.Ok ? 0 : 1);
+            }
+        }
+
+        if (_r035DiagnosticsCapturePath is not null)
+        {
+            _r035DiagnosticsCaptureElapsed += delta;
+            if (!_r035DiagnosticsCapturePrepared && _r035DiagnosticsCaptureElapsed >= 4 &&
+                _creatorShell is not null)
+            {
+                _creatorShell.SetDiagnostics([
+                    CreatorDiagnostic.Create(CreatorDiagnosticSeverity.Error,
+                        "project.reference.blueprint_missing", "Blueprint introuvable.",
+                        "areas/crypt/entities/warden", "build:r035"),
+                    CreatorDiagnostic.Create(CreatorDiagnosticSeverity.Warning,
+                        "area.navigation.portal_missing", "Portail de destination introuvable.",
+                        "areas/crypt/portals/exit", "build:r035"),
+                ]);
+                _creatorShell.FilterDiagnosticsForSmokeTest(null, CreatorDiagnosticSeverity.Information,
+                    string.Empty, string.Empty, expectedCount: 2);
+                _r035DiagnosticsCapturePrepared = true;
+                _r035DiagnosticsCaptureElapsed = 0;
+            }
+            else if (_r035DiagnosticsCapturePrepared && _r035DiagnosticsCaptureElapsed >= 0.5 &&
+                     _mainPanel is not null)
+            {
+                var destination = Path.GetFullPath(_r035DiagnosticsCapturePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                var error = _mainPanel.GetViewport().GetTexture().GetImage().SavePng(destination);
+                GD.Print($"OPENRPG_FORGE_R035_DIAGNOSTICS_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                         $"path={destination}");
+                _r035DiagnosticsCapturePath = null;
+                GetTree().Quit(error == Error.Ok ? 0 : 1);
+            }
+        }
+
+        if (_areaRuntimeCapturePath is not null)
+        {
+            _areaRuntimeCaptureElapsed += delta;
+            if (!_areaRuntimeCapturePrepared && _areaRuntimeCaptureElapsed >= 4 && _areaWorkspace is not null)
+            {
+                _areaWorkspace.Open();
+                _areaRuntimeCapturePrepared = _areaWorkspace.PrepareRuntimeValidationForSmokeTest();
+                _areaWorkspace.ShowRuntimeValidationForCapture();
+                _areaRuntimeCaptureElapsed = 0;
+            }
+            else if (_areaRuntimeCapturePrepared && _areaWorkspace?.Visible == true &&
+                     _areaRuntimeCaptureElapsed >= 2)
+            {
+                var destination = Path.GetFullPath(_areaRuntimeCapturePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                var error = _areaWorkspace.GetViewport().GetTexture().GetImage().SavePng(destination);
+                GD.Print($"OPENRPG_FORGE_R029_AREA_RUNTIME_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} path={destination}");
+                _areaRuntimeCapturePath = null;
+                GetTree().Quit(error == Error.Ok ? 0 : 1);
+            }
+        }
+
+        if (_areaFoundationCapturePath is not null)
+        {
+            _areaFoundationCaptureElapsed += delta;
+            if (!_areaFoundationCapturePrepared && _areaFoundationCaptureElapsed >= 4 &&
+                _areaFoundationWindow is not null)
+            {
+                _areaFoundationWindow.Open();
+                if (_areaFoundationWindow.PrepareForSmokeTest())
+                {
+                    _areaFoundationCapturePrepared = true;
+                    _areaFoundationCaptureElapsed = 0;
+                }
+            }
+            else if (_areaFoundationCapturePrepared && _areaFoundationWindow?.Visible == true &&
+                     _areaFoundationCaptureElapsed >= 2)
+            {
+                var destination = Path.GetFullPath(_areaFoundationCapturePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                var error = _areaFoundationWindow.GetViewport().GetTexture().GetImage().SavePng(destination);
+                GD.Print($"OPENRPG_FORGE_R028_AREA_FOUNDATION_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} path={destination}");
+                _areaFoundationCapturePath = null;
+                GetTree().Quit(error == Error.Ok ? 0 : 1);
+            }
+        }
+
+        if (_projectFoundationCapturePath is not null && _newModuleDialog?.Visible == true)
+        {
+            _projectFoundationCaptureElapsed += delta;
+            if (_projectFoundationCaptureElapsed >= 2)
+            {
+                var destination = Path.GetFullPath(_projectFoundationCapturePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                var error = _newModuleDialog.GetViewport().GetTexture().GetImage().SavePng(destination);
+                GD.Print($"OPENRPG_FORGE_R024_PROJECT_FOUNDATION_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} path={destination}");
+                _projectFoundationCapturePath = null;
+                GetTree().Quit(error == Error.Ok ? 0 : 1);
+            }
+        }
+
         if (_showEntityPropertiesDialogWhenReady)
         {
             _editorReadyElapsed += delta;
@@ -1035,8 +1433,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _applyScaleButton = GetControl<Button>("Margin/Content/Editing/ScaleRow/ApplyScale");
         _overridesButton = GetControl<Button>("Margin/Content/Editing/OverridesRow/OverridesButton");
         _copyButton = GetControl<Button>("Margin/Content/Editing/ClipboardRow/CopyButton");
+        _cutButton = GetControl<Button>("Margin/Content/Editing/ClipboardRow/CutButton");
         _pasteButton = GetControl<Button>("Margin/Content/Editing/ClipboardRow/PasteButton");
         _duplicateButton = GetControl<Button>("Margin/Content/Editing/ClipboardRow/DuplicateButton");
+        _independentCopy = GetControl<CheckButton>("Margin/Content/Editing/ClipboardRow/IndependentCopy");
         _overridesSummary = GetControl<Label>("Margin/Content/Editing/OverridesRow/OverridesSummary");
         _clipboardSummary = GetControl<Label>("Margin/Content/Editing/ClipboardRow/ClipboardSummary");
         _undoButton = GetControl<Button>("Margin/Content/Editing/HistoryRow/UndoButton");
@@ -1055,12 +1455,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
     {
         _newModuleDialog = new Window
         {
-            Title = "Créer un nouveau module Forge",
-            MinSize = new Vector2I(640, 620),
-            Size = new Vector2I(640, 620),
+            Title = "Assistant de projet · OpenRPG Forge",
+            MinSize = new Vector2I(980, 900),
+            Size = new Vector2I(980, 900),
             Exclusive = false,
             Transient = true,
-            Unresizable = true,
+            Unresizable = false,
             Visible = false,
         };
         _mainPanel!.AddChild(_newModuleDialog);
@@ -1088,42 +1488,111 @@ public partial class ForgeEditorPlugin : EditorPlugin
         margin.AddThemeConstantOverride("margin_bottom", 20);
         background.AddChild(margin);
 
-        var form = new VBoxContainer();
-        form.AddThemeConstantOverride("separation", 10);
-        margin.AddChild(form);
-        form.AddChild(new Label
+        var layout = new VBoxContainer();
+        layout.AddThemeConstantOverride("separation", 12);
+        margin.AddChild(layout);
+        layout.AddChild(new Label
         {
-            Text = "NOUVEAU MODULE",
+            Text = "NOUVEAU PROJET",
             ThemeTypeVariation = "HeaderSmall",
         });
-        form.AddChild(new Label
+        layout.AddChild(new Label
         {
-            Text = "Forge prépare une première zone jouable que vous pourrez enrichir immédiatement.",
+            Text = "Choisissez une fondation technique stable. Un résumé vérifiable précède toute écriture.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
-        form.AddChild(new Label { Text = "Titre du module" });
+
+        var scroll = new ScrollContainer
+        {
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+        };
+        layout.AddChild(scroll);
+        var columns = new HBoxContainer
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        columns.AddThemeConstantOverride("separation", 18);
+        scroll.AddChild(columns);
+
+        var identity = NewWizardColumn("IDENTITÉ & CIBLE");
+        var world = NewWizardColumn("PREMIÈRE EXPÉRIENCE");
+        columns.AddChild(identity);
+        columns.AddChild(world);
+
+        identity.AddChild(new Label { Text = "Titre du module · obligatoire" });
         _newModuleTitle = new LineEdit
         {
             PlaceholderText = "Les Îles Brisées",
             Text = "Mon nouveau module",
         };
-        form.AddChild(_newModuleTitle);
-        form.AddChild(new Label { Text = "Description" });
+        identity.AddChild(_newModuleTitle);
+        identity.AddChild(new Label { Text = "Résumé localisé · français" });
         _newModuleDescription = new TextEdit
         {
-            CustomMinimumSize = new Vector2(520, 86),
+            CustomMinimumSize = new Vector2(410, 76),
             PlaceholderText = "Décrivez en quelques lignes l’aventure et son ambiance.",
             WrapMode = TextEdit.LineWrappingMode.Boundary,
         };
-        form.AddChild(_newModuleDescription);
-        form.AddChild(new Label { Text = "Première zone" });
+        identity.AddChild(_newModuleDescription);
+        identity.AddChild(new Label { Text = "Type de projet" });
+        _newModuleTemplate = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _newModuleTemplate.AddItem("RPG · zone jouable requise", (int)ProjectTemplateKind.Rpg);
+        _newModuleTemplate.AddItem("Core · menus, sans zone", (int)ProjectTemplateKind.CoreMenu);
+        _newModuleTemplate.AddItem("Core · simulation, zone optionnelle", (int)ProjectTemplateKind.CoreSimulation);
+        _newModuleTemplate.ItemSelected += NewModuleTemplateSelected;
+        identity.AddChild(_newModuleTemplate);
+        identity.AddChild(new Label { Text = "Kits · séparés par des virgules" });
+        _newModuleKits = new LineEdit { Text = "forge-core, forge-rpg-kit" };
+        identity.AddChild(_newModuleKits);
+        identity.AddChild(new Label { Text = "Plateforme cible" });
+        _newModulePlatform = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _newModulePlatform.AddItem("Windows x64", (int)ModuleDistributionPlatform.WindowsX64);
+        _newModulePlatform.AddItem("Linux x64", (int)ModuleDistributionPlatform.LinuxX64);
+        _newModulePlatform.AddItem("macOS Apple Silicon", (int)ModuleDistributionPlatform.MacOSArm64);
+        identity.AddChild(_newModulePlatform);
+        identity.AddChild(new Label { Text = "Fournisseur de règles" });
+        _newModuleRules = new LineEdit { Text = "forge.generic" };
+        identity.AddChild(_newModuleRules);
+        identity.AddChild(new Label { Text = "Espace de noms du package · vide = automatique" });
+        _newModulePackageNamespace = new LineEdit { PlaceholderText = "module.mon-projet" };
+        identity.AddChild(_newModulePackageNamespace);
+
+        var presets = new HBoxContainer();
+        presets.AddThemeConstantOverride("separation", 8);
+        identity.AddChild(presets);
+        var renderColumn = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        renderColumn.AddChild(new Label { Text = "Rendu" });
+        _newModuleRender = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _newModuleRender.AddItem("Équilibré", (int)ProjectRenderPreset.Balanced);
+        _newModuleRender.AddItem("Qualité", (int)ProjectRenderPreset.Quality);
+        _newModuleRender.AddItem("Performance", (int)ProjectRenderPreset.Performance);
+        renderColumn.AddChild(_newModuleRender);
+        presets.AddChild(renderColumn);
+        var networkColumn = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        networkColumn.AddChild(new Label { Text = "Réseau" });
+        _newModuleNetwork = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _newModuleNetwork.AddItem("Hors ligne", (int)ProjectNetworkMode.Offline);
+        _newModuleNetwork.AddItem("Pair à pair", (int)ProjectNetworkMode.PeerToPeer);
+        _newModuleNetwork.AddItem("Serveur dédié", (int)ProjectNetworkMode.DedicatedServer);
+        networkColumn.AddChild(_newModuleNetwork);
+        presets.AddChild(networkColumn);
+
+        _newModuleCreateInitialArea = new CheckButton
+        {
+            Text = "Créer une première zone",
+            ButtonPressed = true,
+        };
+        _newModuleCreateInitialArea.Toggled += NewModuleCreateInitialAreaToggled;
+        world.AddChild(_newModuleCreateInitialArea);
+        world.AddChild(new Label { Text = "Nom de la première zone" });
         _newModuleAreaName = new LineEdit
         {
             PlaceholderText = "Zone de départ",
             Text = "Zone de départ",
         };
-        form.AddChild(_newModuleAreaName);
-        form.AddChild(new Label { Text = "Type de première zone" });
+        world.AddChild(_newModuleAreaName);
+        world.AddChild(new Label { Text = "Type de zone" });
         _newModuleAreaKind = new OptionButton
         {
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
@@ -1131,11 +1600,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _newModuleAreaKind.AddItem("Intérieur · pièce ou donjon", (int)AreaKind.Interior);
         _newModuleAreaKind.AddItem("Extérieur · terrain sculptable", (int)AreaKind.Exterior);
         _newModuleAreaKind.ItemSelected += NewModuleAreaKindSelected;
-        form.AddChild(_newModuleAreaKind);
+        world.AddChild(_newModuleAreaKind);
 
         var dimensions = new HBoxContainer();
         dimensions.AddThemeConstantOverride("separation", 10);
-        form.AddChild(dimensions);
+        world.AddChild(dimensions);
         dimensions.AddChild(new Label
         {
             Text = "Dimensions (m)",
@@ -1148,12 +1617,52 @@ public partial class ForgeEditorPlugin : EditorPlugin
         dimensions.AddChild(new Label { Text = "Profondeur" });
         dimensions.AddChild(_newModuleAreaDepth);
 
+        world.AddChild(new Label { Text = "Mode de jeu d’entrée" });
+        _newModuleGameMode = new LineEdit { Text = "campaign" };
+        world.AddChild(_newModuleGameMode);
+        world.AddChild(new Label { Text = "Classe d’entrée" });
+        _newModuleEntryClass = new LineEdit { Text = "adventurer" };
+        world.AddChild(_newModuleEntryClass);
+        world.AddChild(new Label { Text = "Sélection du joueur" });
+        _newModulePlayerRule = new LineEdit
+        {
+            Text = "default",
+            TooltipText = "default, player:<id> ou tag:<tag>",
+        };
+        world.AddChild(_newModulePlayerRule);
+
+        var summaryPanel = new PanelContainer();
+        summaryPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color("21182e"),
+            BorderColor = new Color("62458a"),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 8,
+            CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8,
+            CornerRadiusBottomRight = 8,
+            ContentMarginLeft = 14,
+            ContentMarginTop = 10,
+            ContentMarginRight = 14,
+            ContentMarginBottom = 10,
+        });
+        world.AddChild(summaryPanel);
+        _newModuleSummary = new Label
+        {
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Text = "Résumé · RPG · Windows x64 · zone intérieure 32 × 32 · départ campaign/adventurer",
+        };
+        summaryPanel.AddChild(_newModuleSummary);
+
         var buttons = new HBoxContainer
         {
             Alignment = BoxContainer.AlignmentMode.End,
         };
         buttons.AddThemeConstantOverride("separation", 8);
-        form.AddChild(buttons);
+        layout.AddChild(buttons);
         _newModuleCancelButton = new Button
         {
             CustomMinimumSize = new Vector2(120, 38),
@@ -1162,8 +1671,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         buttons.AddChild(_newModuleCancelButton);
         _newModuleNextButton = new Button
         {
-            CustomMinimumSize = new Vector2(190, 38),
-            Text = "Choisir l’emplacement",
+            CustomMinimumSize = new Vector2(250, 38),
+            Text = "Valider et choisir l’emplacement",
         };
         _newModuleNextButton.AddThemeColorOverride("font_color", Colors.White);
         _newModuleNextButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat
@@ -1183,6 +1692,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
             Title = "Choisir le dossier parent du nouveau module",
         };
         _mainPanel.AddChild(_newModuleLocationDialog);
+    }
+
+    private static VBoxContainer NewWizardColumn(string heading)
+    {
+        var column = new VBoxContainer
+        {
+            CustomMinimumSize = new Vector2(430, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        column.AddThemeConstantOverride("separation", 8);
+        column.AddChild(new Label { Text = heading, ThemeTypeVariation = "HeaderSmall" });
+        return column;
     }
 
     private void CreateEntityPropertiesDialog()
@@ -1378,6 +1899,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _applyScaleButton!.Pressed += ApplySelectedScale;
         _overridesButton!.Pressed += ShowEntityPropertiesDialog;
         _copyButton!.Pressed += CopySelectedEntity;
+        _cutButton!.Pressed += CutSelectedEntities;
         _pasteButton!.Pressed += PasteSemanticClipboard;
         _duplicateButton!.Pressed += DuplicateSelectedEntity;
         _entityPicker!.ItemSelected += EntitySelectionChanged;
@@ -1401,6 +1923,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _creatorShell!.ExplorerSelectionRequested += HandleExplorerSelection;
         _creatorShell.DiagnosticSelectionRequested += HandleDiagnosticSelection;
         _creatorShell.DiagnosticQuickFixRequested += HandleDiagnosticQuickFix;
+        _creatorShell.DiagnosticExportRequested += HandleDiagnosticExport;
         _creatorShell.WorkspaceRequested += HandleWorkspaceRequest;
         _creatorShell.SelectionLockRequested += HandleSelectionLockRequest;
         _creatorShell.AreaTabRequested += HandleAreaTabRequested;
@@ -1435,6 +1958,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_applyScaleButton is not null) _applyScaleButton.Pressed -= ApplySelectedScale;
         if (_overridesButton is not null) _overridesButton.Pressed -= ShowEntityPropertiesDialog;
         if (_copyButton is not null) _copyButton.Pressed -= CopySelectedEntity;
+        if (_cutButton is not null) _cutButton.Pressed -= CutSelectedEntities;
         if (_pasteButton is not null) _pasteButton.Pressed -= PasteSemanticClipboard;
         if (_duplicateButton is not null) _duplicateButton.Pressed -= DuplicateSelectedEntity;
         if (_entityPicker is not null) _entityPicker.ItemSelected -= EntitySelectionChanged;
@@ -1444,6 +1968,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_projectDialog is not null) _projectDialog.DirSelected -= OpenSelectedProject;
         if (_exportDialog is not null) _exportDialog.FileSelected -= ExportModule;
         if (_newModuleAreaKind is not null) _newModuleAreaKind.ItemSelected -= NewModuleAreaKindSelected;
+        if (_newModuleTemplate is not null) _newModuleTemplate.ItemSelected -= NewModuleTemplateSelected;
+        if (_newModuleCreateInitialArea is not null)
+            _newModuleCreateInitialArea.Toggled -= NewModuleCreateInitialAreaToggled;
         if (_newModuleNextButton is not null) _newModuleNextButton.Pressed -= ChooseNewModuleLocation;
         if (_newModuleCancelButton is not null) _newModuleCancelButton.Pressed -= HideNewModuleDialog;
         if (_newModuleDialog is not null) _newModuleDialog.CloseRequested -= HideNewModuleDialog;
@@ -1461,6 +1988,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _creatorShell.ExplorerSelectionRequested -= HandleExplorerSelection;
             _creatorShell.DiagnosticSelectionRequested -= HandleDiagnosticSelection;
             _creatorShell.DiagnosticQuickFixRequested -= HandleDiagnosticQuickFix;
+            _creatorShell.DiagnosticExportRequested -= HandleDiagnosticExport;
             _creatorShell.WorkspaceRequested -= HandleWorkspaceRequest;
             _creatorShell.SelectionLockRequested -= HandleSelectionLockRequest;
             _creatorShell.AreaTabRequested -= HandleAreaTabRequested;
@@ -1496,7 +2024,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         if (string.Equals(workspace, "Quêtes", StringComparison.Ordinal))
         {
-            _rpgKitAuthoringWindow?.Open();
+            _questJournalWindow?.Open();
             return;
         }
 
@@ -1508,7 +2036,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         if (string.Equals(workspace, "Scripts", StringComparison.Ordinal))
         {
-            _buildPipeline?.Open();
+            _forgeScriptEditor?.Open();
             return;
         }
 
@@ -1520,7 +2048,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         if (string.Equals(workspace, "Données", StringComparison.Ordinal))
         {
-            _runtimeExtensionsWindow?.Open();
+            _contentPackageWindow?.Open();
             return;
         }
 
@@ -1660,11 +2188,44 @@ public partial class ForgeEditorPlugin : EditorPlugin
             quickFix.EntityId);
     }
 
+    private void HandleDiagnosticExport(IReadOnlyList<CreatorDiagnostic> diagnostics)
+    {
+        if (_projectSession is null || _creatorShell is null) return;
+        try
+        {
+            var exported = CreatorDiagnosticBundleExporter.Export(
+                _projectSession.RootDirectory,
+                diagnostics,
+                _playtestLog?.Text);
+            var message =
+                $"✓ Bundle exporté · {exported.DiagnosticCount} diagnostic(s) · {exported.RelativePath}";
+            _creatorShell.SetDiagnosticExportStatus(message, failed: false);
+            if (_statusLabel is not null) _statusLabel.Text = "✓ Diagnostics exportés";
+            if (_detailsLabel is not null)
+                _detailsLabel.Text = $"{exported.RelativePath}\nSHA-256 · {exported.Sha256}";
+            GD.Print(
+                $"OPENRPG_FORGE_TOOLSET_DIAGNOSTICS_EXPORTED count={exported.DiagnosticCount} " +
+                $"runtime={exported.IncludesRuntimeLog.ToString().ToLowerInvariant()} " +
+                $"reused={exported.Reused.ToString().ToLowerInvariant()} sha256={exported.Sha256}");
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException or DirectoryNotFoundException or IOException or UnauthorizedAccessException)
+        {
+            _creatorShell.SetDiagnosticExportStatus($"✕ Export impossible · {exception.Message}", failed: true);
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_DIAGNOSTICS_EXPORT_FAILED {exception.Message}");
+        }
+    }
+
     private void HandleSelectionLockRequest(bool locked) => _selectionContext.SetLocked(locked);
 
     private void HandleSharedSelectionChanged()
     {
         _creatorShell?.SetSelection(_selectionContext.Current, _selectionContext.IsLocked);
+        if (_history is not null && _selectionContext.Current.Count > 1)
+        {
+            _creatorShell?.SetSelectionInspection(CreatorSelectionInspector.Inspect(
+                _history.State.Project, _selectionContext.Current, "creator-shell-inspector"));
+        }
         var entitySelection = _selectionContext.Current.Count == 1 &&
             _selectionContext.Current[0].Kind == CreatorSelectionKind.Entity
                 ? _selectionContext.Current[0]
@@ -1877,7 +2438,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (_projectSession is null) return;
         EditorWorkspaceProfileStore.Save(_projectSession.RootDirectory, profile);
         _projectPreview?.SetDisplayFilter(profile.DisplayFilter);
+        _projectPreview?.SetEditorMode(profile.Shell.ViewportMode);
+        _creatorShell?.ApplyShellConfiguration(profile.Shell);
         ApplyEditorExperience(profile);
+        RefreshCreatorShell();
         GD.Print("OPENRPG_FORGE_WORKSPACE_PROFILE_SAVED");
     }
 
@@ -1960,6 +2524,24 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private void OpenAreaExperience() => _areaExperienceWindow?.Open();
 
     private void OpenAreaAuthoring() => _areaAuthoringWindow?.Open();
+
+    private void OpenAreaFoundation() => _areaFoundationWindow?.Open();
+
+    private bool ApplyAreaFoundation(AreaId areaId, AreaFoundationProfile profile)
+    {
+        if (_history is null) return false;
+        return ApplyCommand(_setAreaFoundationHandler.Handle(_history.State,
+            new SetAreaFoundationCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, areaId,
+                profile, false)), "Fondation de zone mise à jour.", null);
+    }
+
+    private bool ApplyAreaPlaytest(AreaId areaId, AreaPlaytestProfile profile)
+    {
+        if (_history is null) return false;
+        return ApplyCommand(_setAreaPlaytestHandler.Handle(_history.State,
+            new SetAreaPlaytestCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, areaId,
+                profile, false)), "Play From Here configuré.", null);
+    }
 
     private bool ApplyAreaAuthoring(AreaId areaId, AreaAuthoringProfile profile)
     {
@@ -2095,7 +2677,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
         string displayName,
         AreaKind kind,
         AreaDimensions dimensions,
-        AreaTemplateKind template)
+        AreaTemplateKind template) =>
+        CreateArea(displayName, kind, dimensions, template, AreaCreationSettings.CreateDefault(kind));
+
+    private AreaId? CreateArea(
+        string displayName,
+        AreaKind kind,
+        AreaDimensions dimensions,
+        AreaTemplateKind template,
+        AreaCreationSettings creation)
     {
         if (_history is null)
         {
@@ -2120,7 +2710,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             template,
             spawnBlueprintId,
             spawnEntityId,
-            DryRun: false);
+            DryRun: false,
+            Foundation: CreateAreaFoundation(areaId, kind, creation));
         if (!ApplyCommand(
                 _createAreaHandler.Handle(_history.State, command),
                 $"Zone « {displayName} » créée.",
@@ -2131,6 +2722,19 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         ActivateArea(areaId);
         return areaId;
+    }
+
+    private static AreaFoundationProfile CreateAreaFoundation(
+        AreaId areaId,
+        AreaKind kind,
+        AreaCreationSettings creation)
+    {
+        var defaults = AreaFoundationProfile.CreateDefault(areaId, kind);
+        return new(defaults.Id, defaults.SchemaVersion, "author:area-wizard", creation,
+            new(defaults.TileKit.Id, defaults.TileKit.SchemaVersion, "author:area-wizard",
+                defaults.TileKit.GridSizeMeters, defaults.TileKit.Definitions, defaults.TileKit.ConnectionRules,
+                defaults.TileKit.Placements, defaults.TileKit.Groups, defaults.TileKit.Brushes),
+            defaults.Lifecycle, defaults.Volumes, defaults.Dependencies);
     }
 
     private bool UpsertPortal(AreaId sourceAreaId, PortalLink portal)
@@ -2154,19 +2758,60 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void CopySelectedEntity()
     {
-        var selected = GetSelectedEntity();
-        if (_history is null || selected is null)
+        var selected = GetSelectedEntityIdsForActiveArea();
+        if (_history is null || selected.Count == 0)
         {
             return;
         }
 
         var area = GetActiveArea();
-        _semanticClipboard.CopyEntities(_history.State.Project, area.Id, [selected.Id]);
+        _semanticClipboard.CopyEntities(
+            _history.State.Project,
+            area.Id,
+            selected,
+            provenance: "creator-selection-copy");
         _clipboardSummary!.Text =
-            $"Aperçu · 1 entité · blueprint et propriétés partagés · nouvel UUID au collage";
+            $"Aperçu · {selected.Count} entité(s) · UUID et références remappés au collage";
         _pasteButton!.Disabled = false;
-        _statusLabel!.Text = "✓ Entité copiée dans le clipboard sémantique";
-        _detailsLabel!.Text = "Le collage sera prévalidé dans la zone active avec un décalage de grille.";
+        _statusLabel!.Text = $"✓ {selected.Count} entité(s) copiée(s) dans le clipboard sémantique";
+        _detailsLabel!.Text = "Le collage sera prévalidé dans la zone active; choisissez instance ou copie indépendante.";
+    }
+
+    private void CutSelectedEntities()
+    {
+        var selected = GetSelectedEntityIdsForActiveArea();
+        if (_history is null || selected.Count == 0)
+        {
+            return;
+        }
+
+        var command = new CutEntitiesCommand(
+            CommandId.From(Guid.NewGuid()),
+            CutEntitiesHandler.CurrentSchemaVersion,
+            "creator-selection-cut",
+            _history.State.Revision,
+            GetActiveArea().Id,
+            selected,
+            DryRun: false);
+        var preview = _cutEntitiesHandler.Handle(_history.State, command with { DryRun = true });
+        if (!preview.Command.Succeeded)
+        {
+            ApplyCommand(preview.Command, string.Empty, selectedEntityId: null);
+            return;
+        }
+
+        var applied = _cutEntitiesHandler.Handle(_history.State, command);
+        if (applied.Payload is null || !ApplyCommand(
+                applied.Command,
+                $"{selected.Count} entité(s) coupée(s).",
+                selectedEntityId: null))
+        {
+            return;
+        }
+
+        _semanticClipboard.Set(applied.Payload);
+        _pasteButton!.Disabled = false;
+        _clipboardSummary!.Text = $"{selected.Count} entité(s) coupée(s) · collage transactionnel disponible";
     }
 
     private void PasteSemanticClipboard()
@@ -2180,6 +2825,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var mapping = payload.Entities.ToDictionary(
             entity => entity.Id,
             _ => EntityId.From(Guid.NewGuid()));
+        var mode = _independentCopy!.ButtonPressed
+            ? SemanticPasteMode.IndependentCopy
+            : SemanticPasteMode.Instance;
+        var blueprintMap = mode == SemanticPasteMode.IndependentCopy
+            ? payload.Entities.Select(entity => entity.BlueprintId).Distinct()
+                .ToDictionary(id => id, _ => BlueprintId.From(Guid.NewGuid()))
+            : null;
         var command = new PasteEntitiesCommand(
             CommandId.From(Guid.NewGuid()),
             _history.State.Revision,
@@ -2187,15 +2839,17 @@ public partial class ForgeEditorPlugin : EditorPlugin
             payload,
             mapping,
             new Vector3Value(GridStep, 0, GridStep),
-            DryRun: false);
+            DryRun: false,
+            Mode: mode,
+            BlueprintIdMap: blueprintMap);
         var firstPastedId = mapping[payload.Entities[0].Id];
         if (ApplyCommand(
                 _pasteEntitiesHandler.Handle(_history.State, command),
-                $"{payload.Entities.Count} entité(s) collée(s) avec de nouveaux UUID.",
+                $"{payload.Entities.Count} entité(s) collée(s) en mode {mode} avec de nouveaux UUID.",
                 firstPastedId))
         {
             _clipboardSummary!.Text =
-                $"{payload.Entities.Count} entité(s) disponible(s) · dernier collage appliqué";
+                $"{payload.Entities.Count} entité(s) disponible(s) · dernier collage {mode} appliqué";
         }
     }
 
@@ -2280,7 +2934,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         BlueprintId blueprintId,
         string slug,
         string displayName,
-        BlueprintKind kind)
+        BlueprintKind kind,
+        BlueprintAuthoringMetadata authoring)
     {
         if (_history is null)
         {
@@ -2294,7 +2949,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             slug,
             displayName,
             kind,
-            DryRun: false);
+            DryRun: false,
+            Authoring: authoring);
         if (!ApplyCommand(
                 _upsertBlueprintHandler.Handle(_history.State, command),
                 $"Blueprint « {displayName} » enregistré.",
@@ -2335,6 +2991,24 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _blueprintCatalog?.Refresh(blueprintId);
         }
 
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyCreatureFoundation(
+        BlueprintId blueprintId,
+        CreatureFoundationProfile foundation,
+        bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        var command = new SetCreatureFoundationCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            blueprintId, foundation, dryRun);
+        var result = _creatureFoundationHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Fondation de créature enregistrée dans le projet.", null);
+            _creatureFoundationWindow?.Refresh(blueprintId);
+        }
         return result;
     }
 
@@ -2480,6 +3154,20 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return result;
     }
 
+    private CommandResult PreviewOrApplyQuestJournal(QuestDefinition quest, bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        var command = new SetQuestCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, quest, dryRun);
+        var result = _setQuestHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, $"Quête « {quest.Title.Fallback} » enregistrée.", null);
+            _questJournalWindow?.Refresh();
+        }
+        return result;
+    }
+
     private CommandResult PreviewOrApplyItemAdvanced(
         BlueprintId blueprintId,
         ItemAdvancedProfile? profile,
@@ -2494,6 +3182,25 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             ApplyCommand(result, "Économie, équipement, butin et craft de l’objet enregistrés.", null);
             _itemAdvancedWindow?.Refresh();
+        }
+        return result;
+    }
+
+    private CommandResult PreviewOrApplyItemFoundation(
+        BlueprintId blueprintId,
+        ItemFoundationProfile? profile,
+        bool acceptTypeMigration,
+        bool dryRun)
+    {
+        if (_history is null)
+            throw new InvalidOperationException("Aucun projet Forge ouvert.");
+        var command = new SetItemFoundationCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision,
+            blueprintId, profile, acceptTypeMigration, dryRun);
+        var result = _itemFoundationHandler.Handle(_history.State, command);
+        if (!dryRun && result.Succeeded)
+        {
+            ApplyCommand(result, "Fondation canonique de l’objet enregistrée.", null);
+            _itemFoundationWindow?.Refresh(blueprintId);
         }
         return result;
     }
@@ -2606,7 +3313,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
     private bool CreateBlueprintFromSelectedEntity(
         BlueprintId blueprintId,
         string slug,
-        string displayName)
+        string displayName,
+        BlueprintAuthoringMetadata? authoring = null)
     {
         var entity = GetSelectedEntity();
         if (_history is null || entity is null)
@@ -2624,7 +3332,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             blueprintId,
             slug,
             displayName,
-            DryRun: false);
+            DryRun: false,
+            Authoring: authoring);
         if (!ApplyCommand(
                 _createBlueprintFromEntityHandler.Handle(_history.State, command),
                 $"Blueprint « {displayName} » dérivé de l’instance.",
@@ -2893,7 +3602,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _newModuleDialog.Exclusive = true;
         }
 
-        _newModuleDialog?.PopupCentered(new Vector2I(640, 620));
+        UpdateNewModuleSummary();
+        _newModuleDialog?.PopupCentered(new Vector2I(980, 900));
         if (_newModuleDialog is not null)
         {
             ApplyForgeWindowIcon(_newModuleDialog);
@@ -2915,13 +3625,23 @@ public partial class ForgeEditorPlugin : EditorPlugin
     {
         if (_newModuleTitle is null || _newModuleAreaName is null ||
             string.IsNullOrWhiteSpace(_newModuleTitle.Text) ||
-            string.IsNullOrWhiteSpace(_newModuleAreaName.Text))
+            (_newModuleCreateInitialArea?.ButtonPressed == true &&
+             string.IsNullOrWhiteSpace(_newModuleAreaName.Text)))
         {
             _statusLabel!.Text = "✗ Informations incomplètes";
-            _detailsLabel!.Text = "Le titre du module et le nom de la première zone sont obligatoires.";
+            _detailsLabel!.Text = "Le titre est obligatoire ; le nom de zone l’est lorsque sa création est activée.";
             return;
         }
 
+        var preview = _newModuleHandler.Handle(CreateNewModuleCommand(dryRun: true));
+        if (!preview.Succeeded)
+        {
+            _statusLabel!.Text = "✗ Fondation de projet invalide";
+            _detailsLabel!.Text = string.Join("\n", preview.Diagnostics.Select(item => item.Message));
+            return;
+        }
+
+        UpdateNewModuleSummary();
         HideNewModuleDialog();
         _newModuleLocationDialog!.CurrentDir = _projectSession is null
             ? System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments)
@@ -2937,6 +3657,54 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var suggested = exterior ? 128 : 32;
         _newModuleAreaWidth.Value = suggested;
         _newModuleAreaDepth.Value = suggested;
+        UpdateNewModuleSummary();
+    }
+
+    private void NewModuleTemplateSelected(long index)
+    {
+        if (_newModuleTemplate is null || _newModuleCreateInitialArea is null) return;
+        var template = (ProjectTemplateKind)_newModuleTemplate.GetItemId((int)index);
+        _newModuleCreateInitialArea.Disabled = template is ProjectTemplateKind.Rpg or ProjectTemplateKind.CoreMenu;
+        _newModuleCreateInitialArea.ButtonPressed = template == ProjectTemplateKind.Rpg;
+        if (template == ProjectTemplateKind.CoreMenu) _newModuleKits!.Text = "forge-core";
+        if (template == ProjectTemplateKind.Rpg) _newModuleKits!.Text = "forge-core, forge-rpg-kit";
+        SetNewModuleAreaControls(_newModuleCreateInitialArea.ButtonPressed);
+        UpdateNewModuleSummary();
+    }
+
+    private void NewModuleCreateInitialAreaToggled(bool enabled)
+    {
+        SetNewModuleAreaControls(enabled);
+        UpdateNewModuleSummary();
+    }
+
+    private void SetNewModuleAreaControls(bool enabled)
+    {
+        if (_newModuleAreaName is not null) _newModuleAreaName.Editable = enabled;
+        if (_newModuleAreaKind is not null) _newModuleAreaKind.Disabled = !enabled;
+        if (_newModuleAreaWidth is not null) _newModuleAreaWidth.Editable = enabled;
+        if (_newModuleAreaDepth is not null) _newModuleAreaDepth.Editable = enabled;
+        if (_newModuleGameMode is not null) _newModuleGameMode.Editable = enabled;
+        if (_newModuleEntryClass is not null) _newModuleEntryClass.Editable = enabled;
+        if (_newModulePlayerRule is not null) _newModulePlayerRule.Editable = enabled;
+    }
+
+    private void UpdateNewModuleSummary()
+    {
+        if (_newModuleSummary is null || _newModuleTemplate is null || _newModulePlatform is null ||
+            _newModuleRender is null || _newModuleNetwork is null) return;
+        var area = _newModuleCreateInitialArea?.ButtonPressed == true
+            ? $"zone {_newModuleAreaKind?.GetItemText(_newModuleAreaKind.Selected)} " +
+              $"{(int)(_newModuleAreaWidth?.Value ?? 0)} × {(int)(_newModuleAreaDepth?.Value ?? 0)}"
+            : "aucune zone initiale";
+        var start = _newModuleCreateInitialArea?.ButtonPressed == true
+            ? $" · départ {_newModuleGameMode?.Text}/{_newModuleEntryClass?.Text} ({_newModulePlayerRule?.Text})"
+            : string.Empty;
+        _newModuleSummary.Text =
+            $"Résumé · {_newModuleTemplate.GetItemText(_newModuleTemplate.Selected)} · " +
+            $"{_newModulePlatform.GetItemText(_newModulePlatform.Selected)} · " +
+            $"rendu {_newModuleRender.GetItemText(_newModuleRender.Selected)} · " +
+            $"réseau {_newModuleNetwork.GetItemText(_newModuleNetwork.Selected)} · {area}{start}";
     }
 
     private void CreateNewModuleIn(string parentDirectory)
@@ -2947,7 +3715,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _newModuleDescription!.Text,
             _newModuleAreaName!.Text,
             (AreaKind)_newModuleAreaKind!.GetSelectedId(),
-            new AreaDimensions((int)_newModuleAreaWidth!.Value, (int)_newModuleAreaDepth!.Value));
+            new AreaDimensions((int)_newModuleAreaWidth!.Value, (int)_newModuleAreaDepth!.Value),
+            (ProjectTemplateKind)_newModuleTemplate!.GetSelectedId(),
+            ParseWizardKits(_newModuleKits!.Text),
+            [(ModuleDistributionPlatform)_newModulePlatform!.GetSelectedId()],
+            _newModuleRules!.Text.Trim(),
+            (ProjectRenderPreset)_newModuleRender!.GetSelectedId(),
+            (ProjectNetworkMode)_newModuleNetwork!.GetSelectedId(),
+            _newModulePackageNamespace!.Text.Trim(),
+            _newModuleGameMode!.Text.Trim(),
+            _newModuleEntryClass!.Text.Trim(),
+            _newModulePlayerRule!.Text.Trim(),
+            _newModuleCreateInitialArea!.ButtonPressed);
         if (!outcome.Succeeded || outcome.WorkspaceDirectory is null)
         {
             _statusLabel!.Text = "✗ Création du module impossible";
@@ -2958,10 +3737,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         OpenProjectDirectory(outcome.WorkspaceDirectory);
         _statusLabel!.Text = "✓ Nouveau module prêt à construire";
-        var createdArea = _history!.State.Project.Areas.Single();
-        _detailsLabel!.Text =
-            $"{_history.State.Project.Module.DisplayName} · {createdArea.Kind} " +
-            $"{createdArea.Dimensions.Width} × {createdArea.Dimensions.Depth} · point de départ créé";
+        var createdArea = _history!.State.Project.Areas.SingleOrDefault();
+        _detailsLabel!.Text = createdArea is null
+            ? $"{_history.State.Project.Module.DisplayName} · projet Core prêt · aucune zone initiale"
+            : $"{_history.State.Project.Module.DisplayName} · {createdArea.Kind} " +
+              $"{createdArea.Dimensions.Width} × {createdArea.Dimensions.Depth} · point de départ créé";
         GD.Print($"OPENRPG_FORGE_TOOLSET_NEW_MODULE_CREATED path={outcome.WorkspaceDirectory}");
     }
 
@@ -2971,7 +3751,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
         string description,
         string areaDisplayName,
         AreaKind areaKind = AreaKind.Interior,
-        AreaDimensions? dimensions = null)
+        AreaDimensions? dimensions = null,
+        ProjectTemplateKind template = ProjectTemplateKind.Rpg,
+        IReadOnlyList<string>? kits = null,
+        IReadOnlyList<ModuleDistributionPlatform>? targetPlatforms = null,
+        string rulesProvider = "forge.generic",
+        ProjectRenderPreset renderPreset = ProjectRenderPreset.Balanced,
+        ProjectNetworkMode networkMode = ProjectNetworkMode.Offline,
+        string packageNamespace = "",
+        string gameMode = "campaign",
+        string entryClass = "adventurer",
+        string playerSelectionRule = "default",
+        bool? createInitialArea = null)
     {
         var result = _newModuleHandler.Handle(new NewModuleCommand(
             CommandId.From(Guid.NewGuid()),
@@ -2988,7 +3779,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
             areaDisplayName,
             DryRun: false,
             AreaKind: areaKind,
-            Dimensions: dimensions));
+            Dimensions: dimensions,
+            Template: template,
+            Kits: kits,
+            TargetPlatforms: targetPlatforms,
+            RulesProvider: rulesProvider,
+            RenderPreset: renderPreset,
+            NetworkMode: networkMode,
+            PackageNamespace: packageNamespace,
+            GameMode: gameMode,
+            EntryClass: entryClass,
+            PlayerSelectionRule: playerSelectionRule,
+            CreateInitialArea: createInitialArea));
         if (!result.Succeeded || result.State is null)
         {
             return new NewModuleCreationOutcome(
@@ -3011,6 +3813,39 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         return new NewModuleCreationOutcome(true, workspaceDirectory, null);
     }
+
+    private NewModuleCommand CreateNewModuleCommand(bool dryRun) => new(
+        CommandId.From(Guid.NewGuid()),
+        new ProjectRevision(0),
+        ProjectId.From(Guid.NewGuid()),
+        Forge.Domain.Modules.ModuleId.From(Guid.NewGuid()),
+        Forge.Domain.Areas.AreaId.From(Guid.NewGuid()),
+        BlueprintId.From(Guid.NewGuid()),
+        EntityId.From(Guid.NewGuid()),
+        BlueprintId.From(Guid.NewGuid()),
+        EntityId.From(Guid.NewGuid()),
+        _newModuleTitle!.Text,
+        _newModuleDescription!.Text,
+        _newModuleAreaName!.Text,
+        dryRun,
+        (AreaKind)_newModuleAreaKind!.GetSelectedId(),
+        new AreaDimensions((int)_newModuleAreaWidth!.Value, (int)_newModuleAreaDepth!.Value),
+        (ProjectTemplateKind)_newModuleTemplate!.GetSelectedId(),
+        ParseWizardKits(_newModuleKits!.Text),
+        [(ModuleDistributionPlatform)_newModulePlatform!.GetSelectedId()],
+        _newModuleRules!.Text.Trim(),
+        (ProjectRenderPreset)_newModuleRender!.GetSelectedId(),
+        (ProjectNetworkMode)_newModuleNetwork!.GetSelectedId(),
+        _newModulePackageNamespace!.Text.Trim(),
+        _newModuleGameMode!.Text.Trim(),
+        _newModuleEntryClass!.Text.Trim(),
+        _newModulePlayerRule!.Text.Trim(),
+        _newModuleCreateInitialArea!.ButtonPressed);
+
+    private static IReadOnlyList<string> ParseWizardKits(string value) => value
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Distinct(StringComparer.Ordinal)
+        .ToArray();
 
     private void ShowExampleEntityPropertiesDialog()
     {
@@ -3091,10 +3926,12 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void MultiplySelectedScale(float factor)
     {
-        var selected = GetSelectedEntity();
-        if (selected is not null)
+        var selected = GetSelectedEntityIdsForActiveArea();
+        if (selected.Count > 0)
         {
-            ApplyScaleCommand([selected.Id], new Vector3Value(factor, factor, factor), multiply: true);
+            ApplyDirectManipulation(selected, EditorTransformTool.Scale,
+                new Vector3Value(factor, factor, factor), EditorTransformAlignment.None,
+                selected.Count == 1 ? "Échelle de l’entité appliquée." : $"Échelle appliquée à {selected.Count} entités.");
         }
     }
 
@@ -3140,9 +3977,24 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (applied)
         {
             RefreshScaleControls();
+            RebuildNavigationAfterScale();
         }
 
         return applied;
+    }
+
+    private void RebuildNavigationAfterScale()
+    {
+        if (_history is null || _projectPreview is null) return;
+        var area = GetActiveArea();
+        var agent = area.Navigation.AgentProfiles.FirstOrDefault();
+        if (agent is null) return;
+        var surface = NavigationSurfaceBuilder.Build(_history.State.Project, area, agent);
+        _projectPreview.ShowNavigationOverlay(surface);
+        if (_detailsLabel is not null)
+        {
+            _detailsLabel.Text += $" · navigation reconstruite {surface.WalkableCells.Count} cellules";
+        }
     }
 
     private void RefreshScaleControls()
@@ -3345,6 +4197,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _projectSession = null;
             _history = null;
             _assetProcessingProfileHistory = null;
+            _assetGovernanceHistory = null;
+            _qualityFoundationHistory = null;
             _assetPackageManifestHistory = null;
             _assetExternalEditHistory = null;
             _externalWorkerSecurityHistory = null;
@@ -3379,6 +4233,19 @@ public partial class ForgeEditorPlugin : EditorPlugin
         if (!assetProfiles.Succeeded)
         {
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_PROFILES_INVALID {assetProfiles.Diagnostics[0].Code}");
+        }
+        var assetGovernance = AssetGovernanceStore.Load(_projectSession.RootDirectory);
+        _assetGovernanceHistory = new AssetGovernanceCommandHistory(assetGovernance.Records);
+        if (!assetGovernance.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_GOVERNANCE_INVALID {assetGovernance.Diagnostics[0].Code}");
+        }
+        var qualityFoundation = QualityFoundationProfileStore.Load(
+            _projectSession.RootDirectory, _projectSession.Project.Id.Value);
+        _qualityFoundationHistory = new QualityFoundationCommandHistory(qualityFoundation.Profile);
+        if (!qualityFoundation.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_QUALITY_FOUNDATION_INVALID {qualityFoundation.Diagnostics[0].Code}");
         }
         var assetManifests = AssetPackageManifestStore.Load(_projectSession.RootDirectory);
         _assetPackageManifestHistory = new AssetPackageManifestCommandHistory(assetManifests.Manifests);
@@ -3477,6 +4344,82 @@ public partial class ForgeEditorPlugin : EditorPlugin
         {
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_CAMERA_PROFILE_SAVE_FAILED {result.Diagnostics[0].Code}");
         }
+    }
+
+    private bool ApplyAssetGovernance(AssetGovernanceRecord record, bool dryRun)
+    {
+        if (_projectSession is null || _assetGovernanceHistory is null) return false;
+        var command = new SetAssetGovernanceCommand(CommandId.From(Guid.NewGuid()),
+            _assetGovernanceHistory.State.Revision, record, dryRun);
+        var result = _assetGovernanceHandler.Handle(_assetGovernanceHistory.State, command);
+        if (!result.Succeeded) return false;
+        if (dryRun) return result.Patch is not null && !result.Audit.Applied;
+        var saved = AssetGovernanceStore.Save(_projectSession.RootDirectory, result.State.Records);
+        if (!saved.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSET_GOVERNANCE_SAVE_FAILED {saved.Diagnostics[0].Code}");
+            return false;
+        }
+        _assetGovernanceHistory.Record(result);
+        GD.Print($"OPENRPG_FORGE_TOOLSET_ASSET_GOVERNANCE_SAVED asset={record.AssetId} " +
+                 $"quarantine={record.Quarantine.Status} origin={record.IpBoundary.Origin}");
+        return true;
+    }
+
+    private bool ApplyQualityFoundation(QualityFoundationProfile profile, bool dryRun)
+    {
+        if (_projectSession is null || _qualityFoundationHistory is null) return false;
+        var command = new SetQualityFoundationCommand(CommandId.From(Guid.NewGuid()),
+            _qualityFoundationHistory.State.Revision, profile, dryRun);
+        var result = _qualityFoundationHandler.Handle(_qualityFoundationHistory.State, command);
+        if (!result.Succeeded) return false;
+        if (dryRun) return result.Patch is not null && !result.Audit.Applied;
+        var saved = QualityFoundationProfileStore.Save(_projectSession.RootDirectory, result.State.Profile);
+        if (!saved.Succeeded)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_QUALITY_FOUNDATION_SAVE_FAILED {saved.Diagnostics[0].Code}");
+            return false;
+        }
+        _qualityFoundationHistory.Record(result);
+        GD.Print($"OPENRPG_FORGE_TOOLSET_QUALITY_FOUNDATION_SAVED revision={result.NewRevision?.Value} " +
+                 $"severity={profile.Logs.MinimumSeverity} privacy={profile.Logs.PlayerPrivacy}");
+        return true;
+    }
+
+    private bool UndoQualityFoundation()
+    {
+        if (_projectSession is null || _qualityFoundationHistory is null || !_qualityFoundationHistory.Undo()) return false;
+        var saved = QualityFoundationProfileStore.Save(_projectSession.RootDirectory, _qualityFoundationHistory.State.Profile);
+        if (saved.Succeeded) return true;
+        _qualityFoundationHistory.Redo();
+        return false;
+    }
+
+    private bool RedoQualityFoundation()
+    {
+        if (_projectSession is null || _qualityFoundationHistory is null || !_qualityFoundationHistory.Redo()) return false;
+        var saved = QualityFoundationProfileStore.Save(_projectSession.RootDirectory, _qualityFoundationHistory.State.Profile);
+        if (saved.Succeeded) return true;
+        _qualityFoundationHistory.Undo();
+        return false;
+    }
+
+    private bool UndoAssetGovernance()
+    {
+        if (_projectSession is null || _assetGovernanceHistory is null || !_assetGovernanceHistory.Undo()) return false;
+        var saved = AssetGovernanceStore.Save(_projectSession.RootDirectory, _assetGovernanceHistory.State.Records);
+        if (saved.Succeeded) return true;
+        _assetGovernanceHistory.Redo();
+        return false;
+    }
+
+    private bool RedoAssetGovernance()
+    {
+        if (_projectSession is null || _assetGovernanceHistory is null || !_assetGovernanceHistory.Redo()) return false;
+        var saved = AssetGovernanceStore.Save(_projectSession.RootDirectory, _assetGovernanceHistory.State.Records);
+        if (saved.Succeeded) return true;
+        _assetGovernanceHistory.Undo();
+        return false;
     }
 
     private bool ApplyAssetProcessingProfile(AssetProcessingProfile profile, bool dryRun)
@@ -3892,7 +4835,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_AREA_BUILD_SAVE_FAILED {saved.Diagnostics[0].Code}");
             return false;
         }
-        _history.Record(result.Command);
+        RecordProjectCommand(result.Command);
         _activeAreaContext.EnsureValid(_history.State.Project);
         RebuildPreview();
         RefreshEditorControls();
@@ -3935,7 +4878,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSISTED_DIALOGUE_SAVE_FAILED {saved.Diagnostics[0].Code}");
             return false;
         }
-        _history.Record(result.Command);
+        RecordProjectCommand(result.Command);
         RebuildPreview();
         RefreshEditorControls();
         GD.Print($"OPENRPG_FORGE_TOOLSET_ASSISTED_DIALOGUE_APPLIED dialogue={proposal.Dialogue.Id} " +
@@ -3977,7 +4920,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSISTED_QUEST_SAVE_FAILED {saved.Diagnostics[0].Code}");
             return false;
         }
-        _history.Record(result.Command);
+        RecordProjectCommand(result.Command);
         RebuildPreview();
         RefreshEditorControls();
         GD.Print($"OPENRPG_FORGE_TOOLSET_ASSISTED_QUEST_APPLIED quest={proposal.Quest.Id} " +
@@ -4058,7 +5001,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSISTED_BOSS_SAVE_FAILED {saved.Diagnostics[0].Code}");
             return false;
         }
-        _history.Record(result.Command);
+        RecordProjectCommand(result.Command);
         RebuildPreview();
         RefreshEditorControls();
         GD.Print($"OPENRPG_FORGE_TOOLSET_ASSISTED_BOSS_APPLIED boss={proposal.Boss.Id:D} " +
@@ -4100,7 +5043,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_ASSISTED_ABILITY_SAVE_FAILED {saved.Diagnostics[0].Code}");
             return false;
         }
-        _history.Record(result.Command);
+        RecordProjectCommand(result.Command);
         RebuildPreview();
         RefreshEditorControls();
         GD.Print($"OPENRPG_FORGE_TOOLSET_ASSISTED_ABILITY_APPLIED ability={proposal.Orchestration.Id:D} " +
@@ -4747,7 +5690,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         _entityPicker.Selected = index;
         RefreshOverrideSummary();
-        PublishSelectedEntity();
+        var settings = LoadWorkspaceProfile().Shell.DirectManipulation.Selection;
+        var additive = settings.MultiSelectionEnabled && Input.IsKeyPressed(Key.Ctrl);
+        PublishSelectedEntity(additive);
     }
 
     private void ShowViewportPlacementFeedback(string message, bool valid)
@@ -4785,59 +5730,61 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void MoveSelected(float deltaX, float deltaZ)
     {
-        var selected = GetSelectedEntity();
-        if (_history is null || selected is null)
+        var selected = GetSelectedEntityIdsForActiveArea();
+        if (_history is null || selected.Count == 0)
         {
             return;
         }
-
-        var area = GetActiveArea();
-        var position = selected.Transform.Position;
-        var transform = new TransformValue(
-            new Vector3Value(
-                SnapToGrid(position.X + deltaX),
-                position.Y,
-                SnapToGrid(position.Z + deltaZ)),
-            selected.Transform.Rotation,
-            selected.Transform.Scale);
-        var command = new TransformEntityCommand(
-            CommandId.From(Guid.NewGuid()),
-            _history.State.Revision,
-            area.Id,
-            selected.Id,
-            transform,
-            DryRun: false);
-        ApplyCommand(
-            _transformHandler.Handle(_history.State, command),
-            "Entité déplacée sur la grille.",
-            selected.Id);
+        ApplyDirectManipulation(selected, EditorTransformTool.Translate,
+            new Vector3Value(deltaX, 0, deltaZ), EditorTransformAlignment.None,
+            selected.Count == 1 ? "Entité déplacée sur la grille." : $"{selected.Count} entités déplacées sur la grille.");
     }
 
     private void RotateSelected()
     {
-        var selected = GetSelectedEntity();
-        if (_history is null || selected is null)
+        var selected = GetSelectedEntityIdsForActiveArea();
+        if (_history is null || selected.Count == 0)
         {
             return;
         }
+        ApplyDirectManipulation(selected, EditorTransformTool.Rotate,
+            new Vector3Value(0, 90, 0), EditorTransformAlignment.None,
+            selected.Count == 1 ? "Entité tournée de 90°." : $"{selected.Count} entités tournées de 90°.");
+    }
 
-        var area = GetActiveArea();
-        var quarterTurn = new QuaternionValue(0, QuarterTurnComponent, 0, QuarterTurnComponent);
-        var transform = new TransformValue(
-            selected.Transform.Position,
-            MultiplyAndNormalize(selected.Transform.Rotation, quarterTurn),
-            selected.Transform.Scale);
-        var command = new TransformEntityCommand(
-            CommandId.From(Guid.NewGuid()),
-            _history.State.Revision,
-            area.Id,
-            selected.Id,
-            transform,
+    private IReadOnlyList<EntityId> GetSelectedEntityIdsForActiveArea()
+    {
+        var active = GetActiveArea().Entities.Select(entity => entity.Id).ToHashSet();
+        var selected = _selectionContext.Current
+            .Where(item => item.Kind == CreatorSelectionKind.Entity && Guid.TryParse(item.Id, out _))
+            .Select(item => EntityId.From(Guid.Parse(item.Id)))
+            .Where(active.Contains)
+            .Distinct()
+            .ToArray();
+        if (selected.Length > 0) return selected;
+        var fallback = GetSelectedEntity();
+        return fallback is null ? [] : [fallback.Id];
+    }
+
+    private bool ApplyDirectManipulation(
+        IReadOnlyList<EntityId> entityIds,
+        EditorTransformTool tool,
+        Vector3Value value,
+        EditorTransformAlignment alignment,
+        string successMessage)
+    {
+        if (_history is null || entityIds.Count == 0) return false;
+        var configuration = LoadWorkspaceProfile().Shell.DirectManipulation.Transform;
+        var command = new ManipulateEntitiesCommand(
+            CommandId.From(Guid.NewGuid()), ManipulateEntitiesHandler.CurrentSchemaVersion,
+            "creator-direct-manipulation", _history.State.Revision, GetActiveArea().Id, entityIds,
+            tool, value, configuration.CoordinateSpace, configuration.PivotMode, alignment,
+            configuration.TranslationSnap, configuration.RotationSnapDegrees, configuration.ScaleSnap,
             DryRun: false);
-        ApplyCommand(
-            _transformHandler.Handle(_history.State, command),
-            "Entité tournée de 90°.",
-            selected.Id);
+        var preview = _manipulateEntitiesHandler.Handle(_history.State, command with { DryRun = true });
+        if (!preview.Succeeded) return ApplyCommand(preview, string.Empty, entityIds.Count == 1 ? entityIds[0] : null);
+        return ApplyCommand(_manipulateEntitiesHandler.Handle(_history.State, command), successMessage,
+            entityIds.Count == 1 ? entityIds[0] : null);
     }
 
     private void DeleteSelected()
@@ -4879,6 +5826,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         RebuildPreview();
         RefreshEditorControls(selectedEntityId);
         _creaturePresentationWindow?.Refresh();
+        PersistProjectCommandJournal();
         ShowEditStatus("Modification annulée.");
     }
 
@@ -4900,6 +5848,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         RebuildPreview();
         RefreshEditorControls(selectedEntityId);
         _creaturePresentationWindow?.Refresh();
+        PersistProjectCommandJournal();
         ShowEditStatus("Modification rétablie.");
     }
 
@@ -4930,13 +5879,58 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return false;
         }
 
-        _history.Record(result);
+        RecordProjectCommand(result);
         _activeAreaContext.EnsureValid(_history.State.Project);
         RebuildPreview();
         RefreshEditorControls(selectedEntityId);
         ShowEditStatus(successMessage);
         GD.Print($"OPENRPG_FORGE_TOOLSET_COMMAND_APPLIED operation={result.Patch?.Operation} revision={_history.State.Revision}");
         return true;
+    }
+
+    public void ApplyNativeProjectUndo()
+    {
+        if (_nativeUndoRedoCallback) return;
+        _nativeUndoRedoCallback = true;
+        try { Undo(); }
+        finally { _nativeUndoRedoCallback = false; }
+    }
+
+    public void ApplyNativeProjectRedo()
+    {
+        if (_nativeUndoRedoCallback) return;
+        _nativeUndoRedoCallback = true;
+        try { Redo(); }
+        finally { _nativeUndoRedoCallback = false; }
+    }
+
+    private void RecordProjectCommand(CommandResult result)
+    {
+        if (_history is null) throw new InvalidOperationException("No project command history is active.");
+        _history.Record(result);
+        PersistProjectCommandJournal();
+        if (_nativeUndoRedo is null || _nativeUndoRedoCallback) return;
+        var actionName = string.IsNullOrWhiteSpace(result.Patch?.Summary)
+            ? $"OpenRPG Forge · {result.Audit.CommandName}"
+            : $"OpenRPG Forge · {result.Patch.Summary}";
+        _nativeUndoRedo.CreateAction(actionName, UndoRedo.MergeMode.Disable, this, false, true);
+        _nativeUndoRedo.AddDoMethod(this, new StringName(nameof(ApplyNativeProjectRedo)));
+        _nativeUndoRedo.AddUndoMethod(this, new StringName(nameof(ApplyNativeProjectUndo)));
+        _nativeUndoRedo.CommitAction(false);
+        _nativeUndoRedoRegistrationCount++;
+    }
+
+    private void PersistProjectCommandJournal()
+    {
+        if (_projectSession is null || _history is null) return;
+        try
+        {
+            EditorCommandJournalStore.Save(_projectSession.RootDirectory, _history.Journal);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_COMMAND_JOURNAL_SAVE_FAILED {exception.Message}");
+        }
     }
 
     private void SaveProject()
@@ -4973,8 +5967,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             _undoButton is null || _redoButton is null || _playButton is null ||
             _overridesButton is null || _overridesSummary is null || _dialoguesButton is null ||
             _areasButton is null || _searchButton is null || _moduleSettingsButton is null ||
-            _copyButton is null || _pasteButton is null ||
-            _duplicateButton is null || _clipboardSummary is null)
+            _copyButton is null || _cutButton is null || _pasteButton is null ||
+            _duplicateButton is null || _independentCopy is null || _clipboardSummary is null)
         {
             return;
         }
@@ -5061,6 +6055,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _moduleConfiguration?.Refresh();
         _distributionProfiles?.Refresh();
         _contentWorkflow?.Refresh();
+        _contentPackageWindow?.Refresh();
         PublishSelectedEntity();
     }
 
@@ -5085,7 +6080,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _applyScaleButton!.Disabled = !hasEntity;
         _overridesButton!.Disabled = !hasEntity;
         _copyButton!.Disabled = !hasEntity;
+        _cutButton!.Disabled = !hasEntity;
         _duplicateButton!.Disabled = !hasEntity;
+        _independentCopy!.Disabled = !enabled;
         _pasteButton!.Disabled = !enabled || _semanticClipboard.Payload is not EntityClipboardPayload;
         if (!hasEntity)
         {
@@ -5127,19 +6124,22 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private void RefreshCreatorShell()
     {
-        if (_creatorShell is null || _history is null)
+        if (_creatorShell is null || _history is null || _projectSession is null || _projectPreview is null)
         {
             return;
         }
 
         var project = _history.State.Project;
-        _creatorShell.SetProject(CreatorProjectExplorer.Build(project));
+        var profile = LoadWorkspaceProfile();
+        _creatorShell.SetProject(CreatorProjectExplorer.Build(project, profile.Shell.ExplorerGrouping));
+        _creatorShell.ApplyShellConfiguration(profile.Shell);
+        _projectPreview?.SetEditorMode(profile.Shell.ViewportMode);
         _creatorShell.SetDiagnostics(CreatorDiagnostics.FromProject(
             project,
             $"revision:{_history.State.Revision}"));
     }
 
-    private void PublishSelectedEntity()
+    private void PublishSelectedEntity(bool additive = false)
     {
         var entity = GetSelectedEntity();
         if (_history is null || entity is null)
@@ -5152,11 +6152,22 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var blueprintName = project.Blueprints
             .FirstOrDefault(blueprint => blueprint.Id == entity.BlueprintId)
             ?.DisplayName ?? "Blueprint manquant";
-        _selectionContext.Replace(new CreatorSelection(
+        var selection = new CreatorSelection(
             CreatorSelectionKind.Entity,
             entity.Id.ToString(),
             blueprintName,
-            $"areas/{area.Id}/entities/{entity.Id}"));
+            $"areas/{area.Id}/entities/{entity.Id}");
+        var settings = LoadWorkspaceProfile().Shell.DirectManipulation.Selection;
+        var next = additive
+            ? _selectionContext.Current.Concat([selection])
+            : [selection];
+        _selectionContext.Replace(next);
+        if (settings.FocusOnSelection) _selectionContext.Focus(selection, "creator-viewport");
+        if (settings.FrameSelection)
+        {
+            _selectionContext.Frame("creator-viewport");
+            _projectPreview?.FocusSelectionFromShortcut();
+        }
         _projectPreview?.ShowSelection(entity.Id);
     }
 
@@ -5201,20 +6212,30 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return _spawnEntityIds[_spawnPicker.Selected];
     }
 
-    private void StartPlaytestFromUi() => StartPlaytest(headless: false, workspaceSmokeTest: false);
+    private void StartPlaytestFromUi()
+    {
+        var configured = _history?.State.Project.Areas
+            .FirstOrDefault(item => item.Id == _activeAreaContext.Current)?.Playtest;
+        StartPlaytest(headless: configured?.Enabled == true && configured.Headless, workspaceSmokeTest: false);
+    }
 
     private void StartPlaytest(bool headless, bool workspaceSmokeTest)
     {
         var spawnEntityId = GetSelectedSpawnId();
-        if (_history is null || spawnEntityId is null || _playtestRunning)
+        if (_history is null || _playtestRunning)
         {
             return;
         }
+        var activeArea = _history.State.Project.Areas.FirstOrDefault(item => item.Id == _activeAreaContext.Current);
+        var configured = activeArea?.Playtest.Enabled == true ? activeArea.Playtest : null;
+        if (configured is null && spawnEntityId is null) return;
 
         PlaytestSnapshot snapshot;
         try
         {
-            snapshot = _playtestSnapshots.Create(_history.State.Project, spawnEntityId);
+            snapshot = configured is null
+                ? _playtestSnapshots.Create(_history.State.Project, spawnEntityId!)
+                : _playtestSnapshots.Create(_history.State.Project, activeArea!.Id, configured);
         }
         catch (Exception exception) when (
             exception is ArgumentException or IOException or UnauthorizedAccessException or
@@ -5232,7 +6253,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _spawnPicker!.Disabled = true;
         _playtestStatus!.Text = headless ? "Test automatisé…" : "Module en cours…";
         _playtestLog!.Text =
-            $"Snapshot temporaire prêt.\nPoint de départ : {spawnEntityId}\n" +
+            $"Snapshot temporaire prêt.\nPoint de départ : {snapshot.SpawnEntityId}" +
+            (configured is null ? "\n" : $" · mode {configured.StartMode} · profil {configured.TestProfile}\n") +
             (headless
                 ? "Exécution du scénario de validation…"
                 : "Le module est ouvert dans une fenêtre séparée. Fermez-la pour afficher le rapport complet.");
@@ -5446,6 +6468,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunR034ContentOperationsSmokeTest())
+        {
+            return;
+        }
+
         if (!RunModuleConfigurationSmokeTest())
         {
             return;
@@ -5466,12 +6493,32 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunR035BuildDiagnosticsSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunR036EeAcceptanceSmokeTest())
+        {
+            return;
+        }
+
         if (!RunDistributionProfilesSmokeTest())
         {
             return;
         }
 
         if (!RunContentWorkflowSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunContentPackageSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunContentAuthoringSmokeTest())
         {
             return;
         }
@@ -5521,7 +6568,32 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunForgeScriptFoundationSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunForgeScriptWorldApiSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunForgeScriptSafetyPolicySmokeTest())
+        {
+            return;
+        }
+
+        if (!RunForgeScriptModulePermissionsSmokeTest())
+        {
+            return;
+        }
+
         if (!RunAreaExperienceSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAudioEmitterSmokeTest())
         {
             return;
         }
@@ -5532,6 +6604,16 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunQualityLabSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAreaFoundationSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunAreaRuntimeValidationSmokeTest())
         {
             return;
         }
@@ -5626,6 +6708,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunCreatureFoundationSmokeTest())
+        {
+            return;
+        }
+
         if (!RunCreaturePresentationSmokeTest())
         {
             return;
@@ -5661,7 +6748,22 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        if (!RunQuestJournalSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunQuestTransitionSmokeTest())
+        {
+            return;
+        }
+
         if (!RunQuestOperationsSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunItemFoundationSmokeTest())
         {
             return;
         }
@@ -5692,6 +6794,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         if (!RunNewModuleSmokeTest())
+        {
+            return;
+        }
+
+        if (!RunProjectOperationsSmokeTest())
         {
             return;
         }
@@ -5848,10 +6955,80 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         RefreshCreatorShell();
+        var originalProfile = LoadWorkspaceProfile();
+        var projectSession = _projectSession!;
+        var projectPreview = _projectPreview!;
+        string? shellFailure = null;
+        try
+        {
+            var project = _history.State.Project;
+            var roots = Enum.GetValues<EditorExplorerGrouping>()
+                .Select(grouping => CreatorProjectExplorer.Build(project, grouping))
+                .ToArray();
+            var blueprint = project.Blueprints.First();
+            var paletteFilter = new EditorPaletteFilter(
+                [blueprint.Kind], [blueprint.Authoring.Kit], blueprint.Authoring.Styles,
+                [blueprint.Provenance.LicenseSpdx], blueprint.Authoring.Compatibility,
+                blueprint.Authoring.Tags, favoritesOnly: true);
+            var shell = new EditorShellConfiguration(
+                Guid.Parse("32000000-0000-4000-8000-000000000001"), 1, "toolset:r032-smoke",
+                new EditorShellLayout(Guid.Parse("32000000-0000-4000-8000-000000000002"), 1,
+                    "toolset:r032-smoke", 272, 336, 176, assistantVisible: false),
+                EditorExplorerGrouping.Tag, EditorViewportMode.Navigation, paletteFilter);
+            var favoriteProfile = originalProfile.PersonalFavoriteBlueprintIds.Contains(blueprint.Id)
+                ? originalProfile
+                : EditorWorkspaceProfilePlanner.TogglePersonalFavorite(originalProfile, blueprint.Id);
+            var candidate = EditorWorkspaceProfilePlanner.ConfigureShell(favoriteProfile, shell);
+            var commands = new EditorWorkspaceProfileCommandHistory(originalProfile);
+            var command = new UpdateEditorWorkspaceProfileCommand(
+                Guid.Parse("32000000-0000-4000-8000-000000000003"), 1, "toolset:r032-smoke", candidate);
+            var preview = commands.Execute(command with { DryRun = true });
+            var applied = commands.Execute(command);
+            var undo = commands.Undo();
+            var redo = commands.Redo();
+            SaveWorkspaceProfile(commands.Current);
+            var persisted = EditorWorkspaceProfileStore.TryLoad(projectSession.RootDirectory);
+            var paletteItems = BlueprintPaletteCatalog.Build(project, commands.Current)
+                .Filter(BlueprintPaletteView.All, contextFilter: paletteFilter);
+            foreach (var mode in Enum.GetValues<EditorViewportMode>())
+            {
+                projectPreview.SetEditorMode(mode);
+                if (projectPreview.EditorMode != mode) shellFailure = $"viewport_{mode}";
+            }
+
+            if (roots.Length != 6 || roots.Any(root => root.Children.Count == 0) ||
+                !preview.Succeeded || preview.Applied || !applied.Applied || !undo.Succeeded || !redo.Succeeded ||
+                persisted?.Shell.ExplorerGrouping != EditorExplorerGrouping.Tag ||
+                persisted.Shell.ViewportMode != EditorViewportMode.Navigation ||
+                persisted.Shell.Layout.ExplorerWidth != 272 || paletteItems.Count != 1)
+            {
+                shellFailure ??= "configuration";
+            }
+        }
+        catch (Exception exception)
+        {
+            shellFailure = $"exception_{exception.GetType().Name}";
+        }
+        finally
+        {
+            SaveWorkspaceProfile(originalProfile);
+            RefreshCreatorShell();
+        }
+        if (shellFailure is not null)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_R032_SHELL_FOUNDATION_FAILED {shellFailure}");
+            return false;
+        }
         // Preserve the historical G7.02 acceptance marker while G9 reports the expanded total.
         GD.Print($"OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9 explorer={_creatorShell.ExplorerNodeCount} selection=shared diagnostics=clickable");
         GD.Print($"OPENRPG_FORGE_TOOLSET_G9_NETWORK_UI_PASS workspace=network total={_creatorShell.WorkspaceCount}");
         GD.Print($"OPENRPG_FORGE_TOOLSET_G10_LIVE_DIRECTOR_UI_PASS workspace=live-director total={_creatorShell.WorkspaceCount}");
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_R032_SHELL_FOUNDATION_PASS " +
+            "panels=explorer-viewport-inspector-palette-diagnostics-assistant layout=persisted " +
+            "explorer=type-folder-area-tag-dependency-validation viewport=editing-simulation-lighting-navigation-collisions-performance " +
+            "palette=type-kit-style-license-compatibility-tags-favorites origins=installed-project-generated-favorites-temporary " +
+            "command=dry-run-apply history=undo-redo persistence=roundtrip");
         return true;
     }
 
@@ -5885,11 +7062,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return false;
         }
 
+        var derived = _history.State.Project.Blueprints.Single(candidate => candidate.Id == derivedBlueprintId);
         var retargeted = _history.State.Project.Areas.First().Entities.Single(candidate => candidate.Id == entity.Id);
         var references = BlueprintReferenceIndex.Build(_history.State.Project).Find(derivedBlueprintId);
         if (_history.State.Project.Blueprints.Count != initialBlueprintCount + 1 ||
             retargeted.BlueprintId != derivedBlueprintId ||
             retargeted.Overrides != entity.Overrides ||
+            retargeted.BlueprintVersionRequirement != $"={derived.Authoring.Version}" ||
+            !derived.Authoring.ManifestPath.StartsWith("content/blueprints/", StringComparison.Ordinal) ||
             references.Count != 1 ||
             !_blueprintCatalog.SelectBlueprintForSmokeTest(derivedBlueprintId) ||
             _blueprintCatalog.VisibleBlueprintCount != initialBlueprintCount + 1 ||
@@ -5947,6 +7127,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var placeable = project.Blueprints.First(blueprint => blueprint.Kind == BlueprintKind.Placeable);
         var initialEntityCount = area.Entities.Count;
         var initialRevision = _history.State.Revision;
+        var initialJournalCount = _history.Journal.Count;
+        var initialNativeRegistrations = _nativeUndoRedoRegistrationCount;
+        var originalSelection = _selectionContext.Current.ToArray();
+        var originalSelectionLock = _selectionContext.IsLocked;
         var occupiedPosition = area.Entities.First().Transform.Position;
         var rejected = _projectPreview.DropBlueprintForSmokeTest(placeable.Id, occupiedPosition);
         if (rejected is not null || _history.State.Revision != initialRevision ||
@@ -5993,9 +7177,80 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return false;
         }
 
+        _selectionContext.SetLocked(false);
+        var anchor = area.Entities.First();
+        var selections = new[]
+        {
+            new CreatorSelection(CreatorSelectionKind.Entity, anchor.Id.ToString(), "Ancre", $"areas/{area.Id}/entities/{anchor.Id}"),
+            new CreatorSelection(CreatorSelectionKind.Entity, placedEntityId.ToString(), "Placement", $"areas/{area.Id}/entities/{placedEntityId}"),
+        };
+        _selectionContext.Replace(selections);
+        var selectionInspection = CreatorSelectionInspector.Inspect(_history.State.Project, selections, "toolset:r033-smoke");
+        if (!_selectionContext.Focus(selections[1], "toolset:r033-smoke") ||
+            !_selectionContext.Frame("toolset:r033-smoke") || selectionInspection.CommonProperties.Count < 7)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R033_DIRECT_MANIPULATION_FAILED selection_inspector");
+            return false;
+        }
+
+        var manipulation = new ManipulateEntitiesCommand(
+            CommandId.From(Guid.NewGuid()), ManipulateEntitiesHandler.CurrentSchemaVersion, "toolset:r033-smoke",
+            _history.State.Revision, area.Id, [anchor.Id, placedEntityId], EditorTransformTool.Rotate,
+            new Vector3Value(0, 15, 0), EditorCoordinateSpace.World, EditorPivotMode.Individual,
+            EditorTransformAlignment.None, 1, 15, .05f, false);
+        if (!ApplyCommand(_manipulateEntitiesHandler.Handle(_history.State, manipulation),
+                "Rotation multiple validée.", selectedEntityId: null))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R033_DIRECT_MANIPULATION_FAILED multi_gizmo");
+            return false;
+        }
+
+        var validator = new PlacementValidator();
+        var socketFailure = validator.Validate(_history.State.Project,
+            new PlacementValidationRequest(area.Id, placeable.Id, freePosition.Value, 1,
+                RequiredSocket: "wall", AvailableSockets: ["floor"]));
+        var budgetFailure = validator.Validate(_history.State.Project,
+            new PlacementValidationRequest(area.Id, placeable.Id, freePosition.Value, 1,
+                AvailableBudgetBytes: 1024, BlueprintEstimatedBytes: 2048));
+        var correction = validator.Validate(_history.State.Project,
+            new PlacementValidationRequest(area.Id, placeable.Id, occupiedPosition, 1, AutoCorrect: true));
+        if (socketFailure.Code != PlacementValidator.SocketMissingCode ||
+            budgetFailure.Code != PlacementValidator.BudgetExceededCode || correction.Corrections?.Count < 1)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R033_DIRECT_MANIPULATION_FAILED placement_causes");
+            return false;
+        }
+
+        var cameraHandler = new NavigateEditorCameraHandler(new SystemClock());
+        var cameraState = new EditorCameraState(EditorCameraProfile.CreateDefault(
+            EditorCameraProfileId.From(Guid.Parse("33000000-0000-4000-8000-000000000001"))), new EditorCameraRevision(0));
+        var cameraInput = new EditorCameraInputConfiguration(
+            Guid.Parse("33000000-0000-4000-8000-000000000002"), 1, "toolset:r033-smoke", EditorCameraPilotMode.Fly,
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["forward"] = "I",
+                ["back"] = "K",
+                ["left"] = "J",
+                ["right"] = "L",
+                ["up"] = "U",
+                ["down"] = "O",
+                ["focus"] = "F",
+            });
+        var configuredCamera = cameraHandler.Handle(cameraState, new NavigateEditorCameraCommand(
+            CommandId.From(Guid.NewGuid()), cameraState.Revision, EditorCameraOperation.SetInput, Input: cameraInput));
+        var pilotedCamera = cameraHandler.Handle(configuredCamera.State, new NavigateEditorCameraCommand(
+            CommandId.From(Guid.NewGuid()), configuredCamera.State.Revision, EditorCameraOperation.Pilot, 2, -1, Z: 3));
+        if (!configuredCamera.Succeeded || !pilotedCamera.Succeeded ||
+            pilotedCamera.State.Profile.Pose.Pivot == cameraState.Profile.Pose.Pivot)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R033_DIRECT_MANIPULATION_FAILED camera_pilot");
+            return false;
+        }
+
+        var undoManipulation = _history.Undo();
         var undoTransform = _history.Undo();
         var undoPlacement = _history.Undo();
-        if (!undoTransform.Succeeded || !undoPlacement.Succeeded ||
+        if (!undoManipulation.Succeeded || !undoTransform.Succeeded || !undoPlacement.Succeeded ||
             _history.State.Project.Areas.First().Entities.Count != initialEntityCount)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED undo");
@@ -6004,25 +7259,51 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         var redoPlacement = _history.Redo();
         var redoTransform = _history.Redo();
-        if (!redoPlacement.Succeeded || !redoTransform.Succeeded ||
+        var redoManipulation = _history.Redo();
+        if (!redoPlacement.Succeeded || !redoTransform.Succeeded || !redoManipulation.Succeeded ||
             _history.State.Project.Areas.First().Entities.Single(entity => entity.Id == placedEntityId).Transform.Position != movePreview.CorrectedPosition)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED redo");
             return false;
         }
 
+        var cleanupManipulation = _history.Undo();
         var cleanupTransform = _history.Undo();
         var cleanupPlacement = _history.Undo();
-        if (!cleanupTransform.Succeeded || !cleanupPlacement.Succeeded ||
+        if (!cleanupManipulation.Succeeded || !cleanupTransform.Succeeded || !cleanupPlacement.Succeeded ||
             _history.State.Project.Areas.First().Entities.Count != initialEntityCount)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G704_DIRECT_FAILED cleanup");
             return false;
         }
 
+        var journalRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "r033-journal", Guid.NewGuid().ToString("N"));
+        try
+        {
+            EditorCommandJournalStore.Save(journalRoot, _history.Journal);
+            var restoredJournal = EditorCommandJournalStore.Load(journalRoot);
+            if (restoredJournal.Count != _history.Journal.Count ||
+                _history.Journal.Count < initialJournalCount + 3 ||
+                (_nativeUndoRedo is not null && _nativeUndoRedoRegistrationCount < initialNativeRegistrations + 3))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R033_DIRECT_MANIPULATION_FAILED command_journal_native_history");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(journalRoot)) Directory.Delete(journalRoot, true);
+        }
+
+        _selectionContext.Replace(originalSelection);
+        _selectionContext.SetLocked(originalSelectionLock);
         RebuildPreview();
         RefreshEditorControls(area.Entities.First().Id);
         GD.Print("OPENRPG_FORGE_TOOLSET_G704_DIRECT_PASS drag=placed gizmo=moved invalid=blocked history=restored");
+        GD.Print("OPENRPG_FORGE_TOOLSET_R033_DIRECT_MANIPULATION_PASS " +
+            "selection=simple-multiple-focus-frame-lock-common-inspector camera=configurable-fly-orthographic-bookmarks " +
+            "placement=ghost-collision-socket-grid-budget-correction gizmo=translate-rotate-scale-pivot-local-global-snap-numeric-align " +
+            "command=uuid-schema-provenance-dry-run-atomic history=native-undo-redo-journal persistence=roundtrip");
         return true;
     }
 
@@ -6194,6 +7475,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         _entityPicker.Selected = entityIndex;
+        _selectionContext.Replace([new CreatorSelection(CreatorSelectionKind.Entity, candidate.Id.ToString(),
+            "clipboard-smoke", $"areas/{sourceArea.Id}/entities/{candidate.Id}")]);
         CopySelectedEntity();
         PasteSemanticClipboard();
         var afterPaste = GetActiveArea();
@@ -6214,6 +7497,39 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return false;
         }
         Undo();
+
+        var blueprintCount = _history.State.Project.Blueprints.Count;
+        _independentCopy!.ButtonPressed = true;
+        CopySelectedEntity();
+        PasteSemanticClipboard();
+        var independent = GetActiveArea().Entities.SingleOrDefault(entity => !initialIds.Contains(entity.Id));
+        if (independent is null || independent.BlueprintId == candidate.BlueprintId ||
+            _history.State.Project.Blueprints.Count != blueprintCount + 1)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED independent_copy");
+            return false;
+        }
+        _selectionContext.Replace([new CreatorSelection(CreatorSelectionKind.Entity, independent.Id.ToString(),
+            "clipboard-cut-smoke", $"areas/{sourceArea.Id}/entities/{independent.Id}")]);
+        CutSelectedEntities();
+        if (_semanticClipboard.Payload is not EntityClipboardPayload { IsCut: true } cutPayload ||
+            cutPayload.Id == Guid.Empty || string.IsNullOrWhiteSpace(cutPayload.Provenance) ||
+            GetActiveArea().Entities.Count != initialEntityCount)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED cut_payload");
+            return false;
+        }
+        Undo();
+        Undo();
+        _independentCopy.ButtonPressed = false;
+        _selectionContext.Replace([new CreatorSelection(CreatorSelectionKind.Entity, candidate.Id.ToString(),
+            "clipboard-smoke", $"areas/{sourceArea.Id}/entities/{candidate.Id}")]);
+        if (_history.State.Project.Blueprints.Count != blueprintCount ||
+            GetActiveArea().Entities.Count != initialEntityCount)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G706_CLIPBOARD_FAILED independent_cleanup");
+            return false;
+        }
 
         var clonedAreaId = DuplicateArea(
             sourceArea.Id,
@@ -6366,6 +7682,115 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool RunR034ContentOperationsSmokeTest()
+    {
+        if (_history is null || _globalSearch is null || _cutButton is null || _independentCopy is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R034_CONTENT_OPERATIONS_FAILED missing_ui");
+            return false;
+        }
+
+        var root = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "r034-smoke", Guid.NewGuid().ToString("N"));
+        try
+        {
+            var scripts = Path.Combine(root, "scripts");
+            var assets = Path.Combine(root, "assets");
+            Directory.CreateDirectory(scripts);
+            Directory.CreateDirectory(assets);
+            File.WriteAllText(Path.Combine(scripts, "guardian.forge"),
+                "asset = \"assets/guardian.glb\"\n", new UTF8Encoding(false));
+            File.WriteAllText(Path.Combine(assets, "guardian.glb"), "r034-asset", new UTF8Encoding(false));
+            File.WriteAllText(Path.Combine(root, "project.json"),
+                "{\"script\":\"scripts/guardian.forge\"}\n", new UTF8Encoding(false));
+
+            var searchProfile = CreatorSearchProfile.CreateDefault(_history.State.Project.Id.Value) with
+            {
+                Provenance = "toolset:r034-smoke",
+                ResultLimit = 37,
+            };
+            CreatorSearchProfileStore.Save(root, searchProfile);
+            var loadedProfile = CreatorSearchProfileStore.Load(root, _history.State.Project.Id.Value);
+            var script = CreatorWorkspaceResource.Create(CreatorContentKind.Script, "scripts/guardian.forge",
+                File.ReadAllText(Path.Combine(scripts, "guardian.forge")), ["script"],
+                id: WorkspaceResourceIdentityStore.Resolve(root, "scripts/guardian.forge"));
+            var asset = CreatorWorkspaceResource.Create(CreatorContentKind.Asset, "assets/guardian.glb",
+                "guardian 3d", ["asset", "3d"],
+                id: WorkspaceResourceIdentityStore.Resolve(root, "assets/guardian.glb"));
+            var catalog = CreatorWorkspaceResourceCatalog.Build(_history.State.Project, [script, asset]);
+            var searchIndex = CreatorSearchIndex.Build(_history.State.Project,
+                supplementalDocuments: catalog.Documents);
+            var referenceIndex = CreatorReferenceIndex.Build(_history.State.Project, catalog.References);
+            if (loadedProfile.ResultLimit != 37 ||
+                searchIndex.Search(new CreatorSearchQuery("guardian", CreatorContentKind.Script)).Count != 1 ||
+                searchIndex.Search(new CreatorSearchQuery("guardian 3d", CreatorContentKind.Asset)).Count != 1 ||
+                referenceIndex.Find(CreatorContentKind.Asset, asset.Id.ToString()).Count != 1)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R034_CONTENT_OPERATIONS_FAILED search_references_profile");
+                return false;
+            }
+
+            var rename = WorkspaceResourceRenameService.Preview(root, "scripts/guardian.forge",
+                "scripts/guardian_runtime.forge", "toolset:r034-smoke");
+            WorkspaceResourceRenameService.Apply(rename);
+            var renamedValid = File.Exists(Path.Combine(scripts, "guardian_runtime.forge")) &&
+                File.ReadAllText(Path.Combine(root, "project.json"))
+                    .Contains("scripts/guardian_runtime.forge", StringComparison.Ordinal) &&
+                WorkspaceResourceIdentityStore.Resolve(root, "scripts/guardian_runtime.forge") == rename.ResourceId;
+            WorkspaceResourceRenameService.Undo(rename);
+            if (!renamedValid || !File.Exists(Path.Combine(scripts, "guardian.forge")))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R034_CONTENT_OPERATIONS_FAILED resource_rename");
+                return false;
+            }
+
+            var project = _history.State.Project;
+            var playerIds = project.Blueprints.Where(item => item.Kind == BlueprintKind.PlayerSpawn)
+                .Select(item => item.Id).ToHashSet();
+            var start = project.Areas.SelectMany(area => area.Entities.Select(entity => (Area: area, Entity: entity)))
+                .First(item => playerIds.Contains(item.Entity.BlueprintId));
+            var targetKind = project.Quests.Count > 0 ? PlaytestTargetKind.SelectedQuest
+                : project.Dialogues.Count > 0 ? PlaytestTargetKind.Dialogue : PlaytestTargetKind.World;
+            Guid? targetId = targetKind == PlaytestTargetKind.SelectedQuest ? project.Quests[0].Id.Value
+                : targetKind == PlaytestTargetKind.Dialogue ? project.Dialogues[0].Id.Value : null;
+            var injections = targetKind == PlaytestTargetKind.SelectedQuest
+                ? new[] { new PlaytestQuestInjection(Guid.NewGuid(), project.Quests[0].Id,
+                    project.Quests[0].InitialStateId, new Dictionary<string, string>()) }
+                : [];
+            var defaults = AreaPlaytestProfile.CreateDefault(start.Area.Id);
+            var profile = new AreaPlaytestProfile(defaults.Id, AreaPlaytestProfile.CurrentSchemaVersion,
+                "toolset:r034-smoke", true, false, PlayFromHereStartMode.PlayerSpawn, start.Entity.Id,
+                TransformValue.Identity, null, start.Entity.BlueprintId, "r034-targeted", injections,
+                targetKind, targetId, headless: true);
+            var before = ProjectJsonSerializer.Serialize(project);
+            var snapshotStore = new PlaytestSnapshotStore(Path.Combine(root, "playtests"));
+            var snapshot = snapshotStore.Create(project, start.Area.Id, profile);
+            var manifest = PlaytestLaunchManifestStore.Load(snapshot.LaunchManifestFilePath!);
+            var playtestValid = manifest.Headless && manifest.TargetKind == targetKind.ToString() &&
+                manifest.TargetId == targetId?.ToString() && before == ProjectJsonSerializer.Serialize(project);
+            snapshotStore.Delete(snapshot);
+            if (!playtestValid)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R034_CONTENT_OPERATIONS_FAILED targeted_playtest");
+                return false;
+            }
+
+            GD.Print("OPENRPG_FORGE_TOOLSET_R034_CONTENT_OPERATIONS_PASS " +
+                "clipboard=multi-cut-instance-independent-remap search=scripts-assets-profile-persisted " +
+                "references=localized-variable-resource-path rename=preview-atomic-uuid-rollback " +
+                $"playtest=world-quest-dialogue-headless target={targetKind.ToString().ToLowerInvariant()}");
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_R034_CONTENT_OPERATIONS_FAILED exception={exception.Message}");
+            return false;
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
     private bool RunModuleConfigurationSmokeTest()
     {
         if (_history is null || _moduleConfiguration is null)
@@ -6407,7 +7832,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             ProjectVariableScope.Save,
             "false",
             "Prouve le blackboard typé G708.",
-            "creator-smoke");
+            "creator-smoke", 1, ProjectVariableReplicationMode.Party, debugVisible: false,
+            requiredAtRuntime: true);
         if (!_moduleConfiguration.ConfigureForSmokeTest(metadata, [variable]) ||
             !_moduleConfiguration.ApplyForSmokeTest())
         {
@@ -6416,13 +7842,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         var configured = _history.State.Project.Module;
-        var blackboard = new ProjectBlackboard(configured.Variables);
+        var blackboard = new ProjectBlackboardScriptService(configured.Variables);
+        var handle = blackboard.Query(variable.Key).Single();
+        var mutation = blackboard.Set(handle, "true");
+        var replication = blackboard.ReplicationDelta(BlackboardReplicationAudience.Party);
+        var debug = blackboard.DebugSnapshot();
         var searchResults = CreatorSearchIndex.Build(_history.State.Project).Search(
             new CreatorSearchQuery("smoke.g708.ready", CreatorContentKind.ProjectVariable));
         if (configured.Metadata.Localizations.Count != 2 || configured.Metadata.Version != "0.8.0" ||
             configured.Variables.Count != 1 || searchResults.Count != 1 ||
-            !blackboard.TrySet(variable.Key, "true", out _) ||
-            blackboard.TrySet(variable.Key, "not-a-boolean", out _))
+            !mutation.Succeeded || replication.Values.GetValueOrDefault(variable.Key) != "true" ||
+            debug.HiddenVariableCount != 1 || debug.Variables.Count != 0 ||
+            blackboard.Set(handle, "not-a-boolean").Succeeded)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G708_MODULE_FAILED canonical_state");
             return false;
@@ -6443,6 +7874,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
             if (!creation.Succeeded || !reopened.Succeeded || reopened.Session is null ||
                 reopened.Session.Project.Module.Metadata.Localizations.Count != 2 ||
                 reopened.Session.Project.Module.Variables.Single().Kind != ProjectVariableValueKind.Boolean ||
+                reopened.Session.Project.Module.Variables.Single().Replication != ProjectVariableReplicationMode.Party ||
+                reopened.Session.Project.Module.Variables.Single().DebugVisible ||
+                !reopened.Session.Project.Module.Variables.Single().RequiredAtRuntime ||
                 exported.Manifest.ModuleVersion != "0.8.0" ||
                 !File.ReadAllText(reopened.Session.ProjectFilePath)
                     .Contains($"\"formatVersion\": \"{ProjectSession.CurrentProjectFormatVersion}\"", StringComparison.Ordinal))
@@ -6474,6 +7908,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print(
             $"OPENRPG_FORGE_TOOLSET_G708_MODULE_PASS metadata=localized variables=typed scopes=save " +
             $"format={ProjectSession.CurrentProjectFormatVersion} history=restored package=versioned");
+        GD.Print("OPENRPG_FORGE_TOOLSET_R011_BLACKBOARD_PASS " +
+            "schema=typed-scoped save=roundtrip replication=party debug=governed " +
+            "forgescript=typed-handle-command ui=module-configuration history=undo-redo");
         return true;
     }
 
@@ -6489,6 +7926,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var originalOrigin = blueprint.PaletteOrigin;
         var originalFavorite = blueprint.IsFavorite;
         var originalProvenance = blueprint.Provenance;
+        var originalAuthoring = blueprint.Authoring;
         var installedProvenance = new BlueprintProvenance(
             BlueprintProvenance.CurrentSchemaVersion,
             $"pack://forge-core/1.0.0/{blueprint.Slug}",
@@ -6496,7 +7934,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "CC0-1.0",
             new string('a', 64),
             false,
-            ["Validated installed pack content"]);
+            ["Validated installed pack content"],
+            "spdx:CC0-1.0");
         if (!_blueprintCatalog.ConfigurePaletteForSmokeTest(
                 blueprint.Id,
                 BlueprintPaletteOrigin.InstalledPack,
@@ -6508,6 +7947,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         var installedCatalog = BlueprintPaletteCatalog.Build(_history.State.Project);
+        var installedBlueprint = _history.State.Project.Blueprints.Single(candidate => candidate.Id == blueprint.Id);
         var editInstalled = _upsertBlueprintHandler.Handle(
             _history.State,
             new UpsertBlueprintCommand(
@@ -6520,6 +7960,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 DryRun: false));
         if (installedCatalog.Filter(BlueprintPaletteView.InstalledPacks).Count != 1 ||
             !_blueprintCatalog.SelectedIsReadOnly ||
+            installedBlueprint.Authoring.Version != "1.0.0" ||
+            installedBlueprint.Authoring.ManifestPath != "pack://forge-core/1.0.0/manifest.json" ||
             editInstalled.Diagnostics.Count != 1 ||
             editInstalled.Diagnostics[0].Code != UpsertBlueprintHandler.ReadOnlyCode)
         {
@@ -6563,7 +8005,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "CC0-1.0",
             new string('b', 64),
             true,
-            ["Generated for G7-09", "Reviewed by module author"]);
+            ["Generated for G7-09", "Reviewed by module author"],
+            "project-author:generated-and-reviewed");
         if (!_blueprintCatalog.ConfigurePaletteForSmokeTest(
                 blueprint.Id,
                 BlueprintPaletteOrigin.Generated,
@@ -6587,6 +8030,38 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return false;
         }
 
+        var dropPlanner = new BlueprintDropPlanner();
+        var activeArea = _history.State.Project.Areas.First();
+        var freePlacement = FindFreePlacement(blueprint.Id);
+        var itemBlueprint = _history.State.Project.Blueprints.FirstOrDefault(candidate => candidate.Kind == BlueprintKind.Item);
+        var dropPlans = freePlacement is null || itemBlueprint is null
+            ? []
+            : new[]
+            {
+                dropPlanner.Plan(_history.State.Project, new BlueprintDropRequest(
+                    Guid.NewGuid(), BlueprintDropPlanner.CurrentSchemaVersion, "toolset:r031-smoke",
+                    blueprint.Id, BlueprintDropTargetKind.Viewport, $"areas/{activeArea.Id}/entities",
+                    activeArea.Id, freePlacement)),
+                dropPlanner.Plan(_history.State.Project, new BlueprintDropRequest(
+                    Guid.NewGuid(), 1, "toolset:r031-smoke", blueprint.Id,
+                    BlueprintDropTargetKind.Graph, "dialogues/smoke/nodes/speakerBlueprintId")),
+                dropPlanner.Plan(_history.State.Project, new BlueprintDropRequest(
+                    Guid.NewGuid(), 1, "toolset:r031-smoke", itemBlueprint.Id,
+                    BlueprintDropTargetKind.Inventory, "areas/smoke/entities/player/inventory/items")),
+                dropPlanner.Plan(_history.State.Project, new BlueprintDropRequest(
+                    Guid.NewGuid(), 1, "toolset:r031-smoke", blueprint.Id,
+                    BlueprintDropTargetKind.Property, "areas/smoke/entities/selection/properties/appearance")),
+                dropPlanner.Plan(_history.State.Project, new BlueprintDropRequest(
+                    Guid.NewGuid(), 1, "toolset:r031-smoke", blueprint.Id,
+                    BlueprintDropTargetKind.Package, "module/content/packages/selection")),
+            };
+        if (dropPlans.Length != 5 || dropPlans.Any(plan => !plan.IsValid) ||
+            BlueprintCreditCatalog.Aggregate(_history.State.Project.Blueprints).Count == 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R031_PALETTE_INTEGRATION_FAILED contextual_drop");
+            return false;
+        }
+
         var smokeRoot = Path.Combine(
             Path.GetTempPath(),
             "OpenRPG_Forge",
@@ -6603,7 +8078,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 restoredBlueprint.PaletteOrigin != BlueprintPaletteOrigin.Generated ||
                 !restoredBlueprint.IsFavorite ||
                 !restoredBlueprint.Provenance.IsAiGenerated ||
-                restoredBlueprint.Provenance.LicenseSpdx != "CC0-1.0")
+                restoredBlueprint.Provenance.LicenseSpdx != "CC0-1.0" ||
+                restoredBlueprint.Provenance.PermissionEvidence != "project-author:generated-and-reviewed")
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED persistence");
                 return false;
@@ -6623,7 +8099,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var restored = _history.State.Project.Blueprints.Single(candidate => candidate.Id == blueprint.Id);
         if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
             restored.PaletteOrigin != originalOrigin || restored.IsFavorite != originalFavorite ||
-            restored.Provenance != originalProvenance)
+            restored.Provenance != originalProvenance || restored.Authoring != originalAuthoring)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G709_PALETTE_FAILED history");
             return false;
@@ -6635,13 +8111,27 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G709_PALETTE_PASS standard=readonly project=editable " +
             $"generated=provenance favorites=filtered temporary=isolated format={ProjectSession.CurrentProjectFormatVersion} " +
             "history=restored persistence=roundtrip");
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_R030_BLUEPRINT_PALETTES_PASS " +
+            "definition=uuid-schema-version-package-license-hash-budget instance=version-range-overrides " +
+            "create=parameters-dependencies-preview-package standard=readonly-versioned-replaceable " +
+            "project=content-blueprints-namespace-git-friendly ui=visible-command history=undo-redo " +
+            "persistence=roundtrip export=manifest-licenses-migration-preview");
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_R031_PALETTE_INTEGRATION_PASS " +
+            "drop=viewport-graph-inventory-property-package validation=contextual-command " +
+            "dependencies=local-transitive-packages-minimal governance=source-author-spdx-permission-hash-modifications-ai " +
+            "credits=aggregated distribution=blocked-if-incomplete persistence=roundtrip history=undo-redo");
         return true;
     }
 
     private bool RunBuildPipelineSmokeTest()
     {
         if (_buildPipeline is null || _history is null || !_buildPipeline.AnalyzeForSmokeTest() ||
-            _buildPipeline.ResourceCount != 5 || _buildPipeline.ScriptCount != 2)
+            !_buildPipeline.PreviewProfileForSmokeTest() ||
+            _buildPipeline.ResourceCount != 5 || _buildPipeline.ScriptCount != 2 ||
+            _buildPipeline.BuildTaskCount < 1 ||
+            _buildPipeline.BuildMaximumParallelism != DeterministicBuildTaskScheduler.DefaultMaximumParallelism)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G712_BUILD_FAILED analysis");
             return false;
@@ -6663,14 +8153,51 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 return false;
             }
 
+            var profile = WorkspaceBuildProfile.CreateDefault();
+            var compatibility = profile.Compatibility with
+            {
+                MinimumRuntimeVersion = ModuleRuntimeCompatibility.CurrentRuntimeVersion,
+            };
+            profile = new WorkspaceBuildProfile(profile.Id, profile.SchemaVersion, profile.Provenance,
+                profile.RequireGitRepository, profile.TextDocuments, profile.ExplicitGeneratedFiles,
+                profile.ReproducibleAssets, profile.Layout, profile.CliOperations, profile.StableOrdering,
+                profile.NormalizedTimestamps, profile.LockedDependencies, profile.ContentHashes,
+                profile.VerifyReproducibility, profile.IncrementalBuild, profile.CachePath,
+                profile.RebuildAffectedOnly, profile.Governance, profile.Collaboration, compatibility);
+            var profileSaved = WorkspaceBuildProfileStore.Save(workspace, profile);
             var first = ModulePackager.Export(workspace, artifact);
             var second = ModulePackager.Export(workspace, artifact);
             var restored = WorkspaceBuildStateStore.TryLoad(workspace);
+            var cache = WorkspaceBuildCollaborationService.RebuildCacheIndex(workspace, profile, dryRun: true);
+            var normalization = WorkspaceBuildCollaborationService.NormalizeDocuments(workspace, profile, dryRun: true);
+            var migration = WorkspaceBuildCollaborationService.MigrateWorkspace(workspace, profile, dryRun: true);
+            var references = WorkspaceBuildCollaborationService.BuildReferenceIndex(
+                workspace, created.Session.Project, created.Session.ProjectFilePath, profile.Collaboration);
+            var semantic = WorkspaceBuildCollaborationService.Diff(
+                WorkspaceBuildCollaborationService.LoadSemanticSnapshot(workspace),
+                WorkspaceBuildCollaborationService.CreateSemanticSnapshot(created.Session.Project, second.DependencyGraph),
+                profile.Collaboration);
             if (first.BuildPlan.RebuiltResources.Count == 0 ||
                 second.BuildPlan.RebuiltResources.Count != 0 ||
                 second.BuildPlan.ReusedResources.Count == 0 ||
                 restored?.SchemaVersion != BuildDependencyGraph.CurrentSchemaVersion ||
-                !File.Exists(Path.Combine(workspace, ".forge", "build-graph.json")))
+                !File.Exists(Path.Combine(workspace, ".forge", "build-graph.json")) ||
+                !File.Exists(Path.Combine(workspace,
+                    WorkspaceBuildCollaborationService.SemanticSnapshotRelativePath.Replace('/', Path.DirectorySeparatorChar))) ||
+                !cache.Succeeded || !normalization.Succeeded || !migration.Succeeded || !migration.Idempotent ||
+                references.Diagnostics.Count != 0 || !references.Nodes.Any(node => node.Dependents.Count > 0) ||
+                !semantic.Succeeded || semantic.Changes.Count != 0 || !profileSaved.Succeeded ||
+                first.PackagingMaterialization.TaskCount < 1 ||
+                first.PackagingMaterialization.MaximumParallelism !=
+                DeterministicBuildTaskScheduler.DefaultMaximumParallelism ||
+                first.Manifest.RuntimeMinimumVersion != ModuleRuntimeCompatibility.CurrentRuntimeVersion ||
+                ModuleRuntimeCompatibility.Evaluate(first.Manifest, ModuleRuntimeCompatibility.CurrentRuntimeVersion) is not null ||
+                ModuleRuntimeCompatibility.Evaluate(first.Manifest with { RuntimeMinimumVersion = "99.0.0" },
+                    ModuleRuntimeCompatibility.CurrentRuntimeVersion)?.Code !=
+                ModuleRuntimeCompatibility.IncompatibleRuntimeCode ||
+                ModuleRuntimeCompatibility.Evaluate(first.Manifest with
+                { RuntimeMinimumVersion = "99.0.0", RuntimeCompatibilityRequired = false },
+                    ModuleRuntimeCompatibility.CurrentRuntimeVersion) is not null)
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G712_BUILD_FAILED incremental");
                 return false;
@@ -6686,7 +8213,163 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         GD.Print(
             "OPENRPG_FORGE_TOOLSET_G712_BUILD_PASS graph=versioned scripts=2 cache=source-api-compiler " +
-            "dependencies=automatic incremental=reused persistence=restored");
+            "dependencies=automatic incremental=reused persistence=restored profile=canonical ui=previewed " +
+            "governance=p0-r002 worktrees=exclusive ci=complete fixtures=5 semver=core-kits-packages adrs=governed");
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_R023_BUILD_COLLABORATION_PASS " +
+            "cache=content-addressed-disposable-rebuildable normalize=json-utf8-lf-order-numbers-atomic " +
+            "migration=dry-run-backup-idempotent-downgrade-explicit references=forward-reverse-rebuildable " +
+            "diff=area-graph-entity-package-script-text-json cli=structured mcp=shell-free " +
+            "history=undo-redo persistence=roundtrip");
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_R026_PROJECT_COMPATIBILITY_PASS " +
+            "profile=uuid-schema-provenance runtime-min=manifest project-format=versioned " +
+            "migration=automatic-dry-run-backup-idempotent runtime=required-diagnostic-optional-safe " +
+            "ui=visible-command-history forgescript=typed-handle mcp=filtered-plan-apply-revert " +
+            "persistence=legacy-roundtrip");
+        return true;
+    }
+
+    private bool RunR036EeAcceptanceSmokeTest()
+    {
+        if (_history is null || _projectPreview is null || _buildPipeline is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R036_EE_FAILED setup");
+            return false;
+        }
+
+        var area = GetActiveArea();
+        var selected = area.Entities.FirstOrDefault(entity =>
+            entity.Tags.Contains("solid", StringComparer.OrdinalIgnoreCase) ||
+            entity.Tags.Contains("architecture", StringComparer.OrdinalIgnoreCase));
+        var agent = area.Navigation.AgentProfiles.FirstOrDefault();
+        if (selected is null || agent is null || !_projectPreview.SelectEntityForSmokeTest(selected.Id))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R036_EE_FAILED selection");
+            return false;
+        }
+
+        var originalScale = selected.Transform.Scale;
+        var beforeNavigation = NavigationSurfaceBuilder.Build(_history.State.Project, area, agent);
+        if (_projectPreview.ScaleGizmoHandleCount != 4 ||
+            !_projectPreview.ScaleSelectedForSmokeTest(ProjectPreview3D.ScaleGizmoAxis.X, increase: false))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R036_EE_FAILED scale_gizmo");
+            return false;
+        }
+
+        var scaledArea = GetActiveArea();
+        var scaled = scaledArea.Entities.Single(entity => entity.Id == selected.Id);
+        var afterNavigation = NavigationSurfaceBuilder.Build(_history.State.Project, scaledArea, agent);
+        var scaleAccepted = scaled.Transform.Scale.X < originalScale.X &&
+                            scaled.Transform.Scale.Y == originalScale.Y &&
+                            scaled.Transform.Scale.Z == originalScale.Z &&
+                            beforeNavigation.SourceFingerprint != afterNavigation.SourceFingerprint &&
+                            _projectPreview.NavigationOverlayCellCount == afterNavigation.WalkableCells.Count;
+        var undo = _history.Undo();
+        RebuildPreview();
+        RefreshEditorControls(selected.Id);
+        var restored = GetActiveArea().Entities.Single(entity => entity.Id == selected.Id);
+        if (!scaleAccepted || !undo.Succeeded || restored.Transform.Scale != originalScale ||
+            _buildPipeline.BuildTaskCount < 1 ||
+            _buildPipeline.BuildMaximumParallelism != DeterministicBuildTaskScheduler.DefaultMaximumParallelism)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R036_EE_FAILED acceptance");
+            return false;
+        }
+
+        var quality = PerformanceQualityService.Benchmark(
+            _history.State.Project,
+            _history.State.Project.Module.RuntimePolicies.Extensions.ModernTooling.QualityAssurance,
+            packageBytes: 0,
+            scriptCount: _buildPipeline.ScriptCount);
+        if (!quality.Passed || quality.Measurements.Count == 0 ||
+            quality.Measurements.Any(item => !double.IsFinite(item.NavigationRebuildMilliseconds)))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R036_EE_FAILED navigation_benchmark");
+            return false;
+        }
+
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_R036_EE_PASS " +
+            "scale=gizmo-x-y-z-uniform-constraints-multiedit-command-history-persistence " +
+            "collision=preview-rebuilt navigation=canonical-fingerprint-overlay-agent-profiles-dynamic-obstacles-recovery " +
+            $"benchmark={quality.Measurements.Count} build=dependency-graph-incremental-script-cache-asset-cache-" +
+            $"parallel-{_buildPipeline.BuildMaximumParallelism}-deterministic-output");
+        return true;
+    }
+
+    private bool RunR035BuildDiagnosticsSmokeTest()
+    {
+        if (_creatorShell is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R035_BUILD_DIAGNOSTICS_FAILED shell");
+            return false;
+        }
+
+        var diagnostics = new[]
+        {
+            CreatorDiagnostic.Create(CreatorDiagnosticSeverity.Warning, "area.navigation.portal_missing",
+                "Portail introuvable", "areas/smoke/portals/entry", "build:r035"),
+            CreatorDiagnostic.Create(CreatorDiagnosticSeverity.Error, "project.reference.blueprint_missing",
+                "Blueprint introuvable", "areas/smoke/entities/warden", "build:r035"),
+            CreatorDiagnostic.Create(CreatorDiagnosticSeverity.Information, "runtime.playtest.ready",
+                "Playtest prêt", "runtime/playtest", "runtime:r035"),
+        };
+        _creatorShell.SetDiagnostics(diagnostics);
+        if (!_creatorShell.FilterDiagnosticsForSmokeTest(
+                CreatorDiagnosticCategory.Reference,
+                CreatorDiagnosticSeverity.Warning,
+                "blueprint",
+                "build:r035",
+                expectedCount: 1) ||
+            !_creatorShell.SelectDiagnosticForSmokeTest(0))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R035_BUILD_DIAGNOSTICS_FAILED filtering");
+            return false;
+        }
+
+        var root = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "r035-diagnostics", Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(root);
+            var first = CreatorDiagnosticBundleExporter.Export(root, diagnostics,
+                "runtime ready\npassword=smoke-secret\nplayerId=smoke-player");
+            var second = CreatorDiagnosticBundleExporter.Export(root, diagnostics.Reverse().ToArray(),
+                "runtime ready\r\npassword=smoke-secret\r\nplayerId=smoke-player");
+            using var archive = ZipFile.OpenRead(Path.Combine(root,
+                first.RelativePath.Replace('/', Path.DirectorySeparatorChar)));
+            using var reader = new StreamReader(archive.GetEntry("runtime.log")!.Open());
+            var log = reader.ReadToEnd();
+            if (first.SchemaVersion != CreatorDiagnosticBundleResult.CurrentSchemaVersion ||
+                first.DiagnosticCount != diagnostics.Length || !first.IncludesRuntimeLog ||
+                second.Id != first.Id || second.Sha256 != first.Sha256 || !second.Reused ||
+                log.Contains("smoke-secret", StringComparison.Ordinal) ||
+                log.Contains("smoke-player", StringComparison.Ordinal) ||
+                !log.Contains("[REDACTED]", StringComparison.Ordinal) ||
+                !log.Contains("[PLAYER_REDACTED]", StringComparison.Ordinal))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R035_BUILD_DIAGNOSTICS_FAILED bundle");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+            _creatorShell.FilterDiagnosticsForSmokeTest(
+                category: null,
+                CreatorDiagnosticSeverity.Information,
+                string.Empty,
+                string.Empty,
+                diagnostics.Length);
+            RefreshCreatorShell();
+        }
+
+        GD.Print(
+            "OPENRPG_FORGE_TOOLSET_R035_BUILD_DIAGNOSTICS_PASS " +
+            "build=validation-scripts-assets-cache-incremental-report-reproducible ui=canonical-export " +
+            "diagnostics=uuid-schema-provenance-category-severity-text-correlation-clickable-quickfix " +
+            "logs=runtime-sanitized bundle=atomic-deterministic-reused cli=structured mcp=structured");
         return true;
     }
 
@@ -6963,6 +8646,239 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G11E_CONTENT_PASS tables=typed batch=dry-run-applied " +
             "collisions=preserve-both blueprints=transitive-governed merge=three-way-conflicts " +
             "history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunContentPackageSmokeTest()
+    {
+        if (_contentPackageWindow is null || _history is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R016_CONTENT_PACKAGES_FAILED missing_window");
+            return false;
+        }
+
+        var original = _history.State.Project.Module.Content;
+        var source = new ContentPackageSource(Guid.Parse("c0160000-0000-4000-8000-000000000203"), 1,
+            "toolset-smoke", "creature.ash-warden", "data/creatures/ash-warden.json",
+            ContentSourceKind.Json, true, "CC0-1.0", new string('a', 64), 1_048_576);
+        var optional = new ContentPackageDependency(Guid.Parse("c0160000-0000-4000-8000-000000000204"), 1,
+            "toolset-smoke", "crypt.cosmetics", "^1.0.0", ContentDependencyKind.Optional);
+        var draft = new ContentPackageDefinition(Guid.Parse("c0160000-0000-4000-8000-000000000202"), 1,
+            "toolset-smoke", "crypt.encounters", "1.2.0", "CC0-1.0", new string('0', 64), 80,
+            ["creature.ash-warden"], [optional], [source]);
+        var package = new ContentPackageDefinition(draft.Id, draft.SchemaVersion, draft.Provenance,
+            draft.PackageNamespace, draft.Version, draft.LicenseSpdx,
+            ContentPackageCompiler.ComputePackageHash(draft), draft.Priority, draft.SealedResources,
+            draft.Dependencies, draft.Sources);
+        var catalog = new ContentPackageCatalog(_history.State.Project.Module.Id.Value, 1, "toolset-smoke",
+            ContentConflictPolicy.HighestPriority, [package]);
+        var resolution = ContentPackageResolver.Resolve(catalog);
+        var script = new ContentPackageScriptService(catalog);
+        var handle = script.Find("crypt.encounters");
+        if (!_contentPackageWindow.ConfigureForSmokeTest(catalog) ||
+            _contentPackageWindow.PackageCount != 1 ||
+            !_contentPackageWindow.ApplyForSmokeTest() ||
+            _history.State.Project.Module.Content.Packages.Packages.Single().Id != package.Id ||
+            !resolution.Valid || resolution.LockEntries.Count != 1 || resolution.Resources.Count != 1 ||
+            handle is null || script.Read(handle.Value).Id != package.Id)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R016_CONTENT_PACKAGES_FAILED configuration");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "r016-content-packages",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            if (!saved.Succeeded || !reopened.Succeeded || reopened.Session is null ||
+                reopened.Session.Project.Module.Content.Packages.Packages.Single().Id != package.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R016_CONTENT_PACKAGES_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            _history.State.Project.Module.Content != original)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R016_CONTENT_PACKAGES_FAILED history");
+            return false;
+        }
+
+        RefreshEditorControls();
+        GD.Print("OPENRPG_FORGE_TOOLSET_R016_CONTENT_PACKAGES_PASS " +
+                 "package=uuid-schema-namespace-semver-license-hash priority=explicit-sealed-conflict-preview " +
+                 "dependencies=required-optional-peer-offline-lock sources=text-one-resource-per-file " +
+                 "compiler=validate-resolve-script-hash-compress-reproducible ui=visible-empty-error " +
+                 "forgescript=typed-handle mcp=filtered-dry-run history=undo-redo persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunContentAuthoringSmokeTest()
+    {
+        if (_history is null || _assetBrowser is null || _localizationWorkspace is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R017_CONTENT_AUTHORING_FAILED missing_workspace");
+            return false;
+        }
+
+        var original = _history.State.Project.Module.Localization;
+        var extracted = LocalizationCatalogExtractor.Extract(_history.State.Project);
+        if (extracted.Diagnostics.Count != 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R017_CONTENT_AUTHORING_FAILED extraction");
+            return false;
+        }
+        var baseline = extracted.Catalog;
+        var messageKey = "smoke.r017.loot";
+        var messages = baseline.Messages.Where(message => message.Key != messageKey)
+            .Append(new LocalizationMessage(messageKey,
+                "{gender, select, female {Elle} male {Il} other {Iel}} trouve " +
+                "{count, plural, =0 {aucun objet} one {# objet} other {# objets}}.",
+                provenance: "toolset:r017"))
+            .ToArray();
+        var catalog = new LocalizationCatalog(baseline.Id, baseline.DefaultLocale,
+            [.. baseline.Locales, "en-US"], messages, baseline.SchemaVersion,
+            baseline.PackageNamespace, baseline.LicenseSpdx, baseline.Provenance, baseline.PlatformByteBudget);
+        var bundle = LocalizationTranslationExchange.Export(catalog, "en-US");
+        var translated = bundle with
+        {
+            Units = bundle.Units.Select(unit => unit with
+            {
+                Translation = unit.Key == messageKey
+                    ? "{gender, select, female {She} male {He} other {They}} finds " +
+                      "{count, plural, =0 {no item} one {# item} other {# items}}."
+                    : unit.Source,
+            }).ToArray(),
+        };
+        var imported = LocalizationTranslationExchange.Import(catalog, translated);
+        var resolvedText = imported.Catalog?.Resolve(messageKey, "en-US", new Dictionary<string, object?>
+        {
+            ["gender"] = "female",
+            ["count"] = 2,
+        });
+        var diagnosticProbe = imported.Catalog is null
+            ? null
+            : _setLocalizationCatalogHandler.Handle(_history.State, new SetLocalizationCatalogCommand(
+                CommandId.From(Guid.NewGuid()), _history.State.Revision, imported.Catalog, DryRun: true));
+        var dryRunSucceeded = diagnosticProbe?.Succeeded == true;
+        var applySucceeded = dryRunSucceeded && ApplyLocalizationCatalog(imported.Catalog!, dryRun: false);
+        if (!imported.Succeeded || imported.Catalog is null || resolvedText != "She finds 2 items." ||
+            !dryRunSucceeded || !applySucceeded)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R017_CONTENT_AUTHORING_FAILED localization " +
+                        $"imported={imported.Succeeded} diagnostics={string.Join(',', imported.Diagnostics)} " +
+                        $"resolved={resolvedText ?? "null"} dry_run={dryRunSucceeded} applied={applySucceeded} " +
+                        $"command={string.Join(';', diagnosticProbe?.Diagnostics.Select(item => $"{item.Code}:{item.Message}") ?? [])}");
+            return false;
+        }
+
+        var source = new ContentPackageSource(Guid.Parse("c0170000-0000-4000-8000-000000000001"), 1,
+            "toolset:r017", "rules/encounter", "data/encounter.json", ContentSourceKind.Json, true,
+            "CC0-1.0", new string('a', 64), 4096, ["legacy.core:text/encounter"],
+            ["crypt.core:model/props/chest"]);
+        var modelAsset = new ContentPackageAsset(Guid.Parse("c0170000-0000-4000-8000-000000000002"), 1,
+            "toolset:r017", "props/chest", "models/chest.glb", true, "CC0-1.0", new string('b', 64),
+            8 * 1024 * 1024);
+        var package = new ContentPackageDefinition(Guid.Parse("c0170000-0000-4000-8000-000000000003"), 1,
+            "toolset:r017", "crypt.core", "1.0.0", "CC0-1.0", new string('c', 64), 10, [], [], [source],
+            [modelAsset]);
+        var packageCatalog = new ContentPackageCatalog(_history.State.Project.Module.Id.Value, 1,
+            "toolset:r017", ContentConflictPolicy.HighestPriority, [package]);
+        var registryResult = ContentResourceRegistry.Build(packageCatalog);
+        if (!registryResult.Valid)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R017_CONTENT_AUTHORING_FAILED namespaces");
+            return false;
+        }
+
+        var registry = ContentResourceRegistry.Create(registryResult);
+        var currentProject = _history.State.Project;
+        var currentModule = currentProject.Module;
+        var configuredContent = new ContentWorkspaceConfiguration(currentModule.Content.Id,
+            currentModule.Content.Batch, currentModule.Content.DataTables, currentModule.Content.MergePolicy,
+            currentModule.Content.Provenance, currentModule.Content.SchemaVersion, packageCatalog);
+        var configuredModule = new ModuleDefinition(currentModule.Id, currentModule.Slug, currentModule.DisplayName,
+            currentModule.Description, currentModule.EntryAreaId, currentModule.Metadata, currentModule.Variables,
+            currentModule.Distribution, currentModule.Localization, configuredContent, currentModule.ArtisticStyle,
+            currentModule.RuntimePolicies, currentModule.Factions, currentModule.WorldFeatures);
+        var configuredProject = new ProjectDefinition(currentProject.Id, currentProject.Title, configuredModule,
+            currentProject.Blueprints, currentProject.Areas, currentProject.Dialogues, currentProject.Quests);
+        var browser = new UnifiedContentBrowser(configuredProject);
+        var resourceScript = new ContentResourceScriptService(browser);
+        var resourceHandle = resourceScript.Find("legacy.core:text/encounter");
+        var localizationScript = new LocalizationScriptService(currentModule.Localization);
+        var localizationHandle = localizationScript.Find(messageKey);
+
+        var textureProfile = new AssetProcessingProfile(
+            AssetCatalogItemId.From(Guid.Parse("c0170000-0000-4000-8000-000000000004")), 1,
+            AssetProcessingKind.Texture, "tiff", "ktx2", "CC0-1.0", new string('d', 64), "toolset:r017",
+            8 * 1024 * 1024, texture: new(TextureColorSpace.Srgb, TextureCompressionProfile.Desktop, 4096,
+                10.24m, new Dictionary<PbrTextureChannel, string>
+                {
+                    [PbrTextureChannel.BaseColor] = "textures/chest-base.png",
+                    [PbrTextureChannel.Normal] = "textures/chest-normal.exr",
+                }));
+        var modelProfile = new AssetProcessingProfile(
+            AssetCatalogItemId.From(Guid.Parse("c0170000-0000-4000-8000-000000000005")), 1,
+            AssetProcessingKind.Model, "gltf", "glb", "CC0-1.0", new string('e', 64), "toolset:r017",
+            32 * 1024 * 1024, model: new(true, true, true, ["hand.r"], [1m, .5m, .25m]));
+        if (!registry.TryResolve("legacy.core:text/encounter", out var aliased) ||
+            aliased?.Address != "crypt.core:text/rules/encounter" ||
+            browser.Search(new UnifiedContentBrowserQuery(PackageNamespace: "crypt.core")).Count != 2 ||
+            resourceHandle is null || resourceScript.Read(resourceHandle.Value).ReferenceCount != 1 ||
+            localizationHandle is null || localizationScript.Read(localizationHandle.Value, "en-US",
+                new Dictionary<string, object?> { ["gender"] = "female", ["count"] = 2 }).Text !=
+            "She finds 2 items." || AssetProcessingProfileValidator.Validate(textureProfile).Count != 0 ||
+            AssetProcessingProfileValidator.Validate(modelProfile).Count != 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R017_CONTENT_AUTHORING_FAILED resources");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "r017-content-authoring",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            if (!saved.Succeeded || !reopened.Succeeded || reopened.Session is null ||
+                reopened.Session.Project.Module.Localization.ContentSha256 != currentModule.Localization.ContentSha256)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R017_CONTENT_AUTHORING_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            _history.State.Project.Module.Localization != original)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R017_CONTENT_AUTHORING_FAILED history");
+            return false;
+        }
+
+        RefreshEditorControls();
+        GD.Print("OPENRPG_FORGE_TOOLSET_R017_CONTENT_AUTHORING_PASS " +
+                 "localization=icu-fallback-pseudo-translator texture=png-tiff-exr-ktx2-pbr-compression-texel " +
+                 "model=gltf-glb-rig-animation-collision-sockets-lod namespaces=package-type-path-uuid-aliases " +
+                 "browser=facets-preview-references-package-license-status-actions ui=visible-empty-error " +
+                 "forgescript=typed-handles mcp=filtered-dry-run history=undo-redo persistence=roundtrip");
         return true;
     }
 
@@ -8016,8 +9932,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
             MultiplayerPausePolicy.Vote, .5f, original.TimeControl.PausePermissions, "smoke:g11-l");
         var combat = new CombatModeProfile(original.CombatModes.Id, 1, "turn-based",
             original.CombatModes.Providers, "smoke:g11-l");
+        var foundation = original.Foundation with
+        {
+            GroundedMovement = original.Foundation.GroundedMovement with
+            { RunSpeed = 6.8f, Acceleration = 28, Provenance = "smoke:r010" },
+            Cameras = original.Foundation.Cameras with
+            { DefaultProfileKey = "isometric", Provenance = "smoke:r010" },
+            Save = original.Foundation.Save with
+            { ChunkBytes = 32_768, AutosaveIntervalSeconds = 45, RollbackSlots = 4, Provenance = "smoke:r010" },
+            Provenance = "smoke:r010",
+        };
         var candidate = new ModuleGameplayControlProfile(original.Id, 1, swimming, climbing, radial, time,
-            combat, "smoke:g11-l");
+            combat, "smoke:g11-l", foundation);
 
         var dive = MovementCapabilityRuntime.Resolve(candidate,
             new MovementCapabilityContext(true, true, false, false, 10, 120), 1);
@@ -8046,9 +9972,18 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var applied = _history.State.Project.Module.RuntimePolicies.Gameplay;
         if (!applied.Swimming.Enabled || !applied.Climbing.Enabled || applied.RadialMenu.Actions.Count < 4 ||
             !applied.TimeControl.PlanningEnabled || applied.TimeControl.MultiplayerPolicy != MultiplayerPausePolicy.Vote ||
-            applied.CombatModes.DefaultProvider.Kind != CombatModeKind.TurnBased)
+            applied.CombatModes.DefaultProvider.Kind != CombatModeKind.TurnBased ||
+            applied.Foundation.GroundedMovement.RunSpeed != 6.8f ||
+            applied.Foundation.Cameras.DefaultProfileKey != "isometric" ||
+            applied.Foundation.Save.RollbackSlots != 4 ||
+            GameplayFoundationValidator.Validate(applied.Foundation).Count != 0)
         {
-            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_FAILED applied_contract");
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_FAILED applied_contract " +
+                $"swim={applied.Swimming.Enabled} climb={applied.Climbing.Enabled} radial={applied.RadialMenu.Actions.Count} " +
+                $"planning={applied.TimeControl.PlanningEnabled} multiplayer={applied.TimeControl.MultiplayerPolicy} " +
+                $"combat={applied.CombatModes.DefaultProvider.Kind} run={applied.Foundation.GroundedMovement.RunSpeed} " +
+                $"camera={applied.Foundation.Cameras.DefaultProfileKey} rollback={applied.Foundation.Save.RollbackSlots} " +
+                $"diagnostics={string.Join(',', GameplayFoundationValidator.Validate(applied.Foundation).Select(item => item.Code))}");
             return false;
         }
 
@@ -8061,7 +9996,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var restored = reopened.Session?.Project.Module.RuntimePolicies.Gameplay;
             if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
                 restored.RadialMenu.Actions.Count != applied.RadialMenu.Actions.Count ||
-                restored.CombatModes.DefaultProviderId != "turn-based")
+                restored.CombatModes.DefaultProviderId != "turn-based" ||
+                restored.Foundation.AllIds().Count != applied.Foundation.AllIds().Count ||
+                restored.Foundation.Cameras.DefaultProfileKey != "isometric")
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11L_GAMEPLAY_FAILED persistence");
                 return false;
@@ -8088,6 +10025,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "climb=links-stamina-ik-safety radial=nested-gamepad-keyboard-list-accessible " +
             "time=pause-slow-planning-turns multiplayer=vote-permissions combat=providers-shared-events-authority " +
             "history=restored persistence=roundtrip");
+        GD.Print("OPENRPG_FORGE_TOOLSET_R010_GAMEPLAY_PASS " +
+            "movement=ground-profile-validated interaction=focus-verbs-hold camera=8-profiles " +
+            "input=contexts-devices-glyphs-rebind save=chunks-sha256-autosave-rollback-migrations-dependencies " +
+            "ui=five-panels command=dry-run-apply history=undo-redo persistence=roundtrip " +
+            "forgescript=typed-handles mcp=filtered-dry-run");
         return true;
     }
 
@@ -8116,8 +10058,15 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 Enabled = item.Key == "story-support",
             }).ToArray(),
             "smoke:g11-m");
+        var originalPackage = originalModule.Plugins.Packages.Single();
+        var pluginPackage = new RulesetPluginPackage(originalPackage.Id, 1, originalPackage.Key, "1.1.0",
+            originalPackage.ContentPackageId, originalPackage.Attributes, originalPackage.Effects,
+            originalPackage.Abilities, originalPackage.Inventories, originalPackage.ProgressionTracks,
+            originalPackage.UiPanels, "smoke:r011");
+        var plugins = new RulesetPluginCatalog(originalModule.Plugins.Id, 1, true, true, pluginPackage.Key,
+            [pluginPackage], "smoke:r011");
         var module = new ModuleRulesProfile(originalModule.Id, 1, progression, [difficulty], difficulty.Key,
-            mutators, "smoke:g11-m");
+            mutators, "smoke:g11-m", plugins);
         var perception = new EnvironmentPerceptionProfile(originalArea.Perception.Id, 1,
             originalArea.Perception.RulesetId,
             [new EnvironmentPerceptionModifier(Guid.Parse("d11d0000-0000-4000-8000-000000000001"),
@@ -8131,8 +10080,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
             resolved.ProgressionMultiplier);
         var sensed = RulesRuntimeService.ResolvePerception(area.Perception, "vision", 20, .8,
             new HashSet<string>(["fog"], StringComparer.Ordinal));
+        var plugin = RulesetPluginRuntimeService.Resolve(module.Plugins, ["content.core"]);
         if (resolved.IncomingDamageMultiplier >= difficulty.IncomingDamageMultiplier || award.Level < 2 ||
-            sensed.Range != 15 || Math.Abs(sensed.Confidence - .7) > .0001)
+            sensed.Range != 15 || Math.Abs(sensed.Confidence - .7) > .0001 ||
+            plugin is not { Succeeded: true, ExtensionPresent: true, Registration: not null } ||
+            plugin.Registration.Attributes.Count == 0 || plugin.Registration.Effects.Count == 0 ||
+            plugin.Registration.Abilities.Count == 0 || plugin.Registration.Inventories.Count == 0 ||
+            plugin.Registration.ProgressionTracks.Count == 0 || plugin.Registration.UiPanels.Count == 0)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11M_RULES_FAILED runtime_contract");
             return false;
@@ -8149,6 +10103,8 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var appliedArea = _history.State.Project.Areas.Single(item => item.Id == areaId).RuntimePolicies.Rules;
         if (appliedModule.ActiveDifficulty.SaveRestrictions != SaveRestrictionPolicy.CheckpointsOnly ||
             appliedModule.Mutators.Mutators.Count(item => item.Enabled) != 1 ||
+            appliedModule.Plugins.ActivePackageKey != pluginPackage.Key ||
+            appliedModule.Plugins.Packages.Single().Version != "1.1.0" ||
             appliedArea.Perception.Modifiers.Count != 1 || appliedArea.Combat.PvpMode != AreaPvpMode.DuelsOnly ||
             !appliedArea.Combat.ServerAuthoritative)
         {
@@ -8165,6 +10121,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var restored = reopened.Session?.Project;
             if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
                 restored.Module.RuntimePolicies.Rules.ActiveDifficulty.IncomingDamageMultiplier != 1.35 ||
+                restored.Module.RuntimePolicies.Rules.Plugins.Packages.Single().Version != "1.1.0" ||
                 restored.Areas.Single(item => item.Id == areaId).RuntimePolicies.Rules.Combat.PvpMode !=
                     AreaPvpMode.DuelsOnly)
             {
@@ -8195,6 +10152,127 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "difficulty=damage-ai-economy-rest-save-accessibility mutators=composable " +
             "perception=sense-ruleset-condition pvp=duel-crime-aggro-environment authority=server " +
             "mcp=governed history=restored persistence=roundtrip");
+        GD.Print("OPENRPG_FORGE_TOOLSET_R011_GAMEPLAY_SYSTEMS_PASS " +
+            "blackboard=typed-save-replication-debug forgescript=typed-handles " +
+            "ruleset=attributes-effects-abilities-inventories-progression-ui " +
+            "ui=blackboard-rules-plugin command=dry-run-apply history=undo-redo persistence=roundtrip " +
+            "mcp=filtered-read-plan");
+        return true;
+    }
+
+    private bool RunForgeScriptFoundationSmokeTest()
+    {
+        if (_forgeScriptEditor is null || !_forgeScriptEditor.RunForSmokeTest() ||
+            !_forgeScriptEditor.LastCompileSucceeded || !_forgeScriptEditor.LastSandboxSucceeded ||
+            _forgeScriptEditor.BindingCount != 2)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R012_SCRIPT_FOUNDATION_FAILED " +
+                        "editor-compile-sandbox-bindings");
+            return false;
+        }
+
+        GD.Print("OPENRPG_FORGE_TOOLSET_R012_SCRIPT_FOUNDATION_PASS " +
+                 "language=angelscript-2.38-c-like-static api=1.0-versioned " +
+                 "source=canonical-as-uuid-schema-provenance bytecode=cache-source-api-compiler " +
+                 "compiler=incremental-parallel-stable-diagnostics " +
+                 "events=per-component-multi-handler-priority-condition-authority " +
+                 "entry=typed-payload ui=editor-console-clickable-diagnostics " +
+                 "command=preview-apply-undo-redo mcp=api-compile-diagnostics-tests-assign-event");
+        return true;
+    }
+
+    private bool RunForgeScriptWorldApiSmokeTest()
+    {
+        var registered = ForgeScriptApiCatalog.Registrations.Select(item => item.Name)
+            .ToHashSet(StringComparer.Ordinal);
+        var complete = ForgeScriptCapabilityManifest.Capabilities
+            .SelectMany(item => item.ApiNames).All(registered.Contains);
+        var denied = ForgeScriptCapabilityManifest.ValidateSource("void main() { socket.connect(\"x\"); }");
+        if (_forgeScriptEditor is null || _forgeScriptEditor.CapabilityCount != 6 || !complete ||
+            denied.Count != 1 || denied[0].Code != "script.sandbox.capability_forbidden")
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R013_SCRIPT_WORLD_API_FAILED " +
+                        "catalog-editor-sandbox-manifest");
+            return false;
+        }
+
+        GD.Print("OPENRPG_FORGE_TOOLSET_R013_SCRIPT_WORLD_API_PASS " +
+                 "world=area-query-transform-spawn-destroy movement=task-mode-velocity-teleport-completion " +
+                 "utilities=vector-quaternion-unicode-format-regex-bounded variables=typed-object-blackboard " +
+                 "sandbox=allowlist-no-file-network-process-native-reflection-engine-dotnet " +
+                 "ui=catalog-editor-console-diagnostics command=preview-apply-undo-redo");
+        return true;
+    }
+
+    private bool RunForgeScriptSafetyPolicySmokeTest()
+    {
+        var registry = new ForgeScriptHandleRegistry();
+        var handle = registry.Register(ForgeScriptHandleKind.Entity,
+            Guid.Parse("c7140000-0000-4000-8000-000000000001"));
+        var typed = registry.TryResolve(handle, ForgeScriptHandleKind.Entity, out _, out _);
+        var wrongType = !registry.TryResolve(handle, ForgeScriptHandleKind.Area, out _, out var typeDiagnostic) &&
+                        typeDiagnostic?.Code == "script.handle.type_invalid";
+        registry.Release(handle, ForgeScriptHandleKind.Entity);
+        var stale = !registry.TryResolve(handle, ForgeScriptHandleKind.Entity, out _, out var staleDiagnostic) &&
+                    staleDiagnostic?.Code == "script.handle.stale";
+        var negotiation = ForgeScriptApiCompatibility.Negotiate("1.0",
+            new HashSet<string> { "opaque-handles", "determinism" });
+        var policy = new ForgeScriptExecutionPolicyHistory(ForgeScriptExecutionPolicy.Default);
+        var command = new ForgeScriptExecutionPolicyCommand(Guid.NewGuid(), 0,
+            ForgeScriptExecutionPolicy.Default with { DeterministicSeed = 14_014 }, "toolset:r014");
+        var preview = policy.Preview(command);
+        var applied = policy.Apply(command);
+        var undone = policy.Undo();
+        var redone = policy.Redo();
+        if (_forgeScriptEditor is null || !typed || !wrongType || !stale || !negotiation.Succeeded ||
+            ForgeScriptApiCompatibility.Deprecations.Count == 0 || !preview.Succeeded || !applied.Succeeded ||
+            !undone.Succeeded || !redone.Succeeded)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R014_SCRIPT_SAFETY_POLICY_FAILED " +
+                        "handles-budgets-determinism-version-ui");
+            return false;
+        }
+
+        GD.Print("OPENRPG_FORGE_TOOLSET_R014_SCRIPT_SAFETY_POLICY_PASS " +
+                 "handles=typed-generational-stale-validated budgets=handler-tick-module-memory-timeout-cancel " +
+                 "determinism=seed-clock-server version=semver-negotiation-deprecation-migration " +
+                 "ui=presets-summary-telemetry command=preview-apply-undo-redo mcp=version-capabilities");
+        return true;
+    }
+
+    private bool RunForgeScriptModulePermissionsSmokeTest()
+    {
+        var moduleId = _history?.State.Project.Module.Id.Value ??
+            Guid.Parse("15000000-0000-4000-8000-000000000015");
+        var policy = ForgeScriptModulePermissionPolicy.CreateDefault(moduleId);
+        var history = new ForgeScriptModulePermissionHistory(policy);
+        var command = new ForgeScriptModulePermissionCommand(Guid.NewGuid(), 0, policy,
+            "toolset:r015");
+        var preview = history.Preview(command);
+        var apply = history.Apply(command);
+        var undo = history.Undo();
+        var redo = history.Redo();
+        var accepted = ForgeScriptModuleAuthorizationService.Authorize(policy,
+            new(moduleId, "core", "module.start", "main",
+                new HashSet<string>(["world"], StringComparer.Ordinal), ForgeScriptEventAuthority.Server,
+                true, false, true));
+        var denied = ForgeScriptModuleAuthorizationService.Authorize(policy,
+            new(moduleId, "core", "module.start", "main",
+                new HashSet<string>(["movement"], StringComparer.Ordinal), ForgeScriptEventAuthority.Server,
+                true, false, true));
+        if (_forgeScriptEditor is null || !_forgeScriptEditor.ModulePermissionsSmokeSucceeded || !preview.Succeeded ||
+            !apply.Succeeded || !undo.Succeeded || !redo.Succeeded || !accepted.Succeeded ||
+            denied.Diagnostics.SingleOrDefault()?.Code != "script.permission.capability_denied")
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R015_SCRIPT_MODULE_PERMISSIONS_FAILED " +
+                        "ui-command-authority-signature-capabilities");
+            return false;
+        }
+
+        GD.Print("OPENRPG_FORGE_TOOLSET_R015_SCRIPT_MODULE_PERMISSIONS_PASS " +
+                 "policy=module-kit-event-deny-default authority=server signature=trusted-production-dev-explicit " +
+                 "ui=empty-error-capabilities-diagnostics-console command=preview-apply-undo-redo " +
+                 "persistence=canonical-json packaging=validated mcp=documented");
         return true;
     }
 
@@ -8316,6 +10394,104 @@ public partial class ForgeEditorPlugin : EditorPlugin
         return true;
     }
 
+    private bool RunAudioEmitterSmokeTest()
+    {
+        if (_history is null || _areaEnvironmentWindow is null || _activeAreaContext.Current is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R004_AUDIO_FAILED missing_workspace");
+            return false;
+        }
+
+        var areaId = _activeAreaContext.Current;
+        var area = _history.State.Project.Areas.Single(item => item.Id == areaId);
+        var original = area.Environment;
+        var definitionId = Guid.Parse("a0040000-0000-4000-8000-000000000401");
+        var instanceId = Guid.Parse("a0040000-0000-4000-8000-000000000402");
+        var catalog = new AudioEmitterCatalog(AudioEmitterCatalog.CurrentSchemaVersion,
+        [
+            new AudioEmitterDefinition(definitionId, AudioEmitterDefinition.CurrentSchemaVersion, "Cascade de validation",
+                new AudioClipSet(Guid.Parse("a0040000-0000-4000-8000-000000000403"),
+                    AudioClipSet.CurrentSchemaVersion, "Cascade clips", AudioClipSelectionMode.Weighted,
+                    [new(Guid.Parse("a0040000-0000-4000-8000-000000000404"), "audio/waterfall.ogg", 2,
+                        ["water", "ambient"], "close", "fr", -18, "audio/waterfall.preview.ogg",
+                        "audio/ogg", 1048576, "CC0-1.0", "smoke:r004", new string('a', 64))],
+                    "smoke:r004"),
+                new(AudioLoopMode.SeamlessRegion, 0, 1, 8, .25f, string.Empty),
+                new(2, 42, "inverse-square", 180, -12, .25f, 1.5f, true), null, .25f,
+                "scripts/waterfall-on.forge", "scripts/waterfall-off.forge", true, "smoke:r004",
+                "assets/asset-manifests.json", "CC0-1.0", new string('a', 64)),
+        ],
+        [
+            new AudioEmitterInstance(instanceId, definitionId,
+                new TransformValue(new Vector3Value(6, 2, -5), QuaternionValue.Identity, Vector3Value.One),
+                true, "smoke:r004"),
+        ]);
+        var audio = original.Audio;
+        var updatedAudio = new AreaAudioProfile(audio.DayMusic, audio.NightMusic, audio.CombatMusic,
+            audio.Ambience, audio.ReverbPreset, audio.TransitionSeconds, audio.Playlist, audio.OrderMode,
+            audio.IntervalSeconds, audio.IntervalVariationSeconds, audio.RelativeVolume, audio.Spatial,
+            audio.RuntimeControl, audio.AdaptiveLayers, audio.Orchestration, catalog);
+        var configured = new AreaEnvironmentProfile(AreaEnvironmentProfile.CurrentSchemaVersion,
+            original.Classification, original.Tags, original.Lighting, original.Fog, updatedAudio,
+            original.Rendering, original.Sky, original.Wind, original.Weather, original.Water, original.Reverb);
+
+        var runtime = AudioEmitterRuntimeService.CreateInitialPlaybacks(catalog, 2026).Single();
+        if (runtime.Handle.Id != instanceId || runtime.Transform.Position != new Vector3Value(6, 2, -5) ||
+            runtime.Loop.Mode != AudioLoopMode.SeamlessRegion || !runtime.Autoplay)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R004_AUDIO_FAILED runtime_contract");
+            return false;
+        }
+        if (!_areaEnvironmentWindow.ConfigureRenderForSmokeTest(configured) ||
+            !_areaEnvironmentWindow.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R004_AUDIO_FAILED authoring_apply");
+            return false;
+        }
+        var applied = _history.State.Project.Areas.Single(item => item.Id == areaId).Environment.Audio.Emitters;
+        if (applied.Definitions.Single().ClipSet.Clips.Single().LicenseSpdx != "CC0-1.0" ||
+            applied.Instances.Single().Transform.Position != new Vector3Value(6, 2, -5) ||
+            AudioEmitterCatalogValidator.Validate(applied).Count != 0)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R004_AUDIO_FAILED canonical_validation");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "audio-emitter-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project.Areas.Single(item => item.Id == areaId)
+                .Environment.Audio.Emitters;
+            if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
+                restored.Definitions.Single().Id != definitionId ||
+                restored.Instances.Single().Id != instanceId)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R004_AUDIO_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo(); var redo = _history.Redo(); var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            !ReferenceEquals(_history.State.Project.Areas.Single(item => item.Id == areaId).Environment, original))
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R004_AUDIO_FAILED history");
+            return false;
+        }
+        RebuildPreview(); RefreshEditorControls();
+        GD.Print("OPENRPG_FORGE_TOOLSET_R004_AUDIO_PASS object=definition-instance clips=weighted-licensed " +
+            "loop=seamless-positioned validation=files-license-loudness-range-memory " +
+            "script=typed-handle mcp=filtered-dry-run history=restored persistence=roundtrip");
+        return true;
+    }
+
     private bool RunRuntimeExtensionsSmokeTest()
     {
         if (_history is null || _runtimeExtensionsWindow is null)
@@ -8364,7 +10540,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             !applied.OperationalReadiness.CrashArtifacts.CaptureSanitizedLogs ||
             !applied.OperationalReadiness.ProjectHealth.IncludeCoverage ||
             !applied.OperationalReadiness.Recovery.QuarantineCorruptFiles ||
-            !applied.OperationalReadiness.ContentSynchronization.Resumable)
+            !applied.OperationalReadiness.ContentSynchronization.Resumable ||
+            applied.ModernTooling.QualityAssurance.ClickableDiagnostics.Categories.Count != 7 ||
+            applied.ModernTooling.QualityAssurance.MaliciousFixtures.Families.Count != 7 ||
+            applied.ModernTooling.QualityAssurance.AuroraParityCoverage.ExpectedFeatureCount != 717 ||
+            !applied.ModernTooling.QualityAssurance.AcceptanceGates.RequiredGates.Contains("G8", StringComparer.Ordinal))
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11O_EXTENSIONS_FAILED canonical_contract");
             return false;
@@ -8383,6 +10563,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
                  restored.JsonDocuments.Single().InitialValue != "{\"chapter\":1,\"status\":\"Prêt\"}" ||
                  !restored.ModernTooling.UiToolkit.Accessibility ||
                  restored.ModernTooling.Documentation.OutputDirectory != "docs/generated" ||
+                 restored.ModernTooling.QualityAssurance.ClickableDiagnostics.ActiveProfile != "authoring" ||
+                 restored.ModernTooling.QualityAssurance.MaliciousFixtures.Families.Count != 7 ||
+                 restored.ModernTooling.QualityAssurance.AuroraParityCoverage.ExpectedFeatureCount != 717 ||
+                 !restored.ModernTooling.QualityAssurance.AcceptanceGates.RequireLinkedDocumentation ||
                  restored.OperationalReadiness.TaskManifests.Single().Key != "validate-module" ||
                  restored.OperationalReadiness.ContentSynchronization.StorageDirectory != ".forge/content-cache")
             {
@@ -8417,6 +10601,159 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print("OPENRPG_FORGE_TOOLSET_G11Q_RESILIENCE_PASS tasks=goal-scope-forbidden-tests-owner-dependencies " +
             "crash=sanitized-dump-version-fingerprint-reproduction health=domains-tests-performance-licenses-migrations-coverage " +
             "recovery=journal-reopen-quarantine-compare sync=resume-dedup-hash-trust-storage history=restored persistence=roundtrip");
+        GD.Print("OPENRPG_FORGE_TOOLSET_R003_QA_PASS diagnostics=profile-category-severity-quickfix " +
+            "malicious=7-fixtures parity=717-status-evidence gates=G0-G13-tests-docs-evidence " +
+            "mcp=structured history=restored persistence=roundtrip");
+        return true;
+    }
+
+    private bool RunAreaFoundationSmokeTest()
+    {
+        if (_history is null || _projectSession is null || _areaFoundationWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R028_AREA_FOUNDATION_FAILED missing_context");
+            return false;
+        }
+
+        var area = GetActiveArea();
+        var original = area.Foundation;
+        if (!_areaFoundationWindow.PrepareForSmokeTest() || !_areaFoundationWindow.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R028_AREA_FOUNDATION_FAILED ui_apply");
+            return false;
+        }
+
+        var appliedArea = _history.State.Project.Areas.Single(item => item.Id == area.Id);
+        var applied = appliedArea.Foundation;
+        var connection = ModularTileConnectionPreviewService.Preview(applied.TileKit,
+            applied.TileKit.Placements.Single().Id);
+        var placedEntity = appliedArea.Entities.Single(item =>
+            item.Id == applied.TileKit.Placements.Single().EntityId);
+        var resolvedTile = ModularTilePlacementResolver.Resolve(appliedArea, placedEntity);
+        var lifecycle = new RuntimeLifecycleCoordinator();
+        var loaded = lifecycle.LoadProject(_history.State.Project, RuntimeAuthority.SinglePlayer,
+            RuntimeLifecycleCause.Startup);
+        var entered = lifecycle.EnterInitialArea(area.Id, null, RuntimeLifecycleCause.Startup);
+        if (AreaFoundationValidator.Validate(appliedArea, applied).Count != 0 ||
+            applied.TileKit.Definitions.Count != 1 || applied.TileKit.Placements.Count != 1 ||
+            applied.TileKit.Groups.Count != 1 || applied.TileKit.Brushes.Count != 1 ||
+            applied.Creation.KitKey != "crypt-modular-kit" || connection.OpenSocketCount != 1 ||
+            resolvedTile.Entity.Transform.Position.X != 0 || resolvedTile.Entity.Transform.Position.Z != 0 ||
+            resolvedTile.Mirror != ModularTileMirrorMode.X || resolvedTile.SemanticState != "weathered" ||
+            !loaded.Succeeded || !entered.Succeeded ||
+            entered.Events.Single().ScriptPath != "scripts/ash_warden_phase_two.forge")
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R028_AREA_FOUNDATION_FAILED contract");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "r028-area-foundation",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project.Areas.Single(item => item.Id == area.Id).Foundation;
+            if (!saved.Succeeded || !reopened.Succeeded || restored is null ||
+                restored.Id != applied.Id || restored.Creation != applied.Creation ||
+                restored.TileKit.Id != applied.TileKit.Id ||
+                restored.TileKit.Definitions.Count != applied.TileKit.Definitions.Count ||
+                restored.TileKit.Placements.Count != applied.TileKit.Placements.Count ||
+                restored.Lifecycle.Entered != applied.Lifecycle.Entered)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R028_AREA_FOUNDATION_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            _history.State.Project.Areas.Single(item => item.Id == area.Id).Foundation != original)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R028_AREA_FOUNDATION_FAILED history");
+            return false;
+        }
+
+        GD.Print("OPENRPG_FORGE_TOOLSET_R028_AREA_FOUNDATION_PASS " +
+            "wizard=kit-terrain-lighting-navigation-streaming-biome-seed-budget-preview " +
+            "document=uuid-schema-provenance-environment-instances-volumes-navigation-dependencies " +
+            "tiles=grid-sockets-rules-groups-brushes-runtime rotation=kit-policy-mirror-semantic-variant-raccord-preview " +
+            "lifecycle=entered-exited-actor-transition-context-authority-script-api " +
+            "ui=visible-empty-error command=preview-apply history=undo-redo persistence=roundtrip forgescript=typed");
+        return true;
+    }
+
+    private bool RunAreaRuntimeValidationSmokeTest()
+    {
+        if (_history is null || _projectSession is null || _areaWorkspace is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R029_AREA_RUNTIME_VALIDATION_FAILED missing_context");
+            return false;
+        }
+        var area = GetActiveArea();
+        var original = area.Playtest;
+        if (!_areaWorkspace.PrepareRuntimeValidationForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R029_AREA_RUNTIME_VALIDATION_FAILED ui_apply");
+            return false;
+        }
+        var appliedArea = _history.State.Project.Areas.Single(item => item.Id == area.Id);
+        var profile = appliedArea.Playtest;
+        var navigation = AreaOperationsScriptService.ReadNavigation(_history.State.Project, area.Id);
+        var readiness = AreaReadinessService.Run(_history.State.Project, area.Id);
+        if (profile.StartMode != PlayFromHereStartMode.Camera || profile.TestProfile != "r029-camera-smoke" ||
+            profile.CameraTransform.Position != new Vector3Value(6, 2, -2) ||
+            navigation.AgentProfiles != 4 || navigation.WalkableCells == 0 ||
+            readiness.Checks.Count != 9 || readiness.CategoryCounts.Count != 9)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R029_AREA_RUNTIME_VALIDATION_FAILED contract");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "r029-area-runtime",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var saved = ProjectSession.Create(smokeRoot, _history.State.Project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project.Areas.Single(item => item.Id == area.Id).Playtest;
+            var snapshots = new PlaytestSnapshotStore(Path.Combine(smokeRoot, ".snapshots"));
+            var snapshot = snapshots.Create(_history.State.Project, area.Id, profile);
+            var manifest = PlaytestLaunchManifestStore.Load(snapshot.LaunchManifestFilePath!);
+            if (!saved.Succeeded || !reopened.Succeeded || restored != profile ||
+                manifest.StartMode != "Camera" || manifest.TestProfile != "r029-camera-smoke" ||
+                !File.Exists(snapshot.ProjectFilePath))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R029_AREA_RUNTIME_VALIDATION_FAILED persistence");
+                return false;
+            }
+            snapshots.Delete(snapshot);
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, recursive: true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+            _history.State.Project.Areas.Single(item => item.Id == area.Id).Playtest != original)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R029_AREA_RUNTIME_VALIDATION_FAILED history");
+            return false;
+        }
+        GD.Print("OPENRPG_FORGE_TOOLSET_R029_AREA_RUNTIME_VALIDATION_PASS " +
+            "portal=schema-provenance-orientation-velocity-hooks-preview navigation=surface-agents-links-polygons-overlay " +
+            "play_from_here=spawn-camera-waypoint-character-profile-quest-manifest " +
+            "validation=9-categories-ui command=preview-apply history=undo-redo persistence=roundtrip " +
+            "mcp=filtered-plan-apply-revert forgescript=typed");
         return true;
     }
 
@@ -8430,7 +10767,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
         if (!_qualityLabWindow.RunForSmokeTest() || _qualityLabWindow.Report is not { } report ||
             _qualityLabWindow.PerformanceReport is not { } performance ||
-            _qualityLabWindow.GovernanceReport is not { } governance)
+            _qualityLabWindow.GovernanceReport is not { } governance ||
+            _qualityFoundationHistory is null ||
+            QualityFoundationProfileValidator.Validate(_qualityFoundationHistory.State.Profile).Count > 0 ||
+            !report.CanonicalValidation.Passed || report.CanonicalValidation.CategoryCounts.Count != 5 ||
+            !_qualityLabWindow.PreviewFoundationForSmokeTest())
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G11R_QUALITY_FAILED report");
             return false;
@@ -8464,6 +10805,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "localization=coverage-placeholders-plurals-overflow-pseudo " +
             "scripts=sandbox-quota-mock-coverage dialogues=branches-conditions-actions " +
             "quests=events-transitions-save-scope encounters=profiles-seeds-nav-cleanup");
+        GD.Print("OPENRPG_FORGE_TOOLSET_R027_QA_VALIDATION_PASS " +
+            "schemas=versioned references=typed graphs=generic geometry=scale-polygon navigation=agents-doors-links-flight " +
+            "ui=visible-empty-error command=preview-apply history=undo-redo persistence=roundtrip " +
+            "cli=structured mcp=structured build=preflight diagnostics=code-path-uuid");
         var performanceCovered = performance.Passed && performance.Network.Passed &&
             performance.Network.Scenarios.Count == 9 && performance.Network.ReconnectPassed &&
             performance.Network.ContentMismatchPassed && performance.Network.AuthorityAttackPassed &&
@@ -8501,6 +10846,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
         GD.Print("OPENRPG_FORGE_TOOLSET_G11T_GOVERNANCE_PASS " +
             "editor=keyboard-labels-scale-contrast-shortcuts runtime=subtitles-captions-color-input-motion-difficulty " +
             "fuzz=112-cases-7-boundaries-no-crash-no-escape dependencies=approval-risk-review-audit-lifecycle");
+        GD.Print("OPENRPG_FORGE_TOOLSET_R019_QA_FOUNDATIONS_PASS " +
+            "licenses=spdx-provenance-notice-block domain=covered headless=scenarios " +
+            "save=roundtrip-legacy-partial-missing-rollback-deterministic " +
+            "logs=severity-category-object-source-transaction-privacy-retention " +
+            "dry_run=true persistence=atomic undo_redo=true ui=configurable");
         return true;
     }
 
@@ -8631,6 +10981,85 @@ public partial class ForgeEditorPlugin : EditorPlugin
             $"OPENRPG_FORGE_TOOLSET_G719_PATHFINDING_PASS algorithm=deterministic-a-star " +
             $"route={route.Cells.Count} visited={route.VisitedCellCount} costs=weighted obstacles=dynamic " +
             "recovery=endpoints budget=bounded invalidation=incremental benchmark=instrumented");
+        return RunWaypointAnchorSmokeTest(area.Id);
+    }
+
+    private bool RunWaypointAnchorSmokeTest(AreaId areaId)
+    {
+        if (_navigationConfiguration is null || _history is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R009_WAYPOINT_FAILED missing_window");
+            return false;
+        }
+        var original = _history.State.Project.Areas.Single(item => item.Id == areaId).Navigation;
+        if (!_navigationConfiguration.ConfigureForSmokeTest(areaId, original) ||
+            !_navigationConfiguration.ConfigureForR009SmokeTest() ||
+            _navigationConfiguration.AnchorCount != 3 ||
+            !_navigationConfiguration.PreviewForSmokeTest() ||
+            _navigationConfiguration.DiagnosticCount != 0 ||
+            !_navigationConfiguration.ApplyForSmokeTest())
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R009_WAYPOINT_FAILED preview_apply_ui");
+            return false;
+        }
+
+        var project = _history.State.Project;
+        var area = project.Areas.Single(item => item.Id == areaId);
+        var definitions = area.Navigation.Anchors.Definitions;
+        var instances = area.Navigation.Anchors.Instances;
+        var spawn = instances.Single(item => item.Spawn is not null);
+        var portal = instances.Single(item => item.Portal is not null);
+        var script = new AnchorScriptService(project, areaId);
+        var snapshot = script.Query(script.Handle, limit: 10);
+        var spawnResolution = script.ResolveSpawn(script.Handle, "player", "heroes");
+        var portalResolution = script.ResolvePortal(script.Handle, portal.Id, new Vector3Value(2, 0, 0), 0);
+        if (definitions.Count != 3 || instances.Count != 3 || snapshot.Count != 3 ||
+            spawnResolution.Instance.Id != spawn.Id || spawnResolution.UsedFallback ||
+            portalResolution.TargetAnchorInstanceId != portal.Portal!.TargetAnchorInstanceId ||
+            !portalResolution.Preload || Math.Abs(portalResolution.ArrivalVelocity.X) < 0.01f)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R009_WAYPOINT_FAILED runtime_script");
+            return false;
+        }
+
+        var smokeRoot = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "anchor-smoke",
+            Guid.NewGuid().ToString("N"));
+        try
+        {
+            var created = ProjectSession.Create(smokeRoot, project);
+            var reopened = ProjectSession.Open(smokeRoot);
+            var restored = reopened.Session?.Project.Areas.Single(item => item.Id == areaId).Navigation.Anchors;
+            if (!created.Succeeded || !reopened.Succeeded || restored is null ||
+                restored.Definitions.Count != 3 || restored.Instances.Count != 3 ||
+                restored.Instances.Single(item => item.Id == portal.Id).Portal?.TargetAnchorInstanceId !=
+                portal.Portal!.TargetAnchorInstanceId)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R009_WAYPOINT_FAILED persistence");
+                return false;
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(smokeRoot)) Directory.Delete(smokeRoot, true);
+        }
+
+        var undo = _history.Undo();
+        var redo = _history.Redo();
+        var cleanup = _history.Undo();
+        var restoredOriginal = _history.State.Project.Areas.Single(item => item.Id == areaId).Navigation;
+        if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded || restoredOriginal != original)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R009_WAYPOINT_FAILED history");
+            return false;
+        }
+
+        RefreshEditorControls();
+        GD.Print("OPENRPG_FORGE_TOOLSET_R009_WAYPOINT_PASS " +
+            "anchors=uuid-schema-provenance-localized-transform-tags-scope-overrides " +
+            "spawn=profile-clearance-priority-team-orientation-fallback-navigation " +
+            "portal=cross-zone-orientation-velocity-preload validation=identity-references-bounds-clearance " +
+            "ui=navigation-tab forgescript=typed-handle-query-runtime mcp=filtered-dry-run " +
+            "history=undo-redo persistence=project-workspace-roundtrip");
         return true;
     }
 
@@ -8766,6 +11195,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
             !_assetBrowser.PreviewProfileCommandForSmokeTest() ||
             !_assetBrowser.PreviewManifestCommandForSmokeTest() ||
             !_assetBrowser.PreviewExternalEditCommandForSmokeTest() ||
+            !_assetBrowser.PreviewGovernanceCommandForSmokeTest() ||
             _assetBrowser.FilterForSmokeTest(string.Empty, "kenney") != 50 ||
             !_assetBrowser.SelectAssetForSmokeTest("kenney:castle-kit") ||
             !_assetBrowser.PreviewInstallForPlacementForSmokeTest() ||
@@ -8780,7 +11210,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
             "OPENRPG_FORGE_TOOLSET_G716_ASSETS_PASS catalog=665 sources=5 facets=search-source-category " +
             "uuid=stable hash=addressed license=verified availability=explicit preview=metadata import=governed " +
             "profile=command-dry-run manifest=command-dry-run roundtrip=command-dry-run " +
+            "governance=command-dry-run quarantine=pending ip=classified " +
             "install=command-dry-run placement=palette-drag");
+        GD.Print("OPENRPG_FORGE_TOOLSET_R018_ASSET_GOVERNANCE_PASS provenance=visible quarantine=pending " +
+                 "ip=classified dry_run=true persistence=atomic undo_redo=true distribution=guarded");
         return true;
     }
 
@@ -9061,7 +11494,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
     private bool RunAssistantFoundationSmokeTest()
     {
-        if (_projectSession is null || _assistantProfileHistory is null || _assistantWorkspace is null)
+        if (_projectSession is null || _history is null || _assistantProfileHistory is null || _assistantWorkspace is null)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_G12A_ASSISTANT_FAILED missing_workspace");
             return false;
@@ -9086,6 +11519,20 @@ public partial class ForgeEditorPlugin : EditorPlugin
             }
             var restored = AssistantWorkspaceProfileStore.Load(_projectSession.RootDirectory);
             if (!restored.Succeeded || restored.Profile.Prompts[0].Version != "1.1.0" ||
+                AgentSemanticWorkflowValidator.Validate(restored.Profile.AgentWorkflow).Count != 0 ||
+                restored.Profile.AgentWorkflow.ContextResources.Count != 10 ||
+                restored.Profile.AgentWorkflow.Tools.Count != 5 ||
+                restored.Profile.AgentWorkflow.EffectiveGovernance.Authorization.MaximumCommands != 12 ||
+                restored.Profile.AgentWorkflow.EffectiveGovernance.Authorization.MaximumDurationSeconds != 45 ||
+                restored.Profile.AgentWorkflow.EffectiveGovernance.Authorization.AllowBoundedAutonomy ||
+                !restored.Profile.AgentWorkflow.EffectiveGovernance.BudgetPrivacy.ProhibitSecretLogging ||
+                restored.Profile.AgentWorkflow.EffectiveSafety.StructuredOutput.MaximumResponseCharacters != 131072 ||
+                restored.Profile.AgentWorkflow.EffectiveSafety.PromptInjection.MaximumUntrustedCharacters != 32768 ||
+                AgentResponseSafetyProfileValidator.Validate(restored.Profile.AgentWorkflow.EffectiveSafety).Count != 0 ||
+                !_assistantWorkspace.LastStructuredResultSucceeded ||
+                !_assistantWorkspace.LastOfflineReady ||
+                _assistantWorkspace.LastInjectionSignalCount != 0 ||
+                CreatorReferenceIndex.Build(_history.State.Project).References.Count == 0 ||
                 !UndoAssistantWorkspaceProfile() ||
                 _assistantProfileHistory.State.Profile.Prompts[0].Version != originalProfile.Prompts[0].Version ||
                 !RedoAssistantWorkspaceProfile() ||
@@ -9100,6 +11547,24 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 "providers=offline-openai-compatible-ollama prompts=versioned-tested " +
                 "plan=dry-run-bound permission=configure secrets=environment-only " +
                 "offline=deterministic cost=visible history=restored persistence=roundtrip");
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_R020_AGENT_WORKFLOW_PASS context=10-structured " +
+                "graph=reverse-impact-typed tools=semantic-domain " +
+                "plan=goal-commands-assumptions-objects-risks-tests " +
+                "dry_run=revision-batch-diff-no-write permission=bounded " +
+                "history=restored persistence=roundtrip");
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_R021_AGENT_GOVERNANCE_PASS " +
+                "transaction=begin-preview-commit-rollback-atomic diff=objects-references-states-assets-generated " +
+                "permission=read-propose-confirmed-autonomous-bounded audit=client-model-user-plan-commands-hashes-tests-provenance-rollback " +
+                "privacy=classification-opt-in-redaction-no-secret budget=provider-token-cost " +
+                "history=restored persistence=roundtrip");
+            GD.Print(
+                "OPENRPG_FORGE_TOOLSET_R022_AGENT_SAFETY_PASS " +
+                "output=json-schema-tool-calls-bounded-repair ambiguity=rejected " +
+                "injection=data-provenance-allowlist-no-escalation-confirmation " +
+                "offline=manual-local-optional-metadata-optional-build-runtime-independent " +
+                "network=disabled python=allowlisted-no-exec history=restored persistence=roundtrip");
             return true;
         }
         finally
@@ -9942,6 +12407,91 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
     }
 
+    private bool RunCreatureFoundationSmokeTest()
+    {
+        if (_history is null || _creatureFoundationWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R038_CREATURE_FOUNDATION_FAILED missing_workspace");
+            return false;
+        }
+        var originalProjectJson = ProjectJsonSerializer.Serialize(_history.State.Project);
+        var applied = false;
+        try
+        {
+            _creatureFoundationWindow.Open();
+            var visible = _creatureFoundationWindow.Visible;
+            _creatureFoundationWindow.Hide();
+            if (!visible || !_creatureFoundationWindow.ConfigureForSmokeTest() ||
+                !_creatureFoundationWindow.PreviewForSmokeTest() || !_creatureFoundationWindow.ApplyForSmokeTest())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R038_CREATURE_FOUNDATION_FAILED preview_apply_ui " +
+                    _creatureFoundationWindow.LastDiagnostics);
+                return false;
+            }
+            applied = true;
+            var blueprint = _history.State.Project.Blueprints.Single(item => item.Slug == "ash-warden-boss");
+            var profile = blueprint.CreatureFoundation;
+            var script = CreatureFoundationScriptService.Read(_history.State.Project, blueprint.Id);
+            if (profile is null || profile.Resources.Count != 2 ||
+                profile.Movement.Mode != CreatureFoundationMovementMode.Grounded ||
+                profile.Spawned.EventName != "creature.spawned" || script?.SpawnHandler != "OnSpawned" ||
+                _creatureFoundationWindow.SummarySectionCount != 4)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R038_CREATURE_FOUNDATION_FAILED canonical_summary");
+                return false;
+            }
+            var spawned = CreatureFoundationValidator.Spawn(profile, blueprint.Id.ToString(),
+                new(Guid.NewGuid(), _history.State.Project.Areas[0].Id.ToString(), TransformValue.Identity, 4201,
+                    EventAuthorityScope.Server, "toolset.smoke"), Guid.NewGuid);
+            var aggregate = ProjectJsonSerializer.Deserialize(ProjectJsonSerializer.Serialize(_history.State.Project));
+            if (spawned.ResourceState["health"] != 84 ||
+                aggregate.Blueprints.Single(item => item.Id == blueprint.Id).CreatureFoundation?.Id != profile.Id)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R038_CREATURE_FOUNDATION_FAILED spawn_persistence");
+                return false;
+            }
+            var invalid = new CreatureFoundationProfile(profile.Id, profile.SchemaVersion, profile.Provenance,
+                profile.RequiredAtRuntime, profile.Identity, profile.DefaultTransform,
+                [new(Guid.Empty, "health", 10, 11, -1, true)], profile.Movement, profile.References,
+                profile.Spawned, profile.Overrides);
+            var rejected = _creatureFoundationHandler.Handle(_history.State, new SetCreatureFoundationCommand(
+                CommandId.From(Guid.NewGuid()), _history.State.Revision, blueprint.Id, invalid, true));
+            if (rejected.Succeeded || rejected.Diagnostics.All(item =>
+                    item.Code is not "creature.foundation.resource_invalid" and not "creature.foundation.resources_duplicate"))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R038_CREATURE_FOUNDATION_FAILED invalid_prebuild_validation");
+                return false;
+            }
+            var undo = _history.Undo();
+            var redo = _history.Redo();
+            var cleanup = _history.Undo();
+            applied = false;
+            if (!undo.Succeeded || !redo.Succeeded || !cleanup.Succeeded ||
+                ProjectJsonSerializer.Serialize(_history.State.Project) != originalProjectJson ||
+                redo.State.Project.Blueprints.Single(item => item.Id == blueprint.Id).CreatureFoundation is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R038_CREATURE_FOUNDATION_FAILED history");
+                return false;
+            }
+            GD.Print("OPENRPG_FORGE_TOOLSET_R038_CREATURE_FOUNDATION_PASS ui=sections-preview-empty-error " +
+                "identity=localized resources=generic movement=six-modes spawn=validated-after-construction " +
+                "command=dry-run-apply history=undo-redo persistence=roundtrip forgescript=typed-handle " +
+                "mcp=filtered-dry-run runtime=optional-safe-required-diagnostic");
+            return true;
+        }
+        catch (Exception exception)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R038_CREATURE_FOUNDATION_FAILED " + exception);
+            return false;
+        }
+        finally
+        {
+            _creatureFoundationWindow.Hide();
+            if (applied) _history.Undo();
+            RebuildPreview(); RefreshEditorControls();
+        }
+    }
+
     private bool RunCreaturePresentationSmokeTest()
     {
         if (_history is null || _projectSession is null || _creaturePresentationWindow is null)
@@ -10489,6 +13039,13 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var custom = profile is null || profile.CustomEvents.Count == 0 ? null :
                 CreatureEventRuntimeResolver.Custom(profile, profile.CustomEvents[0].SchemaId,
                     new Dictionary<string, string> { ["count"] = "3", ["source"] = blueprint.Slug });
+            var damageTransaction = Guid.Parse("a1590000-0000-4000-8000-000000000001");
+            var beforeDamage = CreatureEventRuntimeResolver.BeforeDamage(profile, damageTransaction,
+                blueprint.Slug, "hero", 12, "radiant", "smoke");
+            var damageApplied = CreatureEventRuntimeResolver.DamageApplied(profile, damageTransaction,
+                blueprint.Slug, "hero", 12, 10, 2, "radiant", "smoke");
+            var died = CreatureEventRuntimeResolver.EntityDied(profile, blueprint.Slug, "hero",
+                ["hero", "elyra"], "smoke", "crypt:4,0,9", ["warden-ember"], "drop");
             var appliedJson = ProjectJsonSerializer.Serialize(_history.State.Project);
             var restored = ProjectJsonSerializer.Deserialize(appliedJson);
             if (profile is null || profile.Id == Guid.Empty || profile.SchemaVersion != 1 ||
@@ -10498,7 +13055,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 !profile.Heartbeat.SuspendOutsideInterest || profile.CustomEvents.Count != 1 ||
                 CreatureEventValidator.Validate(profile).Count != 0 || heartbeat.Dispatches.Count != 1 ||
                 heartbeat.Dispatches[0].BudgetMilliseconds != 8 || suspended.Dispatches.Count != 0 ||
-                custom?.EventName != "custom.crypt.braziers_lit" || _creatureEventWindow.SummarySectionCount != 3 ||
+                custom?.EventName != "custom.crypt.braziers_lit" || profile.DamageDeath is null ||
+                beforeDamage?.EventName != "creature.before_damage" || beforeDamage.BudgetMilliseconds != 4 ||
+                damageApplied?.EventName != "creature.damage_applied" || died?.EventName != "entity.died" ||
+                _creatureEventWindow.SummarySectionCount != 4 ||
                 ProjectJsonSerializer.Serialize(restored) != appliedJson ||
                 restored.Blueprints.Single(item => item.Id == blueprint.Id).CreatureEvents?.Id != profile.Id)
             {
@@ -10527,11 +13087,157 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 "heartbeat=cadence-suspension-budget-backlog custom=namespaced-typed ui=visible-empty-error-summary " +
                 "uuid=stable schema=v1 provenance=tracked forgescript=api-1.0-server transaction=identified " +
                 "dry-run=previewed audit=generated history=restored persistence=project-roundtrip runtime=optional-safe");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R039_CREATURE_DAMAGE_DEATH_PASS " +
+                "damage=before-restricted-after-transaction death=killer-contributors-cause-location-loot-policy " +
+                "validation=rig-rules-equipment-capabilities-scripts-faction-resources-budgets " +
+                "ui=sections-summary transaction=dry-run-apply history=undo-redo persistence=roundtrip " +
+                "forgescript=typed-handle mcp=filtered-dry-run runtime=ordered-authoritative");
             return true;
         }
         finally
         {
             _creatureEventWindow.Hide();
+            if (appliedToHistory) _history.Undo();
+            RebuildPreview();
+            RefreshEditorControls();
+        }
+    }
+
+    private bool RunQuestJournalSmokeTest()
+    {
+        if (_history is null || _questJournalWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R007_QUEST_FAILED missing_workspace");
+            return false;
+        }
+        var appliedToHistory = false;
+        try
+        {
+            _questJournalWindow.Open();
+            var visible = _questJournalWindow.Visible;
+            _questJournalWindow.Hide();
+            var questId = _questJournalWindow.SelectedQuestId;
+            var before = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var configured = visible && questId is not null && _questJournalWindow.ConfigureForSmokeTest();
+            var previewed = configured && _questJournalWindow.PreviewForSmokeTest();
+            var applied = previewed && _questJournalWindow.LastCommandId != Guid.Empty &&
+                          _questJournalWindow.LastPatchSummary.Contains("quest", StringComparison.OrdinalIgnoreCase) &&
+                          _questJournalWindow.ApplyForSmokeTest();
+            if (!applied || questId is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R007_QUEST_FAILED preview_apply_ui " +
+                    _questJournalWindow.LastDiagnostics);
+                return false;
+            }
+            appliedToHistory = true;
+            var quest = _history.State.Project.Quests.Single(item => item.Id == questId);
+            var script = new QuestJournalScriptService(quest);
+            var snapshot = script.Read(script.Handle);
+            var instance = QuestInstanceService.Create(quest, quest.InstancePolicy.DefaultScope, "player:smoke-r007",
+                DateTimeOffset.Parse("2026-08-07T12:00:00Z"), authorityGranted: true,
+                id: Guid.Parse("c7070000-0000-4000-8000-000000000007"));
+            var firstTransition = quest.Transitions.OrderBy(item => item.Id.Value).First();
+            var advanced = QuestInstanceService.Advance(quest, instance, firstTransition.Id,
+                new SmokeQuestConditionEvaluator(), DateTimeOffset.Parse("2026-08-07T12:01:00Z"),
+                "player:smoke-r007", new Dictionary<string, string> { ["smoke"] = "passed" });
+            var appliedJson = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(appliedJson).Quests.Single(item => item.Id == questId);
+            if (QuestValidator.Validate(quest).Count != 0 || _questJournalWindow.LastValidationCount != 0 ||
+                !_questJournalWindow.LastSimulationSucceeded || _questJournalWindow.StateCount != quest.States.Count ||
+                snapshot.StateCount != quest.States.Count || snapshot.TerminalStateCount == 0 ||
+                advanced.History.Count != 2 || advanced.Variables.GetValueOrDefault("smoke") != "passed" ||
+                restored.Category != "main" || restored.Priority != 91 ||
+                restored.States.All(item => item.Journal.Summary.Variants.Count == 0))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R007_QUEST_FAILED canonical_instance_roundtrip");
+                return false;
+            }
+            Undo();
+            appliedToHistory = false;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != before) return false;
+            Redo();
+            appliedToHistory = true;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != appliedJson) return false;
+            Undo();
+            appliedToHistory = false;
+            GD.Print("OPENRPG_FORGE_TOOLSET_R007_QUEST_PASS metadata=category-priority-owner-localized " +
+                "states=uuid-order-legacy-index terminals=completed-failed-abandoned-custom-reactivation " +
+                "journal=summary-details-objectives-context-links instances=player-party-world-history-variables-time " +
+                "ui=visible-empty-error-minimap-validation-simulation forgescript=typed-handle mcp=filtered-dry-run " +
+                "transaction=identified audit=generated history=undo-redo persistence=project-workspace-roundtrip");
+            return true;
+        }
+        finally
+        {
+            _questJournalWindow.Hide();
+            if (appliedToHistory) _history.Undo();
+            RebuildPreview();
+            RefreshEditorControls();
+        }
+    }
+
+    private bool RunQuestTransitionSmokeTest()
+    {
+        if (_history is null || _questJournalWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R008_QUEST_FAILED missing_workspace");
+            return false;
+        }
+        var appliedToHistory = false;
+        try
+        {
+            _questJournalWindow.Open();
+            var visible = _questJournalWindow.Visible;
+            _questJournalWindow.Hide();
+            var questId = _questJournalWindow.SelectedQuestId;
+            var before = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var configured = visible && questId is not null && _questJournalWindow.ConfigureForR008SmokeTest();
+            var previewed = configured && _questJournalWindow.PreviewForSmokeTest();
+            var applied = previewed && _questJournalWindow.LastCommandId != Guid.Empty &&
+                          _questJournalWindow.LastPatchSummary.Contains("quest", StringComparison.OrdinalIgnoreCase) &&
+                          _questJournalWindow.ApplyForSmokeTest();
+            if (!applied || questId is null)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R008_QUEST_FAILED preview_apply_ui " +
+                    _questJournalWindow.LastDiagnostics);
+                return false;
+            }
+            appliedToHistory = true;
+            var quest = _history.State.Project.Quests.Single(item => item.Id == questId);
+            var script = new QuestJournalScriptService(quest);
+            var transitions = script.ReadTransitions(script.Handle);
+            var simulation = script.Simulate(script.Handle, quest.InstancePolicy.DefaultScope,
+                quest.InstancePolicy.DefaultScope == QuestProgressScope.Player ? "player:smoke-r008" :
+                quest.InstancePolicy.DefaultScope == QuestProgressScope.Party ? "party:smoke-r008" :
+                "world:smoke-r008", DateTimeOffset.Parse("2026-08-07T12:00:00Z"));
+            var appliedJson = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(appliedJson).Quests.Single(item => item.Id == questId);
+            if (QuestValidator.Validate(quest).Count != 0 || _questJournalWindow.LastValidationCount != 0 ||
+                !_questJournalWindow.LastSimulationSucceeded || transitions.Count != quest.Transitions.Count ||
+                transitions[0].EventName != "dialogue.accept" ||
+                transitions[0].Idempotence != QuestTransitionIdempotence.PerEvent ||
+                simulation.Status != QuestSimulationStatus.Completed || simulation.AppliedTransitionCount == 0 ||
+                restored.Simulation.Events.Count != quest.Transitions.Count ||
+                restored.Transitions[0].ForgeScriptApiVersion != 1)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R008_QUEST_FAILED transition_simulation_roundtrip");
+                return false;
+            }
+            Undo(); appliedToHistory = false;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != before) return false;
+            Redo(); appliedToHistory = true;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != appliedJson) return false;
+            Undo(); appliedToHistory = false;
+            GD.Print("OPENRPG_FORGE_TOOLSET_R008_QUEST_PASS transition=schema-event-priority-idempotence-order " +
+                "conditions=typed actions=typed simulation=persisted-events-effects-deadlock-step-limit " +
+                "lint=references-unreachable-deadlock-cycle-conflict-reward-objective ui=editor-minimap-trace " +
+                "forgescript=typed-handle-sandbox mcp=filtered-dry-run-simulation transaction=identified " +
+                "audit=transition-trace history=undo-redo persistence=project-workspace-roundtrip");
+            return true;
+        }
+        finally
+        {
+            _questJournalWindow.Hide();
             if (appliedToHistory) _history.Undo();
             RebuildPreview();
             RefreshEditorControls();
@@ -10600,6 +13306,99 @@ public partial class ForgeEditorPlugin : EditorPlugin
         finally
         {
             _questOperationsWindow.Hide(); if (appliedToHistory) _history.Undo();
+            RebuildPreview(); RefreshEditorControls();
+        }
+    }
+
+    private bool RunItemFoundationSmokeTest()
+    {
+        if (_history is null || _itemFoundationWindow is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R044_ITEM_FOUNDATION_FAILED missing_workspace");
+            return false;
+        }
+        var before = ProjectJsonSerializer.Serialize(_history.State.Project);
+        var appliedToHistory = false;
+        try
+        {
+            _itemFoundationWindow.Open(); var visible = _itemFoundationWindow.Visible; _itemFoundationWindow.Hide();
+            if (!visible || !_itemFoundationWindow.ConfigureForSmokeTest() ||
+                !_itemFoundationWindow.RejectInvalidForSmokeTest() ||
+                !_itemFoundationWindow.PreviewForSmokeTest() || !_itemFoundationWindow.ApplyForSmokeTest())
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R044_ITEM_FOUNDATION_FAILED preview_apply_ui " +
+                    _itemFoundationWindow.LastDiagnostics);
+                return false;
+            }
+            appliedToHistory = true;
+            var blueprintId = _itemFoundationWindow.SelectedBlueprintId;
+            var blueprint = _history.State.Project.Blueprints.Single(item => item.Id == blueprintId);
+            var profile = blueprint.ItemFoundation;
+            var script = blueprintId is null ? null : ItemFoundationScriptService.Read(_history.State.Project, blueprintId);
+            var instance = profile is null ? null : new ItemFoundationInstance(
+                Guid.Parse("c2460000-0000-4000-8000-000000000001"), profile.Id, profile.DefinitionVersion, 80,
+                new Dictionary<string, string> { ["identified"] = "true" });
+            var instanceDiagnostics = profile is null || instance is null
+                ? [new ItemFoundationDiagnostic("missing", "item", "missing")]
+                : ItemFoundationScriptService.ValidateInstance(new(profile.Id), profile, instance);
+            var forbiddenDiagnostics = profile is null || instance is null
+                ? []
+                : ItemFoundationValidator.ValidateInstance(profile,
+                    instance with { Overrides = new Dictionary<string, string> { ["forbidden"] = "true" } });
+            var targetType = new ItemTypeDefinition(Guid.Parse("c2460000-0000-4000-8000-000000000002"), 1,
+                "toolset:r044", "quest-relic", ["belt"], ["ward"], "rig.relic");
+            var migrationRejected = profile is null ? null : _itemFoundationHandler.Handle(_history.State,
+                new SetItemFoundationCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, blueprint.Id,
+                    profile with { TypeId = targetType.Id, Type = targetType, AppearanceRig = targetType.RequiredRig },
+                    false, true));
+            var invalidRejected = profile is null ? null : _itemFoundationHandler.Handle(_history.State,
+                new SetItemFoundationCommand(CommandId.From(Guid.NewGuid()), _history.State.Revision, blueprint.Id,
+                    profile with { ContentSha256 = "invalid" }, false, true));
+            var appliedJson = ProjectJsonSerializer.Serialize(_history.State.Project);
+            var restored = ProjectJsonSerializer.Deserialize(appliedJson).Blueprints.Single(item => item.Id == blueprint.Id);
+            if (profile is null || blueprintId is null || ItemFoundationValidator.Validate(profile).Count != 0 ||
+                profile.TypeId != profile.Type.Id || profile.Type.Slug != "ritual-key" || profile.DefinitionVersion != 2 ||
+                profile.Texts.Single().UnknownText != "Objet inconnu" || script?.Handle.Value != profile.Id ||
+                instanceDiagnostics.Count != 0 ||
+                forbiddenDiagnostics.SingleOrDefault()?.Code != "item.foundation.instance_override_forbidden" ||
+                migrationRejected?.Diagnostics.SingleOrDefault()?.Code !=
+                    "item.foundation.type_migration_preview_required" ||
+                invalidRejected?.Diagnostics.SingleOrDefault()?.Code != "item.foundation.content_governance_invalid" ||
+                ItemFoundationValidator.Resolve(null, true).Diagnostics.SingleOrDefault()?.Code !=
+                    ItemFoundationValidator.MissingRequiredCode ||
+                restored.ItemFoundation?.Id != profile.Id || ProjectJsonSerializer.Serialize(
+                    ProjectJsonSerializer.Deserialize(appliedJson)) != appliedJson ||
+                _itemFoundationWindow.SummarySectionCount != 4)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R044_ITEM_FOUNDATION_FAILED canonical_validation_runtime_roundtrip");
+                return false;
+            }
+
+            Undo(); appliedToHistory = false;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != before)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R044_ITEM_FOUNDATION_FAILED undo");
+                return false;
+            }
+            Redo(); appliedToHistory = true;
+            if (ProjectJsonSerializer.Serialize(_history.State.Project) != appliedJson)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R044_ITEM_FOUNDATION_FAILED redo");
+                return false;
+            }
+            Undo(); appliedToHistory = false;
+            GD.Print("OPENRPG_FORGE_TOOLSET_R044_ITEM_FOUNDATION_PASS " +
+                "type=immutable-reference-migration-preview-explicit-accept blueprint=versioned-instance-separated-overrides-bounded " +
+                "identity=uuid-slug-localized-name-short-long-unknown-label-notes " +
+                "validation=identity-type-slots-rig-values-effects-scripts-localization-asset-license-economy " +
+                "ui=visible-empty-error-sections-summary transaction=dry-run-apply history=undo-redo " +
+                "persistence=roundtrip forgescript=typed-handle mcp=filtered-dry-run runtime=optional-safe-required-diagnostic");
+            return true;
+        }
+        finally
+        {
+            _itemFoundationWindow.Hide();
+            if (appliedToHistory) _history.Undo();
             RebuildPreview(); RefreshEditorControls();
         }
     }
@@ -10731,23 +13530,252 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
             var placeableAccess = WorldFeatureRuntimeResolver.ResolvePlaceableAccess(catalog.Placeables[0],
                 new HashSet<string> { "key:ember" }, new HashSet<string>(), 3);
+            var placeableFoundation = WorldFeatureRuntimeResolver.ResolvePlaceableFoundation(catalog.Placeables[0]);
+            var missingRequiredPlaceable = WorldFeatureRuntimeResolver.ResolvePlaceableFoundation(
+                catalog.Placeables[0] with { Foundation = null, FoundationRequiredAtRuntime = true });
+            var placeableUse = WorldFeatureRuntimeResolver.ExecutePlaceableUse(catalog.Placeables[0], Guid.NewGuid(),
+                catalog.Placeables[0].Foundation!.Interaction!.Verbs[0].Id, "smoke-player", new Vector3Value(1, 0, 2),
+                "success", DateTimeOffset.UnixEpoch);
+            string? missingOnUsedDiagnostic = null;
+            try
+            {
+                WorldFeatureRuntimeResolver.ExecutePlaceableUse(catalog.Placeables[0] with
+                {
+                    Foundation = catalog.Placeables[0].Foundation! with { OnUsed = null, OnUsedRequiredAtRuntime = true },
+                }, Guid.NewGuid(), catalog.Placeables[0].Foundation!.Interaction!.Verbs[0].Id, "smoke-player",
+                    Vector3Value.Zero, "success", DateTimeOffset.UnixEpoch);
+            }
+            catch (InvalidOperationException exception)
+            {
+                missingOnUsedDiagnostic = exception.Message;
+            }
+            var placeableHandle = new WorldFeatureScriptService().Query(_history.State, "placeable",
+                catalog.Placeables[0].Id.ToString("D"), 1).Single();
             var doorDamage = WorldFeatureRuntimeResolver.ApplyDoorDamage(catalog.Doors[0],
                 catalog.Doors[0].Damage!.MaximumHealth, 100);
+            var doorInteraction = WorldFeatureRuntimeResolver.InteractWithDoor(catalog.Doors[0], "closed", "front",
+                new HashSet<string> { "portal.travel" }, 0, new HashSet<string>());
+            var doorNavigationClosed = WorldFeatureRuntimeResolver.SynchronizeDoorNavigation(catalog.Doors[0], "closed", 1);
+            var doorNavigationOpen = WorldFeatureRuntimeResolver.SynchronizeDoorNavigation(catalog.Doors[0], "opening", .8);
             var trigger = WorldFeatureRuntimeResolver.EvaluateTrigger(catalog.Triggers[0], 100,
                 new HashSet<string> { "key:ember" }, new HashSet<string> { "player" }, false, 1, 0, true);
             var encounter = WorldFeatureRuntimeResolver.EvaluateEncounter(catalog.Encounters[0], 0, 5, false, false, 60);
+            var encounterActivation = WorldFeatureRuntimeResolver.ActivateEncounter(catalog.Encounters[0],
+                new HashSet<string> { "player" }, "party", true, 10, .5,
+                new HashSet<string> { "area.occupied" }, new Dictionary<Guid, int>());
             var route = WorldFeatureRuntimeResolver.SampleVehicleRoute(catalog.VehicleRoutes[0], 1);
             var merchant = WorldFeatureRuntimeResolver.QuoteMerchant(catalog.Merchants[0],
                 catalog.Merchants[0].Currencies[0].Id, 10, false, "outside", 0, 5, .1, .2);
+            var merchantRuntime = new MerchantWorldTransactionService();
+            var merchantResolution = merchantRuntime.Resolve(catalog.Merchants[0]);
+            var merchantPolicy = catalog.Merchants[0].Transactions;
+            var merchantTrade = merchantPolicy is null || merchantResolution.TransactionHandle is null
+                ? null
+                : merchantRuntime.Execute(merchantResolution.TransactionHandle, catalog.Merchants[0],
+                    new("smoke-player", new Dictionary<string, decimal> { [merchantPolicy.Stock[0].CurrencyId] = 100 },
+                        new Dictionary<Guid, int>(), merchantPolicy.BuyerCapacity),
+                    new("smoke-store", new Dictionary<string, decimal> { [merchantPolicy.Stock[0].CurrencyId] = 1000 },
+                        new Dictionary<Guid, int>(), merchantPolicy.SellerCapacity),
+                    new(Guid.NewGuid(), TradeKind.Buy, "smoke-player", "smoke-store",
+                        [new(merchantPolicy.Stock[0].ItemBlueprintId.Value, merchantPolicy.Stock[0].VariantId, 1,
+                            merchantPolicy.Stock[0].UnitPrice, merchantPolicy.Stock[0].CurrencyId)], []));
+            var missingRequiredMerchant = merchantRuntime.Resolve(catalog.Merchants[0] with
+            { Transactions = null, TransactionsRequiredAtRuntime = true });
+            var merchantHandle = new WorldFeatureScriptService().Query(_history.State, "merchant",
+                catalog.Merchants[0].Id.ToString("D"), 1).Single();
             var companion = WorldFeatureRuntimeResolver.EvaluateCompanion(catalog.Companions[0], "owner", .2,
                 true, 2, true, true);
+            var companionValidation = CompanionValidationRuntimeResolver.Resolve(catalog.Companions[0],
+                catalog.Companions[0].Validation!.CrossZoneNavigation.AllowedAreaIds.FirstOrDefault());
+            var missingRequiredValidation = CompanionValidationRuntimeResolver.Resolve(
+                catalog.Companions[0] with { Validation = null, ValidationRequiredAtRuntime = true });
+            var companionHandle = new WorldFeatureScriptService().Query(_history.State, "companion",
+                catalog.Companions[0].Id.ToString("D"), 1).Single();
             var scripts = WorldFeatureRuntimeResolver.ResolveScript(catalog.Scripts, "door.ash", "opened",
                 cameraSequence: true);
-            if (!placeableAccess.Allowed || !doorDamage.Breached || !trigger.Fired || !encounter.Spawn ||
-                !route.AtStop || !merchant.Accepted || !companion.DirectControl || scripts.ScriptId is null ||
-                !scripts.CameraControlLocked)
+            if (!placeableAccess.Allowed || !placeableFoundation.Available ||
+                placeableFoundation.SnappedTransform?.Position != new Vector3Value(1.25f, 0, -2.5f) ||
+                !placeableFoundation.Overlay.Contains("pivot=0,0.5,0", StringComparison.Ordinal) ||
+                missingRequiredPlaceable.DiagnosticCode != "WORLD_PLACEABLE_FOUNDATION_REQUIRED_MISSING" ||
+                placeableUse.EventBinding != "InteractionExecuted" || placeableUse.ActorId != "smoke-player" ||
+                placeableUse.TargetPoint != new Vector3Value(1, 0, 2) || placeableUse.Result != "success" ||
+                missingOnUsedDiagnostic != "WORLD_PLACEABLE_ON_USED_REQUIRED_MISSING" ||
+                placeableHandle.Properties["foundation"] != bool.TrueString ||
+                placeableHandle.Properties["role"] != "interactable" ||
+                placeableHandle.Properties["onUsed"] != bool.TrueString ||
+                placeableHandle.Properties["validation"] != bool.TrueString || !doorDamage.Breached || !doorInteraction.Accepted ||
+                doorInteraction.CurrentState != "opening" || catalog.Doors[0].Foundation?.States.Count != 9 ||
+                catalog.Doors[0].Foundation?.Links.Count != 1 || !doorNavigationClosed.ObstacleEnabled ||
+                doorNavigationClosed.LinkEnabled || doorNavigationOpen.ObstacleEnabled || !doorNavigationOpen.LinkEnabled ||
+                !doorNavigationClosed.Visualization.Contains("blocked", StringComparison.Ordinal) ||
+                !trigger.Fired || !encounter.Spawn || !encounterActivation.Activated ||
+                catalog.Encounters[0].Foundation?.Candidates.Count != 1 ||
+                !route.AtStop || !merchant.Accepted || !merchantResolution.Available || merchantTrade?.Committed != true ||
+                missingRequiredMerchant.DiagnosticCode != "WORLD_MERCHANT_TRANSACTIONS_REQUIRED_MISSING" ||
+                merchantHandle.Properties["transactions"] != bool.TrueString || merchantHandle.Properties["stock"] != "1" ||
+                !companion.DirectControl || scripts.ScriptId is null ||
+                !scripts.CameraControlLocked || !companionValidation.Available || !companionValidation.DestinationAllowed ||
+                missingRequiredValidation.Diagnostics.All(item => item.Code != "world.companion.validation_required") ||
+                companionHandle.Properties["validation"] != bool.TrueString ||
+                companionHandle.Properties["commands"] != "4")
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED runtime_resolution");
+                return false;
+            }
+
+            var validCompanion = catalog.Companions[0];
+            var invalidCompanion = validCompanion with
+            {
+                Validation = validCompanion.Validation! with { CommandIds = ["follow", "follow"] },
+            };
+            var invalidCatalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+                catalog.Placeables, catalog.Doors, catalog.Triggers, catalog.Encounters, catalog.VehicleRoutes,
+                catalog.Merchants, [invalidCompanion], catalog.Scripts);
+            var invalidPreview = _worldFeatureHandler.Handle(_history.State, new SetWorldFeatureCatalogCommand(
+                CommandId.From(Guid.NewGuid()), _history.State.Revision, invalidCatalog, true));
+            if (invalidPreview.Succeeded || invalidPreview.Diagnostics.All(item => item.Code != "world.companion.commands_invalid"))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R037_COMPANION_FAILED invalid_prebuild_validation");
+                return false;
+            }
+
+            var validPlaceable = catalog.Placeables[0];
+            var invalidPlaceable = validPlaceable with
+            {
+                Foundation = validPlaceable.Foundation! with
+                {
+                    Slug = string.Empty,
+                    Interaction = validPlaceable.Foundation!.Interaction! with { MaximumDistance = 0 },
+                    Collision = validPlaceable.Foundation.Collision with { Enabled = false, NavigationObstacle = true },
+                    Transform = validPlaceable.Foundation.Transform with { Scale = Vector3Value.Zero },
+                },
+            };
+            var invalidPlaceableCatalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+                [invalidPlaceable], catalog.Doors, catalog.Triggers, catalog.Encounters, catalog.VehicleRoutes,
+                catalog.Merchants, catalog.Companions, catalog.Scripts);
+            var invalidPlaceablePreview = _worldFeatureHandler.Handle(_history.State, new SetWorldFeatureCatalogCommand(
+                CommandId.From(Guid.NewGuid()), _history.State.Revision, invalidPlaceableCatalog, true));
+            var invalidPlaceableCodes = invalidPlaceablePreview.Diagnostics.Select(item => item.Code).ToHashSet(StringComparer.Ordinal);
+            if (invalidPlaceablePreview.Succeeded || !invalidPlaceableCodes.Contains("world.placeable.identity_invalid") ||
+                !invalidPlaceableCodes.Contains("world.placeable.collision_invalid") ||
+                !invalidPlaceableCodes.Contains("world.placeable.interaction_invalid") ||
+                !invalidPlaceableCodes.Contains("world.placeable.transform_invalid"))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R046_PLACEABLE_FAILED invalid_prebuild_validation");
+                return false;
+            }
+
+            var invalidPlaceableRuntime = validPlaceable with
+            {
+                Foundation = validPlaceable.Foundation! with
+                {
+                    OnUsed = validPlaceable.Foundation!.OnUsed! with { EventBinding = string.Empty },
+                    Validation = new([], [], [], [], [], 0, 0),
+                },
+            };
+            var invalidPlaceableRuntimeCatalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+                [invalidPlaceableRuntime], catalog.Doors, catalog.Triggers, catalog.Encounters, catalog.VehicleRoutes,
+                catalog.Merchants, catalog.Companions, catalog.Scripts);
+            var invalidPlaceableRuntimePreview = _worldFeatureHandler.Handle(_history.State, new SetWorldFeatureCatalogCommand(
+                CommandId.From(Guid.NewGuid()), _history.State.Revision, invalidPlaceableRuntimeCatalog, true));
+            var invalidPlaceableRuntimeCodes = invalidPlaceableRuntimePreview.Diagnostics.Select(item => item.Code)
+                .ToHashSet(StringComparer.Ordinal);
+            if (invalidPlaceableRuntimePreview.Succeeded ||
+                !invalidPlaceableRuntimeCodes.Contains("world.placeable.on_used_invalid") ||
+                !invalidPlaceableRuntimeCodes.Contains("world.placeable.animation_invalid") ||
+                !invalidPlaceableRuntimeCodes.Contains("world.placeable.lock_reference_missing") ||
+                !invalidPlaceableRuntimeCodes.Contains("world.placeable.trap_reference_missing") ||
+                !invalidPlaceableRuntimeCodes.Contains("world.placeable.inventory_reference_missing") ||
+                !invalidPlaceableRuntimeCodes.Contains("world.placeable.physics_profile_missing") ||
+                !invalidPlaceableRuntimeCodes.Contains("world.placeable.budget_exceeded"))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R047_PLACEABLE_EVENTS_FAILED invalid_prebuild_validation");
+                return false;
+            }
+
+            var validDoor = catalog.Doors[0];
+            var invalidDoor = validDoor with
+            {
+                Foundation = validDoor.Foundation! with
+                {
+                    Links = [new(Guid.Parse("d0410000-0000-4000-8000-000000000001"), validDoor.Id, true, string.Empty)],
+                    Navigation = validDoor.Foundation.Navigation! with
+                    {
+                        ObstacleId = string.Empty,
+                        BlockingStateIds = ["closed", "open"],
+                        TraversableStateIds = ["open"],
+                    },
+                },
+            };
+            var invalidDoorCatalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+                catalog.Placeables, [invalidDoor], catalog.Triggers, catalog.Encounters, catalog.VehicleRoutes,
+                catalog.Merchants, catalog.Companions, catalog.Scripts);
+            var invalidDoorPreview = _worldFeatureHandler.Handle(_history.State, new SetWorldFeatureCatalogCommand(
+                CommandId.From(Guid.NewGuid()), _history.State.Revision, invalidDoorCatalog, true));
+            var invalidDoorCodes = invalidDoorPreview.Diagnostics.Select(item => item.Code).ToHashSet(StringComparer.Ordinal);
+            if (invalidDoorPreview.Succeeded || !invalidDoorCodes.Contains("world.door.navigation_invalid") ||
+                !invalidDoorCodes.Contains("world.door.navigation_state_mismatch") ||
+                !invalidDoorCodes.Contains("world.door.transition_loop"))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R041_DOOR_FAILED invalid_prebuild_validation");
+                return false;
+            }
+
+            var validEncounter = catalog.Encounters[0];
+            var invalidEncounter = validEncounter with
+            {
+                Foundation = validEncounter.Foundation! with
+                {
+                    Volume = validEncounter.Foundation.Volume with { Points = [], Height = 0 },
+                    Candidates = [validEncounter.Foundation.Candidates[0] with { Cost = 0, MaximumAlive = 99 }],
+                    SpawnBudget = 0,
+                    SpawnAnchorIds = [],
+                    RewardIds = [string.Empty],
+                    NetworkActorCap = 1,
+                },
+            };
+            var invalidEncounterCatalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+                catalog.Placeables, catalog.Doors, catalog.Triggers, [invalidEncounter], catalog.VehicleRoutes,
+                catalog.Merchants, catalog.Companions, catalog.Scripts);
+            var invalidEncounterPreview = _worldFeatureHandler.Handle(_history.State, new SetWorldFeatureCatalogCommand(
+                CommandId.From(Guid.NewGuid()), _history.State.Revision, invalidEncounterCatalog, true));
+            var invalidEncounterCodes = invalidEncounterPreview.Diagnostics.Select(item => item.Code).ToHashSet(StringComparer.Ordinal);
+            if (invalidEncounterPreview.Succeeded || !invalidEncounterCodes.Contains("world.encounter.volume_invalid") ||
+                !invalidEncounterCodes.Contains("world.encounter.candidate_invalid") ||
+                !invalidEncounterCodes.Contains("world.encounter.budget_invalid") ||
+                !invalidEncounterCodes.Contains("world.encounter.anchors_invalid") ||
+                !invalidEncounterCodes.Contains("world.encounter.rewards_invalid") ||
+                !invalidEncounterCodes.Contains("world.encounter.network_cap_invalid"))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R042_ENCOUNTER_FAILED invalid_prebuild_validation");
+                return false;
+            }
+
+            var validMerchant = catalog.Merchants[0];
+            var invalidMerchant = validMerchant with
+            {
+                Transactions = validMerchant.Transactions! with
+                {
+                    VendorInteractionId = string.Empty,
+                    Locales = [],
+                    BuyerCapacity = 0,
+                    ServerAuthoritative = false,
+                    Stock = [validMerchant.Transactions!.Stock[0] with { Quantity = -1 }],
+                },
+            };
+            var invalidMerchantCatalog = new WorldFeatureCatalog(catalog.Id, catalog.SchemaVersion, catalog.Provenance,
+                catalog.Placeables, catalog.Doors, catalog.Triggers, catalog.Encounters, catalog.VehicleRoutes,
+                [invalidMerchant], catalog.Companions, catalog.Scripts);
+            var invalidMerchantPreview = _worldFeatureHandler.Handle(_history.State, new SetWorldFeatureCatalogCommand(
+                CommandId.From(Guid.NewGuid()), _history.State.Revision, invalidMerchantCatalog, true));
+            var invalidMerchantCodes = invalidMerchantPreview.Diagnostics.Select(item => item.Code).ToHashSet(StringComparer.Ordinal);
+            if (invalidMerchantPreview.Succeeded || !invalidMerchantCodes.Contains("world.merchant.vendor_binding_invalid") ||
+                !invalidMerchantCodes.Contains("world.merchant.localization_invalid") ||
+                !invalidMerchantCodes.Contains("world.merchant.capacity_invalid") ||
+                !invalidMerchantCodes.Contains("world.merchant.authority_invalid") ||
+                !invalidMerchantCodes.Contains("world.merchant.stock_values_invalid"))
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R045_MERCHANT_FAILED invalid_prebuild_validation");
                 return false;
             }
 
@@ -10755,7 +13783,10 @@ public partial class ForgeEditorPlugin : EditorPlugin
             var created = ProjectSession.Create(smokeRoot, _history.State.Project);
             var reopened = ProjectSession.Open(smokeRoot);
             if (!created.Succeeded || !reopened.Succeeded || aggregate.Module.WorldFeatures.Placeables.Count == 0 ||
-                reopened.Session!.Project.Module.WorldFeatures.Companions.Count == 0)
+                reopened.Session!.Project.Module.WorldFeatures.Companions.Count == 0 ||
+                reopened.Session.Project.Module.WorldFeatures.Merchants[0].Transactions?.Stock.Count != 1 ||
+                reopened.Session.Project.Module.WorldFeatures.Placeables[0].Foundation?.Transform.SnapIncrement != .25 ||
+                reopened.Session.Project.Module.WorldFeatures.Placeables[0].Foundation?.OnUsed?.EventBinding != "InteractionExecuted")
             {
                 GD.PrintErr("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_FAILED persistence");
                 return false;
@@ -10776,17 +13807,27 @@ public partial class ForgeEditorPlugin : EditorPlugin
 
             GD.Print("OPENRPG_FORGE_TOOLSET_G13N_PLACEABLE_SOCIAL_ACCESS_PASS faction=ownership dialogue=bound credential=consume-charge-shared-virtual-audit");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13O_PLACEABLE_REACTIVE_PHYSICS_PASS events=attack-ability-heartbeat-custom physics=rigid-kinematic-replicated-sleep-static");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R046_PLACEABLE_FOUNDATION_PASS blueprint=composable-visual-collision-interaction-health-container-lock-trap-physics-scripts static=batching-instancing-occluder-merge interaction=verbs-distance-angle-focus-prompt-duration-authority-conditions-event identity=uuid-slug-localized-visual-icon-portrait-tags-notes transform=position-rotation-scale-pivot-snap-parent-surface-animation-overrides ui=visible-empty-error-overlay-summary transaction=dry-run-apply-reject history=undo-redo persistence=roundtrip forgescript=typed-handle mcp=filtered-dry-run runtime=optional-safe-required-diagnostic");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R047_PLACEABLE_EVENTS_VALIDATION_PASS onused=typed-event-verb-actor-target-result-provenance-api-before-after validation=collision-navigation-animation-locks-traps-inventory-scripts-physics-budgets diagnostics=stable-path-uuid ui=visible-empty-error-overlay-summary transaction=dry-run-apply-reject history=undo-redo persistence=roundtrip forgescript=typed-handle mcp=filtered-dry-run runtime=optional-safe-required-diagnostic");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R048_TRIGGER_FOUNDATION_PASS volume=2d-extruded-or-3d-vertices-holes-height-snap-transform-overlay generic=filters-conditions-cooldown-fire-policy-actions portal=typed-destination-anchor-orientation-preload-permissions events=entered-entity-point-direction-layers-state-exited-duration-reason-api-scripts ui=visible-empty-error-summary transaction=dry-run-apply-reject history=undo-redo persistence=roundtrip forgescript=typed-handle mcp=filtered-dry-run runtime=optional-safe-required-diagnostic");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R049_TRIGGER_VALIDATION_PASS validation=geometry-self-intersection-filters-actions-targets-portal-cooldown-scripts-accessibility diagnostics=stable-path-uuid ui=visible-empty-error-summary transaction=dry-run-apply-reject history=undo-redo persistence=roundtrip forgescript=typed-handle mcp=filtered-dry-run runtime=optional-safe-required-diagnostic");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R050_THIRD_PARTY_NOTICES_PASS aggregation=module-blueprints-data-tables-content-packages-sources-assets-dependencies spdx=approved-required-unknown-blocked notice=deterministic-preview-export-recalculated-mismatch-rejected diagnostics=stable-path-uuid ui=visible-empty-error-preview command=dry-run-apply-reject history=undo-redo persistence=roundtrip cli=structured mcp=bounded-export build=preflight-before-write");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13P_DOOR_DAMAGE_LOADING_PASS damage=health-hardness-breach-navigation-debris-repair loading=portal-fallback events=damage-death-attack");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13Q_DOOR_REACTIVE_COMPLEX_PASS events=ability-heartbeat-custom social=dialogue-faction assembly=double-portcullis-elevator-airlock");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R040_DOOR_FOUNDATION_PASS placement=socket-or-free states=open-closed-opening-closing-locked-jammed-broken-disabled-custom interaction=range-side-clearance-animation-collision-authority-queue-feedback portal=typed-anchor-orientation-preload-permissions links=oneway-or-atomic-pair ui=section-summary transaction=dry-run-apply history=undo-redo persistence=roundtrip runtime=resolved");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R041_DOOR_NAVIGATION_VALIDATION_PASS navigation=obstacle-link-animation-state-visualization blocking=tested validation=link-destination-animation-collision-nav-scripts-loop diagnostics=stable-path-uuid ui=visible transaction=dry-run-reject persistence=roundtrip runtime=synchronized");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13R_TRIGGER_DISCOVERY_ACCESS_PASS secret=senses-difficulty-scope click=verb-hit permission=credential cursor=outline rest=safe");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13S_TRIGGER_AUTOMATION_NARRATIVE_GM_PASS heartbeat=occupied-budget custom=namespaced clue=journal narrative=priority-cooldown director=manual-audit");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13T_ENCOUNTER_LIFECYCLE_PASS respawn=delay-cycles-persistence-antifarm faction=override heartbeat=budget custom=namespaced");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13U_ENCOUNTER_TACTICAL_PASS reinforcement=alert-route-cap-delay visibility=camera-los cleanup=dead-escaped-abandoned-unload-persistent");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R042_ENCOUNTER_FOUNDATION_PASS volume=2d-3d-filters-los-threat-script candidates=blueprint-weight-role-cost-conditions-variants-limits validation=geometry-references-budget-anchors-rewards-network-cap ui=visible transaction=dry-run-reject persistence=roundtrip runtime=nominal-failure");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13V_VEHICLE_ROUTE_PASS route=points-lanes-speed-stops-overtaking network=sync");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13W_MERCHANT_CORE_PASS treasury=balance-credit-debt-caps purchase=bounded stolen=policy restock=world-time-route-persistent");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13X_MERCHANT_ADVANCED_PASS currencies=typed-exchange negotiation=bounded market=supply-demand services=repair audit=ledger-anomaly");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R045_MERCHANT_TRANSACTIONS_PASS transaction=buy-sell-barter-aggregate-atomic-rollback validation=vendor-currency-treasury-stock-price-restrictions-localization-scripts ui=visible-sections-summary command=dry-run-apply-reject history=undo-redo persistence=roundtrip forgescript=typed-handle mcp=filtered-dry-run runtime=optional-safe-required-diagnostic-authoritative");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13Y_COMPANION_SOCIAL_PROGRESSION_PASS dialogue=permissions formation=slots-obstacles progression=preview-respec relation=loyalty-history banter=priority-cooldown");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13Z_COMPANION_GAMEPLAY_CONTROL_PASS quest=personal traps=task ability=policy control=direct-authorized party=split-regroup-sync");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R037_COMPANION_PASS validation=identity-recruitment-ownership-commands-equipment-death-dialogue-contexts-cross-zone ui=sections-preview-empty-error command=dry-run-apply history=undo-redo persistence=roundtrip forgescript=typed-handle mcp=filtered-dry-run runtime=optional-safe-required-diagnostic");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13AA_SCRIPT_CAMERA_TAG_PASS camera=rig-shots-blends-lock-skip-abort tag=explicit-visible-route");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13AB_SCRIPT_SWITCHES_PASS module=typed-documented-scoped-migrated ai=named-schema-preview-authoritative");
             GD.Print("OPENRPG_FORGE_TOOLSET_G13N_AB_WORLD_FEATURES_PASS ui=tabs-8-empty-errors-summary transaction=preview-apply-audit-history mcp=filtered-dry-run persistence=project-workspace-package runtime=resolved");
@@ -10970,12 +14011,35 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 transitioned.Profile, DateTimeOffset.Parse("2031-08-05T12:00:00Z"), true);
             var appliedJson = ProjectJsonSerializer.Serialize(_history.State.Project);
             var restored = ProjectJsonSerializer.Deserialize(appliedJson);
+            var cycleA = Guid.Parse("b2050000-0000-4000-8000-000000000040");
+            var cycleB = Guid.Parse("b2050000-0000-4000-8000-000000000041");
+            var orphanParent = Guid.Parse("b2050000-0000-4000-8000-000000000042");
+            var invalidCatalog = new FactionCatalog(
+                [
+                    new(cycleA, 1, "toolset-smoke", "cycle-a", "Cycle A", false, [cycleB], []),
+                    new(cycleB, 1, "toolset-smoke", "cycle-b", "Cycle B", false, [cycleA], []),
+                    new(Guid.Parse("b2050000-0000-4000-8000-000000000043"), 1, "toolset-smoke",
+                        "orphan-child", "Orphan Child", false, [orphanParent], []),
+                ],
+                [],
+                [new("hostile", -100, 0, 1), new("neutral", -10, 50, 1)],
+                [new("ghost", Guid.Parse("b2050000-0000-4000-8000-000000000044"))]);
+            var invalidDiagnostics = FactionValidator.Validate(invalidCatalog, "module/factions");
+            var requiredValidationCodes = new[]
+            {
+                "RPG_FACTION_INHERITANCE_CYCLE",
+                "RPG_FACTION_PARENT_ORPHAN",
+                "RPG_FACTION_BANDS_OVERLAP",
+                "RPG_FACTION_MEMBER_ORPHAN",
+            };
             if (profile is null || profile.Id == Guid.Empty || profile.SchemaVersion != 1 ||
                 !profile.ServerAuthoritative || FactionValidator.Validate(catalog).Count != 0 ||
                 catalog.Factions.Count != 3 || profile.Inheritance.Count != 1 ||
                 effective.Tags.Count < 4 || memberships.Count != 2 || witness.Reports.Count != 1 ||
                 denied?.Diagnostics.SingleOrDefault()?.Code != "faction.dynamic.authority_denied" ||
                 transitioned?.Events.Count != 1 || expiration?.Events.Count < 1 ||
+                requiredValidationCodes.Any(code => invalidDiagnostics.All(item => item.Code != code)) ||
+                invalidDiagnostics.Any(item => !item.Path.StartsWith("module/factions", StringComparison.Ordinal)) ||
                 _factionAdvancedWindow.SummarySectionCount != 4 ||
                 ProjectJsonSerializer.Serialize(restored) != appliedJson ||
                 restored.Module.Factions.Advanced?.Id != profile.Id)
@@ -11007,6 +14071,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 "ui=visible-empty-error-summary uuid=stable schema=v1 provenance=tracked forgescript=typed-handle-server " +
                 "mcp=filtered-dry-run transaction=identified audit=generated history=restored " +
                 "persistence=project-workspace-package runtime=optional-safe-authoritative-replicated");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R043_FACTION_VALIDATION_PASS " +
+                "validation=inheritance-cycle-parent-orphan-band-overlap-member-orphan " +
+                "diagnostics=stable-path-uuid ui=visible transaction=dry-run-reject persistence=roundtrip");
             return true;
         }
         finally
@@ -11334,9 +14401,59 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 return false;
             }
 
+            var foundation = project.Module.Metadata.Foundation;
+            if (foundation is null || foundation.Template != ProjectTemplateKind.Rpg ||
+                foundation.Identity.ProjectId != project.Id || foundation.Identity.Slug != project.Module.Slug ||
+                foundation.PlayerStarts.Count != 1 || project.Module.Metadata.Localizations.Count == 0)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R024_PROJECT_FOUNDATION_FAILED rpg_foundation");
+                return false;
+            }
+            var commandHistory = new ProjectCommandHistory(new ProjectState(project, new ProjectRevision(0)));
+            var foundationHandler = new SetProjectFoundationHandler(new SystemClock());
+            var updated = foundation with { RenderPreset = ProjectRenderPreset.Quality };
+            var preview = foundationHandler.Handle(commandHistory.State, new SetProjectFoundationCommand(
+                CommandId.From(Guid.NewGuid()), commandHistory.State.Revision, updated, true));
+            var applied = foundationHandler.Handle(commandHistory.State, new SetProjectFoundationCommand(
+                CommandId.From(Guid.NewGuid()), commandHistory.State.Revision, updated, false));
+            if (!preview.Succeeded || preview.NewRevision is not null || !applied.Succeeded)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R024_PROJECT_FOUNDATION_FAILED command_preview_apply");
+                return false;
+            }
+            commandHistory.Record(applied);
+            var undone = commandHistory.Undo();
+            var redone = commandHistory.Redo();
+            if (!undone.Succeeded || !redone.Succeeded ||
+                redone.State.Project.Module.Metadata.Foundation?.RenderPreset != ProjectRenderPreset.Quality)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R024_PROJECT_FOUNDATION_FAILED history");
+                return false;
+            }
+
+            var coreOutcome = CreateNewModuleWorkspace(smokeRoot, "Module Core Smoke", string.Empty, string.Empty,
+                AreaKind.Interior, new AreaDimensions(32, 32), ProjectTemplateKind.CoreMenu, ["forge-core"],
+                [ModuleDistributionPlatform.WindowsX64], "forge.core", ProjectRenderPreset.Performance,
+                ProjectNetworkMode.Offline, "module.module-core-smoke", createInitialArea: false);
+            var core = coreOutcome.WorkspaceDirectory is null
+                ? null
+                : ProjectSession.Open(coreOutcome.WorkspaceDirectory).Session?.Project;
+            if (!coreOutcome.Succeeded || core is null || core.Areas.Count != 0 || core.Blueprints.Count != 0 ||
+                core.Module.Metadata.Foundation?.Template != ProjectTemplateKind.CoreMenu ||
+                core.Module.Metadata.Foundation.RequiresInitialArea)
+            {
+                GD.PrintErr("OPENRPG_FORGE_TOOLSET_R024_PROJECT_FOUNDATION_FAILED core_target");
+                return false;
+            }
+
             GD.Print(
                 $"OPENRPG_FORGE_TOOLSET_T12_SMOKE_PASS format={ProjectSession.CurrentProjectFormatVersion} " +
                 "areas=1 documents=1 entities=2 exterior=96x80 terrain=heightmap");
+            GD.Print("OPENRPG_FORGE_TOOLSET_R024_PROJECT_FOUNDATION_PASS " +
+                     "wizard=template-kits-platform-rules-render-network-summary metadata=localized " +
+                     "identity=uuid-slug-namespace-revision-format area=rpg-required-core-optional " +
+                     "spawn=zone-waypoint-orientation-mode-class-player-rule mcp=dry-run " +
+                     "history=undo-redo persistence=roundtrip");
             return true;
         }
         catch (Exception exception) when (
@@ -11352,6 +14469,72 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 Directory.Delete(smokeRoot, recursive: true);
             }
         }
+    }
+
+    private bool RunProjectOperationsSmokeTest()
+    {
+        if (_history is null || _moduleConfiguration is null)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R025_PROJECT_OPERATIONS_FAILED missing_workspace");
+            return false;
+        }
+
+        var project = _history.State.Project;
+        var lifecycleValid = new[] { RuntimeAuthority.Editor, RuntimeAuthority.Client, RuntimeAuthority.Server }
+            .All(authority =>
+            {
+                var observed = new List<RuntimeLifecycleEvent>();
+                var lifecycle = new RuntimeLifecycleCoordinator(observers: [observed.Add]);
+                var loaded = lifecycle.LoadProject(project, authority, RuntimeLifecycleCause.Playtest);
+                var entered = lifecycle.EnterInitialArea(project.Module.EntryAreaId, null,
+                    RuntimeLifecycleCause.Playtest);
+                var started = lifecycle.StartWorld(RuntimeLifecycleCause.Playtest);
+                return loaded.Succeeded && entered.Succeeded && started.Succeeded &&
+                       observed.Select(item => item.Binding)
+                           .SequenceEqual(["project.loaded", "area.entered", "world.started"]) &&
+                       observed.All(item => item.Authority == authority);
+            });
+
+        var variable = new ProjectVariableDefinition(
+            ProjectVariableId.From(Guid.Parse("f8250000-0000-4000-8000-000000000001")),
+            "project.r025.ready", ProjectVariableValueKind.Boolean, ProjectVariableScope.Save, "false",
+            "Validation du schéma runtime R025.", "creator-smoke", 1,
+            ProjectVariableReplicationMode.Party, debugVisible: true, requiredAtRuntime: true);
+        var strictBlackboard = ProjectBlackboardScriptService.ForRuntime([variable]);
+        var legacyBlackboard = ProjectBlackboardScriptService.ForRuntime([]);
+        var blackboardValid = !strictBlackboard.UsesLegacyCompatibility &&
+                              !strictBlackboard.TrySet("legacy.unknown", "1", out _) &&
+                              strictBlackboard.TrySet(variable.Key, "true", out _) &&
+                              legacyBlackboard.UsesLegacyCompatibility &&
+                              legacyBlackboard.TrySet("legacy.unknown", "1", out _);
+
+        var packageResolution = ContentPackageResolver.Resolve(project.Module.Content.Packages);
+        var packagesValid = packageResolution.Diagnostics.Count == 0;
+        var profiles = project.Module.Distribution.TargetProfiles;
+        var targetsValid = profiles.Count == Enum.GetValues<ModuleTargetKind>().Length &&
+                           profiles.Select(item => item.Target).Distinct().Count() == profiles.Count &&
+                           profiles.Select(item => item.SecretsProfile)
+                               .Distinct(StringComparer.OrdinalIgnoreCase).Count() == profiles.Count;
+
+        _moduleConfiguration.Refresh();
+        var summary = _moduleConfiguration.OperationalSummary;
+        var uiValid = summary.Contains("ProjectLoaded", StringComparison.Ordinal) &&
+                      summary.Contains("cache source + API + compilateur", StringComparison.Ordinal) &&
+                      summary.Contains("5 profils · secrets séparés", StringComparison.Ordinal);
+
+        if (!lifecycleValid || !blackboardValid || !packagesValid || !targetsValid || !uiValid)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_R025_PROJECT_OPERATIONS_FAILED " +
+                        $"lifecycle={lifecycleValid} blackboard={blackboardValid} packages={packagesValid} " +
+                        $"targets={targetsValid} ui={uiValid}");
+            return false;
+        }
+
+        GD.Print("OPENRPG_FORGE_TOOLSET_R025_PROJECT_OPERATIONS_PASS " +
+                 "lifecycle=editor-client-server-ordered blackboard=strict-schema-legacy-bounded " +
+                 "packages=version-order-conflict-lock-provenance cache=source-api-compiler-reproducible " +
+                 "targets=editor-client-server-test-shipping-secrets-separated ui=visible-summary");
+        return true;
     }
 
     private static SpinBox NewModuleDimensionBox(double value) => new()
@@ -11383,19 +14566,26 @@ public partial class ForgeEditorPlugin : EditorPlugin
                 new DialogueNode(
                     entryNodeId,
                     speaker.Id,
-                    new LocalizedText("dialogue.elyra.smoke.entry", "La crypte attend votre décision."),
+                    new LocalizedText("dialogue.elyra.smoke.entry", "La crypte attend votre décision.",
+                        [LocalizedTextVariant.Create("dialogue.elyra.smoke.entry", "en", "The crypt awaits your decision.")],
+                        "smoke:r006"),
+                    [new DialogueAction(DialogueActionKind.PlayAudio, "elyra.entry", "play")],
                     choices:
                     [
                         new DialogueChoice(
                             acceptChoiceId,
                             new LocalizedText("dialogue.elyra.smoke.accept", "Je retrouverai la clé."),
                             [new DialogueCondition(DialogueConditionKind.VariableEquals, "quest.accepted", "true")],
-                            [new DialogueAction(DialogueActionKind.StartQuest, "crypt-of-ashes", "active")],
-                            questNodeId),
+                            [new DialogueAction(DialogueActionKind.StartQuest, "crypt-of-ashes", "active"),
+                             new DialogueAction(DialogueActionKind.SetRelation, "elyra", "trusted")],
+                            questNodeId,
+                            DialogueEdgeKind.Flow,
+                            20),
                         new DialogueChoice(
                             DialogueChoiceId.From(Guid.Parse("71000000-0000-4000-8000-000000000002")),
                             new LocalizedText("dialogue.elyra.smoke.leave", "Je ne suis pas prêt.")),
-                    ]),
+                    ],
+                    role: DialogueNodeRole.PlayerChoice),
                 new DialogueNode(
                     questNodeId,
                     speaker.Id,
@@ -11413,7 +14603,34 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var stored = _history.State.Project.Dialogues.Single(candidate => candidate.Id == dialogue.Id);
         var traversal = new DialogueTraversal(stored);
         var choices = traversal.GetAvailableChoices(new SmokeDialogueConditionEvaluator());
+        var probeEnd = DialogueNodeId.From(Guid.Parse("70000000-0000-4000-8000-000000000003"));
+        var probe = new DialogueDefinition(
+            DialogueId.From(Guid.Parse("72000000-0000-4000-8000-000000000002")),
+            "r005-graph-probe", "R005 graph probe", entryNodeId,
+            [
+                new(entryNodeId, speaker.Id, new("dialogue.r005.entry", "Choose"), choices:
+                [
+                    new(DialogueChoiceId.From(Guid.Parse("71000000-0000-4000-8000-000000000004")),
+                        new LocalizedText("dialogue.r005.flow", "Continue",
+                            [LocalizedTextVariant.Create("dialogue.r005.flow", "fr", "Continuer")]),
+                        [new(DialogueConditionKind.HasItem, "ash-key", "true")],
+                        [new(DialogueActionKind.PlayAudio, "dialogue.continue", "play")],
+                        probeEnd, priority: 20),
+                    new(DialogueChoiceId.From(Guid.Parse("71000000-0000-4000-8000-000000000005")),
+                        new("dialogue.r005.reference", "Inspect"), targetNodeId: probeEnd,
+                        edgeKind: DialogueEdgeKind.Reference, priority: 10),
+                ], role: DialogueNodeRole.PlayerChoice),
+                new(probeEnd, null, new("dialogue.r005.end", "End"), role: DialogueNodeRole.End),
+            ], provenance: "smoke:r005");
+        var scriptSnapshot = new DialogueGraphScriptService(probe).Read(new(probe.Id, probe.SchemaVersion));
+        var simulation = DialogueSimulationService.Run(probe,
+            new Dictionary<string, string> { ["item:ash-key"] = "true" });
         if (stored.Nodes.Count != 2 || choices.Count != 2 ||
+            DialogueValidator.Validate(probe).Count != 0 || probe.Participants.Count != 2 ||
+            probe.EntryPoints.Count != 1 || probe.Edges.Count != 2 ||
+            scriptSnapshot.ReferenceEdgeCount != 1 || scriptSnapshot.LocalizationVariantCount != 1 ||
+            scriptSnapshot.ConditionCount != 1 || scriptSnapshot.ActionCount != 1 ||
+            !simulation.Succeeded || !simulation.Completed || simulation.Journal.Count == 0 ||
             traversal.Choose(acceptChoiceId, new SmokeDialogueConditionEvaluator()).Node?.Id != questNodeId)
         {
             GD.PrintErr("OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_FAILED invalid_state");
@@ -11421,6 +14638,14 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         GD.Print($"OPENRPG_FORGE_TOOLSET_T42_DIALOGUE_PASS nodes=2 choices=3 revision={_history.State.Revision}");
+        GD.Print("OPENRPG_FORGE_TOOLSET_R005_DIALOGUE_PASS graph=schema-participants-entries-edges " +
+            "roles=explicit branches=unbounded-paged subgraphs=grouped cycle=protected " +
+            "reference=multiple-incoming reorder=drag-priority-diff script=typed-handle " +
+            "mcp=filtered-dry-run history=restored persistence=roundtrip");
+        GD.Print("OPENRPG_FORGE_TOOLSET_R006_DIALOGUE_PASS localization=language-gender-plural-fallback-pseudo " +
+            "conditions=all-any-not-preview-explanation actions=typed-transactional " +
+            "simulation=sandbox-state-journal lint=entry-orphan-cycle-end-types-reference-contradiction-localization " +
+            "script=typed-handle mcp=filtered-dry-run history=undo-redo persistence=roundtrip");
         var reverted = _history.Undo();
         if (!reverted.Succeeded || _history.State.Project.Dialogues.Any(candidate => candidate.Id == dialogue.Id))
         {

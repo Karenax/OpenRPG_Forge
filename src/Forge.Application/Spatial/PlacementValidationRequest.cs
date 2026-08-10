@@ -10,4 +10,9 @@ public sealed record PlacementValidationRequest(
     BlueprintId BlueprintId,
     Vector3Value Position,
     float GridSize,
-    EntityId? IgnoredEntityId = null);
+    EntityId? IgnoredEntityId = null,
+    string? RequiredSocket = null,
+    IReadOnlyList<string>? AvailableSockets = null,
+    long? AvailableBudgetBytes = null,
+    long? BlueprintEstimatedBytes = null,
+    bool AutoCorrect = true);

@@ -7,7 +7,7 @@ namespace Forge.Toolset.Editor;
 public partial class BlueprintDragPalette : ItemList
 {
     public const string PayloadKind = "openrpg_forge.blueprint";
-    private readonly List<BlueprintId> _blueprintIds = [];
+    private readonly List<BlueprintDefinition> _blueprints = [];
 
     public BlueprintDragPalette()
     {
@@ -16,16 +16,16 @@ public partial class BlueprintDragPalette : ItemList
         SameColumnWidth = true;
         SelectMode = SelectModeEnum.Single;
         MouseDefaultCursorShape = CursorShape.PointingHand;
-        TooltipText = "Faites glisser un blueprint dans le Monde pour le placer.";
+        TooltipText = "Glissez vers le Monde, un graphe, un inventaire, une propriété ou un package.";
     }
 
     public void SetBlueprints(IEnumerable<BlueprintDefinition> blueprints)
     {
-        _blueprintIds.Clear();
+        _blueprints.Clear();
         Clear();
         foreach (var blueprint in blueprints.OrderBy(candidate => candidate.DisplayName, StringComparer.Ordinal))
         {
-            _blueprintIds.Add(blueprint.Id);
+            _blueprints.Add(blueprint);
             AddItem($"⋮⋮  {blueprint.DisplayName}");
             SetItemTooltip(ItemCount - 1, $"{blueprint.Kind} · {blueprint.Slug}");
         }
@@ -34,7 +34,7 @@ public partial class BlueprintDragPalette : ItemList
     public override Variant _GetDragData(Vector2 atPosition)
     {
         var index = GetItemAtPosition(atPosition, true);
-        if (index < 0 || index >= _blueprintIds.Count)
+        if (index < 0 || index >= _blueprints.Count)
         {
             return default;
         }
@@ -54,10 +54,19 @@ public partial class BlueprintDragPalette : ItemList
             CornerRadiusBottomRight = 8,
         });
         SetDragPreview(preview);
+        var blueprint = _blueprints[index];
         return new Godot.Collections.Dictionary
         {
             ["kind"] = PayloadKind,
-            ["blueprintId"] = _blueprintIds[index].ToString(),
+            ["schemaVersion"] = Forge.Application.Blueprints.BlueprintDropPlanner.CurrentSchemaVersion,
+            ["blueprintId"] = blueprint.Id.ToString(),
+            ["version"] = blueprint.Authoring.Version,
+            ["source"] = blueprint.Provenance.Source,
+            ["author"] = blueprint.Provenance.Author,
+            ["licenseSpdx"] = blueprint.Provenance.LicenseSpdx,
+            ["permissionEvidence"] = blueprint.Provenance.PermissionEvidence,
+            ["contentHash"] = blueprint.Provenance.ContentHash,
+            ["provenance"] = "toolset:blueprint-drag",
         };
     }
 }

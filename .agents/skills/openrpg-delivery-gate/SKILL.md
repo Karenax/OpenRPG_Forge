@@ -46,7 +46,8 @@ Pour une demande de diagnostic ou de statut uniquement, exécuter `check` sans `
 ```
 
 4. Pour un changement documentaire seulement, limiter la validation aux contrôles applicables, à `git diff --check` et au graphe si le document est indexé.
-5. Arrêter sur l'échec pertinent, conserver son message exact et diagnostiquer avant de poursuivre. Ne jamais déduire un succès global d'un test partiel.
+5. Si le tracker Aurora ou son plan est concerné, exécuter `scripts/Update-AuroraParityTracker.ps1 -Check` et `scripts/Update-CompleteFunctionBacklog.ps1 -Check`.
+6. Arrêter sur l'échec pertinent, conserver son message exact et diagnostiquer avant de poursuivre. Ne jamais déduire un succès global d'un test partiel.
 
 ## Rendre compte
 

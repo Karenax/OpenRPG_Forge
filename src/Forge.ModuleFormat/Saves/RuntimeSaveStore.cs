@@ -145,7 +145,7 @@ public static class RuntimeSaveStore
         return fullPath;
     }
 
-    private static RuntimeSaveDocument Migrate(RuntimeSaveDocument save) =>
+    internal static RuntimeSaveDocument Migrate(RuntimeSaveDocument save) =>
         string.Equals(save.FormatVersion, RuntimeSaveDocument.CurrentFormatVersion, StringComparison.Ordinal) &&
         save.EntitySnapshots is not null
             ? save

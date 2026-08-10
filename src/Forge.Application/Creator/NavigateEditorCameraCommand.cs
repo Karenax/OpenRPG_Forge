@@ -15,4 +15,6 @@ public sealed record NavigateEditorCameraCommand(
     EditorCameraView View = EditorCameraView.Perspective,
     EditorCameraBookmarkId? BookmarkId = null,
     string? BookmarkName = null,
-    bool DryRun = false);
+    bool DryRun = false,
+    float Z = 0,
+    EditorCameraInputConfiguration? Input = null);

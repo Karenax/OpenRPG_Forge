@@ -44,6 +44,15 @@ public static class MerchantService
     {
         var result = new List<MerchantDiagnostic>(); var root = $"transactions/{request.TransactionId}";
         if (request.TransactionId == Guid.Empty || request.BuyerId != state.Buyer.PartyId || request.SellerId != state.Seller.PartyId || (request.OfferedBySeller.Count == 0 && request.OfferedByBuyer.Count == 0)) result.Add(new("RPG_TRADE_IDENTITY_INVALID", root, "Transaction parties and lines are required."));
+        var shapeIsValid = request.Kind switch
+        {
+            TradeKind.Buy => request.OfferedBySeller.Count > 0 && request.OfferedByBuyer.Count == 0,
+            TradeKind.Sell => request.OfferedBySeller.Count == 0 && request.OfferedByBuyer.Count > 0,
+            TradeKind.Barter => request.OfferedBySeller.Count > 0 && request.OfferedByBuyer.Count > 0,
+            _ => false,
+        };
+        if (!shapeIsValid)
+            result.Add(new("RPG_TRADE_KIND_INVALID", $"{root}/kind", "Buy, sell and barter require their canonical line directions."));
         ValidateSide(request.OfferedBySeller, state.Seller, state.Buyer, state.Store, $"{root}/seller", result);
         ValidateSide(request.OfferedByBuyer, state.Buyer, state.Seller, null, $"{root}/buyer", result);
         return result;
@@ -54,14 +63,42 @@ public static class MerchantService
         foreach (var line in lines)
         {
             if (line.Quantity <= 0 || line.UnitPrice < 0) result.Add(new("RPG_TRADE_LINE_INVALID", path, "Trade quantities and prices are invalid."));
-            var total = line.UnitPrice * line.Quantity;
-            if (destination.Funds.GetValueOrDefault(line.CurrencyId) < total) result.Add(new("RPG_TRADE_FUNDS_INSUFFICIENT", path, "Destination cannot fund this transfer."));
-            if (destination.Items.Values.Sum() + line.Quantity > destination.Capacity) result.Add(new("RPG_TRADE_CAPACITY_EXCEEDED", path, "Destination inventory has insufficient capacity."));
-            if (store is null && source.Items.GetValueOrDefault(line.ItemDefinitionId) < line.Quantity) result.Add(new("RPG_TRADE_OWNERSHIP_INVALID", path, "Source does not own the offered quantity."));
             if (store is not null)
             {
                 var stock = store.Stock.FirstOrDefault(item => item.ItemDefinitionId == line.ItemDefinitionId && item.VariantId == line.VariantId);
-                if (stock is null || (stock.Supply == SupplyPolicy.Finite && stock.Quantity < line.Quantity)) result.Add(new("RPG_TRADE_STOCK_INSUFFICIENT", path, "Store stock cannot satisfy this transfer."));
+                if (stock is null || stock.UnitPrice != line.UnitPrice)
+                    result.Add(new("RPG_TRADE_STOCK_MISMATCH", path, "Trade item, variant and unit price must match canonical stock."));
+            }
+        }
+
+        foreach (var currency in lines.Select(item => item.CurrencyId).Distinct(StringComparer.Ordinal))
+        {
+            if (store is not null && !store.CurrencyIds.Contains(currency))
+                result.Add(new("RPG_TRADE_CURRENCY_INVALID", $"{path}/currency", "Trade currency is not accepted by the store."));
+            var total = lines.Where(item => item.CurrencyId == currency)
+                .Sum(item => item.Quantity > 0 && item.UnitPrice >= 0 ? item.UnitPrice * item.Quantity : 0);
+            if (!destination.Funds.TryGetValue(currency, out var available) || available < total)
+                result.Add(new("RPG_TRADE_FUNDS_INSUFFICIENT", $"{path}/funds/{currency}", "Destination cannot fund the aggregate transfer."));
+        }
+
+        var incomingQuantity = lines.Where(item => item.Quantity > 0).Sum(item => item.Quantity);
+        if (destination.Items.Values.Sum() + incomingQuantity > destination.Capacity)
+            result.Add(new("RPG_TRADE_CAPACITY_EXCEEDED", $"{path}/capacity", "Destination inventory has insufficient aggregate capacity."));
+
+        if (store is null)
+        {
+            foreach (var item in lines.GroupBy(item => item.ItemDefinitionId))
+                if (source.Items.GetValueOrDefault(item.Key) < item.Where(line => line.Quantity > 0).Sum(line => line.Quantity))
+                    result.Add(new("RPG_TRADE_OWNERSHIP_INVALID", $"{path}/items/{item.Key}", "Source does not own the aggregate offered quantity."));
+        }
+        else
+        {
+            foreach (var item in lines.GroupBy(line => (line.ItemDefinitionId, line.VariantId)))
+            {
+                var stock = store.Stock.FirstOrDefault(entry => entry.ItemDefinitionId == item.Key.ItemDefinitionId && entry.VariantId == item.Key.VariantId);
+                var requested = item.Where(line => line.Quantity > 0).Sum(line => line.Quantity);
+                if (stock is null || stock.Supply == SupplyPolicy.Finite && stock.Quantity < requested)
+                    result.Add(new("RPG_TRADE_STOCK_INSUFFICIENT", $"{path}/stock/{item.Key.ItemDefinitionId}/{item.Key.VariantId}", "Store stock cannot satisfy the aggregate transfer."));
             }
         }
     }

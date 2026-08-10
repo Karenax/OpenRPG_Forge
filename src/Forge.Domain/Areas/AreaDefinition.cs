@@ -29,6 +29,8 @@ public sealed record AreaDefinition
     public AreaAuthoringProfile Authoring { get; }
     public AreaWorldProfile World { get; }
     public AreaRuntimePolicyProfile RuntimePolicies { get; }
+    public AreaFoundationProfile Foundation { get; }
+    public AreaPlaytestProfile Playtest { get; }
 
     public AreaDefinition(
         AreaId id,
@@ -43,7 +45,9 @@ public sealed record AreaDefinition
         AreaEnvironmentProfile? environment = null,
         AreaAuthoringProfile? authoring = null,
         AreaWorldProfile? world = null,
-        AreaRuntimePolicyProfile? runtimePolicies = null)
+        AreaRuntimePolicyProfile? runtimePolicies = null,
+        AreaFoundationProfile? foundation = null,
+        AreaPlaytestProfile? playtest = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(slug);
@@ -76,32 +80,49 @@ public sealed record AreaDefinition
         Dimensions = dimensions ?? AreaDimensions.Default;
         Entities = materializedEntities;
         Portals = materializedPortals;
-        Navigation = navigation ?? AreaNavigationDefinition.CreateDefault(id);
+        Navigation = navigation is null
+            ? AreaNavigationDefinition.CreateDefault(id)
+            : navigation.Anchors.AreaId == id
+                ? navigation
+                : navigation.Anchors.Definitions.Count == 0 && navigation.Anchors.Instances.Count == 0 &&
+                  string.Equals(navigation.Anchors.Provenance, "migration-default", StringComparison.Ordinal)
+                    ? navigation.WithAnchors(AnchorCatalog.CreateDefault(id))
+                    : navigation;
         Environment = environment ?? AreaEnvironmentProfile.CreateDefault(kind);
         Authoring = authoring ?? AreaAuthoringProfile.CreateDefault();
         World = world ?? AreaWorldProfile.CreateDefault(id, kind, Dimensions);
         RuntimePolicies = runtimePolicies ?? AreaRuntimePolicyProfile.CreateDefault(id);
+        Foundation = foundation ?? AreaFoundationProfile.CreateDefault(id, kind);
+        Playtest = playtest ?? AreaPlaytestProfile.CreateDefault(id);
     }
 
     public AreaDefinition WithEntities(IReadOnlyList<EntityInstance> entities) =>
-        new(Id, Slug, DisplayName, entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, Authoring, World, RuntimePolicies);
+        new(Id, Slug, DisplayName, entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, Authoring, World, RuntimePolicies, Foundation, Playtest);
 
     public AreaDefinition WithPortals(IReadOnlyList<PortalLink> portals) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, portals, SchemaVersion, Navigation, Environment, Authoring, World, RuntimePolicies);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, portals, SchemaVersion, Navigation, Environment, Authoring, World, RuntimePolicies, Foundation, Playtest);
 
     public AreaDefinition WithNavigation(AreaNavigationDefinition navigation) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, navigation, Environment, Authoring, World, RuntimePolicies);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, navigation, Environment, Authoring, World, RuntimePolicies, Foundation, Playtest);
 
     public AreaDefinition WithEnvironment(AreaEnvironmentProfile environment) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, environment, Authoring, World, RuntimePolicies);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, environment, Authoring, World, RuntimePolicies, Foundation, Playtest);
 
     public AreaDefinition WithAuthoring(AreaAuthoringProfile authoring) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, authoring, World, RuntimePolicies);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, authoring, World, RuntimePolicies, Foundation, Playtest);
 
     public AreaDefinition WithWorld(AreaWorldProfile world) =>
-        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, Authoring, world, RuntimePolicies);
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment, Authoring, world, RuntimePolicies, Foundation, Playtest);
 
     public AreaDefinition WithRuntimePolicies(AreaRuntimePolicyProfile runtimePolicies) =>
         new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment,
-            Authoring, World, runtimePolicies);
+            Authoring, World, runtimePolicies, Foundation, Playtest);
+
+    public AreaDefinition WithFoundation(AreaFoundationProfile foundation) =>
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment,
+            Authoring, World, RuntimePolicies, foundation, Playtest);
+
+    public AreaDefinition WithPlaytest(AreaPlaytestProfile playtest) =>
+        new(Id, Slug, DisplayName, Entities, Kind, Dimensions, Portals, SchemaVersion, Navigation, Environment,
+            Authoring, World, RuntimePolicies, Foundation, playtest);
 }

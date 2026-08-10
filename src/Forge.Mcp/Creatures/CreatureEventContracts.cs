@@ -22,7 +22,12 @@ public sealed record CreatureEventResourceItem(
     int HeartbeatIntervalMilliseconds,
     int HeartbeatBudgetMilliseconds,
     bool SuspendOutsideInterest,
-    IReadOnlyList<string> CustomEvents);
+    IReadOnlyList<string> CustomEvents,
+    string? BeforeDamageHandler,
+    string? DamageAppliedHandler,
+    string? DiedHandler,
+    int BeforeDamageBudgetMilliseconds,
+    double MaximumDamageAdjustmentRatio);
 
 public sealed record CreatureEventPlanRequest(
     int SchemaVersion,

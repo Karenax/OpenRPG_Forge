@@ -103,6 +103,11 @@ public static class EditorWorkspaceProfilePlanner
             primaryFontFamily: primaryFontFamily,
             fallbackFontFamilies: fallbackFontFamilies);
 
+    public static EditorWorkspaceProfile ConfigureShell(
+        EditorWorkspaceProfile profile,
+        EditorShellConfiguration shell) =>
+        Copy(profile, shell: shell);
+
     private static EditorWorkspaceProfile Copy(
         EditorWorkspaceProfile source,
         IReadOnlyList<AreaId>? openAreaTabs = null,
@@ -115,7 +120,8 @@ public static class EditorWorkspaceProfilePlanner
         double? uiScale = null,
         double? textScale = null,
         string? primaryFontFamily = null,
-        IReadOnlyList<string>? fallbackFontFamilies = null) =>
+        IReadOnlyList<string>? fallbackFontFamilies = null,
+        EditorShellConfiguration? shell = null) =>
         new(
             source.Id,
             source.Name,
@@ -133,5 +139,6 @@ public static class EditorWorkspaceProfilePlanner
             primaryFontFamily ?? source.PrimaryFontFamily,
             fallbackFontFamilies ?? source.FallbackFontFamilies,
             personalFavoriteBlueprintIds ?? source.PersonalFavoriteBlueprintIds,
-            recentBlueprintIds ?? source.RecentBlueprintIds);
+            recentBlueprintIds ?? source.RecentBlueprintIds,
+            shell ?? source.Shell);
 }

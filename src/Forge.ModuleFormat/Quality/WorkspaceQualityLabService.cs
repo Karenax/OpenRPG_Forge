@@ -4,6 +4,7 @@ using System.Text.Json;
 using Forge.Application.Localization;
 using Forge.Application.Quality;
 using Forge.Domain.Projects;
+using Forge.Domain.Quality;
 using Forge.Scripting;
 
 namespace Forge.ModuleFormat.Quality;
@@ -27,13 +28,15 @@ public sealed record WorkspaceQualityLabReport(
     IReadOnlyList<QuestQualityReport> Quests,
     EncounterQualityReport Encounters,
     ForgeScriptSandboxSuiteReport Scripts,
-    string? PseudoLocalizationSnapshotPath);
+    string? PseudoLocalizationSnapshotPath,
+    WorkspaceCanonicalValidationReport CanonicalValidation);
 
 public sealed class WorkspaceQualityLabService(IForgeScriptRuntime scriptRuntime)
 {
     public const string PseudoSnapshotRelativePath = ".forge/quality/pseudo-localization.svg";
     private static readonly IReadOnlySet<string> AllowedScriptEvents = new HashSet<string>(
-        ["health", "variable", "say", "cast", "spawn", "quest", "unlock"], StringComparer.Ordinal);
+        ["health", "variable", "say", "cast", "spawn", "quest", "unlock", "world.area", "world.query"],
+        StringComparer.Ordinal);
     private readonly IForgeScriptRuntime _scriptRuntime = scriptRuntime ?? throw new ArgumentNullException(nameof(scriptRuntime));
 
     public WorkspaceQualityLabReport Run(
@@ -57,11 +60,16 @@ public sealed class WorkspaceQualityLabService(IForgeScriptRuntime scriptRuntime
             .Select(quest => NarrativeQualityService.TestQuest(quest)).ToArray();
         var encounters = EncounterQualityService.Simulate(project);
         var scripts = RunScripts(root, options);
+        var qualityProfile = QualityFoundationProfileStore.Load(root, project.Id.Value).Profile;
+        var canonicalValidation = WorkspaceCanonicalValidationService.Run(root, project, qualityProfile);
+        var canonicalBlocking = canonicalValidation.Diagnostics.Any(item =>
+            qualityProfile.EffectiveValidation.Categories.TryGetValue(item.Category, out var category) &&
+            category.RequiredBeforeBuild);
         var pseudoPath = options.WritePseudoLocalizationSnapshot
             ? WritePseudoSnapshot(root, LocalizationQualityService.RenderPseudoSnapshotSvg(localization))
             : null;
         var passed = extraction.Diagnostics.Count == 0 && localization.Passed && dialogues.All(report => report.Passed) &&
-            quests.All(report => report.Passed) && encounters.Passed && scripts.Passed;
+            quests.All(report => report.Passed) && encounters.Passed && scripts.Passed && !canonicalBlocking;
         var fingerprint = Fingerprint(new
         {
             passed,
@@ -70,8 +78,15 @@ public sealed class WorkspaceQualityLabService(IForgeScriptRuntime scriptRuntime
             quests = quests.Select(report => new { id = report.QuestId.ToString(), report.Passed, report.CoveredStates, report.CoveredTransitions }),
             encounters = encounters.Areas.Select(area => new { id = area.AreaId.ToString(), area.Passed, area.CreatureCount, runs = area.Runs.Count }),
             scripts = scripts.Tests.Select(test => new { test.Id, test.Passed, test.EventCoverage }),
+            canonicalValidation = new
+            {
+                canonicalValidation.Passed,
+                canonicalValidation.Fingerprint,
+                canonicalValidation.CategoryCounts,
+            },
         });
-        return new(passed, fingerprint, localization, dialogues, quests, encounters, scripts, pseudoPath);
+        return new(passed, fingerprint, localization, dialogues, quests, encounters, scripts, pseudoPath,
+            canonicalValidation);
     }
 
     private ForgeScriptSandboxSuiteReport RunScripts(string root, WorkspaceQualityLabOptions options)

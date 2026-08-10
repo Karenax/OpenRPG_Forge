@@ -23,7 +23,7 @@ public sealed class SetGameplayControlProfileHandler
         var previous = state.Project.Module.RuntimePolicies;
         var policies = new ModuleRuntimePolicyProfile(previous.Id, previous.SchemaVersion, previous.Heartbeats,
             previous.Rest, previous.SequenceAbort, "gameplay-command", previous.Cinematics, command.Profile,
-            previous.Rules);
+            previous.Rules, previous.Extensions);
         var project = new ProjectDefinition(state.Project.Id, state.Project.Title,
             state.Project.Module.WithRuntimePolicies(policies), state.Project.Blueprints, state.Project.Areas,
             state.Project.Dialogues, state.Project.Quests);
@@ -32,8 +32,10 @@ public sealed class SetGameplayControlProfileHandler
 
         var provider = command.Profile.CombatModes.DefaultProvider;
         var patch = new ProjectPatch("replace", "module/runtimePolicies/gameplay",
-            $"Configure swimming, climbing, {command.Profile.RadialMenu.Actions.Count} radial actions, " +
-            $"time control and combat provider '{provider.ProviderId}'.");
+            $"Configure P0 movement, interaction, {command.Profile.Foundation.Cameras.Profiles.Count} cameras, " +
+            $"{command.Profile.Foundation.Input.Bindings.Count} input bindings, save policy, swimming, climbing, " +
+            $"{command.Profile.RadialMenu.Actions.Count} radial actions, time control and combat provider " +
+            $"'{provider.ProviderId}'.");
         var inverse = new ProjectPatch("replace", "module/runtimePolicies/gameplay",
             "Restore previous gameplay control profile.");
         var audit = new AuditEntry(command.CommandId, "set_gameplay_control_profile", _clock.UtcNow,

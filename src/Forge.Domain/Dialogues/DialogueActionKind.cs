@@ -7,5 +7,11 @@ public enum DialogueActionKind
     AdvanceQuest,
     CompleteQuest,
     GiveItem,
+    RemoveItem,
     UnlockEntity,
+    SetRelation,
+    PlayAnimation,
+    PlayAudio,
+    StartSequence,
+    RunScript,
 }

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Forge.Domain.Build;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Content;
 using Forge.Domain.Projects;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Serialization;
@@ -14,7 +15,8 @@ public static class WorkspaceBuildGraphBuilder
         string workspacePath,
         ProjectDefinition project,
         string projectPath,
-        string? ignoredFilePath = null)
+        string? ignoredFilePath = null,
+        int maximumParallelTasks = DeterministicBuildTaskScheduler.DefaultMaximumParallelism)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workspacePath);
         ArgumentNullException.ThrowIfNull(project);
@@ -34,19 +36,21 @@ public static class WorkspaceBuildGraphBuilder
             content.Add(areaDocument.Key, Encoding.UTF8.GetBytes(areaDocument.Value));
         }
 
-        foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
+        var workspaceFiles = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
                      .Select(Path.GetFullPath)
                      .Where(file => !string.Equals(file, canonicalProjectPath, StringComparison.OrdinalIgnoreCase))
                      .Where(file => !string.Equals(file, canonicalIgnoredPath, StringComparison.OrdinalIgnoreCase))
                      .Where(file => !IsWorkspaceAreaDocument(projectDirectory, file))
                      .Where(file => !IsIgnoredWorkspaceFile(root, file))
-                     .OrderBy(file => file, StringComparer.OrdinalIgnoreCase))
+                     .ToArray();
+        var materialization = WorkspaceFileMaterializer.Materialize(root, workspaceFiles, maximumParallelTasks);
+        foreach (var file in materialization.Results)
         {
-            var relative = Path.GetRelativePath(root, file).Replace('\\', '/');
-            content[relative] = File.ReadAllBytes(file);
+            content[file.RelativePath] = file.Content;
         }
 
-        var externalPackages = ReadExternalPackages(project);
+        var usedBlueprints = ReadUsedBlueprints(project);
+        var externalPackages = ReadExternalPackages(project, usedBlueprints);
         var externalNodes = externalPackages.Select(package => new BuildDependencyNode(
             BuildResourceId.ForPath(package.Path),
             package.Path,
@@ -56,6 +60,7 @@ public static class WorkspaceBuildGraphBuilder
             package.Provenance)).ToArray();
         var projectId = BuildResourceId.ForPath("project.json");
         var idsByPath = content.Keys.ToDictionary(path => path, BuildResourceId.ForPath, StringComparer.Ordinal);
+        var usedLocalDependencies = LocalDependencies(usedBlueprints, idsByPath);
         var contentNodes = new List<BuildDependencyNode>();
         foreach (var item in content.OrderBy(item => item.Key, StringComparer.Ordinal))
         {
@@ -64,15 +69,18 @@ public static class WorkspaceBuildGraphBuilder
             if (kind == BuildResourceKind.ProjectDocument)
             {
                 dependencies.AddRange(externalNodes.Select(node => node.Id));
+                dependencies.AddRange(usedLocalDependencies);
             }
             else if (kind == BuildResourceKind.AreaDocument)
             {
                 dependencies.Add(projectId);
                 var area = project.Areas.Single(candidate =>
                     item.Key.StartsWith($"areas/{candidate.Id}-", StringComparison.Ordinal));
+                var areaBlueprintIds = area.Entities.Select(entity => entity.BlueprintId).ToHashSet();
+                dependencies.AddRange(LocalDependencies(
+                    usedBlueprints.Where(blueprint => areaBlueprintIds.Contains(blueprint.Id)), idsByPath));
                 dependencies.AddRange(area.Entities
                     .SelectMany(entity => entity.Overrides.Properties)
-                    .Where(property => property.Value.EndsWith(".forge", StringComparison.OrdinalIgnoreCase))
                     .Select(property => property.Value.Replace('\\', '/'))
                     .Where(idsByPath.ContainsKey)
                     .Select(path => idsByPath[path]));
@@ -85,7 +93,7 @@ public static class WorkspaceBuildGraphBuilder
                 Sha256(item.Value),
                 "PROJECT",
                 "workspace-canonical",
-                dependencies));
+                dependencies.Distinct().OrderBy(id => id.Value).ToArray()));
         }
 
         var packagePath = $"package/{project.Module.Slug}.orpmod";
@@ -109,17 +117,56 @@ public static class WorkspaceBuildGraphBuilder
             [.. externalNodes, .. contentNodes, packageNode]);
         return new WorkspaceBuildGraph(
             graph,
-            externalPackages.Select(package => package.ManifestReference).ToArray());
+            externalPackages.Select(package => package.ManifestReference).ToArray(),
+            materialization.Metrics);
     }
 
-    private static IReadOnlyList<ExternalPackage> ReadExternalPackages(ProjectDefinition project) =>
-        project.Blueprints
-            .Where(blueprint => project.Areas.SelectMany(area => area.Entities)
-                .Any(entity => entity.BlueprintId == blueprint.Id) ||
-                project.Dialogues.SelectMany(dialogue => dialogue.Nodes)
-                    .Any(node => node.SpeakerBlueprintId == blueprint.Id))
+    private static IReadOnlyList<ExternalPackage> ReadExternalPackages(
+        ProjectDefinition project,
+        IReadOnlyList<BlueprintDefinition> usedBlueprints)
+    {
+        var packages = usedBlueprints
             .Where(blueprint => blueprint.PaletteOrigin == BlueprintPaletteOrigin.InstalledPack)
             .Select(blueprint => ParseExternalPackage(blueprint.Provenance))
+            .ToDictionary(package => package.Path, StringComparer.Ordinal);
+        var catalogByNamespace = project.Module.Content.Packages.Packages
+            .ToDictionary(package => package.PackageNamespace, StringComparer.Ordinal);
+        var queue = new Queue<ContentPackageDefinition>();
+        foreach (var blueprint in usedBlueprints)
+        {
+            foreach (var dependency in blueprint.Authoring.Dependencies.Where(value =>
+                         value.StartsWith("pack://", StringComparison.Ordinal)))
+            {
+                var packReference = ParsePackReference(dependency);
+                if (catalogByNamespace.TryGetValue(packReference.Namespace, out var package) &&
+                    string.Equals(package.Version, packReference.Version, StringComparison.Ordinal))
+                    AddCatalogPackage(package);
+            }
+        }
+
+        foreach (var root in packages.Values.ToArray())
+        {
+            var reference = ParsePackReference(root.Path);
+            if (catalogByNamespace.TryGetValue(reference.Namespace, out var package) &&
+                string.Equals(package.Version, reference.Version, StringComparison.Ordinal))
+                queue.Enqueue(package);
+        }
+
+        var visited = new HashSet<Guid>();
+        while (queue.TryDequeue(out var package))
+        {
+            if (!visited.Add(package.Id)) continue;
+            AddCatalogPackage(package);
+            foreach (var dependency in package.Dependencies.Where(item => item.Kind == ContentDependencyKind.Required))
+            {
+                if (!catalogByNamespace.TryGetValue(dependency.PackageNamespace, out var required))
+                    throw new InvalidDataException(
+                        $"Required package '{dependency.PackageNamespace}' is unavailable for '{package.PackageNamespace}'.");
+                queue.Enqueue(required);
+            }
+        }
+
+        return packages.Values
             .GroupBy(package => package.Path, StringComparer.Ordinal)
             .Select(group =>
             {
@@ -133,6 +180,65 @@ public static class WorkspaceBuildGraphBuilder
             })
             .OrderBy(package => package.ManifestReference, StringComparer.Ordinal)
             .ToArray();
+
+        void AddCatalogPackage(ContentPackageDefinition package)
+        {
+            var external = new ExternalPackage(
+                $"pack://{package.PackageNamespace}/{package.Version}",
+                $"{package.PackageNamespace}@{package.Version}",
+                package.ContentSha256,
+                package.LicenseSpdx,
+                package.Provenance);
+            packages.TryAdd(external.Path, external);
+            queue.Enqueue(package);
+        }
+    }
+
+    private static IReadOnlyList<BlueprintDefinition> ReadUsedBlueprints(ProjectDefinition project)
+    {
+        var byId = project.Blueprints.ToDictionary(blueprint => blueprint.Id);
+        var byManifest = project.Blueprints.ToDictionary(
+            blueprint => blueprint.Authoring.ManifestPath, blueprint => blueprint.Id, StringComparer.Ordinal);
+        var used = project.Areas.SelectMany(area => area.Entities).Select(entity => entity.BlueprintId)
+            .Concat(project.Dialogues.SelectMany(dialogue => dialogue.Nodes)
+                .Where(node => node.SpeakerBlueprintId is not null)
+                .Select(node => node.SpeakerBlueprintId!))
+            .ToHashSet();
+        var queue = new Queue<BlueprintId>(used);
+        while (queue.TryDequeue(out var id))
+        {
+            if (!byId.TryGetValue(id, out var blueprint)) continue;
+            foreach (var dependency in blueprint.Authoring.Dependencies)
+            {
+                if (byManifest.TryGetValue(dependency, out var dependencyId) && used.Add(dependencyId))
+                    queue.Enqueue(dependencyId);
+            }
+        }
+        return used.Where(byId.ContainsKey).Select(id => byId[id]).OrderBy(item => item.Id.Value).ToArray();
+    }
+
+    private static IReadOnlyList<BuildResourceId> LocalDependencies(
+        IEnumerable<BlueprintDefinition> blueprints,
+        IReadOnlyDictionary<string, BuildResourceId> idsByPath) => blueprints
+        .SelectMany(blueprint => blueprint.Authoring.Dependencies
+            .Append(blueprint.Authoring.ManifestPath)
+            .Concat(blueprint.Authoring.PreviewPath is null ? [] : [blueprint.Authoring.PreviewPath]))
+        .Where(path => !path.StartsWith("pack://", StringComparison.Ordinal))
+        .Where(idsByPath.ContainsKey)
+        .Select(path => idsByPath[path])
+        .Distinct()
+        .OrderBy(id => id.Value)
+        .ToArray();
+
+    private static (string Namespace, string Version) ParsePackReference(string value)
+    {
+        if (!value.StartsWith("pack://", StringComparison.Ordinal))
+            throw new InvalidDataException("Package reference must use pack://namespace/version/resource.");
+        var segments = value[7..].Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length < 2)
+            throw new InvalidDataException("Package reference must identify a namespace and version.");
+        return (segments[0], segments[1]);
+    }
 
     private static ExternalPackage ParseExternalPackage(BlueprintProvenance provenance)
     {
@@ -160,9 +266,13 @@ public static class WorkspaceBuildGraphBuilder
     {
         "project.json" => BuildResourceKind.ProjectDocument,
         _ when path.StartsWith("areas/", StringComparison.Ordinal) => BuildResourceKind.AreaDocument,
-        _ when path.EndsWith(".forge", StringComparison.OrdinalIgnoreCase) => BuildResourceKind.Script,
+        _ when IsScriptPath(path) => BuildResourceKind.Script,
         _ => BuildResourceKind.Asset,
     };
+
+    private static bool IsScriptPath(string path) =>
+        path.EndsWith(".forge", StringComparison.OrdinalIgnoreCase) ||
+        path.EndsWith(".as", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsIgnoredWorkspaceFile(string workspaceRoot, string file)
     {

@@ -1,8 +1,29 @@
 # OpenRPG Forge — contexte autonome pour Codex/Hermes
 
-Version de référence : 2 août 2026.
+Version de référence : 7 août 2026.
 
 Ce fichier peut être transmis seul à un agent. Dans un dépôt réel, utiliser de préférence le paquet structuré et conserver `AGENTS.md` à la racine.
+
+## Lecture opérationnelle actuelle
+
+Le MVP, les gates verticales G0 à G13 et les démonstrations Crypte des Cendres/Forgotten Forest
+sont livrés et protégés par le portail intégré. Cette fermeture ne signifie pas que les 717 critères
+fonctionnels du dossier Aurora sont tous complètement satisfaits : le tracker projet classe
+actuellement 207 fonctions `Tested`, 432 `Implemented` partielles, 1 `Designed` et 77 `Researched`.
+
+Les sources actives sont désormais, dans cet ordre :
+
+1. `AGENTS.md` pour les règles et frontières ;
+2. `STATUS.md` pour les preuves et limites actuelles ;
+3. `TASKS_MVP.md` pour la file de travail humaine ;
+4. `docs/planning/COMPLETE_FUNCTION_BACKLOG.md` pour la couverture exhaustive des 717 fonctions ;
+5. `tracking/project/AURORA_PARITY_COVERAGE.csv` pour l'état feature par feature ;
+6. `docs/audits/COMPLETE_FUNCTION_COVERAGE_AUDIT_2026-08-07.md` pour la méthode et les limites ;
+7. les ADR et fiches détaillées du lot explicitement activé.
+
+Le bloc `BACKLOG MVP` plus bas est une archive historique et ses cases vides ne constituent jamais
+une file active. Le programme P0 est maintenant explicitement actif : il couvre les 50 lots stables
+`R001` à `R050`, exécutés strictement un par un selon `docs/planning/P0_ACCEPTANCE_PROGRAM.md`.
 
 
 
@@ -1599,15 +1620,13 @@ Le résumé doit contenir :
 ## 23. Mission courante à donner à Codex
 
 > Lis `AGENTS.md`, `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, le plan Aurora et les ADR
-> applicables. Le bootstrap, le MVP et G7 sont validés : ne les recommence pas.
-> Le second module original **La Veillée des Éclats** est généré exclusivement par les handlers
-> d'auteur et `ProjectSession`, avec round-trip/export automatisé.
-> G11-A à G11-S sont fermés. Ferme **G11-T** par l’accessibilité éditeur/runtime, le fuzzing de
-> sécurité et la gouvernance finale, puis poursuis les lots bornés
-> sans modifier les sources originales du Vault.
-> Conserve le modèle de
-> domaine comme source de vérité, passe les mutations par les commandes, teste chaque couche touchée,
-> régénère le graphe et mets le statut à jour uniquement avec les preuves obtenues.
+> applicables. Ne recommence aucun gate fermé et ne déduis jamais la complétude des 717 fonctions du
+> seul succès des démonstrations verticales. Vérifie le tracker et
+> `docs/planning/COMPLETE_FUNCTION_BACKLOG.md`, puis exécute le programme P0 `R001` à `R050`
+> strictement un lot à la fois. Pour le lot courant seulement, relis les exigences source, ferme les critères encore
+> partiels, passe les mutations par les commandes, ajoute les preuves exactes, régénère les artefacts
+> gouvernés et ne passe une fonction à `Tested` qu'avec un test ou une procédure reproductible liée.
+> Les lots Asset/Map restants sont `OPTIONAL_POST_DEMO` et ne doivent pas interrompre les P0.
 
 ---
 

@@ -60,7 +60,7 @@ public sealed class SetDialogueHandler
 
         var operation = previous is null ? "add" : "replace";
         var path = $"dialogues/{command.Dialogue.Id}";
-        var patch = new ProjectPatch(operation, path, $"Store dialogue '{command.Dialogue.DisplayName}'.");
+        var patch = new ProjectPatch(operation, path, DescribeChange(previous, command.Dialogue));
         var inverse = previous is null
             ? new ProjectPatch("remove", path, $"Remove dialogue '{command.Dialogue.DisplayName}'.")
             : new ProjectPatch("replace", path, $"Restore dialogue '{previous.DisplayName}'.");
@@ -105,4 +105,21 @@ public sealed class SetDialogueHandler
 
     private AuditEntry CreateAudit(SetDialogueCommand command, bool applied) =>
         new(command.CommandId, CommandName, _clock.UtcNow, applied);
+
+    private static string DescribeChange(DialogueDefinition? previous, DialogueDefinition current)
+    {
+        if (previous is null) return $"Store dialogue '{current.DisplayName}'.";
+        var reorderedNodes = current.Nodes
+            .Select(node => (Current: node, Previous: previous.Nodes.SingleOrDefault(item => item.Id == node.Id)))
+            .Where(item => item.Previous is not null)
+            .Where(item => item.Current.Choices.Select(choice => choice.Id).ToHashSet()
+                .SetEquals(item.Previous!.Choices.Select(choice => choice.Id)))
+            .Where(item => !item.Current.Choices.Select(choice => choice.Id)
+                .SequenceEqual(item.Previous!.Choices.Select(choice => choice.Id)))
+            .Select(item => item.Current.Id.ToString())
+            .ToArray();
+        return reorderedNodes.Length == 0
+            ? $"Store dialogue '{current.DisplayName}'."
+            : $"Reorder dialogue '{current.DisplayName}' choices on nodes {string.Join(", ", reorderedNodes)}.";
+    }
 }

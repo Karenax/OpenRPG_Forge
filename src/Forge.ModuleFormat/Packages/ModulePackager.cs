@@ -1,11 +1,17 @@
 using System.IO.Compression;
 using System.Text;
+using System.Text.Json;
+using Forge.Domain.Assets;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
 using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Workspaces;
+using Forge.ModuleFormat.Audio;
+using Forge.ModuleFormat.Content;
+using Forge.ModuleFormat.Quality;
+using Forge.Scripting;
 
 namespace Forge.ModuleFormat.Packages;
 
@@ -17,7 +23,7 @@ public static class ModulePackager
         string workspacePath,
         string destinationPath,
         string? moduleVersion = null,
-        string runtimeMinimumVersion = "0.1.0",
+        string? runtimeMinimumVersion = null,
         string forgeScriptApiVersion = "1.0.0",
         ModuleTargetKind target = ModuleTargetKind.Editor)
     {
@@ -64,7 +70,36 @@ public static class ModulePackager
                 relativePath => ReadBareAreaDocument(bareProjectDirectory, relativePath));
         }
 
-        ValidateCreaturePresentationAssets(workspaceRoot, project);
+        var buildProfileLoad = WorkspaceBuildProfileStore.Load(workspaceRoot);
+        if (!buildProfileLoad.Succeeded)
+        {
+            throw new InvalidDataException(
+                $"Build profile is invalid: {string.Join("; ", buildProfileLoad.Diagnostics.Select(item => item.Message))}");
+        }
+        var compatibility = buildProfileLoad.Profile.Compatibility;
+        runtimeMinimumVersion ??= compatibility.MinimumRuntimeVersion;
+
+        var qualityProfileLoad = QualityFoundationProfileStore.Load(workspaceRoot, project.Id.Value);
+        if (!qualityProfileLoad.Succeeded)
+        {
+            throw new InvalidDataException(
+                "Canonical validation profile is invalid: " + string.Join("; ",
+                    qualityProfileLoad.Diagnostics.Select(item => $"{item.Code} at {item.Path}: {item.Message}")));
+        }
+        var canonicalValidation = WorkspaceCanonicalValidationService.Run(
+            workspaceRoot, project, qualityProfileLoad.Profile);
+        var validationPolicy = qualityProfileLoad.Profile.EffectiveValidation;
+        var blockingValidationDiagnostics = canonicalValidation.Diagnostics
+            .Where(item => validationPolicy.Categories.TryGetValue(item.Category, out var category) &&
+                           category.RequiredBeforeBuild)
+            .ToArray();
+        if (blockingValidationDiagnostics.Length > 0)
+        {
+            throw new InvalidOperationException(
+                "Canonical validation failed before build: " + string.Join("; ",
+                    blockingValidationDiagnostics.Select(item =>
+                        $"{item.Code} at {item.Path} [{item.Id:D}]: {item.Message}")));
+        }
 
         var complianceDiagnostics = DistributionComplianceValidator.Validate(project, target);
         if (complianceDiagnostics.Count > 0)
@@ -75,6 +110,26 @@ public static class ModulePackager
                     $"{diagnostic.Code} at {diagnostic.Path}: {diagnostic.Message}")));
         }
 
+        ValidateScriptPermissionPolicy(workspaceRoot, project);
+        ValidateCreaturePresentationAssets(workspaceRoot, project);
+        var contentCompilation = ContentPackageCompiler.Compile(
+            workspaceRoot, project.Module.Id.Value, project.Module.Content.Packages);
+        if (!contentCompilation.Success)
+        {
+            throw new InvalidOperationException(
+                "Content package compilation failed: " + string.Join("; ", contentCompilation.Diagnostics.Select(item =>
+                    $"{item.Code} at {item.Path}: {item.Message}")));
+        }
+        var audioDiagnostics = WorkspaceAudioValidator.Validate(workspaceRoot, project);
+        if (audioDiagnostics.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "Audio distribution validation failed: " + string.Join("; ", audioDiagnostics.Select(item =>
+                    $"{item.Code} at {item.Path}: {item.Message}")));
+        }
+
+        ValidateAssetGovernance(workspaceRoot, target);
+
         var bundle = WorkspaceProjectJsonSerializer.Serialize(project);
         var entries = new List<(string Path, byte[] Content)>
         {
@@ -84,24 +139,31 @@ public static class ModulePackager
         };
         entries.AddRange(bundle.AreaDocuments.Select(item =>
             ($"content/{item.Key}", Encoding.UTF8.GetBytes(item.Value))));
+        entries.AddRange(contentCompilation.GeneratedArtifacts.Select(item => (item.PackagePath, item.Content)));
         var projectDirectory = Path.GetDirectoryName(projectPath)
             ?? throw new InvalidDataException("The workspace project index has no parent directory.");
-        foreach (var file in Directory.EnumerateFiles(workspaceRoot, "*", SearchOption.AllDirectories)
+        var workspaceFiles = Directory.EnumerateFiles(workspaceRoot, "*", SearchOption.AllDirectories)
                      .Select(Path.GetFullPath)
                      .Where(file => !string.Equals(file, projectPath, StringComparison.OrdinalIgnoreCase))
                      .Where(file => !string.Equals(file, destination, StringComparison.OrdinalIgnoreCase))
                      .Where(file => !IsWorkspaceAreaDocument(projectDirectory, file))
                      .Where(file => !IsIgnoredWorkspaceFile(workspaceRoot, file))
-                     .OrderBy(file => file, StringComparer.OrdinalIgnoreCase))
+                     .ToArray();
+        var packageMaterialization = WorkspaceFileMaterializer.Materialize(workspaceRoot, workspaceFiles);
+        foreach (var file in packageMaterialization.Results)
         {
-            var relative = Path.GetRelativePath(workspaceRoot, file).Replace('\\', '/');
-            var packagePath = $"content/{relative}";
+            var packagePath = $"content/{file.RelativePath}";
             if (!ModulePackageValidator.IsSafeArchivePath(packagePath))
             {
-                throw new InvalidOperationException($"Workspace file '{relative}' does not map to a safe package path.");
+                throw new InvalidOperationException($"Workspace file '{file.RelativePath}' does not map to a safe package path.");
             }
 
-            entries.Add((packagePath, File.ReadAllBytes(file)));
+            if (entries.Any(entry => string.Equals(entry.Path, packagePath, StringComparison.Ordinal)))
+            {
+                continue;
+            }
+
+            entries.Add((packagePath, file.Content));
         }
 
         var buildGraph = WorkspaceBuildGraphBuilder.Build(workspaceRoot, project, projectPath, destination);
@@ -115,12 +177,34 @@ public static class ModulePackager
             forgeScriptApiVersion,
             hash,
             buildGraph.AutomaticDependencies,
-            target);
+            target,
+            compatibility.RequiredAtRuntime);
         var manifestDiagnostics = ModuleManifestValidator.Validate(manifest);
         if (manifestDiagnostics.Count > 0)
         {
             throw new InvalidOperationException(
                 $"Module manifest is invalid: {string.Join("; ", manifestDiagnostics.Select(d => d.Message))}");
+        }
+
+        if (buildPlan.RebuiltResources.Count == 0 && File.Exists(destination))
+        {
+            var existing = ModulePackageValidator.Validate(destination);
+            if (existing.IsValid && existing.Manifest is not null &&
+                string.Equals(ModuleManifestJson.Serialize(existing.Manifest), ModuleManifestJson.Serialize(manifest),
+                    StringComparison.Ordinal))
+            {
+                WorkspaceBuildStateStore.Save(workspaceRoot, buildGraph.Graph);
+                WorkspaceBuildCollaborationService.SaveSemanticSnapshot(workspaceRoot,
+                    WorkspaceBuildCollaborationService.CreateSemanticSnapshot(project, buildGraph.Graph));
+                return new ModulePackageExportResult(
+                    destination,
+                    manifest,
+                    entries.Count + 1,
+                    new FileInfo(destination).Length,
+                    buildGraph.Graph,
+                    buildPlan,
+                    packageMaterialization.Metrics);
+            }
         }
 
         var destinationDirectory = Path.GetDirectoryName(destination)
@@ -158,6 +242,8 @@ public static class ModulePackager
         }
 
         WorkspaceBuildStateStore.Save(workspaceRoot, buildGraph.Graph);
+        WorkspaceBuildCollaborationService.SaveSemanticSnapshot(workspaceRoot,
+            WorkspaceBuildCollaborationService.CreateSemanticSnapshot(project, buildGraph.Graph));
 
         return new ModulePackageExportResult(
             destination,
@@ -165,7 +251,8 @@ public static class ModulePackager
             entries.Count + 1,
             new FileInfo(destination).Length,
             buildGraph.Graph,
-            buildPlan);
+            buildPlan,
+            packageMaterialization.Metrics);
     }
 
     private static bool IsIgnoredWorkspaceFile(string workspaceRoot, string file)
@@ -229,6 +316,43 @@ public static class ModulePackager
                 }
             }
         }
+    }
+
+    private static void ValidateScriptPermissionPolicy(string workspaceRoot, ProjectDefinition project)
+    {
+        var store = new ForgeScriptModulePermissionStore(workspaceRoot);
+        if (!File.Exists(store.Path))
+            return;
+        ForgeScriptModulePermissionPolicy policy;
+        try
+        {
+            policy = store.Load();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
+                                           InvalidOperationException or JsonException)
+        {
+            throw new InvalidOperationException(
+                $"ForgeScript module permission validation failed: {exception.Message}", exception);
+        }
+        if (policy.ModuleId != project.Module.Id.Value)
+        {
+            throw new InvalidOperationException(
+                "ForgeScript module permission validation failed: script.permission.module_mismatch");
+        }
+    }
+
+    private static void ValidateAssetGovernance(string workspaceRoot, ModuleTargetKind target)
+    {
+        if (target is ModuleTargetKind.Editor or ModuleTargetKind.Test) return;
+        var loaded = AssetGovernanceStore.Load(workspaceRoot);
+        if (!loaded.Succeeded)
+            throw new InvalidOperationException("Asset governance validation failed: " +
+                string.Join("; ", loaded.Diagnostics.Select(item => $"{item.Code} at {item.Path}: {item.Message}")));
+        if (loaded.FileMissing) return;
+        var diagnostics = loaded.Records.SelectMany(record => AssetGovernanceValidator.Validate(record)).ToArray();
+        if (diagnostics.Length > 0)
+            throw new InvalidOperationException("Asset governance validation failed: " +
+                string.Join("; ", diagnostics.Select(item => $"{item.Code} at {item.Path}: {item.Message}")));
     }
 
     private static void WriteEntry(ZipArchive archive, string path, byte[] content)

@@ -68,6 +68,41 @@ public sealed class CreatorSearchAndRenameTests
     }
 
     [Fact]
+    public void SearchAndReferences_IncludeLocalizedTextsScriptsAssetsAndCanonicalPaths()
+    {
+        var context = CreateContext();
+        var project = context.State.Project;
+        var firstArea = project.Areas.Single(item => item.Id == context.FirstAreaId);
+        var first = firstArea.Entities.Single();
+        var referencingEntity = new EntityInstance(first.Id, first.BlueprintId, first.Transform, first.Tags,
+            new EntityPropertyOverrides(EntityPropertyOverrides.CurrentSchemaVersion,
+                [new EntityPropertyOverride("behavior", EntityPropertyValueKind.String, "scripts/elyra_guard.forge")]),
+            first.BlueprintVersionRequirement);
+        var updatedArea = firstArea.WithEntities([referencingEntity]);
+        project = new ProjectDefinition(project.Id, project.Title, project.Module, project.Blueprints,
+            project.Areas.Select(item => item.Id == updatedArea.Id ? updatedArea : item).ToArray(),
+            project.Dialogues, project.Quests);
+        var script = CreatorWorkspaceResource.Create(CreatorContentKind.Script, "scripts/elyra_guard.forge",
+            "on_spawn dialogue.elyra.intro", ["ai"]);
+        var asset = CreatorWorkspaceResource.Create(CreatorContentKind.Asset, "assets/elyra.glb", "elyra model",
+            ["3d"]);
+        var catalog = CreatorWorkspaceResourceCatalog.Build(project, [script, asset]);
+        var index = CreatorSearchIndex.Build(project, supplementalDocuments: catalog.Documents);
+        var references = CreatorReferenceIndex.Build(project, catalog.References);
+
+        Assert.Equal(script.Id.ToString(), Assert.Single(index.Search(
+            new CreatorSearchQuery("elyra_guard", CreatorContentKind.Script))).Document.Id);
+        Assert.Equal(asset.Id.ToString(), Assert.Single(index.Search(
+            new CreatorSearchQuery("elyra model", CreatorContentKind.Asset))).Document.Id);
+        Assert.Contains(index.Search(new CreatorSearchQuery("dialogue.elyra.intro", CreatorContentKind.LocalizedText)),
+            item => item.Document.Id == "dialogue.elyra.intro");
+        Assert.Contains(references.Find(CreatorContentKind.Script, script.Id.ToString()),
+            item => item.Usage == CreatorReferenceUsageKind.ScriptPath && item.SourceId == first.Id.ToString());
+        Assert.Contains(references.Find(CreatorContentKind.LocalizedText, "dialogue.elyra.intro"),
+            item => item.Usage == CreatorReferenceUsageKind.LocalizedTextKey);
+    }
+
+    [Fact]
     public void SafeRename_PreviewsThenRenamesBlueprintWithoutChangingReferencesAndSupportsHistory()
     {
         var context = CreateContext();

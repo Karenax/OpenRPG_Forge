@@ -20,6 +20,8 @@ public sealed record EditorCameraProfile
 
     public string Provenance { get; }
 
+    public EditorCameraInputConfiguration Input { get; }
+
     public EditorCameraProfile(
         EditorCameraProfileId id,
         int schemaVersion,
@@ -27,7 +29,8 @@ public sealed record EditorCameraProfile
         float mouseSensitivity,
         EditorCameraPose pose,
         IReadOnlyList<EditorCameraBookmark>? bookmarks = null,
-        string provenance = "creator-preferences")
+        string provenance = "creator-preferences",
+        EditorCameraInputConfiguration? input = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(pose);
@@ -60,6 +63,7 @@ public sealed record EditorCameraProfile
         Pose = pose;
         Bookmarks = materializedBookmarks.OrderBy(bookmark => bookmark.Name, StringComparer.Ordinal).ToArray();
         Provenance = provenance.Trim();
+        Input = input ?? EditorCameraInputConfiguration.CreateDefault(id.Value);
     }
 
     public static EditorCameraProfile CreateDefault(EditorCameraProfileId id) =>
@@ -75,5 +79,6 @@ public sealed record EditorCameraProfile
                 26,
                 EditorCameraProjection.Perspective,
                 55,
-                20));
+                20),
+            input: EditorCameraInputConfiguration.CreateDefault(id.Value));
 }

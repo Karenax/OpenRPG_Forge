@@ -29,7 +29,11 @@ public sealed class DialogueTraversal
     {
         ArgumentNullException.ThrowIfNull(evaluator);
         return CurrentNode?.Choices
-            .Where(choice => choice.Conditions.All(evaluator.IsSatisfied))
+            .Select((choice, index) => (choice, index))
+            .Where(item => DialogueConditionLogic.Evaluate(item.choice, evaluator).Available)
+            .OrderBy(item => item.choice.Priority)
+            .ThenBy(item => item.index)
+            .Select(item => item.choice)
             .ToArray() ?? [];
     }
 
@@ -44,7 +48,7 @@ public sealed class DialogueTraversal
 
         var choice = CurrentNode.Choices.SingleOrDefault(candidate => candidate.Id == choiceId)
             ?? throw new ArgumentException($"Choice '{choiceId}' is not available on the current node.", nameof(choiceId));
-        if (!choice.Conditions.All(evaluator.IsSatisfied))
+        if (!DialogueConditionLogic.Evaluate(choice, evaluator).Available)
         {
             throw new InvalidOperationException($"Choice '{choiceId}' does not satisfy its conditions.");
         }

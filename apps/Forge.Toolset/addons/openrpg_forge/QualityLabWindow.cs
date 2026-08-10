@@ -1,6 +1,7 @@
 #if TOOLS
 using Forge.Application.Quality;
 using Forge.Domain.Projects;
+using Forge.Domain.Quality;
 using Forge.Domain.RuntimeExtensions;
 using Forge.ModuleFormat.Quality;
 using Forge.Scripting;
@@ -15,6 +16,10 @@ public partial class QualityLabWindow : Window
     private readonly WorkspaceGovernanceLabService _governanceService = new(new NativeForgeScriptRuntime());
     private Func<ProjectDefinition?>? _project;
     private Func<string?>? _workspaceRoot;
+    private Func<QualityFoundationState?>? _foundationState;
+    private Func<QualityFoundationProfile, bool, bool>? _applyFoundation;
+    private Func<bool>? _undoFoundation;
+    private Func<bool>? _redoFoundation;
     private Action<Window>? _brand;
     private Label? _summary;
     private Label? _status;
@@ -33,6 +38,17 @@ public partial class QualityLabWindow : Window
     private RichTextLabel? _runtimeAccessibility;
     private RichTextLabel? _securityFuzz;
     private RichTextLabel? _dependencies;
+    private RichTextLabel? _foundation;
+    private OptionButton? _minimumSeverity;
+    private OptionButton? _playerPrivacy;
+    private SpinBox? _retentionDays;
+    private readonly Dictionary<string, CheckBox> _validationBuildChecks = new(StringComparer.Ordinal);
+    private ScrollContainer? _scroll;
+    private string? _capturePath;
+    private string _captureMarker = "OPENRPG_FORGE_R019_QA_FOUNDATION_UI_CAPTURE";
+    private bool _captureScrollToBottom = true;
+    private double _captureDelay;
+    private bool _captureOpened;
     private WorkspaceQualityLabReport? _report;
     private WorkspacePerformanceLabReport? _performanceReport;
     private WorkspaceGovernanceLabReport? _governanceReport;
@@ -44,10 +60,18 @@ public partial class QualityLabWindow : Window
     public void Initialize(
         Func<ProjectDefinition?> project,
         Func<string?> workspaceRoot,
+        Func<QualityFoundationState?> foundationState,
+        Func<QualityFoundationProfile, bool, bool> applyFoundation,
+        Func<bool> undoFoundation,
+        Func<bool> redoFoundation,
         Action<Window> brand)
     {
         _project = project ?? throw new ArgumentNullException(nameof(project));
         _workspaceRoot = workspaceRoot ?? throw new ArgumentNullException(nameof(workspaceRoot));
+        _foundationState = foundationState ?? throw new ArgumentNullException(nameof(foundationState));
+        _applyFoundation = applyFoundation ?? throw new ArgumentNullException(nameof(applyFoundation));
+        _undoFoundation = undoFoundation ?? throw new ArgumentNullException(nameof(undoFoundation));
+        _redoFoundation = redoFoundation ?? throw new ArgumentNullException(nameof(redoFoundation));
         _brand = brand ?? throw new ArgumentNullException(nameof(brand));
         Title = "Laboratoire qualité · OpenRPG Forge";
         MinSize = new Vector2I(1180, 760);
@@ -55,6 +79,43 @@ public partial class QualityLabWindow : Window
         Transient = true;
         Visible = false;
         Build();
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r019-qa-foundation-ui-capture=", StringComparison.Ordinal) ||
+            value.StartsWith("--r027-qa-validation-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null)
+        {
+            _capturePath = capture[(capture.IndexOf('=') + 1)..];
+            if (capture.StartsWith("--r027-", StringComparison.Ordinal))
+            {
+                _captureMarker = "OPENRPG_FORGE_R027_QA_VALIDATION_UI_CAPTURE";
+                _captureScrollToBottom = false;
+            }
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_captureOpened && _captureDelay >= 1.5)
+        {
+            Open();
+            _captureOpened = true;
+            return;
+        }
+        if (_captureOpened && _captureDelay < 4 && _scroll is not null && _captureScrollToBottom)
+            _scroll.ScrollVertical = int.MaxValue;
+        if (!_captureOpened || _captureDelay < 4) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        GD.Print($"{_captureMarker}_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                 $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _capturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -110,12 +171,63 @@ public partial class QualityLabWindow : Window
         _summary.AddThemeColorOverride("font_color", new Color("d8c8ff"));
         root.AddChild(_summary);
 
-        var scroll = new ScrollContainer
+        var validationPanel = new PanelContainer();
+        validationPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color("171123"),
+            BorderColor = new Color("704b95"),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 8,
+            CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8,
+            CornerRadiusBottomRight = 8,
+        });
+        root.AddChild(validationPanel);
+        var validationMargin = new MarginContainer();
+        foreach (var side in new[] { "margin_left", "margin_top", "margin_right", "margin_bottom" })
+            validationMargin.AddThemeConstantOverride(side, 10);
+        validationPanel.AddChild(validationMargin);
+        var validationRow = new HBoxContainer();
+        validationRow.AddThemeConstantOverride("separation", 16);
+        validationMargin.AddChild(validationRow);
+        var validationTitle = new Label
+        {
+            Text = "PREFLIGHT CANONIQUE · EXIGER AVANT BUILD",
+            ThemeTypeVariation = "HeaderSmall",
+            CustomMinimumSize = new Vector2(300, 34),
+        };
+        validationTitle.AddThemeColorOverride("font_color", new Color("ffad73"));
+        validationRow.AddChild(validationTitle);
+        foreach (var item in new[]
+                 {
+                     (Key: "schemas", Label: "Schémas"),
+                     (Key: "references", Label: "Références"),
+                     (Key: "graphs", Label: "Graphes"),
+                     (Key: "geometry", Label: "Géométrie"),
+                     (Key: "navigation", Label: "Navigation"),
+                 })
+        {
+            var check = new CheckBox
+            {
+                Text = item.Label,
+                TooltipText = item.Key == "schemas"
+                    ? "Toujours requis : chaque document canonique est versionné avant build."
+                    : $"Bloquer l’export si la validation {item.Label.ToLowerInvariant()} échoue.",
+            };
+            if (item.Key == "schemas") check.Disabled = true;
+            _validationBuildChecks[item.Key] = check;
+            validationRow.AddChild(check);
+        }
+
+        _scroll = new ScrollContainer
         {
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
         };
-        root.AddChild(scroll);
+        root.AddChild(_scroll);
         var grid = new GridContainer
         {
             Columns = 3,
@@ -123,7 +235,7 @@ public partial class QualityLabWindow : Window
         };
         grid.AddThemeConstantOverride("h_separation", 10);
         grid.AddThemeConstantOverride("v_separation", 10);
-        scroll.AddChild(grid);
+        _scroll.AddChild(grid);
 
         _localization = Card(grid, "LOCALISATION", "Couverture, placeholders, pluriels et débordements");
         _scripts = Card(grid, "FORGESCRIPT", "Compilation, quotas, monde simulé et événements");
@@ -140,6 +252,7 @@ public partial class QualityLabWindow : Window
         _runtimeAccessibility = Card(grid, "ACCESSIBILITÉ RUNTIME", "Sous-titres, contraste, daltonisme, entrées et difficulté");
         _securityFuzz = Card(grid, "FUZZING SÉCURITÉ", "JSON, archives, scripts, réseau, images, modèles et chemins");
         _dependencies = Card(grid, "GOUVERNANCE", "Versions, licences, responsables, risques, revues et retrait");
+        _foundation = Card(grid, "SOCLE QA P0", "Licences, tests, sauvegardes et journalisation structuree");
 
         var footer = new HBoxContainer();
         footer.AddThemeConstantOverride("separation", 8);
@@ -150,7 +263,27 @@ public partial class QualityLabWindow : Window
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         };
         _status.AddThemeColorOverride("font_color", new Color("9bd9bd"));
-        footer.AddChild(_status);
+        root.AddChild(_status);
+        _minimumSeverity = new OptionButton { CustomMinimumSize = new Vector2(130, 40), TooltipText = "Niveau minimal des journaux" };
+        foreach (var severity in Enum.GetValues<StructuredLogSeverity>()) _minimumSeverity.AddItem(severity.ToString());
+        footer.AddChild(_minimumSeverity);
+        _playerPrivacy = new OptionButton { CustomMinimumSize = new Vector2(130, 40), TooltipText = "Protection des identifiants joueur" };
+        foreach (var privacy in Enum.GetValues<PlayerPrivacyMode>()) _playerPrivacy.AddItem(privacy.ToString());
+        footer.AddChild(_playerPrivacy);
+        _retentionDays = new SpinBox { MinValue = 1, MaxValue = 365, Step = 1, CustomMinimumSize = new Vector2(90, 40), TooltipText = "Retention en jours" };
+        footer.AddChild(_retentionDays);
+        var preview = new Button { Text = "Previsualiser", CustomMinimumSize = new Vector2(130, 40) };
+        preview.Pressed += () => ApplyFoundation(dryRun: true);
+        footer.AddChild(preview);
+        var savePolicy = new Button { Text = "Enregistrer QA", CustomMinimumSize = new Vector2(145, 40) };
+        savePolicy.Pressed += () => ApplyFoundation(dryRun: false);
+        footer.AddChild(savePolicy);
+        var undo = new Button { Text = "Annuler", CustomMinimumSize = new Vector2(90, 40) };
+        undo.Pressed += () => ChangeFoundationHistory(undo: true);
+        footer.AddChild(undo);
+        var redo = new Button { Text = "Retablir", CustomMinimumSize = new Vector2(90, 40) };
+        redo.Pressed += () => ChangeFoundationHistory(undo: false);
+        footer.AddChild(redo);
         var run = new Button { Text = "Relancer les tests", CustomMinimumSize = new Vector2(180, 40) };
         run.Pressed += () => Run(writePseudoLocalizationSnapshot: true);
         footer.AddChild(run);
@@ -158,6 +291,97 @@ public partial class QualityLabWindow : Window
         close.Pressed += Hide;
         footer.AddChild(close);
         root.AddChild(footer);
+    }
+
+    internal bool PreviewFoundationForSmokeTest() => ApplyFoundation(dryRun: true);
+
+    private bool ApplyFoundation(bool dryRun)
+    {
+        var state = _foundationState?.Invoke();
+        if (state is null)
+        {
+            SetStatus("Aucun profil QA charge.", new Color("e8c36a"));
+            RenderFoundation(null);
+            return false;
+        }
+        var severity = Enum.GetValues<StructuredLogSeverity>()[_minimumSeverity?.Selected ?? 0];
+        var privacy = Enum.GetValues<PlayerPrivacyMode>()[_playerPrivacy?.Selected ?? 0];
+        var profile = state.Profile with
+        {
+            Logs = state.Profile.Logs with
+            {
+                MinimumSeverity = severity,
+                PlayerPrivacy = privacy,
+                RetentionDays = (int)(_retentionDays?.Value ?? state.Profile.Logs.RetentionDays),
+            },
+            Validation = state.Profile.EffectiveValidation with
+            {
+                Provenance = "toolset:r027",
+                Schemas = BuildCategory(state.Profile.EffectiveValidation.Schemas, "schemas", forceRequired: true),
+                References = BuildCategory(state.Profile.EffectiveValidation.References, "references"),
+                Graphs = BuildCategory(state.Profile.EffectiveValidation.Graphs, "graphs"),
+                Geometry = BuildCategory(state.Profile.EffectiveValidation.Geometry, "geometry"),
+                Navigation = BuildCategory(state.Profile.EffectiveValidation.Navigation, "navigation"),
+            },
+        };
+        if (_applyFoundation?.Invoke(profile, dryRun) != true)
+        {
+            SetStatus("Politique QA invalide ou non enregistrable.", new Color("ff756d"));
+            return false;
+        }
+        RenderFoundation(dryRun ? state.Profile : profile);
+        SetStatus(dryRun ? "Apercu QA valide, aucune ecriture." : "Politique QA enregistree.", new Color("79d5ad"));
+        return true;
+
+        ValidationCategoryPolicy BuildCategory(
+            ValidationCategoryPolicy source,
+            string key,
+            bool forceRequired = false) => source with
+            {
+                Enabled = true,
+                RequiredBeforeBuild = forceRequired ||
+                (_validationBuildChecks.TryGetValue(key, out var check) && check.ButtonPressed),
+            };
+    }
+
+    private void ChangeFoundationHistory(bool undo)
+    {
+        var changed = undo ? _undoFoundation?.Invoke() == true : _redoFoundation?.Invoke() == true;
+        RenderFoundation(_foundationState?.Invoke()?.Profile);
+        SetStatus(changed ? (undo ? "Politique QA annulee." : "Politique QA retablie.") : "Aucun historique QA disponible.",
+            changed ? new Color("79d5ad") : new Color("e8c36a"));
+    }
+
+    private void RenderFoundation(QualityFoundationProfile? profile)
+    {
+        if (_foundation is null) return;
+        if (profile is null)
+        {
+            _foundation.Text = "Aucun profil QA. Ouvrez un projet valide.";
+            return;
+        }
+        _minimumSeverity?.Select((int)profile.Logs.MinimumSeverity);
+        _playerPrivacy?.Select((int)profile.Logs.PlayerPrivacy);
+        if (_retentionDays is not null) _retentionDays.Value = profile.Logs.RetentionDays;
+        foreach (var category in profile.EffectiveValidation.Categories)
+            if (_validationBuildChecks.TryGetValue(category.Key, out var check))
+                check.ButtonPressed = category.Value.RequiredBeforeBuild;
+        var valid = QualityFoundationProfileValidator.Validate(profile).Count == 0;
+        var canonical = _report?.CanonicalValidation;
+        var canonicalText = canonical is null
+            ? "Preflight: aucune execution (relancez les tests)"
+            : canonical.Diagnostics.Count == 0
+                ? $"Preflight: 5 categories, aucun diagnostic, {Short(canonical.Fingerprint)}"
+                : $"Preflight: {canonical.Diagnostics.Count} diagnostic(s), " +
+                  string.Join(", ", canonical.CategoryCounts.Where(item => item.Value > 0)
+                      .Select(item => $"{item.Key}:{item.Value}"));
+        _foundation.Text = $"{Symbol(valid)} [b]Schema v{profile.SchemaVersion}[/b] · UUID {profile.Id:D}\n" +
+            $"Licences · {profile.Licenses.ApprovedSpdxIdentifiers.Count} SPDX · provenance/NOTICE/blocage inconnus\n" +
+            $"Tests · {profile.Tests.DomainAreas.Count} domaines · {profile.Tests.HeadlessScenarios.Count} scenarios headless\n" +
+            "Sauvegardes · round-trip · anciennes versions · panne partielle · rollback · determinisme\n" +
+            $"Logs · {profile.Logs.MinimumSeverity} · {profile.Logs.Categories.Count} categories · {profile.Logs.PlayerPrivacy} · {profile.Logs.RetentionDays} jours\n" +
+            $"{Escape(canonicalText)}\n" +
+            $"Provenance · {Escape(profile.Provenance)}";
     }
 
     private static RichTextLabel Card(Control parent, string title, string subtitle)
@@ -219,6 +443,7 @@ public partial class QualityLabWindow : Window
             _summary!.Text = "Aucun projet Forge ouvert.";
             SetStatus("⚠ Ouvrez un projet avant de lancer le laboratoire.", new Color("e8c36a"));
             ClearCards();
+            RenderFoundation(null);
             return;
         }
 
@@ -232,6 +457,7 @@ public partial class QualityLabWindow : Window
                 new WorkspacePerformanceLabOptions(writePseudoLocalizationSnapshot));
             _governanceReport = _governanceService.Run(workspaceRoot, project,
                 new WorkspaceGovernanceLabOptions(writePseudoLocalizationSnapshot));
+            RenderFoundation(_foundationState?.Invoke()?.Profile);
             Render(_report, _performanceReport, _governanceReport);
         }
         catch (Exception exception) when (exception is ArgumentException or DirectoryNotFoundException or
@@ -243,6 +469,7 @@ public partial class QualityLabWindow : Window
             _summary!.Text = "Le laboratoire n’a pas pu produire de rapport.";
             SetStatus($"✕ {exception.Message}", new Color("ff756d"));
             ClearCards();
+            RenderFoundation(_foundationState?.Invoke()?.Profile);
             GD.PrintErr($"OPENRPG_FORGE_QUALITY_LAB_FAILED {exception.Message}");
         }
     }

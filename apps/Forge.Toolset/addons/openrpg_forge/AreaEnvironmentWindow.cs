@@ -1,6 +1,7 @@
 #if TOOLS
 using Forge.Application.Projects;
 using Forge.Domain.Areas;
+using Forge.Domain.Audio;
 using Forge.Domain.Spatial;
 using Godot;
 
@@ -111,6 +112,42 @@ public partial class AreaEnvironmentWindow : Window
     private LineEdit? _captionResource;
     private LineEdit? _captionFr;
     private CheckBox? _captionDirection;
+    private LineEdit? _emitterName;
+    private LineEdit? _emitterResource;
+    private LineEdit? _emitterPreview;
+    private LineEdit? _emitterTags;
+    private LineEdit? _emitterLocale;
+    private LineEdit? _emitterLicense;
+    private LineEdit? _emitterProvenance;
+    private LineEdit? _emitterManifest;
+    private LineEdit? _emitterHash;
+    private OptionButton? _emitterSelection;
+    private SpinBox? _emitterWeight;
+    private SpinBox? _emitterLoudness;
+    private SpinBox? _emitterMemory;
+    private OptionButton? _emitterLoopMode;
+    private SpinBox? _emitterRepeatCount;
+    private SpinBox? _emitterLoopStart;
+    private SpinBox? _emitterLoopEnd;
+    private SpinBox? _emitterCrossfade;
+    private LineEdit? _emitterStopEvent;
+    private LineEdit? _emitterActivatedScript;
+    private LineEdit? _emitterCompletedScript;
+    private SpinBox? _emitterPositionX;
+    private SpinBox? _emitterPositionY;
+    private SpinBox? _emitterPositionZ;
+    private SpinBox? _emitterInnerRadius;
+    private SpinBox? _emitterOuterRadius;
+    private SpinBox? _emitterCone;
+    private SpinBox? _emitterOcclusion;
+    private SpinBox? _emitterHeight;
+    private CheckBox? _emitterVirtualize;
+    private CheckBox? _emitterRequired;
+    private Label? _emitterState;
+    private TabContainer? _tabs;
+    private string? _capturePath;
+    private double _captureDelay;
+    private bool _captureOpened;
     private Label? _status;
 
     internal string RenderSummary => _current is null
@@ -133,6 +170,52 @@ public partial class AreaEnvironmentWindow : Window
         Transient = true;
         Visible = false;
         Build();
+        var captureArgument = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--audio-emitter-ui-capture=", StringComparison.Ordinal));
+        if (captureArgument is not null)
+        {
+            _capturePath = captureArgument["--audio-emitter-ui-capture=".Length..];
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_captureOpened && _captureDelay >= 1.0)
+        {
+            Open();
+            _captureOpened = true;
+            _tabs!.CurrentTab = 4;
+            _emitterName!.Text = "Cascade ancienne";
+            _emitterResource!.Text = "audio/waterfall.ogg";
+            _emitterTags!.Text = "eau, ambiance";
+            _emitterLocale!.Text = "fr";
+            _emitterLicense!.Text = "CC0-1.0";
+            _emitterProvenance!.Text = "asset-vault:waterfall";
+            _emitterManifest!.Text = "assets/asset-manifests.json";
+            _emitterHash!.Text = new string('a', 64);
+            _emitterLoopMode!.Selected = (int)AudioLoopMode.SeamlessRegion;
+            _emitterLoopStart!.Value = 1;
+            _emitterLoopEnd!.Value = 8;
+            _emitterCrossfade!.Value = .25;
+            _emitterPositionX!.Value = 6;
+            _emitterPositionY!.Value = 2;
+            _emitterPositionZ!.Value = -5;
+            _emitterState!.Text = "✓ Aperçu canonique · prêt à valider et appliquer";
+            return;
+        }
+        if (!_captureOpened || _captureDelay < 2.5) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        GD.Print($"OPENRPG_FORGE_AUDIO_EMITTER_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+            $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _capturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -173,12 +256,13 @@ public partial class AreaEnvironmentWindow : Window
             Text = "Rendu, ciel, vent, météo, eau et audio restent dans un profil canonique annulable.",
         });
 
-        var tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        root.AddChild(tabs);
-        BuildRenderingTab(tabs);
-        BuildFogTab(tabs);
-        BuildClimateTab(tabs);
-        BuildAudioTab(tabs);
+        _tabs = new TabContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        root.AddChild(_tabs);
+        BuildRenderingTab(_tabs);
+        BuildFogTab(_tabs);
+        BuildClimateTab(_tabs);
+        BuildAudioTab(_tabs);
+        BuildAudioEmitterTab(_tabs);
 
         _status = new Label { Text = "Prêt · prévisualisez les budgets avant application." };
         _status.AddThemeColorOverride("font_color", new Color("9bd9bd"));
@@ -431,6 +515,80 @@ public partial class AreaEnvironmentWindow : Window
         captions.AddChild(_captionDirection);
     }
 
+    private void BuildAudioEmitterTab(TabContainer tabs)
+    {
+        var scroll = Tab(tabs, "Objets sonores");
+        var columns = new HBoxContainer();
+        columns.AddThemeConstantOverride("separation", 14);
+        scroll.AddChild(columns);
+
+        var identity = Card(columns, "OBJET & CLIP PRINCIPAL");
+        identity.AddChild(new Label { Text = "Un objet vide reste désactivé. Ressource, licence et provenance sont obligatoires." });
+        _emitterName = Field("Nom · Cascade ancienne");
+        _emitterResource = Field("Ressource relative · audio/waterfall.ogg");
+        _emitterPreview = Field("Aperçu optionnel · audio/waterfall.preview.ogg");
+        _emitterTags = Field("Tags · eau, ambiance");
+        _emitterLocale = Field("Langue · fr ou und");
+        _emitterLicense = Field("Licence SPDX · CC0-1.0");
+        _emitterProvenance = Field("Provenance · asset-vault:waterfall");
+        _emitterManifest = Field("Manifeste · assets/asset-manifests.json");
+        _emitterHash = Field("SHA-256 · 64 caractères hexadécimaux");
+        foreach (var field in new Control[] { _emitterName, _emitterResource, _emitterPreview, _emitterTags,
+                     _emitterLocale, _emitterLicense, _emitterProvenance, _emitterManifest, _emitterHash })
+            identity.AddChild(field);
+        _emitterSelection = EnumOption<AudioClipSelectionMode>();
+        identity.AddChild(FieldRow("Sélection", _emitterSelection));
+        _emitterWeight = Spin(.05, 1000, 1, .05);
+        identity.AddChild(FieldRow("Poids", _emitterWeight));
+        _emitterLoudness = Spin(-120, 24, -18, .5);
+        identity.AddChild(FieldRow("Loudness LUFS", _emitterLoudness));
+        _emitterMemory = Spin(1024, 1073741824, 1048576, 1024);
+        identity.AddChild(FieldRow("Mémoire (octets)", _emitterMemory));
+
+        var playback = Card(columns, "LECTURE & SCRIPTS");
+        _emitterLoopMode = EnumOption<AudioLoopMode>();
+        playback.AddChild(FieldRow("Boucle", _emitterLoopMode));
+        _emitterRepeatCount = Spin(0, 10000, 0, 1);
+        playback.AddChild(FieldRow("Répétitions", _emitterRepeatCount));
+        _emitterLoopStart = Spin(0, 86400, 0, .05);
+        playback.AddChild(FieldRow("Début région", _emitterLoopStart));
+        _emitterLoopEnd = Spin(0, 86400, 0, .05);
+        playback.AddChild(FieldRow("Fin région", _emitterLoopEnd));
+        _emitterCrossfade = Spin(0, 60, 0, .05);
+        playback.AddChild(FieldRow("Fondu croisé", _emitterCrossfade));
+        _emitterStopEvent = Field("Événement d'arrêt · audio.waterfall.stop");
+        _emitterActivatedScript = Field("Script d'activation optionnel");
+        _emitterCompletedScript = Field("Script de fin optionnel");
+        playback.AddChild(_emitterStopEvent);
+        playback.AddChild(_emitterActivatedScript);
+        playback.AddChild(_emitterCompletedScript);
+        _emitterRequired = Check("Extension requise au runtime", false);
+        playback.AddChild(_emitterRequired);
+
+        var spatial = Card(columns, "POSITION & PORTÉE 3D");
+        _emitterPositionX = Spin(-4096, 4096, 0, .25);
+        _emitterPositionY = Spin(-4096, 4096, 0, .25);
+        _emitterPositionZ = Spin(-4096, 4096, 0, .25);
+        spatial.AddChild(FieldRow("Position X", _emitterPositionX));
+        spatial.AddChild(FieldRow("Position Y", _emitterPositionY));
+        spatial.AddChild(FieldRow("Position Z", _emitterPositionZ));
+        _emitterInnerRadius = Spin(0, 10000, 2, .25);
+        _emitterOuterRadius = Spin(.01, 10000, 30, .25);
+        spatial.AddChild(FieldRow("Portée interne", _emitterInnerRadius));
+        spatial.AddChild(FieldRow("Portée externe", _emitterOuterRadius));
+        _emitterCone = Spin(1, 360, 180, 1);
+        spatial.AddChild(FieldRow("Cône (°)", _emitterCone));
+        _emitterOcclusion = Spin(0, 1, 0, .05);
+        spatial.AddChild(FieldRow("Occlusion", _emitterOcclusion));
+        _emitterHeight = Spin(-100, 100, 0, .1);
+        spatial.AddChild(FieldRow("Décalage hauteur", _emitterHeight));
+        _emitterVirtualize = Check("Virtualiser hors portée", true);
+        spatial.AddChild(_emitterVirtualize);
+        _emitterState = new Label { Text = "État vide · aucun objet sonore placé." };
+        _emitterState.AddThemeColorOverride("font_color", new Color("b7a7cf"));
+        spatial.AddChild(_emitterState);
+    }
+
     private void Refresh()
     {
         var id = _active?.Invoke();
@@ -537,6 +695,45 @@ public partial class AreaEnvironmentWindow : Window
         _initiallyActive!.ButtonPressed = profile.Audio.RuntimeControl.InitiallyActive;
         _instancePolicy!.Selected = (int)profile.Audio.RuntimeControl.InstancePolicy;
         _authority!.Selected = (int)profile.Audio.RuntimeControl.Authority;
+        var emitter = profile.Audio.Emitters.Definitions.FirstOrDefault();
+        var clip = emitter?.ClipSet.Clips.FirstOrDefault();
+        var instance = emitter is null
+            ? null
+            : profile.Audio.Emitters.Instances.FirstOrDefault(item => item.DefinitionId == emitter.Id);
+        _emitterName!.Text = emitter?.Name ?? string.Empty;
+        _emitterResource!.Text = clip?.ResourcePath ?? string.Empty;
+        _emitterPreview!.Text = clip?.PreviewResourcePath ?? string.Empty;
+        _emitterTags!.Text = clip is null ? string.Empty : string.Join(", ", clip.Tags);
+        _emitterLocale!.Text = clip?.Locale ?? "und";
+        _emitterLicense!.Text = clip?.LicenseSpdx ?? string.Empty;
+        _emitterProvenance!.Text = emitter?.Provenance ?? string.Empty;
+        _emitterManifest!.Text = emitter?.PackageManifest ?? "assets/asset-manifests.json";
+        _emitterHash!.Text = clip?.ContentSha256 ?? string.Empty;
+        _emitterSelection!.Selected = (int)(emitter?.ClipSet.Selection ?? AudioClipSelectionMode.Ordered);
+        _emitterWeight!.Value = clip?.Weight ?? 1;
+        _emitterLoudness!.Value = clip?.LoudnessLufs ?? -18;
+        _emitterMemory!.Value = clip?.MemoryBytes ?? 1048576;
+        _emitterLoopMode!.Selected = (int)(emitter?.Loop.Mode ?? AudioLoopMode.OneShot);
+        _emitterRepeatCount!.Value = emitter?.Loop.RepeatCount ?? 0;
+        _emitterLoopStart!.Value = emitter?.Loop.RegionStartSeconds ?? 0;
+        _emitterLoopEnd!.Value = emitter?.Loop.RegionEndSeconds ?? 0;
+        _emitterCrossfade!.Value = emitter?.Loop.CrossfadeSeconds ?? 0;
+        _emitterStopEvent!.Text = emitter?.Loop.StopEvent ?? string.Empty;
+        _emitterActivatedScript!.Text = emitter?.ActivatedScript ?? string.Empty;
+        _emitterCompletedScript!.Text = emitter?.CompletedScript ?? string.Empty;
+        _emitterRequired!.ButtonPressed = emitter?.Required ?? false;
+        _emitterPositionX!.Value = instance?.Transform.Position.X ?? 0;
+        _emitterPositionY!.Value = instance?.Transform.Position.Y ?? 0;
+        _emitterPositionZ!.Value = instance?.Transform.Position.Z ?? 0;
+        _emitterInnerRadius!.Value = emitter?.Spatial.InnerRadius ?? 2;
+        _emitterOuterRadius!.Value = emitter?.Spatial.OuterRadius ?? 30;
+        _emitterCone!.Value = emitter?.Spatial.ConeAngleDegrees ?? 180;
+        _emitterOcclusion!.Value = emitter?.Spatial.Occlusion ?? 0;
+        _emitterHeight!.Value = emitter?.Spatial.HeightOffset ?? 0;
+        _emitterVirtualize!.ButtonPressed = emitter?.Spatial.VirtualizeOutsideRange ?? true;
+        _emitterState!.Text = emitter is null
+            ? "État vide · aucun objet sonore placé."
+            : $"✓ {profile.Audio.Emitters.Definitions.Count} définition(s) · {profile.Audio.Emitters.Instances.Count} instance(s)";
     }
 
     private bool Save()
@@ -682,6 +879,59 @@ public partial class AreaEnvironmentWindow : Window
                     new(music, "Music", master, 1, "music", "all", .8f, false),
                 ],
                 captions);
+            var previousEmitter = _current.Audio.Emitters.Definitions.FirstOrDefault();
+            var previousInstance = previousEmitter is null
+                ? null
+                : _current.Audio.Emitters.Instances.FirstOrDefault(item => item.DefinitionId == previousEmitter.Id);
+            AudioEmitterCatalog emitters;
+            if (string.IsNullOrWhiteSpace(_emitterName!.Text) && string.IsNullOrWhiteSpace(_emitterResource!.Text))
+            {
+                emitters = AudioEmitterCatalog.Empty;
+            }
+            else
+            {
+                var definitionId = previousEmitter?.Id ?? Guid.NewGuid();
+                var provenance = _emitterProvenance!.Text.Trim();
+                var hash = _emitterHash!.Text.Trim().ToLowerInvariant();
+                var clip = new AudioClipDefinition(
+                    previousEmitter?.ClipSet.Clips.FirstOrDefault()?.Id ?? Guid.NewGuid(),
+                    _emitterResource!.Text.Trim(), (float)_emitterWeight!.Value,
+                    _emitterTags!.Text.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries),
+                    previousEmitter?.ClipSet.Clips.FirstOrDefault()?.Variant ?? "default",
+                    _emitterLocale!.Text.Trim(), (float)_emitterLoudness!.Value,
+                    _emitterPreview!.Text.Trim(),
+                    string.Equals(Path.GetExtension(_emitterResource!.Text), ".wav", StringComparison.OrdinalIgnoreCase)
+                        ? "audio/wav" : "audio/ogg",
+                    (long)_emitterMemory!.Value, _emitterLicense!.Text.Trim(), provenance, hash);
+                var clipSet = new AudioClipSet(previousEmitter?.ClipSet.Id ?? Guid.NewGuid(),
+                    AudioClipSet.CurrentSchemaVersion, $"{_emitterName.Text.Trim()} clips",
+                    (AudioClipSelectionMode)_emitterSelection!.Selected, [clip], provenance);
+                var definition = new AudioEmitterDefinition(definitionId,
+                    AudioEmitterDefinition.CurrentSchemaVersion, _emitterName.Text.Trim(), clipSet,
+                    new AudioLoopPolicy((AudioLoopMode)_emitterLoopMode!.Selected,
+                        (int)_emitterRepeatCount!.Value, (float)_emitterLoopStart!.Value,
+                        (float)_emitterLoopEnd!.Value, (float)_emitterCrossfade!.Value,
+                        _emitterStopEvent!.Text.Trim()),
+                    new AudioEmitterSpatialProfile((float)_emitterInnerRadius!.Value,
+                        (float)_emitterOuterRadius!.Value, "inverse-square", (float)_emitterCone!.Value,
+                        -12, (float)_emitterOcclusion!.Value, (float)_emitterHeight!.Value,
+                        _emitterVirtualize!.ButtonPressed), null, 0,
+                    _emitterActivatedScript!.Text.Trim(), _emitterCompletedScript!.Text.Trim(),
+                    _emitterRequired!.ButtonPressed, provenance, _emitterManifest!.Text.Trim(),
+                    _emitterLicense!.Text.Trim(), hash);
+                var instance = new AudioEmitterInstance(previousInstance?.Id ?? Guid.NewGuid(), definitionId,
+                    new TransformValue(new Vector3Value((float)_emitterPositionX!.Value,
+                            (float)_emitterPositionY!.Value, (float)_emitterPositionZ!.Value),
+                        previousInstance?.Transform.Rotation ?? QuaternionValue.Identity, Vector3Value.One),
+                    true, provenance);
+                emitters = new AudioEmitterCatalog(AudioEmitterCatalog.CurrentSchemaVersion,
+                    [definition], [instance]);
+                var audioDiagnostics = AudioEmitterCatalogValidator.Validate(emitters,
+                    orchestration.MixBuses.Select(item => item.Id).ToHashSet(),
+                    path: "environment/audio/emitters");
+                if (audioDiagnostics.Count > 0)
+                    throw new ArgumentException($"{audioDiagnostics[0].Code} · {audioDiagnostics[0].Path} · {audioDiagnostics[0].Message}");
+            }
             var audio = new AreaAudioProfile(
                 _dayMusic.Text,
                 _nightMusic.Text,
@@ -697,7 +947,8 @@ public partial class AreaEnvironmentWindow : Window
                 new((AreaSoundMode)_soundMode!.Selected, (float)_innerRadius!.Value, (float)_outerRadius!.Value, .1f, "linear"),
                 new(_initiallyActive!.ButtonPressed, (AudioInstancePolicy)_instancePolicy!.Selected, (AudioAuthority)_authority!.Selected, 1, "audio.started", "audio.stopped"),
                 layers,
-                orchestration);
+                orchestration,
+                emitters);
             var profile = new AreaEnvironmentProfile(
                 AreaEnvironmentProfile.CurrentSchemaVersion,
                 (AreaEnvironmentClass)_classification!.Selected,

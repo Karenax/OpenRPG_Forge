@@ -22,23 +22,27 @@ public static class BlueprintExportPackageBuilder
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(selectedBlueprintIds);
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
-        var selected = project.Blueprints
+        var requested = project.Blueprints
             .Where(blueprint => selectedBlueprintIds.Contains(blueprint.Id))
             .OrderBy(blueprint => blueprint.Id.Value)
             .ToArray();
-        if (selected.Length == 0 || selected.Length != selectedBlueprintIds.Distinct().Count())
+        if (requested.Length == 0 || requested.Length != selectedBlueprintIds.Distinct().Count())
         {
             throw new ArgumentException("Every selected blueprint ID must exist exactly once in the project.", nameof(selectedBlueprintIds));
         }
+        var selected = ExpandBlueprintClosure(project, requested);
 
         var dependencies = selected
-            .Where(blueprint => blueprint.PaletteOrigin == BlueprintPaletteOrigin.InstalledPack)
-            .Select(blueprint => blueprint.Provenance.Source)
+            .SelectMany(blueprint => blueprint.Authoring.Dependencies.Concat(
+                blueprint.PaletteOrigin == BlueprintPaletteOrigin.InstalledPack
+                    ? [blueprint.Provenance.Source]
+                    : []))
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();
         var licenses = selected.Select(blueprint => blueprint.Provenance.LicenseSpdx)
             .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        var credits = BlueprintCreditCatalog.Aggregate(selected);
         var previews = includePreviews
             ? selected.Select(blueprint => $"previews/{blueprint.Slug}.txt").ToArray()
             : [];
@@ -73,6 +77,7 @@ public static class BlueprintExportPackageBuilder
                 }
 
                 AddJson(archive, "licenses/index.json", licenses);
+                AddJson(archive, "credits/index.json", credits);
                 AddJson(archive, "migrations/blueprint-schema-v1.json", new { schemaVersion = 1, strategy = "identity" });
             }
 
@@ -88,7 +93,26 @@ public static class BlueprintExportPackageBuilder
 
         var info = new FileInfo(fullOutput);
         var hash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(fullOutput))).ToLowerInvariant();
-        return new BlueprintExportResult(fullOutput, hash, info.Length, selected.Length, dependencies.Length, previews.Length);
+        return new BlueprintExportResult(fullOutput, hash, info.Length, selected.Count, dependencies.Length, previews.Length);
+    }
+
+    private static IReadOnlyList<BlueprintDefinition> ExpandBlueprintClosure(
+        ProjectDefinition project,
+        IReadOnlyList<BlueprintDefinition> roots)
+    {
+        var byManifest = project.Blueprints.ToDictionary(
+            blueprint => blueprint.Authoring.ManifestPath, StringComparer.Ordinal);
+        var selected = roots.ToDictionary(blueprint => blueprint.Id);
+        var queue = new Queue<BlueprintDefinition>(roots);
+        while (queue.TryDequeue(out var blueprint))
+        {
+            foreach (var dependency in blueprint.Authoring.Dependencies)
+            {
+                if (byManifest.TryGetValue(dependency, out var target) && selected.TryAdd(target.Id, target))
+                    queue.Enqueue(target);
+            }
+        }
+        return selected.Values.OrderBy(blueprint => blueprint.Id.Value).ToArray();
     }
 
     private static void AddJson<T>(ZipArchive archive, string path, T value) =>

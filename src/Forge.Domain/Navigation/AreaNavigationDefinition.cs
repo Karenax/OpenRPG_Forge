@@ -20,13 +20,16 @@ public sealed record AreaNavigationDefinition
 
     public string Provenance { get; }
 
+    public AnchorCatalog Anchors { get; }
+
     public AreaNavigationDefinition(
         AreaNavigationDefinitionId id,
         float cellSize,
         IReadOnlyList<NavigationAgentProfile> agentProfiles,
         IReadOnlyList<OffMeshNavigationLink>? offMeshLinks,
         string provenance,
-        int schemaVersion = CurrentSchemaVersion)
+        int schemaVersion = CurrentSchemaVersion,
+        AnchorCatalog? anchors = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(agentProfiles);
@@ -66,6 +69,7 @@ public sealed record AreaNavigationDefinition
         AgentProfiles = profiles;
         OffMeshLinks = links;
         Provenance = provenance.Trim();
+        Anchors = anchors ?? AnchorCatalog.CreateDefault(AreaId.From(id.Value));
     }
 
     public static AreaNavigationDefinition CreateDefault(AreaId areaId)
@@ -81,7 +85,8 @@ public sealed record AreaNavigationDefinition
                 Agent(areaId, "flying", "Volant", 0.4f, 1f, false, true, true),
             ],
             [],
-            "migration-default");
+            "migration-default",
+            anchors: AnchorCatalog.CreateDefault(areaId));
     }
 
     public static AreaNavigationDefinition CloneForArea(AreaNavigationDefinition source, AreaId destinationAreaId)
@@ -109,8 +114,12 @@ public sealed record AreaNavigationDefinition
                 link.Bidirectional,
                 link.MaximumAgentRadius,
                 "area-clone")).ToArray(),
-            "area-clone");
+            "area-clone",
+            anchors: AnchorCatalog.CloneForArea(source.Anchors, destinationAreaId));
     }
+
+    public AreaNavigationDefinition WithAnchors(AnchorCatalog anchors) => new(
+        Id, CellSize, AgentProfiles, OffMeshLinks, Provenance, SchemaVersion, anchors);
 
     private static NavigationAgentProfile Agent(
         AreaId areaId,

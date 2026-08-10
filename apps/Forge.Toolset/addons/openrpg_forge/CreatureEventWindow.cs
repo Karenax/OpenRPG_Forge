@@ -28,6 +28,11 @@ public partial class CreatureEventWindow : Window
     private LineEdit? _accessedHandler;
     private LineEdit? _transferredHandler;
     private LineEdit? _restHandler;
+    private LineEdit? _beforeDamageHandler;
+    private LineEdit? _damageAppliedHandler;
+    private LineEdit? _deathHandler;
+    private SpinBox? _beforeDamageBudget;
+    private SpinBox? _maximumDamageAdjustment;
     private CheckBox? _heartbeatEnabled;
     private SpinBox? _heartbeatInterval;
     private SpinBox? _heartbeatBudget;
@@ -86,6 +91,11 @@ public partial class CreatureEventWindow : Window
         _accessedHandler!.Text = "OnInventoryAccessed";
         _transferredHandler!.Text = "OnItemTransferred";
         _restHandler!.Text = "OnRestCompleted";
+        _beforeDamageHandler!.Text = "BeforeDamage";
+        _damageAppliedHandler!.Text = "OnDamaged";
+        _deathHandler!.Text = "OnDeath";
+        _beforeDamageBudget!.Value = 4;
+        _maximumDamageAdjustment!.Value = 0.5;
         _heartbeatEnabled!.ButtonPressed = true;
         _heartbeatInterval!.Value = 1500;
         _heartbeatBudget!.Value = 8;
@@ -99,6 +109,7 @@ public partial class CreatureEventWindow : Window
 
     public bool PreviewForSmokeTest() { Mutate(true); return _lastCommandSucceeded; }
     public bool ApplyForSmokeTest() { Mutate(false); return _lastCommandSucceeded; }
+    public bool PrepareForCapture() => ConfigureForSmokeTest() && Visible;
 
     public void Refresh()
     {
@@ -189,6 +200,12 @@ public partial class CreatureEventWindow : Window
         _accessedHandler = Field(form, "Handler inventaire consulté", "OnInventoryAccessed");
         _transferredHandler = Field(form, "Handler objet transféré", "OnItemTransferred");
         _restHandler = Field(form, "Handler repos terminé", "OnRestCompleted");
+        form.AddChild(new Label { Text = "Dégâts et mort transactionnels" });
+        _beforeDamageHandler = Field(form, "Hook restreint avant dégâts", "BeforeDamage");
+        _damageAppliedHandler = Field(form, "Handler dégâts appliqués", "OnDamaged");
+        _deathHandler = Field(form, "Handler mort", "OnDeath");
+        _beforeDamageBudget = Spin(form, "Budget BeforeDamage (ms)", 1, 50, 4, 1);
+        _maximumDamageAdjustment = Spin(form, "Ajustement maximal (ratio)", 0, 1, 0.5, 0.05);
         form.AddChild(new Label { Text = "ForgeScript API 1.0 · autorité serveur · UUID stables générés par le profil" });
     }
 
@@ -224,6 +241,11 @@ public partial class CreatureEventWindow : Window
         _accessedHandler!.Text = profile.Inventory?.Accessed.Handler ?? "OnInventoryAccessed";
         _transferredHandler!.Text = profile.Inventory?.Transferred.Handler ?? "OnItemTransferred";
         _restHandler!.Text = profile.Rest?.Completed.Handler ?? "OnRestCompleted";
+        _beforeDamageHandler!.Text = profile.DamageDeath?.BeforeDamage.Handler ?? "BeforeDamage";
+        _damageAppliedHandler!.Text = profile.DamageDeath?.DamageApplied.Handler ?? "OnDamaged";
+        _deathHandler!.Text = profile.DamageDeath?.Died.Handler ?? "OnDeath";
+        _beforeDamageBudget!.Value = profile.DamageDeath?.BeforeDamageBudgetMilliseconds ?? 4;
+        _maximumDamageAdjustment!.Value = profile.DamageDeath?.MaximumAdjustmentRatio ?? 0.5;
         _heartbeatEnabled!.ButtonPressed = profile.Heartbeat?.Enabled == true;
         _heartbeatInterval!.Value = profile.Heartbeat?.IntervalMilliseconds ?? 2_000;
         _heartbeatBudget!.Value = profile.Heartbeat?.BudgetMilliseconds ?? 8;
@@ -298,7 +320,12 @@ public partial class CreatureEventWindow : Window
                     Integer(parts[2], "version"), fields, Boolean(parts[3], "required"),
                     Binding($"custom-{parts[0]}-{parts[1]}", $"custom.{parts[0]}.{parts[1]}", parts[5]));
             }).ToArray(),
-            ParseMap(_overrides!.Text));
+            ParseMap(_overrides!.Text),
+            new(
+                Binding("before-damage", "creature.before_damage", _beforeDamageHandler!.Text),
+                Binding("damage-applied", "creature.damage_applied", _damageAppliedHandler!.Text),
+                Binding("entity-died", "entity.died", _deathHandler!.Text),
+                checked((int)_beforeDamageBudget!.Value), _maximumDamageAdjustment!.Value));
     }
 
     private EventBinding Binding(string group, string eventName, string handler) => new(
@@ -317,13 +344,17 @@ public partial class CreatureEventWindow : Window
                     profile.Heartbeat?.IntervalMilliseconds ?? 0, true, SelectedBlueprint()?.Slug ?? "preview")
                 : null;
             var custom = diagnostics.Count == 0 ? profile.CustomEvents.FirstOrDefault() : null;
-            SummarySectionCount = 3;
+            SummarySectionCount = 4;
             _summary.Text =
                 $"[font_size=22][color=#ff9858]{CreatureEventValidator.EnumerateBindings(profile).Count} binding(s)[/color][/font_size]\n" +
                 $"[color=#8ce0bd]UUID stable · schéma v{profile.SchemaVersion} · ForgeScript 1.0[/color]\n\n" +
                 $"[b]CYCLE DE VIE[/b]\nCombat {profile.CombatBoundary?.Mode} → {profile.CombatBoundary?.Binding.Handler}\n" +
                 $"Inventaire → {profile.Inventory?.Accessed.Handler} / {profile.Inventory?.Transferred.Handler}\n" +
                 $"Repos → {profile.Rest?.Completed.Handler}\n\n" +
+                $"[b]DÉGÂTS & MORT[/b]\nBeforeDamage → {profile.DamageDeath?.BeforeDamage.Handler} · " +
+                $"budget {profile.DamageDeath?.BeforeDamageBudgetMilliseconds} ms · ajustement ±{profile.DamageDeath?.MaximumAdjustmentRatio:0.##}\n" +
+                $"DamageApplied → {profile.DamageDeath?.DamageApplied.Handler}\n" +
+                $"EntityDied → {profile.DamageDeath?.Died.Handler}\n\n" +
                 $"[b]HEARTBEAT[/b]\n{(profile.Heartbeat?.Enabled == true ? "actif" : "inactif")} · " +
                 $"{profile.Heartbeat?.IntervalMilliseconds} ms · budget {profile.Heartbeat?.BudgetMilliseconds} ms · " +
                 $"{heartbeat?.Dispatches.Count ?? 0} dispatch d’aperçu\n\n" +

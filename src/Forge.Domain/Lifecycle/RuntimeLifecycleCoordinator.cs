@@ -257,7 +257,29 @@ public sealed class RuntimeLifecycleCoordinator
         RuntimeLifecycleCause cause,
         RuntimeAuthority authority,
         long sequence) =>
-        new(
+        CreateWithBinding(project, kind, previousAreaId, currentAreaId, actorEntityId, transitionId, cause,
+            authority, sequence);
+
+    private RuntimeLifecycleEvent CreateWithBinding(
+        ProjectDefinition project,
+        RuntimeLifecycleEventKind kind,
+        AreaId? previousAreaId,
+        AreaId? currentAreaId,
+        EntityId? actorEntityId,
+        PortalId? transitionId,
+        RuntimeLifecycleCause cause,
+        RuntimeAuthority authority,
+        long sequence)
+    {
+        var binding = kind switch
+        {
+            RuntimeLifecycleEventKind.AreaEntered when currentAreaId is not null =>
+                project.Areas.Single(area => area.Id == currentAreaId).Foundation.Lifecycle.Entered,
+            RuntimeLifecycleEventKind.AreaExited when previousAreaId is not null =>
+                project.Areas.Single(area => area.Id == previousAreaId).Foundation.Lifecycle.Exited,
+            _ => null,
+        };
+        return new(
             _eventIds.Next(),
             RuntimeLifecycleEvent.CurrentSchemaVersion,
             sequence,
@@ -269,7 +291,11 @@ public sealed class RuntimeLifecycleCoordinator
             actorEntityId,
             transitionId,
             cause,
-            authority);
+            authority,
+            "runtime-core",
+            binding?.ScriptPath,
+            binding?.Required ?? false);
+    }
 
     private void Publish(RuntimeLifecycleEvent @event)
     {

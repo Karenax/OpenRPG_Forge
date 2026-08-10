@@ -17,7 +17,11 @@ public sealed record DialogueNodeInput(
     string LocalizationKey,
     string FallbackText,
     IReadOnlyList<DialogueActionInput>? OnEnterActions = null,
-    IReadOnlyList<DialogueChoiceInput>? Choices = null);
+    IReadOnlyList<DialogueChoiceInput>? Choices = null,
+    string? Role = null,
+    string? ParticipantId = null,
+    string? SubgraphKey = null,
+    IReadOnlyList<DialogueLocalizedTextVariantInput>? Variants = null);
 
 public sealed record DialogueChoiceInput(
     string ChoiceId,
@@ -25,11 +29,27 @@ public sealed record DialogueChoiceInput(
     string FallbackText,
     string? TargetNodeId = null,
     IReadOnlyList<DialogueConditionInput>? Conditions = null,
-    IReadOnlyList<DialogueActionInput>? Actions = null);
+    IReadOnlyList<DialogueActionInput>? Actions = null,
+    string? EdgeKind = null,
+    int Priority = 0,
+    string? ConditionCombination = null,
+    IReadOnlyList<DialogueLocalizedTextVariantInput>? Variants = null);
 
-public sealed record DialogueConditionInput(string Kind, string Key, string ExpectedValue);
+public sealed record DialogueLocalizedTextVariantInput(
+    string Locale,
+    string Gender,
+    string PluralCategory,
+    string Text);
 
-public sealed record DialogueActionInput(string Kind, string Key, string Value);
+public sealed record DialogueConditionInput(
+    string Kind,
+    string Key,
+    string ExpectedValue,
+    bool Negated = false,
+    string? EventBinding = null,
+    int ForgeScriptApiVersion = 1);
+
+public sealed record DialogueActionInput(string Kind, string Key, string Value, bool Required = true);
 
 public sealed record DialoguePlanResult(
     bool Succeeded,

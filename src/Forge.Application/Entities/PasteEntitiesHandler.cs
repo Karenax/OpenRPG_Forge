@@ -4,6 +4,7 @@ using Forge.Application.Projects;
 using Forge.Application.Spatial;
 using Forge.Application.Time;
 using Forge.Domain.Areas;
+using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
@@ -17,6 +18,7 @@ public sealed class PasteEntitiesHandler
     public const string MissingTargetAreaCode = "clipboard.target_area_missing";
     public const string InvalidMappingCode = "clipboard.entity_mapping_invalid";
     public const string DuplicateEntityCode = "clipboard.entity_duplicate";
+    public const string InvalidBlueprintMappingCode = "clipboard.blueprint_mapping_invalid";
 
     private const string CommandName = "paste_entities";
     private readonly IClock _clock;
@@ -66,7 +68,26 @@ public sealed class PasteEntitiesHandler
                 "At least one pasted entity ID already exists in the project.");
         }
 
+        var sourceBlueprintIds = command.Payload.Entities.Select(entity => entity.BlueprintId).Distinct().ToArray();
+        var blueprintMap = command.BlueprintIdMap ?? new Dictionary<BlueprintId, BlueprintId>();
+        if (command.Mode == SemanticPasteMode.IndependentCopy &&
+            (blueprintMap.Count != sourceBlueprintIds.Length ||
+             sourceBlueprintIds.Any(id => !blueprintMap.ContainsKey(id)) ||
+             blueprintMap.Values.Distinct().Count() != sourceBlueprintIds.Length ||
+             blueprintMap.Values.Any(id => state.Project.Blueprints.Any(blueprint => blueprint.Id == id))))
+        {
+            return Failure(state, command, InvalidBlueprintMappingCode,
+                "Independent copy requires one unique new blueprint UUID for every referenced blueprint.");
+        }
+
         var updatedProject = state.Project;
+        if (command.Mode == SemanticPasteMode.IndependentCopy)
+        {
+            var copies = sourceBlueprintIds.Select(sourceId => CopyBlueprint(
+                state.Project.Blueprints.Single(blueprint => blueprint.Id == sourceId), blueprintMap[sourceId])).ToArray();
+            updatedProject = new ProjectDefinition(updatedProject.Id, updatedProject.Title, updatedProject.Module,
+                [.. updatedProject.Blueprints, .. copies], updatedProject.Areas, updatedProject.Dialogues, updatedProject.Quests);
+        }
         var pasted = new List<EntityInstance>();
         foreach (var source in command.Payload.Entities)
         {
@@ -84,10 +105,11 @@ public sealed class PasteEntitiesHandler
 
             var copy = new EntityInstance(
                 command.EntityIdMap[source.Id],
-                source.BlueprintId,
+                command.Mode == SemanticPasteMode.IndependentCopy ? blueprintMap[source.BlueprintId] : source.BlueprintId,
                 new TransformValue(validation.CorrectedPosition, source.Transform.Rotation, source.Transform.Scale),
                 source.Tags,
-                source.Overrides);
+                RemapOverrides(source.Overrides, command.EntityIdMap),
+                source.BlueprintVersionRequirement);
             pasted.Add(copy);
             var currentTarget = updatedProject.Areas.Single(area => area.Id == command.TargetAreaId);
             var updatedArea = currentTarget.WithEntities([.. currentTarget.Entities, copy]);
@@ -95,7 +117,8 @@ public sealed class PasteEntitiesHandler
         }
 
         var path = $"areas/{command.TargetAreaId}/entities";
-        var patch = new ProjectPatch("add", path, $"Paste {pasted.Count} semantic clipboard entity instance(s).");
+        var patch = new ProjectPatch("add", path,
+            $"Paste {pasted.Count} semantic clipboard entity instance(s) as {command.Mode}.");
         var inverse = new ProjectPatch("remove", path, $"Remove {pasted.Count} pasted entity instance(s).");
         if (command.DryRun)
         {
@@ -123,6 +146,44 @@ public sealed class PasteEntitiesHandler
             project.Areas.Select(candidate => candidate.Id == area.Id ? area : candidate).ToArray(),
             project.Dialogues,
             project.Quests);
+
+    private static EntityPropertyOverrides RemapOverrides(
+        EntityPropertyOverrides overrides,
+        IReadOnlyDictionary<EntityId, EntityId> entityMap)
+    {
+        var changed = false;
+        var properties = overrides.Properties.Select(property =>
+        {
+            if (property.Kind != EntityPropertyValueKind.String) return property;
+            var value = entityMap.Aggregate(property.Value, (current, pair) =>
+                current.Replace(pair.Key.ToString(), pair.Value.ToString(), StringComparison.OrdinalIgnoreCase));
+            if (string.Equals(value, property.Value, StringComparison.Ordinal)) return property;
+            changed = true;
+            return new EntityPropertyOverride(property.Key, property.Kind, value);
+        }).ToArray();
+        return changed ? new EntityPropertyOverrides(overrides.SchemaVersion, properties) : overrides;
+    }
+
+    private static BlueprintDefinition CopyBlueprint(BlueprintDefinition source, BlueprintId id)
+    {
+        var suffix = id.ToString()[..8];
+        var slug = $"{source.Slug}-copy-{suffix}";
+        var provenance = new BlueprintProvenance(
+            source.Provenance.SchemaVersion, source.Provenance.Source, source.Provenance.Author,
+            source.Provenance.LicenseSpdx, source.Provenance.ContentHash, source.Provenance.IsAiGenerated,
+            [.. source.Provenance.Modifications, $"Independent clipboard copy from {source.Id}"],
+            source.Provenance.PermissionEvidence);
+        var authoring = new BlueprintAuthoringMetadata(
+            source.Authoring.SchemaVersion, source.Authoring.Version, $"project.clipboard.copy{suffix}",
+            $"content/blueprints/{id}/{slug}.blueprint.json", source.Authoring.ExposedParameters,
+            source.Authoring.Dependencies, $"content/blueprints/{id}/{slug}.preview.png",
+            source.Authoring.PlatformByteBudget, source.Authoring.Kit, source.Authoring.Styles,
+            source.Authoring.Compatibility, source.Authoring.Tags);
+        return new BlueprintDefinition(id, slug, $"{source.DisplayName} (copie)", source.Kind, source.Combat,
+            BlueprintPaletteOrigin.ProjectContent, false, provenance, source.CreaturePresentation,
+            source.CreatureProgression, source.CreatureLoot, source.CreatureRoleBehavior, source.CreatureEvents,
+            source.ItemAdvanced, authoring, source.CreatureFoundation, source.ItemFoundation);
+    }
 
     private CommandResult Success(
         ProjectState state,

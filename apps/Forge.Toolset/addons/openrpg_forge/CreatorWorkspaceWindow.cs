@@ -53,6 +53,35 @@ public partial class CreatorWorkspaceWindow : Window
     private LineEdit? _palette;
     private TextEdit? _assetStyles;
     private RichTextLabel? _compatibility;
+    private OptionButton? _explorerGrouping;
+    private OptionButton? _viewportMode;
+    private SpinBox? _explorerWidth;
+    private SpinBox? _contextWidth;
+    private SpinBox? _bottomHeight;
+    private CheckBox? _showExplorer;
+    private CheckBox? _showInspector;
+    private CheckBox? _showDiagnostics;
+    private CheckBox? _showPalette;
+    private CheckBox? _showAssistant;
+    private ItemList? _paletteKinds;
+    private LineEdit? _paletteKits;
+    private LineEdit? _paletteStyles;
+    private LineEdit? _paletteLicenses;
+    private LineEdit? _paletteCompatibility;
+    private LineEdit? _paletteTags;
+    private CheckBox? _paletteFavoritesOnly;
+    private OptionButton? _transformTool;
+    private OptionButton? _coordinateSpace;
+    private OptionButton? _pivotMode;
+    private SpinBox? _translationSnap;
+    private SpinBox? _rotationSnap;
+    private SpinBox? _scaleSnap;
+    private CheckBox? _multiSelection;
+    private CheckBox? _focusSelection;
+    private CheckBox? _frameSelection;
+    private CheckBox? _lockSelection;
+    private CheckBox? _commonPropertiesOnly;
+    private EditorWorkspaceProfileCommandHistory? _profileHistory;
     private Label? _status;
 
     public void Initialize(
@@ -71,7 +100,7 @@ public partial class CreatorWorkspaceWindow : Window
         _loadArtisticStyle = loadArtisticStyle; _applyArtisticStyle = applyArtisticStyle; _activateArea = activateArea;
         _applyFilter = applyFilter; _repeatPlace = repeatPlace; _brand = brand;
         Title = "Espace de travail · OpenRPG Forge";
-        MinSize = new Vector2I(1420, 860); Size = MinSize; Transient = true; Visible = false;
+        MinSize = new Vector2I(1680, 920); Size = MinSize; Transient = true; Visible = false;
         BuildUi();
     }
 
@@ -87,6 +116,8 @@ public partial class CreatorWorkspaceWindow : Window
         var state = _getState?.Invoke();
         if (state is null) return;
         var profile = _load!.Invoke();
+        if (_profileHistory is null || _profileHistory.Current.Id != profile.Id)
+            _profileHistory = new EditorWorkspaceProfileCommandHistory(profile);
         _role!.Selected = (int)profile.Role;
         _repeatEnabled!.ButtonPressed = profile.RepeatPlacement;
         _helpEnabled!.ButtonPressed = profile.ContextualHelpEnabled;
@@ -105,6 +136,7 @@ public partial class CreatorWorkspaceWindow : Window
         _textScale!.Value = profile.TextScale;
         _primaryFont!.Text = profile.PrimaryFontFamily;
         _fallbackFonts!.Text = string.Join(", ", profile.FallbackFontFamilies);
+        LoadShell(profile.Shell);
         _areas.Clear(); _activeArea!.Clear(); _comparisonArea!.Clear();
         _openTabs!.Clear();
         _comparisonArea.AddItem("Aucune comparaison");
@@ -172,6 +204,60 @@ public partial class CreatorWorkspaceWindow : Window
         _distribution = new OptionButton(); foreach (var item in Enum.GetValues<PlacementDistribution>()) _distribution.AddItem(item.ToString()); zones.AddChild(_distribution);
         var place = new Button { Text = "Placer la série depuis X/Z" }; place.Pressed += PlaceSeries; zones.AddChild(place);
 
+        var shell = Column(columns, "SHELL & PALETTE CONTEXTUELLE");
+        shell.AddChild(new Label { Text = "Regroupement de l’explorateur" });
+        _explorerGrouping = new OptionButton(); foreach (var grouping in Enum.GetValues<EditorExplorerGrouping>()) _explorerGrouping.AddItem(ExplorerGroupingName(grouping)); shell.AddChild(_explorerGrouping);
+        shell.AddChild(new Label { Text = "Mode du viewport 3D" });
+        _viewportMode = new OptionButton(); foreach (var mode in Enum.GetValues<EditorViewportMode>()) _viewportMode.AddItem(ViewportModeName(mode)); shell.AddChild(_viewportMode);
+        _explorerWidth = Spin(EditorShellLayout.MinimumExplorerWidth, EditorShellLayout.MaximumExplorerWidth, 228, 4);
+        _contextWidth = Spin(EditorShellLayout.MinimumContextWidth, EditorShellLayout.MaximumContextWidth, 258, 4);
+        _bottomHeight = Spin(EditorShellLayout.MinimumBottomHeight, EditorShellLayout.MaximumBottomHeight, 120, 4);
+        shell.AddChild(Row("Explorateur", _explorerWidth)); shell.AddChild(Row("Contexte", _contextWidth)); shell.AddChild(Row("Diagnostics", _bottomHeight));
+        var visibility = new HBoxContainer();
+        _showExplorer = new CheckBox { Text = "Explorateur" }; visibility.AddChild(_showExplorer);
+        _showInspector = new CheckBox { Text = "Inspecteur" }; visibility.AddChild(_showInspector);
+        _showDiagnostics = new CheckBox { Text = "Diagnostics" }; visibility.AddChild(_showDiagnostics);
+        shell.AddChild(visibility);
+        var workspaceVisibility = new HBoxContainer();
+        _showPalette = new CheckBox { Text = "Palette" }; workspaceVisibility.AddChild(_showPalette);
+        _showAssistant = new CheckBox { Text = "Assistant" }; workspaceVisibility.AddChild(_showAssistant);
+        shell.AddChild(workspaceVisibility);
+        shell.AddChild(new HSeparator());
+        shell.AddChild(new Label { Text = "MANIPULATION 3D" });
+        var transformModes = new HBoxContainer();
+        _transformTool = new OptionButton { TooltipText = "Outil actif : translation, rotation ou échelle" };
+        foreach (var tool in Enum.GetValues<EditorTransformTool>()) _transformTool.AddItem(tool.ToString());
+        transformModes.AddChild(_transformTool);
+        _coordinateSpace = new OptionButton { TooltipText = "Repère global ou local" };
+        foreach (var space in Enum.GetValues<EditorCoordinateSpace>()) _coordinateSpace.AddItem(space.ToString());
+        transformModes.AddChild(_coordinateSpace);
+        _pivotMode = new OptionButton { TooltipText = "Pivot individuel, centre ou objet actif" };
+        foreach (var pivot in Enum.GetValues<EditorPivotMode>()) _pivotMode.AddItem(pivot.ToString());
+        transformModes.AddChild(_pivotMode);
+        shell.AddChild(transformModes);
+        _translationSnap = Spin(.01, 100, 1, .05);
+        _rotationSnap = Spin(1, 180, 15, 1);
+        _scaleSnap = Spin(.01, 10, .05, .01);
+        var snaps = new HBoxContainer(); snaps.AddChild(Row("T", _translationSnap)); snaps.AddChild(Row("R", _rotationSnap)); snaps.AddChild(Row("S", _scaleSnap)); shell.AddChild(snaps);
+        var selectionModes = new HBoxContainer();
+        _multiSelection = new CheckBox { Text = "Multi" }; selectionModes.AddChild(_multiSelection);
+        _focusSelection = new CheckBox { Text = "Focus" }; selectionModes.AddChild(_focusSelection);
+        _frameSelection = new CheckBox { Text = "Cadrer" }; selectionModes.AddChild(_frameSelection);
+        _lockSelection = new CheckBox { Text = "Verrou" }; selectionModes.AddChild(_lockSelection);
+        _commonPropertiesOnly = new CheckBox { Text = "Communes" }; selectionModes.AddChild(_commonPropertiesOnly);
+        shell.AddChild(selectionModes);
+        shell.AddChild(new HSeparator());
+        shell.AddChild(new Label { Text = "Types de la palette (au moins un)" });
+        _paletteKinds = new ItemList { SelectMode = ItemList.SelectModeEnum.Multi, CustomMinimumSize = new Vector2(0, 80) };
+        foreach (var kind in Enum.GetValues<BlueprintKind>()) _paletteKinds.AddItem(kind.ToString());
+        shell.AddChild(_paletteKinds);
+        _paletteKits = new LineEdit { PlaceholderText = "Kits · crypt-stone, forest" }; shell.AddChild(_paletteKits);
+        _paletteStyles = new LineEdit { PlaceholderText = "Styles · gothic, ruined" }; shell.AddChild(_paletteStyles);
+        _paletteLicenses = new LineEdit { PlaceholderText = "Licences · CC0-1.0" }; shell.AddChild(_paletteLicenses);
+        _paletteCompatibility = new LineEdit { PlaceholderText = "Compatibilité · medieval" }; shell.AddChild(_paletteCompatibility);
+        _paletteTags = new LineEdit { PlaceholderText = "Tags requis · dungeon, stone" }; shell.AddChild(_paletteTags);
+        _paletteFavoritesOnly = new CheckBox { Text = "Favoris personnels uniquement" }; shell.AddChild(_paletteFavoritesOnly);
+
         var help = Column(columns, "STYLE ARTISTIQUE & AIDE");
         _metersPerUnit = Spin(0.001, 1000, 1, 0.05); _texelDensity = Spin(16, 8192, 512, 16);
         help.AddChild(Row("Mètres / unité", _metersPerUnit)); help.AddChild(Row("Texels / mètre", _texelDensity));
@@ -186,7 +272,10 @@ public partial class CreatorWorkspaceWindow : Window
         _helpEnabled = new CheckBox { Text = "Afficher les conseils", ButtonPressed = true }; _helpEnabled.Toggled += _ => RefreshHelp(); help.AddChild(_helpEnabled);
         _help = new RichTextLabel { BbcodeEnabled = true, SizeFlagsVertical = Control.SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(330, 100) }; help.AddChild(_help);
         _status = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart }; _status.AddThemeColorOverride("font_color", new Color("79d5ad")); root.AddChild(_status);
-        var footer = new HBoxContainer(); footer.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill }); var save = new Button { Text = "Enregistrer le profil" }; save.Pressed += Save; footer.AddChild(save); var close = new Button { Text = "Fermer" }; close.Pressed += Hide; footer.AddChild(close); root.AddChild(footer);
+        var footer = new HBoxContainer();
+        var undo = new Button { Text = "Annuler profil", TooltipText = "Restaure la configuration précédente du shell et du profil" }; undo.Pressed += UndoProfile; footer.AddChild(undo);
+        var redo = new Button { Text = "Rétablir profil", TooltipText = "Réapplique la configuration annulée" }; redo.Pressed += RedoProfile; footer.AddChild(redo);
+        footer.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill }); var save = new Button { Text = "Enregistrer le profil" }; save.Pressed += Save; footer.AddChild(save); var close = new Button { Text = "Fermer" }; close.Pressed += Hide; footer.AddChild(close); root.AddChild(footer);
     }
 
     private void ApplyFilter() { var filter = BuildFilter(); var visible = _applyFilter?.Invoke(filter) ?? 0; _status!.Text = $"✓ Filtre appliqué · {visible} entité(s) visible(s)"; RefreshHelp(); }
@@ -212,22 +301,35 @@ public partial class CreatorWorkspaceWindow : Window
         }
 
         var existing = _load!.Invoke();
-        var value = new EditorWorkspaceProfile(EditorWorkspaceProfile.CreateDefault((EditorRole)_role!.Selected, active).Id,
-            RoleName((EditorRole)_role.Selected), (EditorRole)_role.Selected, BuildFilter(), _repeatEnabled!.ButtonPressed,
-            open, active, comparison, _helpEnabled!.ButtonPressed, "openrpg-forge-user-profile",
-            uiScale: _uiScale!.Value, textScale: _textScale!.Value,
-            primaryFontFamily: _primaryFont!.Text,
-            fallbackFontFamilies: SplitList(_fallbackFonts!.Text),
-            personalFavoriteBlueprintIds: existing.PersonalFavoriteBlueprintIds,
-            recentBlueprintIds: existing.RecentBlueprintIds);
+        EditorWorkspaceProfile value;
         ArtisticStyleProfile artisticStyle;
         try
         {
+            var shell = BuildShell(existing.Shell);
+            value = new EditorWorkspaceProfile(existing.Id,
+                RoleName((EditorRole)_role!.Selected), (EditorRole)_role.Selected, BuildFilter(), _repeatEnabled!.ButtonPressed,
+                open, active, comparison, _helpEnabled!.ButtonPressed, "openrpg-forge-user-profile",
+                uiScale: _uiScale!.Value, textScale: _textScale!.Value,
+                primaryFontFamily: _primaryFont!.Text,
+                fallbackFontFamilies: SplitList(_fallbackFonts!.Text),
+                personalFavoriteBlueprintIds: existing.PersonalFavoriteBlueprintIds,
+                recentBlueprintIds: existing.RecentBlueprintIds,
+                shell: shell);
             artisticStyle = BuildArtisticStyle();
         }
         catch (Exception exception) when (exception is ArgumentException or FormatException or InvalidOperationException)
         {
-            _status!.Text = $"Profil artistique invalide · {exception.Message}";
+            _status!.Text = $"Profil invalide · {exception.Message}";
+            return;
+        }
+
+        _profileHistory ??= new EditorWorkspaceProfileCommandHistory(existing);
+        var dryRun = _profileHistory.Execute(new UpdateEditorWorkspaceProfileCommand(
+            Guid.NewGuid(), EditorWorkspaceProfileCommandHistory.CurrentSchemaVersion,
+            "creator-workspace-ui", value, DryRun: true));
+        if (!dryRun.Succeeded)
+        {
+            _status!.Text = $"Profil refusé · {dryRun.Diagnostics[0].Code} · {dryRun.Diagnostics[0].Message}";
             return;
         }
 
@@ -237,7 +339,99 @@ public partial class CreatorWorkspaceWindow : Window
             return;
         }
 
-        _save?.Invoke(value); _status!.Text = "✓ Profil scalable, onglets et style enregistrés";
+        var applied = _profileHistory.Execute(new UpdateEditorWorkspaceProfileCommand(
+            Guid.NewGuid(), EditorWorkspaceProfileCommandHistory.CurrentSchemaVersion,
+            "creator-workspace-ui", value));
+        if (!applied.Succeeded)
+        {
+            _status!.Text = $"Profil refusé · {applied.Diagnostics[0].Code} · {applied.Diagnostics[0].Message}";
+            return;
+        }
+
+        _save?.Invoke(applied.Profile); _status!.Text = "✓ Shell, palette, onglets et style enregistrés";
+    }
+
+    private void LoadShell(EditorShellConfiguration shell)
+    {
+        _explorerGrouping!.Selected = (int)shell.ExplorerGrouping;
+        _viewportMode!.Selected = (int)shell.ViewportMode;
+        _explorerWidth!.Value = shell.Layout.ExplorerWidth;
+        _contextWidth!.Value = shell.Layout.ContextWidth;
+        _bottomHeight!.Value = shell.Layout.BottomHeight;
+        _showExplorer!.ButtonPressed = shell.Layout.ExplorerVisible;
+        _showInspector!.ButtonPressed = shell.Layout.InspectorVisible;
+        _showDiagnostics!.ButtonPressed = shell.Layout.DiagnosticsVisible;
+        _showPalette!.ButtonPressed = shell.Layout.PaletteVisible;
+        _showAssistant!.ButtonPressed = shell.Layout.AssistantVisible;
+        _paletteKinds!.DeselectAll();
+        var kinds = shell.PaletteFilter.Kinds.ToHashSet();
+        for (var index = 0; index < _paletteKinds.ItemCount; index++)
+            if (kinds.Contains((BlueprintKind)index)) _paletteKinds.Select(index, false);
+        _paletteKits!.Text = string.Join(", ", shell.PaletteFilter.Kits);
+        _paletteStyles!.Text = string.Join(", ", shell.PaletteFilter.Styles);
+        _paletteLicenses!.Text = string.Join(", ", shell.PaletteFilter.Licenses);
+        _paletteCompatibility!.Text = string.Join(", ", shell.PaletteFilter.Compatibility);
+        _paletteTags!.Text = string.Join(", ", shell.PaletteFilter.Tags);
+        _paletteFavoritesOnly!.ButtonPressed = shell.PaletteFilter.FavoritesOnly;
+        _transformTool!.Selected = (int)shell.DirectManipulation.Transform.Tool;
+        _coordinateSpace!.Selected = (int)shell.DirectManipulation.Transform.CoordinateSpace;
+        _pivotMode!.Selected = (int)shell.DirectManipulation.Transform.PivotMode;
+        _translationSnap!.Value = shell.DirectManipulation.Transform.TranslationSnap;
+        _rotationSnap!.Value = shell.DirectManipulation.Transform.RotationSnapDegrees;
+        _scaleSnap!.Value = shell.DirectManipulation.Transform.ScaleSnap;
+        _multiSelection!.ButtonPressed = shell.DirectManipulation.Selection.MultiSelectionEnabled;
+        _focusSelection!.ButtonPressed = shell.DirectManipulation.Selection.FocusOnSelection;
+        _frameSelection!.ButtonPressed = shell.DirectManipulation.Selection.FrameSelection;
+        _lockSelection!.ButtonPressed = shell.DirectManipulation.Selection.LockSelection;
+        _commonPropertiesOnly!.ButtonPressed = shell.DirectManipulation.Selection.EditCommonPropertiesOnly;
+    }
+
+    private EditorShellConfiguration BuildShell(EditorShellConfiguration existing)
+    {
+        var selectedKinds = _paletteKinds!.GetSelectedItems();
+        if (selectedKinds.Length == 0)
+            throw new ArgumentException("Sélectionnez au moins un type pour la palette contextuelle.");
+        var layout = new EditorShellLayout(
+            existing.Layout.Id, EditorShellLayout.CurrentSchemaVersion, "creator-workspace-ui",
+            (int)_explorerWidth!.Value, (int)_contextWidth!.Value, (int)_bottomHeight!.Value,
+            _showExplorer!.ButtonPressed, _showInspector!.ButtonPressed, _showDiagnostics!.ButtonPressed,
+            _showPalette!.ButtonPressed, _showAssistant!.ButtonPressed);
+        var filter = new EditorPaletteFilter(
+            selectedKinds.Select(index => (BlueprintKind)index).ToArray(),
+            SplitList(_paletteKits!.Text), SplitList(_paletteStyles!.Text), SplitList(_paletteLicenses!.Text),
+            SplitList(_paletteCompatibility!.Text), SplitList(_paletteTags!.Text), _paletteFavoritesOnly!.ButtonPressed);
+        var selection = new EditorSelectionConfiguration(
+            existing.DirectManipulation.Selection.Id, 1, "creator-workspace-ui",
+            _multiSelection!.ButtonPressed, _focusSelection!.ButtonPressed, _frameSelection!.ButtonPressed,
+            _lockSelection!.ButtonPressed, _commonPropertiesOnly!.ButtonPressed);
+        var transform = new EditorTransformToolConfiguration(
+            existing.DirectManipulation.Transform.Id, 1, "creator-workspace-ui",
+            (EditorTransformTool)_transformTool!.Selected, (EditorCoordinateSpace)_coordinateSpace!.Selected,
+            (EditorPivotMode)_pivotMode!.Selected, (float)_translationSnap!.Value,
+            (float)_rotationSnap!.Value, (float)_scaleSnap!.Value,
+            existing.DirectManipulation.Transform.NumericInputEnabled,
+            existing.DirectManipulation.Transform.AlignmentEnabled);
+        var directManipulation = new EditorDirectManipulationProfile(
+            existing.DirectManipulation.Id, 1, "creator-workspace-ui", selection, transform);
+        return new EditorShellConfiguration(
+            existing.Id, EditorShellConfiguration.CurrentSchemaVersion, "creator-workspace-ui", layout,
+            (EditorExplorerGrouping)_explorerGrouping!.Selected,
+            (EditorViewportMode)_viewportMode!.Selected,
+            filter, directManipulation);
+    }
+
+    private void UndoProfile()
+    {
+        var result = _profileHistory?.Undo();
+        if (result?.Succeeded != true) { _status!.Text = "Aucune modification de profil à annuler."; return; }
+        _save?.Invoke(result.Profile); LoadShell(result.Profile.Shell); _status!.Text = "✓ Profil précédent restauré";
+    }
+
+    private void RedoProfile()
+    {
+        var result = _profileHistory?.Redo();
+        if (result?.Succeeded != true) { _status!.Text = "Aucune modification de profil à rétablir."; return; }
+        _save?.Invoke(result.Profile); LoadShell(result.Profile.Shell); _status!.Text = "✓ Profil rétabli";
     }
 
     private void LoadArtisticStyle(ArtisticStyleProfile profile)
@@ -328,6 +522,8 @@ public partial class CreatorWorkspaceWindow : Window
     private static HBoxContainer Row(string label, Control control) { var row = new HBoxContainer(); row.AddChild(new Label { Text = label, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill }); row.AddChild(control); return row; }
     private static SpinBox Spin(double min, double max, double value, double step) => new() { MinValue = min, MaxValue = max, Value = value, Step = step, CustomMinimumSize = new Vector2(110, 0) };
     private static StyleBoxFlat Card(string background, string border) => new() { BgColor = new Color(background), BorderColor = new Color(border), BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1, CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8, CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8 };
+    private static string ExplorerGroupingName(EditorExplorerGrouping grouping) => grouping switch { EditorExplorerGrouping.Type => "Type", EditorExplorerGrouping.Folder => "Dossier", EditorExplorerGrouping.Area => "Zone", EditorExplorerGrouping.Tag => "Tag", EditorExplorerGrouping.Dependency => "Dépendance", _ => "État de validation" };
+    private static string ViewportModeName(EditorViewportMode mode) => mode switch { EditorViewportMode.Editing => "Édition", EditorViewportMode.Simulation => "Simulation", EditorViewportMode.Lighting => "Éclairage", EditorViewportMode.Navigation => "Navigation", EditorViewportMode.Collisions => "Collisions", _ => "Performance" };
     private static string RoleName(EditorRole role) => role switch { EditorRole.Builder => "Bâtisseur", EditorRole.Writer => "Auteur", EditorRole.Scripter => "Scripteur", EditorRole.Artist => "Artiste", EditorRole.GameMaster => "MJ", EditorRole.Tester => "Testeur", _ => "Débutant" };
 }
 #endif

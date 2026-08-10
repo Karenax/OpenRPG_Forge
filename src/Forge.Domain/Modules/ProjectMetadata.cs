@@ -1,3 +1,5 @@
+using Forge.Domain.Projects;
+
 namespace Forge.Domain.Modules;
 
 public sealed record ProjectMetadata
@@ -26,6 +28,8 @@ public sealed record ProjectMetadata
 
     public string Provenance { get; }
 
+    public ProjectFoundationProfile? Foundation { get; }
+
     public ProjectMetadata(
         ProjectMetadataId id,
         string defaultLocale,
@@ -37,7 +41,8 @@ public sealed record ProjectMetadata
         IReadOnlyList<string>? tags,
         string classification,
         string provenance,
-        int schemaVersion = CurrentSchemaVersion)
+        int schemaVersion = CurrentSchemaVersion,
+        ProjectFoundationProfile? foundation = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(defaultLocale);
@@ -106,6 +111,7 @@ public sealed record ProjectMetadata
             .ToArray();
         Classification = classification.Trim();
         Provenance = provenance.Trim();
+        Foundation = foundation;
     }
 
     public ProjectLocalizedMetadata GetDefaultLocalization() => Localizations.Single(item =>

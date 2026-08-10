@@ -91,4 +91,36 @@ public sealed class PlacementValidatorTests
         Assert.False(result.IsValid);
         Assert.Equal(PlacementValidator.MissingBlueprintCode, result.Code);
     }
+
+    [Fact]
+    public void SocketAndBudgetFailuresExposeStableCauses()
+    {
+        var context = new EntityMutationTestContext();
+        var socket = new PlacementValidator().Validate(context.State.Project,
+            new PlacementValidationRequest(context.AreaId, context.BlueprintId, new Vector3Value(2, 0, 2), 1,
+                RequiredSocket: "wall-north", AvailableSockets: ["floor"]));
+        var budget = new PlacementValidator().Validate(context.State.Project,
+            new PlacementValidationRequest(context.AreaId, context.BlueprintId, new Vector3Value(2, 0, 2), 1,
+                AvailableBudgetBytes: 1024, BlueprintEstimatedBytes: 2048));
+
+        Assert.Equal(PlacementValidator.SocketMissingCode, socket.Code);
+        Assert.Contains("wall-north", socket.Message);
+        Assert.Equal(PlacementValidator.BudgetExceededCode, budget.Code);
+        Assert.Contains("2048", budget.Message);
+    }
+
+    [Fact]
+    public void AutoCorrectionSuggestsNearestFreeGridCellWithoutMutation()
+    {
+        var context = new EntityMutationTestContext();
+        var result = new PlacementValidator().Validate(context.State.Project,
+            new PlacementValidationRequest(context.AreaId, context.BlueprintId, Vector3Value.Zero, 1,
+                AutoCorrect: true));
+
+        Assert.False(result.IsValid);
+        Assert.Equal(PlacementValidator.OccupiedCode, result.Code);
+        Assert.NotEqual(Vector3Value.Zero, result.CorrectedPosition);
+        Assert.Contains(result.Corrections!, correction => correction.Contains("proposée", StringComparison.OrdinalIgnoreCase));
+        Assert.Single(context.State.Project.Areas.Single().Entities);
+    }
 }

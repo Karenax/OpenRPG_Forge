@@ -7,7 +7,8 @@ public sealed record PlacementValidationResult(
     string Code,
     string Message,
     Vector3Value RequestedPosition,
-    Vector3Value CorrectedPosition)
+    Vector3Value CorrectedPosition,
+    IReadOnlyList<string>? Corrections = null)
 {
     public const string ValidCode = "placement.valid";
 }

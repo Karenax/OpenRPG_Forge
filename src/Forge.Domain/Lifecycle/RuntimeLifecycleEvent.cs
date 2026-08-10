@@ -42,6 +42,10 @@ public sealed record RuntimeLifecycleEvent
 
     public string DocumentPath { get; }
 
+    public string? ScriptPath { get; }
+
+    public bool ScriptRequired { get; }
+
     public RuntimeLifecycleEvent(
         RuntimeLifecycleEventId id,
         int schemaVersion,
@@ -55,7 +59,9 @@ public sealed record RuntimeLifecycleEvent
         PortalId? transitionId,
         RuntimeLifecycleCause cause,
         RuntimeAuthority authority,
-        string provenance = "runtime-core")
+        string provenance = "runtime-core",
+        string? scriptPath = null,
+        bool scriptRequired = false)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(projectId);
@@ -86,6 +92,8 @@ public sealed record RuntimeLifecycleEvent
         Cause = cause;
         Authority = authority;
         Provenance = provenance.Trim();
+        ScriptPath = string.IsNullOrWhiteSpace(scriptPath) ? null : scriptPath.Trim();
+        ScriptRequired = scriptRequired;
         DocumentPath = kind switch
         {
             RuntimeLifecycleEventKind.ProjectLoaded or RuntimeLifecycleEventKind.WorldStarted => "project.json",

@@ -16,8 +16,8 @@ public partial class BlueprintCatalogWindow : Window
     private readonly BlueprintPaletteOrigin[] _paletteOrigins = Enum.GetValues<BlueprintPaletteOrigin>();
 
     private Func<ProjectState?>? _getState;
-    private Func<BlueprintId, string, string, BlueprintKind, bool>? _upsertBlueprint;
-    private Func<BlueprintId, string, string, bool>? _createFromSelection;
+    private Func<BlueprintId, string, string, BlueprintKind, BlueprintAuthoringMetadata, bool>? _upsertBlueprint;
+    private Func<BlueprintId, string, string, BlueprintAuthoringMetadata, bool>? _createFromSelection;
     private Func<BlueprintId, BlueprintPaletteOrigin, bool, BlueprintProvenance, bool>? _configurePalette;
     private Func<EditorWorkspaceProfile>? _getWorkspaceProfile;
     private Action<BlueprintId>? _recordRecent;
@@ -30,12 +30,23 @@ public partial class BlueprintCatalogWindow : Window
     private OptionButton? _paletteView;
     private ItemList? _blueprintList;
     private Label? _catalogSummary;
+    private Label? _contextFilterSummary;
     private Label? _librarySummary;
     private LineEdit? _displayName;
     private LineEdit? _slug;
     private OptionButton? _kind;
     private Label? _identity;
     private Label? _inheritance;
+    private LineEdit? _version;
+    private LineEdit? _packageNamespace;
+    private LineEdit? _manifestPath;
+    private LineEdit? _previewPath;
+    private LineEdit? _exposedParameters;
+    private LineEdit? _dependencies;
+    private LineEdit? _kit;
+    private LineEdit? _styles;
+    private LineEdit? _compatibility;
+    private LineEdit? _tags;
     private ItemList? _referenceList;
     private Label? _referenceSummary;
     private Label? _status;
@@ -47,6 +58,7 @@ public partial class BlueprintCatalogWindow : Window
     private LineEdit? _provenanceSource;
     private LineEdit? _provenanceAuthor;
     private LineEdit? _provenanceLicense;
+    private LineEdit? _permissionEvidence;
     private LineEdit? _provenanceHash;
     private CheckButton? _aiGenerated;
     private TextEdit? _modifications;
@@ -60,8 +72,8 @@ public partial class BlueprintCatalogWindow : Window
 
     public void Initialize(
         Func<ProjectState?> getState,
-        Func<BlueprintId, string, string, BlueprintKind, bool> upsertBlueprint,
-        Func<BlueprintId, string, string, bool> createFromSelection,
+        Func<BlueprintId, string, string, BlueprintKind, BlueprintAuthoringMetadata, bool> upsertBlueprint,
+        Func<BlueprintId, string, string, BlueprintAuthoringMetadata, bool> createFromSelection,
         Func<BlueprintId, BlueprintPaletteOrigin, bool, BlueprintProvenance, bool> configurePalette,
         Func<EditorWorkspaceProfile> getWorkspaceProfile,
         Action<BlueprintId> recordRecent,
@@ -119,8 +131,10 @@ public partial class BlueprintCatalogWindow : Window
             : _paletteViews[Math.Clamp(_paletteView.Selected, 0, _paletteViews.Length - 1)];
         _visibleBlueprintIds.Clear();
         _blueprintList.Clear();
-        var catalog = BlueprintPaletteCatalog.Build(state.Project, _getWorkspaceProfile?.Invoke());
-        foreach (var item in catalog.Filter(view, query))
+        var profile = _getWorkspaceProfile?.Invoke();
+        var filter = profile?.Shell.PaletteFilter ?? EditorPaletteFilter.ShowAll;
+        var catalog = BlueprintPaletteCatalog.Build(state.Project, profile);
+        foreach (var item in catalog.Filter(view, query, filter))
         {
             _visibleBlueprintIds.Add(item.BlueprintId);
             var favorite = item.IsFavorite ? "★ " : string.Empty;
@@ -129,11 +143,16 @@ public partial class BlueprintCatalogWindow : Window
                 $"{favorite}{item.DisplayName}\n{FormatOrigin(item.Origin)} · {FormatKind(item.Kind)}{readOnly}");
             _blueprintList.SetItemTooltip(
                 _blueprintList.ItemCount - 1,
-                $"{item.Provenance.Source}\n{item.Provenance.Author} · {item.Provenance.LicenseSpdx}");
+                $"{item.Provenance.Source}\n{item.Provenance.Author} · {item.Provenance.LicenseSpdx}\n" +
+                $"Kit {item.Kit} · styles {string.Join(", ", item.Styles)} · tags {string.Join(", ", item.Tags)}");
         }
 
         _catalogSummary!.Text =
             $"{_visibleBlueprintIds.Count} affiché(s) · {catalog.Items.Count} au total · {FormatView(view)}";
+        _contextFilterSummary!.Text =
+            $"Filtres · types {filter.Kinds.Count} · kits {FormatCount(filter.Kits)} · styles {FormatCount(filter.Styles)} · " +
+            $"licences {FormatCount(filter.Licenses)} · compatibilité {FormatCount(filter.Compatibility)} · " +
+            $"tags {FormatCount(filter.Tags)}{(filter.FavoritesOnly ? " · favoris" : string.Empty)}";
         var library = BlueprintLibraryIndex.Build(state.Project);
         _librarySummary!.Text =
             $"{library.CategoryPaths.Count} catégories · {library.Collections.Count} collections · variantes : suffixe --nom";
@@ -203,6 +222,7 @@ public partial class BlueprintCatalogWindow : Window
         _provenanceSource!.Text = provenance.Source;
         _provenanceAuthor!.Text = provenance.Author;
         _provenanceLicense!.Text = provenance.LicenseSpdx;
+        _permissionEvidence!.Text = provenance.PermissionEvidence;
         _provenanceHash!.Text = provenance.ContentHash;
         _aiGenerated!.ButtonPressed = provenance.IsAiGenerated;
         _modifications!.Text = string.Join('\n', provenance.Modifications);
@@ -264,6 +284,9 @@ public partial class BlueprintCatalogWindow : Window
         _catalogSummary = new Label();
         _catalogSummary.AddThemeColorOverride("font_color", new Color("a899b9"));
         catalogCard.AddChild(_catalogSummary);
+        _contextFilterSummary = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        _contextFilterSummary.AddThemeColorOverride("font_color", new Color("b9aac8"));
+        catalogCard.AddChild(_contextFilterSummary);
         _librarySummary = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
         _librarySummary.AddThemeColorOverride("font_color", new Color("79d5ad"));
         catalogCard.AddChild(_librarySummary);
@@ -299,6 +322,29 @@ public partial class BlueprintCatalogWindow : Window
         };
         _inheritance.AddThemeColorOverride("font_color", new Color("b9aac8"));
         editorCard.AddChild(_inheritance);
+        var versionRow = new HBoxContainer();
+        versionRow.AddThemeConstantOverride("separation", 8);
+        editorCard.AddChild(versionRow);
+        _version = new LineEdit { PlaceholderText = "Version · 1.0.0", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _packageNamespace = new LineEdit { PlaceholderText = "Namespace · project.mon.blueprint", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        versionRow.AddChild(_version);
+        versionRow.AddChild(_packageNamespace);
+        _manifestPath = new LineEdit { PlaceholderText = "Manifeste · content/blueprints/…" };
+        editorCard.AddChild(_manifestPath);
+        _previewPath = new LineEdit { PlaceholderText = "Miniature · content/blueprints/….preview.png" };
+        editorCard.AddChild(_previewPath);
+        _exposedParameters = new LineEdit { PlaceholderText = "Paramètres exposés · scale, tint" };
+        editorCard.AddChild(_exposedParameters);
+        _dependencies = new LineEdit { PlaceholderText = "Dépendances · pack://namespace/version/resource" };
+        editorCard.AddChild(_dependencies);
+        _kit = new LineEdit { PlaceholderText = "Kit · crypt-stone" };
+        editorCard.AddChild(_kit);
+        _styles = new LineEdit { PlaceholderText = "Styles · gothic, ruined" };
+        editorCard.AddChild(_styles);
+        _compatibility = new LineEdit { PlaceholderText = "Compatibilité · medieval, humanoid-rig" };
+        editorCard.AddChild(_compatibility);
+        _tags = new LineEdit { PlaceholderText = "Tags · interior, stone, favorite" };
+        editorCard.AddChild(_tags);
         var spacer = new Control { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         editorCard.AddChild(spacer);
         _createFromSelectionButton = new Button
@@ -351,6 +397,9 @@ public partial class BlueprintCatalogWindow : Window
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
         };
         authorLicense.AddChild(_provenanceLicense);
+        provenanceCard.AddChild(new Label { Text = "Preuve de permission" });
+        _permissionEvidence = new LineEdit { PlaceholderText = "spdx:CC0-1.0, contrat ou autorisation" };
+        provenanceCard.AddChild(_permissionEvidence);
         provenanceCard.AddChild(new Label { Text = "Hash de contenu SHA-256" });
         _provenanceHash = new LineEdit { PlaceholderText = "64 caractères hexadécimaux ou unverified" };
         provenanceCard.AddChild(_provenanceHash);
@@ -463,9 +512,20 @@ public partial class BlueprintCatalogWindow : Window
         _provenanceSource!.Text = blueprint.Provenance.Source;
         _provenanceAuthor!.Text = blueprint.Provenance.Author;
         _provenanceLicense!.Text = blueprint.Provenance.LicenseSpdx;
+        _permissionEvidence!.Text = blueprint.Provenance.PermissionEvidence;
         _provenanceHash!.Text = blueprint.Provenance.ContentHash;
         _aiGenerated!.ButtonPressed = blueprint.Provenance.IsAiGenerated;
         _modifications!.Text = string.Join('\n', blueprint.Provenance.Modifications);
+        _version!.Text = blueprint.Authoring.Version;
+        _packageNamespace!.Text = blueprint.Authoring.PackageNamespace;
+        _manifestPath!.Text = blueprint.Authoring.ManifestPath;
+        _previewPath!.Text = blueprint.Authoring.PreviewPath ?? string.Empty;
+        _exposedParameters!.Text = string.Join(", ", blueprint.Authoring.ExposedParameters);
+        _dependencies!.Text = string.Join(", ", blueprint.Authoring.Dependencies);
+        _kit!.Text = blueprint.Authoring.Kit;
+        _styles!.Text = string.Join(", ", blueprint.Authoring.Styles);
+        _compatibility!.Text = string.Join(", ", blueprint.Authoring.Compatibility);
+        _tags!.Text = string.Join(", ", blueprint.Authoring.Tags);
         SetReadOnlyState(blueprint.IsReadOnly());
         RefreshReferences(state, blueprint);
         _publishSelection?.Invoke(new CreatorSelection(
@@ -504,9 +564,11 @@ public partial class BlueprintCatalogWindow : Window
         _provenanceSource!.Text = $"project://blueprints/{_draftBlueprintId}/{_slug.Text}";
         _provenanceAuthor!.Text = "Project author";
         _provenanceLicense!.Text = "UNLICENSED";
+        _permissionEvidence!.Text = "project-author";
         _provenanceHash!.Text = "unverified";
         _aiGenerated!.ButtonPressed = false;
         _modifications!.Text = string.Empty;
+        LoadDefaultAuthoring(_draftBlueprintId, _slug.Text);
         _personalFavorite!.SetPressedNoSignal(false);
         SetReadOnlyState(false);
         _referenceList!.Clear();
@@ -523,8 +585,19 @@ public partial class BlueprintCatalogWindow : Window
         _provenanceSource!.Text = string.Empty;
         _provenanceAuthor!.Text = string.Empty;
         _provenanceLicense!.Text = string.Empty;
+        _permissionEvidence!.Text = string.Empty;
         _provenanceHash!.Text = string.Empty;
         _modifications!.Text = string.Empty;
+        _version!.Text = string.Empty;
+        _packageNamespace!.Text = string.Empty;
+        _manifestPath!.Text = string.Empty;
+        _previewPath!.Text = string.Empty;
+        _exposedParameters!.Text = string.Empty;
+        _dependencies!.Text = string.Empty;
+        _kit!.Text = string.Empty;
+        _styles!.Text = string.Empty;
+        _compatibility!.Text = string.Empty;
+        _tags!.Text = string.Empty;
         SetReadOnlyState(false);
         _referenceList!.Clear();
         _referenceSummary!.Text = "Aucun usage";
@@ -538,7 +611,8 @@ public partial class BlueprintCatalogWindow : Window
             return;
         }
 
-        if (_upsertBlueprint?.Invoke(blueprintId, slug, displayName, kind) == true)
+        if (!TryBuildAuthoring(out var authoring)) return;
+        if (_upsertBlueprint?.Invoke(blueprintId, slug, displayName, kind, authoring) == true)
         {
             _draftBlueprintId = blueprintId;
             Refresh(blueprintId);
@@ -558,7 +632,8 @@ public partial class BlueprintCatalogWindow : Window
         }
 
         var blueprintId = BlueprintId.From(Guid.NewGuid());
-        if (_createFromSelection?.Invoke(blueprintId, slug, displayName) == true)
+        if (!TryBuildAuthoring(out var authoring)) return;
+        if (_createFromSelection?.Invoke(blueprintId, slug, displayName, authoring) == true)
         {
             _draftBlueprintId = blueprintId;
             Refresh(blueprintId);
@@ -581,11 +656,13 @@ public partial class BlueprintCatalogWindow : Window
         var source = _provenanceSource!.Text.Trim();
         var author = _provenanceAuthor!.Text.Trim();
         var license = _provenanceLicense!.Text.Trim();
+        var permissionEvidence = _permissionEvidence!.Text.Trim();
         var hash = _provenanceHash!.Text.Trim();
         if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(author) ||
-            string.IsNullOrWhiteSpace(license) || string.IsNullOrWhiteSpace(hash))
+            string.IsNullOrWhiteSpace(license) || string.IsNullOrWhiteSpace(permissionEvidence) ||
+            string.IsNullOrWhiteSpace(hash))
         {
-            SetStatus("Source, auteur, licence SPDX et hash sont obligatoires.", true);
+            SetStatus("Source, auteur, licence SPDX, permission et hash sont obligatoires.", true);
             return false;
         }
 
@@ -601,7 +678,8 @@ public partial class BlueprintCatalogWindow : Window
                 license,
                 hash,
                 _aiGenerated!.ButtonPressed,
-                modifications);
+                modifications,
+                permissionEvidence);
         }
         catch (ArgumentException exception)
         {
@@ -631,9 +709,20 @@ public partial class BlueprintCatalogWindow : Window
         _provenanceSource!.Editable = !readOnly;
         _provenanceAuthor!.Editable = !readOnly;
         _provenanceLicense!.Editable = !readOnly;
+        _permissionEvidence!.Editable = !readOnly;
         _provenanceHash!.Editable = !readOnly;
         _aiGenerated!.Disabled = readOnly;
         _modifications!.Editable = !readOnly;
+        _version!.Editable = !readOnly;
+        _packageNamespace!.Editable = !readOnly;
+        _manifestPath!.Editable = !readOnly;
+        _previewPath!.Editable = !readOnly;
+        _exposedParameters!.Editable = !readOnly;
+        _dependencies!.Editable = !readOnly;
+        _kit!.Editable = !readOnly;
+        _styles!.Editable = !readOnly;
+        _compatibility!.Editable = !readOnly;
+        _tags!.Editable = !readOnly;
         _readOnlyBadge!.Text = readOnly ? "STANDARD · lecture seule" : "CUSTOM · éditable";
         _readOnlyBadge.AddThemeColorOverride(
             "font_color",
@@ -651,6 +740,54 @@ public partial class BlueprintCatalogWindow : Window
         _personalFavorite!.SetPressedNoSignal(isFavorite);
         SetStatus(isFavorite ? "Ajouté aux favoris personnels." : "Retiré des favoris personnels.", false);
     }
+
+    private void LoadDefaultAuthoring(BlueprintId id, string slug)
+    {
+        var provenance = BlueprintProvenance.CreateProjectDefault(id, slug);
+        var metadata = BlueprintAuthoringMetadata.CreateDefault(id, slug, BlueprintPaletteOrigin.ProjectContent, provenance);
+        _version!.Text = metadata.Version;
+        _packageNamespace!.Text = metadata.PackageNamespace;
+        _manifestPath!.Text = metadata.ManifestPath;
+        _previewPath!.Text = metadata.PreviewPath ?? string.Empty;
+        _exposedParameters!.Text = string.Empty;
+        _dependencies!.Text = string.Empty;
+        _kit!.Text = metadata.Kit;
+        _styles!.Text = string.Empty;
+        _compatibility!.Text = string.Empty;
+        _tags!.Text = string.Empty;
+    }
+
+    private bool TryBuildAuthoring(out BlueprintAuthoringMetadata metadata)
+    {
+        try
+        {
+            metadata = new BlueprintAuthoringMetadata(
+                BlueprintAuthoringMetadata.CurrentSchemaVersion,
+                _version!.Text,
+                _packageNamespace!.Text,
+                _manifestPath!.Text,
+                SplitList(_exposedParameters!.Text),
+                SplitList(_dependencies!.Text),
+                _previewPath!.Text,
+                BlueprintAuthoringMetadata.DefaultPlatformByteBudget,
+                _kit!.Text,
+                SplitList(_styles!.Text),
+                SplitList(_compatibility!.Text),
+                SplitList(_tags!.Text));
+            return true;
+        }
+        catch (ArgumentException exception)
+        {
+            metadata = null!;
+            SetStatus(exception.Message, true);
+            return false;
+        }
+    }
+
+    private static IReadOnlyList<string> SplitList(string value) => value
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private static string FormatCount(IReadOnlyList<string> values) => values.Count == 0 ? "tous" : values.Count.ToString();
 
     private bool ValidateDraft(out string displayName, out string slug, out BlueprintKind kind)
     {

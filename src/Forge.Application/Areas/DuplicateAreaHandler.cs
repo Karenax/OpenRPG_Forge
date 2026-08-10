@@ -73,7 +73,8 @@ public sealed class DuplicateAreaHandler
                 entity.BlueprintId,
                 entity.Transform,
                 entity.Tags,
-                entity.Overrides)).ToArray();
+                entity.Overrides,
+                entity.BlueprintVersionRequirement)).ToArray();
         var portals = command.Mode == AreaCloneMode.Template
             ? []
             : source.Portals
@@ -88,7 +89,15 @@ public sealed class DuplicateAreaHandler
                         ? entityMap![portal.DestinationEntityId]
                         : portal.DestinationEntityId,
                     portal.Bidirectional,
-                    portal.PreloadDestination))
+                    portal.PreloadDestination,
+                    portal.SchemaVersion,
+                    "area-clone",
+                    portal.Orientation,
+                    portal.FixedYawDegrees,
+                    portal.Velocity,
+                    portal.BeforeTransitionScript,
+                    portal.AfterTransitionScript,
+                    portal.HooksRequiredAtRuntime))
                 .ToArray();
         var clone = new AreaDefinition(
             command.DestinationAreaId,

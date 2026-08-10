@@ -11,4 +11,5 @@ public sealed record UpsertBlueprintCommand(
     string Slug,
     string DisplayName,
     BlueprintKind Kind,
-    bool DryRun);
+    bool DryRun,
+    BlueprintAuthoringMetadata? Authoring = null);

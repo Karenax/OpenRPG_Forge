@@ -20,7 +20,13 @@ public sealed class EditorWorkspaceProfileStoreTests
                 EditorWorkspaceProfileId.From(Guid.Parse("cc42b58d-faf7-4a22-b4bb-c70965a439af")),
                 "Artiste extérieur", EditorRole.Artist,
                 new EditorDisplayFilter([BlueprintKind.Placeable], ["nature"], ghostHidden: true),
-                true, [area], area, null, false, "user-profile");
+                true, [area], area, null, false, "user-profile",
+                shell: new EditorShellConfiguration(
+                    Guid.Parse("36000000-0000-4000-8000-000000000001"), 1, "test",
+                    new EditorShellLayout(Guid.Parse("36000000-0000-4000-8000-000000000002"), 1, "test", 300, 340, 160),
+                    EditorExplorerGrouping.ValidationStatus, EditorViewportMode.Performance,
+                    new EditorPaletteFilter([BlueprintKind.Placeable], ["nature"], ["stylized"],
+                        ["CC0-1.0"], ["desktop"], ["forest"], true)));
 
             EditorWorkspaceProfileStore.Save(root, profile);
             var restored = EditorWorkspaceProfileStore.TryLoad(root);
@@ -35,6 +41,13 @@ public sealed class EditorWorkspaceProfileStoreTests
             Assert.True(restored.RepeatPlacement);
             Assert.Equal(EditorWorkspaceProfile.CurrentSchemaVersion, restored.SchemaVersion);
             Assert.Equal(1, restored.UiScale);
+            Assert.Equal(EditorExplorerGrouping.ValidationStatus, restored.Shell.ExplorerGrouping);
+            Assert.Equal(EditorViewportMode.Performance, restored.Shell.ViewportMode);
+            Assert.Equal(300, restored.Shell.Layout.ExplorerWidth);
+            Assert.Equal(["forest"], restored.Shell.PaletteFilter.Tags);
+            Assert.True(restored.Shell.PaletteFilter.FavoritesOnly);
+            Assert.True(restored.Shell.DirectManipulation.Selection.MultiSelectionEnabled);
+            Assert.Equal(EditorCoordinateSpace.World, restored.Shell.DirectManipulation.Transform.CoordinateSpace);
             Assert.True(File.Exists(Path.Combine(root, EditorWorkspaceProfileStore.RelativePath)));
         }
         finally
@@ -56,6 +69,7 @@ public sealed class EditorWorkspaceProfileStoreTests
         legacy.Remove("fallbackFontFamilies");
         legacy.Remove("personalFavoriteBlueprintIds");
         legacy.Remove("recentBlueprintIds");
+        legacy.Remove("shell");
 
         var migrated = EditorWorkspaceProfileJsonSerializer.Deserialize(legacy.ToJsonString());
 
@@ -66,5 +80,7 @@ public sealed class EditorWorkspaceProfileStoreTests
         Assert.Equal(["Segoe UI", "Arial"], migrated.FallbackFontFamilies);
         Assert.Empty(migrated.PersonalFavoriteBlueprintIds);
         Assert.Empty(migrated.RecentBlueprintIds);
+        Assert.Equal(EditorExplorerGrouping.Area, migrated.Shell.ExplorerGrouping);
+        Assert.Equal(EditorViewportMode.Editing, migrated.Shell.ViewportMode);
     }
 }

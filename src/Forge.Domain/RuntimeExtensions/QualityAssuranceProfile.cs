@@ -245,13 +245,21 @@ public sealed record QualityAssuranceProfile
     public IntegratedProfilerProfile Profiler { get; }
     public AccessibilityQualityProfile Accessibility { get; }
     public SecurityFuzzProfile SecurityFuzz { get; }
+    public ClickableDiagnosticPolicy ClickableDiagnostics { get; }
+    public MaliciousModuleFixturePolicy MaliciousFixtures { get; }
+    public AuroraParityCoveragePolicy AuroraParityCoverage { get; }
+    public AcceptanceGatePolicy AcceptanceGates { get; }
     public string Provenance { get; }
 
     public QualityAssuranceProfile(Guid id, int schemaVersion, NetworkTestSuiteProfile network,
         VisualRegressionProfile visual, AreaBenchmarkSuiteProfile benchmarks,
         IReadOnlyList<PlatformPerformanceBudget> platformBudgets, IntegratedProfilerProfile profiler,
         string provenance, AccessibilityQualityProfile? accessibility = null,
-        SecurityFuzzProfile? securityFuzz = null)
+        SecurityFuzzProfile? securityFuzz = null,
+        ClickableDiagnosticPolicy? clickableDiagnostics = null,
+        MaliciousModuleFixturePolicy? maliciousFixtures = null,
+        AuroraParityCoveragePolicy? auroraParityCoverage = null,
+        AcceptanceGatePolicy? acceptanceGates = null)
     {
         ArgumentNullException.ThrowIfNull(network);
         ArgumentNullException.ThrowIfNull(visual);
@@ -260,9 +268,14 @@ public sealed record QualityAssuranceProfile
         ArgumentNullException.ThrowIfNull(profiler);
         var access = accessibility ?? AccessibilityQualityProfile.CreateDefault(id);
         var fuzz = securityFuzz ?? SecurityFuzzProfile.CreateDefault(id);
+        var clickable = clickableDiagnostics ?? ClickableDiagnosticPolicy.CreateDefault(id);
+        var malicious = maliciousFixtures ?? MaliciousModuleFixturePolicy.CreateDefault(id);
+        var coverage = auroraParityCoverage ?? AuroraParityCoveragePolicy.CreateDefault(id);
+        var gates = acceptanceGates ?? AcceptanceGatePolicy.CreateDefault(id);
         var budgets = platformBudgets.OrderBy(item => item.Platform, StringComparer.Ordinal).ToArray();
         var ids = budgets.Select(item => item.Id).Append(id).Append(network.Id).Append(visual.Id)
-            .Append(benchmarks.Id).Append(profiler.Id).Append(access.Id).Append(fuzz.Id).ToArray();
+            .Append(benchmarks.Id).Append(profiler.Id).Append(access.Id).Append(fuzz.Id)
+            .Append(clickable.Id).Append(malicious.Id).Append(coverage.Id).Append(gates.Id).ToArray();
         if (id == Guid.Empty || schemaVersion != CurrentSchemaVersion || budgets.Length == 0 ||
             budgets.Select(item => item.Platform).Distinct(StringComparer.Ordinal).Count() != budgets.Length ||
             ids.Distinct().Count() != ids.Length)
@@ -276,6 +289,10 @@ public sealed record QualityAssuranceProfile
         Profiler = profiler;
         Accessibility = access;
         SecurityFuzz = fuzz;
+        ClickableDiagnostics = clickable;
+        MaliciousFixtures = malicious;
+        AuroraParityCoverage = coverage;
+        AcceptanceGates = gates;
         Provenance = DataDrivenRuleSchema.RequireText(provenance, nameof(provenance));
     }
 

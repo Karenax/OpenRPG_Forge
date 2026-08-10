@@ -86,6 +86,70 @@ public static class CreatureEventRuntimeResolver
         });
     }
 
+    public static CreatureEventDispatch? BeforeDamage(
+        CreatureEventProfile? profile,
+        Guid transactionId,
+        string creatureId,
+        string? sourceId,
+        double requestedAmount,
+        string damageType,
+        string cause)
+    {
+        if (profile?.DamageDeath is not { } configured) return null;
+        EnsureValid(profile);
+        if (transactionId == Guid.Empty || requestedAmount < 0 || !double.IsFinite(requestedAmount))
+            throw new ArgumentException("CREATURE_BEFORE_DAMAGE_CONTEXT_INVALID");
+        var payload = DamagePayload(transactionId, creatureId, sourceId,
+            requestedAmount, 0, 0, damageType, cause);
+        payload["maximumAdjustmentRatio"] = configured.MaximumAdjustmentRatio
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return Dispatch(configured.BeforeDamage, payload, configured.BeforeDamageBudgetMilliseconds);
+    }
+
+    public static CreatureEventDispatch? DamageApplied(
+        CreatureEventProfile? profile,
+        Guid transactionId,
+        string creatureId,
+        string? sourceId,
+        double requestedAmount,
+        double appliedAmount,
+        double remainingHealth,
+        string damageType,
+        string cause)
+    {
+        if (profile?.DamageDeath is not { } configured) return null;
+        EnsureValid(profile);
+        if (transactionId == Guid.Empty || new[] { requestedAmount, appliedAmount, remainingHealth }
+                .Any(value => value < 0 || !double.IsFinite(value)))
+            throw new ArgumentException("CREATURE_DAMAGE_APPLIED_CONTEXT_INVALID");
+        return Dispatch(configured.DamageApplied, DamagePayload(transactionId, creatureId, sourceId,
+            requestedAmount, appliedAmount, remainingHealth, damageType, cause));
+    }
+
+    public static CreatureEventDispatch? EntityDied(
+        CreatureEventProfile? profile,
+        string creatureId,
+        string? killerId,
+        IReadOnlyList<string> contributors,
+        string cause,
+        string location,
+        IReadOnlyList<string> lootIds,
+        string policy)
+    {
+        if (profile?.DamageDeath is not { } configured) return null;
+        EnsureValid(profile);
+        return Dispatch(configured.Died, new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["creatureId"] = creatureId,
+            ["killerId"] = killerId ?? string.Empty,
+            ["contributors"] = string.Join(',', contributors.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)),
+            ["cause"] = cause,
+            ["location"] = location,
+            ["lootIds"] = string.Join(',', lootIds.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)),
+            ["policy"] = policy,
+        });
+    }
+
     public static CreatureEventDispatch? InventoryAccessed(
         CreatureEventProfile? profile,
         string creatureId,
@@ -174,6 +238,26 @@ public static class CreatureEventRuntimeResolver
             ["actorId"] = actorId,
             ["cause"] = cause,
             ["result"] = result,
+        };
+
+    private static Dictionary<string, string> DamagePayload(
+        Guid transactionId,
+        string creatureId,
+        string? sourceId,
+        double requestedAmount,
+        double appliedAmount,
+        double remainingHealth,
+        string damageType,
+        string cause) => new(StringComparer.Ordinal)
+        {
+            ["transactionId"] = transactionId.ToString("D"),
+            ["creatureId"] = creatureId,
+            ["sourceId"] = sourceId ?? string.Empty,
+            ["requested"] = requestedAmount.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["applied"] = appliedAmount.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["remainingHealth"] = remainingHealth.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["damageType"] = damageType,
+            ["cause"] = cause,
         };
 
     private static CreatureEventDispatch Dispatch(

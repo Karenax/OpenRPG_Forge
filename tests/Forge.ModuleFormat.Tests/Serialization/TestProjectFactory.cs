@@ -96,4 +96,23 @@ internal static class TestProjectFactory
             [dialogue],
             [quest]);
     }
+
+    internal static ProjectDefinition CreateNavigationValid()
+    {
+        var project = CreateValid();
+        var spawnBlueprint = new BlueprintDefinition(
+            BlueprintId.From(Guid.Parse("24d7fb76-9bbb-4ccc-89fc-82b3a9396048")),
+            "player-start",
+            "Player start",
+            BlueprintKind.PlayerSpawn);
+        var spawn = new EntityInstance(
+            EntityId.From(Guid.Parse("c7c935f6-f248-419e-93d4-280e63d769c2")),
+            spawnBlueprint.Id,
+            new TransformValue(new Vector3Value(0, 0, 0), QuaternionValue.Identity, Vector3Value.One),
+            ["player-start"]);
+        return new ProjectDefinition(project.Id, project.Title, project.Module,
+            [.. project.Blueprints, spawnBlueprint],
+            [project.Areas[0].WithEntities([.. project.Areas[0].Entities, spawn])],
+            project.Dialogues, project.Quests);
+    }
 }

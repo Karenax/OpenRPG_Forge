@@ -4,4 +4,5 @@ namespace Forge.ModuleFormat.Build;
 
 public sealed record WorkspaceBuildGraph(
     BuildDependencyGraph Graph,
-    IReadOnlyList<string> AutomaticDependencies);
+    IReadOnlyList<string> AutomaticDependencies,
+    BuildTaskExecutionMetrics Materialization);

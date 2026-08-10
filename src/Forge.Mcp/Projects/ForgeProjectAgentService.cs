@@ -1,32 +1,50 @@
+using System.Security.Cryptography;
 using System.Text;
 using Forge.Application.Commands;
+using Forge.Application.Build;
+using Forge.Application.Content;
 using Forge.Application.Assistant;
+using Forge.Application.Creator;
 using Forge.Application.Assets;
+using Forge.Application.Areas;
 using Forge.Application.Blueprints;
 using Forge.Application.Dialogues;
 using Forge.Application.Entities;
 using Forge.Application.Factions;
 using Forge.Application.Projects;
+using Forge.Application.Quality;
 using Forge.Application.Quests;
 using Forge.Application.Time;
 using Forge.Application.Validation;
 using Forge.Application.WorldFeatures;
+using Forge.Application.Modules;
+using Forge.Application.Localization;
 using Forge.Domain.Areas;
+using Forge.Domain.Audio;
 using Forge.Domain.Assistant;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Build;
 using Forge.Domain.Creatures;
+using Forge.Domain.Content;
 using Forge.Domain.Dialogues;
 using Forge.Domain.Entities;
 using Forge.Domain.Factions;
 using Forge.Domain.Items;
+using Forge.Domain.Modules;
+using Forge.Domain.Navigation;
+using Forge.Domain.Localization;
 using Forge.Domain.Quests;
+using Forge.Domain.Quality;
+using Forge.Domain.Projects;
 using Forge.Domain.RuntimePolicies;
 using Forge.Domain.RuntimeExtensions;
 using Forge.Domain.Rules;
 using Forge.Domain.Sequences;
 using Forge.Domain.Validation;
 using Forge.Mcp.Abilities;
+using Forge.Mcp.Assistant;
+using Forge.Mcp.Build;
 using Forge.Mcp.Dialogues;
 using Forge.Mcp.Bosses;
 using Forge.Mcp.Quests;
@@ -34,6 +52,8 @@ using Forge.Mcp.Assets;
 using Forge.Mcp.Creatures;
 using Forge.Mcp.Factions;
 using Forge.Mcp.Items;
+using Forge.Mcp.Navigation;
+using Forge.Mcp.Quality;
 using Forge.Mcp.Scripts;
 using Forge.Mcp.WorldFeatures;
 using Forge.RpgKit.Application.Abilities;
@@ -45,6 +65,10 @@ using Forge.ModuleFormat.Quality;
 using Forge.Scripting;
 using Forge.ModuleFormat.Assets;
 using Forge.ModuleFormat.Documentation;
+using Forge.ModuleFormat.Build;
+using Forge.ModuleFormat.Packages;
+using Forge.ModuleFormat.Content;
+using Forge.ModuleFormat.Serialization;
 
 namespace Forge.Mcp.Projects;
 
@@ -76,19 +100,31 @@ public sealed class ForgeProjectAgentService
     private readonly ExternalWorkerSecurityPolicyCommandHistory _externalWorkerSecurityHistory;
     private readonly List<AgentDiagnostic> _externalWorkerSecurityLoadDiagnostics;
     private readonly SetEntityOverridesHandler _overridesHandler;
+    private readonly ScaleEntitiesHandler _scaleEntitiesHandler;
     private readonly SetCreatureEventsHandler _creatureEventsHandler;
+    private readonly SetCreatureFoundationHandler _creatureFoundationHandler;
     private readonly SetFactionCatalogHandler _factionHandler;
     private readonly SetDialoguePresentationHandler _dialoguePresentationHandler;
     private readonly SetQuestOperationsHandler _questOperationsHandler;
+    private readonly SetQuestHandler _questJournalHandler;
+    private readonly SetAreaNavigationHandler _areaNavigationHandler;
     private readonly SetItemAdvancedProfileHandler _itemAdvancedHandler;
+    private readonly SetItemFoundationHandler _itemFoundationHandler;
     private readonly SetWorldFeatureCatalogHandler _worldFeatureHandler;
     private readonly WorldFeatureScriptService _worldFeatureScripts = new();
     private readonly SetRuntimePoliciesHandler _runtimePoliciesHandler;
     private readonly SetCinematicProfilesHandler _cinematicHandler;
     private readonly SetGameplayControlProfileHandler _gameplayControlHandler;
+    private readonly SetModuleConfigurationHandler _moduleConfigurationHandler;
+    private readonly SetProjectFoundationHandler _projectFoundationHandler;
+    private readonly SetAreaFoundationHandler _areaFoundationHandler;
+    private readonly SetAreaPlaytestHandler _areaPlaytestHandler;
     private readonly SetRulesProfilesHandler _rulesProfilesHandler;
     private readonly SetAreaExperienceProfileHandler _areaExperienceHandler;
+    private readonly SetAreaEnvironmentHandler _areaEnvironmentHandler;
     private readonly SetRuntimeExtensionsHandler _runtimeExtensionsHandler;
+    private readonly SetContentWorkspaceHandler _contentWorkspaceHandler;
+    private readonly SetLocalizationCatalogHandler _localizationHandler;
     private readonly InstallAssetBlueprintHandler _assetInstallHandler;
     private readonly SetLoreIndexHandler _loreIndexHandler;
     private readonly LoreIndexCommandHistory _loreIndexHistory;
@@ -109,19 +145,35 @@ public sealed class ForgeProjectAgentService
     private readonly Dictionary<string, StoredRuntimePolicyPlan> _runtimePolicyPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredCinematicPlan> _cinematicPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredGameplayControlPlan> _gameplayControlPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredProjectVariablePlan> _projectVariablePlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredProjectFoundationPlan> _projectFoundationPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAreaFoundationPlan> _areaFoundationPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAreaPlaytestPlan> _areaPlaytestPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredEntityScalePlan> _entityScalePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRulesProfilePlan> _rulesProfilePlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAreaExperiencePlan> _areaExperiencePlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StoredAudioEmitterPlan> _audioEmitterPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredRuntimeExtensionPlan> _runtimeExtensionPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssetInstallPlan> _assetInstallPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredLoreIndexPlan> _loreIndexPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedAreaPlan> _areaPlans = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StoredAssistedAreaBuildPlan> _areaBuildPlans = new(StringComparer.Ordinal);
+    private readonly Dictionary<Guid, StoredAgentChangeTransaction> _agentTransactions = [];
+    private readonly List<AgentAiAuditEntry> _agentAudit;
+    private readonly List<AgentDiagnostic> _agentAuditLoadDiagnostics;
     private readonly IClock _clock;
+    private readonly SetWorkspaceBuildProfileHandler _buildProfileHandler;
+    private readonly WorkspaceBuildProfileCommandHistory _buildProfileHistory;
+    private readonly Dictionary<string, StoredProjectCompatibilityPlan> _projectCompatibilityPlans =
+        new(StringComparer.Ordinal);
 
     private ForgeProjectAgentService(ProjectSession session, IClock clock)
     {
         _session = session;
         _clock = clock;
+        var buildProfile = WorkspaceBuildProfileStore.Load(session.RootDirectory);
+        _buildProfileHandler = new SetWorkspaceBuildProfileHandler(clock);
+        _buildProfileHistory = new WorkspaceBuildProfileCommandHistory(buildProfile.Profile);
         _history = new ProjectCommandHistory(new ProjectState(session.Project, new ProjectRevision(0)));
         _dialogueHandler = new SetDialogueHandler(clock);
         _assistedDialogueHandler = new ApplyAssistedDialogueHandler(clock);
@@ -133,6 +185,8 @@ public sealed class ForgeProjectAgentService
         _assistedBlenderCreationHandler = new ApplyAssistedBlenderCreationHandler(clock);
         _assistedModel3DGenerationHandler = new ApplyAssistedModel3DGenerationHandler(clock);
         _externalWorkerSecurityHandler = new SetExternalWorkerSecurityPolicyHandler(clock);
+        _contentWorkspaceHandler = new SetContentWorkspaceHandler(clock);
+        _localizationHandler = new SetLocalizationCatalogHandler(clock);
         _model3DHttpClient = new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false })
         {
             Timeout = Timeout.InfiniteTimeSpan,
@@ -144,17 +198,27 @@ public sealed class ForgeProjectAgentService
         _externalWorkerSecurityLoadDiagnostics = workerSecurity.Diagnostics.Select(item =>
             new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
         _overridesHandler = new SetEntityOverridesHandler(clock);
+        _scaleEntitiesHandler = new ScaleEntitiesHandler(clock);
         _creatureEventsHandler = new SetCreatureEventsHandler(clock);
+        _creatureFoundationHandler = new SetCreatureFoundationHandler(clock);
         _factionHandler = new SetFactionCatalogHandler(clock);
         _dialoguePresentationHandler = new SetDialoguePresentationHandler(clock);
         _questOperationsHandler = new SetQuestOperationsHandler(clock);
+        _questJournalHandler = new SetQuestHandler(clock);
+        _areaNavigationHandler = new SetAreaNavigationHandler(clock);
         _itemAdvancedHandler = new SetItemAdvancedProfileHandler(clock);
+        _itemFoundationHandler = new SetItemFoundationHandler(clock);
         _worldFeatureHandler = new SetWorldFeatureCatalogHandler(clock);
         _runtimePoliciesHandler = new SetRuntimePoliciesHandler(clock);
         _cinematicHandler = new SetCinematicProfilesHandler(clock);
         _gameplayControlHandler = new SetGameplayControlProfileHandler(clock);
+        _moduleConfigurationHandler = new SetModuleConfigurationHandler(clock);
+        _projectFoundationHandler = new SetProjectFoundationHandler(clock);
+        _areaFoundationHandler = new SetAreaFoundationHandler(clock);
+        _areaPlaytestHandler = new SetAreaPlaytestHandler(clock);
         _rulesProfilesHandler = new SetRulesProfilesHandler(clock);
         _areaExperienceHandler = new SetAreaExperienceProfileHandler(clock);
+        _areaEnvironmentHandler = new SetAreaEnvironmentHandler(clock);
         _runtimeExtensionsHandler = new SetRuntimeExtensionsHandler(clock);
         _assetInstallHandler = new InstallAssetBlueprintHandler(clock);
         _loreIndexHandler = new SetLoreIndexHandler(clock);
@@ -167,6 +231,10 @@ public sealed class ForgeProjectAgentService
         var areaPlans = AssistedAreaPlanStore.Load(session.RootDirectory);
         _areaPlanHistory = new AssistedAreaPlanCommandHistory(areaPlans.Catalog);
         _areaPlanLoadDiagnostics = areaPlans.Diagnostics.Select(item =>
+            new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
+        var agentAudit = AgentAiAuditStore.Load(session.RootDirectory);
+        _agentAudit = agentAudit.Entries.ToList();
+        _agentAuditLoadDiagnostics = agentAudit.Diagnostics.Select(item =>
             new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
     }
 
@@ -210,6 +278,333 @@ public sealed class ForgeProjectAgentService
         lock (_gate)
         {
             return _history.State.Revision.Value;
+        }
+    }
+
+    public BuildProfileResource GetBuildProfile()
+    {
+        lock (_gate)
+        {
+            var loaded = WorkspaceBuildProfileStore.Load(_session.RootDirectory);
+            var profile = loaded.Profile;
+            return new(profile.SchemaVersion, profile.Id.ToString("D"), profile.Provenance, loaded.FileMissing,
+                profile.Layout, profile.CliOperations,
+                profile.StableOrdering && profile.NormalizedTimestamps && profile.LockedDependencies &&
+                profile.ContentHashes && profile.VerifyReproducibility,
+                profile.IncrementalBuild && profile.RebuildAffectedOnly,
+                new BuildGovernanceResource(
+                    profile.Governance.Id.ToString("D"),
+                    profile.Governance.SchemaVersion,
+                    profile.Governance.Worktrees.BranchPrefix,
+                    profile.Governance.ContinuousIntegration.WorkflowPath,
+                    profile.Governance.ReferenceFixtures.Fixtures.Select(item => item.Kind.ToString()).ToArray(),
+                    profile.Governance.Versioning.CoreVersion,
+                    profile.Governance.Versioning.KitVersions,
+                    profile.Governance.Versioning.PackageVersion,
+                    profile.Governance.Versioning.ChangelogPath,
+                    profile.Governance.ArchitectureDecisions.TemplatePath,
+                    profile.Governance.ArchitectureDecisions.AllowedStatuses),
+                new BuildCollaborationResource(
+                    profile.Collaboration.Id.ToString("D"), profile.Collaboration.SchemaVersion,
+                    profile.Collaboration.Provenance, profile.Collaboration.Cache.IndexFileName,
+                    profile.Collaboration.Cache.MaximumEntries,
+                    profile.Collaboration.Normalization.MaximumDocumentBytes,
+                    profile.Collaboration.Migrations.BackupDirectory,
+                    profile.Collaboration.Migrations.MaximumBackups,
+                    profile.Collaboration.References.MaximumNodes,
+                    profile.Collaboration.SemanticDiff.MaximumEntries,
+                    ["cache-content-addressed-disposable", "json-utf8-lf-stable-atomic",
+                     "migration-dry-run-backup-idempotent", "references-forward-reverse-rebuildable",
+                     "semantic-diff-area-graph-entity-package-script-text-json"]),
+                ToCompatibilityResource(profile.Compatibility),
+                loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+    }
+
+    public ProjectCompatibilityResource QueryProjectCompatibility(string? idOrSearch = null)
+    {
+        lock (_gate)
+        {
+            var compatibility = _buildProfileHistory.State.Profile.Compatibility;
+            var filter = idOrSearch?.Trim();
+            var found = string.IsNullOrWhiteSpace(filter) ||
+                        string.Equals(compatibility.Id.ToString("D"), filter, StringComparison.OrdinalIgnoreCase) ||
+                        compatibility.MinimumRuntimeVersion.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                        compatibility.ProjectFormatVersion.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                        compatibility.Provenance.Contains(filter, StringComparison.OrdinalIgnoreCase);
+            return found
+                ? ToCompatibilityResource(compatibility)
+                : new(false, string.Empty, 0, string.Empty, string.Empty, string.Empty, false, false,
+                    [new AgentDiagnostic("build.compatibility.not_found",
+                        "No project compatibility profile matches the filter.", "build/compatibility")]);
+        }
+    }
+
+    public ProjectCompatibilityPlanResult PreviewProjectCompatibility(ProjectCompatibilityPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return CompatibilityFailure(request.BaseRevision, "build.compatibility.mcp_schema_unsupported",
+                    "Project compatibility MCP request schema must be v1.", "request/schemaVersion");
+            var source = _buildProfileHistory.State.Profile;
+            var compatibility = source.Compatibility with
+            {
+                Provenance = "openrpg-forge:mcp:r026",
+                MinimumRuntimeVersion = request.MinimumRuntimeVersion,
+                ProjectFormatVersion = request.ProjectFormatVersion,
+                AutomaticMigrations = request.AutomaticMigrations,
+                RequiredAtRuntime = request.RequiredAtRuntime,
+            };
+            var target = WithCompatibility(source, compatibility);
+            var command = new SetWorkspaceBuildProfileCommand(CommandId.From(Guid.NewGuid()),
+                new WorkspaceBuildProfileRevision(request.BaseRevision), target, true);
+            var preview = _buildProfileHandler.Handle(_buildProfileHistory.State, command);
+            if (!preview.Succeeded)
+                return new(false, null, request.BaseRevision, null, false, false, null, [],
+                    preview.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                        "build/compatibility")).ToArray());
+            var planId = Guid.NewGuid().ToString("N");
+            var diff = CompatibilityDiff(source.Compatibility, compatibility);
+            _projectCompatibilityPlans[planId] = new(planId, request.BaseRevision, target, diff);
+            return new(true, planId, request.BaseRevision, null, false, false,
+                ToCompatibilityResource(compatibility), diff, []);
+        }
+    }
+
+    public ProjectCompatibilityPlanResult ApplyProjectCompatibilityPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_projectCompatibilityPlans.TryGetValue(planId, out var plan))
+                return CompatibilityFailure(_buildProfileHistory.State.Revision.Value,
+                    "build.compatibility.plan_missing", "Project compatibility plan does not exist.", "planId");
+            if (plan.Applied)
+                return CompatibilityFailure(_buildProfileHistory.State.Revision.Value,
+                    "build.compatibility.plan_already_applied", "Project compatibility plan is already applied.",
+                    "planId");
+            var command = new SetWorkspaceBuildProfileCommand(CommandId.From(Guid.NewGuid()),
+                new WorkspaceBuildProfileRevision(plan.BaseRevision), plan.Profile, false);
+            var result = _buildProfileHandler.Handle(_buildProfileHistory.State, command);
+            if (!result.Succeeded)
+                return new(false, planId, plan.BaseRevision, null, false, false, null, plan.Diff,
+                    result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                        "build/compatibility")).ToArray());
+            var saved = WorkspaceBuildProfileStore.Save(_session.RootDirectory, result.State.Profile);
+            if (!saved.Succeeded)
+                return new(false, planId, plan.BaseRevision, null, false, false, null, plan.Diff,
+                    saved.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            _buildProfileHistory.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            return new(true, planId, plan.BaseRevision, plan.AppliedRevision, true, false,
+                ToCompatibilityResource(result.State.Profile.Compatibility), plan.Diff, []);
+        }
+    }
+
+    public ProjectCompatibilityPlanResult RevertProjectCompatibilityPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_projectCompatibilityPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted ||
+                plan.AppliedRevision != _buildProfileHistory.State.Revision.Value)
+                return CompatibilityFailure(_buildProfileHistory.State.Revision.Value,
+                    "build.compatibility.revert_unavailable", "Project compatibility plan cannot be reverted now.",
+                    "planId");
+            if (!_buildProfileHistory.Undo())
+                return CompatibilityFailure(_buildProfileHistory.State.Revision.Value,
+                    "build.compatibility.revert_unavailable", "Project compatibility history is empty.", "planId");
+            var saved = WorkspaceBuildProfileStore.Save(_session.RootDirectory, _buildProfileHistory.State.Profile);
+            if (!saved.Succeeded)
+            {
+                _buildProfileHistory.Redo();
+                return new(false, planId, plan.BaseRevision, null, true, false, null, plan.Diff,
+                    saved.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            }
+            plan.Reverted = true;
+            return new(true, planId, plan.BaseRevision, _buildProfileHistory.State.Revision.Value, true, true,
+                ToCompatibilityResource(_buildProfileHistory.State.Profile.Compatibility), plan.Diff, []);
+        }
+    }
+
+    private static WorkspaceBuildProfile WithCompatibility(
+        WorkspaceBuildProfile source, ProjectCompatibilityProfile compatibility) =>
+        new(source.Id, source.SchemaVersion, "openrpg-forge:mcp:r026", source.RequireGitRepository,
+            source.TextDocuments, source.ExplicitGeneratedFiles, source.ReproducibleAssets, source.Layout,
+            source.CliOperations, source.StableOrdering, source.NormalizedTimestamps, source.LockedDependencies,
+            source.ContentHashes, source.VerifyReproducibility, source.IncrementalBuild, source.CachePath,
+            source.RebuildAffectedOnly, source.Governance, source.Collaboration, compatibility);
+
+    private static ProjectCompatibilityResource ToCompatibilityResource(ProjectCompatibilityProfile profile) =>
+        new(true, profile.Id.ToString("D"), profile.SchemaVersion, profile.Provenance,
+            profile.MinimumRuntimeVersion, profile.ProjectFormatVersion, profile.AutomaticMigrations,
+            profile.RequiredAtRuntime, []);
+
+    private static IReadOnlyList<string> CompatibilityDiff(
+        ProjectCompatibilityProfile before, ProjectCompatibilityProfile after)
+    {
+        var changes = new List<string>();
+        if (before.MinimumRuntimeVersion != after.MinimumRuntimeVersion)
+            changes.Add($"minimumRuntimeVersion: {before.MinimumRuntimeVersion} -> {after.MinimumRuntimeVersion}");
+        if (before.ProjectFormatVersion != after.ProjectFormatVersion)
+            changes.Add($"projectFormatVersion: {before.ProjectFormatVersion} -> {after.ProjectFormatVersion}");
+        if (before.AutomaticMigrations != after.AutomaticMigrations)
+            changes.Add($"automaticMigrations: {before.AutomaticMigrations} -> {after.AutomaticMigrations}");
+        if (before.RequiredAtRuntime != after.RequiredAtRuntime)
+            changes.Add($"requiredAtRuntime: {before.RequiredAtRuntime} -> {after.RequiredAtRuntime}");
+        return changes;
+    }
+
+    private static ProjectCompatibilityPlanResult CompatibilityFailure(
+        long revision, string code, string message, string path) =>
+        new(false, null, revision, null, false, false, null, [], [new AgentDiagnostic(code, message, path)]);
+
+    public BuildValidationResource ValidateBuild()
+    {
+        lock (_gate)
+        {
+            var loaded = WorkspaceBuildProfileStore.Load(_session.RootDirectory);
+            var quality = QualityFoundationProfileStore.Load(
+                _session.RootDirectory, _history.State.Project.Id.Value);
+            var canonical = quality.Succeeded
+                ? WorkspaceCanonicalValidationService.Run(
+                    _session.RootDirectory, _history.State.Project, quality.Profile)
+                : null;
+            var blocking = canonical?.Diagnostics.Where(item =>
+                quality.Profile.EffectiveValidation.Categories.TryGetValue(item.Category, out var category) &&
+                category.RequiredBeforeBuild) ?? [];
+            var diagnostics = loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path))
+                .Concat(quality.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)))
+                .Concat(ProjectValidator.Validate(_history.State.Project)
+                    .Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)))
+                .Concat(blocking.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)))
+                .ToArray();
+            return new(diagnostics.Length == 0, _history.State.Project.Id.ToString(), loaded.Profile.Id.ToString("D"), diagnostics);
+        }
+    }
+
+    public BuildPlanResource PlanBuild()
+    {
+        lock (_gate)
+        {
+            var build = WorkspaceBuildGraphBuilder.Build(_session.RootDirectory, _history.State.Project, _session.ProjectFilePath);
+            var plan = WorkspaceIncrementalBuildPlanner.Plan(WorkspaceBuildStateStore.TryLoad(_session.RootDirectory), build.Graph);
+            return new(build.Graph.SchemaVersion, build.Graph.Id.ToString(), plan.ChangedPaths, plan.RemovedPaths,
+                plan.RebuiltResources.Select(item => item.Path).ToArray(),
+                plan.ReusedResources.Select(item => item.Path).ToArray(),
+                build.Graph.Nodes.Select(item => new BuildPlanNode(item.Id.ToString(), item.Path, item.Kind,
+                    item.ContentSha256, item.Dependencies.Select(id => id.ToString()).ToArray())).ToArray());
+        }
+    }
+
+    public BuildExecutionResource BuildModule(string destinationPath)
+    {
+        lock (_gate)
+        {
+            var validation = ValidateBuild();
+            if (!validation.Valid)
+                return new(false, Path.GetFullPath(destinationPath), string.Empty, false, [], [], validation.Diagnostics);
+            var result = ModulePackager.Export(_session.RootDirectory, destinationPath);
+            return new(true, result.PackagePath, result.Manifest.ContentSha256, true,
+                result.BuildPlan.RebuiltResources.Select(item => item.Path).ToArray(),
+                result.BuildPlan.ReusedResources.Select(item => item.Path).ToArray(), []);
+        }
+    }
+
+    public BuildExecutionResource TestBuild()
+    {
+        lock (_gate)
+        {
+            var validation = ValidateBuild();
+            if (!validation.Valid)
+                return new(false, string.Empty, string.Empty, false, [], [], validation.Diagnostics);
+            var root = Path.Combine(Path.GetTempPath(), "OpenRPG_Forge", "mcp-build-test", Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(root);
+            var firstPath = Path.Combine(root, "first.orpmod");
+            var secondPath = Path.Combine(root, "second.orpmod");
+            try
+            {
+                var first = ModulePackager.Export(_session.RootDirectory, firstPath);
+                var second = ModulePackager.Export(_session.RootDirectory, secondPath);
+                var reproducible = File.ReadAllBytes(firstPath).SequenceEqual(File.ReadAllBytes(secondPath));
+                return new(reproducible, string.Empty, first.Manifest.ContentSha256, reproducible,
+                    first.BuildPlan.RebuiltResources.Select(item => item.Path).ToArray(),
+                    second.BuildPlan.ReusedResources.Select(item => item.Path).ToArray(),
+                    reproducible ? [] : [new AgentDiagnostic("build.reproducibility_failed",
+                        "Two consecutive builds produced different bytes.", "build/determinism")]);
+            }
+            finally
+            {
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+        }
+    }
+
+    public BuildCacheResource InspectBuildCache()
+    {
+        lock (_gate)
+        {
+            var loaded = WorkspaceBuildProfileStore.Load(_session.RootDirectory);
+            var report = WorkspaceBuildCollaborationService.RebuildCacheIndex(
+                _session.RootDirectory, loaded.Profile, dryRun: true);
+            return new(report.Succeeded, true, report.CacheDirectory, report.IndexPath, report.Entries,
+                report.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+    }
+
+    public BuildNormalizationResource PreviewBuildNormalization()
+    {
+        lock (_gate)
+        {
+            var loaded = WorkspaceBuildProfileStore.Load(_session.RootDirectory);
+            var report = WorkspaceBuildCollaborationService.NormalizeDocuments(
+                _session.RootDirectory, loaded.Profile, dryRun: true);
+            return new(report.Succeeded, true, report.Changes,
+                report.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+    }
+
+    public BuildMigrationResource PreviewWorkspaceMigration(string? targetVersion = null)
+    {
+        lock (_gate)
+        {
+            var loaded = WorkspaceBuildProfileStore.Load(_session.RootDirectory);
+            var report = WorkspaceBuildCollaborationService.MigrateWorkspace(
+                _session.RootDirectory, loaded.Profile, dryRun: true, targetVersion);
+            return new(report.Succeeded, true, report.FromVersion, report.ToVersion, false,
+                report.Idempotent, report.DowngradeSupported, report.BackupDirectory, report.ChangedDocuments,
+                report.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+    }
+
+    public BuildReferenceIndexResource GetBuildReferences()
+    {
+        lock (_gate)
+        {
+            var loaded = WorkspaceBuildProfileStore.Load(_session.RootDirectory);
+            var index = WorkspaceBuildCollaborationService.BuildReferenceIndex(
+                _session.RootDirectory, _history.State.Project, _session.ProjectFilePath,
+                loaded.Profile.Collaboration);
+            return new(index.GraphId, index.Nodes,
+                index.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+    }
+
+    public BuildSemanticDiffResource GetBuildSemanticDiff()
+    {
+        lock (_gate)
+        {
+            var loaded = WorkspaceBuildProfileStore.Load(_session.RootDirectory);
+            var graph = WorkspaceBuildGraphBuilder.Build(
+                _session.RootDirectory, _history.State.Project, _session.ProjectFilePath).Graph;
+            var current = WorkspaceBuildCollaborationService.CreateSemanticSnapshot(_history.State.Project, graph);
+            var previous = WorkspaceBuildCollaborationService.LoadSemanticSnapshot(_session.RootDirectory);
+            var report = WorkspaceBuildCollaborationService.Diff(previous, current, loaded.Profile.Collaboration);
+            return new(report.Succeeded, report.Text, report.Changes,
+                report.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
         }
     }
 
@@ -262,6 +657,180 @@ public sealed class ForgeProjectAgentService
             return new(1, _history.State.Revision.Value, filter, items);
         }
     }
+
+    public QuestJournalResource QueryQuestJournals(string? questIdOrSearch = null, int limit = 50)
+    {
+        if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        lock (_gate)
+        {
+            var filter = questIdOrSearch?.Trim();
+            var items = _history.State.Project.Quests
+                .Where(item => string.IsNullOrWhiteSpace(filter) ||
+                    string.Equals(item.Id.ToString(), filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Title.Fallback.Contains(filter, StringComparison.CurrentCultureIgnoreCase) ||
+                    item.Category.Contains(filter, StringComparison.CurrentCultureIgnoreCase) ||
+                    item.Owner.Contains(filter, StringComparison.CurrentCultureIgnoreCase))
+                .OrderByDescending(item => item.Priority).ThenBy(item => item.Slug, StringComparer.Ordinal)
+                .Take(limit)
+                .Select(item => new QuestJournalResourceItem(
+                    item.Id.ToString(), item.SchemaVersion, item.Provenance, item.Slug, item.Title.Key,
+                    item.Title.Fallback, item.Description.Key, item.Category, item.Priority, item.Owner,
+                    item.RequiredAtRuntime, item.InstancePolicy.DefaultScope.ToString(),
+                    item.InstancePolicy.AllowedScopes.Select(scope => scope.ToString()).ToArray(),
+                    item.States.OrderBy(state => state.DisplayOrder).ThenBy(state => state.Id.Value)
+                        .Select(state => new QuestJournalStateResource(
+                            state.Id.ToString(), state.SchemaVersion, state.Provenance, state.Slug,
+                            state.DisplayName, state.DisplayOrder, state.LegacyJournalIndex,
+                            state.TerminalKind.ToString(), state.Reactivation.ToString(),
+                            state.Journal.Summary.Key, state.Journal.Summary.Fallback,
+                            state.Journal.Details.Key, state.Journal.Objectives.Count,
+                            state.Journal.ContextLinks.Count)).ToArray(),
+                    item.Transitions.OrderBy(transition => transition.DisplayOrder)
+                        .ThenBy(transition => transition.Id.Value)
+                        .Select(transition => new QuestTransitionResource(
+                            transition.Id.ToString(), transition.SchemaVersion, transition.Provenance,
+                            transition.FromStateId.ToString(), transition.ToStateId.ToString(),
+                            transition.DisplayOrder, transition.EventBinding.Kind.ToString(),
+                            transition.EventBinding.EventName, transition.Priority,
+                            transition.Idempotence.ToString(), transition.IdempotenceKey,
+                            transition.ForgeScriptApiVersion, transition.Conditions.Count,
+                            transition.Actions.Count)).ToArray(),
+                    item.Simulation.Events.Count, item.Simulation.MaximumSteps,
+                    QuestNarrativeValidator.Validate(item).Select(diagnostic =>
+                        new AgentDiagnostic(diagnostic.Code, diagnostic.Message, diagnostic.Path)).ToArray()))
+                .ToArray();
+            return new(1, _history.State.Revision.Value, filter, items);
+        }
+    }
+
+    public AnchorResource QueryAnchors(string? areaIdOrSearch = null, int limit = 100)
+    {
+        if (limit is < 1 or > 500) throw new ArgumentOutOfRangeException(nameof(limit));
+        lock (_gate)
+        {
+            var filter = areaIdOrSearch?.Trim();
+            var items = _history.State.Project.Areas
+                .SelectMany(area => area.Navigation.Anchors.Instances.Select(instance =>
+                    (Area: area, Catalog: area.Navigation.Anchors, Instance: instance,
+                        Definition: area.Navigation.Anchors.Definitions.SingleOrDefault(definition =>
+                            definition.Id == instance.DefinitionId))))
+                .Where(item => item.Definition is not null)
+                .Where(item => string.IsNullOrWhiteSpace(filter) ||
+                    string.Equals(item.Area.Id.ToString(), filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Area.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Definition!.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Definition.Label.Fallback.Contains(filter, StringComparison.CurrentCultureIgnoreCase) ||
+                    item.Definition.Tags.Any(tag => tag.Contains(filter, StringComparison.OrdinalIgnoreCase)))
+                .OrderBy(item => item.Area.Slug, StringComparer.Ordinal)
+                .ThenBy(item => item.Instance.DisplayOrder).ThenBy(item => item.Instance.Id).Take(limit)
+                .Select(item => new AnchorResourceItem(item.Area.Id.ToString(), item.Catalog.Id.ToString("D"),
+                    item.Instance.Id.ToString("D"), item.Definition!.Id.ToString("D"), item.Definition.Slug,
+                    item.Definition.Label.Key, item.Definition.Label.Fallback, item.Definition.Kind.ToString(),
+                    item.Definition.Scope.ToString(), item.Definition.Tags.Order(StringComparer.Ordinal).ToArray(),
+                    item.Instance.Transform.Position.X, item.Instance.Transform.Position.Y,
+                    item.Instance.Transform.Position.Z, item.Instance.Spawn is not null,
+                    item.Instance.Portal is not null, item.Definition.RequiredAtRuntime)).ToArray();
+            return new(1, _history.State.Revision.Value, filter, items);
+        }
+    }
+
+    public AnchorPlanResult PreviewAnchors(AnchorPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("anchor.mcp_schema_unsupported",
+                        "Anchor MCP request schema must be v1.", "request/schemaVersion")]);
+            if (!Guid.TryParse(request.AreaId, out var parsed) || parsed == Guid.Empty)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("anchor.mcp_area_id_invalid",
+                        "Area ID must be a non-empty UUID.", "request/areaId")]);
+            var areaId = AreaId.From(parsed);
+            var area = _history.State.Project.Areas.SingleOrDefault(item => item.Id == areaId);
+            if (area is null || request.Catalog.AreaId != areaId)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("anchor.mcp_area_missing",
+                        "Area must exist and match the canonical anchor catalog.", "request/areaId")]);
+            var navigation = area.Navigation.WithAnchors(request.Catalog);
+            var result = _areaNavigationHandler.Handle(_history.State, new SetAreaNavigationCommand(
+                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), areaId,
+                navigation, true));
+            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
+                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    $"areas/{request.AreaId}/navigation/anchors")).ToArray());
+        }
+    }
+
+    public QuestJournalPlanResult PreviewQuestJournal(QuestJournalPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("quest.journal.mcp_schema_unsupported",
+                        "Quest-journal MCP request schema must be v1.", "request/schemaVersion")]);
+            if (!Guid.TryParse(request.QuestId, out var parsed) || parsed == Guid.Empty ||
+                request.Quest.Id.Value != parsed)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("quest.journal.mcp_id_invalid",
+                        "Quest ID must be a non-empty UUID matching the canonical definition.",
+                        "request/questId")]);
+            var result = _questJournalHandler.Handle(_history.State, new SetQuestCommand(
+                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), request.Quest, true));
+            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
+                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    $"quests/{request.QuestId}")).ToArray());
+        }
+    }
+
+    public QuestSimulationResource SimulateQuestJournal(QuestSimulationRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return SimulationFailure(request.QuestId, "quest.simulation.mcp_schema_unsupported",
+                    "Quest-simulation MCP request schema must be v1.", "request/schemaVersion");
+            if (!Guid.TryParse(request.QuestId, out var parsed) || parsed == Guid.Empty)
+                return SimulationFailure(request.QuestId, "quest.simulation.mcp_id_invalid",
+                    "Quest ID must be a non-empty UUID.", "request/questId");
+            if (!Enum.TryParse<QuestProgressScope>(request.Scope, true, out var scope))
+                return SimulationFailure(request.QuestId, "quest.simulation.mcp_scope_invalid",
+                    "Quest scope must be Player, Party or World.", "request/scope");
+            var quest = _history.State.Project.Quests.SingleOrDefault(item => item.Id.Value == parsed);
+            if (quest is null)
+                return SimulationFailure(request.QuestId, "quest.simulation.mcp_quest_missing",
+                    "Quest does not exist in the current project.", $"quests/{request.QuestId}");
+            try
+            {
+                var result = QuestSimulationEngine.Run(quest, scope, request.ScopeOwnerId, request.StartedAt,
+                    request.AuthorityGranted);
+                return new(true, request.QuestId, result.ScenarioId.ToString("D"), result.Status.ToString(),
+                    result.Instance.CurrentStateId.ToString(), result.Steps.Count, result.Audit.Count,
+                    result.Instance.Variables,
+                    result.Steps.Select(step => new QuestSimulationStepResource(step.Id.ToString("D"),
+                        step.Event.Id.ToString("D"), step.Event.EventName, step.BeforeStateId.ToString(),
+                        step.AfterStateId.ToString(), step.TransitionId?.ToString(), step.Effects.Count,
+                        step.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path))
+                            .ToArray())).ToArray(),
+                    result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path))
+                        .ToArray());
+            }
+            catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+            {
+                return SimulationFailure(request.QuestId, "quest.simulation.mcp_rejected", exception.Message,
+                    $"quests/{request.QuestId}/simulation");
+            }
+        }
+    }
+
+    private static QuestSimulationResource SimulationFailure(string questId, string code, string message,
+        string path) => new(false, questId, null, null, null, 0, 0,
+        new Dictionary<string, string>(), [], [new AgentDiagnostic(code, message, path)]);
 
     public QuestOperationsPlanResult PreviewQuestOperations(QuestOperationsPlanRequest request)
     {
@@ -342,6 +911,119 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public ItemFoundationResource QueryItemFoundations(string? blueprintIdOrSearch = null, int limit = 50)
+    {
+        if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        lock (_gate)
+        {
+            var filter = blueprintIdOrSearch?.Trim();
+            var items = _history.State.Project.Blueprints
+                .Where(item => item.ItemFoundation is not null)
+                .Where(item => string.IsNullOrWhiteSpace(filter) ||
+                    string.Equals(item.Id.ToString(), filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.DisplayName.Contains(filter, StringComparison.CurrentCultureIgnoreCase) ||
+                    item.ItemFoundation!.Type.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(item => item.Slug, StringComparer.Ordinal).Take(limit)
+                .Select(item =>
+                {
+                    var profile = item.ItemFoundation!;
+                    return new ItemFoundationResourceItem(item.Id.ToString(), item.Slug, item.DisplayName,
+                        profile.Id.ToString("D"), profile.SchemaVersion, profile.Provenance, profile.RequiredAtRuntime,
+                        profile.TypeId.ToString("D"), profile.Type.Slug, profile.DefinitionVersion,
+                        profile.Texts.Select(text => text.Locale).Order(StringComparer.Ordinal).ToArray(),
+                        profile.Slots.Order(StringComparer.Ordinal).ToArray(),
+                        profile.AllowedInstanceOverrides.Order(StringComparer.Ordinal).ToArray());
+                }).ToArray();
+            return new(1, _history.State.Revision.Value, filter, items);
+        }
+    }
+
+    public ItemFoundationPlanResult PreviewItemFoundation(ItemFoundationPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("item.foundation.mcp_schema_unsupported",
+                        "Item-foundation MCP request schema must be v1.", "request/schemaVersion")]);
+            BlueprintId blueprintId;
+            try
+            {
+                blueprintId = BlueprintId.Parse(request.BlueprintId);
+            }
+            catch (Exception exception) when (exception is FormatException or ArgumentException)
+            {
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("item.foundation.mcp_blueprint_invalid", exception.Message,
+                        "request/blueprintId")]);
+            }
+            var result = _itemFoundationHandler.Handle(_history.State, new SetItemFoundationCommand(
+                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), blueprintId,
+                request.Profile, request.AcceptTypeMigration, DryRun: true));
+            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
+                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    $"blueprints/{blueprintId}/itemFoundation")).ToArray());
+        }
+    }
+
+    public CreatureFoundationResource QueryCreatureFoundations(string? blueprintIdOrSearch = null, int limit = 50)
+    {
+        if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        lock (_gate)
+        {
+            var filter = blueprintIdOrSearch?.Trim();
+            var items = _history.State.Project.Blueprints
+                .Where(item => item.CreatureFoundation is not null)
+                .Where(item => string.IsNullOrWhiteSpace(filter) ||
+                    string.Equals(item.Id.ToString(), filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.DisplayName.Contains(filter, StringComparison.CurrentCultureIgnoreCase))
+                .OrderBy(item => item.Slug, StringComparer.Ordinal)
+                .Take(limit)
+                .Select(item =>
+                {
+                    var profile = item.CreatureFoundation!;
+                    return new CreatureFoundationResourceItem(item.Id.ToString(), item.Slug, item.DisplayName,
+                        profile.Id.ToString("D"), profile.SchemaVersion, profile.Provenance, profile.RequiredAtRuntime,
+                        profile.Movement.Mode.ToString(),
+                        profile.Resources.ToDictionary(resource => resource.ResourceId, resource => resource.Current,
+                            StringComparer.Ordinal), profile.Spawned.EventName, profile.Spawned.Handler);
+                }).ToArray();
+            return new(1, _history.State.Revision.Value, filter, items);
+        }
+    }
+
+    public CreatureFoundationPlanResult PreviewCreatureFoundation(CreatureFoundationPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("creature.foundation.mcp_schema_unsupported",
+                        "Creature-foundation MCP request schema must be v1.", "request/schemaVersion")]);
+            BlueprintId blueprintId;
+            try
+            {
+                blueprintId = BlueprintId.Parse(request.BlueprintId);
+            }
+            catch (Exception exception) when (exception is FormatException or ArgumentException)
+            {
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("creature.foundation.mcp_blueprint_invalid", exception.Message,
+                        "request/blueprintId")]);
+            }
+            var result = _creatureFoundationHandler.Handle(_history.State, new SetCreatureFoundationCommand(
+                CommandId.From(Guid.NewGuid()), new ProjectRevision(request.BaseRevision), blueprintId,
+                request.Profile, DryRun: true));
+            return new(result.Succeeded, request.BaseRevision, result.Patch, result.Inverse,
+                result.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    $"blueprints/{blueprintId}/creatureFoundation")).ToArray());
+        }
+    }
+
     public CreatureEventResource QueryCreatureEvents(string? blueprintIdOrSearch = null, int limit = 50)
     {
         if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
@@ -365,7 +1047,12 @@ public sealed class ForgeProjectAgentService
                         profile.CombatBoundary?.Mode.ToString(), CreatureEventValidator.EnumerateBindings(profile).Count,
                         profile.Heartbeat?.IntervalMilliseconds ?? 0, profile.Heartbeat?.BudgetMilliseconds ?? 0,
                         profile.Heartbeat?.SuspendOutsideInterest == true,
-                        profile.CustomEvents.Select(custom => custom.QualifiedName).ToArray());
+                        profile.CustomEvents.Select(custom => custom.QualifiedName).ToArray(),
+                        profile.DamageDeath?.BeforeDamage.Handler,
+                        profile.DamageDeath?.DamageApplied.Handler,
+                        profile.DamageDeath?.Died.Handler,
+                        profile.DamageDeath?.BeforeDamageBudgetMilliseconds ?? 0,
+                        profile.DamageDeath?.MaximumAdjustmentRatio ?? 0);
                 }).ToArray();
             return new CreatureEventResource(1, _history.State.Revision.Value, filter, items);
         }
@@ -477,6 +1164,46 @@ public sealed class ForgeProjectAgentService
                     item.Presentation.VariantSets.Sum(set => set.Variants.Count)))
                 .ToArray();
             return new(1, _history.State.Revision.Value, filter, items);
+        }
+    }
+
+    public DialogueGraphResource QueryDialogues(string? dialogueIdOrSearch = null, int limit = 50)
+    {
+        if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
+        lock (_gate)
+        {
+            var filter = dialogueIdOrSearch?.Trim();
+            var items = _history.State.Project.Dialogues
+                .Where(item => string.IsNullOrWhiteSpace(filter) ||
+                    string.Equals(item.Id.ToString(), filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.Slug.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    item.DisplayName.Contains(filter, StringComparison.CurrentCultureIgnoreCase) ||
+                    item.Nodes.Any(node =>
+                        node.Text.Key.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                        node.Text.Fallback.Contains(filter, StringComparison.CurrentCultureIgnoreCase) ||
+                        node.Role.ToString().Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                        (node.SubgraphKey?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false)))
+                .OrderBy(item => item.Slug, StringComparer.Ordinal)
+                .Take(limit)
+                .Select(item => new DialogueGraphResourceItem(
+                    item.Id.ToString(), item.SchemaVersion, item.Provenance, item.Slug, item.DisplayName,
+                    item.EntryNodeId.ToString(), item.Metadata, item.Participants.Count, item.EntryPoints.Count,
+                    item.Nodes.Select(node => new DialogueGraphNodeResource(
+                        node.Id.ToString(), node.Role.ToString(), node.ParticipantId.ToString("D"),
+                        node.SpeakerBlueprintId?.ToString(), node.SubgraphKey, node.Text.Key, node.Text.Fallback,
+                        node.Text.Variants.Count, node.OnEnterActions.Count,
+                        node.Choices.Count, item.Edges.Count(edge => edge.TargetNodeId == node.Id))).ToArray(),
+                    item.Edges.Select(edge =>
+                    {
+                        var choice = item.Nodes.Single(node => node.Id == edge.SourceNodeId).Choices
+                            .Single(candidate => candidate.Id == edge.Id);
+                        return new DialogueGraphEdgeResource(
+                            edge.Id.ToString(), edge.SourceNodeId.ToString(), edge.TargetNodeId.ToString(),
+                            edge.Kind.ToString(), edge.Order, edge.Priority, choice.ConditionCombination.ToString(),
+                            choice.Conditions.Count, choice.Actions.Count);
+                    }).ToArray()))
+                .ToArray();
+            return new DialogueGraphResource(1, _history.State.Revision.Value, filter, items);
         }
     }
 
@@ -959,6 +1686,659 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public AgentStructuredContextResource GetStructuredAgentContext(AgentContextQuery? query = null)
+    {
+        lock (_gate)
+        {
+            query ??= new AgentContextQuery();
+            var project = _history.State.Project;
+            var revision = _history.State.Revision.Value;
+            var loaded = AssistantWorkspaceProfileStore.Load(_session.RootDirectory);
+            var workflow = loaded.Profile.AgentWorkflow;
+            var diagnostics = loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToList();
+            var requested = Math.Clamp(query.MaximumItems, 1, workflow.MaximumContextItems);
+            var graph = AgentReferenceGraphBuilder.Build(project, maximumDepth: workflow.References.MaximumDepth,
+                maximumNodes: workflow.References.MaximumNodes);
+            var graphById = graph.Nodes.ToDictionary(item => item.Id);
+            var blueprintNames = project.Blueprints.ToDictionary(item => item.Id, item => item.DisplayName);
+            var raw = new Dictionary<AgentContextResourceKind, IReadOnlyList<AgentContextItem>>
+            {
+                [AgentContextResourceKind.Project] =
+                    [ContextItem(project.Id.Value, "project", project.Title, "project", "project.json")],
+                [AgentContextResourceKind.World] =
+                    [ContextItem(project.Module.Id.Value, "world", project.Module.DisplayName, "module", project.Module.Metadata.Provenance)],
+                [AgentContextResourceKind.Areas] = project.Areas.Select(area =>
+                    ContextItem(area.Id.Value, "area", area.DisplayName, $"areas/{area.Id}", area.World.Provenance)).ToArray(),
+                [AgentContextResourceKind.Entities] = project.Areas.SelectMany(area => area.Entities.Select(entity =>
+                    ContextItem(entity.Id.Value, "entity", blueprintNames.GetValueOrDefault(entity.BlueprintId, entity.Id.ToString()),
+                        $"areas/{area.Id}/entities/{entity.Id}", $"blueprint:{entity.BlueprintId}"))).ToArray(),
+                [AgentContextResourceKind.Dialogues] = project.Dialogues.Select(dialogue =>
+                    ContextItem(dialogue.Id.Value, "dialogue", dialogue.DisplayName, $"dialogues/{dialogue.Id}", dialogue.Provenance)).ToArray(),
+                [AgentContextResourceKind.Quests] = project.Quests.Select(quest =>
+                    ContextItem(quest.Id.Value, "quest", quest.DisplayName, $"quests/{quest.Id}", quest.Provenance)).ToArray(),
+                [AgentContextResourceKind.Scripts] = EnumerateCuratedScripts(_session.RootDirectory),
+                [AgentContextResourceKind.Assets] = project.Blueprints.Select(blueprint =>
+                    ContextItem(blueprint.Id.Value, "asset", blueprint.DisplayName, $"blueprints/{blueprint.Id}", blueprint.Provenance.Source)).ToArray(),
+                [AgentContextResourceKind.Diagnostics] = GetDiagnostics().Select((diagnostic, index) =>
+                    ContextItem(AgentReferenceGraphBuilder.StableGuid($"diagnostic|{diagnostic.Code}|{diagnostic.Path}|{index}"),
+                        "diagnostic", diagnostic.Code, diagnostic.Path ?? "diagnostics", diagnostic.Provenance ?? "project-validator")).ToArray(),
+                [AgentContextResourceKind.Selection] = ResolveSelection(query.SelectionObjectIds, graphById, diagnostics),
+            };
+
+            var remaining = requested;
+            var sections = new List<AgentContextSection>();
+            foreach (var kind in workflow.ContextResources)
+            {
+                var all = raw.GetValueOrDefault(kind, []);
+                var items = all.OrderBy(item => item.DocumentPath, StringComparer.Ordinal).ThenBy(item => item.Id)
+                    .Take(remaining).ToArray();
+                remaining -= items.Length;
+                sections.Add(new AgentContextSection(kind, all.Count, items));
+            }
+            var total = sections.Sum(section => section.Items.Count);
+            return new AgentStructuredContextResource(
+                AgentReferenceGraphBuilder.StableGuid($"context|{project.Id}|{revision}|{requested}"),
+                AgentSemanticWorkflow.CurrentSchemaVersion, workflow.Provenance, revision,
+                workflow.MaximumPermission, total, sections, diagnostics);
+        }
+    }
+
+    public AgentReferenceGraphResource QueryAgentReferenceGraph(
+        string? impactTargetId = null,
+        int? maximumDepth = null,
+        int? maximumNodes = null)
+    {
+        lock (_gate)
+        {
+            var workflow = AssistantWorkspaceProfileStore.Load(_session.RootDirectory).Profile.AgentWorkflow;
+            var diagnostics = new List<AgentDiagnostic>();
+            Guid? target = null;
+            if (!string.IsNullOrWhiteSpace(impactTargetId))
+            {
+                if (!Guid.TryParse(impactTargetId, out var parsed))
+                    diagnostics.Add(new("assistant.reference_graph.target_invalid", "Impact target must be a UUID.", "impactTargetId"));
+                else target = parsed;
+            }
+            var depth = Math.Clamp(maximumDepth ?? workflow.References.MaximumDepth, 1, workflow.References.MaximumDepth);
+            var nodeLimit = Math.Clamp(maximumNodes ?? workflow.References.MaximumNodes, 10, workflow.References.MaximumNodes);
+            var graph = AgentReferenceGraphBuilder.Build(_history.State.Project, target, depth, nodeLimit);
+            if (target is { } id && graph.Nodes.All(item => item.Id != id))
+                diagnostics.Add(new("assistant.reference_graph.target_missing", $"Impact target '{id:D}' is not present.", "impactTargetId"));
+            return new AgentReferenceGraphResource(
+                AgentReferenceGraphBuilder.StableGuid($"reference-graph|{_history.State.Project.Id}|{_history.State.Revision.Value}"),
+                AgentSemanticWorkflow.CurrentSchemaVersion, workflow.Provenance, _history.State.Revision.Value, target,
+                graph.Nodes.Select(item => new AgentReferenceNode(item.Id, item.Kind.ToString(), item.DisplayName, item.DocumentPath)).ToArray(),
+                graph.Edges.Select(item => new AgentReferenceEdge(item.Id, item.SourceId, item.TargetId,
+                    item.Usage.ToString(), item.DocumentPath)).ToArray(), graph.ImpactedObjectIds, diagnostics);
+        }
+    }
+
+    public AgentSemanticToolCatalogResource GetSemanticToolCatalog()
+    {
+        lock (_gate)
+        {
+            var loaded = AssistantWorkspaceProfileStore.Load(_session.RootDirectory);
+            var workflow = loaded.Profile.AgentWorkflow;
+            return new(workflow.Id, workflow.SchemaVersion, workflow.Provenance, workflow.MaximumPermission,
+                workflow.Tools.OrderBy(item => item.Name, StringComparer.Ordinal).ToArray(),
+                loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+    }
+
+    public AgentChangePlanPreviewResult PreviewAgentChangePlan(AgentChangePlanPreviewRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            var project = _history.State.Project;
+            var revision = _history.State.Revision.Value;
+            var before = ProjectFingerprint(project);
+            var workflow = AssistantWorkspaceProfileStore.Load(_session.RootDirectory).Profile.AgentWorkflow;
+            var diagnostics = new List<AgentDiagnostic>();
+            if (request.SchemaVersion != StructuredChangePlan.CurrentSchemaVersion)
+                diagnostics.Add(new("assistant.change_plan.schema_unsupported", "Change-plan request schema must be 1.", "schemaVersion"));
+            if (request.Plan.BaseRevision != revision)
+                diagnostics.Add(new("assistant.change_plan.revision_conflict",
+                    $"Plan revision {request.Plan.BaseRevision} does not match current revision {revision}.", "plan/baseRevision"));
+            diagnostics.AddRange(AgentSemanticWorkflowValidator.ValidatePlan(request.Plan, workflow)
+                .Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)));
+            var graph = AgentReferenceGraphBuilder.Build(project, maximumDepth: workflow.References.MaximumDepth,
+                maximumNodes: workflow.References.MaximumNodes);
+            var targets = graph.Nodes.ToDictionary(item => item.Id);
+            foreach (var command in request.Plan.Commands.Where(command => !targets.ContainsKey(command.TargetObjectId)))
+                diagnostics.Add(new("assistant.change_plan.target_missing",
+                    $"Target '{command.TargetObjectId:D}' is not present in the project graph.", $"plan/commands/{command.Id:D}/targetObjectId"));
+            var diff = diagnostics.Count == 0
+                ? request.Plan.Commands.OrderBy(item => item.Id).Select(command =>
+                    $"{command.ToolName} -> {targets[command.TargetObjectId].Kind}:{targets[command.TargetObjectId].DisplayName} " +
+                    $"({string.Join(", ", command.Arguments.OrderBy(item => item.Key, StringComparer.Ordinal).Select(item => $"{item.Key}={item.Value}"))})")
+                    .ToArray()
+                : [];
+            var after = ProjectFingerprint(_history.State.Project);
+            if (!string.Equals(before, after, StringComparison.Ordinal) || _history.State.Revision.Value != revision)
+                diagnostics.Add(new("assistant.change_plan.dry_run_write_detected", "Dry-run changed project state.", "dryRun"));
+            return new(diagnostics.Count == 0, request.Plan.Id, request.Plan.TransactionId,
+                request.Plan.BaseRevision, revision, diff, before, after, diagnostics, true);
+        }
+    }
+
+    public AgentChangeTransactionResult BeginAgentChangeTransaction(AgentChangeTransactionBeginRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            var plan = request.Plan;
+            var revision = _history.State.Revision.Value;
+            var diagnostics = new List<AgentDiagnostic>();
+            if (request.SchemaVersion != 1)
+                diagnostics.Add(new("assistant.transaction.schema_unsupported", "Agent transaction schema must be 1.", "schemaVersion"));
+            if (string.IsNullOrWhiteSpace(request.ClientId) || string.IsNullOrWhiteSpace(request.UserId))
+                diagnostics.Add(new("assistant.transaction.actor_required", "Client and user identities are required.", "actor"));
+            if (plan.TransactionId == Guid.Empty || _agentTransactions.ContainsKey(plan.TransactionId))
+                diagnostics.Add(new("assistant.transaction.identity_invalid", "Transaction ID must be non-empty and unique.", "plan/transactionId"));
+
+            var loaded = AssistantWorkspaceProfileStore.Load(_session.RootDirectory);
+            var workflow = loaded.Profile.AgentWorkflow;
+            diagnostics.AddRange(loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)));
+            diagnostics.AddRange(AgentSemanticWorkflowValidator.ValidatePlan(plan, workflow).Select(Map));
+            if (plan.BaseRevision != revision)
+                diagnostics.Add(new("assistant.transaction.revision_conflict",
+                    $"Plan revision {plan.BaseRevision} does not match current revision {revision}.", "plan/baseRevision"));
+
+            var paths = plan.Commands.Select(command => AgentCommandDocumentPath(command)).ToArray();
+            var providerKey = string.IsNullOrWhiteSpace(request.Provider)
+                ? loaded.Profile.ActiveProvider.Key
+                : request.Provider.Trim();
+            var authorization = AgentExecutionGovernanceValidator.Authorize(workflow, plan,
+                new AgentExecutionAuthorizationRequest(providerKey, request.ProjectContentOptIn,
+                    request.HumanConfirmed, request.InputTokens, request.OutputTokens, request.EstimatedCost,
+                    request.DurationSeconds, paths));
+            diagnostics.AddRange(authorization.Diagnostics.Select(Map));
+            if (diagnostics.Count > 0)
+                return AgentTransactionFailure(plan.TransactionId, plan.Id, Guid.Empty, AgentTransactionStage.Rejected,
+                    plan.BaseRevision, revision, diagnostics);
+
+            var fingerprint = ProjectFingerprint(_history.State.Project);
+            var rollbackId = Guid.NewGuid();
+            var stored = new StoredAgentChangeTransaction(request, providerKey, rollbackId, fingerprint);
+            var audit = CreateAgentAudit(stored, AgentTransactionStage.Begun, revision, fingerprint, true);
+            var auditSave = AppendAgentAudit(audit);
+            if (!auditSave.Succeeded)
+                return AgentTransactionFailure(plan.TransactionId, plan.Id, rollbackId, AgentTransactionStage.Rejected,
+                    plan.BaseRevision, revision, auditSave.Diagnostics.Select(Map).ToArray());
+            stored.Audit.Add(audit);
+            _agentTransactions.Add(plan.TransactionId, stored);
+            return ToResult(stored);
+        }
+    }
+
+    public AgentChangeTransactionResult PreviewAgentChangeTransaction(string transactionId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(transactionId);
+        lock (_gate)
+        {
+            if (!Guid.TryParse(transactionId, out var id) || !_agentTransactions.TryGetValue(id, out var stored))
+                return AgentTransactionFailure(id, Guid.Empty, Guid.Empty, AgentTransactionStage.Rejected,
+                    GetCurrentRevision(), GetCurrentRevision(),
+                    [new("assistant.transaction.missing", "Agent transaction does not exist.", "transactionId")]);
+            if (stored.Stage != AgentTransactionStage.Begun)
+                return AgentTransactionStateFailure(stored, "assistant.transaction.preview_state_invalid",
+                    "Only a begun transaction can be previewed.");
+            if (stored.Request.Plan.BaseRevision != _history.State.Revision.Value ||
+                !string.Equals(stored.BeforeHash, ProjectFingerprint(_history.State.Project), StringComparison.Ordinal))
+                return RejectAgentTransaction(stored, "assistant.transaction.revision_conflict",
+                    "Project revision or hash changed before preview.");
+
+            var prepared = PrepareProjectVariableBatch(stored);
+            if (!prepared.Succeeded)
+                return RejectAgentTransaction(stored, prepared.Diagnostics);
+            stored.Command = prepared.Command;
+            stored.SemanticDiff = prepared.SemanticDiff;
+            stored.Stage = AgentTransactionStage.Previewed;
+            var audit = CreateAgentAudit(stored, AgentTransactionStage.Previewed,
+                _history.State.Revision.Value, prepared.SemanticDiff!.AfterHash, true);
+            var saved = AppendAgentAudit(audit);
+            if (!saved.Succeeded)
+            {
+                stored.Stage = AgentTransactionStage.Rejected;
+                return AgentTransactionFailure(stored.Request.Plan.TransactionId, stored.Request.Plan.Id,
+                    stored.RollbackId, stored.Stage, stored.Request.Plan.BaseRevision, _history.State.Revision.Value,
+                    saved.Diagnostics.Select(Map).ToArray(), stored.SemanticDiff, stored.Audit);
+            }
+            stored.Audit.Add(audit);
+            return ToResult(stored);
+        }
+    }
+
+    public AgentChangeTransactionResult CommitAgentChangeTransaction(string transactionId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(transactionId);
+        lock (_gate)
+        {
+            if (!Guid.TryParse(transactionId, out var id) || !_agentTransactions.TryGetValue(id, out var stored))
+                return AgentTransactionFailure(id, Guid.Empty, Guid.Empty, AgentTransactionStage.Rejected,
+                    GetCurrentRevision(), GetCurrentRevision(),
+                    [new("assistant.transaction.missing", "Agent transaction does not exist.", "transactionId")]);
+            if (stored.Stage != AgentTransactionStage.Previewed || stored.Command is null || stored.SemanticDiff is null)
+                return AgentTransactionStateFailure(stored, "assistant.transaction.commit_state_invalid",
+                    "Commit requires a successful preview of the same transaction.");
+            if (stored.Request.Plan.BaseRevision != _history.State.Revision.Value ||
+                !string.Equals(stored.BeforeHash, ProjectFingerprint(_history.State.Project), StringComparison.Ordinal))
+                return RejectAgentTransaction(stored, "assistant.transaction.revision_conflict",
+                    "Project revision or hash changed before commit.");
+
+            var result = _moduleConfigurationHandler.Handle(_history.State, stored.Command with
+            {
+                CommandId = CommandId.From(Guid.NewGuid()),
+                DryRun = false,
+            });
+            if (!result.Succeeded)
+                return RejectAgentTransaction(stored, result.Diagnostics.Select(Map).ToArray());
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return RejectAgentTransaction(stored, saved.Diagnostics.Select(item =>
+                    new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+            _history.Record(result);
+            stored.Stage = AgentTransactionStage.Committed;
+            stored.AppliedRevision = result.NewRevision!.Value.Value;
+            var outputHash = ProjectFingerprint(_history.State.Project);
+            stored.SemanticDiff = stored.SemanticDiff with { AfterHash = outputHash };
+            var audit = CreateAgentAudit(stored, AgentTransactionStage.Committed,
+                stored.AppliedRevision.Value, outputHash, true);
+            var auditSaved = AppendAgentAudit(audit);
+            if (!auditSaved.Succeeded)
+            {
+                var undone = _history.Undo();
+                if (undone.Succeeded) _session.Save(undone.State.Project);
+                stored.Stage = AgentTransactionStage.Rejected;
+                stored.AppliedRevision = null;
+                return AgentTransactionFailure(stored.Request.Plan.TransactionId, stored.Request.Plan.Id,
+                    stored.RollbackId, stored.Stage, stored.Request.Plan.BaseRevision, _history.State.Revision.Value,
+                    auditSaved.Diagnostics.Select(Map).ToArray(), stored.SemanticDiff, stored.Audit);
+            }
+            stored.Audit.Add(audit);
+            return ToResult(stored);
+        }
+    }
+
+    public AgentChangeTransactionResult RollbackAgentChangeTransaction(string transactionId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(transactionId);
+        lock (_gate)
+        {
+            if (!Guid.TryParse(transactionId, out var id) || !_agentTransactions.TryGetValue(id, out var stored))
+                return AgentTransactionFailure(id, Guid.Empty, Guid.Empty, AgentTransactionStage.Rejected,
+                    GetCurrentRevision(), GetCurrentRevision(),
+                    [new("assistant.transaction.missing", "Agent transaction does not exist.", "transactionId")]);
+            if (stored.Stage != AgentTransactionStage.Committed || stored.AppliedRevision != _history.State.Revision.Value)
+                return AgentTransactionStateFailure(stored, "assistant.transaction.rollback_state_invalid",
+                    "Rollback is allowed only for the latest committed agent transaction.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return AgentTransactionStateFailure(stored, "assistant.transaction.rollback_unavailable",
+                    "The canonical inverse is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return AgentTransactionStateFailure(stored, "assistant.transaction.rollback_save_failed",
+                    "The rolled-back project could not be persisted.");
+            }
+            stored.Stage = AgentTransactionStage.RolledBack;
+            var outputHash = ProjectFingerprint(_history.State.Project);
+            var audit = CreateAgentAudit(stored, AgentTransactionStage.RolledBack,
+                _history.State.Revision.Value, outputHash, true);
+            var auditSaved = AppendAgentAudit(audit);
+            if (!auditSaved.Succeeded)
+            {
+                var redone = _history.Redo();
+                if (redone.Succeeded) _session.Save(redone.State.Project);
+                stored.Stage = AgentTransactionStage.Committed;
+                return AgentTransactionFailure(stored.Request.Plan.TransactionId, stored.Request.Plan.Id,
+                    stored.RollbackId, stored.Stage, stored.Request.Plan.BaseRevision, _history.State.Revision.Value,
+                    auditSaved.Diagnostics.Select(Map).ToArray(), stored.SemanticDiff, stored.Audit);
+            }
+            stored.Audit.Add(audit);
+            return ToResult(stored);
+        }
+    }
+
+    public AgentAiAuditResource GetAgentAiAudit()
+    {
+        lock (_gate)
+        {
+            return new(AgentAiAuditEntry.CurrentSchemaVersion,
+                _agentAudit.OrderBy(item => item.OccurredAt).ThenBy(item => item.Id).ToArray(),
+                _agentAuditLoadDiagnostics.ToArray());
+        }
+    }
+
+    public AgentStructuredResultValidationResource ValidateAgentStructuredResult(
+        AgentStructuredResultValidationRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return new(false, false, string.Empty, [],
+                    [new("assistant.result.request_schema_unsupported", "Structured-result request schema must be 1.", "schemaVersion")]);
+            var loaded = AssistantWorkspaceProfileStore.Load(_session.RootDirectory);
+            var prompt = loaded.Profile.Prompts.SingleOrDefault(item =>
+                string.Equals(item.Key, request.PromptKey, StringComparison.Ordinal));
+            if (prompt is null)
+                return new(false, false, string.Empty, [],
+                    [new("assistant.result.prompt_missing", $"Prompt '{request.PromptKey}' is not configured.", "promptKey")]);
+            var rendered = new AssistantPromptRenderResult(prompt.Key, prompt.Version, string.Empty, string.Empty,
+                prompt.ResponseJsonSchema, new string('0', 64));
+            var providerRequest = new AssistantProviderRequest(request.PlanId, request.TransactionId, rendered,
+                request.Permission, loaded.Profile.ActiveProvider.MaximumOutputTokens,
+                loaded.Profile.NetworkAllowed, loaded.Profile.ShareProjectContent);
+            var response = new AssistantProviderResponse(request.ProviderKey, request.Model, request.Content,
+                request.InputTokens, request.OutputTokens, request.EstimatedCost, request.Provenance);
+            var result = AgentResponseSafetyService.ValidateStructuredResult(
+                prompt, response, providerRequest, loaded.Profile.AgentWorkflow);
+            return new(result.Succeeded, result.Repaired, result.NormalizedJson,
+                result.ToolCalls.Select(call => new AgentStructuredToolCallResource(
+                    call.ToolName, call.TargetObjectId,
+                    call.Arguments.ToDictionary(item => item.Key, item => item.Value.GetRawText(), StringComparer.Ordinal)))
+                    .ToArray(),
+                result.Diagnostics.Select(Map).ToArray());
+        }
+    }
+
+    public AgentOfflineReadinessResource GetAgentOfflineReadiness()
+    {
+        lock (_gate)
+        {
+            var loaded = AssistantWorkspaceProfileStore.Load(_session.RootDirectory);
+            var readiness = AgentResponseSafetyService.EvaluateOfflineReadiness(
+                loaded.Profile,
+                loaded.FileMissing,
+                loaded.Diagnostics.Select(item => new DomainDiagnostic(
+                    item.Code, item.Message, item.Path ?? "assistant/profile")).ToArray());
+            return new(readiness.Ready, readiness.ProfileWasMissing, readiness.ManualAuthoringAvailable,
+                readiness.NetworkRequired, readiness.AiMetadataRequiredByBuild, readiness.AiMetadataRequiredByRuntime,
+                readiness.ActiveProvider, readiness.Diagnostics.Select(Map).ToArray());
+        }
+    }
+
+    private static AgentContextItem ContextItem(Guid id, string kind, string name, string path, string provenance) =>
+        new(id, kind, name, path, provenance);
+
+    private static IReadOnlyList<AgentContextItem> EnumerateCuratedScripts(string workspaceRoot)
+    {
+        var root = Path.Combine(workspaceRoot, "scripts");
+        if (!Directory.Exists(root)) return [];
+        return Directory.EnumerateFiles(root, "*.forge", SearchOption.TopDirectoryOnly)
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .Select(path => ContextItem(AgentReferenceGraphBuilder.StableGuid($"script|{Path.GetFileName(path)}"),
+                "script", Path.GetFileNameWithoutExtension(path), $"scripts/{Path.GetFileName(path)}", "curated-forgescript-metadata"))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<AgentContextItem> ResolveSelection(
+        IReadOnlyList<string>? ids,
+        IReadOnlyDictionary<Guid, AgentReferenceGraphNode> graph,
+        ICollection<AgentDiagnostic> diagnostics)
+    {
+        var values = new List<AgentContextItem>();
+        foreach (var raw in ids ?? [])
+        {
+            if (!Guid.TryParse(raw, out var id) || !graph.TryGetValue(id, out var node))
+            {
+                diagnostics.Add(new("assistant.context.selection_missing", $"Selection '{raw}' is unknown.", "selectionObjectIds"));
+                continue;
+            }
+            values.Add(ContextItem(node.Id, node.Kind.ToString(), node.DisplayName, node.DocumentPath, "canonical-selection"));
+        }
+        return values;
+    }
+
+    private static string ProjectFingerprint(Forge.Domain.Projects.ProjectDefinition project) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(ProjectJsonSerializer.Serialize(project)))).ToLowerInvariant();
+
+    private AgentTransactionPreparation PrepareProjectVariableBatch(StoredAgentChangeTransaction stored)
+    {
+        var plan = stored.Request.Plan;
+        var project = _history.State.Project;
+        var variables = project.Module.Variables.ToDictionary(item => item.Key, StringComparer.Ordinal);
+        var before = project.Module.Variables.ToDictionary(item => item.Key, StringComparer.Ordinal);
+        var diagnostics = new List<AgentDiagnostic>();
+        foreach (var semantic in plan.Commands.OrderBy(item => item.Id))
+        {
+            if (!string.Equals(semantic.ToolName, "project.set_variable", StringComparison.Ordinal))
+            {
+                diagnostics.Add(new("assistant.transaction.adapter_missing",
+                    $"Tool '{semantic.ToolName}' has no atomic batch adapter; use its specialized MCP workflow.",
+                    $"plan/commands/{semantic.Id:D}/toolName"));
+                continue;
+            }
+            if (semantic.TargetObjectId != project.Id.Value && semantic.TargetObjectId != project.Module.Id.Value)
+            {
+                diagnostics.Add(new("assistant.transaction.target_invalid",
+                    "Project-variable commands must target the canonical project or module UUID.",
+                    $"plan/commands/{semantic.Id:D}/targetObjectId"));
+                continue;
+            }
+            var arguments = semantic.Arguments;
+            if (!arguments.TryGetValue("key", out var key) || string.IsNullOrWhiteSpace(key))
+            {
+                diagnostics.Add(new("assistant.transaction.variable_key_required", "Variable key is required.",
+                    $"plan/commands/{semantic.Id:D}/arguments/key"));
+                continue;
+            }
+            key = key.Trim();
+            var operation = arguments.GetValueOrDefault("operation", "upsert").Trim().ToLowerInvariant();
+            if (operation == "remove")
+            {
+                if (!variables.Remove(key))
+                    diagnostics.Add(new("assistant.transaction.variable_missing", $"Variable '{key}' does not exist.",
+                        $"module/variables/{key}"));
+                continue;
+            }
+            if (operation != "upsert" ||
+                !Enum.TryParse<ProjectVariableValueKind>(arguments.GetValueOrDefault("kind"), true, out var kind) ||
+                !Enum.IsDefined(kind) ||
+                !Enum.TryParse<ProjectVariableScope>(arguments.GetValueOrDefault("scope"), true, out var scope) ||
+                !Enum.IsDefined(scope) ||
+                !Enum.TryParse<ProjectVariableReplicationMode>(arguments.GetValueOrDefault("replication", "None"), true,
+                    out var replication) || !Enum.IsDefined(replication) ||
+                !arguments.TryGetValue("value", out var value))
+            {
+                diagnostics.Add(new("assistant.transaction.variable_arguments_invalid",
+                    "Variable operation, kind, scope, replication and value must be valid.",
+                    $"plan/commands/{semantic.Id:D}/arguments"));
+                continue;
+            }
+            try
+            {
+                var id = variables.TryGetValue(key, out var existing)
+                    ? existing.Id
+                    : ProjectVariableId.From(arguments.TryGetValue("variableId", out var rawId) && Guid.TryParse(rawId, out var parsedId)
+                        ? parsedId
+                        : semantic.Id);
+                variables[key] = new ProjectVariableDefinition(
+                    id,
+                    key,
+                    kind,
+                    scope,
+                    value,
+                    arguments.GetValueOrDefault("description", string.Empty),
+                    plan.Provenance,
+                    ProjectVariableDefinition.CurrentSchemaVersion,
+                    replication,
+                    ParseBoolean(arguments.GetValueOrDefault("debugVisible"), true),
+                    ParseBoolean(arguments.GetValueOrDefault("requiredAtRuntime"), false));
+            }
+            catch (Exception exception) when (exception is ArgumentException or FormatException or InvalidOperationException)
+            {
+                diagnostics.Add(new("assistant.transaction.variable_invalid", exception.Message,
+                    $"module/variables/{key}"));
+            }
+        }
+        if (diagnostics.Count > 0) return new(false, null, null, diagnostics);
+
+        var command = new SetModuleConfigurationCommand(CommandId.From(Guid.NewGuid()),
+            new ProjectRevision(plan.BaseRevision), project.Module.Metadata,
+            variables.Values.OrderBy(item => item.Key, StringComparer.Ordinal).ToArray(), false);
+        var candidate = _moduleConfigurationHandler.Handle(_history.State, command);
+        if (!candidate.Succeeded)
+            return new(false, null, null, candidate.Diagnostics.Select(Map).ToArray());
+        var after = candidate.State.Project.Module.Variables.ToDictionary(item => item.Key, StringComparer.Ordinal);
+        var touchedKeys = before.Keys.Concat(after.Keys).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal);
+        var privacy = AssistantWorkspaceProfileStore.Load(_session.RootDirectory).Profile.AgentWorkflow
+            .EffectiveGovernance.BudgetPrivacy;
+        var entries = new List<AgentSemanticDiffEntry>();
+        foreach (var key in touchedKeys)
+        {
+            before.TryGetValue(key, out var oldValue);
+            after.TryGetValue(key, out var newValue);
+            if (Equals(oldValue, newValue)) continue;
+            var change = oldValue is null ? AgentSemanticChangeKind.Added :
+                newValue is null ? AgentSemanticChangeKind.Removed : AgentSemanticChangeKind.Modified;
+            var objectId = newValue?.Id.Value ?? oldValue!.Id.Value;
+            var redact = AgentExecutionGovernanceValidator.IsSensitive(key, privacy);
+            entries.Add(new AgentSemanticDiffEntry(
+                AgentReferenceGraphBuilder.StableGuid($"agent-diff|{plan.TransactionId:D}|{key}|{change}"),
+                AgentSemanticDiffCategory.States,
+                change,
+                objectId,
+                $"module/variables/{key}",
+                "defaultValue",
+                oldValue is null ? string.Empty : redact ? "[REDACTED]" : oldValue.DefaultValue,
+                newValue is null ? string.Empty : redact ? "[REDACTED]" : newValue.DefaultValue,
+                $"{change.ToString().ToLowerInvariant()} project variable '{key}'"));
+        }
+        if (entries.Count == 0)
+            return new(false, null, null,
+                [new("assistant.transaction.no_change", "The transaction produces no semantic change.", "plan/commands")]);
+        var diff = new AgentSemanticDiff(
+            AgentReferenceGraphBuilder.StableGuid($"agent-diff|{plan.TransactionId:D}"),
+            AgentSemanticDiff.CurrentSchemaVersion,
+            plan.TransactionId,
+            stored.BeforeHash,
+            ProjectFingerprint(candidate.State.Project),
+            entries);
+        return new(true, command, diff, []);
+    }
+
+    private static bool ParseBoolean(string? value, bool fallback) =>
+        string.IsNullOrWhiteSpace(value) ? fallback :
+        bool.TryParse(value, out var parsed) ? parsed :
+        throw new ArgumentException($"'{value}' is not a boolean value.");
+
+    private static string AgentCommandDocumentPath(AgentSemanticCommand command)
+    {
+        if (string.Equals(command.ToolName, "project.set_variable", StringComparison.Ordinal) &&
+            command.Arguments.TryGetValue("key", out var key))
+            return $"module/variables/{key.Trim()}";
+        return $"{command.ToolName.Replace('.', '/')}/{command.TargetObjectId:D}";
+    }
+
+    private AgentAiAuditEntry CreateAgentAudit(
+        StoredAgentChangeTransaction stored,
+        AgentTransactionStage stage,
+        long revision,
+        string outputHash,
+        bool succeeded) =>
+        new(
+            Guid.NewGuid(),
+            AgentAiAuditEntry.CurrentSchemaVersion,
+            stored.Request.Plan.TransactionId,
+            stored.Request.Plan.Id,
+            stored.RollbackId,
+            stage,
+            stored.Request.ClientId.Trim(),
+            stored.Request.UserId.Trim(),
+            string.IsNullOrWhiteSpace(stored.ProviderKey) ? null : stored.ProviderKey,
+            string.IsNullOrWhiteSpace(stored.Request.Model) ? null : stored.Request.Model.Trim(),
+            stored.Request.Plan.Commands.OrderBy(item => item.Id).Select(item => item.ToolName).ToArray(),
+            AgentPlanFingerprint(stored.Request.Plan),
+            outputHash,
+            stored.Request.Plan.Tests.Where(item => !string.IsNullOrWhiteSpace(item)).Select(item => item.Trim()).ToArray(),
+            stored.Request.Plan.Provenance,
+            revision,
+            _clock.UtcNow,
+            succeeded);
+
+    private ProjectSessionSaveResult AppendAgentAudit(AgentAiAuditEntry entry)
+    {
+        var updated = _agentAudit.Append(entry).ToArray();
+        var result = AgentAiAuditStore.Save(_session.RootDirectory, updated);
+        if (result.Succeeded) _agentAudit.Add(entry);
+        return result;
+    }
+
+    private AgentChangeTransactionResult RejectAgentTransaction(
+        StoredAgentChangeTransaction stored,
+        string code,
+        string message) => RejectAgentTransaction(stored, [new AgentDiagnostic(code, message, "transaction")]);
+
+    private AgentChangeTransactionResult RejectAgentTransaction(
+        StoredAgentChangeTransaction stored,
+        IReadOnlyList<AgentDiagnostic> diagnostics)
+    {
+        stored.Stage = AgentTransactionStage.Rejected;
+        var audit = CreateAgentAudit(stored, AgentTransactionStage.Rejected, _history.State.Revision.Value,
+            ProjectFingerprint(_history.State.Project), false);
+        var saved = AppendAgentAudit(audit);
+        if (saved.Succeeded) stored.Audit.Add(audit);
+        return AgentTransactionFailure(stored.Request.Plan.TransactionId, stored.Request.Plan.Id, stored.RollbackId,
+            stored.Stage, stored.Request.Plan.BaseRevision, _history.State.Revision.Value,
+            diagnostics.Concat(saved.Diagnostics.Select(Map)).ToArray(), stored.SemanticDiff, stored.Audit);
+    }
+
+    private AgentChangeTransactionResult AgentTransactionStateFailure(
+        StoredAgentChangeTransaction stored,
+        string code,
+        string message)
+    {
+        var audit = CreateAgentAudit(stored, AgentTransactionStage.Rejected, _history.State.Revision.Value,
+            ProjectFingerprint(_history.State.Project), false);
+        var saved = AppendAgentAudit(audit);
+        if (saved.Succeeded) stored.Audit.Add(audit);
+        return AgentTransactionFailure(stored.Request.Plan.TransactionId, stored.Request.Plan.Id, stored.RollbackId,
+            stored.Stage, stored.Request.Plan.BaseRevision, _history.State.Revision.Value,
+            new[] { new AgentDiagnostic(code, message, "transaction") }.Concat(saved.Diagnostics.Select(Map)).ToArray(),
+            stored.SemanticDiff, stored.Audit);
+    }
+
+    private static AgentChangeTransactionResult ToResult(StoredAgentChangeTransaction stored) =>
+        new(true, stored.Request.Plan.TransactionId, stored.Request.Plan.Id, stored.RollbackId, stored.Stage,
+            stored.Request.Plan.BaseRevision, stored.AppliedRevision ?? stored.Request.Plan.BaseRevision,
+            stored.SemanticDiff, stored.Audit.ToArray(), []);
+
+    private static AgentChangeTransactionResult AgentTransactionFailure(
+        Guid transactionId,
+        Guid planId,
+        Guid rollbackId,
+        AgentTransactionStage stage,
+        long baseRevision,
+        long currentRevision,
+        IReadOnlyList<AgentDiagnostic> diagnostics,
+        AgentSemanticDiff? diff = null,
+        IReadOnlyList<AgentAiAuditEntry>? audit = null) =>
+        new(false, transactionId, planId, rollbackId, stage, baseRevision, currentRevision, diff, audit ?? [], diagnostics);
+
+    private static string AgentPlanFingerprint(StructuredChangePlan plan)
+    {
+        var value = new StringBuilder()
+            .Append(plan.Id).Append('|').Append(plan.TransactionId).Append('|').Append(plan.SchemaVersion).Append('|')
+            .Append(plan.Provenance).Append('|').Append(plan.BaseRevision).Append('|').Append(plan.Permission).Append('|')
+            .Append(plan.Goal);
+        foreach (var command in plan.Commands.OrderBy(item => item.Id))
+        {
+            value.Append("|C|").Append(command.Id).Append('|').Append(command.ToolName).Append('|').Append(command.TargetObjectId);
+            foreach (var argument in command.Arguments.OrderBy(item => item.Key, StringComparer.Ordinal))
+                value.Append('|').Append(argument.Key).Append('=').Append(argument.Value);
+        }
+        foreach (var item in plan.Assumptions) value.Append("|A|").Append(item);
+        foreach (var item in plan.AffectedObjects.Order()) value.Append("|O|").Append(item);
+        foreach (var item in plan.Risks) value.Append("|R|").Append(item);
+        foreach (var item in plan.Tests) value.Append("|T|").Append(item);
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value.ToString()))).ToLowerInvariant();
+    }
+
     public GeneratedDocumentationResource CheckGeneratedDocumentation()
     {
         var repositoryRoot = FindRepositoryRoot(_session.RootDirectory);
@@ -1272,6 +2652,48 @@ public sealed class ForgeProjectAgentService
         }
     }
 
+    public GameplayFoundationResource QueryGameplayFoundation(string? query = null, string? kind = null)
+    {
+        lock (_gate)
+        {
+            var foundation = _history.State.Project.Module.RuntimePolicies.Gameplay.Foundation;
+            var items = new List<GameplayFoundationItem>
+            {
+                new(foundation.GroundedMovement.Id, "movement", "grounded", "Déplacement au sol",
+                    foundation.GroundedMovement.Provenance),
+                new(foundation.Interaction.Id, "interaction", "interaction", "Système d'interaction",
+                    foundation.Interaction.Provenance),
+                new(foundation.Cameras.Id, "camera-catalog", "cameras", "Caméras configurables",
+                    foundation.Cameras.Provenance),
+                new(foundation.Input.Id, "input-profile", "input", "Contrôles et input mapping",
+                    foundation.Input.Provenance),
+                new(foundation.Save.Id, "save-policy", "save", "Sauvegarde et chargement",
+                    foundation.Save.Provenance),
+            };
+            items.AddRange(foundation.Interaction.Verbs.Select(item =>
+                new GameplayFoundationItem(item.Id, "interaction-verb", item.Key, item.Label,
+                    foundation.Interaction.Provenance)));
+            items.AddRange(foundation.Cameras.Profiles.Select(item =>
+                new GameplayFoundationItem(item.Id, "camera", item.Key, item.DisplayName,
+                    foundation.Cameras.Provenance)));
+            items.AddRange(foundation.Input.Actions.Select(item =>
+                new GameplayFoundationItem(item.Id, "input-action", item.Key, item.Label,
+                    foundation.Input.Provenance)));
+            items.AddRange(foundation.Input.Bindings.Select(item =>
+                new GameplayFoundationItem(item.Id, "input-binding", item.ActionKey,
+                    $"{item.Device}:{item.Binding}", foundation.Input.Provenance)));
+            var normalizedQuery = query?.Trim() ?? string.Empty;
+            var normalizedKind = kind?.Trim().ToLowerInvariant() ?? string.Empty;
+            var filtered = items.Where(item => string.IsNullOrEmpty(normalizedKind) || item.Kind == normalizedKind)
+                .Where(item => string.IsNullOrEmpty(normalizedQuery) ||
+                    item.Key.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase) ||
+                    item.Label.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(item => item.Kind, StringComparer.Ordinal).ThenBy(item => item.Key, StringComparer.Ordinal)
+                .Take(200).ToArray();
+            return new(1, _history.State.Revision.Value, normalizedQuery, normalizedKind, filtered);
+        }
+    }
+
     public GameplayControlPlanResult PlanGameplayControls(GameplayControlPlanRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -1361,6 +2783,617 @@ public sealed class ForgeProjectAgentService
             return ToResult(plan);
         }
     }
+
+    public ProjectVariableResource QueryProjectVariables(string? query = null, string? scope = null)
+    {
+        lock (_gate)
+        {
+            ProjectVariableScope? parsedScope = null;
+            if (!string.IsNullOrWhiteSpace(scope))
+            {
+                if (!Enum.TryParse<ProjectVariableScope>(scope, true, out var value) || !Enum.IsDefined(value))
+                    throw new ArgumentException($"Unknown project variable scope '{scope}'.", nameof(scope));
+                parsedScope = value;
+            }
+            var normalized = query?.Trim() ?? string.Empty;
+            var service = new ProjectBlackboardScriptService(_history.State.Project.Module.Variables);
+            var ids = service.Query(normalized, parsedScope).Select(item => item.Id).ToHashSet();
+            var variables = _history.State.Project.Module.Variables.Where(item => ids.Contains(item.Id)).ToArray();
+            return new ProjectVariableResource(1, _history.State.Revision.Value, normalized,
+                parsedScope?.ToString(), variables);
+        }
+    }
+
+    public ProjectFoundationResource GetProjectFoundation()
+    {
+        lock (_gate)
+        {
+            var metadata = _history.State.Project.Module.Metadata;
+            return new ProjectFoundationResource(1, _history.State.Revision.Value, metadata,
+                metadata.Foundation, metadata.Foundation?.Identity);
+        }
+    }
+
+    public ProjectFoundationPlanResult PlanProjectFoundation(ProjectFoundationPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return ProjectFoundationFailure(request.BaseRevision, "project_foundation_plan.schema_unsupported",
+                    "Project foundation plan schema must be 1.");
+            var command = new SetProjectFoundationCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), request.Foundation, true);
+            var preview = _projectFoundationHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new(false, null, request.BaseRevision, preview.Patch, preview.Inverse,
+                    preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredProjectFoundationPlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new ProjectFoundationAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _projectFoundationPlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public ProjectFoundationPlanResult ApplyProjectFoundationPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_projectFoundationPlans.TryGetValue(planId, out var plan))
+                return ProjectFoundationFailure(GetCurrentRevision(), "project_foundation_plan.missing",
+                    $"Project foundation plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return ProjectFoundationFailure(plan.Command.BaseRevision.Value,
+                    "project_foundation_plan.already_applied",
+                    $"Project foundation plan '{planId}' is already applied.");
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _projectFoundationHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(planId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public ProjectFoundationPlanResult RevertProjectFoundationPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_projectFoundationPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return ProjectFoundationFailure(GetCurrentRevision(), "project_foundation_plan.not_applied",
+                    $"Project foundation plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return ProjectFoundationFailure(plan.Command.BaseRevision.Value,
+                    "project_foundation_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return ProjectFoundationFailure(plan.Command.BaseRevision.Value,
+                    "project_foundation_plan.inverse_unavailable", "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return ProjectFoundationFailure(plan.Command.BaseRevision.Value,
+                    "project_foundation_plan.save_failed", "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public EntityScaleResource GetEntityScales(string? areaId = null, IReadOnlyList<string>? entityIds = null)
+    {
+        lock (_gate)
+        {
+            AreaId? filterArea = null;
+            if (!string.IsNullOrWhiteSpace(areaId))
+            {
+                if (!Guid.TryParse(areaId, out var parsedArea))
+                    return new(1, GetCurrentRevision(), areaId, [],
+                        [new("entity_scale.area_id_invalid", "Area ID must be a UUID.", "request/areaId")]);
+                filterArea = AreaId.From(parsedArea);
+            }
+
+            var requestedIds = new HashSet<EntityId>();
+            foreach (var value in entityIds ?? [])
+            {
+                if (!Guid.TryParse(value, out var parsedEntity))
+                    return new(1, GetCurrentRevision(), areaId, [],
+                        [new("entity_scale.entity_id_invalid", $"Entity ID '{value}' must be a UUID.", "request/entityIds")]);
+                requestedIds.Add(EntityId.From(parsedEntity));
+            }
+
+            var items = _history.State.Project.Areas
+                .Where(area => filterArea is null || area.Id == filterArea)
+                .SelectMany(area => area.Entities
+                    .Where(entity => requestedIds.Count == 0 || requestedIds.Contains(entity.Id))
+                    .Select(entity => new EntityScaleItem(entity.Id.ToString(), entity.Transform.Scale,
+                        $"areas/{area.Id}/entities/{entity.Id}/scale")))
+                .OrderBy(item => item.DocumentPath, StringComparer.Ordinal)
+                .ToArray();
+            return new(1, GetCurrentRevision(), areaId, items, []);
+        }
+    }
+
+    public EntityScalePlanResult PlanEntityScale(EntityScalePlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return EntityScaleFailure(request.BaseRevision, "entity_scale_plan.schema_unsupported",
+                    "Entity scale plan schema must be 1.");
+            if (!Guid.TryParse(request.AreaId, out var areaValue))
+                return EntityScaleFailure(request.BaseRevision, "entity_scale_plan.area_id_invalid",
+                    "Area ID must be a UUID.");
+            var entityIds = new List<EntityId>();
+            foreach (var value in request.EntityIds)
+            {
+                if (!Guid.TryParse(value, out var parsed))
+                    return EntityScaleFailure(request.BaseRevision, "entity_scale_plan.entity_id_invalid",
+                        $"Entity ID '{value}' must be a UUID.");
+                entityIds.Add(EntityId.From(parsed));
+            }
+            var command = new ScaleEntitiesCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), AreaId.From(areaValue), entityIds,
+                request.Scale, request.Multiply, true);
+            var preview = _scaleEntitiesHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new(false, null, request.BaseRevision, preview.Patch, preview.Inverse,
+                    preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredEntityScalePlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new EntityScaleAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _entityScalePlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public EntityScalePlanResult ApplyEntityScalePlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_entityScalePlans.TryGetValue(planId, out var plan))
+                return EntityScaleFailure(GetCurrentRevision(), "entity_scale_plan.missing",
+                    $"Entity scale plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return EntityScaleFailure(plan.Command.BaseRevision.Value, "entity_scale_plan.already_applied",
+                    $"Entity scale plan '{planId}' is already applied.");
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _scaleEntitiesHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(planId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public EntityScalePlanResult RevertEntityScalePlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_entityScalePlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return EntityScaleFailure(GetCurrentRevision(), "entity_scale_plan.not_applied",
+                    $"Entity scale plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return EntityScaleFailure(plan.Command.BaseRevision.Value, "entity_scale_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return EntityScaleFailure(plan.Command.BaseRevision.Value, "entity_scale_plan.inverse_unavailable",
+                    "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return EntityScaleFailure(plan.Command.BaseRevision.Value, "entity_scale_plan.save_failed",
+                    "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AreaFoundationResource GetAreaFoundation(string areaId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(areaId);
+        lock (_gate)
+        {
+            if (!Guid.TryParse(areaId, out var parsed))
+                return new(1, GetCurrentRevision(), areaId, null, null, null,
+                    [new("area_foundation.area_id_invalid", "Area ID must be a UUID.")]);
+            var area = _history.State.Project.Areas.SingleOrDefault(item => item.Id.Value == parsed);
+            return area is null
+                ? new(1, GetCurrentRevision(), areaId, null, null, null,
+                    [new("area_foundation.area_missing", $"Area '{areaId}' does not exist.")])
+                : new(1, GetCurrentRevision(), areaId, area.DisplayName, area.Foundation,
+                    AreaFoundationScriptService.Read(area), []);
+        }
+    }
+
+    public AreaFoundationPlanResult PlanAreaFoundation(AreaFoundationPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return AreaFoundationFailure(request.BaseRevision, "area_foundation_plan.schema_unsupported",
+                    "Area foundation plan schema must be 1.");
+            if (!Guid.TryParse(request.AreaId, out var areaValue))
+                return AreaFoundationFailure(request.BaseRevision, "area_foundation_plan.area_id_invalid",
+                    "Area ID must be a UUID.");
+            var command = new SetAreaFoundationCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), AreaId.From(areaValue), request.Foundation, true);
+            var preview = _areaFoundationHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new(false, null, request.BaseRevision, preview.Patch, preview.Inverse,
+                    preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredAreaFoundationPlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new AreaFoundationAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _areaFoundationPlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public AreaFoundationPlanResult ApplyAreaFoundationPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaFoundationPlans.TryGetValue(planId, out var plan))
+                return AreaFoundationFailure(GetCurrentRevision(), "area_foundation_plan.missing",
+                    $"Area foundation plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AreaFoundationFailure(plan.Command.BaseRevision.Value,
+                    "area_foundation_plan.already_applied", $"Area foundation plan '{planId}' is already applied.");
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _areaFoundationHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(planId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AreaFoundationPlanResult RevertAreaFoundationPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaFoundationPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AreaFoundationFailure(GetCurrentRevision(), "area_foundation_plan.not_applied",
+                    $"Area foundation plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return AreaFoundationFailure(plan.Command.BaseRevision.Value,
+                    "area_foundation_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return AreaFoundationFailure(plan.Command.BaseRevision.Value,
+                    "area_foundation_plan.inverse_unavailable", "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return AreaFoundationFailure(plan.Command.BaseRevision.Value,
+                    "area_foundation_plan.save_failed", "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AreaRuntimeResource GetAreaRuntime(string areaId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(areaId);
+        lock (_gate)
+        {
+            if (!Guid.TryParse(areaId, out var parsed))
+                return new(1, GetCurrentRevision(), areaId, null, null, [], null, null,
+                    [new("area_runtime.area_id_invalid", "Area ID must be a UUID.", "request/areaId")]);
+            var id = AreaId.From(parsed);
+            var area = _history.State.Project.Areas.SingleOrDefault(item => item.Id == id);
+            if (area is null)
+                return new(1, GetCurrentRevision(), areaId, null, null, [], null, null,
+                    [new("area_runtime.area_missing", $"Area '{areaId}' does not exist.", $"areas/{areaId}")]);
+            try
+            {
+                return new(1, GetCurrentRevision(), areaId, area.DisplayName,
+                    AreaOperationsScriptService.ReadNavigation(_history.State.Project, id),
+                    AreaOperationsScriptService.QueryPortals(_history.State.Project, id), area.Playtest,
+                    AreaOperationsScriptService.Validate(_history.State.Project, id), []);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return new(1, GetCurrentRevision(), areaId, area.DisplayName, null,
+                    AreaOperationsScriptService.QueryPortals(_history.State.Project, id), area.Playtest, null,
+                    [new("area_runtime.navigation_unavailable", exception.Message,
+                        $"areas/{areaId}/navigation")]);
+            }
+        }
+    }
+
+    public AreaPlaytestPlanResult PlanAreaPlaytest(AreaPlaytestPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return AreaPlaytestFailure(request.BaseRevision, "area_playtest_plan.schema_unsupported",
+                    "Area Play From Here plan schema must be 1.");
+            if (!Guid.TryParse(request.AreaId, out var areaValue))
+                return AreaPlaytestFailure(request.BaseRevision, "area_playtest_plan.area_id_invalid",
+                    "Area ID must be a UUID.");
+            var command = new SetAreaPlaytestCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), AreaId.From(areaValue), request.Profile, true);
+            var preview = _areaPlaytestHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new(false, null, request.BaseRevision, preview.Patch, preview.Inverse,
+                    preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredAreaPlaytestPlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new AreaPlaytestAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _areaPlaytestPlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public AreaPlaytestPlanResult ApplyAreaPlaytestPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaPlaytestPlans.TryGetValue(planId, out var plan))
+                return AreaPlaytestFailure(GetCurrentRevision(), "area_playtest_plan.missing",
+                    $"Area Play From Here plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AreaPlaytestFailure(plan.Command.BaseRevision.Value, "area_playtest_plan.already_applied",
+                    $"Area Play From Here plan '{planId}' is already applied.");
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _areaPlaytestHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(planId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AreaPlaytestPlanResult RevertAreaPlaytestPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_areaPlaytestPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AreaPlaytestFailure(GetCurrentRevision(), "area_playtest_plan.not_applied",
+                    $"Area Play From Here plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return AreaPlaytestFailure(plan.Command.BaseRevision.Value,
+                    "area_playtest_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return AreaPlaytestFailure(plan.Command.BaseRevision.Value,
+                    "area_playtest_plan.inverse_unavailable", "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return AreaPlaytestFailure(plan.Command.BaseRevision.Value,
+                    "area_playtest_plan.save_failed", "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public ProjectVariablePlanResult PlanProjectVariables(ProjectVariablePlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return ProjectVariableFailure(request.BaseRevision, "project_variable_plan.schema_unsupported",
+                    "Project variable plan schema must be 1.");
+            var command = new SetModuleConfigurationCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), _history.State.Project.Module.Metadata,
+                request.Variables, true);
+            var preview = _moduleConfigurationHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new(false, null, request.BaseRevision, preview.Patch, preview.Inverse,
+                    preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredProjectVariablePlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new ProjectVariableAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _projectVariablePlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public ProjectVariablePlanResult ApplyProjectVariablePlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_projectVariablePlans.TryGetValue(planId, out var plan))
+                return ProjectVariableFailure(GetCurrentRevision(), "project_variable_plan.missing",
+                    $"Project variable plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return ProjectVariableFailure(plan.Command.BaseRevision.Value, "project_variable_plan.already_applied",
+                    $"Project variable plan '{planId}' is already applied.");
+            var command = plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false };
+            var result = _moduleConfigurationHandler.Handle(_history.State, command);
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new(planId, "apply", _history.State.Revision.Value, _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item =>
+                        new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public ProjectVariablePlanResult RevertProjectVariablePlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_projectVariablePlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return ProjectVariableFailure(GetCurrentRevision(), "project_variable_plan.not_applied",
+                    $"Project variable plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return ProjectVariableFailure(plan.Command.BaseRevision.Value,
+                    "project_variable_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return ProjectVariableFailure(plan.Command.BaseRevision.Value,
+                    "project_variable_plan.inverse_unavailable", "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return ProjectVariableFailure(plan.Command.BaseRevision.Value, "project_variable_plan.save_failed",
+                    "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public RulesetPluginResource QueryRulesetPlugins(string? query = null)
+    {
+        lock (_gate)
+        {
+            var catalog = _history.State.Project.Module.RuntimePolicies.Rules.Plugins;
+            var normalized = query?.Trim() ?? string.Empty;
+            var items = catalog.Packages.Where(item => normalized.Length == 0 ||
+                    item.Id.ToString("D").Contains(normalized, StringComparison.OrdinalIgnoreCase) ||
+                    item.Key.Contains(normalized, StringComparison.OrdinalIgnoreCase) ||
+                    item.ContentPackageId.Contains(normalized, StringComparison.OrdinalIgnoreCase) ||
+                    item.Attributes.Concat(item.Effects).Concat(item.Abilities).Concat(item.Inventories)
+                        .Concat(item.ProgressionTracks).Concat(item.UiPanels)
+                        .Any(value => value.Contains(normalized, StringComparison.OrdinalIgnoreCase)))
+                .Select(item => new RulesetPluginItem(item.Id, item.SchemaVersion, item.Key, item.Version,
+                    item.ContentPackageId, item.Attributes.Count, item.Effects.Count, item.Abilities.Count,
+                    item.Inventories.Count, item.ProgressionTracks.Count, item.UiPanels.Count, item.Provenance))
+                .ToArray();
+            return new(1, _history.State.Revision.Value, normalized, catalog.ActivePackageKey, items);
+        }
+    }
+
+    private static ProjectVariablePlanResult ProjectVariableFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static ProjectVariablePlanResult ToResult(StoredProjectVariablePlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
+
+    private static ProjectFoundationPlanResult ProjectFoundationFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static ProjectFoundationPlanResult ToResult(StoredProjectFoundationPlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
+
+    private static AreaFoundationPlanResult AreaFoundationFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static AreaFoundationPlanResult ToResult(StoredAreaFoundationPlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
+
+    private static AreaPlaytestPlanResult AreaPlaytestFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static AreaPlaytestPlanResult ToResult(StoredAreaPlaytestPlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
+
+    private static EntityScalePlanResult EntityScaleFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static EntityScalePlanResult ToResult(StoredEntityScalePlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
 
     public RulesProfileResource GetRules(string? areaId = null)
     {
@@ -1576,6 +3609,446 @@ public sealed class ForgeProjectAgentService
             plan.Reverted = true;
             plan.Audit.Add(new AreaExperienceAuditEntry(planId, "revert", undone.State.Revision.Value,
                 _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AudioEmitterResource GetAudioEmitters(string? areaId = null, string? emitterId = null, string? search = null)
+    {
+        lock (_gate)
+        {
+            var project = _history.State.Project;
+            var area = string.IsNullOrWhiteSpace(areaId)
+                ? project.Areas.Single(item => item.Id == project.Module.EntryAreaId)
+                : project.Areas.Single(item => item.Id == AreaId.Parse(areaId));
+            var source = area.Environment.Audio.Emitters;
+            var definitions = source.Definitions.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(emitterId))
+            {
+                if (!Guid.TryParse(emitterId, out var id))
+                    return new AudioEmitterResource(1, _history.State.Revision.Value, area.Id.ToString(),
+                        AudioEmitterCatalog.Empty);
+                definitions = definitions.Where(item => item.Id == id);
+            }
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var query = search.Trim();
+                definitions = definitions.Where(item =>
+                    item.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    item.ClipSet.Clips.Any(clip => clip.ResourcePath.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                        clip.Tags.Any(tag => tag.Contains(query, StringComparison.OrdinalIgnoreCase))));
+            }
+            var materialized = definitions.ToArray();
+            var definitionIds = materialized.Select(item => item.Id).ToHashSet();
+            return new AudioEmitterResource(1, _history.State.Revision.Value, area.Id.ToString(),
+                new AudioEmitterCatalog(source.SchemaVersion, materialized,
+                    source.Instances.Where(item => definitionIds.Contains(item.DefinitionId)).ToArray()));
+        }
+    }
+
+    public ContentPackageResource GetContentPackages(string? packageId = null, string? search = null)
+    {
+        lock (_gate)
+        {
+            var catalog = _history.State.Project.Module.Content.Packages;
+            IEnumerable<ContentPackageDefinition> packages = catalog.Packages;
+            if (!string.IsNullOrWhiteSpace(packageId))
+            {
+                packages = Guid.TryParse(packageId, out var id)
+                    ? packages.Where(item => item.Id == id)
+                    : [];
+            }
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var query = search.Trim();
+                packages = packages.Where(item =>
+                    item.PackageNamespace.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    item.Sources.Any(source =>
+                        source.LogicalResourceId.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                        source.RelativePath.Contains(query, StringComparison.OrdinalIgnoreCase)));
+            }
+            return new ContentPackageResource(ContentPackageCatalog.CurrentSchemaVersion,
+                _history.State.Revision.Value, catalog.Id,
+                packages.OrderBy(item => item.PackageNamespace, StringComparer.Ordinal).ToArray());
+        }
+    }
+
+    public ContentPackagePlanResult PlanContentPackages(ContentPackagePlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != ContentPackageCatalog.CurrentSchemaVersion)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("content_package_plan.schema_unsupported",
+                        "Content package plan schema must be 1.", "module/content/packages/schemaVersion")], true);
+            var packageDiagnostics = ContentPackageCatalogValidator.Validate(
+                request.Catalog, _history.State.Project.Module.Id.Value);
+            if (packageDiagnostics.Count > 0)
+                return new(false, request.BaseRevision, null, null,
+                    packageDiagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path,
+                        SubjectUuid: ExtractUuid(item.Message), Source: "ContentPackageCatalogValidator",
+                        Provenance: request.Catalog.Provenance)).ToArray(), true);
+            var current = _history.State.Project.Module.Content;
+            var configuration = new ContentWorkspaceConfiguration(current.Id, current.Batch, current.DataTables,
+                current.MergePolicy, current.Provenance, current.SchemaVersion, request.Catalog);
+            var command = new SetContentWorkspaceCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), configuration, DryRun: true);
+            var preview = _contentWorkspaceHandler.Handle(_history.State, command);
+            return new ContentPackagePlanResult(preview.Succeeded, request.BaseRevision, preview.Patch,
+                preview.Inverse, preview.Diagnostics.Select(Map).ToArray(), true);
+        }
+    }
+
+    public LocalizationResource GetLocalization(string? key = null, string? search = null)
+    {
+        lock (_gate)
+        {
+            var catalog = _history.State.Project.Module.Localization;
+            IEnumerable<LocalizationMessage> messages = catalog.Messages;
+            if (!string.IsNullOrWhiteSpace(key))
+                messages = messages.Where(item => string.Equals(item.Key, key.Trim(), StringComparison.Ordinal));
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var query = search.Trim();
+                messages = messages.Where(item => item.Key.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    item.Fallback.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    item.Translations.Any(pair => pair.Key.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                        pair.Value.Contains(query, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            return new LocalizationResource(catalog.SchemaVersion, _history.State.Revision.Value, catalog.Id.Value,
+                catalog.DefaultLocale, catalog.PackageNamespace, catalog.LicenseSpdx, catalog.ContentSha256,
+                messages.OrderBy(item => item.Key, StringComparer.Ordinal).ToArray());
+        }
+    }
+
+    public LocalizationPlanResult PlanLocalization(LocalizationPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != LocalizationCatalog.CurrentSchemaVersion)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("localization_plan.schema_unsupported", "Localization plan schema must be 1.",
+                        "module/localization/schemaVersion")], true);
+            var diagnostics = LocalizationCatalogValidator.Validate(request.Catalog, _history.State.Project.Module.Id.Value);
+            if (diagnostics.Count > 0)
+                return new(false, request.BaseRevision, null, null,
+                    diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path,
+                        Source: nameof(LocalizationCatalogValidator), Provenance: request.Catalog.Provenance)).ToArray(), true);
+            var command = new SetLocalizationCatalogCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), request.Catalog, DryRun: true);
+            var preview = _localizationHandler.Handle(_history.State, command);
+            return new LocalizationPlanResult(preview.Succeeded, request.BaseRevision, preview.Patch, preview.Inverse,
+                preview.Diagnostics.Select(Map).ToArray(), true);
+        }
+    }
+
+    public UnifiedContentResourceResult GetContentResources(UnifiedContentResourceQuery? query = null)
+    {
+        query ??= new UnifiedContentResourceQuery();
+        lock (_gate)
+        {
+            var diagnostics = new List<AgentDiagnostic>();
+            AssetCatalog? catalog = null;
+            var repositoryRoot = AssetCatalogLoader.FindRepositoryRoot(_session.RootDirectory) ??
+                AssetCatalogLoader.FindRepositoryRoot(AppContext.BaseDirectory);
+            if (repositoryRoot is not null)
+            {
+                var load = AssetCatalogLoader.Load(repositoryRoot);
+                catalog = load.Catalog;
+                diagnostics.AddRange(load.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)));
+            }
+            else
+            {
+                diagnostics.Add(new AgentDiagnostic(AssetCatalogLoader.CatalogMissingCode,
+                    "Asset Vault catalog is unavailable; project resources remain searchable.", "asset_manifests/catalogs"));
+            }
+
+            ContentResourceKind? kind = null;
+            if (!string.IsNullOrWhiteSpace(query.Kind))
+            {
+                if (!Enum.TryParse<ContentResourceKind>(query.Kind, ignoreCase: true, out var parsedKind))
+                    return new UnifiedContentResourceResult(1, _history.State.Revision.Value, 0, [], [], [], [], [],
+                        [new AgentDiagnostic("content_browser.kind_invalid", $"Unknown content kind '{query.Kind}'.",
+                            "query/kind")]);
+                kind = parsedKind;
+            }
+            var browser = new UnifiedContentBrowser(_history.State.Project, catalog);
+            IReadOnlyList<UnifiedContentBrowserItem> items;
+            try
+            {
+                items = browser.Search(new UnifiedContentBrowserQuery(query.Text, query.PackageNamespace, kind,
+                    query.LicenseSpdx, query.Status, query.MaximumResults));
+            }
+            catch (ArgumentOutOfRangeException exception)
+            {
+                return new UnifiedContentResourceResult(1, _history.State.Revision.Value, browser.Items.Count,
+                    browser.PackageNamespaces, browser.Kinds.Select(item => item.ToString()).ToArray(), browser.Licenses,
+                    browser.Statuses, [], [new AgentDiagnostic("content_browser.limit_invalid", exception.Message,
+                        "query/maximumResults")]);
+            }
+
+            return new UnifiedContentResourceResult(1, _history.State.Revision.Value, browser.Items.Count,
+                browser.PackageNamespaces, browser.Kinds.Select(item => item.ToString()).ToArray(), browser.Licenses,
+                browser.Statuses, items, diagnostics);
+        }
+    }
+
+    public ContentResourceAliasPlanResult PlanContentResourceAliases(ContentResourceAliasPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return ResourceAliasFailure(request.BaseRevision, "content_resource_plan.schema_unsupported",
+                    "Content resource plan schema must be 1.", "module/content/resources/schemaVersion");
+            var current = _history.State.Project.Module.Content;
+            if (!current.Packages.Packages.Any(package => package.Sources.Any(item => item.Id == request.ResourceId) ||
+                    package.Assets.Any(item => item.Id == request.ResourceId)))
+                return ResourceAliasFailure(request.BaseRevision, "content_resource_plan.resource_missing",
+                    $"Content resource '{request.ResourceId:D}' does not exist.",
+                    $"module/content/resources/{request.ResourceId:D}");
+
+            var packages = current.Packages.Packages.Select(package =>
+            {
+                var sources = package.Sources.Select(item => item.Id == request.ResourceId
+                    ? item with { Aliases = request.Aliases ?? [], References = request.References ?? [] }
+                    : item).ToArray();
+                var assets = package.Assets.Select(item => item.Id == request.ResourceId
+                    ? item with { Aliases = request.Aliases ?? [], References = request.References ?? [] }
+                    : item).ToArray();
+                var draft = new ContentPackageDefinition(package.Id, package.SchemaVersion, package.Provenance,
+                    package.PackageNamespace, package.Version, package.LicenseSpdx, new string('0', 64), package.Priority,
+                    package.SealedResources, package.Dependencies, sources, assets);
+                return new ContentPackageDefinition(draft.Id, draft.SchemaVersion, draft.Provenance,
+                    draft.PackageNamespace, draft.Version, draft.LicenseSpdx,
+                    ContentPackageCompiler.ComputePackageHash(draft), draft.Priority, draft.SealedResources,
+                    draft.Dependencies, draft.Sources, draft.Assets);
+            }).ToArray();
+            var catalog = new ContentPackageCatalog(current.Packages.Id, current.Packages.SchemaVersion,
+                current.Packages.Provenance, current.Packages.ConflictPolicy, packages);
+            var diagnostics = ContentPackageCatalogValidator.Validate(catalog, _history.State.Project.Module.Id.Value);
+            if (diagnostics.Count > 0)
+                return new ContentResourceAliasPlanResult(false, request.BaseRevision, null, null,
+                    diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path,
+                        SubjectUuid: request.ResourceId.ToString("D"), Source: nameof(ContentPackageCatalogValidator),
+                        Provenance: catalog.Provenance)).ToArray(), true);
+            var configuration = new ContentWorkspaceConfiguration(current.Id, current.Batch, current.DataTables,
+                current.MergePolicy, current.Provenance, current.SchemaVersion, catalog);
+            var command = new SetContentWorkspaceCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), configuration, DryRun: true);
+            var preview = _contentWorkspaceHandler.Handle(_history.State, command);
+            return new ContentResourceAliasPlanResult(preview.Succeeded, request.BaseRevision, preview.Patch,
+                preview.Inverse, preview.Diagnostics.Select(Map).ToArray(), true);
+        }
+    }
+
+    public AssetGovernanceResource GetAssetGovernance(AssetGovernanceQuery? query = null)
+    {
+        query ??= new AssetGovernanceQuery();
+        lock (_gate)
+        {
+            var loaded = AssetGovernanceStore.Load(_session.RootDirectory);
+            var diagnostics = loaded.Diagnostics.Select(item =>
+                new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray();
+            if (!loaded.Succeeded)
+                return new(AssetGovernanceRecord.CurrentSchemaVersion, 0, 0, [], diagnostics);
+            if (query.MaximumResults is < 1 or > 300)
+                return new(AssetGovernanceRecord.CurrentSchemaVersion, 0, loaded.Records.Count, [],
+                    [new AgentDiagnostic("asset.governance.limit_invalid", "Maximum results must be between 1 and 300.", "query/maximumResults")]);
+            IEnumerable<AssetGovernanceRecord> records = loaded.Records;
+            if (!string.IsNullOrWhiteSpace(query.AssetId))
+                records = records.Where(item => item.AssetId.ToString().Contains(query.AssetId.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(query.Origin))
+                records = records.Where(item => item.IpBoundary.Origin.ToString().Equals(query.Origin.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(query.QuarantineStatus))
+                records = records.Where(item => item.Quarantine.Status.ToString().Equals(query.QuarantineStatus.Trim(), StringComparison.OrdinalIgnoreCase));
+            return new(AssetGovernanceRecord.CurrentSchemaVersion, 0, loaded.Records.Count,
+                records.OrderBy(item => item.AssetId.ToString(), StringComparer.Ordinal).Take(query.MaximumResults).ToArray(), diagnostics);
+        }
+    }
+
+    public AssetGovernancePlanResult PlanAssetGovernance(AssetGovernancePlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != AssetGovernanceRecord.CurrentSchemaVersion)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("asset.governance.plan.schema_unsupported", "Asset governance plan schema must be 1.", "assets/governance/schemaVersion")], true);
+            var loaded = AssetGovernanceStore.Load(_session.RootDirectory);
+            if (!loaded.Succeeded)
+                return new(false, request.BaseRevision, null, null,
+                    loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(), true);
+            var state = new AssetGovernanceState(loaded.Records, new AssetGovernanceRevision(0));
+            var command = new SetAssetGovernanceCommand(CommandId.From(Guid.NewGuid()),
+                new AssetGovernanceRevision(request.BaseRevision), request.Record, DryRun: true);
+            var preview = new SetAssetGovernanceHandler(_clock).Handle(state, command);
+            return new(preview.Succeeded, request.BaseRevision, preview.Patch, preview.Inverse,
+                preview.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, preview.Patch?.Path ?? "assets/governance")).ToArray(), true);
+        }
+    }
+
+    public QualityFoundationResource GetQualityFoundation()
+    {
+        lock (_gate)
+        {
+            var loaded = QualityFoundationProfileStore.Load(_session.RootDirectory, _history.State.Project.Id.Value);
+            return new(QualityFoundationProfile.CurrentSchemaVersion, 0, loaded.Profile,
+                loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray());
+        }
+    }
+
+    public CanonicalValidationResource ValidateCanonicalProject()
+    {
+        lock (_gate)
+        {
+            var loaded = QualityFoundationProfileStore.Load(
+                _session.RootDirectory, _history.State.Project.Id.Value);
+            if (!loaded.Succeeded)
+                return new(1, false, string.Empty, new Dictionary<string, int>(),
+                    loaded.Diagnostics.Select(item => new CanonicalValidationDiagnosticResource(
+                        Guid.Empty.ToString("D"), "schemas", item.Code, item.Message,
+                        item.Path ?? "quality/foundation",
+                        _history.State.Project.Id.ToString(), "quality-profile-load")).ToArray());
+            var report = WorkspaceCanonicalValidationService.Run(
+                _session.RootDirectory, _history.State.Project, loaded.Profile);
+            return new(report.SchemaVersion, report.Passed, report.Fingerprint, report.CategoryCounts,
+                report.Diagnostics.Select(item => new CanonicalValidationDiagnosticResource(
+                    item.Id.ToString("D"), item.Category, item.Code, item.Message, item.Path,
+                    item.SubjectUuid?.ToString("D"), item.Provenance)).ToArray());
+        }
+    }
+
+    public QualityFoundationPlanResult PlanQualityFoundation(QualityFoundationPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != QualityFoundationProfile.CurrentSchemaVersion)
+                return new(false, request.BaseRevision, null, null,
+                    [new AgentDiagnostic("qa.foundation.plan.schema_unsupported",
+                        "QA foundation plan schema must be 1.", "quality/foundation/schemaVersion")], true);
+            var loaded = QualityFoundationProfileStore.Load(_session.RootDirectory, _history.State.Project.Id.Value);
+            if (!loaded.Succeeded)
+                return new(false, request.BaseRevision, null, null,
+                    loaded.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(), true);
+            var state = new QualityFoundationState(loaded.Profile, new QualityFoundationRevision(0));
+            var command = new SetQualityFoundationCommand(CommandId.From(Guid.NewGuid()),
+                new QualityFoundationRevision(request.BaseRevision), request.Profile, DryRun: true);
+            var preview = new SetQualityFoundationHandler(_clock).Handle(state, command);
+            return new(preview.Succeeded, request.BaseRevision, preview.Patch, preview.Inverse,
+                preview.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message,
+                    preview.Patch?.Path ?? "quality/foundation")).ToArray(), true);
+        }
+    }
+
+    private static ContentResourceAliasPlanResult ResourceAliasFailure(
+        long baseRevision, string code, string message, string path) =>
+        new(false, baseRevision, null, null, [new AgentDiagnostic(code, message, path)], true);
+
+    private static string? ExtractUuid(string message)
+    {
+        const string marker = "[UUID ";
+        var start = message.LastIndexOf(marker, StringComparison.Ordinal);
+        if (start < 0) return null;
+        start += marker.Length;
+        var end = message.IndexOf(']', start);
+        return end > start ? message[start..end] : null;
+    }
+
+    public AudioEmitterPlanResult PlanAudioEmitters(AudioEmitterPlanRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            if (request.SchemaVersion != 1)
+                return AudioEmitterFailure(request.BaseRevision, "audio_emitter_plan.schema_unsupported",
+                    "Audio emitter plan schema must be 1.");
+            AreaId areaId;
+            try { areaId = AreaId.Parse(request.AreaId); }
+            catch (Exception exception) when (exception is ArgumentException or FormatException)
+            {
+                return AudioEmitterFailure(request.BaseRevision, "audio_emitter_plan.area_invalid", exception.Message);
+            }
+            var area = _history.State.Project.Areas.SingleOrDefault(item => item.Id == areaId);
+            if (area is null)
+                return AudioEmitterFailure(request.BaseRevision, "audio_emitter_plan.area_missing", "Area does not exist.");
+            var command = new SetAreaEnvironmentCommand(CommandId.From(Guid.NewGuid()),
+                new ProjectRevision(request.BaseRevision), areaId,
+                WithAudioEmitters(area.Environment, request.Catalog), DryRun: true);
+            var preview = _areaEnvironmentHandler.Handle(_history.State, command);
+            if (!preview.Succeeded)
+                return new AudioEmitterPlanResult(false, null, request.BaseRevision, preview.Patch,
+                    preview.Inverse, preview.Diagnostics.Select(Map).ToArray(), false, false, []);
+            var planId = Guid.NewGuid().ToString("D");
+            var plan = new StoredAudioEmitterPlan(planId, command, preview.Patch!, preview.Inverse!,
+                [new AudioEmitterAuditEntry(planId, "planned", request.BaseRevision, _clock.UtcNow, true)]);
+            _audioEmitterPlans.Add(planId, plan);
+            return ToResult(plan);
+        }
+    }
+
+    public AudioEmitterPlanResult ApplyAudioEmitterPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_audioEmitterPlans.TryGetValue(planId, out var plan))
+                return AudioEmitterFailure(GetCurrentRevision(), "audio_emitter_plan.missing",
+                    $"Audio emitter plan '{planId}' does not exist.");
+            if (plan.Applied)
+                return AudioEmitterFailure(plan.Command.BaseRevision.Value, "audio_emitter_plan.already_applied",
+                    $"Audio emitter plan '{planId}' is already applied.");
+            var result = _areaEnvironmentHandler.Handle(_history.State,
+                plan.Command with { CommandId = CommandId.From(Guid.NewGuid()), DryRun = false });
+            if (!result.Succeeded)
+            {
+                plan.Audit.Add(new AudioEmitterAuditEntry(planId, "apply", _history.State.Revision.Value,
+                    _clock.UtcNow, false));
+                return ToResult(plan) with { Succeeded = false, Diagnostics = result.Diagnostics.Select(Map).ToArray() };
+            }
+            var saved = _session.Save(result.State.Project);
+            if (!saved.Succeeded)
+                return ToResult(plan) with
+                {
+                    Succeeded = false,
+                    Diagnostics = saved.Diagnostics.Select(item => new AgentDiagnostic(item.Code, item.Message, item.Path)).ToArray(),
+                };
+            _history.Record(result);
+            plan.Applied = true;
+            plan.AppliedRevision = result.NewRevision!.Value.Value;
+            plan.Audit.Add(new AudioEmitterAuditEntry(planId, "apply", plan.AppliedRevision.Value, _clock.UtcNow, true));
+            return ToResult(plan);
+        }
+    }
+
+    public AudioEmitterPlanResult RevertAudioEmitterPlan(string planId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(planId);
+        lock (_gate)
+        {
+            if (!_audioEmitterPlans.TryGetValue(planId, out var plan) || !plan.Applied || plan.Reverted)
+                return AudioEmitterFailure(GetCurrentRevision(), "audio_emitter_plan.not_applied",
+                    $"Audio emitter plan '{planId}' is not currently applied.");
+            if (plan.AppliedRevision != _history.State.Revision.Value)
+                return AudioEmitterFailure(plan.Command.BaseRevision.Value, "audio_emitter_plan.revision_conflict",
+                    "Only the most recently applied plan can be reverted without overwriting later work.");
+            var undone = _history.Undo();
+            if (!undone.Succeeded)
+                return AudioEmitterFailure(plan.Command.BaseRevision.Value, "audio_emitter_plan.inverse_unavailable",
+                    "The inverse operation is unavailable.");
+            var saved = _session.Save(undone.State.Project);
+            if (!saved.Succeeded)
+            {
+                _history.Redo();
+                return AudioEmitterFailure(plan.Command.BaseRevision.Value, "audio_emitter_plan.save_failed",
+                    "The reverted project could not be saved.");
+            }
+            plan.Reverted = true;
+            plan.Audit.Add(new AudioEmitterAuditEntry(planId, "revert", undone.State.Revision.Value, _clock.UtcNow, true));
             return ToResult(plan);
         }
     }
@@ -3165,28 +5638,55 @@ public sealed class ForgeProjectAgentService
         string.IsNullOrWhiteSpace(node.SpeakerBlueprintId)
             ? null
             : BlueprintId.From(Guid.Parse(node.SpeakerBlueprintId)),
-        new LocalizedText(node.LocalizationKey, node.FallbackText),
+        new LocalizedText(node.LocalizationKey, node.FallbackText,
+            (node.Variants ?? []).Select(item => MapVariant(node.LocalizationKey, item)).ToArray(),
+            "agent:mcp-dialogue-plan"),
         (node.OnEnterActions ?? []).Select(MapAction).ToArray(),
-        (node.Choices ?? []).Select(MapChoice).ToArray());
+        (node.Choices ?? []).Select(MapChoice).ToArray(),
+        string.IsNullOrWhiteSpace(node.Role)
+            ? DialogueNodeRole.Unspecified
+            : Enum.Parse<DialogueNodeRole>(node.Role, ignoreCase: true),
+        string.IsNullOrWhiteSpace(node.ParticipantId) ? Guid.Empty : Guid.Parse(node.ParticipantId),
+        node.SubgraphKey);
 
     private static DialogueChoice MapChoice(DialogueChoiceInput choice) => new(
         DialogueChoiceId.From(Guid.Parse(choice.ChoiceId)),
-        new LocalizedText(choice.LocalizationKey, choice.FallbackText),
+        new LocalizedText(choice.LocalizationKey, choice.FallbackText,
+            (choice.Variants ?? []).Select(item => MapVariant(choice.LocalizationKey, item)).ToArray(),
+            "agent:mcp-dialogue-plan"),
         (choice.Conditions ?? []).Select(MapCondition).ToArray(),
         (choice.Actions ?? []).Select(MapAction).ToArray(),
         string.IsNullOrWhiteSpace(choice.TargetNodeId)
             ? null
-            : DialogueNodeId.From(Guid.Parse(choice.TargetNodeId)));
+            : DialogueNodeId.From(Guid.Parse(choice.TargetNodeId)),
+        string.IsNullOrWhiteSpace(choice.EdgeKind)
+            ? DialogueEdgeKind.Flow
+            : Enum.Parse<DialogueEdgeKind>(choice.EdgeKind, ignoreCase: true),
+        choice.Priority,
+        string.IsNullOrWhiteSpace(choice.ConditionCombination)
+            ? DialogueConditionCombination.All
+            : Enum.Parse<DialogueConditionCombination>(choice.ConditionCombination, ignoreCase: true));
 
     private static DialogueCondition MapCondition(DialogueConditionInput condition) => new(
         Enum.Parse<DialogueConditionKind>(condition.Kind, ignoreCase: true),
         condition.Key,
-        condition.ExpectedValue);
+        condition.ExpectedValue,
+        condition.Negated,
+        condition.EventBinding ?? "on-choice-visible",
+        condition.ForgeScriptApiVersion,
+        "agent:mcp-dialogue-plan");
 
     private static DialogueAction MapAction(DialogueActionInput action) => new(
         Enum.Parse<DialogueActionKind>(action.Kind, ignoreCase: true),
         action.Key,
-        action.Value);
+        action.Value,
+        action.Required,
+        "agent:mcp-dialogue-plan");
+
+    private static LocalizedTextVariant MapVariant(string textKey, DialogueLocalizedTextVariantInput variant) =>
+        LocalizedTextVariant.Create(textKey, variant.Locale, variant.Text, variant.Gender,
+            Enum.Parse<DialoguePluralCategory>(variant.PluralCategory, ignoreCase: true),
+            "agent:mcp-dialogue-plan");
 
     private static bool IsSafeForgeScriptPath(string path)
     {
@@ -3202,6 +5702,12 @@ public sealed class ForgeProjectAgentService
     }
 
     private static AgentDiagnostic Map(CommandDiagnostic diagnostic) => new(diagnostic.Code, diagnostic.Message);
+
+    private static AgentDiagnostic Map(DomainDiagnostic diagnostic) =>
+        new(diagnostic.Code, diagnostic.Message, diagnostic.Path);
+
+    private static AgentDiagnostic Map(ProjectSessionDiagnostic diagnostic) =>
+        new(diagnostic.Code, diagnostic.Message, diagnostic.Path);
 
     private static AgentDiagnostic MapScript(ForgeScriptDiagnostic diagnostic) => new(
         "assistant.script." + diagnostic.Severity.ToLowerInvariant(),
@@ -3833,6 +6339,27 @@ public sealed class ForgeProjectAgentService
         plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
         plan.Audit.ToArray());
 
+    private static AudioEmitterPlanResult AudioEmitterFailure(long revision, string code, string message) =>
+        new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
+
+    private static AudioEmitterPlanResult ToResult(StoredAudioEmitterPlan plan) => new(true, plan.PlanId,
+        plan.Command.BaseRevision.Value, plan.Diff, plan.Inverse, [], plan.Applied, plan.Reverted,
+        plan.Audit.ToArray());
+
+    private static AreaEnvironmentProfile WithAudioEmitters(
+        AreaEnvironmentProfile source,
+        AudioEmitterCatalog catalog)
+    {
+        var audio = source.Audio;
+        var updatedAudio = new AreaAudioProfile(audio.DayMusic, audio.NightMusic, audio.CombatMusic,
+            audio.Ambience, audio.ReverbPreset, audio.TransitionSeconds, audio.Playlist, audio.OrderMode,
+            audio.IntervalSeconds, audio.IntervalVariationSeconds, audio.RelativeVolume, audio.Spatial,
+            audio.RuntimeControl, audio.AdaptiveLayers, audio.Orchestration, catalog);
+        return new AreaEnvironmentProfile(source.SchemaVersion, source.Classification, source.Tags,
+            source.Lighting, source.Fog, updatedAudio, source.Rendering, source.Sky, source.Wind,
+            source.Weather, source.Water, source.Reverb);
+    }
+
     private static RuntimeExtensionPlanResult RuntimeExtensionFailure(long revision, string code, string message) =>
         new(false, null, revision, null, null, [new AgentDiagnostic(code, message)], false, false, []);
 
@@ -4173,6 +6700,71 @@ public sealed class ForgeProjectAgentService
         public long? AppliedRevision { get; set; }
     }
 
+    private sealed class StoredProjectVariablePlan(string planId, SetModuleConfigurationCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<ProjectVariableAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetModuleConfigurationCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<ProjectVariableAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredProjectFoundationPlan(string planId, SetProjectFoundationCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<ProjectFoundationAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetProjectFoundationCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<ProjectFoundationAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAreaFoundationPlan(string planId, SetAreaFoundationCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<AreaFoundationAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetAreaFoundationCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<AreaFoundationAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredAreaPlaytestPlan(string planId, SetAreaPlaytestCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<AreaPlaytestAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetAreaPlaytestCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<AreaPlaytestAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed class StoredEntityScalePlan(string planId, ScaleEntitiesCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<EntityScaleAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public ScaleEntitiesCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<EntityScaleAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
     private sealed class StoredRulesProfilePlan(string planId, SetRulesProfilesCommand command,
         ProjectPatch diff, ProjectPatch inverse, List<RulesProfileAuditEntry> audit)
     {
@@ -4199,6 +6791,19 @@ public sealed class ForgeProjectAgentService
         public long? AppliedRevision { get; set; }
     }
 
+    private sealed class StoredAudioEmitterPlan(string planId, SetAreaEnvironmentCommand command,
+        ProjectPatch diff, ProjectPatch inverse, List<AudioEmitterAuditEntry> audit)
+    {
+        public string PlanId { get; } = planId;
+        public SetAreaEnvironmentCommand Command { get; } = command;
+        public ProjectPatch Diff { get; } = diff;
+        public ProjectPatch Inverse { get; } = inverse;
+        public List<AudioEmitterAuditEntry> Audit { get; } = audit;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
     private sealed class StoredRuntimeExtensionPlan(string planId, SetRuntimeExtensionsCommand command,
         ProjectPatch diff, ProjectPatch inverse, List<RuntimeExtensionAuditEntry> audit)
     {
@@ -4211,6 +6816,41 @@ public sealed class ForgeProjectAgentService
         public bool Reverted { get; set; }
         public long? AppliedRevision { get; set; }
     }
+
+    private sealed class StoredAgentChangeTransaction(
+        AgentChangeTransactionBeginRequest request,
+        string providerKey,
+        Guid rollbackId,
+        string beforeHash)
+    {
+        public AgentChangeTransactionBeginRequest Request { get; } = request;
+        public string ProviderKey { get; } = providerKey;
+        public Guid RollbackId { get; } = rollbackId;
+        public string BeforeHash { get; } = beforeHash;
+        public AgentTransactionStage Stage { get; set; } = AgentTransactionStage.Begun;
+        public SetModuleConfigurationCommand? Command { get; set; }
+        public AgentSemanticDiff? SemanticDiff { get; set; }
+        public long? AppliedRevision { get; set; }
+        public List<AgentAiAuditEntry> Audit { get; } = [];
+    }
+
+    private sealed class StoredProjectCompatibilityPlan(
+        string planId, long baseRevision, WorkspaceBuildProfile profile, IReadOnlyList<string> diff)
+    {
+        public string PlanId { get; } = planId;
+        public long BaseRevision { get; } = baseRevision;
+        public WorkspaceBuildProfile Profile { get; } = profile;
+        public IReadOnlyList<string> Diff { get; } = diff;
+        public bool Applied { get; set; }
+        public bool Reverted { get; set; }
+        public long? AppliedRevision { get; set; }
+    }
+
+    private sealed record AgentTransactionPreparation(
+        bool Succeeded,
+        SetModuleConfigurationCommand? Command,
+        AgentSemanticDiff? SemanticDiff,
+        IReadOnlyList<AgentDiagnostic> Diagnostics);
 }
 
 public sealed record ForgeProjectAgentOpenResult(

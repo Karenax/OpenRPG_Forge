@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from pathlib import Path
 
 
@@ -28,6 +29,7 @@ class McpStdioTests(unittest.TestCase):
             text=True,
             encoding="utf-8",
         )
+        reader = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mcp-stdio-reader")
 
         def send(message: dict) -> None:
             assert process.stdin is not None
@@ -36,7 +38,11 @@ class McpStdioTests(unittest.TestCase):
 
         def receive() -> dict:
             assert process.stdout is not None
-            line = process.stdout.readline()
+            pending = reader.submit(process.stdout.readline)
+            try:
+                line = pending.result(timeout=15)
+            except FutureTimeoutError:
+                self.fail("The MCP host did not reply over stdio within 15 seconds.")
             self.assertTrue(line, "The MCP host closed stdio before replying.")
             return json.loads(line)
 
@@ -71,6 +77,22 @@ class McpStdioTests(unittest.TestCase):
                     "compile_forge_script",
                     "test_forge_script",
                     "plan_script_binding",
+                    "get_forge_script_api",
+                    "get_forge_script_sources",
+                    "plan_forge_script_source",
+                    "apply_forge_script_source_plan",
+                    "revert_forge_script_source_plan",
+                    "get_forge_script_diagnostics",
+                    "run_forge_script_tests",
+                    "plan_forge_script_event_binding",
+                    "apply_forge_script_event_binding_plan",
+                    "revert_forge_script_event_binding_plan",
+                    "forge_get_content_packages",
+        "forge_plan_content_packages",
+        "forge_get_localization",
+        "forge_plan_localization",
+        "forge_get_content_resources",
+        "forge_plan_content_resource_aliases",
                 }.issubset(tools)
             )
             send(
@@ -152,6 +174,7 @@ class McpStdioTests(unittest.TestCase):
                 process.stdout.close()
             if process.stderr is not None:
                 process.stderr.close()
+            reader.shutdown(wait=True, cancel_futures=True)
             temporary.cleanup()
 
 

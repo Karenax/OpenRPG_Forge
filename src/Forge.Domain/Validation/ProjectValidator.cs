@@ -7,6 +7,11 @@ using Forge.Domain.Creatures;
 using Forge.Domain.Factions;
 using Forge.Domain.Items;
 using Forge.Domain.WorldFeatures;
+using Forge.Domain.Audio;
+using Forge.Domain.Navigation;
+using Forge.Domain.Modules;
+using Forge.Domain.Content;
+using Forge.Domain.Localization;
 
 namespace Forge.Domain.Validation;
 
@@ -23,6 +28,8 @@ public static class ProjectValidator
     public const string MissingPortalDestinationEntityCode = "area.portal.destination_entity_missing";
     public const string UnsupportedBlueprintProvenanceSchemaCode = "blueprint.provenance.schema_unsupported";
     public const string InvalidInstalledBlueprintProvenanceCode = "blueprint.provenance.installed_invalid";
+    public const string InvalidBlueprintAuthoringCode = "blueprint.authoring.invalid";
+    public const string BlueprintVersionMismatchCode = "blueprint.instance.version_mismatch";
     public const string LocalizationDefaultLocaleMismatchCode = "localization.default_locale.mismatch";
     public const string MissingLocalizationKeyCode = "localization.key.missing";
     public const string ContentWorkspaceIdentityCode = "content.workspace.id_mismatch";
@@ -33,16 +40,20 @@ public static class ProjectValidator
     public const string DuplicateCreatureLootCode = "creature.loot.uuid_duplicate";
     public const string DuplicateCreatureRoleBehaviorCode = "creature.role_behavior.uuid_duplicate";
     public const string DuplicateCreatureEventsCode = "creature.events.uuid_duplicate";
+    public const string DuplicateCreatureFoundationCode = "creature.foundation.uuid_duplicate";
     public const string DuplicateQuestOperationsCode = "quest.operations.uuid_duplicate";
     public const string DuplicateItemAdvancedCode = "item.advanced.uuid_duplicate";
+    public const string DuplicateItemFoundationCode = "item.foundation.uuid_duplicate";
     public const string MissingItemRecipeByproductCode = "item.recipe.byproduct_missing";
+    public const string MissingQuestJournalReferenceCode = "quest.journal.reference_missing";
 
     public static IReadOnlyList<DomainDiagnostic> Validate(ProjectDefinition project)
     {
         ArgumentNullException.ThrowIfNull(project);
 
         var diagnostics = new List<DomainDiagnostic>();
-        var blueprintIds = project.Blueprints.Select(blueprint => blueprint.Id).ToHashSet();
+        var blueprintsById = project.Blueprints.ToDictionary(blueprint => blueprint.Id);
+        var blueprintIds = blueprintsById.Keys.ToHashSet();
         var areaIds = project.Areas.Select(area => area.Id).ToHashSet();
         var portalIds = new HashSet<PortalId>();
         var presentationIds = new HashSet<Guid>();
@@ -50,14 +61,19 @@ public static class ProjectValidator
         var lootIds = new HashSet<Guid>();
         var roleBehaviorIds = new HashSet<Guid>();
         var creatureEventIds = new HashSet<Guid>();
+        var creatureFoundationIds = new HashSet<Guid>();
         var questOperationsIds = new HashSet<Guid>();
         var itemAdvancedIds = new HashSet<Guid>();
+        var itemFoundationIds = new HashSet<Guid>();
         var projectItemSlugs = project.Blueprints.Where(item => item.Kind == BlueprintKind.Item)
             .Select(item => item.Slug).ToHashSet(StringComparer.Ordinal);
         var cameraAnchorIds = project.Areas.SelectMany(area => area.RuntimePolicies.Cinematics.CameraAnchors)
             .Select(anchor => anchor.Id).ToHashSet();
 
         diagnostics.AddRange(RuntimePolicyValidator.Validate(project.Module));
+        if (project.Module.Metadata.Foundation is { } foundation)
+            diagnostics.AddRange(ProjectFoundationValidator.Validate(foundation, project));
+        diagnostics.AddRange(ProjectVariableValidator.Validate(project.Module.Variables));
         diagnostics.AddRange(FactionValidator.Validate(project.Module.Factions)
             .Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
         diagnostics.AddRange(WorldFeatureCatalogValidator.Validate(project));
@@ -69,6 +85,9 @@ public static class ProjectValidator
                 "The content workspace configuration ID must match the module ID.",
                 "module/content/id"));
         }
+
+        diagnostics.AddRange(ContentPackageCatalogValidator.Validate(project.Module.Content.Packages, project.Module.Id.Value));
+        diagnostics.AddRange(LocalizationCatalogValidator.Validate(project.Module.Localization, project.Module.Id.Value));
 
         if (project.Module.ArtisticStyle.Id.Value != project.Module.Id.Value)
         {
@@ -94,13 +113,27 @@ public static class ProjectValidator
             if (blueprint.PaletteOrigin == BlueprintPaletteOrigin.InstalledPack &&
                 (!blueprint.Provenance.Source.StartsWith("pack://", StringComparison.Ordinal) ||
                  string.Equals(blueprint.Provenance.LicenseSpdx, "UNLICENSED", StringComparison.OrdinalIgnoreCase) ||
+                 string.IsNullOrWhiteSpace(blueprint.Provenance.PermissionEvidence) ||
                  blueprint.Provenance.ContentHash.Length != 64 ||
                  blueprint.Provenance.ContentHash.Any(character => !Uri.IsHexDigit(character))))
             {
                 diagnostics.Add(new DomainDiagnostic(
                     InvalidInstalledBlueprintProvenanceCode,
-                    $"Installed blueprint '{blueprint.Id}' requires a pack:// source, SPDX license and SHA-256 hash.",
+                    $"Installed blueprint '{blueprint.Id}' requires a pack:// source, SPDX license, permission evidence and SHA-256 hash.",
                     path));
+            }
+
+            var authoringPath = $"blueprints/{blueprint.Id}/authoring";
+            var expectedManifestPrefix = blueprint.PaletteOrigin == BlueprintPaletteOrigin.InstalledPack
+                ? "pack://"
+                : "content/blueprints/";
+            if (blueprint.Authoring.SchemaVersion != BlueprintAuthoringMetadata.CurrentSchemaVersion ||
+                !blueprint.Authoring.ManifestPath.StartsWith(expectedManifestPrefix, StringComparison.Ordinal))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    InvalidBlueprintAuthoringCode,
+                    $"Blueprint '{blueprint.Id}' has an invalid authoring schema or manifest location.",
+                    authoringPath));
             }
 
             if (blueprint.CreaturePresentation is not null)
@@ -115,6 +148,22 @@ public static class ProjectValidator
                         DuplicateCreaturePresentationCode,
                         $"Creature presentation '{blueprint.CreaturePresentation.Id}' is assigned more than once.",
                         $"{presentationPath}/id"));
+                }
+            }
+
+            if (blueprint.CreatureFoundation is not null)
+            {
+                var creatureFoundationPath = $"blueprints/{blueprint.Id}/creatureFoundation";
+                diagnostics.AddRange(CreatureFoundationValidator.Validate(
+                        blueprint.CreatureFoundation,
+                        creatureFoundationPath)
+                    .Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
+                if (!creatureFoundationIds.Add(blueprint.CreatureFoundation.Id))
+                {
+                    diagnostics.Add(new DomainDiagnostic(
+                        DuplicateCreatureFoundationCode,
+                        $"Creature foundation '{blueprint.CreatureFoundation.Id}' is assigned more than once.",
+                        $"{creatureFoundationPath}/id"));
                 }
             }
 
@@ -200,9 +249,25 @@ public static class ProjectValidator
                         $"{itemPath}/recipes/byproducts/{byproduct}"));
                 }
             }
+
+            if (blueprint.ItemFoundation is not null)
+            {
+                var itemFoundationPath = $"blueprints/{blueprint.Id}/itemFoundation";
+                diagnostics.AddRange(ItemFoundationValidator.Validate(blueprint.ItemFoundation, itemFoundationPath)
+                    .Select(item => new DomainDiagnostic(item.Code, item.Message, item.Path)));
+                if (!string.Equals(blueprint.ItemFoundation.Archetype, blueprint.Slug, StringComparison.Ordinal))
+                    diagnostics.Add(new DomainDiagnostic("item.foundation.slug_mismatch",
+                        "Item foundation archetype must match the owning blueprint slug.",
+                        $"{itemFoundationPath}/archetype"));
+                if (!itemFoundationIds.Add(blueprint.ItemFoundation.Id))
+                    diagnostics.Add(new DomainDiagnostic(DuplicateItemFoundationCode,
+                        $"Item foundation '{blueprint.ItemFoundation.Id}' is assigned more than once.",
+                        $"{itemFoundationPath}/id"));
+            }
         }
 
-        if (!areaIds.Contains(project.Module.EntryAreaId))
+        if (!areaIds.Contains(project.Module.EntryAreaId) &&
+            project.Module.Metadata.Foundation?.RequiresInitialArea != false)
         {
             diagnostics.Add(new DomainDiagnostic(
                 MissingEntryAreaCode,
@@ -213,7 +278,12 @@ public static class ProjectValidator
         foreach (var area in project.Areas)
         {
             diagnostics.AddRange(AreaWorldValidator.Validate(area, area.World));
+            diagnostics.AddRange(AnchorCatalogValidator.Validate(project, area));
             diagnostics.AddRange(RuntimePolicyValidator.Validate(area));
+            diagnostics.AddRange(AudioEmitterCatalogValidator.Validate(
+                area.Environment.Audio.Emitters,
+                area.Environment.Audio.Orchestration.MixBuses.Select(item => item.Id).ToHashSet(),
+                path: $"areas/{area.Id}/environment/audio/emitters"));
 
             for (var index = 0; index < area.Entities.Count; index++)
             {
@@ -225,12 +295,27 @@ public static class ProjectValidator
                         $"Entity '{entity.Id}' references missing blueprint '{entity.BlueprintId}'.",
                         $"areas/{area.Id}/entities/{index}/blueprintId"));
                 }
+                else
+                {
+                    var blueprint = blueprintsById[entity.BlueprintId];
+                    if (!BlueprintVersionConstraint.Matches(
+                            entity.BlueprintVersionRequirement,
+                            blueprint.Authoring.Version))
+                    {
+                        diagnostics.Add(new DomainDiagnostic(
+                            BlueprintVersionMismatchCode,
+                            $"Entity '{entity.Id}' requires blueprint version '{entity.BlueprintVersionRequirement}' " +
+                            $"but '{blueprint.Slug}' is version '{blueprint.Authoring.Version}'.",
+                            $"areas/{area.Id}/entities/{index}/blueprintVersionRequirement"));
+                    }
+                }
             }
 
             for (var index = 0; index < area.Portals.Count; index++)
             {
                 var portal = area.Portals[index];
                 var path = $"areas/{area.Id}/portals/{index}";
+                diagnostics.AddRange(PortalLinkValidator.Validate(area, portal));
                 if (!portalIds.Add(portal.Id))
                 {
                     diagnostics.Add(new DomainDiagnostic(
@@ -300,6 +385,18 @@ public static class ProjectValidator
                     $"dialogues/{dialogue.Id}/nodes/{node.Id}/speakerBlueprintId"));
             }
 
+            var nodeSpeakerIds = dialogue.Nodes.Where(item => item.SpeakerBlueprintId is not null)
+                .Select(item => item.SpeakerBlueprintId!).ToHashSet();
+            foreach (var participant in dialogue.Participants.Where(item =>
+                         item.BlueprintId is not null && !blueprintIds.Contains(item.BlueprintId) &&
+                         !nodeSpeakerIds.Contains(item.BlueprintId)))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    MissingDialogueSpeakerBlueprintCode,
+                    $"Dialogue participant '{participant.Id}' references missing blueprint '{participant.BlueprintId}'.",
+                    $"dialogues/{dialogue.Id}/participants/{participant.Id}/blueprintId"));
+            }
+
             if (dialogue.Presentation is not { } presentation)
                 continue;
             var presentationBlueprints = presentation.AnimationCues
@@ -330,6 +427,17 @@ public static class ProjectValidator
         foreach (var quest in project.Quests)
         {
             diagnostics.AddRange(QuestValidator.Validate(quest));
+            foreach (var state in quest.States)
+            {
+                foreach (var link in state.Journal.ContextLinks.Where(link =>
+                             link.Kind != QuestJournalLinkKind.Custom && !QuestJournalReferenceExists(project, link)))
+                {
+                    diagnostics.Add(new DomainDiagnostic(
+                        MissingQuestJournalReferenceCode,
+                        $"Quest journal link '{link.ReferenceId}' does not resolve as {link.Kind}.",
+                        $"quests/{quest.Id}/states/{state.Id}/journal/contextLinks/{link.Id}/referenceId"));
+                }
+            }
             if (quest.Operations is { } operations && !questOperationsIds.Add(operations.Id))
             {
                 diagnostics.Add(new DomainDiagnostic(
@@ -369,5 +477,32 @@ public static class ProjectValidator
         diagnostics.AddRange(CinematicValidator.Validate(project));
 
         return diagnostics;
+    }
+
+    private static bool QuestJournalReferenceExists(ProjectDefinition project, QuestJournalLink link)
+    {
+        var reference = link.ReferenceId;
+        var unqualified = reference.Contains(':', StringComparison.Ordinal)
+            ? reference[(reference.IndexOf(':', StringComparison.Ordinal) + 1)..]
+            : reference;
+        static bool Matches(string expected, string reference, string unqualified) =>
+            string.Equals(expected, reference, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(expected, unqualified, StringComparison.OrdinalIgnoreCase);
+        return link.Kind switch
+        {
+            QuestJournalLinkKind.Location => project.Areas.Any(item =>
+                Matches(item.Id.ToString(), reference, unqualified) || Matches(item.Slug, reference, unqualified)),
+            QuestJournalLinkKind.Character => project.Blueprints.Where(item => item.Kind == BlueprintKind.Creature)
+                .Any(item => Matches(item.Id.ToString(), reference, unqualified) ||
+                             Matches(item.Slug, reference, unqualified)),
+            QuestJournalLinkKind.Entity => project.Areas.SelectMany(item => item.Entities)
+                .Any(item => Matches(item.Id.ToString(), reference, unqualified)),
+            QuestJournalLinkKind.Quest => project.Quests.Any(item =>
+                Matches(item.Id.ToString(), reference, unqualified) || Matches(item.Slug, reference, unqualified)),
+            QuestJournalLinkKind.Dialogue => project.Dialogues.Any(item =>
+                Matches(item.Id.ToString(), reference, unqualified) || Matches(item.Slug, reference, unqualified)),
+            QuestJournalLinkKind.Custom => true,
+            _ => false,
+        };
     }
 }

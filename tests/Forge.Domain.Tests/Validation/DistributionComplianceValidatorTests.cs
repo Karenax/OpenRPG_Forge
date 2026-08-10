@@ -1,5 +1,6 @@
 using Forge.Domain.Areas;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Content;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
@@ -43,6 +44,37 @@ public sealed class DistributionComplianceValidatorTests
     }
 
     [Fact]
+    public void ShippingBlocksBlueprintWithoutExplicitPermissionEvidence()
+    {
+        var project = CreateProject(compliant: true);
+        var original = project.Blueprints.Single();
+        var withoutPermission = new BlueprintDefinition(
+            original.Id,
+            original.Slug,
+            original.DisplayName,
+            original.Kind,
+            original.Combat,
+            original.PaletteOrigin,
+            original.IsFavorite,
+            new BlueprintProvenance(
+                BlueprintProvenance.CurrentSchemaVersion,
+                original.Provenance.Source,
+                original.Provenance.Author,
+                original.Provenance.LicenseSpdx,
+                original.Provenance.ContentHash,
+                permissionEvidence: "not provided"),
+            authoring: original.Authoring);
+        var candidate = new ProjectDefinition(
+            project.Id, project.Title, project.Module, [withoutPermission], project.Areas,
+            project.Dialogues, project.Quests);
+
+        var diagnostic = Assert.Single(DistributionComplianceValidator.Validate(candidate, ModuleTargetKind.Shipping),
+            item => item.Code == DistributionComplianceValidator.BlueprintPermissionUnknownCode);
+
+        Assert.EndsWith("/permissionEvidence", diagnostic.Path, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Shipping_AcceptsApprovedModuleContentAndDependencyRegistry()
     {
         var project = CreateProject(compliant: true);
@@ -55,6 +87,33 @@ public sealed class DistributionComplianceValidatorTests
         Assert.Equal("MIT", dependency.LicenseSpdx);
         Assert.Equal("quarterly", dependency.UpdateCadence);
         Assert.False(string.IsNullOrWhiteSpace(dependency.RemovalPlan));
+    }
+
+    [Fact]
+    public void R050_ShippingBlocksUnknownContentPackageSourceAndAssetLicensesWithLocalizedPaths()
+    {
+        var project = CreateProject(compliant: true);
+        var packageId = Guid.Parse("d7000000-0000-4000-8000-000000000020");
+        var package = new ContentPackageDefinition(packageId, 1, "unverified", "third.party.content", "1.0.0",
+            "BUSL-1.1", new string('b', 64), 10, [], [],
+            [new(Guid.Parse("d7000000-0000-4000-8000-000000000021"), 1, "unverified", "script:test",
+                "scripts/test.forge", ContentSourceKind.ForgeScript, true, "BUSL-1.1", new string('c', 64), 1024)],
+            [new(Guid.Parse("d7000000-0000-4000-8000-000000000022"), 1, "unverified", "asset:test",
+                "assets/test.glb", true, "BUSL-1.1", new string('d', 64), 2048)]);
+        var packages = new ContentPackageCatalog(project.Module.Id.Value, 1, "test:r050",
+            ContentConflictPolicy.HighestPriority, [package]);
+        var content = project.Module.Content;
+        var candidateContent = new ContentWorkspaceConfiguration(content.Id, content.Batch, content.DataTables,
+            content.MergePolicy, content.Provenance, packages: packages);
+        var candidate = ReplaceContent(project, candidateContent);
+
+        var diagnostics = DistributionComplianceValidator.Validate(candidate, ModuleTargetKind.Shipping);
+
+        Assert.Contains(diagnostics, item => item.Code == DistributionComplianceValidator.ContentPackageLicenseUnknownCode &&
+            item.Path == $"module/content/packages/items/{packageId}/licenseSpdx");
+        Assert.Contains(diagnostics, item => item.Code == DistributionComplianceValidator.ContentPackageProvenanceUnknownCode);
+        Assert.Equal(2, diagnostics.Count(item => item.Code == DistributionComplianceValidator.ContentResourceLicenseUnknownCode));
+        Assert.Equal(2, diagnostics.Count(item => item.Code == DistributionComplianceValidator.ContentResourceProvenanceUnknownCode));
     }
 
     [Fact]
@@ -216,5 +275,16 @@ public sealed class DistributionComplianceValidatorTests
             project.Areas,
             project.Dialogues,
             project.Quests);
+    }
+
+    private static ProjectDefinition ReplaceContent(ProjectDefinition project,
+        ContentWorkspaceConfiguration content)
+    {
+        var module = project.Module;
+        return new ProjectDefinition(project.Id, project.Title,
+            new ModuleDefinition(module.Id, module.Slug, module.DisplayName, module.Description, module.EntryAreaId,
+                module.Metadata, module.Variables, module.Distribution, module.Localization, content,
+                module.ArtisticStyle, module.RuntimePolicies, module.Factions, module.WorldFeatures),
+            project.Blueprints, project.Areas, project.Dialogues, project.Quests);
     }
 }

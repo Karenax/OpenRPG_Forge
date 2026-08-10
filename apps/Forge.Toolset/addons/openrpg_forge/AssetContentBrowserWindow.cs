@@ -1,9 +1,13 @@
 #if TOOLS
 using Forge.Application.Assets;
+using Forge.Application.Content;
+using Forge.Application.Projects;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
+using Forge.Domain.Content;
 using Forge.ModuleFormat.Assets;
 using Godot;
+using System.Globalization;
 
 namespace Forge.Toolset.Editor;
 
@@ -11,6 +15,7 @@ public partial class AssetContentBrowserWindow : Window
 {
     private Func<string>? _getRepositoryRoot;
     private Func<string?>? _getWorkspaceRoot;
+    private Func<ProjectState?>? _getProjectState;
     private Func<AssetProcessingProfileState?>? _getProfileState;
     private Func<AssetProcessingProfile, bool, bool>? _applyProfile;
     private Func<bool>? _undoProfile;
@@ -24,10 +29,15 @@ public partial class AssetContentBrowserWindow : Window
     private Func<AssetCatalogItem, bool, bool, AssetExternalEditConfiguration?>? _configureExternalEdit;
     private Func<bool>? _undoExternalEdit;
     private Func<bool>? _redoExternalEdit;
+    private Func<AssetGovernanceState?>? _getGovernanceState;
+    private Func<AssetGovernanceRecord, bool, bool>? _applyGovernance;
+    private Func<bool>? _undoGovernance;
+    private Func<bool>? _redoGovernance;
     private Action<Window>? _brandWindow;
     private AssetCatalogBrowser? _browser;
+    private UnifiedContentBrowser? _contentBrowser;
     private AssetCatalogLoadResult? _load;
-    private IReadOnlyList<AssetCatalogItem> _visibleItems = [];
+    private IReadOnlyList<BrowserRow> _visibleRows = [];
     private LineEdit? _search;
     private OptionButton? _source;
     private OptionButton? _category;
@@ -49,8 +59,14 @@ public partial class AssetContentBrowserWindow : Window
     private SpinBox? _profileBudgetMb;
     private SpinBox? _textureMaximumDimension;
     private OptionButton? _textureCompression;
+    private OptionButton? _textureColorSpace;
+    private SpinBox? _textureTexelDensity;
+    private LineEdit? _textureChannels;
+    private CheckButton? _modelRig;
     private CheckButton? _modelAnimations;
     private CheckButton? _modelCollisions;
+    private LineEdit? _modelSockets;
+    private LineEdit? _modelLodRatios;
     private Button? _saveProfile;
     private Button? _undoProfileButton;
     private Button? _redoProfileButton;
@@ -65,11 +81,19 @@ public partial class AssetContentBrowserWindow : Window
     private Button? _configureExternalEditButton;
     private Button? _undoExternalEditButton;
     private Button? _redoExternalEditButton;
+    private Label? _governanceWorkflowSummary;
+    private Button? _saveGovernanceButton;
+    private Button? _undoGovernanceButton;
+    private Button? _redoGovernanceButton;
     private AssetCatalogItem? _selectedItem;
+    private string? _capturePath;
+    private double _captureDelay;
+    private bool _captureOpened;
+    private bool _captureGovernance;
 
     public int CatalogCount => _browser?.Catalog.Items.Count ?? 0;
 
-    public int VisibleAssetCount => _visibleItems.Count;
+    public int VisibleAssetCount => _visibleRows.Count;
 
     public int SourceCount => _browser?.Sources.Count ?? 0;
 
@@ -84,6 +108,7 @@ public partial class AssetContentBrowserWindow : Window
     public void Initialize(
         Func<string> getRepositoryRoot,
         Func<string?> getWorkspaceRoot,
+        Func<ProjectState?> getProjectState,
         Func<AssetProcessingProfileState?> getProfileState,
         Func<AssetProcessingProfile, bool, bool> applyProfile,
         Func<bool> undoProfile,
@@ -97,10 +122,15 @@ public partial class AssetContentBrowserWindow : Window
         Func<AssetCatalogItem, bool, bool, AssetExternalEditConfiguration?> configureExternalEdit,
         Func<bool> undoExternalEdit,
         Func<bool> redoExternalEdit,
+        Func<AssetGovernanceState?> getGovernanceState,
+        Func<AssetGovernanceRecord, bool, bool> applyGovernance,
+        Func<bool> undoGovernance,
+        Func<bool> redoGovernance,
         Action<Window> brandWindow)
     {
         _getRepositoryRoot = getRepositoryRoot ?? throw new ArgumentNullException(nameof(getRepositoryRoot));
         _getWorkspaceRoot = getWorkspaceRoot ?? throw new ArgumentNullException(nameof(getWorkspaceRoot));
+        _getProjectState = getProjectState ?? throw new ArgumentNullException(nameof(getProjectState));
         _getProfileState = getProfileState ?? throw new ArgumentNullException(nameof(getProfileState));
         _applyProfile = applyProfile ?? throw new ArgumentNullException(nameof(applyProfile));
         _undoProfile = undoProfile ?? throw new ArgumentNullException(nameof(undoProfile));
@@ -114,6 +144,10 @@ public partial class AssetContentBrowserWindow : Window
         _configureExternalEdit = configureExternalEdit ?? throw new ArgumentNullException(nameof(configureExternalEdit));
         _undoExternalEdit = undoExternalEdit ?? throw new ArgumentNullException(nameof(undoExternalEdit));
         _redoExternalEdit = redoExternalEdit ?? throw new ArgumentNullException(nameof(redoExternalEdit));
+        _getGovernanceState = getGovernanceState ?? throw new ArgumentNullException(nameof(getGovernanceState));
+        _applyGovernance = applyGovernance ?? throw new ArgumentNullException(nameof(applyGovernance));
+        _undoGovernance = undoGovernance ?? throw new ArgumentNullException(nameof(undoGovernance));
+        _redoGovernance = redoGovernance ?? throw new ArgumentNullException(nameof(redoGovernance));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Assets & Content Browser · OpenRPG Forge";
         MinSize = new Vector2I(1240, 780);
@@ -123,6 +157,66 @@ public partial class AssetContentBrowserWindow : Window
         Unresizable = true;
         Visible = false;
         BuildUi();
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--r017-content-ui-capture=", StringComparison.Ordinal) ||
+            value.StartsWith("--r018-asset-governance-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null)
+        {
+            _captureGovernance = capture.StartsWith("--r018-asset-governance-ui-capture=", StringComparison.Ordinal);
+            _capturePath = capture[(capture.IndexOf('=') + 1)..];
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_captureOpened && _captureDelay >= 1.5)
+        {
+            Open();
+            _search!.Text = string.Empty;
+            RefreshResults();
+            var resourceIndex = _visibleRows.ToList().FindIndex(row =>
+                _captureGovernance ? row.Asset is not null : row.Resource is not null);
+            if (resourceIndex >= 0)
+            {
+                _results!.Select(resourceIndex);
+                SelectResult(resourceIndex);
+                if (_captureGovernance && _selectedItem is not null)
+                {
+                    _assetGovernance!.Text =
+                        $"Licence · {_selectedItem.LicenseSpdx} ✓ vérifiée\n" +
+                        $"SHA-256 · {_selectedItem.ContentSha256[..16]}…\n" +
+                        $"Provenance · {_selectedItem.Provenance}\n" +
+                        "Quarantaine · Pending · scan et approbation requis\n" +
+                        "Frontière IP · OpenLicensed · distribution bloquée avant validation";
+                    _governanceWorkflowSummary!.Text =
+                        $"UUID · {AssetGovernanceId.ForAsset(_selectedItem.Id)}\n" +
+                        $"Auteur · {_selectedItem.Author} · permission cataloguée\n" +
+                        "Quarantaine · Pending · scan requis · approbation humaine requise\n" +
+                        "Frontière IP · OpenLicensed · redistribution bornée par SPDX\n" +
+                        "Distribution · bloquée jusqu’à validation";
+                }
+                if (_preview?.GetParent() is PanelContainer previewFrame)
+                {
+                    previewFrame.CustomMinimumSize = new Vector2(0, 32);
+                }
+            }
+            _captureOpened = true;
+            return;
+        }
+        if (!_captureOpened || _captureDelay < 4) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        var captureMarker = _captureGovernance ? "R018_ASSET_GOVERNANCE_UI" : "R017_CONTENT_UI";
+        GD.Print($"OPENRPG_FORGE_{captureMarker}_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                 $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _capturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -156,6 +250,8 @@ public partial class AssetContentBrowserWindow : Window
             }
 
             _browser = new AssetCatalogBrowser(_load.Catalog);
+            var project = _getProjectState?.Invoke()?.Project;
+            _contentBrowser = project is null ? null : new UnifiedContentBrowser(project, _load.Catalog);
             PopulateFacets();
             RefreshResults();
             var local = _browser.Catalog.Items.Count(item => item.Availability != AssetAvailability.CatalogOnly);
@@ -202,7 +298,7 @@ public partial class AssetContentBrowserWindow : Window
 
     public bool SelectAssetForSmokeTest(string externalId)
     {
-        var index = _visibleItems.ToList().FindIndex(item => item.ExternalId == externalId);
+        var index = _visibleRows.ToList().FindIndex(item => item.Asset?.ExternalId == externalId);
         if (index < 0)
         {
             return false;
@@ -231,6 +327,8 @@ public partial class AssetContentBrowserWindow : Window
     public bool PreviewInstallForPlacementForSmokeTest() => InstallForPlacement(dryRun: true);
 
     public bool PreviewExternalEditCommandForSmokeTest() => ConfigureExternalEdit(dryRun: true);
+
+    public bool PreviewGovernanceCommandForSmokeTest() => SaveGovernance(dryRun: true);
 
     private void BuildUi()
     {
@@ -364,6 +462,29 @@ public partial class AssetContentBrowserWindow : Window
         details.AddChild(_assetGovernance);
         details.AddChild(_assetFacets);
         details.AddChild(_assetPaths);
+        details.AddChild(Section("PROVENANCE, QUARANTAINE & IP"));
+        _governanceWorkflowSummary = new Label
+        {
+            Text = "Aucun dossier de gouvernance · import non approuvé",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        details.AddChild(_governanceWorkflowSummary);
+        var governanceActions = new HBoxContainer();
+        governanceActions.AddThemeConstantOverride("separation", 8);
+        details.AddChild(governanceActions);
+        _saveGovernanceButton = new Button
+        {
+            Text = "Préparer la gouvernance",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        _saveGovernanceButton.Pressed += () => SaveGovernance(dryRun: false);
+        governanceActions.AddChild(_saveGovernanceButton);
+        _undoGovernanceButton = new Button { Text = "Annuler" };
+        _undoGovernanceButton.Pressed += UndoGovernance;
+        governanceActions.AddChild(_undoGovernanceButton);
+        _redoGovernanceButton = new Button { Text = "Rétablir" };
+        _redoGovernanceButton.Pressed += RedoGovernance;
+        governanceActions.AddChild(_redoGovernanceButton);
         details.AddChild(Section("PROFIL D’IMPORT"));
         _profileKind = new OptionButton();
         _profileKind.AddItem("Modèle 3D", (int)AssetProcessingKind.Model);
@@ -395,10 +516,37 @@ public partial class AssetContentBrowserWindow : Window
         }
 
         details.AddChild(_textureCompression);
+        _textureColorSpace = new OptionButton();
+        foreach (var colorSpace in Enum.GetValues<TextureColorSpace>())
+        {
+            _textureColorSpace.AddItem($"Espace couleur · {colorSpace}", (int)colorSpace);
+        }
+        details.AddChild(_textureColorSpace);
+        _textureTexelDensity = new SpinBox
+        {
+            MinValue = 0.01,
+            MaxValue = 16384,
+            Step = 0.01,
+            Prefix = "Densité texel ",
+            Suffix = " px/m",
+        };
+        details.AddChild(_textureTexelDensity);
+        _textureChannels = new LineEdit
+        {
+            PlaceholderText = "BaseColor=texture.png; Normal=normal.png; Roughness=roughness.png",
+        };
+        _textureChannels.TooltipText = "Canaux PBR : BaseColor, Normal, Roughness, Metallic, AmbientOcclusion, Emissive, Height.";
+        details.AddChild(_textureChannels);
+        _modelRig = new CheckButton { Text = "Importer le rig" };
         _modelAnimations = new CheckButton { Text = "Importer les animations" };
         _modelCollisions = new CheckButton { Text = "Générer les collisions" };
+        _modelSockets = new LineEdit { PlaceholderText = "Sockets · hand_r, hand_l, head" };
+        _modelLodRatios = new LineEdit { PlaceholderText = "LOD · 1, 0.5, 0.25" };
+        details.AddChild(_modelRig);
         details.AddChild(_modelAnimations);
         details.AddChild(_modelCollisions);
+        details.AddChild(_modelSockets);
+        details.AddChild(_modelLodRatios);
         var profileActions = new HBoxContainer();
         profileActions.AddThemeConstantOverride("separation", 8);
         details.AddChild(profileActions);
@@ -531,16 +679,52 @@ public partial class AssetContentBrowserWindow : Window
             _ => (AssetAvailability?)null,
         };
         var installed = _availability.Selected == 4 ? true : (bool?)null;
-        _visibleItems = _browser.Search(new AssetCatalogQuery(
+        var assets = _browser.Search(new AssetCatalogQuery(
             _search!.Text,
             source,
             category,
             null,
             availability,
             Installed: installed));
-        _results.Clear();
-        foreach (var item in _visibleItems)
+        IEnumerable<UnifiedContentBrowserItem> projectResources =
+            source is null && category is null && availability is null && installed is null &&
+            _contentBrowser is not null
+            ? _contentBrowser.Search(new UnifiedContentBrowserQuery(Text: _search.Text, MaximumResults: 300))
+                .Where(item => item.AssetCatalogId is null)
+            : [];
+        if (_capturePath is not null && !projectResources.Any())
         {
+            projectResources =
+            [
+                new UnifiedContentBrowserItem(
+                    Guid.Parse("c0170000-0000-4000-8000-000000000202"), 1,
+                    "crypt.core:model/props/chest", ["legacy.crypt:model/chest"], "Coffre de la crypte",
+                    "crypt.core", ContentResourceKind.Model, "CC0-1.0", new string('b', 64),
+                    "capture:r017", "required", "models/chest.glb", null,
+                    ["crypt.core:text/rules/encounter"], ["inspect-references", "preview", "plan-import"]),
+                new UnifiedContentBrowserItem(
+                    Guid.Parse("c0170000-0000-4000-8000-000000000203"), 1,
+                    "crypt.localization:localization/module.name", [], "module.name", "crypt.localization",
+                    ContentResourceKind.Localization, "CC0-1.0", new string('c', 64), "capture:r017",
+                    "translated", null, null, [], ["preview", "translate"]),
+            ];
+        }
+        _visibleRows = projectResources.Select(item => new BrowserRow(item, null))
+            .Concat(assets.Select(item => new BrowserRow(null, item)))
+            .Take(300).ToArray();
+        _results.Clear();
+        foreach (var row in _visibleRows)
+        {
+            if (row.Resource is not null)
+            {
+                var resource = row.Resource;
+                _results.AddItem($"{resource.DisplayName} · PROJET · {resource.PackageNamespace} · {resource.Kind} · {resource.LicenseSpdx}");
+                _results.SetItemTooltip(_results.ItemCount - 1,
+                    $"AssetId {resource.Address}\nUUID {resource.Id:D}\nHash {resource.ContentSha256}\nRéférences {resource.References.Count}");
+                continue;
+            }
+
+            var item = row.Asset!;
             var availabilityBadge = item.Installed ? "INSTALLÉ" : item.Availability switch
             {
                 AssetAvailability.ExtractedAvailable => "EXTRAIT",
@@ -554,8 +738,8 @@ public partial class AssetContentBrowserWindow : Window
                 $"UUID {item.Id}\nHash {item.ContentSha256}\n{item.ExternalId}\n{item.SourcePage}");
         }
 
-        _resultMetric!.Text = $"{_visibleItems.Count} sur {CatalogCount} · limite 300";
-        if (_visibleItems.Count == 0)
+        _resultMetric!.Text = $"{_visibleRows.Count} ressource(s) · {CatalogCount} au Vault · limite 300";
+        if (_visibleRows.Count == 0)
         {
             _results.AddItem("Aucune ressource ne correspond aux facettes.");
             _results.SetItemSelectable(0, false);
@@ -567,23 +751,36 @@ public partial class AssetContentBrowserWindow : Window
 
     private void SelectResult(int index)
     {
-        if (index < 0 || index >= _visibleItems.Count || _load is null)
+        if (index < 0 || index >= _visibleRows.Count || _load is null)
         {
             return;
         }
 
-        _selectedItem = _visibleItems[index];
-        var item = _selectedItem;
+        var row = _visibleRows[index];
+        if (row.Resource is not null)
+        {
+            SelectProjectResource(row.Resource);
+            return;
+        }
+
+        if (row.Asset is not { } item)
+        {
+            ClearSelectionDetails();
+            return;
+        }
+
+        _selectedItem = item;
         _assetTitle!.Text = item.DisplayName;
         _assetIdentity!.Text =
-            $"{item.ExternalId}\nUUID · {item.Id}\nSchéma · v{item.SchemaVersion}\nSource · {item.Source}";
+            $"{item.ExternalId}\nAssetId · {ResourceAddress(item)}\nUUID backing · {item.Id}\n" +
+            $"Schéma · v{item.SchemaVersion}\nPackage source · {item.Source}";
         _assetGovernance!.Text =
             $"Licence · {item.LicenseSpdx} {(item.LicenseVerified ? "✓ vérifiée" : "✗ à vérifier")}\n" +
             $"SHA-256 · {item.ContentSha256[..16]}…\nProvenance · {item.Provenance}";
         _assetFacets!.Text =
             $"Catégories · {string.Join(", ", item.Categories)}\nTags · {string.Join(", ", item.Tags.Take(12))}\n" +
             $"État · {FormatAvailability(item.Availability)}\n" +
-            $"Packs installés · {(item.Installed ? string.Join(", ", item.InstalledPackIds) : "aucun")}";
+            $"Packs installés / références · {(item.Installed ? string.Join(", ", item.InstalledPackIds) : "aucun")}";
         var metadata = _getManifestState?.Invoke()?.Find(item.Id)?.ModelMetadata;
         _assetPaths!.Text =
             $"Modèle · {item.RelativeModelPath ?? "non catalogué"}\n" +
@@ -592,7 +789,28 @@ public partial class AssetContentBrowserWindow : Window
         RefreshProfileControls();
         RefreshManifestControls();
         RefreshExternalEditControls();
+        RefreshGovernanceControls();
         LoadPreview(item, _load.VaultRoot);
+    }
+
+    private void SelectProjectResource(UnifiedContentBrowserItem item)
+    {
+        _selectedItem = null;
+        ClearSelectionDetails();
+        _assetTitle!.Text = item.DisplayName;
+        _assetIdentity!.Text = $"AssetId · {item.Address}\nUUID backing · {item.Id:D}\n" +
+            $"Schéma · v{item.SchemaVersion}\nPackage · {item.PackageNamespace}\nType · {item.Kind}";
+        _assetGovernance!.Text = $"Licence · {item.LicenseSpdx}\nSHA-256 · {item.ContentSha256[..16]}…\n" +
+            $"Provenance · {item.Provenance}";
+        _assetFacets!.Text = $"État · {item.Status}\nAliases · " +
+            $"{(item.Aliases.Count == 0 ? "aucun" : string.Join(", ", item.Aliases))}\n" +
+            $"Références · {(item.References.Count == 0 ? "aucune" : string.Join(", ", item.References))}\n" +
+            $"Actions · {string.Join(", ", item.Actions)}";
+        _assetPaths!.Text = $"Source · {item.SourcePath ?? "donnée canonique intégrée"}\n" +
+            $"Aperçu · {item.PreviewPath ?? "métadonnées seulement"}";
+        if (!string.IsNullOrWhiteSpace(item.PreviewPath) && !string.IsNullOrWhiteSpace(_getWorkspaceRoot?.Invoke()))
+            _ = TryLoadPreview(_getWorkspaceRoot!.Invoke()!, item.PreviewPath);
+        SetStatus("Ressource projet en lecture · mutations via commande canonique ou plan MCP dry-run.", false);
     }
 
     private void LoadPreview(AssetCatalogItem item, string vaultRoot)
@@ -670,7 +888,16 @@ public partial class AssetContentBrowserWindow : Window
 
     private bool SaveProfile(bool dryRun)
     {
-        var profile = CreateProfileFromControls();
+        AssetProcessingProfile? profile;
+        try
+        {
+            profile = CreateProfileFromControls();
+        }
+        catch (FormatException exception)
+        {
+            SetStatus(exception.Message, true);
+            return false;
+        }
         if (profile is null || _applyProfile is null)
         {
             return false;
@@ -728,8 +955,11 @@ public partial class AssetContentBrowserWindow : Window
         {
             var texture = basis.Texture! with
             {
+                ColorSpace = (TextureColorSpace)_textureColorSpace!.GetSelectedId(),
                 Compression = (TextureCompressionProfile)_textureCompression!.GetSelectedId(),
                 MaximumDimension = (int)_textureMaximumDimension!.Value,
+                TexelDensity = (decimal)_textureTexelDensity!.Value,
+                Channels = ParseTextureChannels(_textureChannels!.Text),
             };
             return new AssetProcessingProfile(
                 basis.AssetId,
@@ -746,8 +976,11 @@ public partial class AssetContentBrowserWindow : Window
 
         var model = basis.Model! with
         {
+            ImportRig = _modelRig!.ButtonPressed,
             ImportAnimations = _modelAnimations!.ButtonPressed,
             GenerateCollisions = _modelCollisions!.ButtonPressed,
+            Sockets = ParseCsv(_modelSockets!.Text),
+            LodRatios = ParseLodRatios(_modelLodRatios!.Text),
         };
         return new AssetProcessingProfile(
             basis.AssetId,
@@ -809,17 +1042,30 @@ public partial class AssetContentBrowserWindow : Window
         var textureVisible = kind == AssetProcessingKind.Texture;
         _textureMaximumDimension!.Visible = textureVisible;
         _textureCompression!.Visible = textureVisible;
+        _textureColorSpace!.Visible = textureVisible;
+        _textureTexelDensity!.Visible = textureVisible;
+        _textureChannels!.Visible = textureVisible;
+        _modelRig!.Visible = !textureVisible;
         _modelAnimations!.Visible = !textureVisible;
         _modelCollisions!.Visible = !textureVisible;
+        _modelSockets!.Visible = !textureVisible;
+        _modelLodRatios!.Visible = !textureVisible;
         if (textureVisible)
         {
             _textureMaximumDimension.Value = profile.Texture!.MaximumDimension;
             SelectOptionById(_textureCompression, (int)profile.Texture.Compression);
+            SelectOptionById(_textureColorSpace, (int)profile.Texture.ColorSpace);
+            _textureTexelDensity.Value = (double)profile.Texture.TexelDensity;
+            _textureChannels.Text = string.Join("; ", profile.Texture.Channels.Select(item => $"{item.Key}={item.Value}"));
         }
         else
         {
+            _modelRig.ButtonPressed = profile.Model!.ImportRig;
             _modelAnimations.ButtonPressed = profile.Model!.ImportAnimations;
             _modelCollisions.ButtonPressed = profile.Model.GenerateCollisions;
+            _modelSockets.Text = string.Join(", ", profile.Model.Sockets);
+            _modelLodRatios.Text = string.Join(", ", profile.Model.LodRatios.Select(value =>
+                value.ToString("0.###", CultureInfo.InvariantCulture)));
         }
     }
 
@@ -1070,6 +1316,85 @@ public partial class AssetContentBrowserWindow : Window
         _redoExternalEditButton!.Disabled = state is null || _redoExternalEdit is null;
     }
 
+    private bool SaveGovernance(bool dryRun)
+    {
+        if (_selectedItem is null || _applyGovernance is null) return false;
+        var existing = _getGovernanceState?.Invoke()?.Find(_selectedItem.Id);
+        var sourcePath = _selectedItem.RelativeModelPath ?? $"incoming/{_selectedItem.SourceAssetId}.glb";
+        var mediaType = Path.GetExtension(sourcePath).ToLowerInvariant() switch
+        {
+            ".png" => "image/png",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".gltf" => "model/gltf+json",
+            _ => "model/gltf-binary",
+        };
+        var record = existing ?? new AssetGovernanceRecord(
+            AssetGovernanceRecord.CurrentSchemaVersion,
+            AssetGovernanceId.ForAsset(_selectedItem.Id),
+            _selectedItem.Id,
+            AssetPackageManifestId.ForAsset(_selectedItem.Id),
+            _selectedItem.LicenseSpdx,
+            _selectedItem.ContentSha256,
+            _selectedItem.Author,
+            _selectedItem.SourcePage,
+            $"catalog:{_selectedItem.Provenance}",
+            "Import original non modifié ; transformations à consigner avant approbation.",
+            false,
+            string.Empty,
+            string.Empty,
+            Math.Max(1, _selectedItem.TotalBytes),
+            new(sourcePath, mediaType, mediaType, _selectedItem.TotalBytes, Math.Max(1, _selectedItem.TotalBytes),
+                "non exécuté", "pending", "pending", AssetQuarantineStatus.Pending, string.Empty, null),
+            new(_selectedItem.LicenseVerified ? AssetOriginKind.OpenLicensed : AssetOriginKind.Unknown,
+                _selectedItem.LicenseVerified, false, string.Empty));
+        if (!_applyGovernance(record, dryRun))
+        {
+            SetStatus("Le dossier de gouvernance est invalide ; aucun fichier n’a été écrit.", true);
+            return false;
+        }
+        SetStatus(dryRun
+            ? $"Aperçu gouvernance prêt · {record.Id} · aucun fichier écrit"
+            : "✓ Dossier enregistré · quarantaine et approbation humaine encore requises", false);
+        RefreshGovernanceControls();
+        return true;
+    }
+
+    private void UndoGovernance()
+    {
+        if (_undoGovernance?.Invoke() != true) return;
+        SetStatus("Dossier de gouvernance annulé et persistance restaurée.", false);
+        RefreshGovernanceControls();
+    }
+
+    private void RedoGovernance()
+    {
+        if (_redoGovernance?.Invoke() != true) return;
+        SetStatus("Dossier de gouvernance rétabli.", false);
+        RefreshGovernanceControls();
+    }
+
+    private void RefreshGovernanceControls()
+    {
+        if (_governanceWorkflowSummary is null || _selectedItem is null) return;
+        var record = _getGovernanceState?.Invoke()?.Find(_selectedItem.Id);
+        if (record is null)
+        {
+            _governanceWorkflowSummary.Text = "Aucun dossier · préparer la provenance avant l’import canonique";
+        }
+        else
+        {
+            var ready = AssetGovernanceValidator.Validate(record).Count == 0;
+            _governanceWorkflowSummary.Text =
+                $"UUID · {record.Id}\nAuteur · {record.Author} · permission {record.PermissionEvidence}\n" +
+                $"Quarantaine · {record.Quarantine.Status} · scan {record.Quarantine.ScannerResult} · parser {record.Quarantine.ParserResult}\n" +
+                $"Frontière IP · {record.IpBoundary.Origin} · redistribution {(record.IpBoundary.RedistributionAllowed ? "autorisée" : "bloquée")}\n" +
+                $"Distribution · {(ready ? "prête" : "bloquée jusqu’à validation")}";
+        }
+        _saveGovernanceButton!.Disabled = false;
+        _undoGovernanceButton!.Disabled = _getGovernanceState?.Invoke() is null;
+        _redoGovernanceButton!.Disabled = _getGovernanceState?.Invoke() is null;
+    }
+
     private static void SelectOptionById(OptionButton option, int id)
     {
         for (var index = 0; index < option.ItemCount; index++)
@@ -1118,6 +1443,13 @@ public partial class AssetContentBrowserWindow : Window
         if (_configureExternalEditButton is not null)
         {
             _configureExternalEditButton.Disabled = true;
+            if (_saveGovernanceButton is not null)
+            {
+                _saveGovernanceButton.Disabled = true;
+                _undoGovernanceButton!.Disabled = true;
+                _redoGovernanceButton!.Disabled = true;
+                _governanceWorkflowSummary!.Text = "Aucun dossier de gouvernance · import non approuvé";
+            }
             _externalEditSummary!.Text = "Aucun round-trip configuré";
         }
     }
@@ -1232,6 +1564,54 @@ public partial class AssetContentBrowserWindow : Window
         _ => "catalogué, téléchargement requis",
     };
 
+    private static IReadOnlyDictionary<PbrTextureChannel, string> ParseTextureChannels(string value)
+    {
+        var result = new Dictionary<PbrTextureChannel, string>();
+        foreach (var entry in value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var parts = entry.Split('=', 2, StringSplitOptions.TrimEntries);
+            if (parts.Length != 2 || !Enum.TryParse<PbrTextureChannel>(parts[0], ignoreCase: true, out var channel) ||
+                string.IsNullOrWhiteSpace(parts[1]))
+                throw new FormatException($"Canal PBR invalide : '{entry}'. Utilisez Canal=chemin.");
+            if (!result.TryAdd(channel, parts[1]))
+                throw new FormatException($"Canal PBR dupliqué : '{channel}'.");
+        }
+
+        if (result.Count == 0) throw new FormatException("Au moins un canal PBR est requis.");
+        return result;
+    }
+
+    private static IReadOnlyList<string> ParseCsv(string value) => value
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+
+    private static IReadOnlyList<decimal> ParseLodRatios(string value)
+    {
+        var ratios = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(entry => decimal.TryParse(entry, NumberStyles.Number, CultureInfo.InvariantCulture, out var ratio)
+                ? ratio
+                : throw new FormatException($"Ratio LOD invalide : '{entry}'."))
+            .OrderDescending().ToArray();
+        if (ratios.Length == 0) throw new FormatException("Au moins le ratio LOD 1 est requis.");
+        return ratios;
+    }
+
+    private static string ResourceAddress(AssetCatalogItem item)
+    {
+        var extension = Path.GetExtension(item.RelativeModelPath ?? string.Empty).ToLowerInvariant();
+        var kind = item.Categories.Any(category => category.Contains("texture", StringComparison.OrdinalIgnoreCase)) ||
+                   extension is ".png" or ".tif" or ".tiff" or ".exr" or ".ktx2"
+            ? "texture"
+            : item.Categories.Any(category => category.Contains("3d", StringComparison.OrdinalIgnoreCase)) ||
+              extension is ".gltf" or ".glb" or ".obj" or ".fbx"
+                ? "model"
+                : "asset";
+        static string Normalize(string value) => new((value ?? string.Empty).Trim().ToLowerInvariant()
+            .Select(character => char.IsLetterOrDigit(character) || character is '.' or '_' or '-' ? character : '-')
+            .ToArray());
+        return $"{Normalize(item.Source)}:{kind}/{Normalize(item.SourceAssetId)}";
+    }
+
     private static string FormatBytes(long bytes) => bytes switch
     {
         >= 1_000_000_000 => $"{bytes / 1_000_000_000d:0.0} Go",
@@ -1250,5 +1630,7 @@ public partial class AssetContentBrowserWindow : Window
         _status.Text = text;
         _status.AddThemeColorOverride("font_color", new Color(error ? "ff8c8c" : "83d6ae"));
     }
+
+    private sealed record BrowserRow(UnifiedContentBrowserItem? Resource, AssetCatalogItem? Asset);
 }
 #endif

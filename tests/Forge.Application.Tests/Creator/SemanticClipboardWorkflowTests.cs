@@ -17,6 +17,62 @@ public sealed class SemanticClipboardWorkflowTests
     private static readonly DateTimeOffset Timestamp = new(2026, 8, 2, 20, 0, 0, TimeSpan.Zero);
 
     [Fact]
+    public void SemanticClipboard_CutIsAtomicVersionedAndUndoable()
+    {
+        var context = CreateContext();
+        var source = context.SourceArea.WithPortals([]);
+        var project = new ProjectDefinition(context.State.Project.Id, context.State.Project.Title,
+            context.State.Project.Module, context.State.Project.Blueprints,
+            [source, context.TargetArea], context.State.Project.Dialogues, context.State.Project.Quests);
+        var state = new ProjectState(project, context.State.Revision);
+        var command = new CutEntitiesCommand(CommandId.From(Guid.NewGuid()), CutEntitiesHandler.CurrentSchemaVersion,
+            "test:r034-cut", state.Revision, source.Id, source.Entities.Select(item => item.Id).ToArray(), DryRun: false);
+        var handler = new CutEntitiesHandler(new FixedClock(Timestamp));
+
+        var dryRun = handler.Handle(state, command with { DryRun = true });
+        var applied = handler.Handle(state, command);
+        var history = new ProjectCommandHistory(state);
+        history.Record(applied.Command);
+
+        Assert.True(dryRun.Command.Succeeded);
+        Assert.Equal(2, dryRun.Payload!.Entities.Count);
+        Assert.Equal(2, dryRun.Command.State.Project.Areas.Single(item => item.Id == source.Id).Entities.Count);
+        Assert.True(applied.Command.Succeeded);
+        Assert.True(applied.Payload!.IsCut);
+        Assert.NotEqual(Guid.Empty, applied.Payload.Id);
+        Assert.Equal("test:r034-cut", applied.Payload.Provenance);
+        Assert.Empty(applied.Command.State.Project.Areas.Single(item => item.Id == source.Id).Entities);
+        Assert.True(history.Undo().Succeeded);
+        Assert.Equal(2, history.State.Project.Areas.Single(item => item.Id == source.Id).Entities.Count);
+        Assert.True(history.Redo().Succeeded);
+        Assert.Empty(history.State.Project.Areas.Single(item => item.Id == source.Id).Entities);
+    }
+
+    [Fact]
+    public void SemanticClipboard_IndependentCopyRemapsBlueprintUuid()
+    {
+        var context = CreateContext();
+        var payload = new SemanticClipboard().CopyEntities(context.State.Project, context.SourceArea.Id,
+            context.SourceArea.Entities.Select(item => item.Id).ToArray(), "test:r034-copy");
+        var entityMap = payload.Entities.ToDictionary(item => item.Id, _ => EntityId.From(Guid.NewGuid()));
+        var blueprintMap = payload.Entities.Select(item => item.BlueprintId).Distinct()
+            .ToDictionary(id => id, _ => BlueprintId.From(Guid.NewGuid()));
+        var command = new PasteEntitiesCommand(CommandId.From(Guid.NewGuid()), context.State.Revision,
+            context.TargetArea.Id, payload, entityMap, new Vector3Value(8, 0, 8), DryRun: false,
+            Mode: SemanticPasteMode.IndependentCopy, BlueprintIdMap: blueprintMap);
+
+        var result = new PasteEntitiesHandler(new FixedClock(Timestamp)).Handle(context.State, command);
+
+        Assert.True(result.Succeeded);
+        var copiedBlueprint = Assert.Single(result.State.Project.Blueprints,
+            item => blueprintMap.Values.Contains(item.Id));
+        Assert.Equal(BlueprintPaletteOrigin.ProjectContent, copiedBlueprint.PaletteOrigin);
+        Assert.Contains("Independent clipboard copy", copiedBlueprint.Provenance.Modifications.Single());
+        Assert.All(result.State.Project.Areas.Single(item => item.Id == context.TargetArea.Id).Entities
+            .Where(item => entityMap.Values.Contains(item.Id)), item => Assert.Equal(copiedBlueprint.Id, item.BlueprintId));
+    }
+
+    [Fact]
     public void EntityClipboard_PastesSemanticCopiesAndSupportsDryRunUndoRedo()
     {
         var context = CreateContext();

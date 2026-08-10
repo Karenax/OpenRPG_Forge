@@ -41,6 +41,9 @@ public sealed class RulesScriptViewService(ModuleRulesProfile module, AreaRulesP
                 ["progressionMultiplier"] = difficulty.ProgressionMultiplier,
                 ["friendlyFire"] = difficulty.FriendlyFire.ToString().ToLowerInvariant(),
                 ["enabledMutators"] = difficulty.EnabledMutators.ToArray(),
+                ["activePluginKey"] = _module.Plugins.ActivePackageKey,
+                ["pluginPackageCount"] = _module.Plugins.Packages.Count,
+                ["pluginRequiredAtRuntime"] = _module.Plugins.RequiredAtRuntime,
             });
         }
 

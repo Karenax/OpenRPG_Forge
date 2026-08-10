@@ -1,4 +1,6 @@
 using Forge.Mcp.Projects;
+using Forge.Domain.Projects;
+using Forge.ModuleFormat.Workspaces;
 
 namespace Forge.Mcp.Tests;
 
@@ -8,7 +10,7 @@ internal sealed class TestWorkspace : IDisposable
 
     public ForgeProjectAgentService Project { get; }
 
-    public TestWorkspace()
+    public TestWorkspace(Func<ProjectDefinition, ProjectDefinition>? mutate = null)
     {
         RootDirectory = Path.Combine(Path.GetTempPath(), "openrpg-forge-mcp-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(RootDirectory);
@@ -21,6 +23,13 @@ internal sealed class TestWorkspace : IDisposable
         foreach (var areaDocument in Directory.EnumerateFiles(Path.Combine(sample, "areas"), "*.json"))
         {
             File.Copy(areaDocument, Path.Combine(areaDirectory, Path.GetFileName(areaDocument)));
+        }
+        if (mutate is not null)
+        {
+            var opened = ProjectSession.Open(RootDirectory).Session
+                ?? throw new InvalidOperationException("The MCP fixture could not be opened for mutation.");
+            var saved = opened.Save(mutate(opened.Project));
+            if (!saved.Succeeded) throw new InvalidOperationException("The MCP fixture mutation could not be saved.");
         }
         Project = ForgeProjectAgentService.Open(RootDirectory).Service
             ?? throw new InvalidOperationException("The MCP test project did not open.");

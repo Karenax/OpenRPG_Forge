@@ -237,7 +237,8 @@ public sealed record ModernRuntimeToolingProfile
         var quality = qualityAssurance ?? QualityAssuranceProfile.CreateDefault(id);
         var ids = new[] { id, runtimeCopy.Id, areaEffectIndicator.Id, uiToolkit.Id, compiler.Id, documentation.Id,
             quality.Id, quality.Network.Id, quality.Visual.Id, quality.Benchmarks.Id, quality.Profiler.Id,
-            quality.Accessibility.Id, quality.SecurityFuzz.Id }
+            quality.Accessibility.Id, quality.SecurityFuzz.Id, quality.ClickableDiagnostics.Id,
+            quality.MaliciousFixtures.Id, quality.AuroraParityCoverage.Id, quality.AcceptanceGates.Id }
             .Concat(quality.PlatformBudgets.Select(item => item.Id)).ToArray();
         if (id == Guid.Empty || schemaVersion != CurrentSchemaVersion || ids.Distinct().Count() != ids.Length)
             throw new ArgumentException("Modern runtime tooling requires schema v1 and unique stable UUIDs.");

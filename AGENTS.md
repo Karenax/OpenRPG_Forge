@@ -13,8 +13,10 @@ Avant toute modification importante, lire :
 1. `MEGACONTEXT.md`
 2. `STATUS.md`
 3. `TASKS_MVP.md`
-4. les ADR applicables dans `docs/ADR/`
-5. la documentation spécialisée du sous-système concerné
+4. `docs/planning/COMPLETE_FUNCTION_BACKLOG.md`
+5. `tracking/project/AURORA_PARITY_COVERAGE.csv`
+6. les ADR applicables dans `docs/ADR/`
+7. la documentation spécialisée du sous-système concerné
 
 Une décision enregistrée dans un ADR ne doit pas être renversée silencieusement. Proposer un nouvel ADR de remplacement.
 
@@ -24,6 +26,8 @@ Une décision enregistrée dans un ADR ne doit pas être renversée silencieusem
   modifier pour refléter l'état du projet.
 - Le tracker opérationnel est `tracking/project/AURORA_PARITY_COVERAGE.csv`, généré par
   `scripts/Update-AuroraParityTracker.ps1`.
+- Le plan exhaustif des 717 fonctions est `docs/planning/COMPLETE_FUNCTION_BACKLOG.md`, généré par
+  `scripts/Update-CompleteFunctionBacklog.ps1`. Chaque lot `FC-*` contient une à cinq exigences.
 - Avant une feature Aurora, lire son exigence source, le tracker projet et le rapport d'écart dans
   `docs/aurora-parity/`.
 - Traiter un ensemble cohérent de une à cinq feature IDs. Une priorité P2/P3 ne détourne pas une
@@ -33,6 +37,8 @@ Une décision enregistrée dans un ADR ne doit pas être renversée silencieusem
 - Ne pas créer de classe ou projet vide uniquement pour augmenter la couverture.
 - Une ligne ne passe `Tested` qu'avec une preuve automatisée ou une procédure reproductible liée
   dans le tracker projet.
+- Après une modification autorisée du tracker, régénérer puis vérifier aussi le plan exhaustif. Ne
+  jamais annoncer 100 % fonctionnel tant que les 717 lignes ne sont pas `Tested`.
 
 ## Pile imposée pour le MVP
 

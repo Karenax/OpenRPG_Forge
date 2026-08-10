@@ -34,12 +34,20 @@ public partial class RulesConfigurationWindow : Window
     private CheckBox? _aggro;
     private CheckBox? _environmentDamage;
     private CheckBox? _serverAuthority;
+    private CheckBox? _pluginsEnabled;
+    private CheckBox? _pluginsRequired;
+    private LineEdit? _activePlugin;
+    private TextEdit? _pluginPackages;
     private Label? _summary;
     private Label? _status;
+    private string? _capturePath;
+    private double _captureDelay;
+    private bool _captureOpened;
 
     internal string Summary => _module is null || _area is null ? "unavailable" :
         $"difficulty={_module.ActiveDifficultyKey};mutators={_module.Mutators.Mutators.Count(item => item.Enabled)};" +
-        $"perception={_area.Perception.Modifiers.Count};pvp={_area.Combat.PvpMode}";
+        $"perception={_area.Perception.Modifiers.Count};pvp={_area.Combat.PvpMode};" +
+        $"plugin={_module.Plugins.ActivePackageKey};packages={_module.Plugins.Packages.Count}";
 
     public void Initialize(Func<ProjectState?> state, Func<AreaId?> activeArea,
         Func<ModuleRulesProfile, AreaId, AreaRulesProfile, bool> apply, Action<Window> brand)
@@ -54,6 +62,35 @@ public partial class RulesConfigurationWindow : Window
         Transient = true;
         Visible = false;
         Build();
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--ruleset-plugin-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null)
+        {
+            _capturePath = capture["--ruleset-plugin-ui-capture=".Length..];
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_captureOpened && _captureDelay >= 1)
+        {
+            Open();
+            _captureOpened = true;
+            return;
+        }
+        if (!_captureOpened || _captureDelay < 2.5) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        GD.Print($"OPENRPG_FORGE_RULESET_PLUGIN_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                 $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _capturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -72,10 +109,13 @@ public partial class RulesConfigurationWindow : Window
 
     private void Build()
     {
+        var background = new PanelContainer { AnchorRight = 1, AnchorBottom = 1 };
+        background.AddThemeStyleboxOverride("panel", Style("100c18", "513a6d"));
+        AddChild(background);
         var margin = new MarginContainer(); margin.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         foreach (var side in new[] { "margin_left", "margin_top", "margin_right", "margin_bottom" })
             margin.AddThemeConstantOverride(side, 18);
-        AddChild(margin);
+        background.AddChild(margin);
         var root = new VBoxContainer(); root.AddThemeConstantOverride("separation", 10); margin.AddChild(root);
         var title = new Label { Text = "PROGRESSION, DIFFICULTÉ & RÈGLES DE ZONE", ThemeTypeVariation = "HeaderSmall" };
         title.AddThemeColorOverride("font_color", new Color("ff9858")); root.AddChild(title);
@@ -86,7 +126,7 @@ public partial class RulesConfigurationWindow : Window
         });
         _summary = new Label(); _summary.AddThemeColorOverride("font_color", new Color("c7b3dc")); root.AddChild(_summary);
         var scroll = new ScrollContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill }; root.AddChild(scroll);
-        var columns = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        var columns = new GridContainer { Columns = 2, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         columns.AddThemeConstantOverride("separation", 12); scroll.AddChild(columns);
 
         var progression = Card(columns, "PROGRESSION DATA-DRIVEN");
@@ -97,6 +137,28 @@ public partial class RulesConfigurationWindow : Window
         _sourceMultipliers = new TextEdit { CustomMinimumSize = new Vector2(350, 145) }; progression.AddChild(_sourceMultipliers);
         progression.AddChild(new Label { Text = "Mutateurs · clé | actif", AutowrapMode = TextServer.AutowrapMode.WordSmart });
         _mutators = new TextEdit { CustomMinimumSize = new Vector2(350, 115) }; progression.AddChild(_mutators);
+
+        var plugins = Card(columns, "PLUGINS DE RÈGLES P0");
+        _pluginsEnabled = Check("Activer le catalogue de règles", true); plugins.AddChild(_pluginsEnabled);
+        _pluginsRequired = Check("Extension requise au runtime", true); plugins.AddChild(_pluginsRequired);
+        _activePlugin = Field(plugins, "Package actif", "forge.generic");
+        plugins.AddChild(new Label
+        {
+            Text = "Packages · clé | version | contenu | attributs | effets | capacités | inventaires | progression | UI",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+        _pluginPackages = new TextEdit
+        {
+            CustomMinimumSize = new Vector2(520, 150),
+            WrapMode = TextEdit.LineWrappingMode.Boundary,
+        };
+        plugins.AddChild(_pluginPackages);
+        plugins.AddChild(new Label
+        {
+            Text = "Chaque registre accepte une liste séparée par des virgules. Aucun code natif arbitraire n’est chargé.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Modulate = new Color("bcaacb"),
+        });
 
         var difficulty = Card(columns, "DIFFICULTÉ COMPOSABLE");
         _playerDamage = Spin(.05, 20, 1, .05); difficulty.AddChild(Row("Dégâts joueur", _playerDamage));
@@ -152,6 +214,14 @@ public partial class RulesConfigurationWindow : Window
         _sourceMultipliers!.Text = string.Join("\n", progression.SourceMultipliers.Select(item =>
             $"{item.Key} | {item.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}"));
         _mutators!.Text = string.Join("\n", _module.Mutators.Mutators.Select(item => $"{item.Key} | {(item.Enabled ? "oui" : "non")}"));
+        _pluginsEnabled!.ButtonPressed = _module.Plugins.Enabled;
+        _pluginsRequired!.ButtonPressed = _module.Plugins.RequiredAtRuntime;
+        _activePlugin!.Text = _module.Plugins.ActivePackageKey;
+        _pluginPackages!.Text = string.Join("\n", _module.Plugins.Packages.Select(item =>
+            $"{item.Key} | {item.Version} | {item.ContentPackageId} | {string.Join(',', item.Attributes)} | " +
+            $"{string.Join(',', item.Effects)} | {string.Join(',', item.Abilities)} | " +
+            $"{string.Join(',', item.Inventories)} | {string.Join(',', item.ProgressionTracks)} | " +
+            $"{string.Join(',', item.UiPanels)}"));
         var difficulty = _module.ActiveDifficulty;
         _playerDamage!.Value = difficulty.PlayerDamageMultiplier; _incomingDamage!.Value = difficulty.IncomingDamageMultiplier;
         _aiIntensity!.Value = difficulty.AiIntensityMultiplier; _economy!.Value = difficulty.EconomyMultiplier;
@@ -164,7 +234,9 @@ public partial class RulesConfigurationWindow : Window
         _areaFriendlyFire!.Selected = (int)combat.FriendlyFire; _crime!.ButtonPressed = combat.CrimeEnabled;
         _aggro!.ButtonPressed = combat.AggroEnabled; _environmentDamage!.ButtonPressed = combat.EnvironmentalDamageEnabled;
         _serverAuthority!.ButtonPressed = combat.ServerAuthoritative;
-        _summary!.Text = $"Schéma v{_module.SchemaVersion} · règles {progression.RulesetId} · difficulté {difficulty.DisplayName} · zone {_areaId}";
+        _summary!.Text = $"Schéma v{_module.SchemaVersion} · règles {progression.RulesetId} · " +
+            $"plugin {_module.Plugins.ActivePackageKey} ({_module.Plugins.Packages.Count}) · " +
+            $"difficulté {difficulty.DisplayName} · zone {_areaId}";
         _status!.Text = "Prêt · profils canoniques chargés.";
     }
 
@@ -184,7 +256,11 @@ public partial class RulesConfigurationWindow : Window
                 (FriendlyFireMode)_difficultyFriendlyFire!.Selected, current.Accessibility, "forge-ui");
             var difficulties = _module.Difficulties.Select(item => item.Key == current.Key ? difficulty : item).ToArray();
             var mutators = new MutatorSet(_module.Mutators.Id, 1, ParseMutators(_module.Mutators), "forge-ui");
-            var module = new ModuleRulesProfile(_module.Id, 1, progression, difficulties, current.Key, mutators, "forge-ui");
+            var plugins = new RulesetPluginCatalog(_module.Plugins.Id, 1, _pluginsEnabled!.ButtonPressed,
+                _pluginsRequired!.ButtonPressed, _activePlugin!.Text, ParsePluginPackages(_module.Plugins),
+                "forge-ui");
+            var module = new ModuleRulesProfile(_module.Id, 1, progression, difficulties, current.Key, mutators,
+                "forge-ui", plugins);
             var perception = new EnvironmentPerceptionProfile(_area.Perception.Id, 1,
                 _area.Perception.RulesetId, ParsePerception(_area.Perception), "forge-ui");
             var sourceCombat = _area.Combat;
@@ -252,6 +328,22 @@ public partial class RulesConfigurationWindow : Window
         return result;
     }
 
+    private IReadOnlyList<RulesetPluginPackage> ParsePluginPackages(RulesetPluginCatalog source)
+    {
+        var ids = source.Packages.ToDictionary(item => item.Key, item => item.Id, StringComparer.Ordinal);
+        var result = new List<RulesetPluginPackage>();
+        foreach (var raw in _pluginPackages!.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = raw.Split('|').Select(item => item.Trim()).ToArray();
+            if (parts.Length != 9) throw new FormatException($"Package de règles invalide : {raw}");
+            var key = parts[0].ToLowerInvariant();
+            result.Add(new RulesetPluginPackage(ids.GetValueOrDefault(key, Guid.NewGuid()), 1, key, parts[1],
+                parts[2], Csv(parts[3]), Csv(parts[4]), Csv(parts[5]), Csv(parts[6]), Csv(parts[7]), Csv(parts[8]),
+                "forge-ui"));
+        }
+        return result;
+    }
+
     private static VBoxContainer Card(Container parent, string title)
     {
         var panel = new PanelContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
@@ -276,6 +368,15 @@ public partial class RulesConfigurationWindow : Window
     }
 
     private static CheckBox Check(string text, bool value) => new() { Text = text, ButtonPressed = value };
+    private static LineEdit Field(VBoxContainer parent, string label, string placeholder)
+    {
+        parent.AddChild(new Label { Text = label });
+        var field = new LineEdit { PlaceholderText = placeholder };
+        parent.AddChild(field);
+        return field;
+    }
+    private static IReadOnlyList<string> Csv(string value) => value
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     private static SpinBox Spin(double min, double max, double value, double step) => new()
     { MinValue = min, MaxValue = max, Value = value, Step = step, AllowGreater = false, AllowLesser = false };
     private static OptionButton EnumOptions<T>() where T : struct, Enum

@@ -4,14 +4,18 @@ using System.Text;
 using Forge.Domain.Assets;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Creatures;
+using Forge.Domain.Content;
 using Forge.Domain.Factions;
 using Forge.Domain.Lifecycle;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
+using Forge.Domain.Build;
+using Forge.ModuleFormat.Build;
 using Forge.ModuleFormat.Packages;
 using Forge.ModuleFormat.Tests.Serialization;
 using Forge.ModuleFormat.Workspaces;
+using Forge.Scripting;
 
 namespace Forge.ModuleFormat.Tests.Packages;
 
@@ -21,6 +25,77 @@ public sealed class ModulePackageTests : IDisposable
         Path.GetTempPath(),
         "openrpg-forge-tests",
         Guid.NewGuid().ToString("N"));
+
+    [Fact]
+    public void ExportUsesCanonicalMinimumRuntimeAndLoaderRejectsRequiredIncompatibilityBeforeExtraction()
+    {
+        var workspace = CreateWorkspace();
+        var source = WorkspaceBuildProfile.CreateDefault();
+        var profile = new WorkspaceBuildProfile(source.Id, source.SchemaVersion, source.Provenance,
+            source.RequireGitRepository, source.TextDocuments, source.ExplicitGeneratedFiles,
+            source.ReproducibleAssets, source.Layout, source.CliOperations, source.StableOrdering,
+            source.NormalizedTimestamps, source.LockedDependencies, source.ContentHashes,
+            source.VerifyReproducibility, source.IncrementalBuild, source.CachePath, source.RebuildAffectedOnly,
+            source.Governance, source.Collaboration,
+            source.Compatibility with { MinimumRuntimeVersion = "99.0.0", RequiredAtRuntime = true });
+        Assert.True(WorkspaceBuildProfileStore.Save(workspace, profile).Succeeded);
+        var package = Path.Combine(_temporaryRoot, "future-runtime.orpmod");
+        var exported = ModulePackager.Export(workspace, package);
+
+        Assert.Equal("99.0.0", exported.Manifest.RuntimeMinimumVersion);
+        Assert.True(exported.Manifest.RuntimeCompatibilityRequired);
+        var validation = ModulePackageValidator.Validate(package, availableRuntimeVersion: "0.6.34");
+        var diagnostic = Assert.Single(validation.Diagnostics,
+            item => item.Code == ModuleRuntimeCompatibility.IncompatibleRuntimeCode);
+        Assert.Equal(ModuleRuntimeCompatibility.DiagnosticPath, diagnostic.Path);
+        var cache = Path.Combine(_temporaryRoot, "incompatible-cache");
+        Assert.Throws<InvalidDataException>(() => ModulePackageLoader.Load(package, cache));
+        Assert.False(Directory.Exists(cache));
+    }
+
+    [Fact]
+    public void OptionalRuntimeCompatibilityDoesNotBlockLoading()
+    {
+        var workspace = CreateWorkspace();
+        var source = WorkspaceBuildProfile.CreateDefault();
+        var profile = new WorkspaceBuildProfile(source.Id, source.SchemaVersion, source.Provenance,
+            source.RequireGitRepository, source.TextDocuments, source.ExplicitGeneratedFiles,
+            source.ReproducibleAssets, source.Layout, source.CliOperations, source.StableOrdering,
+            source.NormalizedTimestamps, source.LockedDependencies, source.ContentHashes,
+            source.VerifyReproducibility, source.IncrementalBuild, source.CachePath, source.RebuildAffectedOnly,
+            source.Governance, source.Collaboration,
+            source.Compatibility with { MinimumRuntimeVersion = "99.0.0", RequiredAtRuntime = false });
+        Assert.True(WorkspaceBuildProfileStore.Save(workspace, profile).Succeeded);
+        var package = Path.Combine(_temporaryRoot, "optional-future-runtime.orpmod");
+        ModulePackager.Export(workspace, package);
+
+        var loaded = ModulePackageLoader.Load(package, Path.Combine(_temporaryRoot, "optional-cache"));
+
+        Assert.False(loaded.Manifest.RuntimeCompatibilityRequired);
+        Assert.Equal("99.0.0", loaded.Manifest.RuntimeMinimumVersion);
+    }
+
+    [Fact]
+    public void Export_includes_valid_module_script_permissions_and_rejects_wrong_module_before_build()
+    {
+        var workspace = CreateWorkspace();
+        var opened = ProjectSession.Open(workspace);
+        var project = Assert.IsType<ProjectDefinition>(opened.Session?.Project);
+        var store = new ForgeScriptModulePermissionStore(workspace);
+        store.Save(ForgeScriptModulePermissionPolicy.CreateDefault(project.Module.Id.Value));
+        var package = Path.Combine(_temporaryRoot, "script-permissions.orpmod");
+
+        ModulePackager.Export(workspace, package);
+
+        using (var archive = ZipFile.OpenRead(package))
+            Assert.Contains(archive.Entries, entry => entry.FullName ==
+                "content/scripts/forge-script-permissions.json");
+
+        store.Save(ForgeScriptModulePermissionPolicy.CreateDefault(Guid.NewGuid()));
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            ModulePackager.Export(workspace, Path.Combine(_temporaryRoot, "wrong-module.orpmod")));
+        Assert.Contains("script.permission.module_mismatch", exception.Message, StringComparison.Ordinal);
+    }
 
     [Fact]
     public void ExportIgnoresGodotImportSidecars()
@@ -420,6 +495,113 @@ public sealed class ModulePackageTests : IDisposable
         Assert.Contains("Removal plan:", notice, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void R050_NoticeAggregatesDataTablesPackagesSourcesAndAssetsDeterministically()
+    {
+        var source = TestProjectFactory.CreateValid();
+        var table = new DataTableDefinition(
+            DataTableId.From(Guid.Parse("d7130000-0000-4000-8000-000000000020")), "credits", "Credits",
+            [new(DataColumnId.From(Guid.Parse("d7130000-0000-4000-8000-000000000021")), "name", "Name",
+                DataColumnKind.Text, true)],
+            [new(DataRowId.From(Guid.Parse("d7130000-0000-4000-8000-000000000022")),
+                new Dictionary<string, string> { ["name"] = "Author" }, "author:r050")],
+            provenance: "source:r050", licenseSpdx: "CC-BY-4.0", contentHash: new string('a', 64));
+        var package = new ContentPackageDefinition(Guid.Parse("d7130000-0000-4000-8000-000000000023"), 1,
+            "package:r050", "third.party.art", "1.0.0", "MIT", new string('b', 64), 5, [], [],
+            [new(Guid.Parse("d7130000-0000-4000-8000-000000000024"), 1, "source:r050", "script:intro",
+                "scripts/intro.forge", ContentSourceKind.ForgeScript, true, "Apache-2.0", new string('c', 64), 1024)],
+            [new(Guid.Parse("d7130000-0000-4000-8000-000000000025"), 1, "asset:r050", "model:statue",
+                "assets/statue.glb", true, "CC0-1.0", new string('d', 64), 2048)]);
+        var packages = new ContentPackageCatalog(source.Module.Id.Value, 1, "catalog:r050",
+            ContentConflictPolicy.HighestPriority, [package]);
+        var existing = source.Module.Content;
+        var content = new ContentWorkspaceConfiguration(existing.Id, existing.Batch, [table], existing.MergePolicy,
+            existing.Provenance, packages: packages);
+        var module = new ModuleDefinition(source.Module.Id, source.Module.Slug, source.Module.DisplayName,
+            source.Module.Description, source.Module.EntryAreaId, source.Module.Metadata, source.Module.Variables,
+            source.Module.Distribution, source.Module.Localization, content, source.Module.ArtisticStyle,
+            source.Module.RuntimePolicies, source.Module.Factions, source.Module.WorldFeatures);
+        var project = new ProjectDefinition(source.Id, source.Title, module, source.Blueprints, source.Areas,
+            source.Dialogues, source.Quests);
+
+        var first = DistributionNoticeBuilder.Build(project, ModuleTargetKind.Shipping);
+        var second = DistributionNoticeBuilder.Build(project, ModuleTargetKind.Shipping);
+
+        Assert.Equal(first, second);
+        Assert.Contains("Credits | CC-BY-4.0 | provenance=source:r050", first, StringComparison.Ordinal);
+        Assert.Contains("third.party.art 1.0.0 | MIT | provenance=package:r050", first, StringComparison.Ordinal);
+        Assert.Contains("source:script:intro | Apache-2.0", first, StringComparison.Ordinal);
+        Assert.Contains("asset:model:statue | CC0-1.0", first, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void R050_ShippingExportBlocksUnknownContentPackageLicenseBeforeWritingArchive()
+    {
+        var workspace = CreateShippingWorkspace(includeUnknownPackage: true);
+        var package = Path.Combine(_temporaryRoot, "blocked-content-license.orpmod");
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            ModulePackager.Export(workspace, package, target: ModuleTargetKind.Shipping));
+
+        Assert.Contains(DistributionComplianceValidator.ContentPackageLicenseUnknownCode, exception.Message,
+            StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
+    [Fact]
+    public void R050_ValidatorRejectsNoticeDivergenceFromCanonicalProject()
+    {
+        var workspace = CreateShippingWorkspace();
+        var package = Path.Combine(_temporaryRoot, "tampered-notice.orpmod");
+        ModulePackager.Export(workspace, package, target: ModuleTargetKind.Shipping);
+        ReplaceEntry(package, DistributionNoticeBuilder.PackagePath, "tampered notice");
+
+        var result = ModulePackageValidator.Validate(package);
+
+        Assert.Contains(result.Diagnostics, item => item.Code == ModulePackageValidator.NoticeMismatchCode);
+    }
+
+    [Fact]
+    public void ShippingExport_BlocksPendingQuarantineBeforeWritingArchive()
+    {
+        var workspace = CreateShippingWorkspace();
+        var record = CreateGovernanceRecord() with
+        {
+            Quarantine = CreateGovernanceRecord().Quarantine with
+            {
+                Status = AssetQuarantineStatus.Pending,
+                Reviewer = string.Empty,
+                ReviewedAtUtc = null,
+            },
+        };
+        Assert.True(AssetGovernanceStore.Save(workspace, [record]).Succeeded);
+        var package = Path.Combine(_temporaryRoot, "pending-governance.orpmod");
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            ModulePackager.Export(workspace, package, target: ModuleTargetKind.Shipping));
+
+        Assert.Contains(AssetGovernanceValidator.QuarantineApprovalRequiredCode, exception.Message, StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
+    [Fact]
+    public void ShippingExport_NeverRedistributesNwnOrCepProprietaryAssets()
+    {
+        var workspace = CreateShippingWorkspace();
+        var record = CreateGovernanceRecord() with
+        {
+            IpBoundary = new AssetIpBoundary(AssetOriginKind.ProprietaryNwn, false, true, "legal-review:R018"),
+        };
+        Assert.True(AssetGovernanceStore.Save(workspace, [record]).Succeeded);
+        var package = Path.Combine(_temporaryRoot, "proprietary-governance.orpmod");
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            ModulePackager.Export(workspace, package, target: ModuleTargetKind.Shipping));
+
+        Assert.Contains(AssetGovernanceValidator.ProprietaryRedistributionCode, exception.Message, StringComparison.Ordinal);
+        Assert.False(File.Exists(package));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_temporaryRoot))
@@ -454,7 +636,7 @@ public sealed class ModulePackageTests : IDisposable
         return workspace;
     }
 
-    private string CreateShippingWorkspace()
+    private string CreateShippingWorkspace(bool includeUnknownPackage = false)
     {
         var source = TestProjectFactory.CreateValid();
         var metadata = source.Module.Metadata;
@@ -500,6 +682,16 @@ public sealed class ModulePackageTests : IDisposable
                 [ModuleTargetKind.Shipping],
                 "test")],
             "test");
+        var content = source.Module.Content;
+        if (includeUnknownPackage)
+        {
+            var packages = new ContentPackageCatalog(source.Module.Id.Value, 1, "test:r050",
+                ContentConflictPolicy.HighestPriority,
+                [new(Guid.Parse("d7130000-0000-4000-8000-000000000030"), 1, "test:r050",
+                    "unknown.license", "1.0.0", "BUSL-1.1", new string('e', 64), 1, [], [], [], [])]);
+            content = new ContentWorkspaceConfiguration(content.Id, content.Batch, content.DataTables,
+                content.MergePolicy, content.Provenance, packages: packages);
+        }
         var module = new ModuleDefinition(
             source.Module.Id,
             source.Module.Slug,
@@ -508,7 +700,8 @@ public sealed class ModulePackageTests : IDisposable
             source.Module.EntryAreaId,
             approvedMetadata,
             source.Module.Variables,
-            distribution);
+            distribution,
+            content: content);
         var project = new ProjectDefinition(
             source.Id,
             source.Title,
@@ -521,6 +714,17 @@ public sealed class ModulePackageTests : IDisposable
         var created = ProjectSession.Create(workspace, project);
         Assert.True(created.Succeeded, string.Join("; ", created.Diagnostics.Select(item => item.Message)));
         return workspace;
+    }
+
+    private static AssetGovernanceRecord CreateGovernanceRecord()
+    {
+        var assetId = AssetCatalogItemId.ForExternalId("test:shipping-governance");
+        return new(1, AssetGovernanceId.ForAsset(assetId), assetId, AssetPackageManifestId.ForAsset(assetId),
+            "CC0-1.0", new string('e', 64), "Author", "https://example.invalid/shipping-asset",
+            "permission:shipping-fixture", "None.", false, string.Empty, string.Empty, 4096,
+            new("incoming/model.glb", "model/gltf-binary", "model/gltf-binary", 12, 4096, "scanner", "clean",
+                "valid", AssetQuarantineStatus.Approved, "reviewer", DateTimeOffset.UnixEpoch),
+            new(AssetOriginKind.OpenLicensed, true, false, string.Empty));
     }
 
     private static void AddEntry(string package, string path, string content)

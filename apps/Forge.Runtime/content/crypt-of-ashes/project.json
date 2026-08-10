@@ -1,5 +1,5 @@
 {
-  "formatVersion": "1.27.0",
+  "formatVersion": "1.28.0",
   "project": {
     "id": "69ddeadc-4cc1-42d0-aed6-9d99244479cf",
     "title": "Crypte des Cendres \u2014 Tranche verticale",
@@ -38,7 +38,8 @@
           "rpg"
         ],
         "classification": "Prototype tout public",
-        "provenance": "project-canonical"
+        "provenance": "project-canonical",
+        "foundation": null
       },
       "variables": [
         {
@@ -49,7 +50,10 @@
           "scope": "save",
           "defaultValue": "false",
           "description": "Indique que la qu\u00EAte principale a \u00E9t\u00E9 accept\u00E9e.",
-          "provenance": "project-canonical"
+          "provenance": "project-canonical",
+          "replication": "none",
+          "debugVisible": true,
+          "requiredAtRuntime": false
         },
         {
           "id": "31000000-0000-4000-8000-000000000002",
@@ -59,7 +63,10 @@
           "scope": "save",
           "defaultValue": "false",
           "description": "Indique que le Gardien des Cendres est vaincu.",
-          "provenance": "project-canonical"
+          "provenance": "project-canonical",
+          "replication": "none",
+          "debugVisible": true,
+          "requiredAtRuntime": false
         },
         {
           "id": "31000000-0000-4000-8000-000000000003",
@@ -69,7 +76,10 @@
           "scope": "session",
           "defaultValue": "one",
           "description": "Phase de combat courante du Gardien.",
-          "provenance": "project-canonical"
+          "provenance": "project-canonical",
+          "replication": "none",
+          "debugVisible": true,
+          "requiredAtRuntime": false
         }
       ],
       "distribution": {
@@ -189,7 +199,12 @@
         "locales": [
           "fr"
         ],
-        "messages": []
+        "messages": [],
+        "packageNamespace": "project.localization",
+        "licenseSpdx": "CC0-1.0",
+        "provenance": "project-author",
+        "platformByteBudget": 4194304,
+        "contentSha256": "70f7f4ac7754c4a5124de9a4745067ea0770f92b1b59867e54720f1883a85ee2"
       },
       "content": {
         "id": "30000000-0000-4000-8000-000000000001",
@@ -209,7 +224,14 @@
         },
         "dataTables": [],
         "mergePolicy": "preserveBoth",
-        "provenance": "project-author"
+        "provenance": "project-author",
+        "packages": {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "project-author",
+          "conflictPolicy": "highestPriority",
+          "packages": []
+        }
       },
       "artisticStyle": {
         "id": "30000000-0000-4000-8000-000000000001",
@@ -592,6 +614,416 @@
               "serverAuthoritative": true
             }
           },
+          "foundation": {
+            "id": "2348c53d-e803-51a7-9a4e-620075160667",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "groundedMovement": {
+              "id": "af3af259-3386-5f8c-9126-c318fa549e23",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "enabled": true,
+              "required": true,
+              "walkSpeed": 2.5,
+              "runSpeed": 5.5,
+              "acceleration": 24,
+              "deceleration": 30,
+              "maximumSlopeDegrees": 48,
+              "stepHeight": 0.45,
+              "jumpVelocity": 9,
+              "crouchSpeedMultiplier": 0.45,
+              "rootMotion": false,
+              "networkPrediction": true
+            },
+            "interaction": {
+              "id": "7aadf16a-6178-51a1-8ea3-a14acba18c9d",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "enabled": true,
+              "required": true,
+              "inputAction": "interact",
+              "targeting": "viewCone",
+              "focusDistance": 3,
+              "viewAngleDegrees": 100,
+              "showPrompt": true,
+              "verbs": [
+                {
+                  "id": "627269e4-1b32-5619-b5f5-290b4982016a",
+                  "key": "interact",
+                  "label": "Interagir",
+                  "command": "interact",
+                  "holdSeconds": 0,
+                  "targetTags": [
+                    "creature",
+                    "door",
+                    "placeable",
+                    "item"
+                  ],
+                  "serverAuthoritative": true
+                },
+                {
+                  "id": "7b3946e3-1cc5-5587-af1e-a8a5ae72caf2",
+                  "key": "inspect",
+                  "label": "Examiner",
+                  "command": "inspect",
+                  "holdSeconds": 0.35,
+                  "targetTags": [
+                    "world"
+                  ],
+                  "serverAuthoritative": false
+                }
+              ]
+            },
+            "cameras": {
+              "id": "f3f5876f-cf13-5f7f-b72a-49e44e8e0a67",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "required": true,
+              "defaultProfileKey": "orbit",
+              "profiles": [
+                {
+                  "id": "4498ab77-127f-5a03-8997-b38c88e969c8",
+                  "key": "isometric",
+                  "displayName": "Isom\u00E9trique",
+                  "mode": "isometric",
+                  "fieldOfViewDegrees": 52,
+                  "distance": 18,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 32,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                },
+                {
+                  "id": "45f0dc17-bc78-5a81-8c36-2946a1df896b",
+                  "key": "orbit",
+                  "displayName": "Orbite",
+                  "mode": "orbit",
+                  "fieldOfViewDegrees": 60,
+                  "distance": 14,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 24,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "5c28b84c-5a9a-53b6-94d1-558261a95fb1",
+                  "key": "shoulder",
+                  "displayName": "\u00C9paule",
+                  "mode": "shoulder",
+                  "fieldOfViewDegrees": 68,
+                  "distance": 4,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 12,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "1ad7c566-c951-58ef-a691-ee06eee05dd4",
+                  "key": "first-person",
+                  "displayName": "Premi\u00E8re personne",
+                  "mode": "firstPerson",
+                  "fieldOfViewDegrees": 75,
+                  "distance": 0,
+                  "minimumDistance": 0,
+                  "maximumDistance": 0.1,
+                  "pitchDegrees": 0,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "ae5cb922-2de4-5958-ae79-f0a53ba13d3d",
+                  "key": "top-down",
+                  "displayName": "Vue du dessus",
+                  "mode": "topDown",
+                  "fieldOfViewDegrees": 50,
+                  "distance": 20,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 70,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                },
+                {
+                  "id": "7b96da99-29e8-52aa-849c-05d970ee5f2f",
+                  "key": "free",
+                  "displayName": "Libre",
+                  "mode": "free",
+                  "fieldOfViewDegrees": 65,
+                  "distance": 10,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 20,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                },
+                {
+                  "id": "a8b82fed-a10c-5cea-9fff-212633c36062",
+                  "key": "vehicle",
+                  "displayName": "V\u00E9hicule",
+                  "mode": "vehicle",
+                  "fieldOfViewDegrees": 70,
+                  "distance": 9,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 18,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": true
+                },
+                {
+                  "id": "a7107ffb-1014-50c2-898b-82586a90578c",
+                  "key": "cinematic",
+                  "displayName": "Cin\u00E9matique",
+                  "mode": "cinematic",
+                  "fieldOfViewDegrees": 50,
+                  "distance": 8,
+                  "minimumDistance": 1.5,
+                  "maximumDistance": 40,
+                  "pitchDegrees": 15,
+                  "focusOffset": {
+                    "x": 0,
+                    "y": 1.25,
+                    "z": 0
+                  },
+                  "collisionAvoidance": true,
+                  "alignCharacterFacing": false
+                }
+              ]
+            },
+            "input": {
+              "id": "1fd1fa7c-9b25-560d-ad60-95b4d63637ee",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "required": true,
+              "allowRebinding": true,
+              "perPlayerLocal": true,
+              "contexts": [
+                "exploration",
+                "dialogue",
+                "combat",
+                "system"
+              ],
+              "actions": [
+                {
+                  "id": "c6c50d86-993c-52fa-895e-d2b4758615a3",
+                  "key": "move_forward",
+                  "label": "Avancer",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "fc971805-4a9f-527a-a491-927bd8a9e64d",
+                  "key": "move_back",
+                  "label": "Reculer",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "268af3cf-7403-513f-bb2a-10d3b9a3cd1b",
+                  "key": "move_left",
+                  "label": "Aller \u00E0 gauche",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "c75af5c7-069d-5d2e-9053-4b41f32f337f",
+                  "key": "move_right",
+                  "label": "Aller \u00E0 droite",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "79092807-bb1b-59ef-9669-0d90a1b357d2",
+                  "key": "interact",
+                  "label": "Interagir",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "a94aca6d-1ebc-5455-8233-a2db751db7ae",
+                  "key": "jump",
+                  "label": "Sauter",
+                  "context": "exploration",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "a8427887-2f43-502d-a19c-d64aabc0af24",
+                  "key": "quick_save",
+                  "label": "Sauvegarde rapide",
+                  "context": "system",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "e3569785-889d-50bd-8dbd-f2cc076145f2",
+                  "key": "quick_load",
+                  "label": "Chargement rapide",
+                  "context": "system",
+                  "accessibilityRequired": true
+                },
+                {
+                  "id": "14ca9c96-0e9c-5d51-9d20-0ca81bf65fec",
+                  "key": "camera_left",
+                  "label": "Tourner la cam\u00E9ra \u00E0 gauche",
+                  "context": "exploration",
+                  "accessibilityRequired": false
+                },
+                {
+                  "id": "b3dae79e-1082-5950-a452-884479d8d9c3",
+                  "key": "camera_right",
+                  "label": "Tourner la cam\u00E9ra \u00E0 droite",
+                  "context": "exploration",
+                  "accessibilityRequired": false
+                }
+              ],
+              "bindings": [
+                {
+                  "id": "b432766d-b401-519a-88c0-5ae9989f965b",
+                  "actionKey": "move_forward",
+                  "device": "keyboardMouse",
+                  "binding": "W",
+                  "glyph": "key-w",
+                  "primary": true
+                },
+                {
+                  "id": "1d146fbb-8edf-5f99-912a-925ea8273f0e",
+                  "actionKey": "move_back",
+                  "device": "keyboardMouse",
+                  "binding": "S",
+                  "glyph": "key-s",
+                  "primary": true
+                },
+                {
+                  "id": "aacc63f9-bf69-52ee-bd59-b6c5daf1ad09",
+                  "actionKey": "move_left",
+                  "device": "keyboardMouse",
+                  "binding": "A",
+                  "glyph": "key-a",
+                  "primary": true
+                },
+                {
+                  "id": "fcb2e0ed-a125-5f55-8751-5df3137dde20",
+                  "actionKey": "move_right",
+                  "device": "keyboardMouse",
+                  "binding": "D",
+                  "glyph": "key-d",
+                  "primary": true
+                },
+                {
+                  "id": "acad1763-3541-5a71-838c-c3dea80a8256",
+                  "actionKey": "interact",
+                  "device": "keyboardMouse",
+                  "binding": "E",
+                  "glyph": "key-e",
+                  "primary": true
+                },
+                {
+                  "id": "ea722a1d-eb2d-5d2a-9b30-20f1437f82ae",
+                  "actionKey": "interact",
+                  "device": "gamepad",
+                  "binding": "A",
+                  "glyph": "pad-a",
+                  "primary": true
+                },
+                {
+                  "id": "f44f3f72-9df1-5a1c-91f7-8198c54ecf2c",
+                  "actionKey": "jump",
+                  "device": "keyboardMouse",
+                  "binding": "Space",
+                  "glyph": "key-space",
+                  "primary": true
+                },
+                {
+                  "id": "9cdd19e9-0d6b-567f-ae1c-a12bf92e882b",
+                  "actionKey": "jump",
+                  "device": "gamepad",
+                  "binding": "B",
+                  "glyph": "pad-b",
+                  "primary": true
+                },
+                {
+                  "id": "9edd13d4-9110-5589-a9b5-582b1a58b7dc",
+                  "actionKey": "quick_save",
+                  "device": "keyboardMouse",
+                  "binding": "F5",
+                  "glyph": "key-f5",
+                  "primary": true
+                },
+                {
+                  "id": "71da21b0-d248-5dcd-91d0-fbcdde02d03c",
+                  "actionKey": "quick_load",
+                  "device": "keyboardMouse",
+                  "binding": "F9",
+                  "glyph": "key-f9",
+                  "primary": true
+                },
+                {
+                  "id": "3e324e5d-2a87-5ef0-9826-e3896170ac25",
+                  "actionKey": "camera_left",
+                  "device": "keyboardMouse",
+                  "binding": "Home",
+                  "glyph": "key-home",
+                  "primary": true
+                },
+                {
+                  "id": "5060d02c-b451-5424-8424-a64c6bc69e26",
+                  "actionKey": "camera_right",
+                  "device": "keyboardMouse",
+                  "binding": "End",
+                  "glyph": "key-end",
+                  "primary": true
+                }
+              ]
+            },
+            "save": {
+              "id": "8d4b02ce-f564-5bd3-8404-527ccf3e8cb0",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "required": true,
+              "chunkBytes": 65536,
+              "autosaveIntervalSeconds": 60,
+              "rollbackSlots": 3,
+              "checksumAlgorithm": "SHA-256",
+              "allowMigrations": true,
+              "requireModuleDependencies": true
+            }
+          },
           "provenance": "migration-default"
         },
         "rules": {
@@ -686,6 +1118,52 @@
                   "accessibility",
                   "story"
                 ]
+              }
+            ],
+            "provenance": "migration-default"
+          },
+          "plugins": {
+            "id": "99419f30-935b-e1d8-ea7a-654d6f9da989",
+            "schemaVersion": 1,
+            "enabled": true,
+            "requiredAtRuntime": true,
+            "activePackageKey": "forge.generic",
+            "packages": [
+              {
+                "id": "da080de2-cdde-fe53-0108-ef1daee97f2a",
+                "schemaVersion": 1,
+                "key": "forge.generic",
+                "version": "1.0.0",
+                "contentPackageId": "content.core",
+                "attributes": [
+                  "ability",
+                  "armor_class",
+                  "health",
+                  "level"
+                ],
+                "effects": [
+                  "damage",
+                  "healing",
+                  "status"
+                ],
+                "abilities": [
+                  "attack",
+                  "interact",
+                  "use_item"
+                ],
+                "inventories": [
+                  "equipment",
+                  "inventory"
+                ],
+                "progressionTracks": [
+                  "character_level"
+                ],
+                "uiPanels": [
+                  "character_sheet",
+                  "inventory",
+                  "progression"
+                ],
+                "provenance": "migration-default"
               }
             ],
             "provenance": "migration-default"
@@ -1120,6 +1598,87 @@
                 ],
                 "requireNoCrash": true,
                 "requireNoPathEscape": true,
+                "provenance": "migration-default"
+              },
+              "clickableDiagnostics": {
+                "id": "80e8f5a8-f231-5c55-8a5e-148009e4dc20",
+                "schemaVersion": 1,
+                "activeProfile": "authoring",
+                "categories": [
+                  "geometry",
+                  "graph",
+                  "license",
+                  "navigation",
+                  "reference",
+                  "runtime",
+                  "schema"
+                ],
+                "severities": [
+                  "error",
+                  "info",
+                  "warning"
+                ],
+                "enableQuickFixes": true,
+                "provenance": "migration-default"
+              },
+              "maliciousFixtures": {
+                "id": "d419a14e-df2f-53ee-ad7e-ec61c9009d2f",
+                "schemaVersion": 1,
+                "catalogPath": "tests/fixtures/qa/malicious-modules.json",
+                "families": [
+                  "bad-reference",
+                  "huge-array",
+                  "infinite-script",
+                  "injection-text",
+                  "invalid-asset",
+                  "path-traversal",
+                  "zip-bomb"
+                ],
+                "maximumArrayEntries": 65536,
+                "rejectInjectionText": true,
+                "rejectInvalidAssets": true,
+                "provenance": "migration-default"
+              },
+              "auroraParityCoverage": {
+                "id": "75897479-07f4-5fee-b389-ee451bb9df7a",
+                "schemaVersion": 1,
+                "trackerPath": "tracking/project/AURORA_PARITY_COVERAGE.csv",
+                "allowedStatuses": [
+                  "Deferred",
+                  "Designed",
+                  "Implemented",
+                  "NotStarted",
+                  "Rejected",
+                  "Researched",
+                  "Tested"
+                ],
+                "expectedFeatureCount": 717,
+                "requireEvidenceForTested": true,
+                "provenance": "migration-default"
+              },
+              "acceptanceGates": {
+                "id": "5382d15b-4a71-5900-b740-14004cc8b575",
+                "schemaVersion": 1,
+                "gateMatrixPath": "tracking/project/AURORA_GATE_MATRIX.csv",
+                "requiredGates": [
+                  "G0",
+                  "G1",
+                  "G2",
+                  "G3",
+                  "G4",
+                  "G5",
+                  "G6",
+                  "G7",
+                  "G8",
+                  "G9",
+                  "G10",
+                  "G11",
+                  "G12",
+                  "G13"
+                ],
+                "requireLinkedTests": true,
+                "requireLinkedDocumentation": true,
+                "requireFeatureEvidence": true,
                 "provenance": "migration-default"
               },
               "provenance": "migration-default"
@@ -1688,6 +2247,7 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
         },
@@ -1696,7 +2256,23 @@
         "creatureLoot": null,
         "creatureRoleBehavior": null,
         "creatureEvents": null,
-        "itemAdvanced": null
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.crypt.floor",
+          "manifestPath": "content/blueprints/10000000-0000-4000-8000-000000000001/crypt-floor.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10000000-0000-4000-8000-000000000001/crypt-floor.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.crypt.floor",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000002",
@@ -1712,6 +2288,7 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
         },
@@ -1720,7 +2297,23 @@
         "creatureLoot": null,
         "creatureRoleBehavior": null,
         "creatureEvents": null,
-        "itemAdvanced": null
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.crypt.wall",
+          "manifestPath": "content/blueprints/10000000-0000-4000-8000-000000000002/crypt-wall.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10000000-0000-4000-8000-000000000002/crypt-wall.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.crypt.wall",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000003",
@@ -1736,6 +2329,7 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
         },
@@ -1744,7 +2338,23 @@
         "creatureLoot": null,
         "creatureRoleBehavior": null,
         "creatureEvents": null,
-        "itemAdvanced": null
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.ash.door",
+          "manifestPath": "content/blueprints/10000000-0000-4000-8000-000000000003/ash-door.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10000000-0000-4000-8000-000000000003/ash-door.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.ash.door",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000004",
@@ -1771,6 +2381,7 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
         },
@@ -1779,7 +2390,23 @@
         "creatureLoot": null,
         "creatureRoleBehavior": null,
         "creatureEvents": null,
-        "itemAdvanced": null
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.elyra.npc",
+          "manifestPath": "content/blueprints/10000000-0000-4000-8000-000000000004/elyra-npc.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10000000-0000-4000-8000-000000000004/elyra-npc.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.elyra.npc",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000005",
@@ -1830,6 +2457,7 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
         },
@@ -1838,7 +2466,23 @@
         "creatureLoot": null,
         "creatureRoleBehavior": null,
         "creatureEvents": null,
-        "itemAdvanced": null
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.ash.sentinel",
+          "manifestPath": "content/blueprints/10000000-0000-4000-8000-000000000005/ash-sentinel.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10000000-0000-4000-8000-000000000005/ash-sentinel.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.ash.sentinel",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000006",
@@ -1889,6 +2533,7 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
         },
@@ -2179,9 +2824,146 @@
           ],
           "overrides": {
             "telemetry.channel": "ash-warden"
+          },
+          "damageDeath": {
+            "beforeDamage": {
+              "id": "a1570000-0000-4000-8000-000000000012",
+              "schemaVersion": 1,
+              "provenance": "sample:r039",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "creature.before_damage",
+              "handler": "BeforeDamage",
+              "authority": "server"
+            },
+            "damageApplied": {
+              "id": "a1570000-0000-4000-8000-000000000013",
+              "schemaVersion": 1,
+              "provenance": "sample:r039",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "creature.damage_applied",
+              "handler": "OnDamaged",
+              "authority": "server"
+            },
+            "died": {
+              "id": "a1570000-0000-4000-8000-000000000014",
+              "schemaVersion": 1,
+              "provenance": "sample:r039",
+              "forgeScriptApiVersion": "1.0",
+              "eventName": "entity.died",
+              "handler": "OnDeath",
+              "authority": "server"
+            },
+            "beforeDamageBudgetMilliseconds": 4,
+            "maximumAdjustmentRatio": 0.5
           }
         },
-        "itemAdvanced": null
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.ash.warden.boss",
+          "manifestPath": "content/blueprints/10000000-0000-4000-8000-000000000006/ash-warden-boss.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10000000-0000-4000-8000-000000000006/ash-warden-boss.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.ash.warden.boss",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": {
+          "id": "a1600000-0000-4000-8000-000000000001",
+          "schemaVersion": 1,
+          "provenance": "sample:r038",
+          "requiredAtRuntime": true,
+          "identity": {
+            "slug": "ash-warden-boss",
+            "names": {
+              "en": "Ash Warden",
+              "fr": "Gardien des Cendres"
+            },
+            "aliases": [
+              "Gardien"
+            ],
+            "pronouns": "il",
+            "biographies": {
+              "fr": "Gardien de la crypte et de ses braises."
+            },
+            "authorNotes": "Boss jouable de la tranche verticale.",
+            "narrativeTags": [
+              "boss",
+              "crypt"
+            ]
+          },
+          "defaultTransform": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            }
+          },
+          "resources": [
+            {
+              "id": "a1600000-0000-4000-8000-000000000002",
+              "resourceId": "health",
+              "maximum": 100,
+              "current": 84,
+              "regenerationPerSecond": 0.5,
+              "persistent": true
+            },
+            {
+              "id": "a1600000-0000-4000-8000-000000000003",
+              "resourceId": "stamina",
+              "maximum": 40,
+              "current": 40,
+              "regenerationPerSecond": 2,
+              "persistent": false
+            }
+          ],
+          "movement": {
+            "mode": "grounded",
+            "maximumSpeed": 6,
+            "acceleration": 12,
+            "deceleration": 8,
+            "minimumAltitude": 0,
+            "maximumAltitude": 0,
+            "maximumSlopeDegrees": 50
+          },
+          "references": {
+            "appearanceId": "appearance.ash-warden",
+            "rigId": "rig.humanoid",
+            "perceptionProfileId": "perception.guard",
+            "combatProfileId": "combat.boss",
+            "dialogueId": "dialogue.warden",
+            "inventoryProfileId": "inventory.warden",
+            "factionId": "faction.ashes"
+          },
+          "spawned": {
+            "id": "a1600000-0000-4000-8000-000000000004",
+            "schemaVersion": 1,
+            "provenance": "sample:r038",
+            "forgeScriptApiVersion": "1.0",
+            "eventName": "creature.spawned",
+            "handler": "OnSpawned",
+            "authority": "server"
+          },
+          "overrides": {
+            "spawn.policy": "validated"
+          }
+        },
+        "itemFoundation": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000007",
@@ -2226,6 +3008,7 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
         },
@@ -2234,7 +3017,23 @@
         "creatureLoot": null,
         "creatureRoleBehavior": null,
         "creatureEvents": null,
-        "itemAdvanced": null
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.player.spawn",
+          "manifestPath": "content/blueprints/10000000-0000-4000-8000-000000000007/player-spawn.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10000000-0000-4000-8000-000000000007/player-spawn.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.player.spawn",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000008",
@@ -2250,6 +3049,7 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
         },
@@ -2518,7 +3318,23 @@
             ],
             "seedOffset": 17
           }
-        }
+        },
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.ash.key",
+          "manifestPath": "content/blueprints/10000000-0000-4000-8000-000000000008/ash-key.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10000000-0000-4000-8000-000000000008/ash-key.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.ash.key",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000009",
@@ -2534,6 +3350,7 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
         },
@@ -2542,7 +3359,23 @@
         "creatureLoot": null,
         "creatureRoleBehavior": null,
         "creatureEvents": null,
-        "itemAdvanced": null
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.crypt.exit",
+          "manifestPath": "content/blueprints/10000000-0000-4000-8000-000000000009/crypt-exit.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10000000-0000-4000-8000-000000000009/crypt-exit.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.crypt.exit",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       },
       {
         "id": "10000000-0000-4000-8000-000000000010",
@@ -2558,6 +3391,7 @@
           "author": "Project author",
           "licenseSpdx": "UNLICENSED",
           "contentHash": "unverified",
+          "permissionEvidence": "project-author",
           "isAiGenerated": false,
           "modifications": []
         },
@@ -2566,19 +3400,37 @@
         "creatureLoot": null,
         "creatureRoleBehavior": null,
         "creatureEvents": null,
-        "itemAdvanced": null
+        "itemAdvanced": null,
+        "authoring": {
+          "schemaVersion": 1,
+          "version": "1.0.0",
+          "packageNamespace": "project.crypt.pillar",
+          "manifestPath": "content/blueprints/10000000-0000-4000-8000-000000000010/crypt-pillar.blueprint.json",
+          "exposedParameters": [],
+          "dependencies": [],
+          "previewPath": "content/blueprints/10000000-0000-4000-8000-000000000010/crypt-pillar.preview.png",
+          "platformByteBudget": 1048576,
+          "kit": "project.crypt.pillar",
+          "styles": [],
+          "compatibility": [],
+          "tags": []
+        },
+        "creatureFoundation": null,
+        "itemFoundation": null
       }
     ],
     "areas": [
       {
         "id": "93b6f81b-49eb-4e3d-a156-08ad78529525",
         "slug": "crypt-of-ashes",
-        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-4a34115af9ab6cfe.json"
+        "documentPath": "areas/93b6f81b-49eb-4e3d-a156-08ad78529525-37d8cb8e1573984e.json"
       }
     ],
     "dialogues": [
       {
         "id": "40000000-0000-4000-8000-000000000001",
+        "schemaVersion": 1,
+        "provenance": "migration-default",
         "slug": "elyra-crypt-of-ashes",
         "displayName": "Elyra et la Crypte des Cendres",
         "entryNodeId": "41000000-0000-4000-8000-000000000001",
@@ -2587,112 +3439,194 @@
             "id": "41000000-0000-4000-8000-000000000001",
             "speakerBlueprintId": "10000000-0000-4000-8000-000000000004",
             "text": {
+              "id": "15004cb9-7667-5ef4-85d0-e787a11175d1",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
               "key": "dialogue.elyra.entry",
-              "fallback": "La braise vous a conduit jusqu\u2019ici. Que cherchez-vous ?"
+              "fallback": "La braise vous a conduit jusqu\u2019ici. Que cherchez-vous ?",
+              "variants": []
             },
             "onEnterActions": [],
             "choices": [
               {
                 "id": "42000000-0000-4000-8000-000000000001",
                 "text": {
+                  "id": "a4edd528-fada-5017-945d-323686a9e95e",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default",
                   "key": "dialogue.elyra.choice.victory",
-                  "fallback": "Le Gardien est tomb\u00E9."
+                  "fallback": "Le Gardien est tomb\u00E9.",
+                  "variants": []
                 },
                 "conditions": [
                   {
+                    "id": "44269436-d614-5354-9922-ec1b1c69d020",
+                    "schemaVersion": 1,
+                    "provenance": "migration-default",
                     "kind": "variableEquals",
                     "key": "warden.defeated",
-                    "expectedValue": "true"
+                    "expectedValue": "true",
+                    "negated": false,
+                    "eventBinding": "on-choice-visible",
+                    "forgeScriptApiVersion": 1
                   }
                 ],
                 "actions": [],
-                "targetNodeId": "41000000-0000-4000-8000-000000000004"
+                "targetNodeId": "41000000-0000-4000-8000-000000000004",
+                "edgeKind": "flow",
+                "priority": 0,
+                "conditionCombination": "all"
               },
               {
                 "id": "42000000-0000-4000-8000-000000000002",
                 "text": {
+                  "id": "c769e95b-cd26-5b9d-a209-c09727dbf4cf",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default",
                   "key": "dialogue.elyra.choice.key",
-                  "fallback": "J\u2019ai trouv\u00E9 la Cl\u00E9 de braise."
+                  "fallback": "J\u2019ai trouv\u00E9 la Cl\u00E9 de braise.",
+                  "variants": []
                 },
                 "conditions": [
                   {
+                    "id": "872c9d78-19c4-5d60-9e3e-ebfd7804c36d",
+                    "schemaVersion": 1,
+                    "provenance": "migration-default",
                     "kind": "hasItem",
                     "key": "ash-key",
-                    "expectedValue": "true"
+                    "expectedValue": "true",
+                    "negated": false,
+                    "eventBinding": "on-choice-visible",
+                    "forgeScriptApiVersion": 1
                   }
                 ],
                 "actions": [
                   {
+                    "id": "b01e0633-02ae-54ff-b437-a5f5da0da536",
+                    "schemaVersion": 1,
+                    "provenance": "migration-default",
                     "kind": "setVariable",
                     "key": "elyra.saw-key",
-                    "value": "true"
+                    "value": "true",
+                    "required": false
                   }
                 ],
-                "targetNodeId": "41000000-0000-4000-8000-000000000003"
+                "targetNodeId": "41000000-0000-4000-8000-000000000003",
+                "edgeKind": "flow",
+                "priority": 0,
+                "conditionCombination": "all"
               },
               {
                 "id": "42000000-0000-4000-8000-000000000003",
                 "text": {
+                  "id": "33711264-f9c0-57cd-aa24-9ff72dffba97",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default",
                   "key": "dialogue.elyra.choice.accept",
-                  "fallback": "Je lib\u00E9rerai cette crypte."
+                  "fallback": "Je lib\u00E9rerai cette crypte.",
+                  "variants": []
                 },
                 "conditions": [
                   {
+                    "id": "a52e5c33-54c2-5dc0-9648-520173825f08",
+                    "schemaVersion": 1,
+                    "provenance": "migration-default",
                     "kind": "questStateEquals",
                     "key": "crypt-of-ashes",
-                    "expectedValue": "51000000-0000-4000-8000-000000000001"
+                    "expectedValue": "51000000-0000-4000-8000-000000000001",
+                    "negated": false,
+                    "eventBinding": "on-choice-visible",
+                    "forgeScriptApiVersion": 1
                   }
                 ],
                 "actions": [
                   {
+                    "id": "3bacb326-a8a4-5547-9322-036b8842bae7",
+                    "schemaVersion": 1,
+                    "provenance": "migration-default",
                     "kind": "startQuest",
                     "key": "crypt-of-ashes",
-                    "value": "active"
+                    "value": "active",
+                    "required": false
                   }
                 ],
-                "targetNodeId": "41000000-0000-4000-8000-000000000002"
+                "targetNodeId": "41000000-0000-4000-8000-000000000002",
+                "edgeKind": "flow",
+                "priority": 0,
+                "conditionCombination": "all"
               },
               {
                 "id": "42000000-0000-4000-8000-000000000004",
                 "text": {
+                  "id": "a44dbf8b-d645-504d-9918-e6ff50f531d9",
+                  "schemaVersion": 1,
+                  "provenance": "migration-default",
                   "key": "dialogue.elyra.choice.leave",
-                  "fallback": "Je dois encore me pr\u00E9parer."
+                  "fallback": "Je dois encore me pr\u00E9parer.",
+                  "variants": []
                 },
                 "conditions": [],
                 "actions": [],
-                "targetNodeId": null
+                "targetNodeId": null,
+                "edgeKind": "flow",
+                "priority": 0,
+                "conditionCombination": "all"
               }
-            ]
+            ],
+            "role": "speakerLine",
+            "participantId": "66f74e9d-766c-57cc-a4c5-cabe19b25493",
+            "subgraphKey": null
           },
           {
             "id": "41000000-0000-4000-8000-000000000002",
             "speakerBlueprintId": "10000000-0000-4000-8000-000000000004",
             "text": {
+              "id": "13dbd498-8fc4-50b8-aa03-b38c00eaa567",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
               "key": "dialogue.elyra.quest-started",
-              "fallback": "Retrouvez la Cl\u00E9 de braise, ouvrez la porte et terrassez le Gardien."
+              "fallback": "Retrouvez la Cl\u00E9 de braise, ouvrez la porte et terrassez le Gardien.",
+              "variants": []
             },
             "onEnterActions": [],
-            "choices": []
+            "choices": [],
+            "role": "speakerLine",
+            "participantId": "66f74e9d-766c-57cc-a4c5-cabe19b25493",
+            "subgraphKey": null
           },
           {
             "id": "41000000-0000-4000-8000-000000000003",
             "speakerBlueprintId": "10000000-0000-4000-8000-000000000004",
             "text": {
+              "id": "c9b1ae85-131f-50b1-8489-7a23f73757aa",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
               "key": "dialogue.elyra.key-found",
-              "fallback": "La porte reconna\u00EEtra maintenant votre passage."
+              "fallback": "La porte reconna\u00EEtra maintenant votre passage.",
+              "variants": []
             },
             "onEnterActions": [],
-            "choices": []
+            "choices": [],
+            "role": "speakerLine",
+            "participantId": "66f74e9d-766c-57cc-a4c5-cabe19b25493",
+            "subgraphKey": null
           },
           {
             "id": "41000000-0000-4000-8000-000000000004",
             "speakerBlueprintId": "10000000-0000-4000-8000-000000000004",
             "text": {
+              "id": "ec3c6a1d-66bb-51f0-86c0-c25620703c8f",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
               "key": "dialogue.elyra.victory",
-              "fallback": "La cendre retombe enfin. La crypte vous doit sa libert\u00E9."
+              "fallback": "La cendre retombe enfin. La crypte vous doit sa libert\u00E9.",
+              "variants": []
             },
             "onEnterActions": [],
-            "choices": []
+            "choices": [],
+            "role": "speakerLine",
+            "participantId": "66f74e9d-766c-57cc-a4c5-cabe19b25493",
+            "subgraphKey": null
           }
         ],
         "presentation": {
@@ -2726,8 +3660,12 @@
               "resource": null,
               "take": "elyra-crypt-01",
               "subtitle": {
+                "id": "15004cb9-7667-5ef4-85d0-e787a11175d1",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
                 "key": "dialogue.elyra.entry",
-                "fallback": "La braise vous a conduit jusqu\u2019ici. Que cherchez-vous ?"
+                "fallback": "La braise vous a conduit jusqu\u2019ici. Que cherchez-vous ?",
+                "variants": []
               },
               "lipSyncProfileId": "viseme-neutral",
               "emotion": "concerned",
@@ -2815,8 +3753,12 @@
                 {
                   "id": "21bdf78b-561a-1703-fd23-e60e6806ccd2",
                   "text": {
+                    "id": "6097b506-b1ee-5d68-ab96-22f25e4d97dc",
+                    "schemaVersion": 1,
+                    "provenance": "migration-default",
                     "key": "dialogue.elyra.entry.variant.calm",
-                    "fallback": "La braise vous a conduit jusqu\u2019ici. La crypte \u00E9coute votre r\u00E9ponse."
+                    "fallback": "La braise vous a conduit jusqu\u2019ici. La crypte \u00E9coute votre r\u00E9ponse.",
+                    "variants": []
                   },
                   "weight": 3,
                   "conditions": [],
@@ -2825,15 +3767,25 @@
                 {
                   "id": "1356d04e-74b5-9fe1-d65f-44d18a4da6b2",
                   "text": {
+                    "id": "8d4033b2-c8eb-5391-9205-7139b7ba81f6",
+                    "schemaVersion": 1,
+                    "provenance": "migration-default",
                     "key": "dialogue.elyra.entry.variant.ember",
-                    "fallback": "La braise fr\u00E9mit : le Gardien sait que vous \u00EAtes ici."
+                    "fallback": "La braise fr\u00E9mit : le Gardien sait que vous \u00EAtes ici.",
+                    "variants": []
                   },
                   "weight": 1,
                   "conditions": [
                     {
+                      "id": "dcfeeb26-b491-5057-8ec8-435d291591ee",
+                      "schemaVersion": 1,
+                      "provenance": "migration-default",
                       "kind": "variableEquals",
                       "key": "warden.awake",
-                      "expectedValue": "true"
+                      "expectedValue": "true",
+                      "negated": false,
+                      "eventBinding": "on-choice-visible",
+                      "forgeScriptApiVersion": 1
                     }
                   ],
                   "provenance": "toolset:dialogue-presentation"
@@ -2842,58 +3794,265 @@
               "provenance": "toolset:dialogue-presentation"
             }
           ]
-        }
+        },
+        "metadata": {
+          "kind": "conversation"
+        },
+        "participants": [
+          {
+            "id": "66f74e9d-766c-57cc-a4c5-cabe19b25493",
+            "schemaVersion": 1,
+            "role": "speaker-10000000",
+            "blueprintId": "10000000-0000-4000-8000-000000000004",
+            "provenance": "migration-default"
+          }
+        ],
+        "entryPoints": [
+          {
+            "id": "046baf24-198b-5bd6-b684-9d43549bc898",
+            "schemaVersion": 1,
+            "key": "default",
+            "nodeId": "41000000-0000-4000-8000-000000000001",
+            "order": 0,
+            "provenance": "migration-default"
+          }
+        ],
+        "edges": [
+          {
+            "id": "42000000-0000-4000-8000-000000000001",
+            "sourceNodeId": "41000000-0000-4000-8000-000000000001",
+            "targetNodeId": "41000000-0000-4000-8000-000000000004",
+            "kind": "flow",
+            "order": 0,
+            "priority": 0
+          },
+          {
+            "id": "42000000-0000-4000-8000-000000000002",
+            "sourceNodeId": "41000000-0000-4000-8000-000000000001",
+            "targetNodeId": "41000000-0000-4000-8000-000000000003",
+            "kind": "flow",
+            "order": 1,
+            "priority": 0
+          },
+          {
+            "id": "42000000-0000-4000-8000-000000000003",
+            "sourceNodeId": "41000000-0000-4000-8000-000000000001",
+            "targetNodeId": "41000000-0000-4000-8000-000000000002",
+            "kind": "flow",
+            "order": 2,
+            "priority": 0
+          }
+        ]
       }
     ],
     "quests": [
       {
         "id": "50000000-0000-4000-8000-000000000001",
+        "schemaVersion": 1,
+        "provenance": "migration-default",
         "slug": "crypt-of-ashes",
         "displayName": "Lib\u00E9rer la Crypte des Cendres",
+        "title": {
+          "id": "f86686b0-06e3-55a8-a0e1-a11b8c105e2e",
+          "schemaVersion": 1,
+          "provenance": "migration-default",
+          "key": "quest.crypt-of-ashes.title",
+          "fallback": "Lib\u00E9rer la Crypte des Cendres",
+          "variants": []
+        },
+        "description": {
+          "id": "29ac1189-3c5c-5158-9afb-fa5a2681dea3",
+          "schemaVersion": 1,
+          "provenance": "migration-default",
+          "key": "quest.crypt-of-ashes.description",
+          "fallback": "Lib\u00E9rer la Crypte des Cendres",
+          "variants": []
+        },
+        "category": "journal",
+        "priority": 90,
+        "owner": "module",
+        "requiredAtRuntime": false,
+        "instancePolicy": {
+          "defaultScope": "party",
+          "allowedScopes": [
+            "party"
+          ],
+          "requireAuthority": true
+        },
         "initialStateId": "51000000-0000-4000-8000-000000000001",
         "states": [
           {
             "id": "51000000-0000-4000-8000-000000000001",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "slug": "non-commenc\u00E9e",
             "displayName": "Non commenc\u00E9e",
             "journal": {
+              "id": "3f8684b4-f951-5282-983c-446e1fb19d59",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "summary": {
+                "id": "6a5226bc-2c77-5755-bb59-1d3204c799d9",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "quest.crypt.initial",
+                "fallback": "Parler \u00E0 Elyra [E].",
+                "variants": []
+              },
+              "details": {
+                "id": "979b3985-7872-525f-a370-16273f19444e",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "quest.crypt.initial.details",
+                "fallback": "Parler \u00E0 Elyra [E].",
+                "variants": []
+              },
+              "objectives": [],
+              "contextLinks": [],
               "localizationKey": "quest.crypt.initial",
               "fallback": "Parler \u00E0 Elyra [E]."
             },
-            "isTerminal": false
+            "isTerminal": false,
+            "displayOrder": 1,
+            "legacyJournalIndex": 0,
+            "terminalKind": "none",
+            "customTerminalCode": "",
+            "reactivation": "never"
           },
           {
             "id": "51000000-0000-4000-8000-000000000002",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "slug": "cl\u00E9-de-braise",
             "displayName": "Cl\u00E9 de braise",
             "journal": {
+              "id": "ce74db85-a3e4-5651-8db9-68f9aea37cce",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "summary": {
+                "id": "5fbc6f2a-7ca2-50c1-8638-1837459eb453",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "quest.crypt.key",
+                "fallback": "Trouver la Cl\u00E9 de braise puis ouvrir la Porte des Cendres.",
+                "variants": []
+              },
+              "details": {
+                "id": "5a42706b-1244-5398-aa60-a1c56b124d12",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "quest.crypt.key.details",
+                "fallback": "Trouver la Cl\u00E9 de braise puis ouvrir la Porte des Cendres.",
+                "variants": []
+              },
+              "objectives": [],
+              "contextLinks": [],
               "localizationKey": "quest.crypt.key",
               "fallback": "Trouver la Cl\u00E9 de braise puis ouvrir la Porte des Cendres."
             },
-            "isTerminal": false
+            "isTerminal": false,
+            "displayOrder": 2,
+            "legacyJournalIndex": 1,
+            "terminalKind": "none",
+            "customTerminalCode": "",
+            "reactivation": "never"
           },
           {
             "id": "51000000-0000-4000-8000-000000000003",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "slug": "gardien-des-cendres",
             "displayName": "Gardien des Cendres",
             "journal": {
+              "id": "4570fa2c-1e0e-5ff5-97a7-6fa9c7a70c1f",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "summary": {
+                "id": "d3fadf03-87be-5d17-a686-402caed0bdb9",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "quest.crypt.warden",
+                "fallback": "Vaincre le Gardien des Cendres [ESPACE].",
+                "variants": []
+              },
+              "details": {
+                "id": "5fbcbcc5-ae5b-5dc1-9e64-1bff82e2c4d1",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "quest.crypt.warden.details",
+                "fallback": "Vaincre le Gardien des Cendres [ESPACE].",
+                "variants": []
+              },
+              "objectives": [],
+              "contextLinks": [],
               "localizationKey": "quest.crypt.warden",
               "fallback": "Vaincre le Gardien des Cendres [ESPACE]."
             },
-            "isTerminal": false
+            "isTerminal": false,
+            "displayOrder": 3,
+            "legacyJournalIndex": 2,
+            "terminalKind": "none",
+            "customTerminalCode": "",
+            "reactivation": "never"
           },
           {
             "id": "51000000-0000-4000-8000-000000000004",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
+            "slug": "termin\u00E9e",
             "displayName": "Termin\u00E9e",
             "journal": {
+              "id": "da2d16b7-43ca-55ab-919d-3f10d4ffa200",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "summary": {
+                "id": "7d2cd37b-38d7-5f14-b2c2-73389afa041c",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "quest.crypt.completed",
+                "fallback": "Rejoindre la sortie lumineuse.",
+                "variants": []
+              },
+              "details": {
+                "id": "bc10ded2-6c72-5af8-baca-bfb7199896a6",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
+                "key": "quest.crypt.completed.details",
+                "fallback": "Rejoindre la sortie lumineuse.",
+                "variants": []
+              },
+              "objectives": [],
+              "contextLinks": [],
               "localizationKey": "quest.crypt.completed",
               "fallback": "Rejoindre la sortie lumineuse."
             },
-            "isTerminal": true
+            "isTerminal": true,
+            "displayOrder": 4,
+            "legacyJournalIndex": 3,
+            "terminalKind": "completed",
+            "customTerminalCode": "",
+            "reactivation": "never"
           }
         ],
         "transitions": [
           {
             "id": "52000000-0000-4000-8000-000000000001",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
             "fromStateId": "51000000-0000-4000-8000-000000000001",
             "toStateId": "51000000-0000-4000-8000-000000000002",
+            "displayOrder": 1,
+            "eventBinding": {
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "kind": "manual",
+              "eventName": "manual",
+              "sourceReference": null
+            },
+            "priority": 50,
+            "idempotence": "none",
+            "idempotenceKey": "",
+            "forgeScriptApiVersion": 1,
             "conditions": [],
             "actions": [
               {
@@ -2905,8 +4064,22 @@
           },
           {
             "id": "52000000-0000-4000-8000-000000000002",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
             "fromStateId": "51000000-0000-4000-8000-000000000002",
             "toStateId": "51000000-0000-4000-8000-000000000003",
+            "displayOrder": 2,
+            "eventBinding": {
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "kind": "manual",
+              "eventName": "manual",
+              "sourceReference": null
+            },
+            "priority": 50,
+            "idempotence": "none",
+            "idempotenceKey": "",
+            "forgeScriptApiVersion": 1,
             "conditions": [
               {
                 "kind": "hasItem",
@@ -2924,8 +4097,22 @@
           },
           {
             "id": "52000000-0000-4000-8000-000000000003",
+            "schemaVersion": 1,
+            "provenance": "migration-default",
             "fromStateId": "51000000-0000-4000-8000-000000000003",
             "toStateId": "51000000-0000-4000-8000-000000000004",
+            "displayOrder": 3,
+            "eventBinding": {
+              "schemaVersion": 1,
+              "provenance": "migration-default",
+              "kind": "manual",
+              "eventName": "manual",
+              "sourceReference": null
+            },
+            "priority": 50,
+            "idempotence": "none",
+            "idempotenceKey": "",
+            "forgeScriptApiVersion": 1,
             "conditions": [
               {
                 "kind": "variableEquals",
@@ -2971,12 +4158,20 @@
               "mutexGroup": "crypt-ending",
               "irreversible": true,
               "confirmation": {
+                "id": "1a389f06-f897-554d-ac76-54f7fa68424a",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
                 "key": "quest.crypt.choice.confirm",
-                "fallback": "Accepter cette voie irr\u00E9versible ?"
+                "fallback": "Accepter cette voie irr\u00E9versible ?",
+                "variants": []
               },
               "consequence": {
+                "id": "df559e47-d640-5082-8ac8-c74410d4491f",
+                "schemaVersion": 1,
+                "provenance": "migration-default",
                 "key": "quest.crypt.choice.consequence",
-                "fallback": "Les autres voies seront verrouill\u00E9es."
+                "fallback": "Les autres voies seront verrouill\u00E9es.",
+                "variants": []
               },
               "incompatibleTransitionIds": [],
               "provenance": "sample:g13-j"
@@ -2985,17 +4180,33 @@
           "notification": {
             "mode": "grouped",
             "title": {
+              "id": "6ecfbe25-d236-565a-89e8-e9b7ea4b0723",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
               "key": "quest.crypt.notice.title",
-              "fallback": "Crypte mise \u00E0 jour"
+              "fallback": "Crypte mise \u00E0 jour",
+              "variants": []
             },
             "body": {
+              "id": "fb848ef5-9b33-5be7-a2a9-a06437be83b7",
+              "schemaVersion": 1,
+              "provenance": "migration-default",
               "key": "quest.crypt.notice.body",
-              "fallback": "Un nouvel objectif est disponible."
+              "fallback": "Un nouvel objectif est disponible.",
+              "variants": []
             },
             "accessibleText": "Qu\u00EAte Crypte des Cendres mise \u00E0 jour : nouvel objectif disponible.",
             "groupKey": "crypt-main",
             "cooldownSeconds": 3
           }
+        },
+        "simulation": {
+          "id": "2f03a949-fe6a-9044-91a3-00dfbd0016ed",
+          "schemaVersion": 1,
+          "provenance": "migration-default",
+          "maximumSteps": 100,
+          "initialVariables": {},
+          "events": []
         }
       }
     ]

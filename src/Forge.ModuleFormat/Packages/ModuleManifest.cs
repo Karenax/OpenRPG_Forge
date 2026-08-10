@@ -16,7 +16,8 @@ public sealed record ModuleManifest(
     ModuleTargetKind Target,
     IReadOnlyList<ModuleManifestDependency> ThirdPartyDependencies,
     string LicenseNoticePath,
-    string ContentSha256)
+    string ContentSha256,
+    bool RuntimeCompatibilityRequired = true)
 {
     public const string CurrentFormatVersion = "1.2.0";
 
@@ -27,7 +28,8 @@ public sealed record ModuleManifest(
         string forgeScriptApiVersion,
         string contentSha256,
         IReadOnlyList<string>? dependencies = null,
-        ModuleTargetKind target = ModuleTargetKind.Editor)
+        ModuleTargetKind target = ModuleTargetKind.Editor,
+        bool runtimeCompatibilityRequired = true)
     {
         ArgumentNullException.ThrowIfNull(project);
         return new ModuleManifest(
@@ -57,6 +59,7 @@ public sealed record ModuleManifest(
                 .OrderBy(dependency => dependency.Name, StringComparer.OrdinalIgnoreCase)
                 .ToArray(),
             DistributionNoticeBuilder.PackagePath,
-            contentSha256);
+            contentSha256,
+            runtimeCompatibilityRequired);
     }
 }

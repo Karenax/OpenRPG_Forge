@@ -15,7 +15,9 @@ public sealed record MerchantWorldProfile(
     MerchantWorldProfile.NegotiationPolicy Negotiation,
     MerchantWorldProfile.MarketPolicy? Market,
     IReadOnlyList<MerchantWorldProfile.ServiceEntry> Services,
-    MerchantWorldProfile.LedgerPolicy Ledger)
+    MerchantWorldProfile.LedgerPolicy Ledger,
+    MerchantWorldProfile.TransactionPolicy? Transactions = null,
+    bool TransactionsRequiredAtRuntime = false)
 {
     public sealed record CurrencyDefinition(
         string Id,
@@ -85,4 +87,27 @@ public sealed record MerchantWorldProfile(
         bool RecordActor,
         bool RecordItem,
         bool RecordSourceAndSink);
+
+    public sealed record TransactionPolicy(
+        Guid Id,
+        int SchemaVersion,
+        string Provenance,
+        string VendorInteractionId,
+        string DialogueChoiceId,
+        IReadOnlyList<StockEntry> Stock,
+        IReadOnlyList<string> Locales,
+        IReadOnlyList<string> RestrictionIds,
+        IReadOnlyDictionary<string, string> Scripts,
+        int BuyerCapacity,
+        int SellerCapacity,
+        bool ServerAuthoritative);
+
+    public sealed record StockEntry(
+        Guid Id,
+        BlueprintId ItemBlueprintId,
+        string VariantId,
+        int Quantity,
+        decimal UnitPrice,
+        string CurrencyId,
+        IReadOnlyList<string> RestrictionIds);
 }

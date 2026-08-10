@@ -11,6 +11,7 @@ public static partial class DistributionComplianceValidator
     public const string ModuleProvenanceUnknownCode = "distribution.module.provenance_unknown";
     public const string BlueprintLicenseUnknownCode = "distribution.blueprint.license_unknown";
     public const string BlueprintProvenanceUnknownCode = "distribution.blueprint.provenance_unknown";
+    public const string BlueprintPermissionUnknownCode = "distribution.blueprint.permission_unknown";
     public const string DependencyLicenseUnknownCode = "distribution.dependency.license_unknown";
     public const string DependencyVersionInvalidCode = "distribution.dependency.version_invalid";
     public const string DependencyApprovalRequiredCode = "distribution.dependency.approval_required";
@@ -21,6 +22,10 @@ public static partial class DistributionComplianceValidator
     public const string WindowsPackagingSafetyRequiredCode = "distribution.release.windows_packaging_safety_required";
     public const string DataTableLicenseUnknownCode = "distribution.data_table.license_unknown";
     public const string DataTableProvenanceUnknownCode = "distribution.data_table.provenance_unknown";
+    public const string ContentPackageLicenseUnknownCode = "distribution.content_package.license_unknown";
+    public const string ContentPackageProvenanceUnknownCode = "distribution.content_package.provenance_unknown";
+    public const string ContentResourceLicenseUnknownCode = "distribution.content_resource.license_unknown";
+    public const string ContentResourceProvenanceUnknownCode = "distribution.content_resource.provenance_unknown";
 
     private static readonly HashSet<string> ApprovedLicenseIdentifiers = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -165,6 +170,14 @@ public static partial class DistributionComplianceValidator
                     $"Blueprint '{blueprint.DisplayName}' has incomplete source, author or content provenance.",
                     $"blueprints/{index}/provenance"));
             }
+
+            if (IsUnknownProvenance(blueprint.Provenance.PermissionEvidence))
+            {
+                diagnostics.Add(new DomainDiagnostic(
+                    BlueprintPermissionUnknownCode,
+                    $"Blueprint '{blueprint.DisplayName}' does not declare permission evidence.",
+                    $"blueprints/{index}/provenance/permissionEvidence"));
+            }
         }
 
         for (var index = 0; index < project.Module.Content.DataTables.Count; index++)
@@ -187,7 +200,39 @@ public static partial class DistributionComplianceValidator
             }
         }
 
+        foreach (var package in project.Module.Content.Packages.Packages)
+        {
+            var packagePath = $"module/content/packages/items/{package.Id}";
+            if (!IsApprovedLicense(package.LicenseSpdx))
+                diagnostics.Add(new DomainDiagnostic(ContentPackageLicenseUnknownCode,
+                    $"Content package '{package.PackageNamespace}' does not declare an approved SPDX license.",
+                    $"{packagePath}/licenseSpdx"));
+            if (IsUnknownProvenance(package.Provenance) || IsUnknownProvenance(package.ContentSha256))
+                diagnostics.Add(new DomainDiagnostic(ContentPackageProvenanceUnknownCode,
+                    $"Content package '{package.PackageNamespace}' has incomplete provenance or content hash.",
+                    $"{packagePath}/provenance"));
+            foreach (var source in package.Sources)
+                ValidateContentResource(source.Id, source.LogicalResourceId, source.LicenseSpdx,
+                    source.Provenance, source.ContentSha256, $"{packagePath}/sources/{source.Id}", diagnostics);
+            foreach (var asset in package.Assets)
+                ValidateContentResource(asset.Id, asset.LogicalResourceId, asset.LicenseSpdx,
+                    asset.Provenance, asset.ContentSha256, $"{packagePath}/assets/{asset.Id}", diagnostics);
+        }
+
         return diagnostics;
+    }
+
+    private static void ValidateContentResource(Guid id, string logicalResourceId, string licenseSpdx,
+        string provenance, string contentSha256, string path, List<DomainDiagnostic> diagnostics)
+    {
+        if (!IsApprovedLicense(licenseSpdx))
+            diagnostics.Add(new DomainDiagnostic(ContentResourceLicenseUnknownCode,
+                $"Content resource '{logicalResourceId}' ({id:D}) does not declare an approved SPDX license.",
+                $"{path}/licenseSpdx"));
+        if (IsUnknownProvenance(provenance) || IsUnknownProvenance(contentSha256))
+            diagnostics.Add(new DomainDiagnostic(ContentResourceProvenanceUnknownCode,
+                $"Content resource '{logicalResourceId}' ({id:D}) has incomplete provenance or content hash.",
+                $"{path}/provenance"));
     }
 
     public static bool IsApprovedLicense(string? value)

@@ -142,7 +142,8 @@ public sealed class ApplyDiagnosticQuickFixHandler
                     entity.BlueprintId,
                     new TransformValue(position, entity.Transform.Rotation, entity.Transform.Scale),
                     entity.Tags,
-                    entity.Overrides);
+                    entity.Overrides,
+                    entity.BlueprintVersionRequirement);
                 updatedArea = area.WithEntities(area.Entities.Select(candidate => candidate.Id == entity.Id
                     ? transformed
                     : candidate).ToArray());

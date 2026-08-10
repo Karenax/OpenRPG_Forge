@@ -82,7 +82,8 @@ public sealed class ScaleEntitiesHandler
                 entity.BlueprintId,
                 new TransformValue(entity.Transform.Position, entity.Transform.Rotation, scale),
                 entity.Tags,
-                entity.Overrides);
+                entity.Overrides,
+                entity.BlueprintVersionRequirement);
         }
 
         var updatedArea = area.WithEntities(area.Entities

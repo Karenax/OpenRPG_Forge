@@ -1,5 +1,9 @@
 # Rapport d’écart projet — Aurora 2026
 
+> Baseline historique du 2 août 2026. Ne pas utiliser sa « première tâche » comme file actuelle.
+> L'état feature par feature est dans `../../tracking/project/AURORA_PARITY_COVERAGE.csv` et le
+> découpage exhaustif courant dans `../planning/COMPLETE_FUNCTION_BACKLOG.md`.
+
 Date de référence : 2 août 2026.
 
 ## Résumé

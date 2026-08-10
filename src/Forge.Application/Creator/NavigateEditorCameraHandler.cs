@@ -110,8 +110,26 @@ public sealed class NavigateEditorCameraHandler
             EditorCameraOperation.SetSensitivity => WithSettings(profile, profile.NavigationSpeed, command.X),
             EditorCameraOperation.SaveBookmark => SaveBookmark(profile, command),
             EditorCameraOperation.RecallBookmark => RecallBookmark(profile, command.BookmarkId),
+            EditorCameraOperation.Pilot => WithPose(profile, Pilot(pose, command.X, command.Y, command.Z, profile.NavigationSpeed)),
+            EditorCameraOperation.SetInput => command.Input is null
+                ? throw new CameraCommandException(ValueInvalidCode, "A camera input configuration is required.")
+                : WithInput(profile, command.Input),
             _ => throw new CameraCommandException(ValueInvalidCode, $"Camera operation '{command.Operation}' is not supported."),
         };
+    }
+
+    private static EditorCameraPose Pilot(EditorCameraPose pose, float right, float up, float forward, float speed)
+    {
+        if (!new[] { right, up, forward }.All(float.IsFinite))
+            throw new CameraCommandException(ValueInvalidCode, "Pilot input must be finite.");
+        var yaw = DegreesToRadians(pose.YawDegrees);
+        var scale = Math.Clamp(speed, .1f, 20f) * .2f;
+        var pivot = new Vector3Value(
+            pose.Pivot.X + ((MathF.Cos(yaw) * right) - (MathF.Sin(yaw) * forward)) * scale,
+            pose.Pivot.Y + (up * scale),
+            pose.Pivot.Z + ((-MathF.Sin(yaw) * right) - (MathF.Cos(yaw) * forward)) * scale);
+        return new EditorCameraPose(pivot, pose.YawDegrees, pose.PitchDegrees, pose.Distance,
+            pose.Projection, pose.FieldOfView, pose.OrthographicSize);
     }
 
     private static EditorCameraPose Pan(EditorCameraPose pose, float horizontal, float vertical, float speed)
@@ -201,7 +219,8 @@ public sealed class NavigateEditorCameraHandler
             profile.MouseSensitivity,
             profile.Pose,
             bookmarks,
-            profile.Provenance);
+            profile.Provenance,
+            profile.Input);
     }
 
     private static EditorCameraProfile RecallBookmark(
@@ -227,7 +246,8 @@ public sealed class NavigateEditorCameraHandler
             profile.MouseSensitivity,
             pose,
             profile.Bookmarks,
-            profile.Provenance);
+            profile.Provenance,
+            profile.Input);
 
     private static EditorCameraProfile WithSettings(
         EditorCameraProfile profile,
@@ -240,7 +260,14 @@ public sealed class NavigateEditorCameraHandler
             sensitivity,
             profile.Pose,
             profile.Bookmarks,
-            profile.Provenance);
+            profile.Provenance,
+            profile.Input);
+
+    private static EditorCameraProfile WithInput(
+        EditorCameraProfile profile,
+        EditorCameraInputConfiguration input) =>
+        new(profile.Id, profile.SchemaVersion, profile.NavigationSpeed, profile.MouseSensitivity,
+            profile.Pose, profile.Bookmarks, profile.Provenance, input);
 
     private static float DegreesToRadians(float value) => value * (MathF.PI / 180f);
 

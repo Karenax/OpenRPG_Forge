@@ -24,6 +24,12 @@ public sealed record ProjectVariableDefinition
 
     public string Provenance { get; }
 
+    public ProjectVariableReplicationMode Replication { get; }
+
+    public bool DebugVisible { get; }
+
+    public bool RequiredAtRuntime { get; }
+
     public ProjectVariableDefinition(
         ProjectVariableId id,
         string key,
@@ -32,7 +38,10 @@ public sealed record ProjectVariableDefinition
         string defaultValue,
         string description,
         string provenance,
-        int schemaVersion = CurrentSchemaVersion)
+        int schemaVersion = CurrentSchemaVersion,
+        ProjectVariableReplicationMode replication = ProjectVariableReplicationMode.None,
+        bool debugVisible = true,
+        bool requiredAtRuntime = false)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
@@ -70,6 +79,9 @@ public sealed record ProjectVariableDefinition
         DefaultValue = NormalizeValue(kind, defaultValue);
         Description = description.Trim();
         Provenance = provenance.Trim();
+        Replication = replication;
+        DebugVisible = debugVisible;
+        RequiredAtRuntime = requiredAtRuntime;
     }
 
     public string Normalize(string value)

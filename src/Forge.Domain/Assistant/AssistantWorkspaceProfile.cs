@@ -16,6 +16,7 @@ public sealed record AssistantWorkspaceProfile
     public bool NetworkAllowed { get; }
     public bool ShareProjectContent { get; }
     public string Provenance { get; }
+    public AgentSemanticWorkflow AgentWorkflow { get; }
 
     public AssistantWorkspaceProfile(
         Guid id,
@@ -26,7 +27,8 @@ public sealed record AssistantWorkspaceProfile
         AssistantPermissionLevel maximumPermission,
         bool networkAllowed,
         bool shareProjectContent,
-        string provenance)
+        string provenance,
+        AgentSemanticWorkflow? agentWorkflow = null)
     {
         Id = id;
         SchemaVersion = schemaVersion;
@@ -40,6 +42,7 @@ public sealed record AssistantWorkspaceProfile
         NetworkAllowed = networkAllowed;
         ShareProjectContent = shareProjectContent;
         Provenance = (provenance ?? string.Empty).Trim();
+        AgentWorkflow = agentWorkflow ?? AgentSemanticWorkflow.CreateDefault();
     }
 
     public AssistantProviderDefinition ActiveProvider =>
@@ -74,7 +77,7 @@ public sealed record AssistantWorkspaceProfile
                 "Résumé du contexte Creator",
                 "Tu assistes un auteur OpenRPG Forge. Réponds uniquement avec un plan JSON sans modifier le projet.",
                 "Projet: {{project.title}}\nSélection: {{selection.kind}}\nDemande: {{request.text}}",
-                "{\"type\":\"object\",\"required\":[\"summary\",\"semanticDiff\"],\"properties\":{\"summary\":{\"type\":\"string\"},\"semanticDiff\":{\"type\":\"array\"}}}",
+                """{"type":"object","required":["summary","semanticDiff","planId","transactionId","permission","promptSha256"],"additionalProperties":false,"properties":{"summary":{"type":"string"},"semanticDiff":{"type":"array","items":{"type":"object"}},"planId":{"type":"string"},"transactionId":{"type":"string"},"permission":{"type":"string"},"promptSha256":{"type":"string"},"toolCalls":{"type":"array","items":{"type":"object","required":["tool","targetObjectId","arguments"],"additionalProperties":false,"properties":{"tool":{"type":"string"},"targetObjectId":{"type":"string"},"arguments":{"type":"object"}}}}}}""",
                 ["project.read", "plan.preview"],
                 [new AssistantPromptTestCase(
                     Guid.Parse("a1200000-0000-4000-8000-000000000004"),

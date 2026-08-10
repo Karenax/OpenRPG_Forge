@@ -55,6 +55,41 @@ public sealed class SetDialogueHandlerTests
     }
 
     [Fact]
+    public void Enriched_dialogue_configuration_is_atomic_and_undo_redo_restores_exact_documents()
+    {
+        var context = CreateContext();
+        var baseline = context.Handler.Handle(context.State, CreateCommand(context, CreateDialogue(context.BlueprintId)));
+        var history = new ProjectCommandHistory(context.State);
+        history.Record(baseline);
+        var before = Assert.Single(history.State.Project.Dialogues);
+        var node = before.Nodes[0];
+        var enrichedText = new LocalizedText(node.Text.Id, 1, "author:test", node.Text.Key, node.Text.Fallback,
+            [LocalizedTextVariant.Create(node.Text.Key, "fr", "Dialogue enrichi")]);
+        var choice = new DialogueChoice(
+            DialogueChoiceId.From(Guid.Parse("d0063000-0000-4000-8000-000000000001")),
+            new("dialogue.test.choice", "Continue"),
+            [new(DialogueConditionKind.HasItem, "ash-key", "true", negated: true)],
+            [new(DialogueActionKind.PlayAudio, "dialogue.accept", "play")],
+            conditionCombination: DialogueConditionCombination.Any);
+        var enriched = new DialogueDefinition(before.Id, before.Slug, "Dialogue enrichi", before.EntryNodeId,
+            [new(node.Id, node.SpeakerBlueprintId, enrichedText,
+                [new(DialogueActionKind.SetRelation, "elyra", "trusted")], [choice])]);
+
+        var preview = context.Handler.Handle(history.State, new SetDialogueCommand(
+            CommandId.From(Guid.NewGuid()), history.State.Revision, enriched, DryRun: true));
+        var applied = context.Handler.Handle(history.State, new SetDialogueCommand(
+            CommandId.From(Guid.NewGuid()), history.State.Revision, enriched, DryRun: false));
+        history.Record(applied);
+
+        Assert.True(preview.Succeeded);
+        Assert.Equal("Dialogue enrichi", Assert.Single(history.State.Project.Dialogues).DisplayName);
+        Assert.True(history.Undo().Succeeded);
+        Assert.Equal(before, Assert.Single(history.State.Project.Dialogues));
+        Assert.True(history.Redo().Succeeded);
+        Assert.Equal(enriched, Assert.Single(history.State.Project.Dialogues));
+    }
+
+    [Fact]
     public void Handle_DryRunValidatesWithoutMutation()
     {
         var context = CreateContext();
@@ -93,6 +128,29 @@ public sealed class SetDialogueHandlerTests
 
         Assert.False(result.Succeeded);
         Assert.Equal(ProjectValidator.MissingDialogueSpeakerBlueprintCode, Assert.Single(result.Diagnostics).Code);
+    }
+
+    [Fact]
+    public void Handle_ReportsReadableChoiceReorderDiff()
+    {
+        var context = CreateContext();
+        var node = DialogueNodeId.From(Guid.Parse("d2a410da-d3c7-4dfc-a114-87a405640191"));
+        var first = new DialogueChoice(DialogueChoiceId.From(Guid.Parse("d0050000-0000-4000-8000-000000000301")),
+            new("dialogue.test.first", "First"), priority: 10);
+        var second = new DialogueChoice(DialogueChoiceId.From(Guid.Parse("d0050000-0000-4000-8000-000000000302")),
+            new("dialogue.test.second", "Second"), priority: 20);
+        DialogueDefinition Build(IReadOnlyList<DialogueChoice> choices) => new(
+            DialogueId.From(Guid.Parse("60aff217-c3aa-457b-9b86-1b57d193fa38")), "dialogue-test", "Dialogue test", node,
+            [new(node, context.BlueprintId, new("dialogue.test", "Test"), choices: choices)]);
+        var initial = context.Handler.Handle(context.State, CreateCommand(context, Build([first, second])));
+
+        var result = context.Handler.Handle(initial.State,
+            new SetDialogueCommand(CommandId.From(Guid.NewGuid()), initial.State.Revision,
+                Build([second, first]), DryRun: true));
+
+        Assert.True(result.Succeeded);
+        Assert.StartsWith("Reorder dialogue", result.Patch?.Summary, StringComparison.Ordinal);
+        Assert.Contains(node.ToString(), result.Patch?.Summary, StringComparison.Ordinal);
     }
 
     private static TestContext CreateContext()

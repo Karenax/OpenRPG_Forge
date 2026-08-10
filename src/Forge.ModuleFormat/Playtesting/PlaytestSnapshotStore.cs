@@ -1,7 +1,10 @@
 using System.Text;
 using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
+using Forge.Domain.Areas;
+using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
+using Forge.Domain.Spatial;
 using Forge.ModuleFormat.Serialization;
 
 namespace Forge.ModuleFormat.Playtesting;
@@ -41,6 +44,54 @@ public sealed class PlaytestSnapshotStore
                 nameof(spawnEntityId));
         }
 
+        return Write(project, spawnEntityId, null);
+    }
+
+    public PlaytestSnapshot Create(ProjectDefinition project, AreaId areaId, AreaPlaytestProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        ArgumentNullException.ThrowIfNull(areaId);
+        ArgumentNullException.ThrowIfNull(profile);
+        var area = project.Areas.SingleOrDefault(item => item.Id == areaId)
+            ?? throw new ArgumentException("The selected playtest area does not exist.", nameof(areaId));
+        var diagnostics = AreaPlaytestProfileValidator.Validate(project, area, profile);
+        if (diagnostics.Count > 0)
+            throw new ArgumentException($"Play From Here is invalid: {diagnostics[0].Code} {diagnostics[0].Path}",
+                nameof(profile));
+
+        var transform = profile.StartMode switch
+        {
+            PlayFromHereStartMode.PlayerSpawn => area.Entities.Single(item => item.Id == profile.SpawnEntityId).Transform,
+            PlayFromHereStartMode.Camera => profile.CameraTransform,
+            PlayFromHereStartMode.Waypoint => area.Navigation.Anchors.Instances
+                .Single(item => item.Id == profile.WaypointInstanceId).Transform,
+            _ => throw new ArgumentOutOfRangeException(nameof(profile)),
+        };
+        var spawnId = profile.StartMode == PlayFromHereStartMode.PlayerSpawn
+            ? profile.SpawnEntityId!
+            : EntityId.From(Stable(profile.Id, $"spawn:{profile.StartMode}"));
+        var snapshotProject = project;
+        if (profile.StartMode != PlayFromHereStartMode.PlayerSpawn)
+        {
+            var spawn = new EntityInstance(spawnId, profile.PlayerBlueprintId!, transform,
+                ["playtest", "play-from-here", profile.StartMode.ToString().ToLowerInvariant()]);
+            var snapshotArea = area.WithEntities(area.Entities.Append(spawn).ToArray());
+            snapshotProject = new ProjectDefinition(project.Id, project.Title, project.Module, project.Blueprints,
+                project.Areas.Select(item => item.Id == area.Id ? snapshotArea : item).ToArray(),
+                project.Dialogues, project.Quests);
+        }
+
+        var manifest = new PlaytestLaunchManifest(profile.Id, PlaytestLaunchManifest.CurrentSchemaVersion,
+            profile.Provenance, area.Id.ToString(), spawnId.ToString(), profile.StartMode.ToString(),
+            profile.TestProfile, profile.QuestInjections.Select(item => new PlaytestQuestLaunchState(
+                item.QuestId.ToString(), item.StateId.ToString(), item.Variables)).ToArray(),
+            profile.TargetKind.ToString(), profile.TargetId?.ToString(), profile.Headless);
+        return Write(snapshotProject, spawnId, manifest);
+    }
+
+    private PlaytestSnapshot Write(ProjectDefinition project, EntityId spawnEntityId,
+        PlaytestLaunchManifest? manifest)
+    {
         var serializedProject = ProjectJsonSerializer.Serialize(project);
         Directory.CreateDirectory(_rootDirectory);
         var sessionDirectory = Path.Combine(_rootDirectory, Guid.NewGuid().ToString("N"));
@@ -55,7 +106,16 @@ public sealed class PlaytestSnapshotStore
                 serializedProject,
                 new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
             File.Move(temporaryPath, snapshotPath);
-            return new PlaytestSnapshot(sessionDirectory, snapshotPath, spawnEntityId);
+            string? manifestPath = null;
+            if (manifest is not null)
+            {
+                manifestPath = Path.Combine(sessionDirectory, PlaytestLaunchManifestStore.FileName);
+                var temporaryManifest = $"{manifestPath}.{Path.GetRandomFileName()}.tmp";
+                File.WriteAllText(temporaryManifest, PlaytestLaunchManifestStore.Serialize(manifest),
+                    new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                File.Move(temporaryManifest, manifestPath);
+            }
+            return new PlaytestSnapshot(sessionDirectory, snapshotPath, spawnEntityId, manifestPath);
         }
         catch
         {
@@ -66,6 +126,15 @@ public sealed class PlaytestSnapshotStore
 
             throw;
         }
+    }
+
+    private static Guid Stable(Guid source, string discriminator)
+    {
+        var bytes = System.Security.Cryptography.SHA256.HashData(
+            Encoding.UTF8.GetBytes($"openrpg-forge:{source:D}:{discriminator}"));
+        bytes[6] = (byte)((bytes[6] & 0x0f) | 0x50);
+        bytes[8] = (byte)((bytes[8] & 0x3f) | 0x80);
+        return new Guid(bytes[..16]);
     }
 
     public void Delete(PlaytestSnapshot snapshot)

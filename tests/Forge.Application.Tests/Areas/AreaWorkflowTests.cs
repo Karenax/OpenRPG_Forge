@@ -40,6 +40,8 @@ public sealed class AreaWorkflowTests
         Assert.Equal("forgotten-forest", area.Slug);
         Assert.Equal(AreaKind.Exterior, area.Kind);
         Assert.Equal(new AreaDimensions(128, 96), area.Dimensions);
+        Assert.Equal("forge-generic", area.Foundation.Creation.KitKey);
+        Assert.Equal("heightmap", area.Foundation.Creation.TerrainProfile);
         Assert.Equal(command.SpawnEntityId, Assert.Single(area.Entities).Id);
         Assert.True(history.Undo().Succeeded);
         Assert.Single(history.State.Project.Areas);

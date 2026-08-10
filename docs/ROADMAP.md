@@ -2,7 +2,15 @@
 
 Le plan détaillé de livraison et l’affectation des 717 exigences du dossier de capacités sont dans
 [`AURORA_CAPABILITY_DELIVERY_PLAN.md`](AURORA_CAPABILITY_DELIVERY_PLAN.md). Le présent document reste
-la vue synthétique du MVP.
+la vue synthétique du MVP et l'historique des gates verticales.
+
+## Lecture actuelle au 7 août 2026
+
+Le MVP et G0 à G13 sont fermés comme parcours démontrables. La cible initiale n'est toutefois pas
+fermée feature par feature : 207 fonctions sur 717 sont `Tested`. La file exhaustive est
+`planning/COMPLETE_FUNCTION_BACKLOG.md`, qui répartit les 717 fonctions en 187 lots stables de cinq
+IDs maximum. Le programme actif ferme d'abord les 191 fonctions P0 dans les 50 lots `R001` à
+`R050`, un seul lot à la fois ; aucun nouveau gate n'est inventé.
 
 ## Phase 0 — Fondations
 
@@ -46,7 +54,10 @@ versionnée, modification IA annulable, rapport de performance, licences et guid
 livrés. `TASKS_MVP.md` est fermé ; la suite reprend les gates Aurora sans confondre le MVP avec la
 parité des 717 capacités.
 
-## Gate Creator Core G7 — en cours
+## Historique d'exécution G7 à G13
+
+Les mentions « prochaine tranche » ci-dessous décrivent l'ordre suivi pendant la livraison. Elles
+ne désignent plus la file actuelle.
 
 G7-01 a prouvé la création d’un second module générique et G7-02 a livré la coque Creator commune.
 G7-03 rend le catalogue Blueprints recherchable et transactionnel, avec dérivation depuis une
@@ -247,9 +258,10 @@ le découpage opérationnel initial est suivi dans `TASKS_MVP.md`. Ce chantier n
 priorités P0/P1 Aurora en cours et doit respecter les ADR, le bus transactionnel et les règles de
 licence du dépôt.
 
-## Phase 7 — Multijoueur
+## Historique de la cible multijoueur
 
-Runtime 3D headless autoritaire, intentions, réplication, coopération, persistance et outils de maître de jeu.
+La Network Beta et le Live Director vertical sont livrés. Les critères encore partiels ou non prouvés
+sont désormais répartis dans les lots `FC-MULTI-*` et `FC-DM-*` du plan de complétude.
 
 Chaque phase doit laisser un produit exécutable et testable. Les cibles de démonstration sont la
 tranche verticale **Crypte des Cendres** et la carte extérieure **Forgotten Forest** décrites dans

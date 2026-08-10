@@ -2,6 +2,7 @@
 using Forge.Application.Localization;
 using Forge.Application.Projects;
 using Forge.Domain.Localization;
+using Forge.ModuleFormat.Localization;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -9,6 +10,7 @@ namespace Forge.Toolset.Editor;
 public partial class LocalizationWorkspaceWindow : Window
 {
     private Func<ProjectState?>? _getState;
+    private Func<string?>? _getWorkspaceRoot;
     private Func<LocalizationCatalog, bool, bool>? _apply;
     private Action<Window>? _brandWindow;
     private LocalizationCatalog? _draft;
@@ -29,10 +31,12 @@ public partial class LocalizationWorkspaceWindow : Window
 
     public void Initialize(
         Func<ProjectState?> getState,
+        Func<string?> getWorkspaceRoot,
         Func<LocalizationCatalog, bool, bool> apply,
         Action<Window> brandWindow)
     {
         _getState = getState ?? throw new ArgumentNullException(nameof(getState));
+        _getWorkspaceRoot = getWorkspaceRoot ?? throw new ArgumentNullException(nameof(getWorkspaceRoot));
         _apply = apply ?? throw new ArgumentNullException(nameof(apply));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
         Title = "Localisation · OpenRPG Forge";
@@ -151,6 +155,12 @@ public partial class LocalizationWorkspaceWindow : Window
         var extract = new Button { Text = "Réextraire le projet" };
         extract.Pressed += Refresh;
         toolbar.AddChild(extract);
+        var export = new Button { Text = "Exporter bundle" };
+        export.Pressed += ExportTranslatorBundle;
+        toolbar.AddChild(export);
+        var import = new Button { Text = "Importer bundle" };
+        import.Pressed += ImportTranslatorBundle;
+        toolbar.AddChild(import);
 
         var body = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         body.AddThemeConstantOverride("separation", 14);
@@ -168,6 +178,13 @@ public partial class LocalizationWorkspaceWindow : Window
         _identity.AddThemeColorOverride("font_color", new Color("f5dfc6"));
         editor.AddChild(_identity);
         editor.AddChild(FieldLabel("TRADUCTION DE LA LANGUE ACTIVE"));
+        var icuHint = new Label
+        {
+            Text = "ICU : {count, plural, one {# objet} other {# objets}} · {gender, select, female {Elle} other {Iel}}",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        icuHint.AddThemeColorOverride("font_color", new Color("9f8dbd"));
+        editor.AddChild(icuHint);
         _translation = new TextEdit { CustomMinimumSize = new Vector2(0, 180), WrapMode = TextEdit.LineWrappingMode.Boundary };
         editor.AddChild(_translation);
         var saveTranslation = new Button { Text = "Mettre à jour la traduction" };
@@ -235,7 +252,8 @@ public partial class LocalizationWorkspaceWindow : Window
         }
 
         var translatedCount = _draft.Messages.Count(message => message.Translations.ContainsKey(locale));
-        _metrics!.Text = $"{_draft.Messages.Count} messages · {_draft.Locales.Count} langues · {translatedCount}/{_draft.Messages.Count} traduits en {locale}";
+        _metrics!.Text = $"{_draft.Messages.Count} messages · {_draft.Locales.Count} langues · {translatedCount}/{_draft.Messages.Count} traduits en {locale} · " +
+            $"{_draft.PackageNamespace} · {_draft.LicenseSpdx} · {_draft.ContentSha256[..12]}…";
         if (_selectedMessage is null || !_visibleMessages.Any(item => item.Key == _selectedMessage.Key))
         {
             ClearSelection();
@@ -294,6 +312,50 @@ public partial class LocalizationWorkspaceWindow : Window
         if (_selectedMessage is not null)
         {
             _preview!.Text = PseudoLocalization.Transform(_selectedMessage.Fallback);
+        }
+    }
+
+    private void ExportTranslatorBundle()
+    {
+        try
+        {
+            var catalog = _draft ?? throw new InvalidOperationException("Aucun catalogue à exporter.");
+            var root = _getWorkspaceRoot?.Invoke() ?? throw new InvalidOperationException("Aucun workspace ouvert.");
+            var locale = SelectedLocale();
+            var path = Path.Combine(root, ".forge", "localization", $"{locale}.orfloc.json");
+            LocalizationTranslationBundleStore.Save(path, LocalizationTranslationExchange.Export(catalog, locale));
+            SetStatus($"✓ Bundle traducteur exporté · .forge/localization/{locale}.orfloc.json", false);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+        {
+            SetStatus($"Export impossible : {exception.Message}", true);
+        }
+    }
+
+    private void ImportTranslatorBundle()
+    {
+        try
+        {
+            var catalog = _draft ?? throw new InvalidOperationException("Aucun catalogue à mettre à jour.");
+            var root = _getWorkspaceRoot?.Invoke() ?? throw new InvalidOperationException("Aucun workspace ouvert.");
+            var locale = SelectedLocale();
+            var path = Path.Combine(root, ".forge", "localization", $"{locale}.orfloc.json");
+            var result = LocalizationTranslationExchange.Import(catalog, LocalizationTranslationBundleStore.Load(path));
+            if (!result.Succeeded)
+            {
+                SetStatus($"Import refusé : {string.Join(", ", result.Diagnostics)}", true);
+                return;
+            }
+
+            _draft = result.Catalog;
+            _selectedMessage = null;
+            PopulateLocales();
+            RefreshMessages();
+            SetStatus($"✓ Bundle {locale} importé dans le brouillon · prévisualisez puis appliquez", false);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or System.Text.Json.JsonException)
+        {
+            SetStatus($"Import impossible : {exception.Message}", true);
         }
     }
 

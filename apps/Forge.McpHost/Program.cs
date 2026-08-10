@@ -44,6 +44,7 @@ builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogL
 builder.Services.AddSingleton(project);
 builder.Services.AddSingleton<IForgeScriptRuntime, NativeForgeScriptRuntime>();
 builder.Services.AddSingleton<ForgeScriptAgentService>();
+builder.Services.AddSingleton<ForgeScriptInteropService>();
 builder.Services
     .AddMcpServer()
     .WithStdioServerTransport()

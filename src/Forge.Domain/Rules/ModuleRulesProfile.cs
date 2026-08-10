@@ -13,6 +13,7 @@ public sealed record ModuleRulesProfile
     public IReadOnlyList<DifficultyProfile> Difficulties { get; }
     public string ActiveDifficultyKey { get; }
     public MutatorSet Mutators { get; }
+    public RulesetPluginCatalog Plugins { get; }
     public string Provenance { get; }
 
     [JsonIgnore]
@@ -20,7 +21,7 @@ public sealed record ModuleRulesProfile
 
     public ModuleRulesProfile(Guid id, int schemaVersion, ProgressionPolicy progression,
         IReadOnlyList<DifficultyProfile> difficulties, string activeDifficultyKey, MutatorSet mutators,
-        string provenance)
+        string provenance, RulesetPluginCatalog? plugins = null)
     {
         ArgumentNullException.ThrowIfNull(progression);
         ArgumentNullException.ThrowIfNull(difficulties);
@@ -43,6 +44,7 @@ public sealed record ModuleRulesProfile
         Difficulties = values;
         ActiveDifficultyKey = active;
         Mutators = mutators;
+        Plugins = plugins ?? RulesetPluginCatalog.CreateDefault(id);
         Provenance = provenance.Trim();
     }
 

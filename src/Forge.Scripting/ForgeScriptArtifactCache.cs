@@ -1,11 +1,13 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Collections.Concurrent;
 
 namespace Forge.Scripting;
 
 public sealed class ForgeScriptArtifactCache
 {
+    private static readonly ConcurrentDictionary<string, object> CacheKeyLocks = new(StringComparer.Ordinal);
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -29,32 +31,36 @@ public sealed class ForgeScriptArtifactCache
         ArgumentException.ThrowIfNullOrWhiteSpace(source);
         var sourceHash = Sha256(Encoding.UTF8.GetBytes(source));
         var cacheKey = ComputeKey(sourceHash, _runtime.ApiVersion, _runtime.VirtualMachineVersion);
-        if (TryRead(cacheKey, source, sourceHash, out var cachedArtifact, out var cachedMetadata))
+        var cacheLock = CacheKeyLocks.GetOrAdd($"{_cacheRoot}|{cacheKey}", static _ => new object());
+        lock (cacheLock)
         {
-            return new ForgeScriptCacheResult(
-                new ForgeScriptCompileResult(true, cachedArtifact, []),
-                true,
+            if (TryRead(cacheKey, source, sourceHash, out var cachedArtifact, out var cachedMetadata))
+            {
+                return new ForgeScriptCacheResult(
+                    new ForgeScriptCompileResult(true, cachedArtifact, []),
+                    true,
+                    cacheKey,
+                    cachedMetadata);
+            }
+
+            var compilation = _runtime.Compile(source);
+            if (!compilation.Success || compilation.Artifact is null)
+            {
+                return new ForgeScriptCacheResult(compilation, false, cacheKey, null);
+            }
+
+            var metadata = new ForgeScriptCacheMetadata(
+                StableId(cacheKey),
+                ForgeScriptCacheMetadata.CurrentSchemaVersion,
                 cacheKey,
-                cachedMetadata);
+                sourceHash,
+                Sha256(compilation.Artifact.Bytecode),
+                _runtime.ApiVersion,
+                _runtime.VirtualMachineVersion,
+                "forgescript-cache");
+            Write(cacheKey, compilation.Artifact.Bytecode, metadata);
+            return new ForgeScriptCacheResult(compilation, false, cacheKey, metadata);
         }
-
-        var compilation = _runtime.Compile(source);
-        if (!compilation.Success || compilation.Artifact is null)
-        {
-            return new ForgeScriptCacheResult(compilation, false, cacheKey, null);
-        }
-
-        var metadata = new ForgeScriptCacheMetadata(
-            StableId(cacheKey),
-            ForgeScriptCacheMetadata.CurrentSchemaVersion,
-            cacheKey,
-            sourceHash,
-            Sha256(compilation.Artifact.Bytecode),
-            _runtime.ApiVersion,
-            _runtime.VirtualMachineVersion,
-            "forgescript-cache");
-        Write(cacheKey, compilation.Artifact.Bytecode, metadata);
-        return new ForgeScriptCacheResult(compilation, false, cacheKey, metadata);
     }
 
     public static string ComputeKey(string sourceSha256, string apiVersion, string compilerVersion)

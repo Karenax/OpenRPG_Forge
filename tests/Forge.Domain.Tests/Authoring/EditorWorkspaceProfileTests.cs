@@ -19,6 +19,8 @@ public sealed class EditorWorkspaceProfileTests
         Assert.True(profiles.Single(profile => profile.Role == EditorRole.Artist).RepeatPlacement);
         Assert.All(profiles, profile => Assert.Equal(EditorWorkspaceProfile.CurrentSchemaVersion, profile.SchemaVersion));
         Assert.All(profiles, profile => Assert.Equal("Noto Sans", profile.PrimaryFontFamily));
+        Assert.All(profiles, profile => Assert.Equal(EditorExplorerGrouping.Area, profile.Shell.ExplorerGrouping));
+        Assert.All(profiles, profile => Assert.Equal(EditorViewportMode.Editing, profile.Shell.ViewportMode));
     }
 
     [Fact]
@@ -63,5 +65,54 @@ public sealed class EditorWorkspaceProfileTests
         Assert.Throws<ArgumentOutOfRangeException>(() => new EditorWorkspaceProfile(
             profile.Id, profile.Name, profile.Role, profile.DisplayFilter, false, [], null, null, true, "test",
             uiScale: 3));
+    }
+
+    [Fact]
+    public void ShellConfigurationValidatesLayoutAndNormalizesContextualPalette()
+    {
+        var profile = EditorWorkspaceProfile.CreateDefault(EditorRole.Builder);
+        var layout = new EditorShellLayout(
+            Guid.Parse("34000000-0000-4000-8000-000000000001"), 1, "test",
+            260, 320, 180, assistantVisible: false);
+        var filter = new EditorPaletteFilter(
+            [BlueprintKind.Placeable], [" Crypt-Stone ", "crypt-stone"], ["Gothic"],
+            ["CC0-1.0"], ["Medieval"], ["Dungeon", "Stone"], true);
+        var shell = new EditorShellConfiguration(
+            Guid.Parse("34000000-0000-4000-8000-000000000002"), 1, "test",
+            layout, EditorExplorerGrouping.Dependency, EditorViewportMode.Navigation, filter);
+        var configured = new EditorWorkspaceProfile(
+            profile.Id, profile.Name, profile.Role, profile.DisplayFilter, profile.RepeatPlacement,
+            [], null, null, true, "test", shell: shell);
+
+        Assert.Equal(EditorExplorerGrouping.Dependency, configured.Shell.ExplorerGrouping);
+        Assert.Equal(EditorViewportMode.Navigation, configured.Shell.ViewportMode);
+        Assert.Equal(["crypt-stone"], configured.Shell.PaletteFilter.Kits);
+        Assert.Equal(["dungeon", "stone"], configured.Shell.PaletteFilter.Tags);
+        Assert.True(configured.Shell.PaletteFilter.FavoritesOnly);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new EditorShellLayout(
+            Guid.NewGuid(), 1, "test", 20, 320, 180));
+        Assert.Throws<ArgumentException>(() => new EditorShellLayout(
+            Guid.NewGuid(), 1, "test", 260, 320, 180,
+            false, false, false, false, false));
+        Assert.Throws<ArgumentException>(() => new EditorPaletteFilter([]));
+    }
+
+    [Fact]
+    public void DirectManipulationDefaultsAreStableVersionedAndValidated()
+    {
+        var profile = EditorWorkspaceProfile.CreateDefault(EditorRole.Builder);
+        var direct = profile.Shell.DirectManipulation;
+
+        Assert.NotEqual(Guid.Empty, direct.Id);
+        Assert.Equal(1, direct.SchemaVersion);
+        Assert.True(direct.Selection.MultiSelectionEnabled);
+        Assert.True(direct.Selection.EditCommonPropertiesOnly);
+        Assert.Equal(EditorTransformTool.Translate, direct.Transform.Tool);
+        Assert.Equal(EditorCoordinateSpace.World, direct.Transform.CoordinateSpace);
+        Assert.Equal(EditorPivotMode.SelectionCenter, direct.Transform.PivotMode);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new EditorTransformToolConfiguration(
+            Guid.NewGuid(), 1, "test", translationSnap: 0));
+        Assert.Throws<ArgumentException>(() => new EditorSelectionConfiguration(
+            Guid.Empty, 1, "test"));
     }
 }

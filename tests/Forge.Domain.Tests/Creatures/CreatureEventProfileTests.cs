@@ -13,7 +13,7 @@ public sealed class CreatureEventProfileTests
         var diagnostics = CreatureEventValidator.Validate(profile, "blueprints/warden/creatureEvents");
 
         Assert.Empty(diagnostics);
-        Assert.Equal(6, CreatureEventValidator.EnumerateBindings(profile).Count);
+        Assert.Equal(9, CreatureEventValidator.EnumerateBindings(profile).Count);
         Assert.Equal("crypt.braziers_lit", Assert.Single(profile.CustomEvents).QualifiedName);
         Assert.All(CreatureEventValidator.EnumerateBindings(profile), binding =>
             Assert.Equal(EventAuthorityScope.Server, binding.Authority));
@@ -57,6 +57,29 @@ public sealed class CreatureEventProfileTests
         Assert.Equal("custom.crypt.braziers_lit", custom.EventName);
         Assert.Throws<ArgumentException>(() => CreatureEventRuntimeResolver.Custom(profile, CustomSchemaId,
             new Dictionary<string, string> { ["count"] = "invalid", ["source"] = "ash-warden" }));
+    }
+
+    [Fact]
+    public void DamageLifecycleIsDeterministicAndDeathCarriesCompletePostTransactionContext()
+    {
+        var profile = Complete();
+        var transactionId = Guid.Parse("a1500000-0000-4000-8000-000000000020");
+
+        var before = CreatureEventRuntimeResolver.BeforeDamage(profile, transactionId, "ash-warden", "hero",
+            12, "radiant", "lantern");
+        var applied = CreatureEventRuntimeResolver.DamageApplied(profile, transactionId, "ash-warden", "hero",
+            12, 10, 2, "radiant", "lantern");
+        var died = CreatureEventRuntimeResolver.EntityDied(profile, "ash-warden", "hero", ["hero", "elyra", "hero"],
+            "lantern", "crypt:4,0,9", ["warden-ember"], "drop");
+
+        Assert.Equal("creature.before_damage", before!.EventName);
+        Assert.Equal(4, before.BudgetMilliseconds);
+        Assert.Equal("0.5", before.Payload["maximumAdjustmentRatio"]);
+        Assert.Equal("creature.damage_applied", applied!.EventName);
+        Assert.Equal("10", applied.Payload["applied"]);
+        Assert.Equal("entity.died", died!.EventName);
+        Assert.Equal("elyra,hero", died.Payload["contributors"]);
+        Assert.Equal("warden-ember", died.Payload["lootIds"]);
     }
 
     [Fact]
@@ -108,7 +131,12 @@ public sealed class CreatureEventProfileTests
                 ["source"] = CreatureCustomFieldType.EntityId,
             }, true, Binding("a1500000-0000-4000-8000-000000000011",
                 "custom.crypt.braziers_lit", "OnBraziersLit"))],
-        new Dictionary<string, string> { ["telemetry.channel"] = "creature-events" });
+        new Dictionary<string, string> { ["telemetry.channel"] = "creature-events" },
+        new(
+            Binding("a1500000-0000-4000-8000-000000000012", "creature.before_damage", "BeforeDamage"),
+            Binding("a1500000-0000-4000-8000-000000000013", "creature.damage_applied", "OnDamaged"),
+            Binding("a1500000-0000-4000-8000-000000000014", "entity.died", "OnDeath"),
+            4, 0.5));
 
     private static EventBinding Binding(string id, string eventName, string handler) => new(
         Guid.Parse(id), 1, "author:test", "1.0", eventName, handler, EventAuthorityScope.Server);

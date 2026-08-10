@@ -1,4 +1,5 @@
 using Forge.Domain.Blueprints;
+using Forge.Domain.Areas;
 
 namespace Forge.Domain.WorldFeatures;
 
@@ -16,7 +17,9 @@ public sealed record CompanionWorldProfile(
     CompanionWorldProfile.TrapPolicy Traps,
     CompanionWorldProfile.AbilityPolicy Abilities,
     CompanionWorldProfile.DirectControlPolicy DirectControl,
-    CompanionWorldProfile.PartySplitPolicy PartySplit)
+    CompanionWorldProfile.PartySplitPolicy PartySplit,
+    CompanionWorldProfile.ValidationPolicy? Validation = null,
+    bool ValidationRequiredAtRuntime = false)
 {
     public enum ProgressionMode { Automatic, PlayerDirected, AuthoredMilestones, Fixed }
 
@@ -95,4 +98,52 @@ public sealed record CompanionWorldProfile(
         string InstanceSelection,
         bool SynchronizeQuests,
         double MaximumSeparationSeconds);
+
+    public sealed record ValidationPolicy(
+        Guid Id,
+        int SchemaVersion,
+        string Provenance,
+        RecruitmentValidation Recruitment,
+        OwnershipValidation Ownership,
+        IReadOnlyList<string> CommandIds,
+        EquipmentValidation Equipment,
+        DeathValidation Death,
+        IReadOnlyList<DialogueContextValidation> DialogueContexts,
+        CrossZoneNavigationValidation CrossZoneNavigation);
+
+    public sealed record RecruitmentValidation(
+        bool AllowDialogue,
+        bool AllowScript,
+        string ScriptId,
+        string CurrencyId,
+        decimal Cost,
+        double MinimumReputation);
+
+    public sealed record OwnershipValidation(
+        string Kind,
+        string Authority,
+        bool TransferAllowed);
+
+    public sealed record EquipmentValidation(
+        string InventoryId,
+        string EquipmentPolicyId,
+        IReadOnlyList<string> Slots);
+
+    public sealed record DeathValidation(
+        string PolicyId,
+        string Mode,
+        double RecoverySeconds);
+
+    public sealed record DialogueContextValidation(
+        string ContextId,
+        Guid DialogueId,
+        string Binding);
+
+    public sealed record CrossZoneNavigationValidation(
+        bool Enabled,
+        IReadOnlyList<AreaId> AllowedAreaIds,
+        bool FollowPortals,
+        bool SafeFallback,
+        string FallbackAnchorTag,
+        double TimeoutSeconds);
 }

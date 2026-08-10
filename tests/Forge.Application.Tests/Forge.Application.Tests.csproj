@@ -27,6 +27,7 @@
     <ProjectReference Include="..\..\src\Forge.Domain\Forge.Domain.csproj" />
     <ProjectReference Include="..\..\src\Forge.RpgKit.Application\Forge.RpgKit.Application.csproj" />
     <ProjectReference Include="..\..\src\Forge.RpgKit.Domain\Forge.RpgKit.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Forge.Scripting\Forge.Scripting.csproj" />
   </ItemGroup>
 
 </Project>

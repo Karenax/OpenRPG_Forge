@@ -28,7 +28,48 @@
         "imagePath": null,
         "tags": [],
         "classification": "Non class\u00E9",
-        "provenance": "migration-default"
+        "provenance": "openrpg-forge:project-wizard",
+        "foundation": {
+          "id": "c141cc43-4b22-4643-b115-b9d5dccf9fad",
+          "schemaVersion": 1,
+          "provenance": "openrpg-forge:project-wizard",
+          "template": "rpg",
+          "kits": [
+            "forge-core",
+            "forge-rpg-kit"
+          ],
+          "targetPlatforms": [
+            "windowsX64"
+          ],
+          "rulesProvider": "forge.generic",
+          "renderPreset": "balanced",
+          "networkMode": "offline",
+          "requiresInitialArea": true,
+          "identity": {
+            "projectId": "4d410f21-2d47-4f08-b5d0-2d2e5e43796a",
+            "slug": "les-iles-brisees",
+            "packageNamespace": "module.les-iles-brisees",
+            "formatCompatibility": "1.x"
+          },
+          "playerStarts": [
+            {
+              "id": "cfeda262-2a22-4f44-91e5-3b67671d7028",
+              "schemaVersion": 1,
+              "provenance": "openrpg-forge:project-wizard",
+              "key": "default",
+              "areaId": "ea40d07f-3e30-46a5-a39d-f4f14a25d23a",
+              "spawnEntityId": "72dd2ac1-381c-4652-a8ff-5d2be82dcb61",
+              "waypointId": null,
+              "orientationDegrees": 0,
+              "gameMode": "campaign",
+              "entryClass": "adventurer",
+              "playerSelectionRule": "default",
+              "priority": 100,
+              "requiredAtRuntime": true
+            }
+          ],
+          "requiredAtRuntime": true
+        }
       },
       "variables": [],
       "distribution": {

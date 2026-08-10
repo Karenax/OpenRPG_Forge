@@ -1,6 +1,8 @@
 #if TOOLS
 using Forge.Application.Creator;
 using Forge.Application.Projects;
+using Forge.Domain.Authoring;
+using Forge.ModuleFormat.Workspaces;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -13,11 +15,13 @@ public partial class GlobalSearchWindow : Window
 
     private Func<ProjectState?>? _getState;
     private Func<IReadOnlyList<CreatorDiagnostic>>? _getDiagnostics;
+    private Func<string?>? _getWorkspaceRoot;
     private Func<SafeRenamePreview, bool>? _applyRename;
     private Action<CreatorSelection>? _publishSelection;
     private Action<Window>? _brandWindow;
     private CreatorSearchDocument? _selectedDocument;
     private SafeRenamePreview? _approvedPreview;
+    private WorkspaceResourceRenamePreview? _approvedResourcePreview;
 
     private LineEdit? _query;
     private OptionButton? _kindFilter;
@@ -36,6 +40,10 @@ public partial class GlobalSearchWindow : Window
     private Button? _previewButton;
     private Button? _applyButton;
     private Label? _status;
+    private CheckBox? _includeScripts;
+    private CheckBox? _includeAssets;
+    private CheckBox? _includeDiagnostics;
+    private SpinBox? _resultLimit;
 
     public int VisibleResultCount => _visibleDocuments.Count;
 
@@ -44,12 +52,14 @@ public partial class GlobalSearchWindow : Window
     public void Initialize(
         Func<ProjectState?> getState,
         Func<IReadOnlyList<CreatorDiagnostic>> getDiagnostics,
+        Func<string?> getWorkspaceRoot,
         Func<SafeRenamePreview, bool> applyRename,
         Action<CreatorSelection> publishSelection,
         Action<Window> brandWindow)
     {
         _getState = getState ?? throw new ArgumentNullException(nameof(getState));
         _getDiagnostics = getDiagnostics ?? throw new ArgumentNullException(nameof(getDiagnostics));
+        _getWorkspaceRoot = getWorkspaceRoot ?? throw new ArgumentNullException(nameof(getWorkspaceRoot));
         _applyRename = applyRename ?? throw new ArgumentNullException(nameof(applyRename));
         _publishSelection = publishSelection ?? throw new ArgumentNullException(nameof(publishSelection));
         _brandWindow = brandWindow ?? throw new ArgumentNullException(nameof(brandWindow));
@@ -67,6 +77,7 @@ public partial class GlobalSearchWindow : Window
 
     public void Open()
     {
+        LoadProfile();
         Refresh();
         Exclusive = true;
         PopupCentered(new Vector2I(1180, 760));
@@ -95,12 +106,18 @@ public partial class GlobalSearchWindow : Window
         CreatorContentKind? selectedKind = _kindFilter!.Selected <= 0
             ? null
             : _kinds[_kindFilter.Selected - 1];
-        var index = CreatorSearchIndex.Build(state.Project, _getDiagnostics?.Invoke());
+        var catalog = BuildResourceCatalog(state.Project);
+        var index = CreatorSearchIndex.Build(
+            state.Project,
+            _includeDiagnostics!.ButtonPressed ? _getDiagnostics?.Invoke() : [],
+            catalog.Documents.Where(document =>
+                (document.Kind == CreatorContentKind.Script && _includeScripts!.ButtonPressed) ||
+                (document.Kind == CreatorContentKind.Asset && _includeAssets!.ButtonPressed)).ToArray());
         var matches = index.Search(new CreatorSearchQuery(
             _query!.Text,
             selectedKind,
             string.IsNullOrWhiteSpace(_tagFilter!.Text) ? null : _tagFilter.Text,
-            Limit: 500));
+            Limit: (int)_resultLimit!.Value));
         foreach (var result in matches)
         {
             _visibleDocuments.Add(result.Document);
@@ -155,18 +172,18 @@ public partial class GlobalSearchWindow : Window
         _displayName!.Text = displayName;
         _slug!.Text = slug ?? string.Empty;
         PreviewRename();
-        return _approvedPreview is not null && !_applyButton!.Disabled;
+        return (_approvedPreview is not null || _approvedResourcePreview is not null) && !_applyButton!.Disabled;
     }
 
     public bool ApplyRenameForSmokeTest()
     {
-        if (_approvedPreview is null)
+        if (_approvedPreview is null && _approvedResourcePreview is null)
         {
             return false;
         }
 
         ApplyRename();
-        return _approvedPreview is null;
+        return _approvedPreview is null && _approvedResourcePreview is null;
     }
 
     private void BuildUi()
@@ -218,6 +235,22 @@ public partial class GlobalSearchWindow : Window
         var refreshButton = new Button { Text = "Actualiser", CustomMinimumSize = new Vector2(130, 40) };
         refreshButton.Pressed += () => Refresh();
         filters.AddChild(refreshButton);
+        var profileFilters = new HBoxContainer();
+        profileFilters.AddThemeConstantOverride("separation", 12);
+        root.AddChild(profileFilters);
+        _includeScripts = new CheckBox { Text = "Scripts", ButtonPressed = true };
+        _includeAssets = new CheckBox { Text = "Assets", ButtonPressed = true };
+        _includeDiagnostics = new CheckBox { Text = "Diagnostics", ButtonPressed = true };
+        profileFilters.AddChild(new Label { Text = "Sources indexées :" });
+        profileFilters.AddChild(_includeScripts);
+        profileFilters.AddChild(_includeAssets);
+        profileFilters.AddChild(_includeDiagnostics);
+        _resultLimit = new SpinBox { MinValue = 1, MaxValue = 1000, Value = 500, CustomMinimumSize = new Vector2(85, 40) };
+        profileFilters.AddChild(new Label { Text = "Limite" });
+        profileFilters.AddChild(_resultLimit);
+        var saveProfile = new Button { Text = "Mémoriser", CustomMinimumSize = new Vector2(110, 40) };
+        saveProfile.Pressed += SaveProfile;
+        profileFilters.AddChild(saveProfile);
 
         var body = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         body.AddThemeConstantOverride("separation", 14);
@@ -299,6 +332,10 @@ public partial class GlobalSearchWindow : Window
         CloseRequested += Hide;
         _query!.TextChanged += _ => Refresh();
         _kindFilter!.ItemSelected += _ => Refresh();
+        _includeScripts!.Toggled += _ => Refresh();
+        _includeAssets!.Toggled += _ => Refresh();
+        _includeDiagnostics!.Toggled += _ => Refresh();
+        _resultLimit!.ValueChanged += _ => Refresh();
         _tagFilter!.TextSubmitted += _ => Refresh();
         _results!.ItemSelected += SelectResult;
         _targetButton!.Pressed += PublishSelectedTarget;
@@ -322,7 +359,8 @@ public partial class GlobalSearchWindow : Window
         _provenance!.Text = $"Provenance : {_selectedDocument.Provenance} · UUID {_selectedDocument.Id}";
         _targetButton!.Disabled = _selectedDocument.Selection is null;
         _visibleReferences.Clear();
-        _visibleReferences.AddRange(CreatorReferenceIndex.Build(state.Project)
+        var catalog = BuildResourceCatalog(state.Project);
+        _visibleReferences.AddRange(CreatorReferenceIndex.Build(state.Project, catalog.References)
             .Find(_selectedDocument.Kind, _selectedDocument.Id));
         _references!.Clear();
         foreach (var reference in _visibleReferences)
@@ -334,12 +372,13 @@ public partial class GlobalSearchWindow : Window
             ? "Aucune référence inverse"
             : $"{_visibleReferences.Count} usage(s) · chemins canoniques";
 
-        var canRename = SafeRenameHandler.IsSupported(_selectedDocument.Kind);
-        _displayName!.Editable = canRename;
+        var resourceRename = _selectedDocument.Kind is CreatorContentKind.Script or CreatorContentKind.Asset;
+        var canRename = SafeRenameHandler.IsSupported(_selectedDocument.Kind) || resourceRename;
+        _displayName!.Editable = canRename && !resourceRename;
         _slug!.Editable = canRename && _selectedDocument.Kind != CreatorContentKind.Project;
         _previewButton!.Disabled = !canRename;
         _displayName.Text = canRename ? _selectedDocument.DisplayName : string.Empty;
-        var preview = canRename
+        var preview = SafeRenameHandler.IsSupported(_selectedDocument.Kind)
             ? SafeRenamePreview.Create(
                 state.Project,
                 _selectedDocument.Kind,
@@ -347,7 +386,7 @@ public partial class GlobalSearchWindow : Window
                 _selectedDocument.DisplayName,
                 null)
             : null;
-        _slug.Text = preview?.PreviousSlug ?? string.Empty;
+        _slug.Text = resourceRename ? _selectedDocument.DocumentPath : preview?.PreviousSlug ?? string.Empty;
         _renameHint!.Text = canRename
             ? $"{FormatKind(_selectedDocument.Kind)} · {ShortId(_selectedDocument.Id)} · {_visibleReferences.Count} référence(s) préservée(s)"
             : "Ce contenu se cible et s'inspecte, mais son nom appartient à son agrégat parent.";
@@ -366,26 +405,50 @@ public partial class GlobalSearchWindow : Window
     private void PreviewRename()
     {
         var state = _getState?.Invoke();
-        if (state is null || _selectedDocument is null ||
-            !SafeRenameHandler.IsSupported(_selectedDocument.Kind))
+        if (state is null || _selectedDocument is null)
         {
             SetStatus("Sélection non renommable.", true);
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(_displayName!.Text) ||
+        var resourceRename = _selectedDocument.Kind is CreatorContentKind.Script or CreatorContentKind.Asset;
+        if ((!resourceRename && string.IsNullOrWhiteSpace(_displayName!.Text)) ||
             (_selectedDocument.Kind != CreatorContentKind.Project && string.IsNullOrWhiteSpace(_slug!.Text)))
         {
             SetStatus("Le nom et le slug requis doivent être renseignés.", true);
             return;
         }
 
-        _approvedPreview = SafeRenamePreview.Create(
-            state.Project,
-            _selectedDocument.Kind,
-            _selectedDocument.Id,
-            _displayName.Text,
-            _selectedDocument.Kind == CreatorContentKind.Project ? null : _slug!.Text);
+        if (resourceRename)
+        {
+            var root = _getWorkspaceRoot?.Invoke();
+            if (string.IsNullOrWhiteSpace(root))
+            {
+                SetStatus("Le dossier du projet est requis pour renommer une ressource.", true);
+                return;
+            }
+            try
+            {
+                _approvedResourcePreview = WorkspaceResourceRenameService.Preview(root,
+                    _selectedDocument.DocumentPath, _slug!.Text, "toolset:global-search-r034");
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+            {
+                SetStatus($"Renommage de ressource refusé : {exception.Message}", true);
+                return;
+            }
+            _applyButton!.Disabled = false;
+            SetStatus($"Aperçu validé · {_approvedResourcePreview.ReferenceEdits.Count} référence(s) seront migrées; UUID conservé.", false);
+            return;
+        }
+
+        if (!SafeRenameHandler.IsSupported(_selectedDocument.Kind))
+        {
+            SetStatus("Sélection non renommable.", true);
+            return;
+        }
+        _approvedPreview = SafeRenamePreview.Create(state.Project, _selectedDocument.Kind, _selectedDocument.Id,
+            _displayName!.Text, _selectedDocument.Kind == CreatorContentKind.Project ? null : _slug!.Text);
         if (_approvedPreview is null)
         {
             SetStatus("La cible n'existe plus dans la révision courante.", true);
@@ -400,6 +463,22 @@ public partial class GlobalSearchWindow : Window
 
     private void ApplyRename()
     {
+        if (_approvedResourcePreview is { } resourcePreview)
+        {
+            try
+            {
+                WorkspaceResourceRenameService.Apply(resourcePreview);
+                _approvedResourcePreview = null;
+                _applyButton!.Disabled = true;
+                Refresh();
+                SetStatus($"Ressource renommée · UUID {resourcePreview.ResourceId.ToString()[..8]} conservé · références migrées.", false);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+            {
+                SetStatus($"Renommage transactionnel annulé : {exception.Message}", true);
+            }
+            return;
+        }
         var preview = _approvedPreview;
         if (preview is null)
         {
@@ -413,6 +492,7 @@ public partial class GlobalSearchWindow : Window
         }
 
         _approvedPreview = null;
+        _approvedResourcePreview = null;
         _applyButton!.Disabled = true;
         Refresh(preview.TargetKind, preview.TargetId);
         SetStatus($"Renommage appliqué · UUID {ShortId(preview.TargetId)} conservé.", false);
@@ -421,6 +501,7 @@ public partial class GlobalSearchWindow : Window
     private void InvalidatePreview()
     {
         _approvedPreview = null;
+        _approvedResourcePreview = null;
         if (_applyButton is not null)
         {
             _applyButton.Disabled = true;
@@ -443,6 +524,82 @@ public partial class GlobalSearchWindow : Window
         _slug.Editable = false;
         _previewButton!.Disabled = true;
         InvalidatePreview();
+    }
+
+    private void LoadProfile()
+    {
+        var state = _getState?.Invoke();
+        var root = _getWorkspaceRoot?.Invoke();
+        if (state is null || string.IsNullOrWhiteSpace(root) || _includeScripts is null) return;
+        try
+        {
+            var profile = CreatorSearchProfileStore.Load(root, state.Project.Id.Value);
+            _includeScripts.ButtonPressed = profile.IncludeScripts;
+            _includeAssets!.ButtonPressed = profile.IncludeAssets;
+            _includeDiagnostics!.ButtonPressed = profile.IncludeDiagnostics;
+            _resultLimit!.Value = profile.ResultLimit;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or ArgumentException)
+        {
+            SetStatus($"Profil de recherche invalide : {exception.Message}", true);
+        }
+    }
+
+    private void SaveProfile()
+    {
+        var state = _getState?.Invoke();
+        var root = _getWorkspaceRoot?.Invoke();
+        if (state is null || string.IsNullOrWhiteSpace(root)) return;
+        try
+        {
+            var current = CreatorSearchProfileStore.Load(root, state.Project.Id.Value);
+            CreatorSearchProfileStore.Save(root, current with
+            {
+                Provenance = "toolset:global-search-r034",
+                ResultLimit = (int)_resultLimit!.Value,
+                IncludeScripts = _includeScripts!.ButtonPressed,
+                IncludeAssets = _includeAssets!.ButtonPressed,
+                IncludeDiagnostics = _includeDiagnostics!.ButtonPressed,
+            });
+            SetStatus("Profil de recherche mémorisé dans .forge/editor-search.json.", false);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            SetStatus($"Profil non enregistré : {exception.Message}", true);
+        }
+    }
+
+    private CreatorWorkspaceResourceCatalog BuildResourceCatalog(Forge.Domain.Projects.ProjectDefinition project)
+    {
+        var root = _getWorkspaceRoot?.Invoke();
+        if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
+            return CreatorWorkspaceResourceCatalog.Build(project, []);
+        var resources = new List<CreatorWorkspaceResource>();
+        if (_includeScripts?.ButtonPressed == true)
+        {
+            var scriptsRoot = Path.Combine(root, "scripts");
+            if (Directory.Exists(scriptsRoot))
+                foreach (var path in Directory.EnumerateFiles(scriptsRoot, "*.forge", SearchOption.AllDirectories))
+                    resources.Add(CreatorWorkspaceResource.Create(CreatorContentKind.Script,
+                        Path.GetRelativePath(root, path), File.ReadAllText(path), ["script", "forgescript"],
+                        id: WorkspaceResourceIdentityStore.Resolve(root, Path.GetRelativePath(root, path))));
+        }
+        if (_includeAssets?.ButtonPressed == true)
+        {
+            foreach (var folder in new[] { "assets", "content/assets" })
+            {
+                var assetRoot = Path.Combine(root, folder);
+                if (!Directory.Exists(assetRoot)) continue;
+                foreach (var path in Directory.EnumerateFiles(assetRoot, "*", SearchOption.AllDirectories)
+                             .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}.godot{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)))
+                    resources.Add(CreatorWorkspaceResource.Create(CreatorContentKind.Asset,
+                        Path.GetRelativePath(root, path), Path.GetFileNameWithoutExtension(path),
+                        ["asset", Path.GetExtension(path).TrimStart('.')],
+                        id: WorkspaceResourceIdentityStore.Resolve(root, Path.GetRelativePath(root, path))));
+            }
+        }
+        return CreatorWorkspaceResourceCatalog.Build(project, resources
+            .GroupBy(resource => resource.Id).Select(group => group.First()).ToArray());
     }
 
     private void SetStatus(string message, bool error)
@@ -517,6 +674,9 @@ public partial class GlobalSearchWindow : Window
         CreatorContentKind.Quest => "Quête",
         CreatorContentKind.QuestState => "État de quête",
         CreatorContentKind.QuestTransition => "Transition de quête",
+        CreatorContentKind.Script => "Script",
+        CreatorContentKind.Asset => "Asset",
+        CreatorContentKind.LocalizedText => "Texte localisé",
         CreatorContentKind.Diagnostic => "Diagnostic",
         _ => kind.ToString(),
     };
@@ -534,6 +694,11 @@ public partial class GlobalSearchWindow : Window
         CreatorReferenceUsageKind.QuestInitialState => "État initial de quête",
         CreatorReferenceUsageKind.QuestTransitionFromState => "Départ de transition",
         CreatorReferenceUsageKind.QuestTransitionToState => "Arrivée de transition",
+        CreatorReferenceUsageKind.LocalizedTextKey => "Clé de texte localisé",
+        CreatorReferenceUsageKind.ProjectVariableKey => "Variable de projet",
+        CreatorReferenceUsageKind.QuestStateValue => "Valeur d’état de quête",
+        CreatorReferenceUsageKind.ScriptPath => "Chemin de script",
+        CreatorReferenceUsageKind.AssetPath => "Chemin d’asset",
         _ => usage.ToString(),
     };
 

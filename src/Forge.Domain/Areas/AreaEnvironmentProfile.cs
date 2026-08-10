@@ -1,3 +1,5 @@
+using Forge.Domain.Audio;
+
 namespace Forge.Domain.Areas;
 
 public enum AreaEnvironmentClass { Interior, Exterior, Natural, Artificial, Underground }
@@ -83,12 +85,14 @@ public sealed record AreaAudioProfile
     public AudioRuntimeControl RuntimeControl { get; }
     public IReadOnlyList<AdaptiveAmbienceLayer> AdaptiveLayers { get; }
     public AreaAudioOrchestration Orchestration { get; }
+    public AudioEmitterCatalog Emitters { get; }
     public AreaAudioProfile(string dayMusic, string nightMusic, string combatMusic, string ambience, string reverbPreset,
         float transitionSeconds, IReadOnlyList<string>? playlist = null, AudioOrderMode orderMode = AudioOrderMode.Sequential,
         float intervalSeconds = 0, float intervalVariationSeconds = 0, float relativeVolume = 1,
         AudioSpatialProfile? spatial = null, AudioRuntimeControl? runtimeControl = null,
         IReadOnlyList<AdaptiveAmbienceLayer>? adaptiveLayers = null,
-        AreaAudioOrchestration? orchestration = null)
+        AreaAudioOrchestration? orchestration = null,
+        AudioEmitterCatalog? emitters = null)
     {
         ArgumentNullException.ThrowIfNull(dayMusic); ArgumentNullException.ThrowIfNull(nightMusic);
         ArgumentNullException.ThrowIfNull(combatMusic); ArgumentNullException.ThrowIfNull(ambience); ArgumentException.ThrowIfNullOrWhiteSpace(reverbPreset);
@@ -103,6 +107,7 @@ public sealed record AreaAudioProfile
         RuntimeControl = runtimeControl ?? new(true, AudioInstancePolicy.Single, AudioAuthority.Local, 1, "audio.started", "audio.stopped");
         AdaptiveLayers = (adaptiveLayers ?? []).ToArray();
         Orchestration = orchestration ?? AreaAudioOrchestration.Empty;
+        Emitters = emitters ?? AudioEmitterCatalog.Empty;
         if (Spatial.InnerRadius < 0 || Spatial.OuterRadius < Spatial.InnerRadius || Spatial.AirAbsorption is < 0 or > 1 ||
             string.IsNullOrWhiteSpace(Spatial.AttenuationCurve) || AdaptiveLayers.Any(layer =>
                 layer.StartHour is < 0 or >= 24 || layer.EndHour is < 0 or >= 24 || layer.MinimumDanger is < 0 or > 1 || layer.Volume is < 0 or > 4))

@@ -14,4 +14,5 @@ public sealed record CreateBlueprintFromEntityCommand(
     BlueprintId NewBlueprintId,
     string Slug,
     string DisplayName,
-    bool DryRun);
+    bool DryRun,
+    BlueprintAuthoringMetadata? Authoring = null);

@@ -52,6 +52,47 @@ public sealed class AssistantWorkspaceProfileCommandTests
         Assert.Equal(SetAssistantWorkspaceProfileHandler.RevisionConflictCode, Assert.Single(stale.Diagnostics).Code);
     }
 
+    [Fact]
+    public void GovernanceMustMatchThePreviewedFingerprintAndUsesCanonicalHistory()
+    {
+        var history = new AssistantWorkspaceProfileCommandHistory();
+        var workflow = history.State.Profile.AgentWorkflow;
+        var governed = WithWorkflow(history.State.Profile, workflow with
+        {
+            Governance = workflow.EffectiveGovernance with
+            {
+                Authorization = workflow.EffectiveGovernance.Authorization with
+                {
+                    MaximumCommands = 12,
+                    MaximumDurationSeconds = 45,
+                },
+                Transactions = workflow.EffectiveGovernance.Transactions with { MaximumCommands = 12 },
+            },
+        });
+        var tampered = WithWorkflow(governed, governed.AgentWorkflow with
+        {
+            Governance = governed.AgentWorkflow.EffectiveGovernance with
+            {
+                Authorization = governed.AgentWorkflow.EffectiveGovernance.Authorization with { MaximumCommands = 13 },
+                Transactions = governed.AgentWorkflow.EffectiveGovernance.Transactions with { MaximumCommands = 13 },
+            },
+        });
+        var planId = Guid.NewGuid();
+
+        Assert.True(_handler.Handle(history.State, Command(history.State.Revision, planId, governed, true)).Succeeded);
+        var rejected = _handler.Handle(history.State, Command(history.State.Revision, planId, tampered, false));
+        Assert.Equal(SetAssistantWorkspaceProfileHandler.PlanNotPreviewedCode, Assert.Single(rejected.Diagnostics).Code);
+
+        var secondPlan = Guid.NewGuid();
+        Assert.True(_handler.Handle(history.State, Command(history.State.Revision, secondPlan, governed, true)).Succeeded);
+        history.Record(_handler.Handle(history.State, Command(history.State.Revision, secondPlan, governed, false)));
+        Assert.Equal(12, history.State.Profile.AgentWorkflow.EffectiveGovernance.Authorization.MaximumCommands);
+        Assert.True(history.Undo());
+        Assert.Equal(20, history.State.Profile.AgentWorkflow.EffectiveGovernance.Authorization.MaximumCommands);
+        Assert.True(history.Redo());
+        Assert.Equal(12, history.State.Profile.AgentWorkflow.EffectiveGovernance.Authorization.MaximumCommands);
+    }
+
     private static SetAssistantWorkspaceProfileCommand Command(
         AssistantWorkspaceProfileRevision revision,
         Guid planId,
@@ -70,4 +111,10 @@ public sealed class AssistantWorkspaceProfileCommandTests
             profile.Providers, [prompt], profile.MaximumPermission, profile.NetworkAllowed,
             profile.ShareProjectContent, profile.Provenance);
     }
+
+    private static AssistantWorkspaceProfile WithWorkflow(
+        AssistantWorkspaceProfile profile,
+        AgentSemanticWorkflow workflow) =>
+        new(profile.Id, profile.SchemaVersion, profile.ActiveProviderId, profile.Providers, profile.Prompts,
+            profile.MaximumPermission, profile.NetworkAllowed, profile.ShareProjectContent, profile.Provenance, workflow);
 }

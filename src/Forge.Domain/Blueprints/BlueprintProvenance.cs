@@ -14,6 +14,8 @@ public sealed record BlueprintProvenance
 
     public string ContentHash { get; }
 
+    public string PermissionEvidence { get; }
+
     public bool IsAiGenerated { get; }
 
     public IReadOnlyList<string> Modifications { get; }
@@ -25,7 +27,8 @@ public sealed record BlueprintProvenance
         string licenseSpdx,
         string contentHash,
         bool isAiGenerated = false,
-        IReadOnlyList<string>? modifications = null)
+        IReadOnlyList<string>? modifications = null,
+        string? permissionEvidence = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(schemaVersion, 1);
         ArgumentException.ThrowIfNullOrWhiteSpace(source);
@@ -38,6 +41,9 @@ public sealed record BlueprintProvenance
         Author = author.Trim();
         LicenseSpdx = licenseSpdx.Trim();
         ContentHash = contentHash.Trim().ToLowerInvariant();
+        PermissionEvidence = string.IsNullOrWhiteSpace(permissionEvidence)
+            ? DefaultPermissionEvidence(licenseSpdx)
+            : permissionEvidence.Trim();
         IsAiGenerated = isAiGenerated;
         Modifications = (modifications ?? [])
             .Where(value => !string.IsNullOrWhiteSpace(value))
@@ -53,5 +59,11 @@ public sealed record BlueprintProvenance
             $"project://blueprints/{id}/{slug}",
             "Project author",
             "UNLICENSED",
-            "unverified");
+            "unverified",
+            permissionEvidence: "project-author");
+
+    private static string DefaultPermissionEvidence(string licenseSpdx) =>
+        licenseSpdx.Equals("UNLICENSED", StringComparison.OrdinalIgnoreCase)
+            ? "project-author"
+            : $"spdx:{licenseSpdx.Trim()}";
 }

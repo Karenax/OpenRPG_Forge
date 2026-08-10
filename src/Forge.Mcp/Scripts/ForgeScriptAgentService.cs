@@ -20,11 +20,29 @@ public sealed class ForgeScriptAgentService
     public ForgeScriptApiDescription GetApi() => new(
         _runtime.VirtualMachineVersion,
         _runtime.ApiVersion,
-        "EntityRef is an opaque 64-bit entity handle. Scripts expose void main().",
-        ForgeScriptApiCatalog.Signatures);
+        "EntityRef, AreaRef, AssetId, EffectHandle and MovementTaskRef are opaque typed 64-bit generational handles validated on every call. Scripts expose void main().",
+        ForgeScriptApiCatalog.Signatures,
+        ForgeScriptSourceDocument.Language,
+        ForgeScriptSourceDocument.DialectVersion,
+        ".as",
+        "sha256(source + apiVersion + compilerVersion)",
+        ["void main()", "void Handler(const Payload &in e)"],
+        ForgeScriptCapabilityManifest.Capabilities,
+        ForgeScriptCapabilityManifest.ExplicitlyForbiddenCapabilities,
+        ForgeScriptCapabilityManifest.Summary(),
+        ForgeScriptApiCompatibility.SupportedVersions,
+        ForgeScriptApiCompatibility.Deprecations,
+        ForgeScriptApiCompatibility.Migrations,
+        ForgeScriptModulePermissionPolicy.RelativePath,
+        ForgeScriptModulePermissionPolicy.CurrentSchemaVersion,
+        "deny-default;server-enforced;signed-production;module-kit-event capability intersection");
 
     public ForgeScriptCompileResponse Compile(string source)
     {
+        var policyDiagnostics = ForgeScriptCapabilityManifest.ValidateSource(source);
+        if (policyDiagnostics.Count > 0)
+            return new(false, 0, _runtime.VirtualMachineVersion, _runtime.ApiVersion,
+                policyDiagnostics.Select(Map).ToArray());
         var result = _runtime.Compile(source);
         return new ForgeScriptCompileResponse(
             result.Success,
@@ -47,6 +65,9 @@ public sealed class ForgeScriptAgentService
         string source,
         ForgeScriptQuotas? quotas = null)
     {
+        var policyDiagnostics = ForgeScriptCapabilityManifest.ValidateSource(source);
+        if (policyDiagnostics.Count > 0)
+            return new(false, "capability_forbidden", [], policyDiagnostics.Select(Map).ToArray());
         var compiled = _runtime.Compile(source);
         if (!compiled.Success || compiled.Artifact is null)
         {
@@ -68,13 +89,32 @@ public sealed class ForgeScriptAgentService
     private static AgentDiagnostic Map(ForgeScriptDiagnostic diagnostic) => new(
         diagnostic.Source,
         $"{diagnostic.Severity}: {diagnostic.Message} (line {diagnostic.Line}, column {diagnostic.Column})");
+
+    private static AgentDiagnostic Map(ForgeScriptSourceDiagnostic diagnostic) => new(
+        diagnostic.Code, diagnostic.Message, diagnostic.Path, diagnostic.SubjectId?.ToString("D"),
+        Severity: diagnostic.Severity, SubjectUuid: diagnostic.SubjectId?.ToString("D"),
+        Source: "ForgeScript capability manifest", Provenance: "forge:r013");
 }
 
 public sealed record ForgeScriptApiDescription(
     string VirtualMachineVersion,
     string ApiVersion,
     string EntityReferenceContract,
-    IReadOnlyList<string> Signatures);
+    IReadOnlyList<string> Signatures,
+    string Language,
+    string DialectVersion,
+    string CanonicalSourceExtension,
+    string BytecodeCacheKeyContract,
+    IReadOnlyList<string> EntryContracts,
+    IReadOnlyList<ForgeScriptCapability> Capabilities,
+    IReadOnlyList<string> ForbiddenCapabilities,
+    string SandboxContract,
+    IReadOnlyList<string> SupportedVersions,
+    IReadOnlyList<ForgeScriptApiDeprecation> Deprecations,
+    IReadOnlyList<ForgeScriptApiMigration> Migrations,
+    string ModulePermissionPath,
+    int ModulePermissionSchemaVersion,
+    string ModulePermissionContract);
 
 public sealed record ForgeScriptCompileResponse(
     bool Succeeded,

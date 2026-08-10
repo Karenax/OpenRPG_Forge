@@ -1,5 +1,8 @@
 using Forge.Domain.Blueprints;
 using Forge.Domain.Entities;
+using Forge.Domain.Areas;
+using Forge.Domain.Quests;
+using Forge.Domain.Spatial;
 using Forge.ModuleFormat.Playtesting;
 using Forge.ModuleFormat.Serialization;
 using Forge.ModuleFormat.Workspaces;
@@ -53,6 +56,60 @@ public sealed class PlaytestSnapshotStoreTests : IDisposable
 
         Assert.Contains("not a player spawn", exception.Message, StringComparison.Ordinal);
         Assert.False(Directory.Exists(_temporaryRoot));
+    }
+
+    [Fact]
+    public void Create_FromCameraWritesAManifestAndDoesNotMutateTheSourceProject()
+    {
+        var project = LoadSampleProject();
+        var area = project.Areas.Single();
+        var player = project.Blueprints.Single(blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn);
+        var quest = project.Quests.Single();
+        var state = quest.States[^1];
+        var before = ProjectJsonSerializer.Serialize(project);
+        var defaults = AreaPlaytestProfile.CreateDefault(area.Id);
+        var profile = new AreaPlaytestProfile(defaults.Id, 1, "author:r029-test", true, false,
+            PlayFromHereStartMode.Camera, null,
+            new TransformValue(new Vector3Value(7, 2, -4), QuaternionValue.Identity, Vector3Value.One),
+            null, player.Id, "combat-debug",
+            [new PlaytestQuestInjection(Guid.Parse("a0293000-0000-4000-8000-000000000001"), quest.Id,
+                state.Id, new Dictionary<string, string> { ["boss_phase"] = "2" })]);
+        var store = new PlaytestSnapshotStore(_temporaryRoot);
+
+        var snapshot = store.Create(project, area.Id, profile);
+        var restored = ProjectJsonSerializer.Deserialize(File.ReadAllText(snapshot.ProjectFilePath));
+        var manifest = PlaytestLaunchManifestStore.Load(snapshot.LaunchManifestFilePath!);
+
+        Assert.Equal(before, ProjectJsonSerializer.Serialize(project));
+        var synthetic = restored.Areas.Single().Entities.Single(entity => entity.Id == snapshot.SpawnEntityId);
+        Assert.Equal(profile.CameraTransform, synthetic.Transform);
+        Assert.Equal("Camera", manifest.StartMode);
+        Assert.Equal("combat-debug", manifest.TestProfile);
+        Assert.Equal("2", Assert.Single(manifest.QuestStates).Variables["boss_phase"]);
+        Assert.Empty(Directory.EnumerateFiles(snapshot.DirectoryPath, "*.tmp"));
+    }
+
+    [Fact]
+    public void Create_TargetedQuestHeadlessPersistsExplicitLaunchContract()
+    {
+        var project = LoadSampleProject();
+        var area = project.Areas.Single();
+        var player = project.Blueprints.Single(blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn);
+        var quest = project.Quests.Single();
+        var state = quest.States[^1];
+        var defaults = AreaPlaytestProfile.CreateDefault(area.Id);
+        var profile = new AreaPlaytestProfile(defaults.Id, 1, "test:r034-target", true, false,
+            PlayFromHereStartMode.Camera, null, TransformValue.Identity, null, player.Id, "quest-focus",
+            [new PlaytestQuestInjection(Guid.NewGuid(), quest.Id, state.Id, new Dictionary<string, string>())],
+            PlaytestTargetKind.SelectedQuest, quest.Id.Value, headless: true);
+
+        var snapshot = new PlaytestSnapshotStore(_temporaryRoot).Create(project, area.Id, profile);
+        var manifest = PlaytestLaunchManifestStore.Load(snapshot.LaunchManifestFilePath!);
+
+        Assert.Equal("SelectedQuest", manifest.TargetKind);
+        Assert.Equal(quest.Id.ToString(), manifest.TargetId);
+        Assert.True(manifest.Headless);
+        Assert.Equal(state.Id.ToString(), Assert.Single(manifest.QuestStates).StateId);
     }
 
     [Fact]

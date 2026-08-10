@@ -7,7 +7,7 @@ namespace Forge.Domain.Authoring;
 
 public sealed record EditorWorkspaceProfile
 {
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 3;
 
     public const double MinimumUiScale = 0.75;
 
@@ -51,6 +51,8 @@ public sealed record EditorWorkspaceProfile
 
     public IReadOnlyList<BlueprintId> RecentBlueprintIds { get; }
 
+    public EditorShellConfiguration Shell { get; }
+
     public EditorWorkspaceProfile(
         EditorWorkspaceProfileId id,
         string name,
@@ -68,7 +70,8 @@ public sealed record EditorWorkspaceProfile
         string primaryFontFamily = "Noto Sans",
         IReadOnlyList<string>? fallbackFontFamilies = null,
         IReadOnlyList<BlueprintId>? personalFavoriteBlueprintIds = null,
-        IReadOnlyList<BlueprintId>? recentBlueprintIds = null)
+        IReadOnlyList<BlueprintId>? recentBlueprintIds = null,
+        EditorShellConfiguration? shell = null)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -121,6 +124,7 @@ public sealed record EditorWorkspaceProfile
         FallbackFontFamilies = fallbacks;
         PersonalFavoriteBlueprintIds = favorites;
         RecentBlueprintIds = recents;
+        Shell = shell ?? EditorShellConfiguration.CreateDefault(id.Value);
     }
 
     public static EditorWorkspaceProfile CreateDefault(EditorRole role, AreaId? areaId = null)

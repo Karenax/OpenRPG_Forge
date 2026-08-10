@@ -6,6 +6,7 @@ using Forge.Domain.Entities;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Spatial;
+using Forge.Domain.Validation;
 
 namespace Forge.Application.Projects;
 
@@ -40,13 +41,20 @@ public sealed class NewModuleHandler
             return Failure(command, TitleRequiredCode, "A module title is required.");
         }
 
-        if (string.IsNullOrWhiteSpace(command.AreaDisplayName))
+        var createInitialArea = command.CreateInitialArea ?? command.Template == ProjectTemplateKind.Rpg;
+        if (createInitialArea && string.IsNullOrWhiteSpace(command.AreaDisplayName))
         {
             return Failure(command, AreaNameRequiredCode, "An initial area name is required.");
         }
 
         var moduleSlug = SlugGenerator.FromDisplayName(command.Title, "module");
-        var areaSlug = SlugGenerator.FromDisplayName(command.AreaDisplayName, "area");
+        var areaSlug = createInitialArea
+            ? SlugGenerator.FromDisplayName(command.AreaDisplayName, "area")
+            : "area";
+        var areaDisplayName = createInitialArea ? command.AreaDisplayName.Trim() : "Zone optionnelle";
+        if (command.Template == ProjectTemplateKind.Rpg && !createInitialArea)
+            return Failure(command, ProjectFoundationValidator.InitialAreaCode,
+                "The RPG template requires an initial area. Path: module/entryAreaId.");
         var floorBlueprint = new BlueprintDefinition(
             command.FloorBlueprintId,
             $"{moduleSlug}-floor",
@@ -76,22 +84,75 @@ public sealed class NewModuleHandler
         var area = new AreaDefinition(
             command.AreaId,
             areaSlug,
-            command.AreaDisplayName.Trim(),
+            areaDisplayName,
             [floor, playerSpawn],
             command.AreaKind,
             command.Dimensions);
+        var foundationId = StableGuid(command.ProjectId.Value, "project-foundation");
+        var packageNamespace = string.IsNullOrWhiteSpace(command.PackageNamespace)
+            ? $"module.{moduleSlug}"
+            : command.PackageNamespace.Trim();
+        var foundation = createInitialArea
+            ? ProjectFoundationProfile.CreateRpgDefault(
+                foundationId, command.ProjectId, moduleSlug, command.AreaId, command.PlayerSpawnEntityId,
+                packageNamespace) with
+            {
+                Template = command.Template,
+                Kits = (command.Kits ?? DefaultKits(command.Template)).ToArray(),
+                TargetPlatforms = (command.TargetPlatforms ?? [ModuleDistributionPlatform.WindowsX64]).ToArray(),
+                RulesProvider = command.RulesProvider,
+                RenderPreset = command.RenderPreset,
+                NetworkMode = command.NetworkMode,
+                RequiresInitialArea = command.Template == ProjectTemplateKind.Rpg,
+                PlayerStarts =
+                [ProjectFoundationProfile.CreateRpgDefault(
+                        foundationId, command.ProjectId, moduleSlug, command.AreaId,
+                        command.PlayerSpawnEntityId, packageNamespace).PlayerStarts[0] with
+                    {
+                        GameMode = command.GameMode,
+                        EntryClass = command.EntryClass,
+                        PlayerSelectionRule = command.PlayerSelectionRule,
+                    }],
+            }
+            : ProjectFoundationProfile.CreateCoreDefault(
+                foundationId, command.ProjectId, moduleSlug, command.Template, packageNamespace) with
+            {
+                Kits = (command.Kits ?? DefaultKits(command.Template)).ToArray(),
+                TargetPlatforms = (command.TargetPlatforms ?? [ModuleDistributionPlatform.WindowsX64]).ToArray(),
+                RulesProvider = command.RulesProvider,
+                RenderPreset = command.RenderPreset,
+                NetworkMode = command.NetworkMode,
+            };
+        var metadata = new ProjectMetadata(
+            ProjectMetadataId.From(command.ModuleId.Value),
+            "fr",
+            [new ProjectLocalizedMetadata("fr", command.Title.Trim(), command.ModuleDescription.Trim(),
+                command.ModuleDescription.Trim(), string.Empty)],
+            "Non renseigné",
+            "0.1.0",
+            "UNLICENSED",
+            null,
+            [],
+            "Non classé",
+            "openrpg-forge:project-wizard",
+            foundation: foundation);
         var module = new ModuleDefinition(
             command.ModuleId,
             moduleSlug,
             command.Title.Trim(),
             command.ModuleDescription.Trim(),
-            area.Id);
+            area.Id,
+            metadata);
         var project = new ProjectDefinition(
             command.ProjectId,
             command.Title.Trim(),
             module,
-            [floorBlueprint, playerSpawnBlueprint],
-            [area]);
+            createInitialArea ? [floorBlueprint, playerSpawnBlueprint] : [],
+            createInitialArea ? [area] : []);
+        var diagnostics = ProjectValidator.Validate(project);
+        if (diagnostics.Count > 0)
+            return Failure(command, diagnostics[0].Code,
+                $"{diagnostics[0].Message} Path: {diagnostics[0].Path}.");
         var state = new ProjectState(project, new ProjectRevision(0));
         var patch = new ProjectPatch("add", $"modules/{module.Id}", $"Create module '{module.DisplayName}'.");
         var inverse = new ProjectPatch("remove", $"modules/{module.Id}", $"Remove module '{module.DisplayName}'.");
@@ -121,4 +182,18 @@ public sealed class NewModuleHandler
 
     private AuditEntry CreateAudit(NewModuleCommand command, bool applied) =>
         new(command.CommandId, CommandName, _clock.UtcNow, applied);
+
+    private static IReadOnlyList<string> DefaultKits(ProjectTemplateKind template) =>
+        template == ProjectTemplateKind.Rpg ? ["forge-core", "forge-rpg-kit"] : ["forge-core"];
+
+    private static Guid StableGuid(Guid value, string discriminator)
+    {
+        var bytes = System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes($"openrpg-forge:{value:D}:{discriminator}"));
+        Span<byte> guid = stackalloc byte[16];
+        bytes.AsSpan(0, guid.Length).CopyTo(guid);
+        guid[6] = (byte)((guid[6] & 0x0f) | 0x40);
+        guid[8] = (byte)((guid[8] & 0x3f) | 0x80);
+        return new Guid(guid);
+    }
 }

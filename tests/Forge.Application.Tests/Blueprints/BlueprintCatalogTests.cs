@@ -96,6 +96,28 @@ public sealed class BlueprintCatalogTests
     }
 
     [Fact]
+    public void CreateFromEntityPersistsAuthoringOptionsAndPinsRetargetedInstance()
+    {
+        var context = new EntityMutationTestContext();
+        var handler = new CreateBlueprintFromEntityHandler(new FixedClock(EntityMutationTestContext.Timestamp));
+        var authoring = new BlueprintAuthoringMetadata(
+            1,
+            "2.1.0",
+            "project.crypt.pillar",
+            $"content/blueprints/{NewBlueprintId}/broken-pillar.blueprint.json",
+            ["scale", "tint"],
+            ["pack://forge-core/1.0.0/material-stone"],
+            $"content/blueprints/{NewBlueprintId}/broken-pillar.preview.png",
+            131_072);
+
+        var result = handler.Handle(context.State, CreateFromEntity(context) with { Authoring = authoring });
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(authoring, result.State.Project.Blueprints.Single(item => item.Id == NewBlueprintId).Authoring);
+        Assert.Equal("=2.1.0", result.State.Project.Areas.Single().Entities.Single().BlueprintVersionRequirement);
+    }
+
+    [Fact]
     public void ReferenceIndexRebuildsEntityReferencesFromCanonicalProject()
     {
         var context = new EntityMutationTestContext();
@@ -148,6 +170,37 @@ public sealed class BlueprintCatalogTests
 
         Assert.Equal(context.BlueprintId, Assert.Single(catalog.Filter(BlueprintPaletteView.Favorites)).BlueprintId);
         Assert.Equal(context.BlueprintId, Assert.Single(catalog.Filter(BlueprintPaletteView.Recent)).BlueprintId);
+    }
+
+    [Fact]
+    public void ContextualPaletteCombinesTypeKitStyleLicenseCompatibilityTagsAndFavorites()
+    {
+        var context = new EntityMutationTestContext();
+        var original = context.State.Project.Blueprints.Single();
+        var authoring = new BlueprintAuthoringMetadata(
+            1, "1.0.0", "project.crypt", $"content/blueprints/{original.Id}/crypt.json",
+            kit: "crypt-stone", styles: ["gothic", "ruined"],
+            compatibility: ["medieval", "navigation-v1"], tags: ["dungeon", "stone"]);
+        var candidate = new BlueprintDefinition(
+            original.Id, original.Slug, original.DisplayName, original.Kind, original.Combat,
+            original.PaletteOrigin, true,
+            new BlueprintProvenance(1, "project://crypt", "Forge", "CC0-1.0", new string('c', 64)),
+            original.CreaturePresentation, original.CreatureProgression, original.CreatureLoot,
+            original.CreatureRoleBehavior, original.CreatureEvents, original.ItemAdvanced, authoring);
+        var source = context.State.Project;
+        var project = new Forge.Domain.Projects.ProjectDefinition(
+            source.Id, source.Title, source.Module, [candidate], source.Areas, source.Dialogues, source.Quests);
+        var filter = new EditorPaletteFilter(
+            [original.Kind], ["crypt"], ["gothic", "ruined"], ["cc0"],
+            ["medieval"], ["dungeon", "stone"], true);
+
+        var item = Assert.Single(BlueprintPaletteCatalog.Build(project).Filter(BlueprintPaletteView.All, contextFilter: filter));
+
+        Assert.Equal("crypt-stone", item.Kit);
+        Assert.Empty(BlueprintPaletteCatalog.Build(project).Filter(
+            BlueprintPaletteView.All, contextFilter: new EditorPaletteFilter([BlueprintKind.Item])));
+        Assert.Empty(BlueprintPaletteCatalog.Build(project).Filter(
+            BlueprintPaletteView.All, contextFilter: new EditorPaletteFilter(tags: ["forest"])));
     }
 
     [Fact]

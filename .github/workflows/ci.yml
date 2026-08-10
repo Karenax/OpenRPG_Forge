@@ -14,8 +14,8 @@ env:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: windows-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -31,6 +31,10 @@ jobs:
       - name: Restore
         run: dotnet restore OpenRPGForge.sln --locked-mode
 
+      - name: Build native ForgeScript bridge
+        shell: pwsh
+        run: ./scripts/Build-ForgeScriptNative.ps1
+
       - name: Verify formatting
         run: dotnet format OpenRPGForge.sln --verify-no-changes --no-restore
 
@@ -39,3 +43,23 @@ jobs:
 
       - name: Test
         run: dotnet test OpenRPGForge.sln --configuration Release --no-build --logger trx --results-directory artifacts/test-results
+
+      - name: Validate schemas and generated documentation
+        shell: pwsh
+        run: |
+          dotnet run --project tools/Forge.Cli --configuration Release --no-build -- docs check
+          ./scripts/Update-AuroraParityTracker.ps1 -Check
+          ./scripts/Update-CompleteFunctionBacklog.ps1 -Check
+          dotnet run --project tools/Forge.ArchitectureGraph --configuration Release --no-build -- check --full
+
+      - name: Validate reference fixtures
+        run: dotnet test tests/Forge.ModuleFormat.Tests/Forge.ModuleFormat.Tests.csproj --configuration Release --no-build --filter FullyQualifiedName~BuildGovernanceEvidenceTests
+
+      - name: Pack and validate reference module
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifacts/ci | Out-Null
+          dotnet run --project tools/Forge.Cli --configuration Release --no-build -- build apps/Forge.Runtime/content/crypt-of-ashes artifacts/ci/crypt-of-ashes.orpmod
+          dotnet run --project tools/Forge.Cli --configuration Release --no-build -- package validate artifacts/ci/crypt-of-ashes.orpmod
+          dotnet run --project tools/Forge.Cli --configuration Release --no-build -- package compliance apps/Forge.Runtime/content/crypt-of-ashes editor
+          dotnet run --project tools/Forge.Cli --configuration Release --no-build -- governance run apps/Forge.Runtime/content/crypt-of-ashes

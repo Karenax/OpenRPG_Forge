@@ -56,6 +56,28 @@ public sealed class ForgeScriptArtifactCacheTests : IDisposable
         Assert.Equal(Encoding.UTF8.GetBytes("void main() {}"), rebuilt.Compilation.Artifact!.Bytecode);
     }
 
+    [Fact]
+    public void Independent_cache_roots_produce_identical_reproducible_artifacts()
+    {
+        var secondRoot = $"{_cacheRoot}-second";
+        try
+        {
+            var first = new ForgeScriptArtifactCache(new CountingRuntime(), _cacheRoot)
+                .Compile("void main() { say(\"deterministic\"); }");
+            var second = new ForgeScriptArtifactCache(new CountingRuntime(), secondRoot)
+                .Compile("void main() { say(\"deterministic\"); }");
+
+            Assert.Equal(first.CacheKey, second.CacheKey);
+            Assert.Equal(first.Metadata!.Id, second.Metadata!.Id);
+            Assert.Equal(first.Metadata.BytecodeSha256, second.Metadata.BytecodeSha256);
+            Assert.Equal(first.Compilation.Artifact!.Bytecode, second.Compilation.Artifact!.Bytecode);
+        }
+        finally
+        {
+            if (Directory.Exists(secondRoot)) Directory.Delete(secondRoot, true);
+        }
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_cacheRoot))

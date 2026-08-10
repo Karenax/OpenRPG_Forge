@@ -40,4 +40,30 @@ public sealed class RulesRuntimeServiceTests
         Assert.Equal(10, result.Range);
         Assert.Equal(.5, result.Confidence, 5);
     }
+
+    [Fact]
+    public void Ruleset_plugin_registers_six_capability_families_and_handles_optional_absence()
+    {
+        var catalog = RulesetPluginCatalog.CreateDefault(Guid.NewGuid());
+        var resolved = RulesetPluginRuntimeService.Resolve(catalog, ["content.core"]);
+
+        Assert.True(resolved.Succeeded);
+        Assert.True(resolved.ExtensionPresent);
+        Assert.NotEmpty(resolved.Registration!.Attributes);
+        Assert.NotEmpty(resolved.Registration.Effects);
+        Assert.NotEmpty(resolved.Registration.Abilities);
+        Assert.NotEmpty(resolved.Registration.Inventories);
+        Assert.NotEmpty(resolved.Registration.ProgressionTracks);
+        Assert.NotEmpty(resolved.Registration.UiPanels);
+
+        var optional = new RulesetPluginCatalog(Guid.NewGuid(), 1, false, false, string.Empty, [], "test");
+        var ignored = RulesetPluginRuntimeService.Resolve(optional, []);
+        Assert.True(ignored.Succeeded);
+        Assert.False(ignored.ExtensionPresent);
+
+        var required = catalog with { };
+        var missing = RulesetPluginRuntimeService.Resolve(required, []);
+        Assert.False(missing.Succeeded);
+        Assert.Equal(RulesetPluginRuntimeService.ContentMissingCode, missing.DiagnosticCode);
+    }
 }

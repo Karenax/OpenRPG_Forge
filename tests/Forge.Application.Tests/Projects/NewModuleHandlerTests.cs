@@ -32,6 +32,12 @@ public sealed class NewModuleHandlerTests
         Assert.Contains(project.Blueprints, blueprint => blueprint.Kind == BlueprintKind.PlayerSpawn);
         Assert.Contains(project.Areas.Single().Entities, entity => entity.Tags.Contains("floor", StringComparer.Ordinal));
         Assert.Contains(project.Areas.Single().Entities, entity => entity.Tags.Contains("player", StringComparer.Ordinal));
+        var foundation = Assert.IsType<ProjectFoundationProfile>(project.Module.Metadata.Foundation);
+        Assert.Equal(ProjectTemplateKind.Rpg, foundation.Template);
+        Assert.Equal(project.Id, foundation.Identity.ProjectId);
+        Assert.Equal(project.Module.Slug, foundation.Identity.Slug);
+        Assert.Equal("module.les-iles-brisees", foundation.Identity.PackageNamespace);
+        Assert.Equal(project.Areas.Single().Id, Assert.Single(foundation.PlayerStarts).AreaId);
     }
 
     [Fact]
@@ -88,6 +94,45 @@ public sealed class NewModuleHandlerTests
 
         Assert.False(result.Succeeded);
         Assert.Equal(NewModuleHandler.RevisionConflictCode, Assert.Single(result.Diagnostics).Code);
+    }
+
+    [Fact]
+    public void Handle_CreatesAValidatedCoreMenuWithoutAreaOrPlayerStart()
+    {
+        var handler = new NewModuleHandler(new FixedClock(Timestamp));
+        var command = CreateCommand() with
+        {
+            Template = ProjectTemplateKind.CoreMenu,
+            CreateInitialArea = false,
+            AreaDisplayName = string.Empty,
+            Kits = ["forge-core"],
+            RulesProvider = "forge.core",
+            PackageNamespace = "studio.menu",
+        };
+
+        var result = handler.Handle(command);
+
+        Assert.True(result.Succeeded, string.Join(" | ", result.Diagnostics.Select(item => item.Message)));
+        var project = Assert.IsType<ProjectState>(result.State).Project;
+        Assert.Empty(project.Areas);
+        Assert.Empty(project.Blueprints);
+        var foundation = Assert.IsType<ProjectFoundationProfile>(project.Module.Metadata.Foundation);
+        Assert.False(foundation.RequiresInitialArea);
+        Assert.Empty(foundation.PlayerStarts);
+        Assert.Empty(Forge.Domain.Validation.ProjectValidator.Validate(project));
+    }
+
+    [Fact]
+    public void Handle_RejectsInvalidFoundationBeforeCreationWithLocalizedPath()
+    {
+        var handler = new NewModuleHandler(new FixedClock(Timestamp));
+
+        var result = handler.Handle(CreateCommand() with { PackageNamespace = "bad namespace" });
+
+        Assert.False(result.Succeeded);
+        var diagnostic = Assert.Single(result.Diagnostics);
+        Assert.Equal(ProjectFoundationValidator.IdentityCode, diagnostic.Code);
+        Assert.Contains("Path: module/metadata/foundation", diagnostic.Message, StringComparison.Ordinal);
     }
 
     private static NewModuleCommand CreateCommand(

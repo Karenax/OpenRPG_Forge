@@ -5,6 +5,8 @@ using Forge.Application.Tests.Entities;
 using Forge.Domain.Areas;
 using Forge.Domain.Navigation;
 using Forge.Domain.Projects;
+using Forge.Domain.Dialogues;
+using Forge.Domain.Entities;
 
 namespace Forge.Application.Tests.Areas;
 
@@ -24,12 +26,20 @@ public sealed class SetAreaNavigationHandlerTests
             [],
             [area]);
         var state = new ProjectState(project, new ProjectRevision(4));
+        var definition = new AnchorDefinition(Guid.Parse("72000000-0000-4000-8000-000000000004"), 1,
+            "test:r009", "waypoint", new LocalizedText("anchor.waypoint", "Waypoint"), AnchorKind.Waypoint,
+            AnchorScope.Area, ["quest"], null, null, false);
+        var instance = new AnchorInstance(Guid.Parse("72000000-0000-4000-8000-000000000005"), 1,
+            "test:r009", definition.Id, Forge.Domain.Spatial.TransformValue.Identity, 1,
+            EntityPropertyOverrides.Empty, null, null);
         var navigation = new AreaNavigationDefinition(
             area.Navigation.Id,
             0.5f,
             area.Navigation.AgentProfiles,
             area.Navigation.OffMeshLinks,
-            "creator-command");
+            "creator-command",
+            anchors: new AnchorCatalog(Guid.Parse("72000000-0000-4000-8000-000000000006"), 1,
+                "test:r009", area.Id, false, [definition], [instance]));
         var command = new SetAreaNavigationCommand(
             CommandId.From(Guid.Parse("72000000-0000-4000-8000-000000000003")),
             state.Revision,
@@ -48,6 +58,8 @@ public sealed class SetAreaNavigationHandlerTests
         Assert.True(dryRun.Succeeded);
         Assert.Same(state, dryRun.State);
         Assert.Equal(0.5f, applied.State.Project.Areas[0].Navigation.CellSize);
+        Assert.Single(applied.State.Project.Areas[0].Navigation.Anchors.Instances);
+        Assert.Contains("1 anchor instance", applied.Patch!.Summary, StringComparison.Ordinal);
         Assert.Equal(SetAreaNavigationHandler.RevisionConflictCode, Assert.Single(conflict.Diagnostics).Code);
         Assert.True(history.Undo().Succeeded);
         Assert.Equal(1f, history.State.Project.Areas[0].Navigation.CellSize);

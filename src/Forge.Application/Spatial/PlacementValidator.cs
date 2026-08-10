@@ -9,6 +9,8 @@ public sealed class PlacementValidator
     public const string MissingBlueprintCode = "placement.blueprint_missing";
     public const string OutsideBoundsCode = "placement.outside_bounds";
     public const string OccupiedCode = "placement.cell_occupied";
+    public const string SocketMissingCode = "placement.socket_missing";
+    public const string BudgetExceededCode = "placement.budget_exceeded";
     public PlacementValidationResult Validate(
         ProjectDefinition project,
         PlacementValidationRequest request)
@@ -32,6 +34,29 @@ public sealed class PlacementValidator
             return Invalid(MissingBlueprintCode, "Le blueprint glissé n’existe plus dans le projet.", request.Position, corrected);
         }
 
+        if (!string.IsNullOrWhiteSpace(request.RequiredSocket) &&
+            !(request.AvailableSockets ?? []).Contains(request.RequiredSocket.Trim(), StringComparer.OrdinalIgnoreCase))
+        {
+            return Invalid(
+                SocketMissingCode,
+                $"Socket requis '{request.RequiredSocket.Trim()}' indisponible. Choisissez un raccord compatible.",
+                request.Position,
+                corrected,
+                ["Sélectionner un socket compatible", "Retirer la contrainte de socket"]);
+        }
+
+        if (request.AvailableBudgetBytes is not null && request.BlueprintEstimatedBytes is not null &&
+            (request.AvailableBudgetBytes < 0 || request.BlueprintEstimatedBytes < 0 ||
+             request.BlueprintEstimatedBytes > request.AvailableBudgetBytes))
+        {
+            return Invalid(
+                BudgetExceededCode,
+                $"Budget dépassé : {request.BlueprintEstimatedBytes} octets requis pour {request.AvailableBudgetBytes} disponibles.",
+                request.Position,
+                corrected,
+                ["Choisir une variante plus légère", "Augmenter le budget de zone"]);
+        }
+
         var xExtent = area.Dimensions.Width / 2f;
         var zExtent = area.Dimensions.Depth / 2f;
         if (MathF.Abs(corrected.X) > xExtent || MathF.Abs(corrected.Z) > zExtent)
@@ -45,7 +70,8 @@ public sealed class PlacementValidator
                 $"Position hors de la zone {area.Dimensions.Width} × {area.Dimensions.Depth}. " +
                 $"Correction proposée : X {bounded.X:0.##}, Z {bounded.Z:0.##}.",
                 request.Position,
-                bounded);
+                bounded,
+                ["Appliquer la position corrigée dans les limites"]);
         }
 
         var collisionRadius = Math.Max(0.35f, request.GridSize * 0.45f);
@@ -54,11 +80,19 @@ public sealed class PlacementValidator
             .FirstOrDefault(entity => DistanceOnGround(entity.Transform.Position, corrected) < collisionRadius);
         if (occupied is not null)
         {
+            var suggested = request.AutoCorrect
+                ? FindNearestFree(area.Entities, corrected, request.GridSize, collisionRadius,
+                    request.IgnoredEntityId, xExtent, zExtent)
+                : null;
             return Invalid(
                 OccupiedCode,
-                $"Cellule occupée par l’entité {occupied.Id.ToString()[..8]}. Choisissez une cellule libre.",
+                suggested is null
+                    ? $"Cellule occupée par l’entité {occupied.Id.ToString()[..8]}. Choisissez une cellule libre."
+                    : $"Cellule occupée par l’entité {occupied.Id.ToString()[..8]}. Correction proposée : " +
+                      $"X {suggested.Value.X:0.##}, Z {suggested.Value.Z:0.##}.",
                 request.Position,
-                corrected);
+                suggested ?? corrected,
+                suggested is null ? ["Choisir une cellule libre"] : ["Appliquer la cellule libre proposée"]);
         }
 
         var wasSnapped = corrected != request.Position;
@@ -67,7 +101,37 @@ public sealed class PlacementValidator
             PlacementValidationResult.ValidCode,
             wasSnapped ? "Position valide · alignée automatiquement sur la grille." : "Position valide.",
             request.Position,
-            corrected);
+            corrected,
+            wasSnapped ? ["Position alignée sur la grille"] : []);
+    }
+
+    private static Vector3Value? FindNearestFree(
+        IReadOnlyList<Forge.Domain.Entities.EntityInstance> entities,
+        Vector3Value origin,
+        float gridSize,
+        float collisionRadius,
+        Forge.Domain.Entities.EntityId? ignored,
+        float xExtent,
+        float zExtent)
+    {
+        for (var ring = 1; ring <= 8; ring++)
+        {
+            var offsets = new[]
+            {
+                (ring, 0), (0, ring), (-ring, 0), (0, -ring),
+                (ring, ring), (-ring, ring), (-ring, -ring), (ring, -ring),
+            };
+            foreach (var (x, z) in offsets)
+            {
+                var candidate = new Vector3Value(origin.X + (x * gridSize), origin.Y, origin.Z + (z * gridSize));
+                if (MathF.Abs(candidate.X) > xExtent || MathF.Abs(candidate.Z) > zExtent) continue;
+                if (entities.Where(entity => entity.Id != ignored)
+                    .All(entity => DistanceOnGround(entity.Transform.Position, candidate) >= collisionRadius))
+                    return candidate;
+            }
+        }
+
+        return null;
     }
 
     private static Vector3Value Snap(Vector3Value position, float gridSize) => new(
@@ -86,5 +150,6 @@ public sealed class PlacementValidator
         string code,
         string message,
         Vector3Value requested,
-        Vector3Value corrected) => new(false, code, message, requested, corrected);
+        Vector3Value corrected,
+        IReadOnlyList<string>? corrections = null) => new(false, code, message, requested, corrected, corrections ?? []);
 }

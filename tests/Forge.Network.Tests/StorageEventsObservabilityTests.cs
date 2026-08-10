@@ -1,6 +1,7 @@
 using Forge.Network.Events;
 using Forge.Network.Observability;
 using Forge.Network.Storage;
+using Forge.Domain.Quality;
 
 namespace Forge.Network.Tests;
 
@@ -59,6 +60,37 @@ public sealed class StorageEventsObservabilityTests
     }
 
     [Fact]
+    public void Structured_logs_enforce_category_context_privacy_and_retention()
+    {
+        var clock = new ManualTimeProvider();
+        var policy = new StructuredLogPolicy(StructuredLogSeverity.Information, ["runtime"], true, true, true,
+            PlayerPrivacyMode.Hash, 1, 2);
+        var logger = new StructuredLogger(clock, policy);
+        var objectId = Guid.NewGuid();
+        var transactionId = Guid.NewGuid();
+        var context = new StructuredLogContext("runtime", objectId, 42, transactionId, "player-elyra");
+
+        logger.Write(StructuredLogSeverity.Information, "runtime.started", Guid.NewGuid(), context,
+            new Dictionary<string, object?> { ["accountName"] = "elyra", ["accessToken"] = "hidden" });
+        logger.Write(StructuredLogSeverity.Warning, "runtime.warning", Guid.NewGuid(), context,
+            new Dictionary<string, object?>());
+        var latest = logger.Write(StructuredLogSeverity.Error, "runtime.failed", Guid.NewGuid(), context,
+            new Dictionary<string, object?>());
+
+        Assert.Equal(2, logger.Entries.Count);
+        Assert.Equal(objectId, latest.ObjectId);
+        Assert.Equal(42, latest.SourceLine);
+        Assert.Equal(transactionId, latest.TransactionId);
+        Assert.StartsWith("sha256:", Assert.IsType<string>(latest.Properties["playerId"]));
+        Assert.Throws<InvalidOperationException>(() => logger.Write(StructuredLogSeverity.Debug, "runtime.debug",
+            Guid.NewGuid(), context, new Dictionary<string, object?>()));
+        Assert.Throws<InvalidOperationException>(() => logger.Write(StructuredLogSeverity.Information, "build.started",
+            Guid.NewGuid(), context with { Category = "build" }, new Dictionary<string, object?>()));
+        Assert.Throws<ArgumentOutOfRangeException>(() => logger.Write(StructuredLogSeverity.Information, "runtime.bad",
+            Guid.NewGuid(), context with { SourceLine = 0 }, new Dictionary<string, object?>()));
+    }
+
+    [Fact]
     public void Profiler_aggregates_scopes_without_exposing_payloads()
     {
         var clock = new ManualTimeProvider();
@@ -83,6 +115,7 @@ public sealed class StorageEventsObservabilityTests
         private long _timestamp;
         public override long TimestampFrequency => 1000;
         public override long GetTimestamp() => _timestamp;
+        public override DateTimeOffset GetUtcNow() => DateTimeOffset.UnixEpoch.AddMilliseconds(_timestamp);
         public void Advance(TimeSpan duration) => _timestamp += (long)duration.TotalMilliseconds;
     }
 }

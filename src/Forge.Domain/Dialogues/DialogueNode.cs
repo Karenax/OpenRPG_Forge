@@ -1,4 +1,5 @@
 using Forge.Domain.Blueprints;
+using System.Text.Json.Serialization;
 
 namespace Forge.Domain.Dialogues;
 
@@ -14,12 +15,22 @@ public sealed record DialogueNode
 
     public IReadOnlyList<DialogueChoice> Choices { get; }
 
+    public DialogueNodeRole Role { get; }
+
+    public Guid ParticipantId { get; }
+
+    public string? SubgraphKey { get; }
+
+    [JsonConstructor]
     public DialogueNode(
         DialogueNodeId id,
         BlueprintId? speakerBlueprintId,
         LocalizedText text,
-        IReadOnlyList<DialogueAction>? onEnterActions = null,
-        IReadOnlyList<DialogueChoice>? choices = null)
+        IReadOnlyList<DialogueAction>? onEnterActions,
+        IReadOnlyList<DialogueChoice>? choices,
+        DialogueNodeRole role,
+        Guid participantId,
+        string? subgraphKey)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(text);
@@ -34,5 +45,24 @@ public sealed record DialogueNode
         Text = text;
         OnEnterActions = (onEnterActions ?? []).ToArray();
         Choices = materializedChoices;
+        Role = role == DialogueNodeRole.Unspecified
+            ? speakerBlueprintId is null ? DialogueNodeRole.Narration : DialogueNodeRole.SpeakerLine
+            : role;
+        ParticipantId = participantId == Guid.Empty
+            ? DialogueParticipant.FromSpeaker(speakerBlueprintId).Id
+            : participantId;
+        SubgraphKey = string.IsNullOrWhiteSpace(subgraphKey) ? null : subgraphKey.Trim();
+    }
+
+    public DialogueNode(
+        DialogueNodeId id,
+        BlueprintId? speakerBlueprintId,
+        LocalizedText text,
+        IReadOnlyList<DialogueAction>? onEnterActions = null,
+        IReadOnlyList<DialogueChoice>? choices = null,
+        DialogueNodeRole role = DialogueNodeRole.Unspecified,
+        string? subgraphKey = null)
+        : this(id, speakerBlueprintId, text, onEnterActions, choices, role, Guid.Empty, subgraphKey)
+    {
     }
 }

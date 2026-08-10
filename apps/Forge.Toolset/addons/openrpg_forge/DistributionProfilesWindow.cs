@@ -3,6 +3,7 @@ using Forge.Application.Projects;
 using Forge.Domain.Modules;
 using Forge.Domain.Projects;
 using Forge.Domain.Validation;
+using Forge.ModuleFormat.Packages;
 using Godot;
 
 namespace Forge.Toolset.Editor;
@@ -68,6 +69,10 @@ public partial class DistributionProfilesWindow : Window
     private Label? _summary;
     private Label? _status;
     private Button? _applyButton;
+    private TextEdit? _noticePreview;
+    private string? _capturePath;
+    private double _captureElapsed;
+    private bool _captureOpened;
 
     public int ProfileCount => _profiles.Count;
 
@@ -96,6 +101,31 @@ public partial class DistributionProfilesWindow : Window
         Visible = false;
         BuildUi();
         ConnectSignals();
+        var capture = OS.GetCmdlineUserArgs().FirstOrDefault(argument =>
+            argument.StartsWith("--r050-notices-ui-capture=", StringComparison.Ordinal));
+        if (capture is not null)
+        {
+            _capturePath = capture["--r050-notices-ui-capture=".Length..];
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureElapsed += delta;
+        if (!_captureOpened && _captureElapsed >= 1)
+        {
+            Open();
+            _captureOpened = true;
+        }
+        if (!_captureOpened || _captureElapsed < 3) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var error = GetViewport().GetTexture().GetImage().SavePng(destination);
+        GD.Print($"OPENRPG_FORGE_R050_NOTICES_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} path={destination}");
+        _capturePath = null;
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -276,6 +306,14 @@ public partial class DistributionProfilesWindow : Window
         };
         validationHelp.AddThemeColorOverride("font_color", new Color("d8c8ff"));
         validationContent.AddChild(validationHelp);
+        validationContent.AddChild(Section("APERÇU THIRD-PARTY NOTICE"));
+        _noticePreview = new TextEdit
+        {
+            Editable = false,
+            CustomMinimumSize = new Vector2(0, 210),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        validationContent.AddChild(_noticePreview);
         _releaseChannel = AddEnumOptions<ModuleReleaseChannel>(validationContent, "Canal de release");
         _releasePlatforms = AddField(validationContent, "Plateformes", "windows-x64, linux-x64");
         _signingMode = AddEnumOptions<ModuleSigningMode>(validationContent, "Politique de signature");
@@ -506,6 +544,7 @@ public partial class DistributionProfilesWindow : Window
                 state.Project.Dialogues,
                 state.Project.Quests);
             var compliance = DistributionComplianceValidator.Validate(candidate, SelectedTarget);
+            _noticePreview!.Text = DistributionNoticeBuilder.Build(candidate, SelectedTarget);
             ComplianceDiagnosticCount = compliance.Count;
             _diagnostics!.Clear();
             foreach (var diagnostic in compliance)

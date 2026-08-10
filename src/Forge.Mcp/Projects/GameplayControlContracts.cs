@@ -15,3 +15,9 @@ public sealed record GameplayControlPlanResult(bool Succeeded, string? PlanId, l
 
 public sealed record GameplayControlAuditEntry(string PlanId, string Action, long Revision,
     DateTimeOffset OccurredAt, bool Succeeded);
+
+public sealed record GameplayFoundationItem(Guid Id, string Kind, string Key, string Label,
+    string Provenance);
+
+public sealed record GameplayFoundationResource(int SchemaVersion, long Revision, string Query,
+    string Kind, IReadOnlyList<GameplayFoundationItem> Items);

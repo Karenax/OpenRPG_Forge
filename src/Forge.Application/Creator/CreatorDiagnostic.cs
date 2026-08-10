@@ -14,6 +14,8 @@ public sealed record CreatorDiagnostic
 
     public CreatorDiagnosticSeverity Severity { get; }
 
+    public CreatorDiagnosticCategory Category { get; }
+
     public string Code { get; }
 
     public string Message { get; }
@@ -38,6 +40,7 @@ public sealed record CreatorDiagnostic
         DiagnosticId diagnosticId,
         int schemaVersion,
         CreatorDiagnosticSeverity severity,
+        CreatorDiagnosticCategory category,
         string code,
         string message,
         string documentPath,
@@ -52,6 +55,7 @@ public sealed record CreatorDiagnostic
         DiagnosticId = diagnosticId;
         SchemaVersion = schemaVersion;
         Severity = severity;
+        Category = category;
         Code = code;
         Message = message;
         DocumentPath = documentPath;
@@ -79,6 +83,7 @@ public sealed record CreatorDiagnostic
                 DiagnosticSeverity.Warning => CreatorDiagnosticSeverity.Warning,
                 _ => CreatorDiagnosticSeverity.Error,
             },
+            Classify(diagnostic.Code, diagnostic.DocumentPath, diagnostic.Source),
             diagnostic.Code,
             diagnostic.Message,
             diagnostic.DocumentPath,
@@ -97,7 +102,8 @@ public sealed record CreatorDiagnostic
         string message,
         string documentPath,
         string? correlationId = null,
-        CreatorSelection? target = null)
+        CreatorSelection? target = null,
+        CreatorDiagnosticCategory? category = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
@@ -113,6 +119,7 @@ public sealed record CreatorDiagnostic
             DiagnosticId.From(new Guid(guid)),
             ActionableDiagnostic.CurrentSchemaVersion,
             severity,
+            category ?? Classify(code, documentPath, "CreatorTooling"),
             code.Trim(),
             message.Trim(),
             documentPath.Trim(),
@@ -124,4 +131,19 @@ public sealed record CreatorDiagnostic
             string.IsNullOrWhiteSpace(correlationId) ? null : correlationId.Trim(),
             target);
     }
+
+    public static CreatorDiagnosticCategory Classify(string code, string documentPath, string source)
+    {
+        var value = $"{code} {documentPath} {source}";
+        if (ContainsAny(value, "license", "spdx", "copyright")) return CreatorDiagnosticCategory.License;
+        if (ContainsAny(value, "navigation", "navmesh", "pathfinding", "portal")) return CreatorDiagnosticCategory.Navigation;
+        if (ContainsAny(value, "geometry", "placement", "terrain", "collision")) return CreatorDiagnosticCategory.Geometry;
+        if (ContainsAny(value, "graph", "dialogue", "quest", "cycle")) return CreatorDiagnosticCategory.Graph;
+        if (ContainsAny(value, "reference", "missing", "not_found", "unresolved")) return CreatorDiagnosticCategory.Reference;
+        if (ContainsAny(value, "schema", "format", "version", "serialization")) return CreatorDiagnosticCategory.Schema;
+        return CreatorDiagnosticCategory.Runtime;
+    }
+
+    private static bool ContainsAny(string value, params string[] candidates) =>
+        candidates.Any(candidate => value.Contains(candidate, StringComparison.OrdinalIgnoreCase));
 }

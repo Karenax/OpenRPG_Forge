@@ -15,6 +15,11 @@ public enum CreatorReferenceUsageKind
     QuestInitialState,
     QuestTransitionFromState,
     QuestTransitionToState,
+    LocalizedTextKey,
+    ProjectVariableKey,
+    QuestStateValue,
+    ScriptPath,
+    AssetPath,
 }
 
 public sealed record CreatorReference(
@@ -30,14 +35,19 @@ public sealed record CreatorReference(
 public sealed class CreatorReferenceIndex
 {
     private readonly IReadOnlyDictionary<(CreatorContentKind Kind, string Id), IReadOnlyList<CreatorReference>> _references;
+    public IReadOnlyList<CreatorReference> References { get; }
 
     private CreatorReferenceIndex(
-        IReadOnlyDictionary<(CreatorContentKind Kind, string Id), IReadOnlyList<CreatorReference>> references)
+        IReadOnlyDictionary<(CreatorContentKind Kind, string Id), IReadOnlyList<CreatorReference>> references,
+        IReadOnlyList<CreatorReference> allReferences)
     {
         _references = references;
+        References = allReferences;
     }
 
-    public static CreatorReferenceIndex Build(ProjectDefinition project)
+    public static CreatorReferenceIndex Build(
+        ProjectDefinition project,
+        IReadOnlyList<CreatorReference>? supplementalReferences = null)
     {
         ArgumentNullException.ThrowIfNull(project);
         var references = new List<CreatorReference>
@@ -53,6 +63,7 @@ public sealed class CreatorReferenceIndex
         };
 
         var blueprintNames = project.Blueprints.ToDictionary(blueprint => blueprint.Id, blueprint => blueprint.DisplayName);
+        var variables = project.Module.Variables.ToDictionary(variable => variable.Key, StringComparer.OrdinalIgnoreCase);
         foreach (var area in project.Areas)
         {
             var areaSelection = new CreatorSelection(
@@ -128,6 +139,11 @@ public sealed class CreatorReferenceIndex
                 dialogueSelection));
             foreach (var node in dialogue.Nodes)
             {
+                references.Add(new CreatorReference(
+                    CreatorContentKind.LocalizedText, node.Text.Key, CreatorReferenceUsageKind.LocalizedTextKey,
+                    CreatorContentKind.DialogueNode, node.Id.ToString(),
+                    $"{dialogue.DisplayName} · texte du nœud", $"dialogues/{dialogue.Id}/nodes/{node.Id}/text/key",
+                    dialogueSelection));
                 if (node.SpeakerBlueprintId is not null)
                 {
                     references.Add(new CreatorReference(
@@ -141,6 +157,11 @@ public sealed class CreatorReferenceIndex
                         dialogueSelection));
                 }
 
+                foreach (var action in node.OnEnterActions.Where(action => variables.ContainsKey(action.Key)))
+                    references.Add(VariableReference(variables[action.Key].Id.ToString(), CreatorContentKind.DialogueNode,
+                        node.Id.ToString(), $"{dialogue.DisplayName} · action d’entrée",
+                        $"dialogues/{dialogue.Id}/nodes/{node.Id}/onEnterActions/{action.Id}/key", dialogueSelection));
+
                 foreach (var choice in node.Choices.Where(choice => choice.TargetNodeId is not null))
                 {
                     references.Add(new CreatorReference(
@@ -152,6 +173,19 @@ public sealed class CreatorReferenceIndex
                         $"{dialogue.DisplayName} · choix {choice.Text.Fallback}",
                         $"dialogues/{dialogue.Id}/nodes/{node.Id}/choices/{choice.Id}/targetNodeId",
                         dialogueSelection));
+                }
+                foreach (var choice in node.Choices)
+                {
+                    references.Add(new CreatorReference(
+                        CreatorContentKind.LocalizedText, choice.Text.Key, CreatorReferenceUsageKind.LocalizedTextKey,
+                        CreatorContentKind.DialogueChoice, choice.Id.ToString(),
+                        $"{dialogue.DisplayName} · texte du choix", $"dialogues/{dialogue.Id}/nodes/{node.Id}/choices/{choice.Id}/text/key",
+                        dialogueSelection));
+                    foreach (var key in choice.Conditions.Select(item => item.Key)
+                                 .Concat(choice.Actions.Select(item => item.Key)).Where(variables.ContainsKey).Distinct())
+                        references.Add(VariableReference(variables[key].Id.ToString(), CreatorContentKind.DialogueChoice,
+                            choice.Id.ToString(), $"{dialogue.DisplayName} · choix {choice.Text.Fallback}",
+                            $"dialogues/{dialogue.Id}/nodes/{node.Id}/choices/{choice.Id}/key/{key}", dialogueSelection));
                 }
             }
         }
@@ -193,17 +227,33 @@ public sealed class CreatorReferenceIndex
                     $"{quest.DisplayName} · arrivée de transition",
                     $"{path}/toStateId",
                     questSelection));
+                foreach (var key in transition.Conditions.Select(item => item.Key)
+                             .Concat(transition.Actions.Select(item => item.Key)).Where(variables.ContainsKey).Distinct())
+                    references.Add(VariableReference(variables[key].Id.ToString(), CreatorContentKind.QuestTransition,
+                        transition.Id.ToString(), $"{quest.DisplayName} · transition",
+                        $"{path}/key/{key}", questSelection));
             }
+            foreach (var state in quest.States)
+                references.Add(new CreatorReference(
+                    CreatorContentKind.LocalizedText, state.Journal.LocalizationKey,
+                    CreatorReferenceUsageKind.LocalizedTextKey, CreatorContentKind.QuestState, state.Id.ToString(),
+                    $"{quest.DisplayName} · journal {state.DisplayName}",
+                    $"quests/{quest.Id}/states/{state.Id}/journal/localizationKey", questSelection));
         }
 
-        return new CreatorReferenceIndex(references
+        references.AddRange(supplementalReferences ?? []);
+
+        var ordered = references.OrderBy(reference => reference.DocumentPath, StringComparer.Ordinal)
+            .ThenBy(reference => reference.Usage).ThenBy(reference => reference.SourceId, StringComparer.Ordinal)
+            .ToArray();
+        return new CreatorReferenceIndex(ordered
             .GroupBy(reference => (reference.TargetKind, reference.TargetId))
             .ToDictionary(
                 group => group.Key,
                 group => (IReadOnlyList<CreatorReference>)group
                     .OrderBy(reference => reference.DocumentPath, StringComparer.Ordinal)
                     .ThenBy(reference => reference.Usage)
-                    .ToArray()));
+                    .ToArray()), ordered);
     }
 
     public IReadOnlyList<CreatorReference> Find(CreatorContentKind kind, string id)
@@ -211,4 +261,14 @@ public sealed class CreatorReferenceIndex
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         return _references.TryGetValue((kind, id.Trim()), out var references) ? references : [];
     }
+
+    private static CreatorReference VariableReference(
+        string variableId,
+        CreatorContentKind sourceKind,
+        string sourceId,
+        string displayName,
+        string path,
+        CreatorSelection selection) => new(
+        CreatorContentKind.ProjectVariable, variableId, CreatorReferenceUsageKind.ProjectVariableKey,
+        sourceKind, sourceId, displayName, path, selection);
 }

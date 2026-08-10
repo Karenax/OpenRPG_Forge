@@ -24,7 +24,12 @@ internal static class CreatureEventTestData
                 ["source"] = CreatureCustomFieldType.EntityId,
             }, true, Binding("a1530000-0000-4000-8000-000000000011",
                 "custom.crypt.braziers_lit", "OnBraziersLit"))],
-        new Dictionary<string, string> { ["telemetry.channel"] = "creature-events" });
+        new Dictionary<string, string> { ["telemetry.channel"] = "creature-events" },
+        new(
+            Binding("a1530000-0000-4000-8000-000000000012", "creature.before_damage", "BeforeDamage"),
+            Binding("a1530000-0000-4000-8000-000000000013", "creature.damage_applied", "OnDamaged"),
+            Binding("a1530000-0000-4000-8000-000000000014", "entity.died", "OnDeath"),
+            4, 0.5));
 
     private static EventBinding Binding(string id, string eventName, string handler) => new(
         Guid.Parse(id), 1, "author:test", "1.0", eventName, handler, EventAuthorityScope.Server);

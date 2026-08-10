@@ -16,4 +16,5 @@ public sealed record CreateAreaCommand(
     AreaTemplateKind Template,
     BlueprintId? SpawnBlueprintId,
     EntityId? SpawnEntityId,
-    bool DryRun);
+    bool DryRun,
+    AreaFoundationProfile? Foundation = null);

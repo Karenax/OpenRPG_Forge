@@ -53,4 +53,22 @@ public sealed class ProjectCommandHistoryTests
         Assert.Throws<InvalidOperationException>(() => history.Record(dryRun));
         Assert.Same(context.State, history.State);
     }
+
+    [Fact]
+    public void JournalKeepsSerializableAtomicEnvelopeAndAppliedState()
+    {
+        var context = new Entities.PlaceEntityTestContext();
+        var history = new ProjectCommandHistory(context.State);
+        history.Record(context.Handler.Handle(context.State, context.CreateCommand()));
+
+        var entry = Assert.Single(history.Journal);
+        Assert.NotEqual(Guid.Empty, entry.Id);
+        Assert.Equal(CommandHistoryJournalEntry.CurrentSchemaVersion, entry.SchemaVersion);
+        Assert.True(entry.IsApplied);
+        Assert.Equal("add", entry.Patch.Operation);
+        Assert.True(history.Undo().Succeeded);
+        Assert.False(Assert.Single(history.Journal).IsApplied);
+        Assert.True(history.Redo().Succeeded);
+        Assert.True(Assert.Single(history.Journal).IsApplied);
+    }
 }

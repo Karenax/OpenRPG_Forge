@@ -27,7 +27,7 @@ public sealed class SetCreatureEventsHandlerTests
         var preview = _handler.Handle(history.State, command);
         Assert.True(preview.Succeeded);
         Assert.Null(history.State.Project.Blueprints.Single().CreatureEvents);
-        Assert.Contains("6", preview.Patch!.Summary, StringComparison.Ordinal);
+        Assert.Contains("9", preview.Patch!.Summary, StringComparison.Ordinal);
 
         var applied = _handler.Handle(history.State, command with { DryRun = false });
         history.Record(applied);

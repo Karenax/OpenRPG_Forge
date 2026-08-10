@@ -17,6 +17,7 @@ public sealed class CreateAreaHandler
     public const string DuplicateSlugCode = "area.slug_duplicate";
     public const string SpawnRequiredCode = "area.template.spawn_required";
     public const string SpawnBlueprintMissingCode = "area.template.spawn_blueprint_missing";
+    public const string FoundationInvalidCode = "area.foundation.invalid";
 
     private const string CommandName = "create_area";
     private readonly IClock _clock;
@@ -93,7 +94,15 @@ public sealed class CreateAreaHandler
             command.DisplayName,
             entities,
             command.Kind,
-            command.Dimensions);
+            command.Dimensions,
+            foundation: command.Foundation ?? AreaFoundationProfile.CreateDefault(command.AreaId, command.Kind));
+        var foundationDiagnostics = AreaFoundationValidator.Validate(area, area.Foundation);
+        if (foundationDiagnostics.Count > 0)
+        {
+            var first = foundationDiagnostics[0];
+            return Failure(state, command, first.Code,
+                $"{first.Path}: {first.Message}");
+        }
         var updatedProject = new ProjectDefinition(
             state.Project.Id,
             state.Project.Title,

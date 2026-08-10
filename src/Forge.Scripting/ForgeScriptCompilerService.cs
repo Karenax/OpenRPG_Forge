@@ -56,14 +56,16 @@ public sealed class ForgeScriptCompilerService
         var started = Stopwatch.GetTimestamp();
         var ordered = TopologicalOrder(units);
         var currentHashes = ordered.ToDictionary(unit => unit.Path, unit => Hash(unit.Source), StringComparer.Ordinal);
-        var entries = new List<ForgeScriptCompilationEntry>();
-        foreach (var unit in ordered)
+        var entries = new ForgeScriptCompilationEntry[ordered.Count];
+        Parallel.ForEach(Enumerable.Range(0, ordered.Count),
+            new ParallelOptions { MaxDegreeOfParallelism = _options.MaxParallelism }, index =>
         {
+            var unit = ordered[index];
             if (Encoding.UTF8.GetByteCount(unit.Source) > _options.MaxSourceBytes)
             {
-                entries.Add(new ForgeScriptCompilationEntry(unit.Path, false, false, string.Empty, 0, 0,
-                    [new ForgeScriptDiagnostic("SCRIPT-SOURCE-QUOTA", 0, 0, "error", "Source exceeds the configured byte quota.")]));
-                continue;
+                entries[index] = new ForgeScriptCompilationEntry(unit.Path, false, false, string.Empty, 0, 0,
+                    [new ForgeScriptDiagnostic("SCRIPT-SOURCE-QUOTA", 0, 0, "error", "Source exceeds the configured byte quota.")]);
+                return;
             }
 
             var dependencyFingerprint = string.Join('|', unit.Dependencies.Order(StringComparer.Ordinal)
@@ -77,13 +79,17 @@ public sealed class ForgeScriptCompilerService
                 ? result.Compilation.Diagnostics.OrderBy(item => item.Line).ThenBy(item => item.Column)
                     .ThenBy(item => item.Source, StringComparer.Ordinal).ThenBy(item => item.Message, StringComparer.Ordinal).ToArray()
                 : result.Compilation.Diagnostics;
-            var unchanged = _options.Incremental && _fingerprints.TryGetValue(unit.Path, out var previous) && previous == fingerprint;
-            _fingerprints[unit.Path] = fingerprint;
-            entries.Add(new ForgeScriptCompilationEntry(unit.Path, result.Compilation.Success,
+            bool unchanged;
+            lock (_fingerprints)
+            {
+                unchanged = _options.Incremental && _fingerprints.TryGetValue(unit.Path, out var previous) && previous == fingerprint;
+                _fingerprints[unit.Path] = fingerprint;
+            }
+            entries[index] = new ForgeScriptCompilationEntry(unit.Path, result.Compilation.Success,
                 result.CacheHit || unchanged, fingerprint,
                 _options.PerformanceTelemetry ? ElapsedMicroseconds(entryStarted) : 0,
-                result.Compilation.Artifact?.Bytecode.Length ?? 0, diagnostics));
-        }
+                result.Compilation.Artifact?.Bytecode.Length ?? 0, diagnostics);
+        });
 
         return new ForgeScriptCompilationReport(entries.All(entry => entry.Success),
             entries.Count(entry => !entry.CacheHit), entries.Count(entry => entry.CacheHit),

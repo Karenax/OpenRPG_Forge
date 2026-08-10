@@ -17,7 +17,8 @@ public sealed class CreatorSearchIndex
 
     public static CreatorSearchIndex Build(
         ProjectDefinition project,
-        IReadOnlyList<CreatorDiagnostic>? diagnostics = null)
+        IReadOnlyList<CreatorDiagnostic>? diagnostics = null,
+        IReadOnlyList<CreatorSearchDocument>? supplementalDocuments = null)
     {
         ArgumentNullException.ThrowIfNull(project);
         var documents = new List<CreatorSearchDocument>();
@@ -153,6 +154,14 @@ public sealed class CreatorSearchIndex
                 CreatorSelectionKind.Dialogue));
             foreach (var node in dialogue.Nodes)
             {
+                documents.Add(new CreatorSearchDocument(
+                    CreatorContentKind.LocalizedText,
+                    node.Text.Key,
+                    node.Text.Fallback,
+                    $"localization/{node.Text.Key}",
+                    $"{node.Text.Key} {node.Text.Fallback}",
+                    ["localization", "dialogue"],
+                    selection: DialogueSelection(dialogue)));
                 var nodeText = string.Join(' ',
                     node.Text.Key,
                     node.Text.Fallback,
@@ -168,6 +177,14 @@ public sealed class CreatorSearchIndex
                     selection: DialogueSelection(dialogue)));
                 foreach (var choice in node.Choices)
                 {
+                    documents.Add(new CreatorSearchDocument(
+                        CreatorContentKind.LocalizedText,
+                        choice.Text.Key,
+                        choice.Text.Fallback,
+                        $"localization/{choice.Text.Key}",
+                        $"{choice.Text.Key} {choice.Text.Fallback}",
+                        ["localization", "dialogue", "choice"],
+                        selection: DialogueSelection(dialogue)));
                     var choiceText = string.Join(' ',
                         choice.Text.Key,
                         choice.Text.Fallback,
@@ -199,6 +216,14 @@ public sealed class CreatorSearchIndex
                 CreatorSelectionKind.Quest));
             foreach (var state in quest.States)
             {
+                documents.Add(new CreatorSearchDocument(
+                    CreatorContentKind.LocalizedText,
+                    state.Journal.LocalizationKey,
+                    state.Journal.Fallback,
+                    $"localization/{state.Journal.LocalizationKey}",
+                    $"{state.Journal.LocalizationKey} {state.Journal.Fallback}",
+                    ["localization", "quest", "journal"],
+                    selection: QuestSelection(quest)));
                 documents.Add(new CreatorSearchDocument(
                     CreatorContentKind.QuestState,
                     state.Id.ToString(),
@@ -240,6 +265,14 @@ public sealed class CreatorSearchIndex
                 ["diagnostic", diagnostic.Severity.ToString()],
                 provenance: "validation-derived",
                 selection: diagnostic.Target));
+        }
+
+        foreach (var supplemental in supplementalDocuments ?? [])
+        {
+            if (supplemental.Kind is not (CreatorContentKind.Script or CreatorContentKind.Asset or CreatorContentKind.LocalizedText))
+                throw new ArgumentException("Supplemental search documents must be governed script, asset or localized text resources.",
+                    nameof(supplementalDocuments));
+            documents.Add(supplemental);
         }
 
         return new CreatorSearchIndex(documents

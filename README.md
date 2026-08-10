@@ -6,9 +6,11 @@ Le dépôt contient désormais deux **prototypes fonctionnels** : la Crypte des 
 extérieure Forgotten Forest. La solution C# compilable fournit
 domaine versionné, application de création **Forge**, runtime 3D jouable, ForgeScript natif, archives
 `.orpmod`, sauvegarde/reprise et host MCP transactionnel. La commande `scripts/Verify.ps1` valide
-l’ensemble localement. Forgotten Forest ajoute terrain canonique, caméra orbitale, 357 instances de
-biome, 22 modèles GLB CC0 gouvernés, rivière animée, navigation de surface, quête, combat et export autonome. Les espaces auteur avancés
-décrits dans la cible Aurora 2026 restent la phase suivante du produit.
+l’ensemble localement. Forgotten Forest ajoute terrain canonique 512 × 512 m, caméra orbitale,
+4 617 instances de biome issues de 13 recettes, 17 modèles Poly Haven CC0 gouvernés, rivière
+animée, navigation de surface, quête, combat et export autonome. La tranche verticale G0 à G13 est
+fermée, mais la couverture fonctionnelle Aurora n’est pas complète : 207 des 717 exigences sont
+actuellement au statut `Tested`.
 
 Le lancement utilise un splash **OpenRPG_Forge** dédié, commun au runtime et à l’application de
 création. La fenêtre de l’application porte également le titre **OpenRPG_Forge**. Le visuel peut
@@ -22,7 +24,10 @@ Lire dans cet ordre avant toute modification :
 2. [`MEGACONTEXT.md`](MEGACONTEXT.md)
 3. [`STATUS.md`](STATUS.md)
 4. [`TASKS_MVP.md`](TASKS_MVP.md)
-5. les ADR applicables dans [`docs/ADR/`](docs/ADR/)
+5. [`docs/planning/COMPLETE_FUNCTION_BACKLOG.md`](docs/planning/COMPLETE_FUNCTION_BACKLOG.md)
+6. [`tracking/project/AURORA_PARITY_COVERAGE.csv`](tracking/project/AURORA_PARITY_COVERAGE.csv)
+7. [`docs/audits/COMPLETE_FUNCTION_COVERAGE_AUDIT_2026-08-07.md`](docs/audits/COMPLETE_FUNCTION_COVERAGE_AUDIT_2026-08-07.md)
+8. les ADR applicables dans [`docs/ADR/`](docs/ADR/)
 
 Le fichier [`README_FIRST.md`](README_FIRST.md) est le document d’accueil du paquet initial. Le méga-contexte reste la référence complète pour la vision et l’architecture.
 
@@ -128,6 +133,63 @@ le [guide créateur](docs/CREATOR_GUIDE.md).
 
 Le kit procédural de la Crypte suit les [conventions d’assets](docs/ASSET_CONVENTIONS.md) : unités,
 axes, pivots, nommage, formes de collision simples et traçabilité des licences.
+
+## Objets sonores 3D
+
+L'écran **Environnement de zone**, onglet **Objets sonores**, édite un émetteur canonique placé :
+jeu de clips ordonné ou pondéré, tags, langue, loudness, aperçu, licence SPDX, provenance, hash,
+politique one-shot/boucle/région/compte/événement, scripts et portée 3D. Un objet vide est sûr ; un
+objet incomplet affiche un diagnostic stable avant application ou distribution.
+
+Le runtime reconstruit les lecteurs 3D depuis ce document, sans stocker de nœud moteur dans le
+domaine. Le host MCP expose `forge_get_audio_emitters`, filtrable par zone, UUID ou recherche, puis
+un plan dry-run/apply/revert. ForgeScript expose uniquement `AudioEmitterRef`,
+`audio_is_active` et la demande validée `audio_set_active`.
+
+## Profil et commandes de build
+
+Chaque workspace peut conserver un `build.profile.json` textuel et versionnable. L'absence du fichier
+reste compatible et charge le profil sûr par défaut. L'écran **Scripts & build incrémental** permet de
+prévisualiser puis d'appliquer ce profil par la même commande de domaine que les intégrations ; la
+sauvegarde est atomique et les actions **Annuler / Rétablir** persistent l'état restauré.
+
+Le profil décrit les emplacements stables `data/`, `scripts/`, `assets/`, `localization/`, `tests/`,
+`packages/`, `docs/` et `.forge/`. Le cache `.forge/` est jetable et ignoré par Git ; les documents
+canoniques restent textuels et les archives sont toujours produites vers une destination explicite.
+
+L'onglet **Gouvernance** du même écran configure aussi le workflow branche/worktree et son ownership,
+la CI, le catalogue versionné des cinq fixtures de référence, les versions SemVer Core/Kits/packages,
+les versions de schéma séparées, le changelog et les règles ADR. Ces valeurs utilisent le même
+`build.profile.json`, la même validation, le même dry-run et le même historique que le profil de
+build. Les politiques détaillées sont dans `docs/governance/`, sans donner de shell arbitraire aux
+outils MCP.
+
+L'écran **Extensions runtime & UI**, onglet **QA Acceptance**, configure sans éditer de JSON les
+profils/catégories de diagnostics, les sept familles de fixtures malveillantes, le tracker des 717
+fonctions Aurora et les gates G0–G13. Ces valeurs appartiennent au profil canonique du module : la
+même commande assure prévisualisation, validation localisée, persistance, annuler/rétablir et plans
+MCP. L'audit ci-dessous est strictement en lecture seule sur le dépôt et le workspace :
+
+```powershell
+dotnet run --project tools/Forge.Cli -- quality acceptance <repository> <workspace>
+```
+
+```powershell
+dotnet run --project tools/Forge.Cli -- build-profile set-default <workspace>
+dotnet run --project tools/Forge.Cli -- validate <workspace>
+dotnet run --project tools/Forge.Cli -- diff <workspace>
+dotnet run --project tools/Forge.Cli -- references <workspace>
+dotnet run --project tools/Forge.Cli -- test <workspace>
+dotnet run --project tools/Forge.Cli -- build <workspace> <destination.orpmod>
+dotnet run --project tools/Forge.Cli -- pack <workspace> <destination.orpmod>
+dotnet run --project tools/Forge.Cli -- migrate <workspace>
+```
+
+Toutes ces commandes rendent une sortie structurée et des codes de sortie stables : `0` pour succès,
+`1` pour validation ou exécution refusée, `2` pour une utilisation invalide. `build` effectue en plus
+un second assemblage isolé et compare les octets. Un export inchangé réutilise l'archive existante au
+lieu de la réémettre. Le host MCP expose les opérations bornées équivalentes
+`GetBuildProfile`, `ValidateBuild`, `PlanBuild`, `BuildModule` et `TestBuild`, sans shell arbitraire.
 
 ## Vérifier tout le dépôt
 

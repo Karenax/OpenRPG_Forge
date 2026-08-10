@@ -25,9 +25,24 @@ public sealed class FactionFoundationTests
     [Fact]
     public void ValidatorDetectsCycleOrphansMembersAndOverlappingBands()
     {
-        var firstId = Guid.NewGuid(); var secondId = Guid.NewGuid();
-        var catalog = new FactionCatalog([new(firstId, 1, "test", "a", "A", false, [secondId], []), new(secondId, 1, "test", "b", "B", false, [firstId], [])], [], [new("x", -10, 10, 1), new("y", 0, 20, 1)], [new("ghost", Guid.NewGuid())]);
-        var diagnostics = FactionValidator.Validate(catalog); Assert.Contains(diagnostics, item => item.Code == "RPG_FACTION_INHERITANCE_CYCLE"); Assert.Contains(diagnostics, item => item.Code == "RPG_FACTION_MEMBER_ORPHAN"); Assert.Contains(diagnostics, item => item.Code == "RPG_FACTION_BANDS_OVERLAP");
+        var firstId = Guid.NewGuid(); var secondId = Guid.NewGuid(); var orphanId = Guid.NewGuid();
+        var catalog = new FactionCatalog(
+            [
+                new(firstId, 1, "test", "a", "A", false, [secondId], []),
+                new(secondId, 1, "test", "b", "B", false, [firstId], []),
+                new(Guid.NewGuid(), 1, "test", "c", "C", false, [orphanId], []),
+            ],
+            [],
+            [new("x", -10, 10, 1), new("y", 0, 20, 1)],
+            [new("ghost", Guid.NewGuid())]);
+
+        var diagnostics = FactionValidator.Validate(catalog);
+
+        Assert.Contains(diagnostics, item => item.Code == "RPG_FACTION_INHERITANCE_CYCLE");
+        Assert.Contains(diagnostics, item => item.Code == "RPG_FACTION_PARENT_ORPHAN" &&
+            item.Path.EndsWith($"/parents/{orphanId}", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Code == "RPG_FACTION_MEMBER_ORPHAN");
+        Assert.Contains(diagnostics, item => item.Code == "RPG_FACTION_BANDS_OVERLAP");
     }
 
     private static FactionDefinition Faction(string slug) => new(Guid.NewGuid(), 1, "author:veillee", slug, slug, false, [], [slug == "village" ? "civilian" : "hostile"]);

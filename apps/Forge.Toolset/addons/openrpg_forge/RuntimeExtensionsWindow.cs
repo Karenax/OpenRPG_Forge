@@ -23,16 +23,22 @@ public partial class RuntimeExtensionsWindow : Window
     private SpinBox? _maxBlackboard;
     private CheckBox? _restoreReferences;
     private TextEdit? _modernTooling;
+    private TextEdit? _qualityAcceptance;
     private TextEdit? _operationalReadiness;
+    private TabContainer? _sections;
     private Label? _healthSummary;
     private Label? _summary;
     private Label? _status;
+    private string? _capturePath;
+    private double _captureDelay;
+    private bool _captureOpened;
 
     internal string Summary => _profile is null ? "unavailable" :
         $"rules={_profile.RuleSchemas.Count};ui={_profile.UiDocuments.Count};json={_profile.JsonDocuments.Count};" +
         $"components={_profile.SnapshotPolicy.Components.Count};toolkit={_profile.ModernTooling.UiToolkit.ToolkitVersion};" +
         $"tasks={_profile.OperationalReadiness.TaskManifests.Count};sync={_profile.OperationalReadiness.ContentSynchronization.Resumable};" +
         $"qa-budgets={_profile.ModernTooling.QualityAssurance.PlatformBudgets.Count};qa-profiler={_profile.ModernTooling.QualityAssurance.Profiler.OneClickCapture};" +
+        $"qa-acceptance={_profile.ModernTooling.QualityAssurance.AcceptanceGates.RequiredGates.Count};" +
         $"post-launch={_profile.PostLaunch.SchemaVersion};shards={_profile.PostLaunch.Network.Shards.Count};soak={_profile.PostLaunch.Production.SoakTests.Enabled}";
 
     public void Initialize(Func<ProjectState?> state, Func<ModuleRuntimeExtensionProfile, bool> apply,
@@ -45,8 +51,40 @@ public partial class RuntimeExtensionsWindow : Window
         MinSize = new Vector2I(1280, 820);
         Size = new Vector2I(1480, 900);
         Transient = true;
+        Exclusive = false;
+        Unresizable = true;
         Visible = false;
         Build();
+        var captureArgument = OS.GetCmdlineUserArgs().FirstOrDefault(value =>
+            value.StartsWith("--qa-acceptance-ui-capture=", StringComparison.Ordinal));
+        if (captureArgument is not null)
+        {
+            _capturePath = captureArgument["--qa-acceptance-ui-capture=".Length..];
+            SetProcess(true);
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_capturePath is null) return;
+        _captureDelay += delta;
+        if (!_captureOpened && _captureDelay >= 1.0)
+        {
+            Open();
+            _captureOpened = true;
+            _sections!.CurrentTab = 3;
+            return;
+        }
+        if (!_captureOpened || _captureDelay < 2.5) return;
+        var destination = Path.GetFullPath(_capturePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var image = GetViewport().GetTexture().GetImage();
+        var error = image.SavePng(destination);
+        GD.Print($"OPENRPG_FORGE_QA_ACCEPTANCE_UI_CAPTURE_{(error == Error.Ok ? "PASS" : "FAILED")} " +
+                 $"path={destination} size={image.GetWidth()}x{image.GetHeight()}");
+        _capturePath = null;
+        SetProcess(false);
+        GetTree().Quit(error == Error.Ok ? 0 : 1);
     }
 
     public void Open()
@@ -55,6 +93,7 @@ public partial class RuntimeExtensionsWindow : Window
         if (state is null) { _status!.Text = "Aucun projet ouvert."; return; }
         _profile = state.Project.Module.RuntimePolicies.Extensions;
         Populate();
+        Exclusive = true;
         PopupCentered(Size);
         _brand?.Invoke(this);
     }
@@ -85,16 +124,21 @@ public partial class RuntimeExtensionsWindow : Window
         });
         _summary = new Label(); _summary.AddThemeColorOverride("font_color", new Color("c7b3dc")); root.AddChild(_summary);
         var scroll = new ScrollContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill }; root.AddChild(scroll);
-        var columns = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-        columns.AddThemeConstantOverride("separation", 10); scroll.AddChild(columns);
+        _sections = new TabContainer
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(0, 650),
+        };
+        scroll.AddChild(_sections);
 
-        var data = Card(columns, "RÈGLES & JSON");
+        var data = Card(_sections, "RÈGLES & JSON");
         data.AddChild(Hint("Règles : type ⇥ clé ⇥ requis ⇥ schéma JSON ⇥ valeurs JSON"));
         _rules = Editor(210); data.AddChild(_rules);
         data.AddChild(Hint("JSON runtime : clé ⇥ mutable ⇥ octets ⇥ profondeur ⇥ API ⇥ schéma ⇥ valeur"));
         _json = Editor(210); data.AddChild(_json);
 
-        var ui = Card(columns, "UI DÉCLARATIVE & ÉVÉNEMENTS");
+        var ui = Card(_sections, "UI DÉCLARATIVE & ÉVÉNEMENTS");
         ui.AddChild(Hint("Documents : clé ⇥ titre ⇥ thème ⇥ requis"));
         _uiDocuments = Editor(120); ui.AddChild(_uiDocuments);
         ui.AddChild(Hint("Widgets : document ⇥ clé ⇥ type ⇥ parent ⇥ texte ⇥ binding ⇥ interactif ⇥ focus ⇥ permission"));
@@ -102,7 +146,7 @@ public partial class RuntimeExtensionsWindow : Window
         ui.AddChild(Hint("Événements : document ⇥ widget ⇥ type ⇥ commande ⇥ contexte ⇥ permission"));
         _events = Editor(150); ui.AddChild(_events);
 
-        var state = Card(columns, "SNAPSHOTS D’ENTITÉS");
+        var state = Card(_sections, "SNAPSHOTS & QUALITÉ");
         state.AddChild(Hint("Composants conservés (séparés par des virgules)"));
         _components = new LineEdit(); state.AddChild(_components);
         _maxReferences = Spin(0, 4096, 256, 1); state.AddChild(Row("Références max.", _maxReferences));
@@ -110,11 +154,19 @@ public partial class RuntimeExtensionsWindow : Window
         _maxBlackboard = Spin(64, 1_048_576, 65_536, 64); state.AddChild(Row("Blackboard octets", _maxBlackboard));
         _restoreReferences = new CheckBox { Text = "Restaurer les références résolues", ButtonPressed = true };
         state.AddChild(_restoreReferences);
-        state.AddChild(Hint("Politiques modernes : copy, aoe, nui, compiler, docs, network, visual, benchmark, budget et profiler (lignes tabulées)"));
+        state.AddChild(Hint("Politiques modernes : runtime, QA, diagnostics, fixtures hostiles, couverture Aurora et gates (lignes tabulées)"));
         _modernTooling = Editor(360); state.AddChild(_modernTooling);
         state.AddChild(Hint("Les chemins hôte restent inaccessibles. Les JSON sont validés et bornés avant le runtime."));
 
-        var readiness = Card(columns, "SANTÉ, REPRISE & SYNCHRONISATION");
+        var acceptance = Card(_sections, "QA ACCEPTATION");
+        acceptance.AddChild(Hint("Une ligne par politique. Les listes utilisent des virgules ; chaque valeur est validée avant l’application."));
+        _qualityAcceptance = Editor(430); acceptance.AddChild(_qualityAcceptance);
+        acceptance.AddChild(Hint("Diagnostics : profil, catégories, sévérités, correctifs guidés."));
+        acceptance.AddChild(Hint("Fixtures : catalogue versionné, sept familles hostiles et limites bornées."));
+        acceptance.AddChild(Hint("Couverture : tracker, statuts, 717 fonctions et preuve obligatoire pour Tested."));
+        acceptance.AddChild(Hint("Gates : matrice G0–G13, tests, documentation et preuve par fonction."));
+
+        var readiness = Card(_sections, "SANTÉ, REPRISE & SYNCHRONISATION");
         _healthSummary = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
         _healthSummary.AddThemeColorOverride("font_color", new Color("79d5ad")); readiness.AddChild(_healthSummary);
         readiness.AddChild(Hint("Lignes : task, crash, health, recovery et sync. Les listes utilisent des virgules et '-' signifie vide."));
@@ -209,7 +261,22 @@ public partial class RuntimeExtensionsWindow : Window
         toolingRows.Add(Join("fuzz", fuzz.Seed, fuzz.CasesPerBoundary, fuzz.MaximumInputBytes,
             fuzz.TimeBudgetMilliseconds, string.Join(',', fuzz.Boundaries), fuzz.RequireNoCrash,
             fuzz.RequireNoPathEscape));
+        var diagnostics = modern.QualityAssurance.ClickableDiagnostics;
+        var malicious = modern.QualityAssurance.MaliciousFixtures;
+        var coverage = modern.QualityAssurance.AuroraParityCoverage;
+        var gates = modern.QualityAssurance.AcceptanceGates;
         _modernTooling!.Text = string.Join("\n", toolingRows);
+        _qualityAcceptance!.Text = string.Join("\n", new[]
+        {
+            Join("diagnostics", diagnostics.ActiveProfile, string.Join(',', diagnostics.Categories),
+                string.Join(',', diagnostics.Severities), diagnostics.EnableQuickFixes),
+            Join("malicious", malicious.CatalogPath, string.Join(',', malicious.Families),
+                malicious.MaximumArrayEntries, malicious.RejectInjectionText, malicious.RejectInvalidAssets),
+            Join("coverage", coverage.TrackerPath, string.Join(',', coverage.AllowedStatuses),
+                coverage.ExpectedFeatureCount, coverage.RequireEvidenceForTested),
+            Join("gates", gates.GateMatrixPath, string.Join(',', gates.RequiredGates),
+                gates.RequireLinkedTests, gates.RequireLinkedDocumentation, gates.RequireFeatureEvidence),
+        });
         var readiness = _profile.OperationalReadiness;
         _operationalReadiness!.Text = string.Join("\n", readiness.TaskManifests.Select(task =>
                 Join("task", task.Key, task.Goal, List(task.ScopePaths), List(task.ForbiddenPaths),
@@ -280,7 +347,7 @@ public partial class RuntimeExtensionsWindow : Window
 
     private ModernRuntimeToolingProfile ParseModernTooling()
     {
-        var lines = Lines(_modernTooling!).ToArray();
+        var lines = Lines(_modernTooling!).Concat(Lines(_qualityAcceptance!)).ToArray();
         var rows = lines.Where(parts => Key(parts[0]) != "budget")
             .ToDictionary(parts => Key(parts[0]), StringComparer.Ordinal);
         var source = _profile!.ModernTooling;
@@ -294,6 +361,8 @@ public partial class RuntimeExtensionsWindow : Window
         var network = Row("network", 7); var visual = Row("visual", 6);
         var benchmark = Row("benchmark", 4); var profiler = Row("profiler", 8);
         var accessibility = Row("accessibility", 15); var fuzz = Row("fuzz", 8);
+        var diagnostics = Row("diagnostics", 5); var malicious = Row("malicious", 6);
+        var coverage = Row("coverage", 5); var gates = Row("gates", 6);
         var budgetRows = lines.Where(parts => Key(parts[0]) == "budget").ToArray();
         if (budgetRows.Length == 0) throw new FormatException("Au moins un budget de plateforme est requis.");
         foreach (var budget in budgetRows) Require(budget, 11, "budget");
@@ -325,7 +394,15 @@ public partial class RuntimeExtensionsWindow : Window
                 EnumValue<RuntimeColorVisionMode>(accessibility[11]), Bool(accessibility[12]),
                 Bool(accessibility[13]), Bool(accessibility[14]), "forge-ui"),
             new SecurityFuzzProfile(qualitySource.SecurityFuzz.Id, 1, Int(fuzz[1]), Int(fuzz[2]),
-                Int(fuzz[3]), Int(fuzz[4]), Csv(fuzz[5]), Bool(fuzz[6]), Bool(fuzz[7]), "forge-ui"));
+                Int(fuzz[3]), Int(fuzz[4]), Csv(fuzz[5]), Bool(fuzz[6]), Bool(fuzz[7]), "forge-ui"),
+            new ClickableDiagnosticPolicy(qualitySource.ClickableDiagnostics.Id, 1, diagnostics[1],
+                Csv(diagnostics[2]), Csv(diagnostics[3]), Bool(diagnostics[4]), "forge-ui"),
+            new MaliciousModuleFixturePolicy(qualitySource.MaliciousFixtures.Id, 1, malicious[1],
+                Csv(malicious[2]), Int(malicious[3]), Bool(malicious[4]), Bool(malicious[5]), "forge-ui"),
+            new AuroraParityCoveragePolicy(qualitySource.AuroraParityCoverage.Id, 1, coverage[1],
+                Csv(coverage[2]), Int(coverage[3]), Bool(coverage[4]), "forge-ui"),
+            new AcceptanceGatePolicy(qualitySource.AcceptanceGates.Id, 1, gates[1], Csv(gates[2]),
+                Bool(gates[3]), Bool(gates[4]), Bool(gates[5]), "forge-ui"));
         return new ModernRuntimeToolingProfile(source.Id, 1,
             new RuntimeObjectCopyPolicy(source.RuntimeCopy.Id, 1, Int(copy[1]), Bool(copy[2]), Bool(copy[3]),
                 EnumValue<RuntimeReferenceCopyMode>(copy[4]), Csv(copy[5]), "forge-ui"),
@@ -466,7 +543,12 @@ public partial class RuntimeExtensionsWindow : Window
     { var row = new HBoxContainer(); row.AddChild(new Label { Text = label, CustomMinimumSize = new Vector2(150, 0) }); control.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill; row.AddChild(control); return row; }
     private static VBoxContainer Card(Container parent, string title)
     {
-        var panel = new PanelContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        var panel = new PanelContainer
+        {
+            Name = title,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
         panel.AddThemeStyleboxOverride("panel", Style()); parent.AddChild(panel);
         var box = new VBoxContainer { CustomMinimumSize = new Vector2(420, 0) }; box.AddThemeConstantOverride("separation", 6); panel.AddChild(box);
         var heading = new Label { Text = title }; heading.AddThemeColorOverride("font_color", new Color("ffb06f")); box.AddChild(heading); return box;

@@ -27,6 +27,14 @@ public sealed class WorldFeatureScriptService
                 ["faction"] = item.FactionId ?? string.Empty,
                 ["events"] = item.Reactive.Events.Count.ToString(),
                 ["physics"] = item.Physics?.Mode.ToString() ?? "none",
+                ["foundation"] = (item.Foundation is not null).ToString(),
+                ["role"] = item.Foundation?.Interaction is not null ? "interactable" :
+                    item.Foundation?.StaticProp is not null ? "static" : "legacy",
+                ["asset"] = item.Foundation?.Visual.AssetId ?? string.Empty,
+                ["onUsed"] = (item.Foundation?.OnUsed is not null).ToString(),
+                ["forgeScriptApi"] = item.Foundation?.OnUsed?.ForgeScriptApiVersion ?? string.Empty,
+                ["validation"] = (item.Foundation?.Validation is not null).ToString(),
+                ["requiredAtRuntime"] = item.FoundationRequiredAtRuntime.ToString(),
             })));
         values.AddRange(catalog.Doors.Select(item => Create(state, "door", item.Id,
             item.BlueprintId.ToString(), item.Provenance, new Dictionary<string, string>
@@ -41,6 +49,15 @@ public sealed class WorldFeatureScriptService
                 ["area"] = item.AreaId.ToString(),
                 ["discovery"] = (item.Discovery is not null).ToString(),
                 ["director"] = (item.Director?.AllowManualFire == true).ToString(),
+                ["foundation"] = (item.Foundation is not null).ToString(),
+                ["shape"] = item.Foundation?.Shape.Kind.ToString() ?? string.Empty,
+                ["actions"] = item.Foundation?.Actions.Count.ToString() ?? "0",
+                ["portal"] = (item.Foundation?.Portal is not null).ToString(),
+                ["onEnter"] = item.Foundation?.OnEnter.EventBinding ?? string.Empty,
+                ["onExit"] = item.Foundation?.OnExit.EventBinding ?? string.Empty,
+                ["forgeScriptApi"] = item.Foundation?.OnEnter.ForgeScriptApiVersion ?? string.Empty,
+                ["validation"] = (item.Foundation?.Validation is not null).ToString(),
+                ["requiredAtRuntime"] = item.FoundationRequiredAtRuntime.ToString(),
             })));
         values.AddRange(catalog.Encounters.Select(item => Create(state, "encounter", item.Id,
             item.AreaId.ToString(), item.Provenance, new Dictionary<string, string>
@@ -62,6 +79,9 @@ public sealed class WorldFeatureScriptService
                 ["currencies"] = item.Currencies.Count.ToString(),
                 ["services"] = item.Services.Count.ToString(),
                 ["ledger"] = item.Ledger.Enabled.ToString(),
+                ["transactions"] = (item.Transactions is not null).ToString(),
+                ["stock"] = item.Transactions?.Stock.Count.ToString() ?? "0",
+                ["requiredAtRuntime"] = item.TransactionsRequiredAtRuntime.ToString(),
             })));
         values.AddRange(catalog.Companions.Select(item => Create(state, "companion", item.Id,
             item.BlueprintId.ToString(), item.Provenance, new Dictionary<string, string>
@@ -69,6 +89,17 @@ public sealed class WorldFeatureScriptService
                 ["formation"] = item.Formation.FormationId,
                 ["level"] = item.Progression.CurrentLevel.ToString(),
                 ["directControl"] = item.DirectControl.Enabled.ToString(),
+                ["validation"] = (item.Validation is not null).ToString(),
+                ["recruitmentPaths"] = item.Validation is null ? "0" :
+                    ((item.Validation.Recruitment.AllowDialogue ? 1 : 0) +
+                     (item.Validation.Recruitment.AllowScript ? 1 : 0)).ToString(),
+                ["ownership"] = item.Validation?.Ownership.Kind ?? "legacy",
+                ["commands"] = item.Validation?.CommandIds.Count.ToString() ?? "0",
+                ["equipment"] = item.Validation?.Equipment.EquipmentPolicyId ?? string.Empty,
+                ["death"] = item.Validation?.Death.Mode ?? string.Empty,
+                ["dialogueContexts"] = item.Validation?.DialogueContexts.Count.ToString() ?? "0",
+                ["crossZone"] = (item.Validation?.CrossZoneNavigation.Enabled == true).ToString(),
+                ["requiredAtRuntime"] = item.ValidationRequiredAtRuntime.ToString(),
             })));
         values.Add(Create(state, "script", catalog.Scripts.Id, state.Project.Module.Id.ToString(),
             catalog.Scripts.Provenance, new Dictionary<string, string>

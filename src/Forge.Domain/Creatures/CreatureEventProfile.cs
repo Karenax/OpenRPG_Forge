@@ -32,6 +32,7 @@ public sealed record CreatureEventProfile
     public CreatureHeartbeatBinding? Heartbeat { get; }
     public IReadOnlyList<CreatureCustomEventBinding> CustomEvents { get; }
     public IReadOnlyDictionary<string, string> Overrides { get; }
+    public CreatureDamageDeathBindings? DamageDeath { get; }
 
     public CreatureEventProfile(
         Guid id,
@@ -43,7 +44,8 @@ public sealed record CreatureEventProfile
         CreatureRestEventBinding? rest,
         CreatureHeartbeatBinding? heartbeat,
         IReadOnlyList<CreatureCustomEventBinding>? customEvents,
-        IReadOnlyDictionary<string, string>? overrides)
+        IReadOnlyDictionary<string, string>? overrides,
+        CreatureDamageDeathBindings? damageDeath = null)
     {
         Id = id;
         SchemaVersion = schemaVersion;
@@ -61,6 +63,7 @@ public sealed record CreatureEventProfile
                 item => CreaturePresentationProfile.NormalizeIdentifier(item.Key),
                 item => item.Value?.Trim() ?? string.Empty,
                 StringComparer.Ordinal);
+        DamageDeath = damageDeath?.Normalize();
     }
 
     public static CreatureEventProfile CreateDefault(Guid id, string provenance) => new(
@@ -77,7 +80,13 @@ public sealed record CreatureEventProfile
         new(true, 2_000, 8, true,
             Binding(Guid.NewGuid(), "creature.heartbeat", "OnHeartbeat", provenance)),
         [],
-        new Dictionary<string, string>());
+        new Dictionary<string, string>(),
+        new(
+            Binding(Guid.NewGuid(), "creature.before_damage", "BeforeDamage", provenance),
+            Binding(Guid.NewGuid(), "creature.damage_applied", "OnDamaged", provenance),
+            Binding(Guid.NewGuid(), "entity.died", "OnDeath", provenance),
+            4,
+            0.5));
 
     private static EventBinding Binding(Guid id, string eventName, string handler, string provenance) =>
         new(id, 1, provenance, "1.0", eventName, handler, EventAuthorityScope.Server);
@@ -117,6 +126,21 @@ public sealed record CreatureEventProfile
         EventBinding Binding)
     {
         internal CreatureHeartbeatBinding Normalize() => this with { Binding = NormalizeBinding(Binding) };
+    }
+
+    public sealed record CreatureDamageDeathBindings(
+        EventBinding BeforeDamage,
+        EventBinding DamageApplied,
+        EventBinding Died,
+        int BeforeDamageBudgetMilliseconds,
+        double MaximumAdjustmentRatio)
+    {
+        internal CreatureDamageDeathBindings Normalize() => this with
+        {
+            BeforeDamage = NormalizeBinding(BeforeDamage),
+            DamageApplied = NormalizeBinding(DamageApplied),
+            Died = NormalizeBinding(Died),
+        };
     }
 
     public sealed record CreatureCustomEventBinding(

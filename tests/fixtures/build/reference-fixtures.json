@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "profileId": "b0020000-0000-4000-8000-000000000001",
+  "provenance": "openrpg-forge:p0-r002",
+  "fixtures": [
+    {
+      "id": "b0020000-0000-4000-8000-000000000011",
+      "name": "tiny",
+      "kind": "Tiny",
+      "relativePath": "apps/Forge.Runtime/content/broken-isles-starter/project.json",
+      "expectedOutcome": "valid"
+    },
+    {
+      "id": "b0020000-0000-4000-8000-000000000012",
+      "name": "vertical-slice",
+      "kind": "VerticalSlice",
+      "relativePath": "apps/Forge.Runtime/content/crypt-of-ashes/project.json",
+      "expectedOutcome": "valid"
+    },
+    {
+      "id": "b0020000-0000-4000-8000-000000000013",
+      "name": "stress",
+      "kind": "Stress",
+      "relativePath": "apps/Forge.Runtime/content/forgotten-forest/project.json",
+      "expectedOutcome": "valid"
+    },
+    {
+      "id": "b0020000-0000-4000-8000-000000000014",
+      "name": "malicious",
+      "kind": "Malicious",
+      "relativePath": "tests/Forge.ModuleFormat.Tests/Packages/ModulePackageTests.cs",
+      "expectedOutcome": "rejected"
+    },
+    {
+      "id": "b0020000-0000-4000-8000-000000000015",
+      "name": "migration",
+      "kind": "Migration",
+      "relativePath": "tests/Forge.ModuleFormat.Tests/Serialization/ProjectJsonSerializerTests.cs",
+      "expectedOutcome": "migrated"
+    }
+  ]
+}

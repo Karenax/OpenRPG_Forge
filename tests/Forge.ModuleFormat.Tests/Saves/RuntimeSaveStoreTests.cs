@@ -58,6 +58,63 @@ public sealed class RuntimeSaveStoreTests : IDisposable
     }
 
     [Fact]
+    public void LoadMigratesBothSupportedLegacyVersions()
+    {
+        foreach (var version in new[]
+                 {
+                     RuntimeSaveDocument.PreRulesFormatVersion,
+                     RuntimeSaveDocument.PreRuntimeExtensionsFormatVersion,
+                 })
+        {
+            var path = Path.Combine(_directory, $"legacy-{version}.orpsave");
+            var legacy = CreateSave() with { FormatVersion = version, Progression = null, EntitySnapshots = null };
+            Directory.CreateDirectory(_directory);
+            File.WriteAllText(path, System.Text.Json.JsonSerializer.Serialize(legacy,
+                new System.Text.Json.JsonSerializerOptions
+                { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
+            var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+
+            Assert.True(loaded.Succeeded);
+            Assert.Equal(RuntimeSaveDocument.CurrentFormatVersion, loaded.Save!.FormatVersion);
+            Assert.Empty(loaded.Save.EntitySnapshots!);
+        }
+    }
+
+    [Fact]
+    public void RepeatedSaveIsByteDeterministic()
+    {
+        var path = Path.Combine(_directory, "deterministic.orpsave");
+        Assert.True(RuntimeSaveStore.Save(path, CreateSave()).Succeeded);
+        var first = File.ReadAllBytes(path);
+
+        Assert.True(RuntimeSaveStore.Save(path, CreateSave()).Succeeded);
+
+        Assert.Equal(first, File.ReadAllBytes(path));
+        Assert.False(first.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }));
+    }
+
+    [Fact]
+    public void FailedReplacementPreservesPreviousSaveAndCleansTemporaryFile()
+    {
+        var path = Path.Combine(_directory, "protected.orpsave");
+        var original = CreateSave();
+        Assert.True(RuntimeSaveStore.Save(path, original).Succeeded);
+        using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            var changed = original with { Inventory = ["ash-key", "new-item"] };
+            var failed = RuntimeSaveStore.Save(path, changed);
+            Assert.False(failed.Succeeded);
+            Assert.Equal(RuntimeSaveStore.SaveFailedCode, Assert.Single(failed.Diagnostics).Code);
+        }
+
+        var loaded = RuntimeSaveStore.Load(path, ModuleId, ModuleHash);
+        Assert.True(loaded.Succeeded);
+        Assert.Equal(original.Inventory, loaded.Save!.Inventory);
+        Assert.Empty(Directory.EnumerateFiles(_directory, "*.tmp"));
+    }
+
+    [Fact]
     public void LoadRejectsDifferentModuleOrContentRevision()
     {
         var path = Path.Combine(_directory, "checkpoint.orpsave");

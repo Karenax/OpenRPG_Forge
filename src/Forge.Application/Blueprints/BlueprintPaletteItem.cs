@@ -12,4 +12,8 @@ public sealed record BlueprintPaletteItem(
     bool IsRecent,
     int RecentRank,
     bool IsReadOnly,
-    BlueprintProvenance Provenance);
+    BlueprintProvenance Provenance,
+    string Kit,
+    IReadOnlyList<string> Styles,
+    IReadOnlyList<string> Compatibility,
+    IReadOnlyList<string> Tags);

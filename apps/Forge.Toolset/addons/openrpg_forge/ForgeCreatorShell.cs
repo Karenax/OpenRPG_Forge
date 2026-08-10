@@ -34,6 +34,11 @@ internal sealed class ForgeCreatorShell
     private readonly Button _selectionLock;
     private readonly ItemList _diagnosticList;
     private readonly Label _diagnosticSummary;
+    private readonly LineEdit _diagnosticSearch;
+    private readonly LineEdit _diagnosticCorrelation;
+    private readonly OptionButton _diagnosticCategory;
+    private readonly OptionButton _diagnosticSeverity;
+    private readonly Button _diagnosticExport;
     private readonly OptionButton _quickFixPicker;
     private readonly Button _quickFixPreview;
     private readonly Button _quickFixApply;
@@ -41,7 +46,14 @@ internal sealed class ForgeCreatorShell
     private readonly Dictionary<string, TreeItem> _treeItemsByKey = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Button> _workspaceButtons = new(StringComparer.Ordinal);
     private readonly HBoxContainer _areaTabBar;
+    private readonly HSplitContainer _shellBody;
+    private readonly PanelContainer _explorerPanel;
+    private readonly TabContainer _rightTabs;
+    private readonly PanelContainer _inspectorPanel;
+    private readonly PanelContainer _diagnosticsPanel;
+    private readonly Control _playtestConsole;
     private CreatorDiagnostic[] _diagnostics = [];
+    private CreatorDiagnostic[] _visibleDiagnostics = [];
     private bool _suppressTreeSelection;
 
     internal int AreaTabCount => _areaTabBar.GetChildCount();
@@ -51,6 +63,8 @@ internal sealed class ForgeCreatorShell
     internal event Action<CreatorDiagnostic>? DiagnosticSelectionRequested;
 
     internal event Action<CreatorDiagnostic, DiagnosticQuickFixDefinition, bool>? DiagnosticQuickFixRequested;
+
+    internal event Action<IReadOnlyList<CreatorDiagnostic>>? DiagnosticExportRequested;
 
     internal event Action<string>? WorkspaceRequested;
 
@@ -81,18 +95,18 @@ internal sealed class ForgeCreatorShell
         content.AddChild(_areaTabBar);
         content.MoveChild(_areaTabBar, 2);
 
-        var shellBody = new HSplitContainer
+        _shellBody = new HSplitContainer
         {
             Name = "CreatorShell",
             CustomMinimumSize = new Vector2(0, 380),
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
         };
-        content.AddChild(shellBody);
+        content.AddChild(_shellBody);
 
-        var explorerPanel = CreatePanel("ProjectExplorerPanel", new Color("100d1b"), new Color("47365f"));
-        explorerPanel.CustomMinimumSize = new Vector2(228, 0);
-        shellBody.AddChild(explorerPanel);
-        var explorerContent = CreatePanelContent(explorerPanel, 12);
+        _explorerPanel = CreatePanel("ProjectExplorerPanel", new Color("100d1b"), new Color("47365f"));
+        _explorerPanel.CustomMinimumSize = new Vector2(228, 0);
+        _shellBody.AddChild(_explorerPanel);
+        var explorerContent = CreatePanelContent(_explorerPanel, 12);
         explorerContent.AddChild(CreateSectionTitle("PROJET FORGE"));
         _explorerSummary = new Label
         {
@@ -120,28 +134,28 @@ internal sealed class ForgeCreatorShell
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
         };
         worldWorkspace.AddThemeConstantOverride("separation", 8);
-        shellBody.AddChild(worldWorkspace);
+        _shellBody.AddChild(worldWorkspace);
 
         var editing = content.GetNode<Control>("Editing");
         var playtestBar = content.GetNode<Control>("PlaytestBar");
         var preview = content.GetNode<Control>("PreviewHost");
-        var playtestConsole = content.GetNode<Control>("PlaytestConsole");
+        _playtestConsole = content.GetNode<Control>("PlaytestConsole");
         preview.CustomMinimumSize = new Vector2(520, 180);
         editing.Reparent(worldWorkspace, keepGlobalTransform: false);
         preview.Reparent(worldWorkspace, keepGlobalTransform: false);
         playtestBar.Reparent(worldWorkspace, keepGlobalTransform: false);
 
-        var rightTabs = new TabContainer
+        _rightTabs = new TabContainer
         {
             Name = "ContextTabs",
             CustomMinimumSize = new Vector2(258, 0),
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
         };
-        shellBody.AddChild(rightTabs);
+        _shellBody.AddChild(_rightTabs);
 
-        var inspectorPanel = CreatePanel("Inspecteur", new Color("100d1b"), new Color("47365f"));
-        rightTabs.AddChild(inspectorPanel);
-        var inspectorContent = CreatePanelContent(inspectorPanel, 14);
+        _inspectorPanel = CreatePanel("Inspecteur", new Color("100d1b"), new Color("47365f"));
+        _rightTabs.AddChild(_inspectorPanel);
+        var inspectorContent = CreatePanelContent(_inspectorPanel, 14);
         var inspectorHeader = new HBoxContainer();
         inspectorHeader.AddThemeConstantOverride("separation", 8);
         inspectorContent.AddChild(inspectorHeader);
@@ -176,9 +190,9 @@ internal sealed class ForgeCreatorShell
         _selectionPath.AddThemeColorOverride("font_color", new Color("9f92b8"));
         inspectorContent.AddChild(_selectionPath);
 
-        var diagnosticsPanel = CreatePanel("Diagnostics", new Color("0d0b17"), new Color("47365f"));
-        rightTabs.AddChild(diagnosticsPanel);
-        var diagnosticsContent = CreatePanelContent(diagnosticsPanel, 10);
+        _diagnosticsPanel = CreatePanel("Diagnostics", new Color("0d0b17"), new Color("47365f"));
+        _rightTabs.AddChild(_diagnosticsPanel);
+        var diagnosticsContent = CreatePanelContent(_diagnosticsPanel, 10);
         diagnosticsContent.AddChild(CreateSectionTitle("DIAGNOSTICS"));
         _diagnosticSummary = new Label
         {
@@ -187,6 +201,43 @@ internal sealed class ForgeCreatorShell
         };
         _diagnosticSummary.AddThemeColorOverride("font_color", new Color("aa9bc7"));
         diagnosticsContent.AddChild(_diagnosticSummary);
+        _diagnosticSearch = new LineEdit
+        {
+            PlaceholderText = "Code, message, chemin…",
+            TooltipText = "Filtrer les diagnostics affichés sans modifier le projet.",
+        };
+        _diagnosticSearch.TextChanged += _ => RefreshDiagnosticList();
+        diagnosticsContent.AddChild(_diagnosticSearch);
+        var diagnosticFilters = new HBoxContainer();
+        diagnosticFilters.AddThemeConstantOverride("separation", 6);
+        diagnosticsContent.AddChild(diagnosticFilters);
+        _diagnosticCategory = new OptionButton
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            TooltipText = "Catégorie structurée du diagnostic.",
+        };
+        _diagnosticCategory.AddItem("Toutes catégories");
+        foreach (var category in Enum.GetValues<CreatorDiagnosticCategory>())
+            _diagnosticCategory.AddItem(FormatDiagnosticCategory(category));
+        _diagnosticCategory.ItemSelected += _ => RefreshDiagnosticList();
+        diagnosticFilters.AddChild(_diagnosticCategory);
+        _diagnosticSeverity = new OptionButton
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            TooltipText = "Sévérité minimale affichée.",
+        };
+        _diagnosticSeverity.AddItem("Info+");
+        _diagnosticSeverity.AddItem("Alerte+");
+        _diagnosticSeverity.AddItem("Erreur");
+        _diagnosticSeverity.ItemSelected += _ => RefreshDiagnosticList();
+        diagnosticFilters.AddChild(_diagnosticSeverity);
+        _diagnosticCorrelation = new LineEdit
+        {
+            PlaceholderText = "Corrélation (ex. revision:42)",
+            TooltipText = "Limiter l’affichage à une transaction ou révision exacte.",
+        };
+        _diagnosticCorrelation.TextChanged += _ => RefreshDiagnosticList();
+        diagnosticsContent.AddChild(_diagnosticCorrelation);
         _diagnosticList = new ItemList
         {
             Name = "DiagnosticList",
@@ -195,6 +246,13 @@ internal sealed class ForgeCreatorShell
         };
         _diagnosticList.ItemSelected += HandleDiagnosticSelection;
         diagnosticsContent.AddChild(_diagnosticList);
+        _diagnosticExport = new Button
+        {
+            Text = "Exporter diagnostics + logs",
+            TooltipText = "Écrire un bundle ZIP déterministe dans .forge/diagnostics.",
+        };
+        _diagnosticExport.Pressed += () => DiagnosticExportRequested?.Invoke(_visibleDiagnostics);
+        diagnosticsContent.AddChild(_diagnosticExport);
         diagnosticsContent.AddChild(CreateSectionTitle("CORRECTIF GUIDÉ"));
         _quickFixPicker = new OptionButton
         {
@@ -235,13 +293,29 @@ internal sealed class ForgeCreatorShell
         _quickFixApply.Pressed += () => InvokeSelectedQuickFix(dryRun: false);
         quickFixActions.AddChild(_quickFixApply);
 
-        playtestConsole.Name = "Playtests";
-        playtestConsole.CustomMinimumSize = new Vector2(0, 120);
-        playtestConsole.Reparent(rightTabs, keepGlobalTransform: false);
+        _playtestConsole.Name = "Playtests";
+        _playtestConsole.CustomMinimumSize = new Vector2(0, 120);
+        _playtestConsole.Reparent(_rightTabs, keepGlobalTransform: false);
 
         CompactEditingControls(mainPanel);
         SetWorkspace("Monde");
         SetDiagnostics([]);
+    }
+
+    internal void ApplyShellConfiguration(EditorShellConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        var layout = configuration.Layout;
+        _explorerPanel.Visible = layout.ExplorerVisible;
+        _explorerPanel.CustomMinimumSize = new Vector2(layout.ExplorerWidth, 0);
+        _inspectorPanel.Visible = layout.InspectorVisible;
+        _diagnosticsPanel.Visible = layout.DiagnosticsVisible;
+        _rightTabs.Visible = layout.InspectorVisible || layout.DiagnosticsVisible || _playtestConsole.Visible;
+        _rightTabs.CustomMinimumSize = new Vector2(layout.ContextWidth, 0);
+        _playtestConsole.CustomMinimumSize = new Vector2(0, layout.BottomHeight);
+        if (_workspaceButtons.TryGetValue("Blueprints", out var palette)) palette.Visible = layout.PaletteVisible;
+        if (_workspaceButtons.TryGetValue("Assistant", out var assistant)) assistant.Visible = layout.AssistantVisible;
+        _projectTree.TooltipText = $"Explorateur virtuel · {configuration.ExplorerGrouping}";
     }
 
     internal void SetAreaTabs(ProjectDefinition project, EditorWorkspaceProfile profile)
@@ -293,7 +367,7 @@ internal sealed class ForgeCreatorShell
 
     internal int ExplorerNodeCount => _nodesByKey.Count;
 
-    internal int DiagnosticCount => _diagnostics.Length;
+    internal int DiagnosticCount => _visibleDiagnostics.Length;
 
     internal void SetProject(CreatorExplorerNode? root)
     {
@@ -329,7 +403,7 @@ internal sealed class ForgeCreatorShell
         {
             _selectionTitle.Text = $"{selections.Count} éléments sélectionnés";
             _selectionKind.Text = "SÉLECTION MULTIPLE";
-            _selectionPath.Text = "L’inspection commune sera enrichie dans un prochain incrément.";
+            _selectionPath.Text = "Calcul des propriétés communes…";
             return;
         }
 
@@ -340,26 +414,64 @@ internal sealed class ForgeCreatorShell
         SelectTreeItem($"{selection.Kind.ToString().ToLowerInvariant()}:{selection.Id}");
     }
 
+    internal void SetSelectionInspection(CreatorSelectionInspection inspection)
+    {
+        ArgumentNullException.ThrowIfNull(inspection);
+        if (inspection.Selection.Count < 2) return;
+        var properties = inspection.CommonProperties.Select(property =>
+            $"{property.DisplayName}: {(property.Mixed ? "valeurs mixtes" : property.Value ?? "—")}" +
+            (property.Editable ? " · modifiable" : string.Empty));
+        _selectionPath.Text = string.Join("\n", properties) +
+            $"\nUUID {inspection.Id:D} · schéma v{inspection.SchemaVersion}";
+    }
+
     internal void SetDiagnostics(IReadOnlyList<CreatorDiagnostic> diagnostics)
     {
         ArgumentNullException.ThrowIfNull(diagnostics);
         _diagnostics = diagnostics.ToArray();
+        RefreshDiagnosticList();
+    }
+
+    internal void SetDiagnosticExportStatus(string message, bool failed)
+    {
+        _diagnosticSummary.Text = message;
+        _diagnosticSummary.AddThemeColorOverride(
+            "font_color",
+            failed ? new Color("ff8c8c") : new Color("83d6ae"));
+    }
+
+    private void RefreshDiagnosticList()
+    {
+        var category = _diagnosticCategory.Selected <= 0
+            ? null
+            : (CreatorDiagnosticCategory?)(_diagnosticCategory.Selected - 1);
+        var severity = (CreatorDiagnosticSeverity)Math.Clamp(_diagnosticSeverity.Selected, 0, 2);
+        _visibleDiagnostics = CreatorDiagnosticConsole.Filter(_diagnostics, new(
+            _diagnosticSearch.Text,
+            category,
+            severity,
+            _diagnosticCorrelation.Text)).ToArray();
         _diagnosticList.Clear();
         ResetQuickFixControls();
-        if (_diagnostics.Length == 0)
+        if (_visibleDiagnostics.Length == 0)
         {
-            _diagnosticSummary.Text = "✓ Projet prêt · aucun diagnostic";
+            _diagnosticSummary.Text = _diagnostics.Length == 0
+                ? "✓ Projet prêt · aucun diagnostic"
+                : $"Aucun résultat · {_diagnostics.Length} diagnostic(s) masqué(s)";
             _diagnosticSummary.AddThemeColorOverride("font_color", new Color("83d6ae"));
-            _diagnosticList.AddItem("Aucune erreur ou alerte pour la révision courante.");
+            _diagnosticList.AddItem(_diagnostics.Length == 0
+                ? "Aucune erreur ou alerte pour la révision courante."
+                : "Modifiez les filtres pour afficher les diagnostics disponibles.");
             _diagnosticList.SetItemSelectable(0, false);
             return;
         }
 
-        var errorCount = _diagnostics.Count(diagnostic => diagnostic.Severity == CreatorDiagnosticSeverity.Error);
-        var warningCount = _diagnostics.Count(diagnostic => diagnostic.Severity == CreatorDiagnosticSeverity.Warning);
-        _diagnosticSummary.Text = $"{errorCount} erreur(s) · {warningCount} avertissement(s)";
+        var errorCount = _visibleDiagnostics.Count(diagnostic => diagnostic.Severity == CreatorDiagnosticSeverity.Error);
+        var warningCount = _visibleDiagnostics.Count(diagnostic => diagnostic.Severity == CreatorDiagnosticSeverity.Warning);
+        _diagnosticSummary.Text =
+            $"{_visibleDiagnostics.Length}/{_diagnostics.Length} · {errorCount} erreur(s) · {warningCount} avertissement(s)";
         _diagnosticSummary.AddThemeColorOverride("font_color", errorCount > 0 ? new Color("ff8c8c") : new Color("ffc66d"));
-        foreach (var diagnostic in _diagnostics)
+        foreach (var diagnostic in _visibleDiagnostics)
         {
             var prefix = diagnostic.Severity switch
             {
@@ -374,7 +486,7 @@ internal sealed class ForgeCreatorShell
                 $"{diagnostic.QuickFixes.Count} correctif(s) disponible(s)";
             _diagnosticList.SetItemTooltip(
                 index,
-                $"UUID · {diagnostic.Id}\nSévérité · {diagnostic.Severity}\nChemin · {diagnostic.DocumentPath}\n" +
+                $"UUID · {diagnostic.Id}\nCatégorie · {diagnostic.Category}\nSévérité · {diagnostic.Severity}\nChemin · {diagnostic.DocumentPath}\n" +
                 $"Sujet · {subject}\nPropriété · {diagnostic.Property}\nSource · {diagnostic.Source}\n{fixes}");
         }
     }
@@ -393,18 +505,33 @@ internal sealed class ForgeCreatorShell
 
     internal bool SelectDiagnosticForSmokeTest(int index)
     {
-        if (index < 0 || index >= _diagnostics.Length)
+        if (index < 0 || index >= _visibleDiagnostics.Length)
         {
             return false;
         }
 
         _diagnosticList.Select(index);
         RefreshQuickFixControls(index);
-        DiagnosticSelectionRequested?.Invoke(_diagnostics[index]);
+        DiagnosticSelectionRequested?.Invoke(_visibleDiagnostics[index]);
         return true;
     }
 
     internal bool InvokeSelectedQuickFixForSmokeTest(bool dryRun) => InvokeSelectedQuickFix(dryRun);
+
+    internal bool FilterDiagnosticsForSmokeTest(
+        CreatorDiagnosticCategory? category,
+        CreatorDiagnosticSeverity severity,
+        string text,
+        string correlationId,
+        int expectedCount)
+    {
+        _diagnosticCategory.Select(category is null ? 0 : (int)category + 1);
+        _diagnosticSeverity.Select((int)severity);
+        _diagnosticSearch.Text = text;
+        _diagnosticCorrelation.Text = correlationId;
+        RefreshDiagnosticList();
+        return _visibleDiagnostics.Length == expectedCount;
+    }
 
     private HBoxContainer CreateWorkspaceBar()
     {
@@ -469,22 +596,22 @@ internal sealed class ForgeCreatorShell
 
     private void HandleDiagnosticSelection(long index)
     {
-        if (index >= 0 && index < _diagnostics.Length)
+        if (index >= 0 && index < _visibleDiagnostics.Length)
         {
             RefreshQuickFixControls((int)index);
-            DiagnosticSelectionRequested?.Invoke(_diagnostics[index]);
+            DiagnosticSelectionRequested?.Invoke(_visibleDiagnostics[index]);
         }
     }
 
     private void RefreshQuickFixControls(int diagnosticIndex)
     {
         ResetQuickFixControls();
-        if (diagnosticIndex < 0 || diagnosticIndex >= _diagnostics.Length)
+        if (diagnosticIndex < 0 || diagnosticIndex >= _visibleDiagnostics.Length)
         {
             return;
         }
 
-        foreach (var fix in _diagnostics[diagnosticIndex].QuickFixes)
+        foreach (var fix in _visibleDiagnostics[diagnosticIndex].QuickFixes)
         {
             _quickFixPicker.AddItem(fix.Label);
             _quickFixPicker.SetItemTooltip(_quickFixPicker.ItemCount - 1, fix.Description);
@@ -511,19 +638,30 @@ internal sealed class ForgeCreatorShell
     private bool InvokeSelectedQuickFix(bool dryRun)
     {
         var diagnosticIndex = _diagnosticList.GetSelectedItems().FirstOrDefault(-1);
-        if (diagnosticIndex < 0 || diagnosticIndex >= _diagnostics.Length ||
+        if (diagnosticIndex < 0 || diagnosticIndex >= _visibleDiagnostics.Length ||
             _quickFixPicker.Selected < 0 ||
-            _quickFixPicker.Selected >= _diagnostics[diagnosticIndex].QuickFixes.Count)
+            _quickFixPicker.Selected >= _visibleDiagnostics[diagnosticIndex].QuickFixes.Count)
         {
             return false;
         }
 
         DiagnosticQuickFixRequested?.Invoke(
-            _diagnostics[diagnosticIndex],
-            _diagnostics[diagnosticIndex].QuickFixes[_quickFixPicker.Selected],
+            _visibleDiagnostics[diagnosticIndex],
+            _visibleDiagnostics[diagnosticIndex].QuickFixes[_quickFixPicker.Selected],
             dryRun);
         return true;
     }
+
+    private static string FormatDiagnosticCategory(CreatorDiagnosticCategory category) => category switch
+    {
+        CreatorDiagnosticCategory.Schema => "Schéma",
+        CreatorDiagnosticCategory.Reference => "Références",
+        CreatorDiagnosticCategory.Graph => "Graphes",
+        CreatorDiagnosticCategory.Geometry => "Géométrie",
+        CreatorDiagnosticCategory.Navigation => "Navigation",
+        CreatorDiagnosticCategory.License => "Licences",
+        _ => "Runtime",
+    };
 
     private void SelectTreeItem(string key)
     {

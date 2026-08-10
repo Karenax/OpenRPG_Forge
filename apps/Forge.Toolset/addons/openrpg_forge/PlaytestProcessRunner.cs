@@ -80,6 +80,11 @@ internal static class PlaytestProcessRunner
         startInfo.ArgumentList.Add(snapshot.ProjectFilePath);
         startInfo.ArgumentList.Add("--spawn-id");
         startInfo.ArgumentList.Add(snapshot.SpawnEntityId.ToString());
+        if (!string.IsNullOrWhiteSpace(snapshot.LaunchManifestFilePath))
+        {
+            startInfo.ArgumentList.Add("--playtest-manifest");
+            startInfo.ArgumentList.Add(snapshot.LaunchManifestFilePath);
+        }
         if (runSmokeScenario)
         {
             startInfo.ArgumentList.Add("--smoke-test");

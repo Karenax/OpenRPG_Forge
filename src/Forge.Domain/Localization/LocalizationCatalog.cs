@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+
 namespace Forge.Domain.Localization;
 
 public sealed record LocalizationCatalog
@@ -14,12 +17,26 @@ public sealed record LocalizationCatalog
 
     public IReadOnlyList<LocalizationMessage> Messages { get; }
 
+    public string PackageNamespace { get; }
+
+    public string LicenseSpdx { get; }
+
+    public string Provenance { get; }
+
+    public long PlatformByteBudget { get; }
+
+    public string ContentSha256 { get; }
+
     public LocalizationCatalog(
         LocalizationCatalogId id,
         string defaultLocale,
         IReadOnlyList<string> locales,
         IReadOnlyList<LocalizationMessage> messages,
-        int schemaVersion = CurrentSchemaVersion)
+        int schemaVersion = CurrentSchemaVersion,
+        string packageNamespace = "project.localization",
+        string licenseSpdx = "CC0-1.0",
+        string provenance = "project-author",
+        long platformByteBudget = 4 * 1024 * 1024)
     {
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(locales);
@@ -53,17 +70,37 @@ public sealed record LocalizationCatalog
         DefaultLocale = normalizedDefault;
         Locales = normalizedLocales;
         Messages = materializedMessages;
+        PackageNamespace = (packageNamespace ?? string.Empty).Trim().ToLowerInvariant();
+        LicenseSpdx = (licenseSpdx ?? string.Empty).Trim();
+        Provenance = (provenance ?? string.Empty).Trim();
+        PlatformByteBudget = platformByteBudget;
+        ContentSha256 = ComputeContentSha256(
+            Id,
+            SchemaVersion,
+            DefaultLocale,
+            Locales,
+            Messages,
+            PackageNamespace,
+            LicenseSpdx,
+            Provenance,
+            PlatformByteBudget);
     }
 
     public string Resolve(string key, string locale)
+        => Resolve(key, locale, new Dictionary<string, object?>());
+
+    public string Resolve(string key, string locale, IReadOnlyDictionary<string, object?> arguments)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentNullException.ThrowIfNull(arguments);
         var message = Messages.SingleOrDefault(candidate => string.Equals(candidate.Key, key.Trim(), StringComparison.Ordinal))
             ?? throw new KeyNotFoundException($"Localization key '{key}' does not exist.");
         var requested = NormalizeLocale(locale);
+        string resolved;
         if (message.Translations.TryGetValue(requested, out var exact))
         {
-            return exact;
+            resolved = exact;
+            return LocalizationMessageFormatter.Format(resolved, arguments, requested);
         }
 
         var language = requested.Split('-')[0];
@@ -71,12 +108,14 @@ public sealed record LocalizationCatalog
             string.Equals(pair.Key, language, StringComparison.OrdinalIgnoreCase));
         if (!string.IsNullOrEmpty(languageMatch.Value))
         {
-            return languageMatch.Value;
+            resolved = languageMatch.Value;
+            return LocalizationMessageFormatter.Format(resolved, arguments, requested);
         }
 
-        return message.Translations.TryGetValue(DefaultLocale, out var defaultText)
+        resolved = message.Translations.TryGetValue(DefaultLocale, out var defaultText)
             ? defaultText
             : message.Fallback;
+        return LocalizationMessageFormatter.Format(resolved, arguments, requested);
     }
 
     public static LocalizationCatalog CreateEmpty(Guid moduleId, string defaultLocale) => new(
@@ -98,5 +137,33 @@ public sealed record LocalizationCatalog
         return segments.Length == 1
             ? segments[0].ToLowerInvariant()
             : $"{segments[0].ToLowerInvariant()}-{(segments[1].Length == 2 ? segments[1].ToUpperInvariant() : char.ToUpperInvariant(segments[1][0]) + segments[1][1..].ToLowerInvariant())}";
+    }
+
+    private static string ComputeContentSha256(
+        LocalizationCatalogId id,
+        int schemaVersion,
+        string defaultLocale,
+        IReadOnlyList<string> locales,
+        IReadOnlyList<LocalizationMessage> messages,
+        string packageNamespace,
+        string licenseSpdx,
+        string provenance,
+        long platformByteBudget)
+    {
+        var canonical = new StringBuilder()
+            .Append(id).Append('|').Append(schemaVersion).Append('|').Append(defaultLocale).Append('|')
+            .Append(string.Join(',', locales)).Append('|').Append(packageNamespace).Append('|')
+            .Append(licenseSpdx).Append('|').Append(provenance).Append('|').Append(platformByteBudget);
+        foreach (var message in messages)
+        {
+            canonical.Append('\n').Append(message.Key).Append('|').Append(message.Fallback).Append('|')
+                .Append(message.Provenance);
+            foreach (var translation in message.Translations)
+            {
+                canonical.Append('|').Append(translation.Key).Append('=').Append(translation.Value);
+            }
+        }
+
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical.ToString()))).ToLowerInvariant();
     }
 }

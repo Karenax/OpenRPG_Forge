@@ -9,4 +9,5 @@ public sealed record ModulePackageExportResult(
     int FileCount,
     long ArchiveBytes,
     BuildDependencyGraph DependencyGraph,
-    IncrementalBuildPlan BuildPlan);
+    IncrementalBuildPlan BuildPlan,
+    BuildTaskExecutionMetrics PackagingMaterialization);

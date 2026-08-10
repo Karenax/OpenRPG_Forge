@@ -18,6 +18,8 @@ public sealed class EditorCameraProfileTests
         Assert.Equal(EditorCameraProjection.Perspective, profile.Pose.Projection);
         Assert.InRange(profile.Pose.PitchDegrees, -89.5f, 89.5f);
         Assert.Empty(profile.Bookmarks);
+        Assert.Equal(EditorCameraPilotMode.Fly, profile.Input.PilotMode);
+        Assert.Equal("W", profile.Input.Bindings["forward"]);
     }
 
     [Fact]

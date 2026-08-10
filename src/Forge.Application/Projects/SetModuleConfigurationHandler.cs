@@ -30,16 +30,10 @@ public sealed class SetModuleConfigurationHandler
                 $"Command revision {command.BaseRevision} does not match project revision {state.Revision}.");
         }
 
-        if (command.Variables.Select(variable => variable.Id).Distinct().Count() != command.Variables.Count)
-        {
-            return Failure(state, command, DuplicateVariableIdCode, "Project variable IDs must be unique.");
-        }
-
-        if (command.Variables.Select(variable => variable.Key)
-            .Distinct(StringComparer.Ordinal).Count() != command.Variables.Count)
-        {
-            return Failure(state, command, DuplicateVariableKeyCode, "Project variable keys must be unique.");
-        }
+        var variableDiagnostic = ProjectVariableValidator.Validate(command.Variables).FirstOrDefault();
+        if (variableDiagnostic is not null)
+            return Failure(state, command, variableDiagnostic.Code,
+                $"{variableDiagnostic.Message} Path: {variableDiagnostic.Path}.");
 
         var module = state.Project.Module;
         var updatedModule = new ModuleDefinition(
