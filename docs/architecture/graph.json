@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:2ecd78866256ac103ac5240fbbf4330011f39d569f4dae05c974e13856423c80",
+    "source_digest": "sha256:b0a974cbcb6c18221ea975d7f21663ade8e4224d0a389924d4982e308150415e",
     "source_file_count": 2732,
     "sources": [
       {
@@ -12903,8 +12903,8 @@
       },
       {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "sha256": "sha256:13341dc3e0fca1a114ec2e9a5460ff37306eb980221a9fbe029a416538fbcc7e",
-        "size": 4670
+        "sha256": "sha256:9dd5c169dc40a8d666031e9617cc1fa6e8805084facf70a84e8b6fb8f5b6be26",
+        "size": 4855
       },
       {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptInteropProfileTests.cs",
@@ -74434,7 +74434,7 @@
       "kind": "test",
       "name": "ConcurrentRuntime",
       "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-      "line": 79,
+      "line": 81,
       "metadata": {
         "namespace": "Forge.Scripting.Tests",
         "project": "Forge.Scripting.Tests",
@@ -74446,7 +74446,7 @@
       "kind": "test",
       "name": "FakeRuntime",
       "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-      "line": 68,
+      "line": 70,
       "metadata": {
         "namespace": "Forge.Scripting.Tests",
         "project": "Forge.Scripting.Tests",
@@ -270950,7 +270950,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 74
+        "line": 76
       }
     },
     {
@@ -270970,7 +270970,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 72
+        "line": 74
       }
     },
     {
@@ -270990,7 +270990,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 73
+        "line": 75
       }
     },
     {
@@ -271000,7 +271000,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 75
+        "line": 77
       }
     },
     {
@@ -271010,7 +271010,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 76
+        "line": 78
       }
     },
     {
@@ -271020,7 +271020,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 75
+        "line": 77
       }
     },
     {
@@ -271030,7 +271030,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 68
+        "line": 70
       }
     },
     {
@@ -499870,7 +499870,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 79
+        "line": 81
       }
     },
     {
@@ -499880,7 +499880,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 79
+        "line": 81
       }
     },
     {
@@ -499890,7 +499890,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 79
+        "line": 81
       }
     },
     {
@@ -499900,7 +499900,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 87
+        "line": 89
       }
     },
     {
@@ -499910,7 +499910,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 102
+        "line": 104
       }
     },
     {
@@ -499920,7 +499920,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 79
+        "line": 81
       }
     },
     {
@@ -499930,7 +499930,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 98
+        "line": 100
       }
     },
     {
@@ -499940,7 +499940,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 103
+        "line": 105
       }
     },
     {
@@ -499950,7 +499950,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 102
+        "line": 104
       }
     },
     {
@@ -499960,7 +499960,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 68
+        "line": 70
       }
     },
     {
@@ -499970,7 +499970,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 68
+        "line": 70
       }
     },
     {
@@ -499980,7 +499980,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 68
+        "line": 70
       }
     },
     {
@@ -499990,7 +499990,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 72
+        "line": 74
       }
     },
     {
@@ -500000,7 +500000,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 73
+        "line": 75
       }
     },
     {
@@ -500010,7 +500010,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 75
+        "line": 77
       }
     },
     {
@@ -500020,7 +500020,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 68
+        "line": 70
       }
     },
     {
@@ -500030,7 +500030,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 74
+        "line": 76
       }
     },
     {
@@ -500040,7 +500040,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 76
+        "line": 78
       }
     },
     {
@@ -500050,7 +500050,7 @@
       "confidence": "semantic",
       "evidence": {
         "path": "tests/Forge.Scripting.Tests/ForgeScriptCompilerServiceTests.cs",
-        "line": 75
+        "line": 77
       }
     },
     {
