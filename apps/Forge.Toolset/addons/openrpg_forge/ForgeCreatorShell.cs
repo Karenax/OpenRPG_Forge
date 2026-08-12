@@ -18,19 +18,21 @@ internal sealed class ForgeCreatorShell
         "Quêtes",
         "Scripts",
         "Assets",
-        "Données",
         "Validation",
         "Playtests",
         "Assistant",
-        "Réseau",
-        "Live Director",
     ];
+
+    private static readonly string[] AdvancedToolNames = ["Données", "Réseau", "Live Director"];
 
     private readonly Tree _projectTree;
     private readonly Label _explorerSummary;
     private readonly Label _selectionTitle;
     private readonly Label _selectionKind;
+    private readonly Label _selectionSummary;
     private readonly Label _selectionPath;
+    private readonly VBoxContainer _technicalDetails;
+    private readonly CheckButton _technicalDetailsToggle;
     private readonly Button _selectionLock;
     private readonly ItemList _diagnosticList;
     private readonly Label _diagnosticSummary;
@@ -45,6 +47,7 @@ internal sealed class ForgeCreatorShell
     private readonly Dictionary<string, CreatorExplorerNode> _nodesByKey = new(StringComparer.Ordinal);
     private readonly Dictionary<string, TreeItem> _treeItemsByKey = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Button> _workspaceButtons = new(StringComparer.Ordinal);
+    private MenuButton? _advancedToolsButton;
     private readonly HBoxContainer _areaTabBar;
     private readonly HSplitContainer _shellBody;
     private readonly PanelContainer _explorerPanel;
@@ -182,13 +185,30 @@ internal sealed class ForgeCreatorShell
         _selectionKind = new Label { Text = "Choisissez un élément dans le projet" };
         _selectionKind.AddThemeColorOverride("font_color", new Color("d8c8ff"));
         inspectorContent.AddChild(_selectionKind);
+        _selectionSummary = new Label
+        {
+            Text = "La sélection est partagée entre les espaces.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        _selectionSummary.AddThemeColorOverride("font_color", new Color("b8adc8"));
+        inspectorContent.AddChild(_selectionSummary);
+        _technicalDetailsToggle = new CheckButton
+        {
+            Text = "Détails techniques",
+            TooltipText = "Afficher le chemin du document, son identifiant stable et sa version de schéma.",
+        };
+        inspectorContent.AddChild(_technicalDetailsToggle);
+        _technicalDetails = new VBoxContainer { Visible = false };
+        _technicalDetails.AddThemeConstantOverride("separation", 4);
+        inspectorContent.AddChild(_technicalDetails);
+        _technicalDetailsToggle.Toggled += visible => _technicalDetails.Visible = visible;
         _selectionPath = new Label
         {
             Text = "Le même contexte sera utilisé par tous les workspaces.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         };
         _selectionPath.AddThemeColorOverride("font_color", new Color("9f92b8"));
-        inspectorContent.AddChild(_selectionPath);
+        _technicalDetails.AddChild(_selectionPath);
 
         _diagnosticsPanel = CreatePanel("Diagnostics", new Color("0d0b17"), new Color("47365f"));
         _rightTabs.AddChild(_diagnosticsPanel);
@@ -302,8 +322,10 @@ internal sealed class ForgeCreatorShell
         SetDiagnostics([]);
     }
 
-    internal void ApplyShellConfiguration(EditorShellConfiguration configuration)
+    internal void ApplyWorkspaceProfile(EditorWorkspaceProfile profile)
     {
+        ArgumentNullException.ThrowIfNull(profile);
+        var configuration = profile.Shell;
         ArgumentNullException.ThrowIfNull(configuration);
         var layout = configuration.Layout;
         _explorerPanel.Visible = layout.ExplorerVisible;
@@ -315,6 +337,21 @@ internal sealed class ForgeCreatorShell
         _playtestConsole.CustomMinimumSize = new Vector2(0, layout.BottomHeight);
         if (_workspaceButtons.TryGetValue("Blueprints", out var palette)) palette.Visible = layout.PaletteVisible;
         if (_workspaceButtons.TryGetValue("Assistant", out var assistant)) assistant.Visible = layout.AssistantVisible;
+        var visiblePanels = profile.RolePolicy.VisiblePanels;
+        SetWorkspaceVisibility("Monde", visiblePanels.Contains(EditorPanel.Viewport));
+        SetWorkspaceVisibility("Blueprints", visiblePanels.Contains(EditorPanel.Palette));
+        SetWorkspaceVisibility("Dialogues", visiblePanels.Contains(EditorPanel.Dialogue));
+        SetWorkspaceVisibility("Quêtes", visiblePanels.Contains(EditorPanel.Quest));
+        SetWorkspaceVisibility("Scripts", visiblePanels.Contains(EditorPanel.Script));
+        SetWorkspaceVisibility("Assets", visiblePanels.Contains(EditorPanel.Assets));
+        SetWorkspaceVisibility("Validation",
+            profile.Role != EditorRole.Beginner && visiblePanels.Contains(EditorPanel.Diagnostics));
+        SetWorkspaceVisibility("Playtests", profile.RolePolicy.Allows(EditorPermission.RunPlaytests));
+        SetWorkspaceVisibility("Assistant", visiblePanels.Contains(EditorPanel.Assistant));
+        if (_advancedToolsButton is not null)
+        {
+            _advancedToolsButton.Visible = profile.Role != EditorRole.Beginner;
+        }
         _projectTree.TooltipText = $"Explorateur virtuel · {configuration.ExplorerGrouping}";
     }
 
@@ -365,6 +402,12 @@ internal sealed class ForgeCreatorShell
 
     internal int WorkspaceCount => _workspaceButtons.Count;
 
+    internal int AdvancedToolCount => AdvancedToolNames.Length;
+
+    internal int VisibleWorkspaceCount => _workspaceButtons.Values.Count(button => button.Visible);
+
+    internal bool TechnicalDetailsVisible => _technicalDetails.Visible;
+
     internal int ExplorerNodeCount => _nodesByKey.Count;
 
     internal int DiagnosticCount => _visibleDiagnostics.Length;
@@ -395,6 +438,7 @@ internal sealed class ForgeCreatorShell
         {
             _selectionTitle.Text = "Aucune sélection";
             _selectionKind.Text = "Choisissez un élément dans le projet";
+            _selectionSummary.Text = "La sélection est partagée entre les espaces.";
             _selectionPath.Text = "Le même contexte sera utilisé par tous les workspaces.";
             return;
         }
@@ -403,13 +447,15 @@ internal sealed class ForgeCreatorShell
         {
             _selectionTitle.Text = $"{selections.Count} éléments sélectionnés";
             _selectionKind.Text = "SÉLECTION MULTIPLE";
+            _selectionSummary.Text = "Les propriétés communes apparaîtront ici.";
             _selectionPath.Text = "Calcul des propriétés communes…";
             return;
         }
 
         var selection = selections[0];
         _selectionTitle.Text = selection.DisplayName;
-        _selectionKind.Text = $"{FormatSelectionKind(selection.Kind).ToUpperInvariant()} · {ShortId(selection.Id)}";
+        _selectionKind.Text = FormatSelectionKind(selection.Kind).ToUpperInvariant();
+        _selectionSummary.Text = "Prêt à être modifié dans l’espace actif.";
         _selectionPath.Text = selection.DocumentPath;
         SelectTreeItem($"{selection.Kind.ToString().ToLowerInvariant()}:{selection.Id}");
     }
@@ -421,8 +467,8 @@ internal sealed class ForgeCreatorShell
         var properties = inspection.CommonProperties.Select(property =>
             $"{property.DisplayName}: {(property.Mixed ? "valeurs mixtes" : property.Value ?? "—")}" +
             (property.Editable ? " · modifiable" : string.Empty));
-        _selectionPath.Text = string.Join("\n", properties) +
-            $"\nUUID {inspection.Id:D} · schéma v{inspection.SchemaVersion}";
+        _selectionSummary.Text = string.Join("\n", properties);
+        _selectionPath.Text = $"UUID {inspection.Id:D} · schéma v{inspection.SchemaVersion}";
     }
 
     internal void SetDiagnostics(IReadOnlyList<CreatorDiagnostic> diagnostics)
@@ -551,7 +597,35 @@ internal sealed class ForgeCreatorShell
             _workspaceButtons.Add(name, button);
         }
 
+        _advancedToolsButton = new MenuButton
+        {
+            Text = "Outils avancés",
+            TooltipText = "Données, réseau et administration en direct",
+            CustomMinimumSize = new Vector2(126, 34),
+        };
+        var advancedMenu = _advancedToolsButton.GetPopup();
+        for (var index = 0; index < AdvancedToolNames.Length; index++)
+        {
+            advancedMenu.AddItem(AdvancedToolNames[index], index);
+        }
+        advancedMenu.IdPressed += id =>
+        {
+            if (id >= 0 && id < AdvancedToolNames.Length)
+            {
+                WorkspaceRequested?.Invoke(AdvancedToolNames[id]);
+            }
+        };
+        bar.AddChild(_advancedToolsButton);
+
         return bar;
+    }
+
+    private void SetWorkspaceVisibility(string name, bool visible)
+    {
+        if (_workspaceButtons.TryGetValue(name, out var button))
+        {
+            button.Visible = visible;
+        }
     }
 
     internal void SetWorkspace(string name)

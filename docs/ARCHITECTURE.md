@@ -1,6 +1,7 @@
 # Architecture de référence
 
-Ce document résume les frontières à préserver. Le détail complet se trouve dans les sections 5 à 8 de `MEGACONTEXT.md` et les décisions dans `docs/ADR/`.
+Ce document résume les frontières à préserver. Le contexte produit et les principes structurants se
+trouvent dans `PROJECT_CONTEXT.md`; les décisions détaillées sont dans `docs/ADR/`.
 
 ## Flux principal
 

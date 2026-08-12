@@ -9,8 +9,8 @@ domaine versionné, application de création **Forge**, runtime 3D jouable, Forg
 l’ensemble localement. Forgotten Forest ajoute terrain canonique 512 × 512 m, caméra orbitale,
 4 617 instances de biome issues de 13 recettes, 17 modèles Poly Haven CC0 gouvernés, rivière
 animée, navigation de surface, quête, combat et export autonome. La tranche verticale G0 à G13 est
-fermée, mais la couverture fonctionnelle Aurora n’est pas complète : 207 des 717 exigences sont
-actuellement au statut `Tested`.
+fermée et les 717 exigences Aurora sont actuellement au statut `Tested`. Le chantier actif est la
+consolidation de la CI, de l’interface, de la distribution et de la qualité visuelle.
 
 Le lancement utilise un splash **OpenRPG_Forge** dédié, commun au runtime et à l’application de
 création. La fenêtre de l’application porte également le titre **OpenRPG_Forge**. Le visuel peut
@@ -21,7 +21,7 @@ création. La fenêtre de l’application porte également le titre **OpenRPG_Fo
 Lire dans cet ordre avant toute modification :
 
 1. [`AGENTS.md`](AGENTS.md)
-2. [`MEGACONTEXT.md`](MEGACONTEXT.md)
+2. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md)
 3. [`STATUS.md`](STATUS.md)
 4. [`TASKS_MVP.md`](TASKS_MVP.md)
 5. [`docs/planning/COMPLETE_FUNCTION_BACKLOG.md`](docs/planning/COMPLETE_FUNCTION_BACKLOG.md)
@@ -29,7 +29,8 @@ Lire dans cet ordre avant toute modification :
 7. [`docs/audits/COMPLETE_FUNCTION_COVERAGE_AUDIT_2026-08-07.md`](docs/audits/COMPLETE_FUNCTION_COVERAGE_AUDIT_2026-08-07.md)
 8. les ADR applicables dans [`docs/ADR/`](docs/ADR/)
 
-Le fichier [`README_FIRST.md`](README_FIRST.md) est le document d’accueil du paquet initial. Le méga-contexte reste la référence complète pour la vision et l’architecture.
+`PROJECT_CONTEXT.md` est l’unique vision produit, architecture, IA/MCP et graphique courante. Les
+anciens contextes initiaux et journaux de livraison ont été retirés pour éviter les contradictions.
 
 ## Graphe d’architecture
 
@@ -100,7 +101,7 @@ déplacer, tourner et supprimer des entités sur la grille, avec annuler/rétabl
 Cendres est ouverte par défaut. Le lanceur compile le Toolset, active Forward+ et écrit son journal
 dans `artifacts/verification/toolset-interactive.log`.
 
-Le bouton **Nouveau module** crée un workspace `1.16.0` dans un dossier dédié. L’assistant demande le
+Le bouton **Nouveau module** crée un workspace `1.28.0` dans un dossier dédié. L’assistant demande le
 type de première zone — intérieur ou extérieur sculptable — ainsi que sa largeur et sa profondeur,
 puis prépare son identité, un sol provisoire et un point de départ immédiatement éditables. Un dossier
 existant non vide est toujours refusé.
@@ -117,10 +118,10 @@ le changement par le bus de commandes avec révision et annuler/rétablir.
 Le bloc **Test du module** permet de choisir un point de départ et de lancer l’état courant sans le
 sauvegarder : Forge produit un snapshot temporaire, ouvre le runtime, affiche son rapport puis
 supprime le snapshot. La direction de l’interface complète est décrite dans
-[`docs/UX_AURORA_2026.md`](docs/UX_AURORA_2026.md).
+[`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
 
 L’espace **Dialogues** édite les nœuds, les choix, leurs conditions typées, leurs actions et leurs
-textes localisables, avec aperçu immédiat. Dialogues et quêtes sont stockés dans le workspace `1.16.0`,
+textes localisables, avec aperçu immédiat. Dialogues et quêtes sont stockés dans le workspace `1.28.0`,
 mutés par commandes transactionnelles et consommés directement par le runtime de la Crypte.
 
 L’espace **Validation** configure Editor, Client, DedicatedServer, Test et Shipping, gère le registre
@@ -130,6 +131,23 @@ l'archive partageable. Le host MCP
 officiel fournit résumé, révision, diagnostics, plans de dialogue prévisualisables/réversibles,
 compilation ForgeScript et agent de test sans exposer de shell. Le parcours complet est détaillé dans
 le [guide créateur](docs/CREATOR_GUIDE.md).
+
+La navigation principale contient exactement neuf espaces : **Monde**, **Blueprints**, **Dialogues**,
+**Quêtes**, **Scripts**, **Assets**, **Validation**, **Playtests** et **Assistant**. Données, Réseau et
+Live Director restent disponibles sous **Outils avancés**. Le profil Débutant commence avec les quatre
+espaces essentiels et l'aide contextuelle. La [revue Creator de bout en bout](docs/acceptance/CREATOR_END_TO_END.md)
+sert de procédure de qualification humaine.
+
+## Construire le runtime Windows autonome
+
+```powershell
+.\scripts\Build-RuntimeDistribution.ps1 -Force
+.\scripts\Verify-RuntimeDistribution.ps1 -RunSmoke
+```
+
+La distribution produite sous `artifacts/distribution/` se lance avec
+`OpenRPG_Forge_Runtime.exe`, contient ses modules inspectables et un manifeste SHA-256. Les détails et
+la création d'une archive ZIP sont dans [`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md).
 
 Le kit procédural de la Crypte suit les [conventions d’assets](docs/ASSET_CONVENTIONS.md) : unités,
 axes, pivots, nommage, formes de collision simples et traçabilité des licences.

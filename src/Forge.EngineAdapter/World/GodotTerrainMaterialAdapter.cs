@@ -54,6 +54,7 @@ public static class GodotTerrainMaterialAdapter
             ROUGHNESS = clamp(0.92 - broad * 0.13, 0.72, 0.95);
             METALLIC = 0.0;
             SPECULAR = 0.18;
+            EMISSION = color * 0.65;
             AO = 0.82 + broad * 0.16;
             AO_LIGHT_AFFECT = 0.68;
         }

@@ -2,10 +2,13 @@
 
 ## Périmètre de la Crypte des Cendres
 
-La tranche verticale n'embarque aucun modèle 3D, texture, police, musique, voix ou effet sonore
-provenant d'une banque externe. La zone finale utilise exclusivement :
+La couche artistique de la Crypte utilise neuf modèles issus de **KayKit Dungeon Remastered 1.0**
+par Kay Lousberg, sous licence **CC0-1.0**. Le détail, la source et le hash de l'archive sont conservés
+dans `apps/Forge.Runtime/art/crypt-kaykit/CREDITS.md`. La composition est originale OpenRPG Forge.
 
-- les primitives géométriques intégrées au moteur 3D (boîtes, cylindres, capsules et sphères) ;
+La couche de gameplay utilise encore :
+
+- des primitives géométriques intégrées au moteur 3D comme volumes physiques invisibles et effets ;
 - des matériaux, couleurs, lumières et collisions créés par le code original OpenRPG Forge ;
 - `openrpg_forge_splash.png`, visuel original généré spécifiquement pour ce dépôt et détenu par le
   projet OpenRPG Forge ;

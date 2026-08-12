@@ -49,6 +49,7 @@ jobs:
         run: |
           dotnet run --project tools/Forge.Cli --configuration Release --no-build -- docs check
           ./scripts/Update-AuroraParityTracker.ps1 -Check
+          ./scripts/Test-AuroraEvidencePaths.ps1
           ./scripts/Update-CompleteFunctionBacklog.ps1 -Check
           dotnet run --project tools/Forge.ArchitectureGraph --configuration Release --no-build -- check --full
 

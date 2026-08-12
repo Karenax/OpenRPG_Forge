@@ -14,7 +14,7 @@ public sealed class SourceScanner
 
     private static readonly HashSet<string> ExcludedDirectories = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".forge", ".git", ".godot", ".idea", ".mypy_cache", ".pytest_cache", ".ruff_cache",
+        ".artifacts", ".forge", ".git", ".godot", ".idea", ".mypy_cache", ".pytest_cache", ".ruff_cache",
         ".tmp", ".venv", ".vs", ".vscode", "__pycache__", "artifacts", "bin",
         "build", "coverage", "dist", "generated", "node_modules", "obj", "old",
         "target", "tmp", "vendor", "venv",

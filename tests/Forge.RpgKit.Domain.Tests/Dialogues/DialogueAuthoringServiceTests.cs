@@ -39,7 +39,7 @@ public sealed class DialogueAuthoringServiceTests
     [Fact]
     public void Controlled_ai_requires_citations_style_preview_lint_then_explicit_transaction()
     {
-        var brief = new DialogueAiBrief("A promise beneath the observatory", ["offer", "choice"], ["style:vigil"], ["MEGACONTEXT.md#veillee"], "fr", "author"); var preview = DialogueAuthoringService.PreviewAi(brief, _ => Graph()); Assert.True(preview.CanApply); Assert.False(preview.Applied); Assert.Contains("ai-preview", preview.SemanticDiff); Assert.Single(preview.Citations);
+        var brief = new DialogueAiBrief("A promise beneath the observatory", ["offer", "choice"], ["style:vigil"], ["PROJECT_CONTEXT.md"], "fr", "author"); var preview = DialogueAuthoringService.PreviewAi(brief, _ => Graph()); Assert.True(preview.CanApply); Assert.False(preview.Applied); Assert.Contains("ai-preview", preview.SemanticDiff); Assert.Single(preview.Citations);
         var applied = DialogueAuthoringService.ApplyAi(preview); Assert.True(applied.Applied); Assert.Contains("ai-apply", applied.SemanticDiff); Assert.Throws<InvalidOperationException>(() => DialogueAuthoringService.ApplyAi(applied));
         Assert.Throws<ArgumentException>(() => DialogueAuthoringService.PreviewAi(brief with { ContextCitations = [] }, _ => Graph()));
     }

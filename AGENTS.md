@@ -10,13 +10,16 @@ Le produit doit rester utilisable sans IA, sans abonnement et sans outil propri�
 
 Avant toute modification importante, lire :
 
-1. `MEGACONTEXT.md`
+1. `PROJECT_CONTEXT.md`
 2. `STATUS.md`
 3. `TASKS_MVP.md`
 4. `docs/planning/COMPLETE_FUNCTION_BACKLOG.md`
 5. `tracking/project/AURORA_PARITY_COVERAGE.csv`
 6. les ADR applicables dans `docs/ADR/`
 7. la documentation spécialisée du sous-système concerné
+
+`PROJECT_CONTEXT.md` est l'unique contexte narratif courant. Ne pas recréer de méga-contexte,
+README initial ou journal de livraison parallèle. Les historiques Git et les preuves liées suffisent.
 
 Une décision enregistrée dans un ADR ne doit pas être renversée silencieusement. Proposer un nouvel ADR de remplacement.
 

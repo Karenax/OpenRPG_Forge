@@ -11,7 +11,7 @@ Cet audit ne change aucun statut fonctionnel du tracker et n'implémente aucun c
 - catalogue clean-room immuable `Divers/OpenRPG_Forge_Aurora_Feature_Dossier/feature_catalog.csv` ;
 - tracker projet généré `tracking/project/AURORA_PARITY_COVERAGE.csv` ;
 - 168 fiches existantes sous `docs/aurora-parity/tasks/` ;
-- `MEGACONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, la roadmap et le plan de livraison Aurora ;
+- `PROJECT_CONTEXT.md`, `STATUS.md`, `TASKS_MVP.md`, la roadmap et le plan de livraison Aurora ;
 - backlog et état Asset Vault/Forgotten Forest ;
 - code, tests et preuves uniquement par les liens déjà portés par le tracker et le portail intégré.
 

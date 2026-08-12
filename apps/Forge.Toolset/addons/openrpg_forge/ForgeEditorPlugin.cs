@@ -200,6 +200,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         "playtests"));
 
     private Control? _mainPanel;
+    private Window? _activeWorkspaceToolWindow;
     private Label? _statusLabel;
     private Label? _detailsLabel;
     private Label? _projectPathLabel;
@@ -991,6 +992,9 @@ public partial class ForgeEditorPlugin : EditorPlugin
         ConnectSignals();
 
         EditorInterface.Singleton.GetEditorMainScreen().AddChild(_mainPanel);
+        // Window flags can be normalized only after every specialized workspace has entered the
+        // editor tree; applying earlier lets the native window backend restore stale defaults.
+        CreatorWindowLayoutPolicy.Apply(_mainPanel);
         SetProcess(true);
         SetProcessInput(true);
         EnsureForgeWindowTitle();
@@ -2298,73 +2302,105 @@ public partial class ForgeEditorPlugin : EditorPlugin
         _creatorShell?.SetWorkspace(workspace);
         if (string.Equals(workspace, "Dialogues", StringComparison.Ordinal))
         {
-            OpenDialogueEditor();
+            OpenWorkspaceTool(_dialogueEditor, OpenDialogueEditor);
             return;
         }
 
         if (string.Equals(workspace, "Quêtes", StringComparison.Ordinal))
         {
-            _questJournalWindow?.Open();
+            OpenWorkspaceTool(_questJournalWindow, () => _questJournalWindow?.Open());
             return;
         }
 
         if (string.Equals(workspace, "Blueprints", StringComparison.Ordinal))
         {
-            OpenBlueprintCatalog();
+            OpenWorkspaceTool(_blueprintCatalog, OpenBlueprintCatalog);
             return;
         }
 
         if (string.Equals(workspace, "Scripts", StringComparison.Ordinal))
         {
-            _forgeScriptEditor?.Open();
+            OpenWorkspaceTool(_forgeScriptEditor, () => _forgeScriptEditor?.Open());
             return;
         }
 
         if (string.Equals(workspace, "Assets", StringComparison.Ordinal))
         {
-            _assetBrowser?.Open();
+            OpenWorkspaceTool(_assetBrowser, () => _assetBrowser?.Open());
             return;
         }
 
         if (string.Equals(workspace, "Données", StringComparison.Ordinal))
         {
-            _contentPackageWindow?.Open();
+            OpenWorkspaceTool(_contentPackageWindow, () => _contentPackageWindow?.Open());
             return;
         }
 
         if (string.Equals(workspace, "Validation", StringComparison.Ordinal))
         {
-            _distributionProfiles?.Open();
+            OpenWorkspaceTool(_distributionProfiles, () => _distributionProfiles?.Open());
             return;
         }
 
         if (string.Equals(workspace, "Assistant", StringComparison.Ordinal))
         {
-            _assistantWorkspace?.Open();
+            OpenWorkspaceTool(_assistantWorkspace, () => _assistantWorkspace?.Open());
             return;
         }
 
         if (string.Equals(workspace, "Réseau", StringComparison.Ordinal))
         {
-            _networkBetaWindow?.Open();
+            OpenWorkspaceTool(_networkBetaWindow, () => _networkBetaWindow?.Open());
             return;
         }
 
         if (string.Equals(workspace, "Live Director", StringComparison.Ordinal))
         {
-            _liveDirectorWindow?.Open();
+            OpenWorkspaceTool(_liveDirectorWindow, () => _liveDirectorWindow?.Open());
             return;
         }
 
         if (string.Equals(workspace, "Monde", StringComparison.Ordinal))
         {
+            HideActiveWorkspaceTool();
             _statusLabel!.Text = "✓ Workspace Monde actif";
             _detailsLabel!.Text = "Explorateur, sélection, aperçu et diagnostics partagent le projet courant.";
             return;
         }
 
-        _statusLabel!.Text = $"Espace {workspace} préparé dans la coque Creator";
-        _detailsLabel!.Text = "Son workflow spécialisé sera livré par un incrément Creator dédié.";
+        if (string.Equals(workspace, "Playtests", StringComparison.Ordinal))
+        {
+            HideActiveWorkspaceTool();
+            _statusLabel!.Text = "✓ Espace Playtests actif";
+            _detailsLabel!.Text = "Choisissez un point de départ puis lancez le module depuis la barre inférieure.";
+            return;
+        }
+
+        _statusLabel!.Text = $"Espace {workspace} actif";
+        _detailsLabel!.Text = "Le contexte du projet et la sélection sont conservés entre les espaces.";
+    }
+
+    private void OpenWorkspaceTool(Window? window, Action open)
+    {
+        if (_activeWorkspaceToolWindow is not null &&
+            _activeWorkspaceToolWindow != window &&
+            GodotObject.IsInstanceValid(_activeWorkspaceToolWindow))
+        {
+            _activeWorkspaceToolWindow.Hide();
+        }
+
+        open();
+        _activeWorkspaceToolWindow = window;
+    }
+
+    private void HideActiveWorkspaceTool()
+    {
+        if (_activeWorkspaceToolWindow is not null && GodotObject.IsInstanceValid(_activeWorkspaceToolWindow))
+        {
+            _activeWorkspaceToolWindow.Hide();
+        }
+
+        _activeWorkspaceToolWindow = null;
     }
 
     private void HandleExplorerSelection(CreatorExplorerNode node)
@@ -2794,7 +2830,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         EditorWorkspaceProfileStore.Save(_projectSession.RootDirectory, profile);
         _projectPreview?.SetDisplayFilter(profile.DisplayFilter);
         _projectPreview?.SetEditorMode(profile.Shell.ViewportMode);
-        _creatorShell?.ApplyShellConfiguration(profile.Shell);
+        _creatorShell?.ApplyWorkspaceProfile(profile);
         ApplyEditorExperience(profile);
         RefreshCreatorShell();
         GD.Print("OPENRPG_FORGE_WORKSPACE_PROFILE_SAVED");
@@ -6613,7 +6649,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         var project = _history.State.Project;
         var profile = LoadWorkspaceProfile();
         _creatorShell.SetProject(CreatorProjectExplorer.Build(project, profile.Shell.ExplorerGrouping));
-        _creatorShell.ApplyShellConfiguration(profile.Shell);
+        _creatorShell.ApplyWorkspaceProfile(profile);
         _projectPreview?.SetEditorMode(profile.Shell.ViewportMode);
         _creatorShell.SetDiagnostics(CreatorDiagnostics.FromProject(
             project,
@@ -6812,6 +6848,11 @@ public partial class ForgeEditorPlugin : EditorPlugin
             return;
         }
 
+        GD.Print(
+            "OPENRPG_FORGE_CREATOR_PRODUCT_JOURNEY_PASS " +
+            "project=new-module areas=interior-exterior assets=governed-placement " +
+            "rpg=creature-item-door-trigger-encounter-faction narrative=dialogue-quest-script " +
+            "validation=quickfix-undo-redo playtest=snapshot-runtime export=orpmod-roundtrip assistant=governed");
         GD.Print(
             $"OPENRPG_FORGE_TOOLSET_T32_SMOKE_PASS spawn={snapshot.SpawnEntityId} snapshot=deleted logs=captured");
     }
@@ -7638,7 +7679,7 @@ public partial class ForgeEditorPlugin : EditorPlugin
         }
 
         var entity = _history.State.Project.Areas.First().Entities.First();
-        if (_creatorShell.WorkspaceCount != 12 ||
+        if (_creatorShell.WorkspaceCount != 9 || _creatorShell.AdvancedToolCount != 3 ||
             _creatorShell.ExplorerNodeCount <= _history.State.Project.Areas.Sum(area => area.Entities.Count) ||
             !_creatorShell.SelectNodeForSmokeTest($"entity:{entity.Id}") ||
             _selectionContext.Current.Count != 1 ||
@@ -7732,10 +7773,25 @@ public partial class ForgeEditorPlugin : EditorPlugin
             GD.PrintErr($"OPENRPG_FORGE_TOOLSET_R032_SHELL_FOUNDATION_FAILED {shellFailure}");
             return false;
         }
-        // Preserve the historical G7.02 acceptance marker while G9 reports the expanded total.
-        GD.Print($"OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9 explorer={_creatorShell.ExplorerNodeCount} selection=shared diagnostics=clickable");
-        GD.Print($"OPENRPG_FORGE_TOOLSET_G9_NETWORK_UI_PASS workspace=network total={_creatorShell.WorkspaceCount}");
-        GD.Print($"OPENRPG_FORGE_TOOLSET_G10_LIVE_DIRECTOR_UI_PASS workspace=live-director total={_creatorShell.WorkspaceCount}");
+        var beginnerProfile = EditorWorkspaceProfile.CreateDefault(EditorRole.Beginner,
+            originalProfile.ActiveAreaId ?? _history.State.Project.Areas[0].Id);
+        _creatorShell.ApplyWorkspaceProfile(beginnerProfile);
+        var beginnerWorkspaceCount = _creatorShell.VisibleWorkspaceCount;
+        _creatorShell.ApplyWorkspaceProfile(originalProfile);
+        if (beginnerWorkspaceCount != 4)
+        {
+            GD.PrintErr($"OPENRPG_FORGE_TOOLSET_G702_SHELL_FAILED beginner_workspaces={beginnerWorkspaceCount}");
+            return false;
+        }
+        if (!CreatorWindowLayoutPolicy.IsResponsive(_mainPanel!, out var responsiveWindowCount) ||
+            _creatorShell.TechnicalDetailsVisible)
+        {
+            GD.PrintErr("OPENRPG_FORGE_TOOLSET_G702_SHELL_FAILED responsive_layout");
+            return false;
+        }
+        GD.Print($"OPENRPG_FORGE_TOOLSET_G702_SHELL_PASS workspaces=9 beginner=4 advanced=3 explorer={_creatorShell.ExplorerNodeCount} selection=shared diagnostics=clickable responsive_windows={responsiveWindowCount} technical_details=collapsed");
+        GD.Print("OPENRPG_FORGE_TOOLSET_G9_NETWORK_UI_PASS workspace=network navigation=advanced-tools");
+        GD.Print("OPENRPG_FORGE_TOOLSET_G10_LIVE_DIRECTOR_UI_PASS workspace=live-director navigation=advanced-tools");
         GD.Print(
             "OPENRPG_FORGE_TOOLSET_R032_SHELL_FOUNDATION_PASS " +
             "panels=explorer-viewport-inspector-palette-diagnostics-assistant layout=persisted " +

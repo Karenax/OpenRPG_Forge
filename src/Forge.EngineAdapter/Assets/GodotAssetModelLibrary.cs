@@ -36,7 +36,9 @@ public sealed class GodotAssetModelLibrary
     {
         var id = AssetCatalogItemId.Parse(assetId);
         var scene = LoadScene(id);
-        return scene.Instantiate<Node3D>();
+        var instance = scene.Instantiate<Node3D>();
+        PruneImportHelperMeshes(instance);
+        return instance;
     }
 
     public Mesh? ResolveScatterMesh(string resource)
@@ -46,7 +48,7 @@ public sealed class GodotAssetModelLibrary
         var instance = Instantiate(resource[prefix.Length..]);
         try
         {
-            return FindFirstMesh(instance)?.Mesh;
+            return FindPrimaryMesh(instance)?.Mesh;
         }
         finally
         {
@@ -138,14 +140,51 @@ public sealed class GodotAssetModelLibrary
         return absolute;
     }
 
-    private static MeshInstance3D? FindFirstMesh(Node root)
+    private static MeshInstance3D? FindPrimaryMesh(Node root)
     {
-        if (root is MeshInstance3D mesh && mesh.Mesh is not null) return mesh;
-        foreach (Node child in root.GetChildren())
+        return EnumerateMeshes(root)
+            .OrderByDescending(VertexCount)
+            .ThenByDescending(candidate => candidate.Mesh?.GetSurfaceCount() ?? 0)
+            .FirstOrDefault();
+    }
+
+    private static void PruneImportHelperMeshes(Node root)
+    {
+        var meshes = EnumerateMeshes(root).ToArray();
+        if (meshes.Length < 2) return;
+        var primary = meshes
+            .OrderByDescending(VertexCount)
+            .ThenByDescending(candidate => candidate.Mesh?.GetSurfaceCount() ?? 0)
+            .First();
+        var primaryVertices = VertexCount(primary);
+        foreach (var candidate in meshes)
         {
-            var found = FindFirstMesh(child);
-            if (found is not null) return found;
+            if (candidate == primary ||
+                !candidate.Name.ToString().Equals("Cube", StringComparison.OrdinalIgnoreCase) ||
+                VertexCount(candidate) > 36 ||
+                primaryVertices < VertexCount(candidate) * 4)
+                continue;
+            candidate.GetParent()?.RemoveChild(candidate);
+            candidate.Free();
         }
-        return null;
+    }
+
+    private static IEnumerable<MeshInstance3D> EnumerateMeshes(Node root)
+    {
+        if (root is MeshInstance3D { Mesh: not null } mesh) yield return mesh;
+        foreach (Node child in root.GetChildren())
+            foreach (var descendant in EnumerateMeshes(child))
+                yield return descendant;
+    }
+
+    private static int VertexCount(MeshInstance3D candidate)
+    {
+        if (candidate.Mesh is null) return 0;
+        var count = 0;
+        for (var surface = 0; surface < candidate.Mesh.GetSurfaceCount(); surface++)
+            count += candidate.Mesh is ArrayMesh arrayMesh
+                ? arrayMesh.SurfaceGetArrayLen(surface)
+                : 1;
+        return count;
     }
 }

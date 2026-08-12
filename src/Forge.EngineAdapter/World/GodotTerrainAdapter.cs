@@ -272,7 +272,6 @@ public static class GodotTerrainAdapter
             AddRoadVertex(surface, right[index + 1], new Vector2(1, v1));
         }
 
-        surface.GenerateNormals();
         var mesh = surface.Commit();
         mesh.SurfaceSetMaterial(0, GodotTerrainMaterialAdapter.BuildRoad(FeatureColor(TerrainFeatureKind.Road)));
         return new MeshInstance3D
@@ -284,6 +283,9 @@ public static class GodotTerrainAdapter
 
     private static void AddRoadVertex(SurfaceTool surface, Vector3 position, Vector2 uv)
     {
+        // Authored splines may run in either direction. A generated winding normal can
+        // therefore point below the terrain and turn an otherwise valid road almost black.
+        surface.SetNormal(Vector3.Up);
         surface.SetUV(uv);
         surface.AddVertex(position);
     }

@@ -139,6 +139,7 @@ public sealed class RoslynArchitectureGraphTests : IDisposable
     {
         Write("node_modules/package/ignored.cs", "public sealed class Ignored {}\n");
         Write("src/Domain/bin/ignored.cs", "public sealed class IgnoredBuild {}\n");
+        Write(".artifacts/local/editor-settings.json", "{}\n");
         Write("src/Domain/.forge/generated.json", "{}\n");
         Write("src/Domain/secrets.sqlite", "not a database fixture");
         Write(".env", "SECRET=ignored");
@@ -147,6 +148,7 @@ public sealed class RoslynArchitectureGraphTests : IDisposable
 
         Assert.DoesNotContain(paths, path => path.Contains("node_modules", StringComparison.Ordinal));
         Assert.DoesNotContain(paths, path => path.Contains("/bin/", StringComparison.Ordinal));
+        Assert.DoesNotContain(paths, path => path.Contains(".artifacts", StringComparison.Ordinal));
         Assert.DoesNotContain(paths, path => path.Contains("/.forge/", StringComparison.Ordinal));
         Assert.DoesNotContain(paths, path => path.EndsWith(".sqlite", StringComparison.Ordinal));
         Assert.DoesNotContain(".env", paths);

@@ -20,7 +20,7 @@ public sealed class QuestQualityServiceTests
     [Fact]
     public void Ai_quest_requires_citations_states_participants_dependencies_style_lint_and_human_approval()
     {
-        var quest = Quest(); var context = Context(quest); var brief = new QuestAiBrief("Restore the vigil", ["hidden", "active", "completed"], ["guide"], ["zone:observatory", "creature:lyra", "transition:offer"], ["MEGACONTEXT.md#veillee"], ["style:vigil"], "agent:forge");
+        var quest = Quest(); var context = Context(quest); var brief = new QuestAiBrief("Restore the vigil", ["hidden", "active", "completed"], ["guide"], ["zone:observatory", "creature:lyra", "transition:offer"], ["PROJECT_CONTEXT.md"], ["style:vigil"], "agent:forge");
         var preview = QuestQualityService.PreviewAi(brief, context, _ => quest); Assert.True(preview.CanApply); Assert.False(preview.HumanApproved); Assert.False(preview.Applied); Assert.Contains("ai-preview", preview.SemanticDiff); Assert.Throws<InvalidOperationException>(() => QuestQualityService.Apply(preview));
         var approved = QuestQualityService.Approve(preview, "author:karen"); var applied = QuestQualityService.Apply(approved); Assert.True(applied.HumanApproved); Assert.True(applied.Applied); Assert.Contains("ai-apply", applied.SemanticDiff); Assert.Throws<InvalidOperationException>(() => QuestQualityService.Apply(applied));
     }

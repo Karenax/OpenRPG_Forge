@@ -25,9 +25,10 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         Assert.Equal(1024, area.World.Loading.CacheBudgetMegabytes);
         Assert.Equal(2, area.World.Loading.ChunkRadius);
         Assert.Equal(13, area.World.Biomes.Count);
-        Assert.All(area.World.Biomes, biome => Assert.Equal(
-            "curated-pack:forgotten-forest-polyhaven-environment@1.1.0",
-            biome.Provenance));
+        Assert.Equal(10, area.World.Biomes.Count(biome => biome.Provenance ==
+            "curated-pack:forgotten-forest-polyhaven-environment@1.1.0"));
+        Assert.Equal(3, area.World.Biomes.Count(biome => biome.Provenance ==
+            "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest"));
         Assert.Equal(6, area.World.Features.Count);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.River);
         Assert.Contains(area.World.Features, feature => feature.Kind == TerrainFeatureKind.Bridge);
@@ -61,17 +62,21 @@ public sealed class ForgottenForestModuleAuthoringServiceTests
         var expectedScatterAssets = new[]
         {
             "dead_tree_trunk", "didelta_spinosa", "dry_branches_medium_01", "fern_02",
-            "fir_sapling", "fir_sapling_medium", "grass_medium_01", "moss_01",
-            "pine_sapling_small", "rock_moss_set_01", "rock_moss_set_02", "tree_stump_01",
+            "grass_medium_01", "moss_01", "rock_moss_set_01", "rock_moss_set_02", "tree_stump_01",
             "tree_stump_02",
         }.Select(key => $"asset:{ForgottenForestModuleAuthoringService.PolyHavenAssetId(key)}")
+            .Concat([
+                $"asset:{AssetCatalogItemId.ForExternalId("kenney:mini-forest:tree")}",
+                $"asset:{AssetCatalogItemId.ForExternalId("kenney:mini-forest:tree")}",
+                $"asset:{AssetCatalogItemId.ForExternalId("kenney:mini-forest:tree-high")}",
+            ])
             .Order(StringComparer.Ordinal)
             .ToArray();
         Assert.Equal(expectedScatterAssets,
             area.World.Biomes.Select(biome => biome.ScatterResource).Order(StringComparer.Ordinal).ToArray());
         Assert.Equal(3, area.World.Biomes.Count(biome =>
             biome.Tags.Contains("tree", StringComparer.OrdinalIgnoreCase) &&
-            biome.Tags.Contains("scale:4", StringComparer.OrdinalIgnoreCase)));
+            biome.Tags.Any(tag => tag.StartsWith("scale:", StringComparison.OrdinalIgnoreCase))));
         Assert.Contains(area.Entities, entity => entity.Tags.Contains("ship", StringComparer.Ordinal) &&
             entity.Transform.Position.X is > -8 and < 8 && entity.Transform.Position.Z is > -8 and < 8 &&
             entity.Overrides.Properties.Any(property =>

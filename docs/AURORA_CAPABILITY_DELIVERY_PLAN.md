@@ -51,5 +51,5 @@ Chaque lot doit fournir :
 Les lots Asset/Map restants sont `OPTIONAL_POST_DEMO` conformément à
 `planning/ASSET_SCOPE_DECISION_2026-08-07.md`. Ils ne bloquent pas la complétude des 717 fonctions.
 
-Le plan historique G0 à G13 est archivé dans
-`history/AURORA_CAPABILITY_DELIVERY_PLAN_2026-08-07.md`.
+L’historique détaillé G0 à G13 reste traçable dans Git et dans les fiches d’acceptation liées aux
+fonctions. Aucun second contexte narratif n’est maintenu.

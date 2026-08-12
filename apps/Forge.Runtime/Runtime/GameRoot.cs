@@ -3447,6 +3447,12 @@ public partial class GameRoot : Node3D
 
     private void CreateFinalCryptAtmosphere()
     {
+        var artPass = CryptArtKitDecorator.Build();
+        AddChild(artPass.Root);
+        _runtimeModelInstances += artPass.ModelInstances;
+        GD.Print($"OPENRPG_FORGE_CRYPT_ART_PASS models={artPass.ModelInstances} " +
+                 $"floors={artPass.FloorTiles} walls={artPass.WallSegments} props={artPass.Props} " +
+                 "source=kaykit-dungeon-remastered license=CC0-1.0 collisions=gameplay-layer");
         var torchPositions = new[]
         {
             new Vector3(-7.8f, 0, 8),
@@ -3458,20 +3464,8 @@ public partial class GameRoot : Node3D
         };
         foreach (var position in torchPositions)
         {
-            var torch = new Node3D { Name = "EmberBrazier", Position = position };
+            var torch = new Node3D { Name = "EmberLight", Position = position };
             AddChild(torch);
-            torch.AddChild(new MeshInstance3D
-            {
-                Position = new Vector3(0, 0.35f, 0),
-                Mesh = new CylinderMesh { TopRadius = 0.18f, BottomRadius = 0.3f, Height = 0.7f },
-                MaterialOverride = CreateMaterial(new Color("4a3448")),
-            });
-            torch.AddChild(new MeshInstance3D
-            {
-                Position = new Vector3(0, 0.86f, 0),
-                Mesh = new SphereMesh { Radius = 0.18f, Height = 0.36f },
-                MaterialOverride = CreateMaterial(new Color("ff7043"), emission: true),
-            });
             torch.AddChild(new OmniLight3D
             {
                 Position = new Vector3(0, 1.05f, 0),
@@ -3490,20 +3484,6 @@ public partial class GameRoot : Node3D
             MaterialOverride = CreateMaterial(new Color("8e3828"), emission: true),
         };
         AddChild(rune);
-
-        CreateDecorativeBeam(new Vector3(0, 3.15f, 4.5f), new Vector3(17, 0.35f, 0.45f));
-        CreateDecorativeBeam(new Vector3(0, 3.15f, -4.5f), new Vector3(17, 0.35f, 0.45f));
-    }
-
-    private void CreateDecorativeBeam(Vector3 position, Vector3 size)
-    {
-        AddChild(new MeshInstance3D
-        {
-            Name = "CryptVaultBeam",
-            Position = position,
-            Mesh = new BoxMesh { Size = size },
-            MaterialOverride = CreateMaterial(new Color("372f45")),
-        });
     }
 
     private bool TryAttachVisual(Node parent, EntityInstance entity, bool applyPlayerVisualTransform = false)

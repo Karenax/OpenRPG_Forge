@@ -1904,9 +1904,9 @@
       "lighting": {
         "mode": "alwaysDay",
         "dayLengthMinutes": 24,
-        "ambientIntensity": 0.32,
-        "directionalIntensity": 1.32,
-        "colorTemperatureKelvin": 5100,
+        "ambientIntensity": 0.55,
+        "directionalIntensity": 1.58,
+        "colorTemperatureKelvin": 5600,
         "hdr": true,
         "shadows": true
       },
@@ -1960,7 +1960,7 @@
         "perPixelLighting": true,
         "materialInstances": true,
         "hdrOutput": true,
-        "exposure": 1,
+        "exposure": 1.12,
         "whitePoint": 6,
         "lutResource": "",
         "lightBudgets": [
@@ -1986,11 +1986,11 @@
         "panoramaResource": "",
         "zenithColor": "#4f83ad",
         "horizonColor": "#e8c896",
-        "groundColor": "#354b35",
+        "groundColor": "#4b6048",
         "starIntensity": 0.04,
         "cloudCoverage": 0.12,
         "moonIntensity": 0.04,
-        "energyMultiplier": 0.82,
+        "energyMultiplier": 1.05,
         "transitionSeconds": 2
       },
       "wind": {
@@ -18849,13 +18849,13 @@
           "minimumMoisture": 0,
           "maximumMoisture": 1,
           "scatterDensity": 0.22,
-          "scatterResource": "asset:8a19a636-61ae-7954-939c-c1f8d946298c",
+          "scatterResource": "asset:fb80555d-630c-0254-ad83-67dcc49768e0",
           "tags": [
             "canopy",
             "fir",
             "forest",
             "meter-scale",
-            "scale:4",
+            "scale:5",
             "tree"
           ],
           "exclusionTags": [
@@ -18864,7 +18864,7 @@
             "road"
           ],
           "priority": 50,
-          "provenance": "curated-pack:forgotten-forest-polyhaven-environment@1.1.0"
+          "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest"
         },
         {
           "id": "6a0a7661-a1a4-3c5f-888e-289c8dbcc616",
@@ -18877,12 +18877,12 @@
           "minimumMoisture": 0,
           "maximumMoisture": 1,
           "scatterDensity": 0.18,
-          "scatterResource": "asset:5b14c277-cde3-9c5c-828a-829e94d04763",
+          "scatterResource": "asset:102b1f1b-385f-6d52-9159-eba2bec47d6b",
           "tags": [
             "forest",
             "meter-scale",
             "pine",
-            "scale:4",
+            "scale:2.8",
             "tree",
             "understory"
           ],
@@ -18892,7 +18892,7 @@
             "road"
           ],
           "priority": 49,
-          "provenance": "curated-pack:forgotten-forest-polyhaven-environment@1.1.0"
+          "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest"
         },
         {
           "id": "9fc961e6-c2dc-b05a-9022-e9926e362451",
@@ -18980,12 +18980,12 @@
           "minimumMoisture": 0,
           "maximumMoisture": 1,
           "scatterDensity": 0.28,
-          "scatterResource": "asset:a21f53d8-b2bf-1a5c-8a29-16b5fd02e002",
+          "scatterResource": "asset:102b1f1b-385f-6d52-9159-eba2bec47d6b",
           "tags": [
             "fir",
             "forest",
             "meter-scale",
-            "scale:4",
+            "scale:3.5",
             "tree",
             "understory"
           ],
@@ -18995,7 +18995,7 @@
             "road"
           ],
           "priority": 40,
-          "provenance": "curated-pack:forgotten-forest-polyhaven-environment@1.1.0"
+          "provenance": "curated-pack:forgotten-forest-core@1.0.0;source:kenney:mini-forest"
         },
         {
           "id": "0f8ecf7d-931a-1958-8771-5beccbec85b2",

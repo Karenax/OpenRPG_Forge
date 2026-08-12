@@ -516,7 +516,7 @@ public partial class CreatorWorkspaceWindow : Window
     }
 
     internal static string ContextualHelpContent =>
-        "[b]Affichage[/b]\nCombinez types, tags, auteur et état. L’isolation suit la sélection; le mode fantôme conserve le contexte.\n\n[b]Zones[/b]\nLa zone active est l’unique cible des commandes. La comparaison est en lecture seule.\n\n[b]Placement[/b]\nLigne, grille ou dispersion déterministe partent des coordonnées X/Z du bandeau Monde et forment une seule entrée d’historique.\n\n[b]Dépendances[/b]\nBlueprint sélectionné + zone active + grille valide.\n\n[color=#79d5ad]Sources locales: docs/aurora-parity/tasks/G7-20-CREATOR-PRODUCTIVITY.md; MEGACONTEXT.md[/color]";
+        "[b]Affichage[/b]\nCombinez types, tags, auteur et état. L’isolation suit la sélection; le mode fantôme conserve le contexte.\n\n[b]Zones[/b]\nLa zone active est l’unique cible des commandes. La comparaison est en lecture seule.\n\n[b]Placement[/b]\nLigne, grille ou dispersion déterministe partent des coordonnées X/Z du bandeau Monde et forment une seule entrée d’historique.\n\n[b]Dépendances[/b]\nBlueprint sélectionné + zone active + grille valide.\n\n[color=#79d5ad]Sources locales: docs/aurora-parity/tasks/G7-20-CREATOR-PRODUCTIVITY.md; PROJECT_CONTEXT.md[/color]";
 
     private void RefreshHelp() => _help!.Text = !_helpEnabled!.ButtonPressed ? "Aide masquée." : ContextualHelpContent;
 

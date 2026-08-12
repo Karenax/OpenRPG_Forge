@@ -8,6 +8,7 @@ obj/
 .vscode/
 .idea/
 .forge/
+.artifacts/
 __pycache__/
 .pytest_cache/
 *.py[cod]
@@ -20,6 +21,14 @@ __pycache__/
 !.env.example
 artifacts/
 tmp/
+
+# Godot regenerates these import sidecars and embedded GLB textures on first import.
+# Source models and their explicit provenance files remain versioned.
+apps/Forge.Runtime/art/**/*.import
+apps/Forge.Runtime/art/crypt-kaykit/*_dungeon_texture.png
+apps/Forge.Runtime/content/forgotten-forest/assets/imported/polyhaven-*/*.import
+apps/Forge.Runtime/content/forgotten-forest/assets/imported/polyhaven-*/model_*_*.jpg
+apps/Forge.Runtime/content/forgotten-forest/assets/imported/polyhaven-*/model_*_*.png
 
 # OS files
 Thumbs.db

@@ -2721,7 +2721,7 @@ public partial class DialogueEditorWindow : Window
             Guid.Parse("d0705000-0000-4000-8000-000000000402"),
             Guid.Parse("d0705000-0000-4000-8000-000000000403"), DialogueAiAuthorizationLevel.AuthorApply,
             "Une promesse sous la crypte.", ["offre", "choix"], ["style:embers"],
-            ["OpenRPG_Forge_MEGACONTEXT.md#dialogue"], "add-subgraph:embers|nodes:1", [], true, false);
+            ["PROJECT_CONTEXT.md"], "add-subgraph:embers|nodes:1", [], true, false);
         return new DialogueProductionProfile(Guid.Parse("d0705000-0000-4000-8000-000000000010"), 1,
             provenance, true, true, [contract], [invocation], consequences, coverage, collaboration, [ai]);
     }

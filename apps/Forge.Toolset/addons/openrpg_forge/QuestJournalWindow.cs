@@ -334,7 +334,7 @@ public partial class QuestJournalWindow : Window
         Select(_notesStatus!, QuestEditorialStatus.Review);
         _notesRisks!.Text = "complexité des branches";
         _notesTodos!.Text = "enregistrer les voix";
-        _notesSources!.Text = "08_QUEST.md\nOpenRPG_Forge_MEGACONTEXT.md";
+        _notesSources!.Text = "08_QUEST.md\nPROJECT_CONTEXT.md";
         _notesReviews!.Text = "reviewer:elyra|Review|Structure et canon vérifiés";
         _authoringParticipants!.Text = "guide|Blueprint|elyra-npc|quest:active|true";
         _wizardZones!.Text = "crypt-of-ashes";
@@ -410,7 +410,7 @@ public partial class QuestJournalWindow : Window
             $"Zone|{candidate.Authoring.Wizard.ZoneIds[0]}",
             "Asset|asset:quest-generation-model",
         });
-        _qualityCitations!.Text = "08_QUEST.md#orf-qst-025\nOpenRPG_Forge_MEGACONTEXT.md#quest";
+        _qualityCitations!.Text = "08_QUEST.md#orf-qst-025\nPROJECT_CONTEXT.md";
         _qualityStyleRules!.Text = "style:crypt\nstyle:human-review";
         _qualityRequestedBy!.Text = "agent:forge";
         _qualityApproved!.ButtonPressed = true;

@@ -41,7 +41,10 @@ public partial class RuntimeDeclarativeUi : CanvasLayer
             dock.AnchorRight = 0.98f;
             dock.OffsetLeft = 0;
             dock.OffsetRight = 0;
-            dock.OffsetTop = 24;
+            // Keep scriptable module UI below the persistent objective tracker. Both panels live
+            // on the right edge at gameplay resolutions and previously competed for the same
+            // top-right space, making the objective unreadable at 1280x720.
+            dock.OffsetTop = 164;
         }
         foreach (var document in profile.UiDocuments)
             dock.AddChild(BuildDocument(document));
