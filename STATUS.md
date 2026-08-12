@@ -1,6 +1,6 @@
 # État vérifié — OpenRPG Forge
 
-Dernière mise à jour : 12 août 2026.
+Dernière mise à jour : 13 août 2026.
 
 ## Verdict
 
@@ -65,6 +65,16 @@ qualification humaine de release publique.
 - une revue sur un second écran physique et avec un fournisseur IA réel reste une qualification
   humaine de release, pas un blocage du prototype local.
 
+## Publication Git
+
+- consolidation publiée sur `origin/main` au commit `592300617bba20a446e140786435a32640573081` ;
+- branche locale et distante identiques (`0/0`) et worktree propre après publication ;
+- portail local final vert sur ce commit, distributions et installateur inclus ;
+- GitHub Actions n'a exécuté aucune étape du commit final : les jobs CI et graphe ont été refusés
+  avant démarrage parce que le compte signale un paiement échoué ou une limite de dépenses à relever ;
+- la CI distante devra être relancée après correction de **Billing & plans**. Ce blocage externe ne
+  doit pas être présenté comme une validation distante réussie.
+
 ## Commandes de vérité
 
 ```powershell
@@ -75,5 +85,3 @@ dotnet run --project tools/Forge.ArchitectureGraph -- check --full
 & .\scripts\Verify-CreatorDistribution.ps1 -RunSmoke
 & .\scripts\Verify-WindowsInstaller.ps1 -RunInstallCycle
 ```
-
-Le résultat de la publication `main` et de GitHub Actions est ajouté après le push du présent lot.

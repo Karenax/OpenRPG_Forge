@@ -1,6 +1,6 @@
 # File active — consolidation OpenRPG Forge
 
-Dernière mise à jour : 12 août 2026.
+Dernière mise à jour : 13 août 2026.
 
 Les 717 fonctions Aurora et les 187 lots sont clos. Cette file décrit le résultat de la consolidation
 et sépare les tâches réalisables dans le dépôt des décisions externes de release.
@@ -9,7 +9,9 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 
 - [x] Corriger les échecs CI liés au parallélisme et à `.artifacts`.
 - [x] Ajouter les régressions, régénérer le graphe et passer le portail intégré.
-- [ ] Publier le lot puis obtenir CI et graphe verts sur GitHub Actions.
+- [x] Publier le lot consolidé sur `origin/main`.
+- [ ] Obtenir CI et graphe verts sur GitHub Actions : jobs refusés avant démarrage par le compte
+  GitHub pour paiement échoué ou limite de dépenses insuffisante.
 
 ## C2 — Contexte unique
 
@@ -67,6 +69,7 @@ et sépare les tâches réalisables dans le dépôt des décisions externes de r
 - [ ] Fournir un certificat Authenticode et signer les exécutables.
 - [ ] Rejouer la revue physique multi-écrans et un fournisseur IA réel.
 - [ ] Autoriser explicitement un tag et une GitHub Release.
+- [ ] Corriger **Billing & plans** puis relancer les deux workflows du commit final.
 
 AV8–AV10 restent postérieures à ce candidat : Vault complet, SQLite, KTX2, surveillance temps réel,
 curation de masse et finition artistique exhaustive. Elles ne rouvrent pas la consolidation actuelle.

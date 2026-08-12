@@ -3,7 +3,7 @@
     "schema_version": 2,
     "engine": "roslyn",
     "engine_version": "5.6.0.0",
-    "source_digest": "sha256:82d7ce890403d21af246bbcefcafba632afd6afd6ff873ca0452a2b110a108bd",
+    "source_digest": "sha256:1e21b6c1a5c05dda96b688267297fddaea6478734c15dd0fdb9422a90a5c8ecc",
     "source_file_count": 2732,
     "sources": [
       {
@@ -448,13 +448,13 @@
       },
       {
         "path": "STATUS.md",
-        "sha256": "sha256:e31d17d1ce9f24c50aaa3023c99f4eaa72f11267dd59b60ba07aa6ef9c2611d5",
-        "size": 4202
+        "sha256": "sha256:db396ee771b9e5943307daf464e3c3af3b028e5d902d76852ff94c25db39c148",
+        "size": 4769
       },
       {
         "path": "TASKS_MVP.md",
-        "sha256": "sha256:87b85996eccf17c6108c871802725ba68ac1b873ef6a073f69f8145e490d2c8f",
-        "size": 4012
+        "sha256": "sha256:e4baf2b527937cefd3e1d6766cf2d4b982cc565a273b90903e3b86868ed5db13",
+        "size": 4243
       },
       {
         "path": "apps/Forge.CreatorLauncher/Forge.CreatorLauncher.csproj",
@@ -147770,7 +147770,7 @@
       "confidence": "syntactic",
       "evidence": {
         "path": "TASKS_MVP.md",
-        "line": 16
+        "line": 18
       }
     },
     {
